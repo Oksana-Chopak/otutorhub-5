@@ -22,7 +22,7 @@ const signUpSchema = z.object({
 const signInSchema = z.object({
   email: z.string().trim().email("Некоректний email").max(255),
   password: z.string().min(1, "Введіть пароль").max(128),
-});
+}).required();
 
 export default function AuthPage() {
   const navigate = useNavigate();
