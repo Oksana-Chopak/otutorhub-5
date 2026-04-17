@@ -9,19 +9,36 @@ import {
   GraduationCap,
   Menu,
   X,
+  LogOut,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth, AppRole } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
-const navItems = [
-  { to: "/", label: "Дашборд", icon: LayoutDashboard },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays },
-  { to: "/finances", label: "Фінанси", icon: DollarSign },
-  { to: "/chats", label: "Чати", icon: MessageSquare },
-  { to: "/people", label: "Люди", icon: Users },
+const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[] }[] = [
+  { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
+  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
+  { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
+  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"] },
+  { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
 ];
+
+const roleLabel: Record<AppRole, string> = {
+  manager: "Менеджер",
+  tutor: "Репетитор",
+  student: "Учень",
+};
 
 export function AppSidebar() {
   const [open, setOpen] = useState(false);
+  const { user, roles, signOut } = useAuth();
+
+  const navItems = allNavItems.filter((item) =>
+    item.roles.some((r) => roles.includes(r))
+  );
+
+  const primaryRole = roles[0];
+  const initials = (user?.email ?? "??").slice(0, 2).toUpperCase();
 
   return (
     <>
@@ -29,11 +46,11 @@ export function AppSidebar() {
       <button
         onClick={() => setOpen(!open)}
         className="fixed top-4 left-4 z-50 rounded-lg bg-card p-2 shadow-md lg:hidden"
+        aria-label="Toggle menu"
       >
         {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
-      {/* Overlay */}
       {open && (
         <div
           className="fixed inset-0 z-30 bg-foreground/20 lg:hidden"
@@ -41,7 +58,6 @@ export function AppSidebar() {
         />
       )}
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-border bg-card transition-transform duration-200 lg:static lg:translate-x-0",
@@ -77,16 +93,29 @@ export function AppSidebar() {
           ))}
         </nav>
 
-        <div className="border-t border-border px-4 py-4">
+        <div className="border-t border-border px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-              МН
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+              {initials}
             </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">Менеджер</p>
-              <p className="text-xs text-muted-foreground">Адміністратор</p>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">
+                {user?.email ?? "—"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {primaryRole ? roleLabel[primaryRole] : "Без ролі"}
+              </p>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full justify-start"
+            onClick={signOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Вийти
+          </Button>
         </div>
       </aside>
     </>
