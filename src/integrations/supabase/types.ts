@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      lessons: {
+        Row: {
+          created_at: string
+          created_by: string
+          duration_minutes: number
+          id: string
+          notes: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["lesson_status"]
+          student_id: string
+          student_paid_at: string | null
+          student_payment_status: Database["public"]["Enums"]["payment_status"]
+          student_price: number
+          subject: string
+          tutor_id: string
+          tutor_paid_at: string | null
+          tutor_payout: number
+          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["lesson_status"]
+          student_id: string
+          student_paid_at?: string | null
+          student_payment_status?: Database["public"]["Enums"]["payment_status"]
+          student_price?: number
+          subject: string
+          tutor_id: string
+          tutor_paid_at?: string | null
+          tutor_payout?: number
+          tutor_payout_status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          duration_minutes?: number
+          id?: string
+          notes?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["lesson_status"]
+          student_id?: string
+          student_paid_at?: string | null
+          student_payment_status?: Database["public"]["Enums"]["payment_status"]
+          student_price?: number
+          subject?: string
+          tutor_id?: string
+          tutor_paid_at?: string | null
+          tutor_payout?: number
+          tutor_payout_status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -68,6 +128,33 @@ export type Database = {
           parent_name?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      student_rates: {
+        Row: {
+          created_at: string
+          id: string
+          price_per_lesson: number
+          student_id: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          price_per_lesson?: number
+          student_id: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          price_per_lesson?: number
+          student_id?: string
+          tutor_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -134,6 +221,8 @@ export type Database = {
     }
     Enums: {
       app_role: "manager" | "tutor" | "student"
+      lesson_status: "pending" | "scheduled" | "completed" | "cancelled"
+      payment_status: "unpaid" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -262,6 +351,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["manager", "tutor", "student"],
+      lesson_status: ["pending", "scheduled", "completed", "cancelled"],
+      payment_status: ["unpaid", "paid"],
     },
   },
 } as const
