@@ -75,14 +75,17 @@ export default function PeoplePage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [profilesRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, phone"),
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("profile_contacts").select("user_id, phone"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
     ]);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
+    const contacts = (contactsRes.data ?? []) as { user_id: string; phone: string | null }[];
+    const phoneMap = new Map(contacts.map((c) => [c.user_id, c.phone]));
     const roles = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
     (tutorRes.data ?? []).forEach((t: any) => {
@@ -98,7 +101,7 @@ export default function PeoplePage() {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
-        phone: p.phone,
+        phone: phoneMap.get(p.id) ?? null,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
