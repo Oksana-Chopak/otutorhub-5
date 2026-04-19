@@ -74,6 +74,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_contacts: {
+        Row: {
+          created_at: string
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -81,7 +102,6 @@ export type Database = {
           first_name: string
           id: string
           last_name: string
-          phone: string | null
           updated_at: string
         }
         Insert: {
@@ -90,7 +110,6 @@ export type Database = {
           first_name?: string
           id: string
           last_name?: string
-          phone?: string | null
           updated_at?: string
         }
         Update: {
@@ -99,7 +118,6 @@ export type Database = {
           first_name?: string
           id?: string
           last_name?: string
-          phone?: string | null
           updated_at?: string
         }
         Relationships: []
