@@ -56,13 +56,14 @@ export default function AuthPage() {
     });
     setLoading(false);
     if (error) {
+      console.error("Sign-in failed", error);
       toast({
         title: "Не вдалося увійти",
         description: error.message === "Invalid login credentials"
           ? "Невірний email або пароль"
           : error.message === "Email not confirmed"
           ? "Підтвердіть email — ми надіслали посилання на пошту"
-          : error.message,
+          : "Не вдалося увійти. Спробуйте ще раз.",
         variant: "destructive",
       });
       return;
@@ -92,11 +93,12 @@ export default function AuthPage() {
     });
     setLoading(false);
     if (error) {
+      console.error("Sign-up failed", error);
       toast({
         title: "Не вдалося зареєструватися",
         description: error.message === "User already registered"
           ? "Користувач з таким email вже існує"
-          : error.message,
+          : "Не вдалося зареєструватися. Спробуйте ще раз.",
         variant: "destructive",
       });
       return;
