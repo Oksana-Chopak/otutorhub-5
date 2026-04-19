@@ -226,24 +226,7 @@ export type Database = {
       }
     }
     Views: {
-      tutor_directory: {
-        Row: {
-          bio: string | null
-          subjects: string[] | null
-          user_id: string | null
-        }
-        Insert: {
-          bio?: string | null
-          subjects?: string[] | null
-          user_id?: string | null
-        }
-        Update: {
-          bio?: string | null
-          subjects?: string[] | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       has_role: {
