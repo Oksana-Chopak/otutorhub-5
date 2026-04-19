@@ -28,7 +28,6 @@ interface Profile {
   id: string;
   first_name: string;
   last_name: string;
-  phone: string | null;
 }
 
 interface UserRow {
@@ -75,14 +74,17 @@ export default function PeoplePage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [profilesRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, phone"),
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("profile_contacts").select("user_id, phone"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
     ]);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
+    const contacts = (contactsRes.data ?? []) as { user_id: string; phone: string | null }[];
+    const phoneMap = new Map(contacts.map((c) => [c.user_id, c.phone]));
     const roles = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
     (tutorRes.data ?? []).forEach((t: any) => {
@@ -98,7 +100,7 @@ export default function PeoplePage() {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
-        phone: p.phone,
+        phone: phoneMap.get(p.id) ?? null,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
@@ -120,12 +122,14 @@ export default function PeoplePage() {
     // Видалити старі ролі і додати нову
     const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (delErr) {
-      toast.error("Помилка: " + delErr.message);
+      console.error("Failed to remove existing roles", delErr);
+      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
       return;
     }
     const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
     if (insErr) {
-      toast.error("Помилка: " + insErr.message);
+      console.error("Failed to insert role", insErr);
+      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
       return;
     }
 
@@ -158,7 +162,8 @@ export default function PeoplePage() {
         { onConflict: "user_id" }
       );
     if (error) {
-      toast.error("Помилка: " + error.message);
+      console.error("Failed to save tutor rate", error);
+      toast.error("Не вдалося зберегти. Спробуйте ще раз.");
       return;
     }
     toast.success("Збережено");
@@ -182,7 +187,8 @@ export default function PeoplePage() {
         .update({ price_per_lesson: price })
         .eq("id", existing.id);
       if (error) {
-        toast.error("Помилка: " + error.message);
+        console.error("Failed to update student rate", error);
+        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
         return;
       }
     } else {
@@ -192,7 +198,8 @@ export default function PeoplePage() {
         price_per_lesson: price,
       });
       if (error) {
-        toast.error("Помилка: " + error.message);
+        console.error("Failed to insert student rate", error);
+        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
         return;
       }
     }

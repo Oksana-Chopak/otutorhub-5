@@ -188,7 +188,8 @@ export default function SchedulePage() {
     const { error } = await supabase.from("lessons").insert(payload);
     setSubmitting(false);
     if (error) {
-      toast.error("Помилка: " + error.message);
+      console.error("Failed to create lesson", error);
+      toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
     toast.success(status === "pending" ? "Запит створено" : "Урок створено");
@@ -200,7 +201,8 @@ export default function SchedulePage() {
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
-      toast.error("Помилка: " + error.message);
+      console.error("Failed to update lesson status", error);
+      toast.error("Не вдалося оновити статус. Спробуйте ще раз.");
       return;
     }
     toast.success("Статус оновлено");
@@ -210,7 +212,8 @@ export default function SchedulePage() {
   const deleteLesson = async (lessonId: string) => {
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
-      toast.error("Помилка: " + error.message);
+      console.error("Failed to delete lesson", error);
+      toast.error("Не вдалося видалити урок. Спробуйте ще раз.");
       return;
     }
     toast.success("Урок видалено");
