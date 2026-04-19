@@ -115,7 +115,11 @@ export default function FinancesPage() {
     field: "student_payment_status" | "tutor_payout_status"
   ) => {
     const next: PaymentStatus = lesson[field] === "paid" ? "unpaid" : "paid";
-    const { error } = await supabase.from("lessons").update({ [field]: next }).eq("id", lesson.id);
+    const payload =
+      field === "student_payment_status"
+        ? { student_payment_status: next }
+        : { tutor_payout_status: next };
+    const { error } = await supabase.from("lessons").update(payload).eq("id", lesson.id);
     if (error) {
       toast.error("Не вдалося оновити статус");
       return;
