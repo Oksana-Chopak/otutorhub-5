@@ -28,7 +28,6 @@ interface Profile {
   id: string;
   first_name: string;
   last_name: string;
-  phone: string | null;
 }
 
 interface UserRow {
@@ -123,12 +122,14 @@ export default function PeoplePage() {
     // Видалити старі ролі і додати нову
     const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (delErr) {
-      toast.error("Помилка: " + delErr.message);
+      console.error("Failed to remove existing roles", delErr);
+      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
       return;
     }
     const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
     if (insErr) {
-      toast.error("Помилка: " + insErr.message);
+      console.error("Failed to insert role", insErr);
+      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
       return;
     }
 
@@ -161,7 +162,8 @@ export default function PeoplePage() {
         { onConflict: "user_id" }
       );
     if (error) {
-      toast.error("Помилка: " + error.message);
+      console.error("Failed to save tutor rate", error);
+      toast.error("Не вдалося зберегти. Спробуйте ще раз.");
       return;
     }
     toast.success("Збережено");
@@ -185,7 +187,8 @@ export default function PeoplePage() {
         .update({ price_per_lesson: price })
         .eq("id", existing.id);
       if (error) {
-        toast.error("Помилка: " + error.message);
+        console.error("Failed to update student rate", error);
+        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
         return;
       }
     } else {
@@ -195,7 +198,8 @@ export default function PeoplePage() {
         price_per_lesson: price,
       });
       if (error) {
-        toast.error("Помилка: " + error.message);
+        console.error("Failed to insert student rate", error);
+        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
         return;
       }
     }
