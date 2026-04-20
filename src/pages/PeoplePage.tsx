@@ -32,8 +32,16 @@ import {
   UserPlus,
   Hourglass,
   Trash2,
+  Send,
+  MessageCircle,
+  Facebook,
+  Instagram,
+  CreditCard,
+  Pencil,
+  Copy,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
+import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
 
 interface Profile {
   id: string;
@@ -48,6 +56,11 @@ interface UserRow {
   last_name: string;
   phone: string | null;
   email: string | null;
+  telegram: string | null;
+  messenger_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  bank_card: string | null;
   is_pending: boolean;
   role: AppRole | null;
   rate_per_lesson?: number;
@@ -97,20 +110,36 @@ export default function PeoplePage() {
   });
   const [adding, setAdding] = useState(false);
 
+  // Contact edit dialog
+  const [contactDialog, setContactDialog] = useState<{ open: boolean; user: UserRow | null }>({
+    open: false,
+    user: null,
+  });
+
   const loadData = async () => {
     setLoading(true);
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
-      supabase.from("profile_contacts").select("user_id, phone, email"),
+      supabase
+        .from("profile_contacts")
+        .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url, bank_card"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
     ]);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
-    const contacts = (contactsRes.data ?? []) as { user_id: string; phone: string | null; email: string | null }[];
-    const phoneMap = new Map(contacts.map((c) => [c.user_id, c.phone]));
-    const emailMap = new Map(contacts.map((c) => [c.user_id, c.email]));
+    const contacts = (contactsRes.data ?? []) as Array<{
+      user_id: string;
+      phone: string | null;
+      email: string | null;
+      telegram: string | null;
+      messenger_url: string | null;
+      facebook_url: string | null;
+      instagram_url: string | null;
+      bank_card: string | null;
+    }>;
+    const contactMap = new Map(contacts.map((c) => [c.user_id, c]));
     const rolesArr = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
     (tutorRes.data ?? []).forEach((t: any) => {
@@ -121,12 +150,18 @@ export default function PeoplePage() {
     const merged: UserRow[] = profiles.map((p) => {
       const r = rolesArr.find((x) => x.user_id === p.id);
       const td = tutorMap[p.id];
+      const c = contactMap.get(p.id);
       return {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
-        phone: phoneMap.get(p.id) ?? null,
-        email: emailMap.get(p.id) ?? null,
+        phone: c?.phone ?? null,
+        email: c?.email ?? null,
+        telegram: c?.telegram ?? null,
+        messenger_url: c?.messenger_url ?? null,
+        facebook_url: c?.facebook_url ?? null,
+        instagram_url: c?.instagram_url ?? null,
+        bank_card: c?.bank_card ?? null,
         is_pending: p.is_pending,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
