@@ -423,19 +423,96 @@ export default function PeoplePage() {
             )}
           </div>
         </div>
-        {isManager && u.id !== currentUser?.id && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-            onClick={() => deletePerson(u)}
-            title="Видалити"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1 shrink-0">
+          {isManager && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              onClick={() => setContactDialog({ open: true, user: u })}
+              title="Редагувати контакти"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </Button>
+          )}
+          {isManager && u.id !== currentUser?.id && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-destructive"
+              onClick={() => deletePerson(u)}
+              title="Видалити"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
+      {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card) && (
+        <div className="flex flex-wrap items-center gap-2 mb-3 text-muted-foreground">
+          {u.telegram && (
+            <a
+              href={`https://t.me/${u.telegram.replace(/^@/, "")}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
+              title={`Telegram: @${u.telegram.replace(/^@/, "")}`}
+            >
+              <Send className="h-3 w-3" />
+              <span className="truncate max-w-[80px]">@{u.telegram.replace(/^@/, "")}</span>
+            </a>
+          )}
+          {u.messenger_url && (
+            <a
+              href={u.messenger_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
+              title="Messenger"
+            >
+              <MessageCircle className="h-3 w-3" />
+            </a>
+          )}
+          {u.facebook_url && (
+            <a
+              href={u.facebook_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
+              title="Facebook"
+            >
+              <Facebook className="h-3 w-3" />
+            </a>
+          )}
+          {u.instagram_url && (
+            <a
+              href={u.instagram_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
+              title="Instagram"
+            >
+              <Instagram className="h-3 w-3" />
+            </a>
+          )}
+          {u.bank_card && (
+            <button
+              type="button"
+              onClick={() => {
+                navigator.clipboard.writeText(u.bank_card!.replace(/\s/g, ""));
+                toast.success("Номер картки скопійовано");
+              }}
+              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
+              title="Копіювати номер картки"
+            >
+              <CreditCard className="h-3 w-3" />
+              <span className="font-mono">{u.bank_card.slice(-4).padStart(8, "•")}</span>
+              <Copy className="h-2.5 w-2.5" />
+            </button>
+          )}
+        </div>
+      )}
       <div className="flex items-center gap-2 mb-2">
         <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
