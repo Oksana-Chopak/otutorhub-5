@@ -439,6 +439,13 @@ export type Database = {
       }
     }
     Functions: {
+      check_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       get_lesson_financials: {
         Args: { _lesson_id: string }
         Returns: {
