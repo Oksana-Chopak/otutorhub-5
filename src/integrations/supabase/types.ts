@@ -136,8 +136,6 @@ export type Database = {
       }
       profile_contacts: {
         Row: {
-          bank_card_last4: string | null
-          bank_name: string | null
           created_at: string
           email: string | null
           facebook_url: string | null
@@ -149,8 +147,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          bank_card_last4?: string | null
-          bank_name?: string | null
           created_at?: string
           email?: string | null
           facebook_url?: string | null
@@ -162,8 +158,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          bank_card_last4?: string | null
-          bank_name?: string | null
           created_at?: string
           email?: string | null
           facebook_url?: string | null
