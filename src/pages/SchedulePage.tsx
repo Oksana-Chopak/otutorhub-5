@@ -485,6 +485,15 @@ export default function SchedulePage() {
         )}
       </div>
 
+      {studentTutors.length > 0 && (
+        <div className="mb-6 space-y-4">
+          <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
+          {studentTutors.map((t) => (
+            <TutorAvailabilityView key={t.id} tutorId={t.id} tutorName={t.name} />
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
