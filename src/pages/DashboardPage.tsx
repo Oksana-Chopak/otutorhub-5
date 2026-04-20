@@ -60,7 +60,7 @@ export default function DashboardPage() {
       setLoading(true);
 
       const [{ data: lessonsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
-        supabase.from("lessons").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status").order("starts_at", { ascending: true }),
+        supabase.from("lessons_visible").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status").order("starts_at", { ascending: true }),
         supabase.from("profiles").select("id, first_name, last_name"),
         supabase.from("user_roles").select("user_id, role"),
       ]);
