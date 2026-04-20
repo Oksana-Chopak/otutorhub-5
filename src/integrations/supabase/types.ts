@@ -77,18 +77,21 @@ export type Database = {
       profile_contacts: {
         Row: {
           created_at: string
+          email: string | null
           phone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           phone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -101,6 +104,7 @@ export type Database = {
           created_at: string
           first_name: string
           id: string
+          is_pending: boolean
           last_name: string
           updated_at: string
         }
@@ -109,6 +113,7 @@ export type Database = {
           created_at?: string
           first_name?: string
           id: string
+          is_pending?: boolean
           last_name?: string
           updated_at?: string
         }
@@ -117,6 +122,7 @@ export type Database = {
           created_at?: string
           first_name?: string
           id?: string
+          is_pending?: boolean
           last_name?: string
           updated_at?: string
         }
@@ -235,6 +241,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      merge_pending_profile: {
+        Args: { _email: string; _phone: string; _real_id: string }
+        Returns: string
       }
     }
     Enums: {
