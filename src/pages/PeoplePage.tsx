@@ -306,7 +306,7 @@ export default function PeoplePage() {
       .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
     if (profErr) {
       console.error("Failed to create ghost profile", profErr);
-      toast.error("Не вдалося додати людину. Можливо, такий email вже використовується.");
+      toast.error(profErr.message || "Не вдалося створити профіль");
       setAdding(false);
       return;
     }
