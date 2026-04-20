@@ -825,6 +825,25 @@ export default function PeoplePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {contactDialog.user && (
+        <ContactEditDialog
+          open={contactDialog.open}
+          onOpenChange={(o) => setContactDialog((s) => ({ ...s, open: o }))}
+          userId={contactDialog.user.id}
+          userName={fullName(contactDialog.user)}
+          initial={{
+            email: contactDialog.user.email,
+            phone: contactDialog.user.phone,
+            telegram: contactDialog.user.telegram,
+            messenger_url: contactDialog.user.messenger_url,
+            facebook_url: contactDialog.user.facebook_url,
+            instagram_url: contactDialog.user.instagram_url,
+            bank_card: contactDialog.user.bank_card,
+          }}
+          onSaved={loadData}
+        />
+      )}
     </AppLayout>
   );
 }
