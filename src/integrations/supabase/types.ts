@@ -176,6 +176,38 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_financial_contacts: {
+        Row: {
+          bank_card_last4: string | null
+          bank_name: string | null
+          created_at: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bank_card_last4?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bank_card_last4?: string | null
+          bank_name?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_financial_contacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -434,6 +466,42 @@ export type Database = {
           tutor_payout?: never
           tutor_payout_status?: never
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profile_contacts_safe_for_tutors: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          facebook_url: string | null
+          instagram_url: string | null
+          messenger_url: string | null
+          phone: string | null
+          telegram: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          messenger_url?: string | null
+          phone?: string | null
+          telegram?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          messenger_url?: string | null
+          phone?: string | null
+          telegram?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
