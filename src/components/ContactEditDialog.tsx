@@ -21,8 +21,9 @@ export interface ContactFields {
   messenger_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  bank_card_last4: string | null;
-  bank_name: string | null;
+  // Financial fields moved to profile_financial_contacts table
+  bank_card_last4?: string | null;
+  bank_name?: string | null;
 }
 
 interface Props {
