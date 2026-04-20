@@ -110,6 +110,11 @@ export default function SchedulePage() {
     starts_at: toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000).toISOString()),
     duration_minutes: "60",
     notes: "",
+    status: "scheduled" as LessonStatus,
+    student_price: "0",
+    tutor_payout: "0",
+    student_payment_status: "unpaid" as PaymentStatus,
+    tutor_payout_status: "unpaid" as PaymentStatus,
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -181,9 +186,16 @@ export default function SchedulePage() {
       starts_at: new Date(form.starts_at).toISOString(),
       duration_minutes: parseInt(form.duration_minutes) || 60,
       notes: form.notes || null,
-      status,
+      status: isManager ? form.status : status,
       created_by: user.id,
     };
+
+    if (isManager) {
+      payload.student_price = Number(form.student_price) || 0;
+      payload.tutor_payout = Number(form.tutor_payout) || 0;
+      payload.student_payment_status = form.student_payment_status;
+      payload.tutor_payout_status = form.tutor_payout_status;
+    }
 
     const { error } = await supabase.from("lessons").insert(payload);
     setSubmitting(false);
@@ -194,7 +206,16 @@ export default function SchedulePage() {
     }
     toast.success(status === "pending" ? "Запит створено" : "Урок створено");
     setCreateOpen(false);
-    setForm((f) => ({ ...f, subject: "", notes: "" }));
+    setForm((f) => ({
+      ...f,
+      subject: "",
+      notes: "",
+      student_price: "0",
+      tutor_payout: "0",
+      student_payment_status: "unpaid",
+      tutor_payout_status: "unpaid",
+      status: "scheduled",
+    }));
     loadAll();
   };
 
@@ -359,6 +380,83 @@ export default function SchedulePage() {
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
                   />
                 </div>
+                {isManager && (
+                  <>
+                    <div>
+                      <Label>Статус уроку</Label>
+                      <Select
+                        value={form.status}
+                        onValueChange={(v) => setForm((f) => ({ ...f, status: v as LessonStatus }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Оберіть статус" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Запит</SelectItem>
+                          <SelectItem value="scheduled">Заплановано</SelectItem>
+                          <SelectItem value="completed">Проведено</SelectItem>
+                          <SelectItem value="cancelled">Скасовано</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="student_price">Оплата учня (₴)</Label>
+                        <Input
+                          id="student_price"
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={form.student_price}
+                          onChange={(e) => setForm((f) => ({ ...f, student_price: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="tutor_payout">Виплата репетитору (₴)</Label>
+                        <Input
+                          id="tutor_payout"
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={form.tutor_payout}
+                          onChange={(e) => setForm((f) => ({ ...f, tutor_payout: e.target.value }))}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Статус оплати учня</Label>
+                        <Select
+                          value={form.student_payment_status}
+                          onValueChange={(v) => setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Оберіть статус" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unpaid">Очікує</SelectItem>
+                            <SelectItem value="paid">Оплачено</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Статус виплати репетитору</Label>
+                        <Select
+                          value={form.tutor_payout_status}
+                          onValueChange={(v) => setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus }))}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Оберіть статус" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unpaid">Очікує</SelectItem>
+                            <SelectItem value="paid">Оплачено</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
                 {isStudent && !isManager && !isTutor && (
                   <p className="text-xs text-muted-foreground">
                     Це буде запит. Менеджер або репетитор підтвердить його.
