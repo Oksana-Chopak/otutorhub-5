@@ -121,15 +121,24 @@ export default function PeoplePage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+    const isManager = roles.includes("manager");
+    
+    const queries = [
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
       supabase
         .from("profile_contacts")
-        .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url, bank_card_last4, bank_name"),
+        .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
-    ]);
+    ] as const;
+
+    // Only managers can fetch financial contacts
+    if (isManager) {
+      queries.push(supabase.from("profile_financial_contacts").select("user_id, bank_card_last4, bank_name") as any);
+    }
+
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, financialRes] = await Promise.all(queries);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
     const contacts = (contactsRes.data ?? []) as Array<{
@@ -140,10 +149,17 @@ export default function PeoplePage() {
       messenger_url: string | null;
       facebook_url: string | null;
       instagram_url: string | null;
-      bank_card_last4: string | null;
-      bank_name: string | null;
     }>;
     const contactMap = new Map(contacts.map((c) => [c.user_id, c]));
+    
+    // Build financial contacts map (only for managers)
+    const financialMap = new Map<string, { bank_card_last4: string | null; bank_name: string | null }>();
+    if (isManager && financialRes?.data) {
+      (financialRes.data as any[]).forEach((f) => {
+        financialMap.set(f.user_id, { bank_card_last4: f.bank_card_last4, bank_name: f.bank_name });
+      });
+    }
+    
     const rolesArr = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
     (tutorRes.data ?? []).forEach((t: any) => {
@@ -155,6 +171,7 @@ export default function PeoplePage() {
       const r = rolesArr.find((x) => x.user_id === p.id);
       const td = tutorMap[p.id];
       const c = contactMap.get(p.id);
+      const f = financialMap.get(p.id);
       return {
         id: p.id,
         first_name: p.first_name,
@@ -165,8 +182,8 @@ export default function PeoplePage() {
         messenger_url: c?.messenger_url ?? null,
         facebook_url: c?.facebook_url ?? null,
         instagram_url: c?.instagram_url ?? null,
-        bank_card_last4: c?.bank_card_last4 ?? null,
-        bank_name: c?.bank_name ?? null,
+        bank_card_last4: f?.bank_card_last4 ?? null,
+        bank_name: f?.bank_name ?? null,
         is_pending: p.is_pending,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
