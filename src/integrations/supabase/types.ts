@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      availability_requests: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string
+          id: string
+          message: string | null
+          requester_id: string
+          status: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id: string
+          status?: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          requester_id?: string
+          status?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           created_at: string
@@ -221,6 +254,69 @@ export type Database = {
           student_id?: string
           tutor_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_availability_overrides: {
+        Row: {
+          created_at: string
+          end_minute: number
+          id: string
+          is_available: boolean
+          slot_date: string
+          start_minute: number
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_minute: number
+          id?: string
+          is_available?: boolean
+          slot_date: string
+          start_minute: number
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_minute?: number
+          id?: string
+          is_available?: boolean
+          slot_date?: string
+          start_minute?: number
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_availability_weekly: {
+        Row: {
+          created_at: string
+          end_minute: number
+          id: string
+          start_minute: number
+          tutor_id: string
+          updated_at: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_minute: number
+          id?: string
+          start_minute: number
+          tutor_id: string
+          updated_at?: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_minute?: number
+          id?: string
+          start_minute?: number
+          tutor_id?: string
+          updated_at?: string
+          weekday?: number
         }
         Relationships: []
       }
