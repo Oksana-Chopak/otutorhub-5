@@ -61,7 +61,8 @@ interface UserRow {
   messenger_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  bank_card: string | null;
+  bank_card_last4: string | null;
+  bank_name: string | null;
   is_pending: boolean;
   role: AppRole | null;
   rate_per_lesson?: number;
@@ -124,7 +125,7 @@ export default function PeoplePage() {
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
       supabase
         .from("profile_contacts")
-        .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url, bank_card"),
+        .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url, bank_card_last4, bank_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
@@ -139,7 +140,8 @@ export default function PeoplePage() {
       messenger_url: string | null;
       facebook_url: string | null;
       instagram_url: string | null;
-      bank_card: string | null;
+      bank_card_last4: string | null;
+      bank_name: string | null;
     }>;
     const contactMap = new Map(contacts.map((c) => [c.user_id, c]));
     const rolesArr = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
@@ -163,7 +165,8 @@ export default function PeoplePage() {
         messenger_url: c?.messenger_url ?? null,
         facebook_url: c?.facebook_url ?? null,
         instagram_url: c?.instagram_url ?? null,
-        bank_card: c?.bank_card ?? null,
+        bank_card_last4: c?.bank_card_last4 ?? null,
+        bank_name: c?.bank_name ?? null,
         is_pending: p.is_pending,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
@@ -448,7 +451,7 @@ export default function PeoplePage() {
         </div>
       </div>
 
-      {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card) && (
+      {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card_last4) && (
         <div className="flex flex-wrap items-center gap-2 mb-3 text-muted-foreground">
           {u.telegram && (
             <a
@@ -495,20 +498,16 @@ export default function PeoplePage() {
               <Instagram className="h-3 w-3" />
             </a>
           )}
-          {u.bank_card && (
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(u.bank_card!.replace(/\s/g, ""));
-                toast.success("Номер картки скопійовано");
-              }}
-              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
-              title="Копіювати номер картки"
+          {u.bank_card_last4 && (
+            <span
+              className="inline-flex items-center gap-1 text-xs"
+              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `Картка •••• ${u.bank_card_last4}`}
             >
               <CreditCard className="h-3 w-3" />
-              <span className="font-mono">{u.bank_card.slice(-4).padStart(8, "•")}</span>
-              <Copy className="h-2.5 w-2.5" />
-            </button>
+              <span className="font-mono">
+                {u.bank_name ? `${u.bank_name} ` : ""}•••• {u.bank_card_last4}
+              </span>
+            </span>
           )}
         </div>
       )}
@@ -847,7 +846,8 @@ export default function PeoplePage() {
             messenger_url: contactDialog.user.messenger_url,
             facebook_url: contactDialog.user.facebook_url,
             instagram_url: contactDialog.user.instagram_url,
-            bank_card: contactDialog.user.bank_card,
+            bank_card_last4: contactDialog.user.bank_card_last4,
+            bank_name: contactDialog.user.bank_name,
           }}
           onSaved={loadData}
         />

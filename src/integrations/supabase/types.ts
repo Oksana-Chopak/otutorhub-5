@@ -136,7 +136,8 @@ export type Database = {
       }
       profile_contacts: {
         Row: {
-          bank_card: string | null
+          bank_card_last4: string | null
+          bank_name: string | null
           created_at: string
           email: string | null
           facebook_url: string | null
@@ -148,7 +149,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          bank_card?: string | null
+          bank_card_last4?: string | null
+          bank_name?: string | null
           created_at?: string
           email?: string | null
           facebook_url?: string | null
@@ -160,7 +162,8 @@ export type Database = {
           user_id: string
         }
         Update: {
-          bank_card?: string | null
+          bank_card_last4?: string | null
+          bank_name?: string | null
           created_at?: string
           email?: string | null
           facebook_url?: string | null
@@ -370,15 +373,102 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lessons_visible: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          duration_minutes: number | null
+          id: string | null
+          notes: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["lesson_status"] | null
+          student_id: string | null
+          student_paid_at: string | null
+          student_payment_status:
+            | Database["public"]["Enums"]["payment_status"]
+            | null
+          student_price: number | null
+          subject: string | null
+          tutor_id: string | null
+          tutor_paid_at: string | null
+          tutor_payout: number | null
+          tutor_payout_status:
+            | Database["public"]["Enums"]["payment_status"]
+            | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          notes?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["lesson_status"] | null
+          student_id?: string | null
+          student_paid_at?: never
+          student_payment_status?: never
+          student_price?: never
+          subject?: string | null
+          tutor_id?: string | null
+          tutor_paid_at?: never
+          tutor_payout?: never
+          tutor_payout_status?: never
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          notes?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["lesson_status"] | null
+          student_id?: string | null
+          student_paid_at?: never
+          student_payment_status?: never
+          student_price?: never
+          subject?: string | null
+          tutor_id?: string | null
+          tutor_paid_at?: never
+          tutor_payout?: never
+          tutor_payout_status?: never
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      get_lesson_financials: {
+        Args: { _lesson_id: string }
+        Returns: {
+          id: string
+          student_paid_at: string
+          student_payment_status: Database["public"]["Enums"]["payment_status"]
+          student_price: number
+          tutor_paid_at: string
+          tutor_payout: number
+          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      list_lesson_financials: {
+        Args: never
+        Returns: {
+          id: string
+          student_paid_at: string
+          student_payment_status: Database["public"]["Enums"]["payment_status"]
+          student_price: number
+          tutor_paid_at: string
+          tutor_payout: number
+          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
+        }[]
       }
       merge_pending_profile: {
         Args: { _email: string; _phone: string; _real_id: string }

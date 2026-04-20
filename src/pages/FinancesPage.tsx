@@ -57,7 +57,7 @@ export default function FinancesPage() {
     setLoading(true);
     const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] = await Promise.all([
       supabase
-        .from("lessons")
+        .from("lessons_visible")
         .select(
           "id, subject, starts_at, status, student_id, tutor_id, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at"
         )

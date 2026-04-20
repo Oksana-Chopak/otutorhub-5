@@ -77,7 +77,7 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
         .gte("slot_date", today)
         .lte("slot_date", horizonIso),
       supabase
-        .from("lessons")
+        .from("lessons_visible")
         .select("starts_at, duration_minutes")
         .eq("tutor_id", tutorId)
         .gte("starts_at", new Date().toISOString())

@@ -124,7 +124,7 @@ export default function SchedulePage() {
     setLoading(true);
 
     const [lessonsRes, profilesRes, rolesRes, tutorRes] = await Promise.all([
-      supabase.from("lessons").select("*").order("starts_at", { ascending: true }),
+      supabase.from("lessons_visible").select("*").order("starts_at", { ascending: true }),
       supabase.from("profiles").select("id, first_name, last_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, subjects"),

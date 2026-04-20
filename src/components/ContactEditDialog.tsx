@@ -21,7 +21,8 @@ export interface ContactFields {
   messenger_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  bank_card: string | null;
+  bank_card_last4: string | null;
+  bank_name: string | null;
 }
 
 interface Props {
@@ -40,11 +41,14 @@ const empty: ContactFields = {
   messenger_url: "",
   facebook_url: "",
   instagram_url: "",
-  bank_card: "",
+  bank_card_last4: "",
+  bank_name: "",
 };
 
 export function ContactEditDialog({ open, onOpenChange, userId, userName, initial, onSaved }: Props) {
   const [form, setForm] = useState<ContactFields>(empty);
+  // Card input is held separately and only the last 4 digits are persisted.
+  const [cardInput, setCardInput] = useState("");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -56,8 +60,10 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
         messenger_url: initial.messenger_url ?? "",
         facebook_url: initial.facebook_url ?? "",
         instagram_url: initial.instagram_url ?? "",
-        bank_card: initial.bank_card ?? "",
+        bank_card_last4: initial.bank_card_last4 ?? "",
+        bank_name: initial.bank_name ?? "",
       });
+      setCardInput("");
     }
   }, [open, initial]);
 
@@ -81,7 +87,18 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     const messenger_url = (form.messenger_url ?? "").trim();
     const facebook_url = (form.facebook_url ?? "").trim();
     const instagram_url = (form.instagram_url ?? "").trim();
-    const bank_card = (form.bank_card ?? "").trim();
+    const bank_name = (form.bank_name ?? "").trim();
+
+    // If user typed a new card, derive last4. Otherwise keep existing.
+    let bank_card_last4 = (form.bank_card_last4 ?? "").trim();
+    if (cardInput.trim()) {
+      const digits = cardInput.replace(/\D/g, "");
+      if (digits.length < 4 || digits.length > 19) {
+        toast.error("Номер картки виглядає некоректно");
+        return;
+      }
+      bank_card_last4 = digits.slice(-4);
+    }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Невірний email");
@@ -97,8 +114,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
         return;
       }
     }
-    if (bank_card && !/^[\d\s-]{12,25}$/.test(bank_card)) {
-      toast.error("Номер картки виглядає некоректно");
+    if (bank_card_last4 && !/^\d{4}$/.test(bank_card_last4)) {
+      toast.error("Останні 4 цифри картки виглядають некоректно");
       return;
     }
 
@@ -112,7 +129,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       messenger_url: messenger_url || null,
       facebook_url: facebook_url || null,
       instagram_url: instagram_url || null,
-      bank_card: bank_card || null,
+      bank_card_last4: bank_card_last4 || null,
+      bank_name: bank_name || null,
     };
 
     // Перевіряємо живу сесію — інколи токен прострочений і fetch падає як "Load failed"
@@ -246,21 +264,33 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               maxLength={500}
             />
           </div>
-          <div>
-            <Label htmlFor="c-card">Номер банківської картки</Label>
-            <Input
-              id="c-card"
-              value={form.bank_card ?? ""}
-              onChange={(e) => setField("bank_card", e.target.value)}
-              placeholder="0000 0000 0000 0000"
-              maxLength={25}
-              inputMode="numeric"
-              autoComplete="off"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Зберігається в захищеній базі. Бачить власник і менеджер.
-            </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="c-bank">Банк</Label>
+              <Input
+                id="c-bank"
+                value={form.bank_name ?? ""}
+                onChange={(e) => setField("bank_name", e.target.value)}
+                placeholder="Напр. Monobank"
+                maxLength={64}
+              />
+            </div>
+            <div>
+              <Label htmlFor="c-card">Картка (повний номер)</Label>
+              <Input
+                id="c-card"
+                value={cardInput}
+                onChange={(e) => setCardInput(e.target.value)}
+                placeholder={form.bank_card_last4 ? `•••• ${form.bank_card_last4}` : "0000 0000 0000 0000"}
+                maxLength={25}
+                inputMode="numeric"
+                autoComplete="off"
+              />
+            </div>
           </div>
+          <p className="text-xs text-muted-foreground -mt-1">
+            З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.
+          </p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
