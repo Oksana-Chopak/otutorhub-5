@@ -38,11 +38,20 @@ export function useAvailabilityRequestCount(): number {
     };
 
     fetchCount();
+    // Scope realtime subscription to rows the user can actually see.
+    // Managers see all; tutors see rows where they are tutor_id; others see rows
+    // where they are requester_id. This is defense-in-depth on top of table RLS,
+    // which already filters payloads.
+    const filter = isManager
+      ? undefined
+      : isTutor
+        ? `tutor_id=eq.${user.id}`
+        : `requester_id=eq.${user.id}`;
     const ch = supabase
-      .channel("avail-requests-count")
+      .channel(`avail-requests-count:${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "availability_requests" },
+        { event: "*", schema: "public", table: "availability_requests", ...(filter ? { filter } : {}) },
         () => fetchCount()
       )
       .subscribe();
