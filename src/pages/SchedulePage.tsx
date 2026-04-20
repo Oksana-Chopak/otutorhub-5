@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Clock, Plus, Loader2, Trash2 } from "lucide-react";
+import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -251,6 +252,13 @@ export default function SchedulePage() {
     });
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [lessons]);
+
+  // For students: list of distinct tutors they have lessons with
+  const studentTutors = useMemo(() => {
+    if (!isStudent || isManager || isTutor || !user) return [] as PersonOption[];
+    const ids = Array.from(new Set(lessons.filter((l) => l.student_id === user.id).map((l) => l.tutor_id)));
+    return ids.map((id) => ({ id, name: profilesMap[id] ?? "Репетитор" }));
+  }, [lessons, isStudent, isManager, isTutor, user?.id, profilesMap]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
 
@@ -476,6 +484,15 @@ export default function SchedulePage() {
           </Dialog>
         )}
       </div>
+
+      {studentTutors.length > 0 && (
+        <div className="mb-6 space-y-4">
+          <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
+          {studentTutors.map((t) => (
+            <TutorAvailabilityView key={t.id} tutorId={t.id} tutorName={t.name} />
+          ))}
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
