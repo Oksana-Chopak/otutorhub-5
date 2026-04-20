@@ -253,6 +253,13 @@ export default function SchedulePage() {
     return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
   }, [lessons]);
 
+  // For students: list of distinct tutors they have lessons with
+  const studentTutors = useMemo(() => {
+    if (!isStudent || isManager || isTutor || !user) return [] as PersonOption[];
+    const ids = Array.from(new Set(lessons.filter((l) => l.student_id === user.id).map((l) => l.tutor_id)));
+    return ids.map((id) => ({ id, name: profilesMap[id] ?? "Репетитор" }));
+  }, [lessons, isStudent, isManager, isTutor, user?.id, profilesMap]);
+
   const todayKey = new Date().toISOString().slice(0, 10);
 
   const canCreate = isManager || isTutor || isStudent;
