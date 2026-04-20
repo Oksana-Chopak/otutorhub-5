@@ -103,34 +103,71 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     }
 
     setSaving(true);
-    const { error } = await supabase.from("profile_contacts").upsert(
-      {
-        user_id: userId,
-        email: email || null,
-        phone: phone || null,
-        telegram: telegram || null,
-        messenger_url: messenger_url || null,
-        facebook_url: facebook_url || null,
-        instagram_url: instagram_url || null,
-        bank_card: bank_card || null,
-      },
-      { onConflict: "user_id" }
-    );
-    setSaving(false);
 
-    if (error) {
-      console.error("Failed to save contacts", error);
-      const msg = String(error.message || "");
-      if (msg.toLowerCase().includes("email")) {
-        toast.error("Цей email вже використовується іншою людиною");
-      } else {
-        toast.error("Не вдалося зберегти контакти");
-      }
+    const payload = {
+      user_id: userId,
+      email: email || null,
+      phone: phone || null,
+      telegram: telegram || null,
+      messenger_url: messenger_url || null,
+      facebook_url: facebook_url || null,
+      instagram_url: instagram_url || null,
+      bank_card: bank_card || null,
+    };
+
+    // Перевіряємо живу сесію — інколи токен прострочений і fetch падає як "Load failed"
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setSaving(false);
+      toast.error("Сесія завершилась. Оновіть сторінку та увійдіть знову.");
       return;
     }
-    toast.success("Контакти збережено");
-    onOpenChange(false);
-    onSaved?.();
+
+    // Ретрай на випадок мережевих збоїв (Safari "Load failed", flaky network)
+    let lastError: any = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const { error } = await supabase
+          .from("profile_contacts")
+          .upsert(payload, { onConflict: "user_id" });
+        if (!error) {
+          setSaving(false);
+          toast.success("Контакти збережено");
+          onOpenChange(false);
+          onSaved?.();
+          return;
+        }
+        lastError = error;
+        const msg = String(error.message || "").toLowerCase();
+        // Не ретраїмо помилки валідації / RLS / унікальності
+        if (
+          msg.includes("duplicate") ||
+          msg.includes("unique") ||
+          msg.includes("violates") ||
+          msg.includes("permission") ||
+          msg.includes("rls") ||
+          msg.includes("policy")
+        ) {
+          break;
+        }
+      } catch (e) {
+        lastError = e;
+      }
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 400 * attempt));
+      }
+    }
+
+    setSaving(false);
+    console.error("Failed to save contacts after retries", lastError);
+    const msg = String(lastError?.message || "");
+    if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
+      toast.error("Цей email вже використовується іншою людиною");
+    } else if (/load failed|network|fetch/i.test(msg)) {
+      toast.error("Проблема з мережею. Перевірте з'єднання та спробуйте ще раз.");
+    } else {
+      toast.error(msg || "Не вдалося зберегти контакти");
+    }
   };
 
   return (
