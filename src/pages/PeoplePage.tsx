@@ -123,7 +123,7 @@ export default function PeoplePage() {
     setLoading(true);
     const isManager = roles.includes("manager");
     
-    const queries = [
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
       supabase
         .from("profile_contacts")
@@ -131,14 +131,16 @@ export default function PeoplePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
-    ] as const;
+    ]);
 
-    // Only managers can fetch financial contacts
+    // Fetch financial contacts separately (only for managers)
+    let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
     if (isManager) {
-      queries.push(supabase.from("profile_financial_contacts").select("user_id, bank_card_last4, bank_name") as any);
+      const { data: financialRes } = await supabase
+        .from("profile_financial_contacts")
+        .select("user_id, bank_card_last4, bank_name");
+      financialData = (financialRes ?? []) as any;
     }
-
-    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, financialRes] = await Promise.all(queries);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
     const contacts = (contactsRes.data ?? []) as Array<{
@@ -154,11 +156,9 @@ export default function PeoplePage() {
     
     // Build financial contacts map (only for managers)
     const financialMap = new Map<string, { bank_card_last4: string | null; bank_name: string | null }>();
-    if (isManager && financialRes?.data) {
-      (financialRes.data as any[]).forEach((f) => {
-        financialMap.set(f.user_id, { bank_card_last4: f.bank_card_last4, bank_name: f.bank_name });
-      });
-    }
+    financialData.forEach((f) => {
+      financialMap.set(f.user_id, { bank_card_last4: f.bank_card_last4, bank_name: f.bank_name });
+    });
     
     const rolesArr = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
