@@ -10,14 +10,17 @@ import {
   Menu,
   X,
   LogOut,
+  CalendarClock,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 
-const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[] }[] = [
+const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
+  { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"] },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
@@ -32,6 +35,7 @@ const roleLabel: Record<AppRole, string> = {
 export function AppSidebar() {
   const [open, setOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
+  const availabilityBadge = useAvailabilityRequestCount();
 
   const navItems = allNavItems.filter((item) =>
     item.roles.some((r) => roles.includes(r))
@@ -72,25 +76,33 @@ export function AppSidebar() {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {navItems.map((item) => (
-            <RouterNavLink
-              key={item.to}
-              to={item.to}
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                )
-              }
-              end={item.to === "/"}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.label}
-            </RouterNavLink>
-          ))}
+          {navItems.map((item) => {
+            const badge = item.badgeKey === "availability" ? availabilityBadge : 0;
+            return (
+              <RouterNavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  )
+                }
+                end={item.to === "/"}
+              >
+                <item.icon className="h-4 w-4" />
+                <span className="flex-1">{item.label}</span>
+                {badge > 0 && (
+                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-semibold text-warning-foreground">
+                    {badge}
+                  </span>
+                )}
+              </RouterNavLink>
+            );
+          })}
         </nav>
 
         <div className="border-t border-border px-4 py-4 space-y-3">
