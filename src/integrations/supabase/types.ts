@@ -373,7 +373,70 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lessons_visible: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          duration_minutes: number | null
+          id: string | null
+          notes: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["lesson_status"] | null
+          student_id: string | null
+          student_paid_at: string | null
+          student_payment_status:
+            | Database["public"]["Enums"]["payment_status"]
+            | null
+          student_price: number | null
+          subject: string | null
+          tutor_id: string | null
+          tutor_paid_at: string | null
+          tutor_payout: number | null
+          tutor_payout_status:
+            | Database["public"]["Enums"]["payment_status"]
+            | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          notes?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["lesson_status"] | null
+          student_id?: string | null
+          student_paid_at?: never
+          student_payment_status?: never
+          student_price?: never
+          subject?: string | null
+          tutor_id?: string | null
+          tutor_paid_at?: never
+          tutor_payout?: never
+          tutor_payout_status?: never
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          duration_minutes?: number | null
+          id?: string | null
+          notes?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["lesson_status"] | null
+          student_id?: string | null
+          student_paid_at?: never
+          student_payment_status?: never
+          student_price?: never
+          subject?: string | null
+          tutor_id?: string | null
+          tutor_paid_at?: never
+          tutor_payout?: never
+          tutor_payout_status?: never
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_lesson_financials: {
