@@ -33,6 +33,7 @@ import {
   Hourglass,
   Trash2,
 } from "lucide-react";
+import { ManagerNotes } from "@/components/ManagerNotes";
 
 interface Profile {
   id: string;
@@ -469,6 +470,8 @@ export default function PeoplePage() {
           </div>
         </div>
       )}
+
+      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
     </div>
   );
 
