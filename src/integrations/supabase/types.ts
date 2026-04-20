@@ -103,23 +103,38 @@ export type Database = {
       }
       profile_contacts: {
         Row: {
+          bank_card: string | null
           created_at: string
           email: string | null
+          facebook_url: string | null
+          instagram_url: string | null
+          messenger_url: string | null
           phone: string | null
+          telegram: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bank_card?: string | null
           created_at?: string
           email?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          messenger_url?: string | null
           phone?: string | null
+          telegram?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bank_card?: string | null
           created_at?: string
           email?: string | null
+          facebook_url?: string | null
+          instagram_url?: string | null
+          messenger_url?: string | null
           phone?: string | null
+          telegram?: string | null
           updated_at?: string
           user_id?: string
         }
