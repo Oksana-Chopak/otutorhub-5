@@ -87,7 +87,18 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     const messenger_url = (form.messenger_url ?? "").trim();
     const facebook_url = (form.facebook_url ?? "").trim();
     const instagram_url = (form.instagram_url ?? "").trim();
-    const bank_card = (form.bank_card ?? "").trim();
+    const bank_name = (form.bank_name ?? "").trim();
+
+    // If user typed a new card, derive last4. Otherwise keep existing.
+    let bank_card_last4 = (form.bank_card_last4 ?? "").trim();
+    if (cardInput.trim()) {
+      const digits = cardInput.replace(/\D/g, "");
+      if (digits.length < 4 || digits.length > 19) {
+        toast.error("Номер картки виглядає некоректно");
+        return;
+      }
+      bank_card_last4 = digits.slice(-4);
+    }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Невірний email");
@@ -103,8 +114,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
         return;
       }
     }
-    if (bank_card && !/^[\d\s-]{12,25}$/.test(bank_card)) {
-      toast.error("Номер картки виглядає некоректно");
+    if (bank_card_last4 && !/^\d{4}$/.test(bank_card_last4)) {
+      toast.error("Останні 4 цифри картки виглядають некоректно");
       return;
     }
 
@@ -118,7 +129,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       messenger_url: messenger_url || null,
       facebook_url: facebook_url || null,
       instagram_url: instagram_url || null,
-      bank_card: bank_card || null,
+      bank_card_last4: bank_card_last4 || null,
+      bank_name: bank_name || null,
     };
 
     // Перевіряємо живу сесію — інколи токен прострочений і fetch падає як "Load failed"
