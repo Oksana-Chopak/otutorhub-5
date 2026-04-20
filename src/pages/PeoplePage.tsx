@@ -20,14 +20,25 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { GraduationCap, BookOpen, Users as UsersIcon, Settings, Loader2 } from "lucide-react";
+import {
+  GraduationCap,
+  BookOpen,
+  Users as UsersIcon,
+  Settings,
+  Loader2,
+  UserPlus,
+  Hourglass,
+  Trash2,
+} from "lucide-react";
 
 interface Profile {
   id: string;
   first_name: string;
   last_name: string;
+  is_pending: boolean;
 }
 
 interface UserRow {
@@ -35,6 +46,8 @@ interface UserRow {
   first_name: string;
   last_name: string;
   phone: string | null;
+  email: string | null;
+  is_pending: boolean;
   role: AppRole | null;
   rate_per_lesson?: number;
   subjects?: string[];
@@ -47,10 +60,10 @@ const roleLabel: Record<AppRole, string> = {
 };
 
 export default function PeoplePage() {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, roles } = useAuth();
+  const isManager = roles.includes("manager");
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
-  const [tutorRates, setTutorRates] = useState<Record<string, { rate: number; subjects: string[] }>>({});
   const [studentRates, setStudentRates] = useState<
     Array<{ id: string; tutor_id: string; student_id: string; price_per_lesson: number }>
   >([]);
@@ -72,35 +85,48 @@ export default function PeoplePage() {
     price: string;
   }>({ open: false, studentId: "", studentName: "", tutorId: "", price: "" });
 
+  // Add person dialog
+  const [addOpen, setAddOpen] = useState(false);
+  const [addForm, setAddForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    role: "student" as AppRole,
+  });
+  const [adding, setAdding] = useState(false);
+
   const loadData = async () => {
     setLoading(true);
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name"),
-      supabase.from("profile_contacts").select("user_id, phone"),
+      supabase.from("profiles").select("id, first_name, last_name, is_pending"),
+      supabase.from("profile_contacts").select("user_id, phone, email"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
     ]);
 
     const profiles = (profilesRes.data ?? []) as Profile[];
-    const contacts = (contactsRes.data ?? []) as { user_id: string; phone: string | null }[];
+    const contacts = (contactsRes.data ?? []) as { user_id: string; phone: string | null; email: string | null }[];
     const phoneMap = new Map(contacts.map((c) => [c.user_id, c.phone]));
-    const roles = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
+    const emailMap = new Map(contacts.map((c) => [c.user_id, c.email]));
+    const rolesArr = (rolesRes.data ?? []) as { user_id: string; role: AppRole }[];
     const tutorMap: Record<string, { rate: number; subjects: string[] }> = {};
     (tutorRes.data ?? []).forEach((t: any) => {
       tutorMap[t.user_id] = { rate: Number(t.rate_per_lesson), subjects: t.subjects ?? [] };
     });
-    setTutorRates(tutorMap);
     setStudentRates((ratesRes.data ?? []) as any);
 
     const merged: UserRow[] = profiles.map((p) => {
-      const r = roles.find((x) => x.user_id === p.id);
+      const r = rolesArr.find((x) => x.user_id === p.id);
       const td = tutorMap[p.id];
       return {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
         phone: phoneMap.get(p.id) ?? null,
+        email: emailMap.get(p.id) ?? null,
+        is_pending: p.is_pending,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
@@ -114,12 +140,24 @@ export default function PeoplePage() {
     loadData();
   }, []);
 
+  // Real-time: re-fetch when ghost is merged or new profile/role appears
+  useEffect(() => {
+    const channel = supabase
+      .channel("people-page-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const changeRole = async (userId: string, newRole: AppRole) => {
     if (userId === currentUser?.id && newRole !== "manager") {
       toast.error("Не можна знімати з себе роль менеджера");
       return;
     }
-    // Видалити старі ролі і додати нову
     const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (delErr) {
       console.error("Failed to remove existing roles", delErr);
@@ -133,7 +171,6 @@ export default function PeoplePage() {
       return;
     }
 
-    // Створити details, якщо потрібно
     if (newRole === "tutor") {
       await supabase.from("tutor_details").upsert({ user_id: userId }, { onConflict: "user_id" });
     } else if (newRole === "student") {
@@ -177,7 +214,6 @@ export default function PeoplePage() {
       toast.error("Введіть коректну ціну");
       return;
     }
-    // upsert by (tutor_id, student_id)
     const existing = studentRates.find(
       (r) => r.tutor_id === studentDialog.tutorId && r.student_id === studentDialog.studentId
     );
@@ -208,6 +244,100 @@ export default function PeoplePage() {
     loadData();
   };
 
+  const addPerson = async () => {
+    const fn = addForm.first_name.trim();
+    const ln = addForm.last_name.trim();
+    const email = addForm.email.trim().toLowerCase();
+    const phone = addForm.phone.trim();
+    if (!fn && !ln) {
+      toast.error("Вкажіть хоча б ім'я або прізвище");
+      return;
+    }
+    if (!email && !phone) {
+      toast.error("Вкажіть email або телефон — інакше не зможемо зв'язати з реєстрацією");
+      return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Невірний email");
+      return;
+    }
+
+    setAdding(true);
+    // 1. Створюємо ghost-профіль
+    const newId = crypto.randomUUID();
+    const { error: profErr } = await supabase
+      .from("profiles")
+      .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
+    if (profErr) {
+      console.error("Failed to create ghost profile", profErr);
+      toast.error("Не вдалося додати людину. Можливо, такий email вже використовується.");
+      setAdding(false);
+      return;
+    }
+
+    // 2. Контакти
+    const { error: contErr } = await supabase
+      .from("profile_contacts")
+      .insert({ user_id: newId, email: email || null, phone: phone || null });
+    if (contErr) {
+      console.error("Failed to insert contacts", contErr);
+      // rollback ghost
+      await supabase.from("profiles").delete().eq("id", newId);
+      const msg = String(contErr.message || "");
+      if (msg.includes("profile_contacts_email_lower")) {
+        toast.error("Цей email вже зареєстровано в системі");
+      } else {
+        toast.error("Не вдалося зберегти контакти");
+      }
+      setAdding(false);
+      return;
+    }
+
+    // 3. Роль
+    const { error: roleErr } = await supabase
+      .from("user_roles")
+      .insert({ user_id: newId, role: addForm.role });
+    if (roleErr) {
+      console.error("Failed to assign role", roleErr);
+      await supabase.from("profile_contacts").delete().eq("user_id", newId);
+      await supabase.from("profiles").delete().eq("id", newId);
+      toast.error("Не вдалося призначити роль");
+      setAdding(false);
+      return;
+    }
+
+    // 4. Деталі за роллю
+    if (addForm.role === "tutor") {
+      await supabase.from("tutor_details").upsert({ user_id: newId }, { onConflict: "user_id" });
+    } else if (addForm.role === "student") {
+      await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
+    }
+
+    setAdding(false);
+    toast.success("Людину додано. Дані будуть зв'язані після її реєстрації.");
+    setAddOpen(false);
+    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student" });
+    loadData();
+  };
+
+  const deletePerson = async (u: UserRow) => {
+    if (u.id === currentUser?.id) {
+      toast.error("Не можна видалити власний акаунт");
+      return;
+    }
+    if (!confirm(`Видалити ${fullName(u)}? Всі пов'язані дані залишаться, але людина зникне зі списку.`)) {
+      return;
+    }
+    const { error } = await supabase.from("profiles").delete().eq("id", u.id);
+    if (error) {
+      console.error("Failed to delete profile", error);
+      toast.error("Не вдалося видалити. Можливо, є пов'язані уроки.");
+      return;
+    }
+    toast.success("Видалено");
+    loadData();
+  };
+
   const tutors = users.filter((u) => u.role === "tutor");
   const students = users.filter((u) => u.role === "student");
   const managers = users.filter((u) => u.role === "manager");
@@ -216,28 +346,58 @@ export default function PeoplePage() {
   const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
-    <div key={u.id} className="rounded-xl border border-border bg-card p-5">
+    <div
+      key={u.id}
+      className={`rounded-xl border bg-card p-5 ${
+        u.is_pending ? "border-warning/40 bg-warning/5" : "border-border"
+      }`}
+    >
       <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           <div
             className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-              accent === "primary"
+              u.is_pending
+                ? "bg-warning/20 text-warning"
+                : accent === "primary"
                 ? "bg-primary text-primary-foreground"
                 : "bg-secondary text-foreground"
             }`}
           >
-            {(u.first_name[0] ?? "?") + (u.last_name[0] ?? "")}
+            {u.is_pending ? <Hourglass className="h-4 w-4" /> : (u.first_name[0] ?? "?") + (u.last_name[0] ?? "")}
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
+              {u.is_pending && (
+                <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
+                  Очікує реєстрації
+                </Badge>
+              )}
+            </div>
+            {(u.email || u.phone) && (
+              <p className="text-xs text-muted-foreground truncate">
+                {[u.email, u.phone].filter(Boolean).join(" · ")}
+              </p>
+            )}
             {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
               <p className="text-xs text-muted-foreground truncate">{u.subjects.join(", ")}</p>
             )}
-            {u.role === "tutor" && u.rate_per_lesson !== undefined && (
+            {u.role === "tutor" && u.rate_per_lesson !== undefined && u.rate_per_lesson > 0 && (
               <p className="text-xs text-muted-foreground">Ставка: {u.rate_per_lesson} ₴/урок</p>
             )}
           </div>
         </div>
+        {isManager && u.id !== currentUser?.id && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+            onClick={() => deletePerson(u)}
+            title="Видалити"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2 mb-2">
@@ -314,9 +474,103 @@ export default function PeoplePage() {
 
   return (
     <AppLayout>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">Люди</h1>
-        <p className="text-sm text-muted-foreground">Керування користувачами, ролями та ставками</p>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">Люди</h1>
+          <p className="text-sm text-muted-foreground">
+            Керування користувачами, ролями та ставками. Можна додати людину до її реєстрації — після створення акаунту дані зв'яжуться автоматично.
+          </p>
+        </div>
+        {isManager && (
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="h-4 w-4 mr-2" />
+                Додати людину
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Нова людина</DialogTitle>
+                <DialogDescription>
+                  Створюється запис-привид. Коли ця людина зареєструється з тим самим email або телефоном, всі її уроки, оплати і ставки автоматично перенесуться на її акаунт.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="fn">Ім'я</Label>
+                    <Input
+                      id="fn"
+                      value={addForm.first_name}
+                      onChange={(e) => setAddForm((f) => ({ ...f, first_name: e.target.value }))}
+                      maxLength={50}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ln">Прізвище</Label>
+                    <Input
+                      id="ln"
+                      value={addForm.last_name}
+                      onChange={(e) => setAddForm((f) => ({ ...f, last_name: e.target.value }))}
+                      maxLength={50}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="em">Email</Label>
+                  <Input
+                    id="em"
+                    type="email"
+                    value={addForm.email}
+                    onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="napriklad@mail.com"
+                    maxLength={255}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ph">Телефон</Label>
+                  <Input
+                    id="ph"
+                    type="tel"
+                    value={addForm.phone}
+                    onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
+                    placeholder="+380..."
+                    maxLength={32}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Потрібен хоча б один — email або телефон. За цим полем зв'яжемо привида з реальним акаунтом.
+                </p>
+                <div>
+                  <Label>Роль</Label>
+                  <Select
+                    value={addForm.role}
+                    onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">Учень</SelectItem>
+                      <SelectItem value="tutor">Репетитор</SelectItem>
+                      <SelectItem value="manager">Менеджер</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
+                  Скасувати
+                </Button>
+                <Button onClick={addPerson} disabled={adding}>
+                  {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  Додати
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {loading ? (
