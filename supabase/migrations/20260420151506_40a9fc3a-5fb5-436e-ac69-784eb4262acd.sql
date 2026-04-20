@@ -1,0 +1,14 @@
+ALTER TABLE public.tutor_details DROP CONSTRAINT IF EXISTS tutor_details_user_id_fkey;
+ALTER TABLE public.student_details DROP CONSTRAINT IF EXISTS student_details_user_id_fkey;
+ALTER TABLE public.profile_contacts DROP CONSTRAINT IF EXISTS profile_contacts_user_id_fkey;
+ALTER TABLE public.manager_notes DROP CONSTRAINT IF EXISTS manager_notes_subject_user_id_fkey;
+ALTER TABLE public.manager_notes DROP CONSTRAINT IF EXISTS manager_notes_author_id_fkey;
+ALTER TABLE public.student_rates DROP CONSTRAINT IF EXISTS student_rates_tutor_id_fkey;
+ALTER TABLE public.student_rates DROP CONSTRAINT IF EXISTS student_rates_student_id_fkey;
+ALTER TABLE public.lessons DROP CONSTRAINT IF EXISTS lessons_tutor_id_fkey;
+ALTER TABLE public.lessons DROP CONSTRAINT IF EXISTS lessons_student_id_fkey;
+ALTER TABLE public.lessons DROP CONSTRAINT IF EXISTS lessons_created_by_fkey;
+ALTER TABLE public.tutor_availability_weekly DROP CONSTRAINT IF EXISTS tutor_availability_weekly_tutor_id_fkey;
+ALTER TABLE public.tutor_availability_overrides DROP CONSTRAINT IF EXISTS tutor_availability_overrides_tutor_id_fkey;
+ALTER TABLE public.availability_requests DROP CONSTRAINT IF EXISTS availability_requests_tutor_id_fkey;
+ALTER TABLE public.availability_requests DROP CONSTRAINT IF EXISTS availability_requests_requester_id_fkey;
