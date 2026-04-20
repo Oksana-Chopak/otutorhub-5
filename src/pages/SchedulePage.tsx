@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Clock, Plus, Loader2, Trash2 } from "lucide-react";
+import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
