@@ -9,7 +9,7 @@ interface Props {
 }
 
 export function ProtectedRoute({ children, allowedRoles }: Props) {
-  const { user, roles, loading } = useAuth();
+  const { user, checkRole, loading } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -25,7 +25,7 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
   }
 
   if (allowedRoles && allowedRoles.length > 0) {
-    const hasAccess = roles.some((r) => allowedRoles.includes(r));
+    const hasAccess = allowedRoles.some((r) => checkRole(r));
     if (!hasAccess) {
       return <Navigate to="/" replace />;
     }

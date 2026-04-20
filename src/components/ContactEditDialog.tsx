@@ -21,8 +21,9 @@ export interface ContactFields {
   messenger_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  bank_card_last4: string | null;
-  bank_name: string | null;
+  // Financial fields moved to profile_financial_contacts table
+  bank_card_last4?: string | null;
+  bank_name?: string | null;
 }
 
 interface Props {
@@ -121,7 +122,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
     setSaving(true);
 
-    const payload = {
+    const contactPayload = {
       user_id: userId,
       email: email || null,
       phone: phone || null,
@@ -129,6 +130,10 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       messenger_url: messenger_url || null,
       facebook_url: facebook_url || null,
       instagram_url: instagram_url || null,
+    };
+
+    const financialPayload = {
+      user_id: userId,
       bank_card_last4: bank_card_last4 || null,
       bank_name: bank_name || null,
     };
@@ -145,29 +150,34 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     let lastError: any = null;
     for (let attempt = 1; attempt <= 3; attempt++) {
       try {
-        const { error } = await supabase
+        // Save regular contacts
+        const { error: contactError } = await supabase
           .from("profile_contacts")
-          .upsert(payload, { onConflict: "user_id" });
-        if (!error) {
-          setSaving(false);
-          toast.success("Контакти збережено");
-          onOpenChange(false);
-          onSaved?.();
-          return;
-        }
-        lastError = error;
-        const msg = String(error.message || "").toLowerCase();
-        // Не ретраїмо помилки валідації / RLS / унікальності
-        if (
-          msg.includes("duplicate") ||
-          msg.includes("unique") ||
-          msg.includes("violates") ||
-          msg.includes("permission") ||
-          msg.includes("rls") ||
-          msg.includes("policy")
-        ) {
+          .upsert(contactPayload, { onConflict: "user_id" });
+        
+        if (contactError) {
+          lastError = contactError;
           break;
         }
+
+        // Save financial contacts separately (only if provided)
+        if (bank_card_last4 || bank_name) {
+          const { error: financialError } = await supabase
+            .from("profile_financial_contacts")
+            .upsert(financialPayload, { onConflict: "user_id" });
+          
+          if (financialError) {
+            lastError = financialError;
+            break;
+          }
+        }
+
+        // Both succeeded
+        setSaving(false);
+        toast.success("Контакти збережено");
+        onOpenChange(false);
+        onSaved?.();
+        return;
       } catch (e) {
         lastError = e;
       }
