@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
+import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 
 interface Profile {
   id: string;
@@ -83,11 +84,11 @@ export default function PeoplePage() {
   >([]);
 
   // Tutor rate dialog
-  const [tutorDialog, setTutorDialog] = useState<{ open: boolean; userId: string; rate: string; subjects: string }>({
+  const [tutorDialog, setTutorDialog] = useState<{ open: boolean; userId: string; rate: string; subjects: string[] }>({
     open: false,
     userId: "",
     rate: "",
-    subjects: "",
+    subjects: [],
   });
 
   // Student price dialog
@@ -107,6 +108,7 @@ export default function PeoplePage() {
     email: "",
     phone: "",
     role: "student" as AppRole,
+    subjects: [] as string[],
   });
   const [adding, setAdding] = useState(false);
 
@@ -223,15 +225,10 @@ export default function PeoplePage() {
       toast.error("Введіть коректну ставку");
       return;
     }
-    const subjects = tutorDialog.subjects
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
     const { error } = await supabase
       .from("tutor_details")
       .upsert(
-        { user_id: tutorDialog.userId, rate_per_lesson: rate, subjects },
+        { user_id: tutorDialog.userId, rate_per_lesson: rate, subjects: tutorDialog.subjects },
         { onConflict: "user_id" }
       );
     if (error) {
@@ -240,7 +237,7 @@ export default function PeoplePage() {
       return;
     }
     toast.success("Збережено");
-    setTutorDialog({ open: false, userId: "", rate: "", subjects: "" });
+    setTutorDialog({ open: false, userId: "", rate: "", subjects: [] });
     loadData();
   };
 
@@ -344,7 +341,9 @@ export default function PeoplePage() {
 
     // 4. Деталі за роллю
     if (addForm.role === "tutor") {
-      await supabase.from("tutor_details").upsert({ user_id: newId }, { onConflict: "user_id" });
+      await supabase
+        .from("tutor_details")
+        .upsert({ user_id: newId, subjects: addForm.subjects }, { onConflict: "user_id" });
     } else if (addForm.role === "student") {
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
     }
@@ -352,7 +351,7 @@ export default function PeoplePage() {
     setAdding(false);
     toast.success("Людину додано. Дані будуть зв'язані після її реєстрації.");
     setAddOpen(false);
-    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student" });
+    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
     loadData();
   };
 
@@ -537,7 +536,7 @@ export default function PeoplePage() {
               open: true,
               userId: u.id,
               rate: String(u.rate_per_lesson ?? ""),
-              subjects: (u.subjects ?? []).join(", "),
+              subjects: u.subjects ?? [],
             })
           }
         >
