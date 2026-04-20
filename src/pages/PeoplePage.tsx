@@ -61,8 +61,9 @@ interface UserRow {
   messenger_url: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
-  bank_card_last4: string | null;
-  bank_name: string | null;
+  // Financial fields from profile_financial_contacts (manager-only)
+  bank_card_last4?: string | null;
+  bank_name?: string | null;
   is_pending: boolean;
   role: AppRole | null;
   rate_per_lesson?: number;
