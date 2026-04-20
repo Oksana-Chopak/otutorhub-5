@@ -672,6 +672,16 @@ export default function PeoplePage() {
                     </SelectContent>
                   </Select>
                 </div>
+                {addForm.role === "tutor" && (
+                  <div>
+                    <Label>Предмети</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Оберіть один або декілька</p>
+                    <SubjectMultiSelect
+                      value={addForm.subjects}
+                      onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
+                    />
+                  </div>
+                )}
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
@@ -772,12 +782,11 @@ export default function PeoplePage() {
               </p>
             </div>
             <div>
-              <Label htmlFor="subjects">Предмети (через кому)</Label>
-              <Input
-                id="subjects"
+              <Label>Предмети</Label>
+              <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
+              <SubjectMultiSelect
                 value={tutorDialog.subjects}
-                onChange={(e) => setTutorDialog((s) => ({ ...s, subjects: e.target.value }))}
-                placeholder="напр. Англійська, Німецька"
+                onChange={(next) => setTutorDialog((s) => ({ ...s, subjects: next }))}
               />
             </div>
           </div>
