@@ -173,20 +173,26 @@ export default function AvailabilityPage() {
     loadRequests();
   }, [tutorId]);
 
-  // Realtime requests
+  // Realtime requests — scope subscription to rows the current user can see
   useEffect(() => {
+    if (!user) return;
+    const filter = isManager
+      ? undefined
+      : isTutor
+        ? `tutor_id=eq.${user.id}`
+        : `requester_id=eq.${user.id}`;
     const ch = supabase
-      .channel("availability-requests-page")
+      .channel(`availability-requests-page:${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "availability_requests" },
+        { event: "*", schema: "public", table: "availability_requests", ...(filter ? { filter } : {}) },
         () => loadRequests()
       )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
     };
-  }, [tutorId]);
+  }, [tutorId, user?.id, isManager, isTutor]);
 
   const canEdit = isManager || (isTutor && tutorId === user?.id);
 
