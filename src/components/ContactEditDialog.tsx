@@ -121,7 +121,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
     setSaving(true);
 
-    const payload = {
+    const contactPayload = {
       user_id: userId,
       email: email || null,
       phone: phone || null,
@@ -129,6 +129,10 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       messenger_url: messenger_url || null,
       facebook_url: facebook_url || null,
       instagram_url: instagram_url || null,
+    };
+
+    const financialPayload = {
+      user_id: userId,
       bank_card_last4: bank_card_last4 || null,
       bank_name: bank_name || null,
     };
