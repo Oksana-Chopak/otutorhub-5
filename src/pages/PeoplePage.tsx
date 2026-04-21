@@ -134,14 +134,15 @@ export default function PeoplePage() {
     setLoading(true);
     const isManager = roles.includes("manager");
     
-    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
-      supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
+      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson"),
+      supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
     // Fetch financial contacts separately (only for managers)
@@ -177,6 +178,14 @@ export default function PeoplePage() {
       tutorMap[t.user_id] = { rate: Number(t.rate_per_lesson), subjects: t.subjects ?? [] };
     });
     setStudentRates((ratesRes.data ?? []) as any);
+
+    // Build per-tutor per-subject rates
+    const subjectRatesMap: Record<string, Record<string, number>> = {};
+    ((subjectRatesRes.data ?? []) as any[]).forEach((sr) => {
+      if (!subjectRatesMap[sr.tutor_id]) subjectRatesMap[sr.tutor_id] = {};
+      subjectRatesMap[sr.tutor_id][sr.subject] = Number(sr.rate_per_lesson);
+    });
+    setTutorSubjectRates(subjectRatesMap);
 
     const merged: UserRow[] = profiles.map((p) => {
       const r = rolesArr.find((x) => x.user_id === p.id);
