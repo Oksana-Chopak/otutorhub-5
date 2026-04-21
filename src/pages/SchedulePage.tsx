@@ -401,15 +401,6 @@ export default function SchedulePage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="notes">Нотатки (опц.)</Label>
-                  <Textarea
-                    id="notes"
-                    rows={2}
-                    value={form.notes}
-                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                  />
-                </div>
                 {isManager && (
                   <>
                     <div>
