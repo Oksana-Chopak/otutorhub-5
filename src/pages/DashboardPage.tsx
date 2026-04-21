@@ -136,8 +136,8 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people?tab=tutors" />
-            <StatCard label="Учні" value={studentCount} icon={Users} to="/people?tab=students" />
+            <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people" />
+            <StatCard label="Учні" value={studentCount} icon={Users} to="/people" />
             <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
             {isManager && (
               <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" to="/finances" />
