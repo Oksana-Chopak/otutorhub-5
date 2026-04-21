@@ -82,10 +82,21 @@ export default function DashboardPage() {
   }, [user?.id]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
+  const nowMs = Date.now();
 
   const todayLessons = useMemo(
     () => lessons.filter((lesson) => lesson.starts_at.slice(0, 10) === todayKey),
     [lessons, todayKey]
+  );
+
+  // Upcoming = today onward, sorted ascending, capped at 5
+  const upcomingLessons = useMemo(
+    () =>
+      lessons
+        .filter((lesson) => new Date(lesson.starts_at).getTime() >= nowMs - 60 * 60 * 1000)
+        .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+        .slice(0, 5),
+    [lessons, nowMs]
   );
 
   const billableLessons = lessons.filter((lesson) => lesson.status === "completed");
