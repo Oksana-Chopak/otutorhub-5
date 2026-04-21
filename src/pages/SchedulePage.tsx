@@ -34,7 +34,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -146,7 +146,7 @@ export default function SchedulePage() {
     setLoading(true);
 
     const [lessonsRes, profilesRes, rolesRes, tutorRes] = await Promise.all([
-      supabase.from("lessons_visible").select("*").order("starts_at", { ascending: true }),
+      supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, subjects"),
@@ -272,7 +272,7 @@ export default function SchedulePage() {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
-    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+    return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
   }, [lessons]);
 
   // For students: list of distinct tutors they have lessons with
