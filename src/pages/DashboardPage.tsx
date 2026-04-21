@@ -136,11 +136,11 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Репетитори" value={tutorCount} icon={Users} />
-            <StatCard label="Учні" value={studentCount} icon={Users} />
-            <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} />
+            <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people?tab=tutors" />
+            <StatCard label="Учні" value={studentCount} icon={Users} to="/people?tab=students" />
+            <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
             {isManager && (
-              <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" />
+              <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" to="/finances" />
             )}
           </div>
 
@@ -148,32 +148,42 @@ export default function DashboardPage() {
             <section>
               <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Найближчі уроки</h2>
               <div className="space-y-3">
-                {todayLessons.length === 0 ? (
+                {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-                    Сьогодні уроків ще немає.
+                    Найближчих уроків немає.
                   </div>
                 ) : (
-                  todayLessons.map((lesson) => (
-                    <div key={lesson.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-3">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                          <Clock className="h-4 w-4 text-primary" />
+                  upcomingLessons.map((lesson) => {
+                    const lessonDate = new Date(lesson.starts_at);
+                    const isToday = lesson.starts_at.slice(0, 10) === todayKey;
+                    return (
+                      <Link
+                        key={lesson.id}
+                        to="/schedule"
+                        className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-3 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                            <Clock className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
+                            <p className="truncate text-xs text-muted-foreground">
+                              {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
-                          </p>
+                        <div className="flex flex-col items-end gap-1 shrink-0">
+                          <span className="text-sm font-medium text-foreground">
+                            {isToday
+                              ? `Сьогодні · ${lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
+                              : lessonDate.toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-sm font-medium text-foreground">
-                          {new Date(lesson.starts_at).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                        <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
-                      </div>
-                    </div>
-                  ))
+                      </Link>
+                    );
+                  })
                 )}
               </div>
             </section>
