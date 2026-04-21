@@ -11,6 +11,7 @@ import FinancesPage from "./pages/FinancesPage";
 import ChatsPage from "./pages/ChatsPage";
 import PeoplePage from "./pages/PeoplePage";
 import AvailabilityPage from "./pages/AvailabilityPage";
+import AuditLogPage from "./pages/AuditLogPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -49,6 +50,14 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={["manager"]}>
                   <PeoplePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/audit"
+              element={
+                <ProtectedRoute allowedRoles={["manager"]}>
+                  <AuditLogPage />
                 </ProtectedRoute>
               }
             />

@@ -11,6 +11,7 @@ import {
   X,
   LogOut,
   CalendarClock,
+  ShieldAlert,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -24,6 +25,7 @@ const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; ro
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"] },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
+  { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
 
 const roleLabel: Record<AppRole, string> = {
