@@ -563,6 +563,8 @@ export default function SchedulePage() {
                       (isTutor &&
                         lesson.tutor_id === user?.id &&
                         (lesson.status === "pending" || lesson.status === "scheduled"));
+                    const canCopy =
+                      isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
                       <div
