@@ -601,24 +601,34 @@ export default function SchedulePage() {
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв
                             </p>
                             {isManager && (
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
-                                <span>Ціна: {lesson.student_price} ₴</span>
-                                <span className="flex items-center gap-1" title={lesson.student_payment_status === 'paid' ? 'Оплачено учнем' : 'Очікує оплати від учня'}>
-                                  {lesson.student_payment_status === 'paid' ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                                  ) : (
-                                    <Circle className="h-3.5 w-3.5 text-warning" />
-                                  )}
-                                </span>
+                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
+                                <span>Учень: {lesson.student_price} ₴</span>
+                                <Select
+                                  value={lesson.student_payment_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.student_payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">Очікує</SelectItem>
+                                    <SelectItem value="paid">Оплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <span className="mx-1">·</span>
                                 <span>Виплата: {lesson.tutor_payout} ₴</span>
-                                <span className="flex items-center gap-1" title={lesson.tutor_payout_status === 'paid' ? 'Виплачено репетитору' : 'Очікує виплати репетитору'}>
-                                  {lesson.tutor_payout_status === 'paid' ? (
-                                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                                  ) : (
-                                    <Circle className="h-3.5 w-3.5 text-warning" />
-                                  )}
-                                </span>
+                                <Select
+                                  value={lesson.tutor_payout_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.tutor_payout_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">Очікує</SelectItem>
+                                    <SelectItem value="paid">Виплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
                               </div>
                             )}
                           </div>
