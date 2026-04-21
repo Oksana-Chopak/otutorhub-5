@@ -585,9 +585,25 @@ export default function SchedulePage() {
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв
                             </p>
                             {isManager && (
-                              <p className="text-xs text-muted-foreground mt-0.5">
-                                Ціна: {lesson.student_price} ₴ · Виплата: {lesson.tutor_payout} ₴
-                              </p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                <span>Ціна: {lesson.student_price} ₴</span>
+                                <span className="flex items-center gap-1" title={lesson.student_payment_status === 'paid' ? 'Оплачено учнем' : 'Очікує оплати від учня'}>
+                                  {lesson.student_payment_status === 'paid' ? (
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                                  ) : (
+                                    <Circle className="h-3.5 w-3.5 text-warning" />
+                                  )}
+                                </span>
+                                <span className="mx-1">·</span>
+                                <span>Виплата: {lesson.tutor_payout} ₴</span>
+                                <span className="flex items-center gap-1" title={lesson.tutor_payout_status === 'paid' ? 'Виплачено репетитору' : 'Очікує виплати репетитору'}>
+                                  {lesson.tutor_payout_status === 'paid' ? (
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                                  ) : (
+                                    <Circle className="h-3.5 w-3.5 text-warning" />
+                                  )}
+                                </span>
+                              </div>
                             )}
                           </div>
                         </div>
