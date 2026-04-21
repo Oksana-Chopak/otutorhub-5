@@ -526,6 +526,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_public_details: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          subjects: string[] | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          subjects?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          subjects?: string[] | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_user_role: {
