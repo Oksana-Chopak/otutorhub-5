@@ -253,6 +253,21 @@ export default function SchedulePage() {
     loadAll();
   };
 
+  const updatePayment = async (
+    lessonId: string,
+    field: "student_payment_status" | "tutor_payout_status",
+    value: PaymentStatus
+  ) => {
+    const { error } = await supabase.from("lessons").update({ [field]: value }).eq("id", lessonId);
+    if (error) {
+      console.error("Failed to update payment status", error);
+      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      return;
+    }
+    toast.success("Оплату оновлено");
+    loadAll();
+  };
+
   const deleteLesson = async (lessonId: string) => {
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
