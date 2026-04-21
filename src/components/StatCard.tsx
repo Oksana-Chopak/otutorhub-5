@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface StatCardProps {
   label: string;
@@ -7,11 +8,12 @@ interface StatCardProps {
   icon: LucideIcon;
   trend?: string;
   variant?: "default" | "success" | "warning";
+  to?: string;
 }
 
-export function StatCard({ label, value, icon: Icon, trend, variant = "default" }: StatCardProps) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5">
+export function StatCard({ label, value, icon: Icon, trend, variant = "default", to }: StatCardProps) {
+  const content = (
+    <>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
         <div
@@ -27,6 +29,19 @@ export function StatCard({ label, value, icon: Icon, trend, variant = "default" 
       </div>
       <p className="mt-2 font-display text-2xl font-bold text-foreground">{value}</p>
       {trend && <p className="mt-1 text-xs text-muted-foreground">{trend}</p>}
-    </div>
+    </>
   );
+
+  if (to) {
+    return (
+      <Link
+        to={to}
+        className="block rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5"
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return <div className="rounded-xl border border-border bg-card p-5">{content}</div>;
 }
