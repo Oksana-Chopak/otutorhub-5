@@ -260,24 +260,68 @@ export default function PeoplePage() {
   };
 
   const saveTutorRate = async () => {
-    const rate = parseFloat(tutorDialog.rate);
-    if (isNaN(rate) || rate < 0) {
-      toast.error("Введіть коректну ставку");
+    const subjects = tutorDialog.subjects;
+    if (subjects.length === 0) {
+      toast.error("Оберіть хоча б один предмет");
       return;
     }
-    const { error } = await supabase
+    // Validate all rates
+    const parsed: Array<{ subject: string; rate: number }> = [];
+    for (const s of subjects) {
+      const raw = (tutorDialog.rates[s] ?? "").trim();
+      if (raw === "") {
+        toast.error(`Введіть ставку для предмета: ${s}`);
+        return;
+      }
+      const v = parseFloat(raw);
+      if (isNaN(v) || v < 0) {
+        toast.error(`Некоректна ставка для предмета: ${s}`);
+        return;
+      }
+      parsed.push({ subject: s, rate: v });
+    }
+
+    // 1. Save subjects list on tutor_details (keep legacy rate_per_lesson = first as fallback)
+    const { error: tdErr } = await supabase
       .from("tutor_details")
       .upsert(
-        { user_id: tutorDialog.userId, rate_per_lesson: rate, subjects: tutorDialog.subjects },
+        { user_id: tutorDialog.userId, rate_per_lesson: parsed[0].rate, subjects },
         { onConflict: "user_id" }
       );
-    if (error) {
-      console.error("Failed to save tutor rate", error);
+    if (tdErr) {
+      console.error("Failed to save tutor details", tdErr);
       toast.error("Не вдалося зберегти. Спробуйте ще раз.");
       return;
     }
+
+    // 2. Upsert per-subject rates
+    const rows = parsed.map((p) => ({
+      tutor_id: tutorDialog.userId,
+      subject: p.subject,
+      rate_per_lesson: p.rate,
+    }));
+    const { error: srErr } = await supabase
+      .from("tutor_subject_rates")
+      .upsert(rows, { onConflict: "tutor_id,subject" });
+    if (srErr) {
+      console.error("Failed to save subject rates", srErr);
+      toast.error("Не вдалося зберегти ставки за предметами");
+      return;
+    }
+
+    // 3. Cleanup: remove rates for subjects no longer assigned
+    const { error: delErr } = await supabase
+      .from("tutor_subject_rates")
+      .delete()
+      .eq("tutor_id", tutorDialog.userId)
+      .not("subject", "in", `(${subjects.map((s) => `"${s.replace(/"/g, '""')}"`).join(",")})`);
+    if (delErr) {
+      // Not critical
+      console.warn("Failed to cleanup obsolete subject rates", delErr);
+    }
+
     toast.success("Збережено");
-    setTutorDialog({ open: false, userId: "", rate: "", subjects: [] });
+    setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();
   };
 
@@ -287,14 +331,15 @@ export default function PeoplePage() {
       toast.error("Введіть коректну ціну");
       return;
     }
-    const existing = studentRates.find(
-      (r) => r.tutor_id === studentDialog.tutorId && r.student_id === studentDialog.studentId
-    );
-    if (existing) {
+    if (!studentDialog.subject) {
+      toast.error("Оберіть предмет");
+      return;
+    }
+    if (studentDialog.existingId) {
       const { error } = await supabase
         .from("student_rates")
         .update({ price_per_lesson: price })
-        .eq("id", existing.id);
+        .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
         toast.error("Не вдалося зберегти. Спробуйте ще раз.");
@@ -304,6 +349,7 @@ export default function PeoplePage() {
       const { error } = await supabase.from("student_rates").insert({
         tutor_id: studentDialog.tutorId,
         student_id: studentDialog.studentId,
+        subject: studentDialog.subject,
         price_per_lesson: price,
       });
       if (error) {
@@ -313,7 +359,7 @@ export default function PeoplePage() {
       }
     }
     toast.success("Ціну збережено");
-    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", price: "" });
+    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
     loadData();
   };
 
