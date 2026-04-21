@@ -870,34 +870,62 @@ export default function PeoplePage() {
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Налаштування репетитора</DialogTitle>
+            <DialogDescription>
+              Оберіть предмети, які викладає репетитор, і вкажіть ставку (виплату) за урок для кожного.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <Label htmlFor="rate">Ставка за урок (₴)</Label>
-              <Input
-                id="rate"
-                type="number"
-                min="0"
-                step="any"
-                value={tutorDialog.rate}
-                onChange={(e) => setTutorDialog((s) => ({ ...s, rate: e.target.value }))}
-                placeholder="напр. 350"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Скільки ви виплачуєте репетитору за один проведений урок
-              </p>
-            </div>
             <div>
               <Label>Предмети</Label>
               <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
               <SubjectMultiSelect
                 value={tutorDialog.subjects}
-                onChange={(next) => setTutorDialog((s) => ({ ...s, subjects: next }))}
+                onChange={(next) =>
+                  setTutorDialog((s) => {
+                    // Preserve existing rate inputs for kept subjects, init empty for new ones
+                    const nextRates: Record<string, string> = {};
+                    next.forEach((subj) => {
+                      nextRates[subj] = s.rates[subj] ?? "";
+                    });
+                    return { ...s, subjects: next, rates: nextRates };
+                  })
+                }
               />
             </div>
+
+            {tutorDialog.subjects.length > 0 && (
+              <div className="space-y-2">
+                <Label>Ставка за урок по кожному предмету (₴)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Скільки ви виплачуєте репетитору за один проведений урок з цього предмета.
+                </p>
+                <div className="space-y-2">
+                  {tutorDialog.subjects.map((subj) => (
+                    <div key={subj} className="flex items-center gap-2">
+                      <span className="text-sm text-foreground flex-1 truncate">{subj}</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="any"
+                        className="w-28"
+                        value={tutorDialog.rates[subj] ?? ""}
+                        onChange={(e) =>
+                          setTutorDialog((s) => ({
+                            ...s,
+                            rates: { ...s.rates, [subj]: e.target.value },
+                          }))
+                        }
+                        placeholder="напр. 350"
+                      />
+                      <span className="text-xs text-muted-foreground">₴</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}>
