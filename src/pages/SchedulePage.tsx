@@ -34,7 +34,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2 } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
