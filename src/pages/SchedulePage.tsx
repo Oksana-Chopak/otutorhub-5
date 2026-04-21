@@ -471,7 +471,7 @@ export default function SchedulePage() {
                   </p>
                 )}
               </div>
-              <DialogFooter>
+              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>
                   Скасувати
                 </Button>
