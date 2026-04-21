@@ -620,50 +620,70 @@ export default function PeoplePage() {
           variant="outline"
           size="sm"
           className="w-full mt-2"
-          onClick={() =>
+          onClick={() => {
+            const subjects = u.subjects ?? [];
+            const rates: Record<string, string> = {};
+            subjects.forEach((s) => {
+              const r = tutorSubjectRates[u.id]?.[s];
+              rates[s] = r !== undefined ? String(r) : "";
+            });
             setTutorDialog({
               open: true,
               userId: u.id,
-              rate: String(u.rate_per_lesson ?? ""),
-              subjects: u.subjects ?? [],
-            })
-          }
+              subjects,
+              rates,
+            });
+          }}
         >
           <Settings className="h-3.5 w-3.5 mr-2" />
-          Налаштувати ставку та предмети
+          Налаштувати ставки та предмети
         </Button>
       )}
 
       {u.role === "student" && tutors.length > 0 && (
         <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground mb-2">Ціна за урок (для конкретного репетитора):</p>
-          <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground mb-2">Ціна за урок (по парах репетитор + предмет):</p>
+          <div className="space-y-2">
             {tutors.map((t) => {
-              const rate = studentRates.find((r) => r.tutor_id === t.id && r.student_id === u.id);
+              const tSubjects = t.subjects ?? [];
+              if (tSubjects.length === 0) return null;
               return (
-                <div key={t.id} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground truncate flex-1">{fullName(t)}</span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-medium text-foreground">
-                      {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() =>
-                        setStudentDialog({
-                          open: true,
-                          studentId: u.id,
-                          studentName: fullName(u),
-                          tutorId: t.id,
-                          price: rate ? String(rate.price_per_lesson) : "",
-                        })
-                      }
-                    >
-                      Змінити
-                    </Button>
-                  </div>
+                <div key={t.id} className="space-y-1">
+                  <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
+                  {tSubjects.map((subj) => {
+                    const rate = studentRates.find(
+                      (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
+                    );
+                    return (
+                      <div key={subj} className="flex items-center justify-between text-xs pl-2">
+                        <span className="text-muted-foreground truncate flex-1">{subj}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-medium text-foreground">
+                            {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() =>
+                              setStudentDialog({
+                                open: true,
+                                studentId: u.id,
+                                studentName: fullName(u),
+                                tutorId: t.id,
+                                tutorName: fullName(t),
+                                subject: subj,
+                                price: rate ? String(rate.price_per_lesson) : "",
+                                existingId: rate?.id ?? null,
+                              })
+                            }
+                          >
+                            Змінити
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
