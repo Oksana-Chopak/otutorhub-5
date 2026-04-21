@@ -34,7 +34,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2 } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -118,6 +118,28 @@ export default function SchedulePage() {
     tutor_payout_status: "unpaid" as PaymentStatus,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+
+  const openCopy = (lesson: Lesson) => {
+    // Pre-fill form with lesson data; default new starts_at = +7 days same time
+    const next = new Date(lesson.starts_at);
+    next.setDate(next.getDate() + 7);
+    setForm({
+      tutor_id: lesson.tutor_id,
+      student_id: lesson.student_id,
+      subject: lesson.subject,
+      starts_at: toLocalInputValue(next.toISOString()),
+      duration_minutes: String(lesson.duration_minutes),
+      notes: lesson.notes ?? "",
+      status: "scheduled",
+      student_price: String(lesson.student_price ?? 0),
+      tutor_payout: String(lesson.tutor_payout ?? 0),
+      student_payment_status: "unpaid",
+      tutor_payout_status: "unpaid",
+    });
+    setNotesOpen(Boolean(lesson.notes));
+    setCreateOpen(true);
+  };
 
   const loadAll = async () => {
     if (!user) return;
@@ -379,15 +401,6 @@ export default function SchedulePage() {
                     />
                   </div>
                 </div>
-                <div>
-                  <Label htmlFor="notes">Нотатки (опц.)</Label>
-                  <Textarea
-                    id="notes"
-                    rows={2}
-                    value={form.notes}
-                    onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                  />
-                </div>
                 {isManager && (
                   <>
                     <div>
@@ -470,6 +483,28 @@ export default function SchedulePage() {
                     Це буде запит. Менеджер або репетитор підтвердить його.
                   </p>
                 )}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setNotesOpen((v) => !v)}
+                    className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                  >
+                    <span className="flex-1 text-left">
+                      Нотатки {form.notes ? `(${form.notes.length})` : "(опц.)"}
+                    </span>
+                    {notesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </button>
+                  {notesOpen && (
+                    <Textarea
+                      id="notes"
+                      rows={3}
+                      className="mt-2"
+                      value={form.notes}
+                      onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                      placeholder="Додаткова інформація..."
+                    />
+                  )}
+                </div>
               </div>
               <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>
@@ -528,6 +563,8 @@ export default function SchedulePage() {
                       (isTutor &&
                         lesson.tutor_id === user?.id &&
                         (lesson.status === "pending" || lesson.status === "scheduled"));
+                    const canCopy =
+                      isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
                       <div
@@ -578,6 +615,17 @@ export default function SchedulePage() {
                             <Badge className={statusBadgeClass[lesson.status]}>
                               {statusLabel[lesson.status]}
                             </Badge>
+                          )}
+                          {canCopy && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => openCopy(lesson)}
+                              title="Копіювати урок"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
                           )}
                           {canDelete && (
                             <AlertDialog>
