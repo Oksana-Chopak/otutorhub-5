@@ -501,10 +501,17 @@ export default function PeoplePage() {
               </p>
             )}
             {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
-              <p className="text-xs text-muted-foreground truncate">{u.subjects.join(", ")}</p>
-            )}
-            {u.role === "tutor" && u.rate_per_lesson !== undefined && u.rate_per_lesson > 0 && (
-              <p className="text-xs text-muted-foreground">Ставка: {u.rate_per_lesson} ₴/урок</p>
+              <div className="mt-1 space-y-0.5">
+                {u.subjects.map((s) => {
+                  const r = tutorSubjectRates[u.id]?.[s];
+                  return (
+                    <p key={s} className="text-xs text-muted-foreground truncate">
+                      <span className="text-foreground">{s}</span>
+                      {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
+                    </p>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
