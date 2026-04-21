@@ -285,13 +285,13 @@ export default function SchedulePage() {
                 {isStudent && !isManager && !isTutor ? "Запросити урок" : "Створити урок"}
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+              <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                 <DialogTitle>
                   {isStudent && !isManager && !isTutor ? "Запит на урок" : "Новий урок"}
                 </DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 py-2">
+              <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                 <div>
                   <Label>Репетитор</Label>
                   <Select
