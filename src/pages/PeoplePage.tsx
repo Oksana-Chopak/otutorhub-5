@@ -941,11 +941,27 @@ export default function PeoplePage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ціна для учня</DialogTitle>
+            <DialogDescription>
+              Скільки учень платить за один урок із цим репетитором з обраного предмета.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
-              Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span>
-            </p>
+          <div className="space-y-3 py-2">
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
+              <p>Репетитор: <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
+              <p>Предмет: <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
+              {(() => {
+                const tutorRate = tutorSubjectRates[studentDialog.tutorId]?.[studentDialog.subject];
+                if (tutorRate !== undefined && tutorRate > 0) {
+                  return (
+                    <p className="text-xs">
+                      Ставка репетитора з цього предмета: <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                    </p>
+                  );
+                }
+                return null;
+              })()}
+            </div>
             <div>
               <Label htmlFor="price">Ціна за один урок (₴)</Label>
               <Input
@@ -957,9 +973,6 @@ export default function PeoplePage() {
                 onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
                 placeholder="напр. 500"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Скільки цей учень платить за урок з обраним репетитором
-              </p>
             </div>
           </div>
           <DialogFooter>
