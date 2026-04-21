@@ -82,25 +82,35 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [studentRates, setStudentRates] = useState<
-    Array<{ id: string; tutor_id: string; student_id: string; price_per_lesson: number }>
+    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number }>
   >([]);
+  // tutor_id -> { subject -> rate }
+  const [tutorSubjectRates, setTutorSubjectRates] = useState<Record<string, Record<string, number>>>({});
 
-  // Tutor rate dialog
-  const [tutorDialog, setTutorDialog] = useState<{ open: boolean; userId: string; rate: string; subjects: string[] }>({
+  // Tutor rate dialog: per-subject rates
+  const [tutorDialog, setTutorDialog] = useState<{
+    open: boolean;
+    userId: string;
+    subjects: string[];
+    rates: Record<string, string>; // subject -> rate string
+  }>({
     open: false,
     userId: "",
-    rate: "",
     subjects: [],
+    rates: {},
   });
 
-  // Student price dialog
+  // Student price dialog: now requires subject
   const [studentDialog, setStudentDialog] = useState<{
     open: boolean;
     studentId: string;
     studentName: string;
     tutorId: string;
+    tutorName: string;
+    subject: string;
     price: string;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", price: "" });
+    existingId: string | null;
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
