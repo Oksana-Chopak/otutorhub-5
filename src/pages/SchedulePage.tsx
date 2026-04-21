@@ -258,7 +258,8 @@ export default function SchedulePage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus
   ) => {
-    const { error } = await supabase.from("lessons").update({ [field]: value }).eq("id", lessonId);
+    const update: any = { [field]: value };
+    const { error } = await supabase.from("lessons").update(update).eq("id", lessonId);
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
