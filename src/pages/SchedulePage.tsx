@@ -118,6 +118,28 @@ export default function SchedulePage() {
     tutor_payout_status: "unpaid" as PaymentStatus,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+
+  const openCopy = (lesson: Lesson) => {
+    // Pre-fill form with lesson data; default new starts_at = +7 days same time
+    const next = new Date(lesson.starts_at);
+    next.setDate(next.getDate() + 7);
+    setForm({
+      tutor_id: lesson.tutor_id,
+      student_id: lesson.student_id,
+      subject: lesson.subject,
+      starts_at: toLocalInputValue(next.toISOString()),
+      duration_minutes: String(lesson.duration_minutes),
+      notes: lesson.notes ?? "",
+      status: "scheduled",
+      student_price: String(lesson.student_price ?? 0),
+      tutor_payout: String(lesson.tutor_payout ?? 0),
+      student_payment_status: "unpaid",
+      tutor_payout_status: "unpaid",
+    });
+    setNotesOpen(Boolean(lesson.notes));
+    setCreateOpen(true);
+  };
 
   const loadAll = async () => {
     if (!user) return;
