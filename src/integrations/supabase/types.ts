@@ -298,6 +298,7 @@ export type Database = {
           id: string
           price_per_lesson: number
           student_id: string
+          subject: string
           tutor_id: string
           updated_at: string
         }
@@ -306,6 +307,7 @@ export type Database = {
           id?: string
           price_per_lesson?: number
           student_id: string
+          subject?: string
           tutor_id: string
           updated_at?: string
         }
@@ -314,6 +316,7 @@ export type Database = {
           id?: string
           price_per_lesson?: number
           student_id?: string
+          subject?: string
           tutor_id?: string
           updated_at?: string
         }
@@ -406,6 +409,33 @@ export type Database = {
           subjects?: string[]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tutor_subject_rates: {
+        Row: {
+          created_at: string
+          id: string
+          rate_per_lesson: number
+          subject: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rate_per_lesson?: number
+          subject: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rate_per_lesson?: number
+          subject?: string
+          tutor_id?: string
+          updated_at?: string
         }
         Relationships: []
       }

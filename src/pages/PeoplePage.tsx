@@ -82,25 +82,35 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [studentRates, setStudentRates] = useState<
-    Array<{ id: string; tutor_id: string; student_id: string; price_per_lesson: number }>
+    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number }>
   >([]);
+  // tutor_id -> { subject -> rate }
+  const [tutorSubjectRates, setTutorSubjectRates] = useState<Record<string, Record<string, number>>>({});
 
-  // Tutor rate dialog
-  const [tutorDialog, setTutorDialog] = useState<{ open: boolean; userId: string; rate: string; subjects: string[] }>({
+  // Tutor rate dialog: per-subject rates
+  const [tutorDialog, setTutorDialog] = useState<{
+    open: boolean;
+    userId: string;
+    subjects: string[];
+    rates: Record<string, string>; // subject -> rate string
+  }>({
     open: false,
     userId: "",
-    rate: "",
     subjects: [],
+    rates: {},
   });
 
-  // Student price dialog
+  // Student price dialog: now requires subject
   const [studentDialog, setStudentDialog] = useState<{
     open: boolean;
     studentId: string;
     studentName: string;
     tutorId: string;
+    tutorName: string;
+    subject: string;
     price: string;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", price: "" });
+    existingId: string | null;
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
@@ -124,14 +134,15 @@ export default function PeoplePage() {
     setLoading(true);
     const isManager = roles.includes("manager");
     
-    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
       supabase.from("profiles").select("id, first_name, last_name, is_pending"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
-      supabase.from("student_rates").select("id, tutor_id, student_id, price_per_lesson"),
+      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson"),
+      supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
     // Fetch financial contacts separately (only for managers)
@@ -167,6 +178,14 @@ export default function PeoplePage() {
       tutorMap[t.user_id] = { rate: Number(t.rate_per_lesson), subjects: t.subjects ?? [] };
     });
     setStudentRates((ratesRes.data ?? []) as any);
+
+    // Build per-tutor per-subject rates
+    const subjectRatesMap: Record<string, Record<string, number>> = {};
+    ((subjectRatesRes.data ?? []) as any[]).forEach((sr) => {
+      if (!subjectRatesMap[sr.tutor_id]) subjectRatesMap[sr.tutor_id] = {};
+      subjectRatesMap[sr.tutor_id][sr.subject] = Number(sr.rate_per_lesson);
+    });
+    setTutorSubjectRates(subjectRatesMap);
 
     const merged: UserRow[] = profiles.map((p) => {
       const r = rolesArr.find((x) => x.user_id === p.id);
@@ -241,24 +260,68 @@ export default function PeoplePage() {
   };
 
   const saveTutorRate = async () => {
-    const rate = parseFloat(tutorDialog.rate);
-    if (isNaN(rate) || rate < 0) {
-      toast.error("Введіть коректну ставку");
+    const subjects = tutorDialog.subjects;
+    if (subjects.length === 0) {
+      toast.error("Оберіть хоча б один предмет");
       return;
     }
-    const { error } = await supabase
+    // Validate all rates
+    const parsed: Array<{ subject: string; rate: number }> = [];
+    for (const s of subjects) {
+      const raw = (tutorDialog.rates[s] ?? "").trim();
+      if (raw === "") {
+        toast.error(`Введіть ставку для предмета: ${s}`);
+        return;
+      }
+      const v = parseFloat(raw);
+      if (isNaN(v) || v < 0) {
+        toast.error(`Некоректна ставка для предмета: ${s}`);
+        return;
+      }
+      parsed.push({ subject: s, rate: v });
+    }
+
+    // 1. Save subjects list on tutor_details (keep legacy rate_per_lesson = first as fallback)
+    const { error: tdErr } = await supabase
       .from("tutor_details")
       .upsert(
-        { user_id: tutorDialog.userId, rate_per_lesson: rate, subjects: tutorDialog.subjects },
+        { user_id: tutorDialog.userId, rate_per_lesson: parsed[0].rate, subjects },
         { onConflict: "user_id" }
       );
-    if (error) {
-      console.error("Failed to save tutor rate", error);
+    if (tdErr) {
+      console.error("Failed to save tutor details", tdErr);
       toast.error("Не вдалося зберегти. Спробуйте ще раз.");
       return;
     }
+
+    // 2. Upsert per-subject rates
+    const rows = parsed.map((p) => ({
+      tutor_id: tutorDialog.userId,
+      subject: p.subject,
+      rate_per_lesson: p.rate,
+    }));
+    const { error: srErr } = await supabase
+      .from("tutor_subject_rates")
+      .upsert(rows, { onConflict: "tutor_id,subject" });
+    if (srErr) {
+      console.error("Failed to save subject rates", srErr);
+      toast.error("Не вдалося зберегти ставки за предметами");
+      return;
+    }
+
+    // 3. Cleanup: remove rates for subjects no longer assigned
+    const { error: delErr } = await supabase
+      .from("tutor_subject_rates")
+      .delete()
+      .eq("tutor_id", tutorDialog.userId)
+      .not("subject", "in", `(${subjects.map((s) => `"${s.replace(/"/g, '""')}"`).join(",")})`);
+    if (delErr) {
+      // Not critical
+      console.warn("Failed to cleanup obsolete subject rates", delErr);
+    }
+
     toast.success("Збережено");
-    setTutorDialog({ open: false, userId: "", rate: "", subjects: [] });
+    setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();
   };
 
@@ -268,14 +331,15 @@ export default function PeoplePage() {
       toast.error("Введіть коректну ціну");
       return;
     }
-    const existing = studentRates.find(
-      (r) => r.tutor_id === studentDialog.tutorId && r.student_id === studentDialog.studentId
-    );
-    if (existing) {
+    if (!studentDialog.subject) {
+      toast.error("Оберіть предмет");
+      return;
+    }
+    if (studentDialog.existingId) {
       const { error } = await supabase
         .from("student_rates")
         .update({ price_per_lesson: price })
-        .eq("id", existing.id);
+        .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
         toast.error("Не вдалося зберегти. Спробуйте ще раз.");
@@ -285,6 +349,7 @@ export default function PeoplePage() {
       const { error } = await supabase.from("student_rates").insert({
         tutor_id: studentDialog.tutorId,
         student_id: studentDialog.studentId,
+        subject: studentDialog.subject,
         price_per_lesson: price,
       });
       if (error) {
@@ -294,7 +359,7 @@ export default function PeoplePage() {
       }
     }
     toast.success("Ціну збережено");
-    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", price: "" });
+    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
     loadData();
   };
 
@@ -436,10 +501,17 @@ export default function PeoplePage() {
               </p>
             )}
             {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
-              <p className="text-xs text-muted-foreground truncate">{u.subjects.join(", ")}</p>
-            )}
-            {u.role === "tutor" && u.rate_per_lesson !== undefined && u.rate_per_lesson > 0 && (
-              <p className="text-xs text-muted-foreground">Ставка: {u.rate_per_lesson} ₴/урок</p>
+              <div className="mt-1 space-y-0.5">
+                {u.subjects.map((s) => {
+                  const r = tutorSubjectRates[u.id]?.[s];
+                  return (
+                    <p key={s} className="text-xs text-muted-foreground truncate">
+                      <span className="text-foreground">{s}</span>
+                      {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
+                    </p>
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -548,50 +620,70 @@ export default function PeoplePage() {
           variant="outline"
           size="sm"
           className="w-full mt-2"
-          onClick={() =>
+          onClick={() => {
+            const subjects = u.subjects ?? [];
+            const rates: Record<string, string> = {};
+            subjects.forEach((s) => {
+              const r = tutorSubjectRates[u.id]?.[s];
+              rates[s] = r !== undefined ? String(r) : "";
+            });
             setTutorDialog({
               open: true,
               userId: u.id,
-              rate: String(u.rate_per_lesson ?? ""),
-              subjects: u.subjects ?? [],
-            })
-          }
+              subjects,
+              rates,
+            });
+          }}
         >
           <Settings className="h-3.5 w-3.5 mr-2" />
-          Налаштувати ставку та предмети
+          Налаштувати ставки та предмети
         </Button>
       )}
 
       {u.role === "student" && tutors.length > 0 && (
         <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground mb-2">Ціна за урок (для конкретного репетитора):</p>
-          <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground mb-2">Ціна за урок (по парах репетитор + предмет):</p>
+          <div className="space-y-2">
             {tutors.map((t) => {
-              const rate = studentRates.find((r) => r.tutor_id === t.id && r.student_id === u.id);
+              const tSubjects = t.subjects ?? [];
+              if (tSubjects.length === 0) return null;
               return (
-                <div key={t.id} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground truncate flex-1">{fullName(t)}</span>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-medium text-foreground">
-                      {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() =>
-                        setStudentDialog({
-                          open: true,
-                          studentId: u.id,
-                          studentName: fullName(u),
-                          tutorId: t.id,
-                          price: rate ? String(rate.price_per_lesson) : "",
-                        })
-                      }
-                    >
-                      Змінити
-                    </Button>
-                  </div>
+                <div key={t.id} className="space-y-1">
+                  <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
+                  {tSubjects.map((subj) => {
+                    const rate = studentRates.find(
+                      (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
+                    );
+                    return (
+                      <div key={subj} className="flex items-center justify-between text-xs pl-2">
+                        <span className="text-muted-foreground truncate flex-1">{subj}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-medium text-foreground">
+                            {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() =>
+                              setStudentDialog({
+                                open: true,
+                                studentId: u.id,
+                                studentName: fullName(u),
+                                tutorId: t.id,
+                                tutorName: fullName(t),
+                                subject: subj,
+                                price: rate ? String(rate.price_per_lesson) : "",
+                                existingId: rate?.id ?? null,
+                              })
+                            }
+                          >
+                            Змінити
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
@@ -778,34 +870,62 @@ export default function PeoplePage() {
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent>
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Налаштування репетитора</DialogTitle>
+            <DialogDescription>
+              Оберіть предмети, які викладає репетитор, і вкажіть ставку (виплату) за урок для кожного.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <Label htmlFor="rate">Ставка за урок (₴)</Label>
-              <Input
-                id="rate"
-                type="number"
-                min="0"
-                step="any"
-                value={tutorDialog.rate}
-                onChange={(e) => setTutorDialog((s) => ({ ...s, rate: e.target.value }))}
-                placeholder="напр. 350"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Скільки ви виплачуєте репетитору за один проведений урок
-              </p>
-            </div>
             <div>
               <Label>Предмети</Label>
               <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
               <SubjectMultiSelect
                 value={tutorDialog.subjects}
-                onChange={(next) => setTutorDialog((s) => ({ ...s, subjects: next }))}
+                onChange={(next) =>
+                  setTutorDialog((s) => {
+                    // Preserve existing rate inputs for kept subjects, init empty for new ones
+                    const nextRates: Record<string, string> = {};
+                    next.forEach((subj) => {
+                      nextRates[subj] = s.rates[subj] ?? "";
+                    });
+                    return { ...s, subjects: next, rates: nextRates };
+                  })
+                }
               />
             </div>
+
+            {tutorDialog.subjects.length > 0 && (
+              <div className="space-y-2">
+                <Label>Ставка за урок по кожному предмету (₴)</Label>
+                <p className="text-xs text-muted-foreground">
+                  Скільки ви виплачуєте репетитору за один проведений урок з цього предмета.
+                </p>
+                <div className="space-y-2">
+                  {tutorDialog.subjects.map((subj) => (
+                    <div key={subj} className="flex items-center gap-2">
+                      <span className="text-sm text-foreground flex-1 truncate">{subj}</span>
+                      <Input
+                        type="number"
+                        min="0"
+                        step="any"
+                        className="w-28"
+                        value={tutorDialog.rates[subj] ?? ""}
+                        onChange={(e) =>
+                          setTutorDialog((s) => ({
+                            ...s,
+                            rates: { ...s.rates, [subj]: e.target.value },
+                          }))
+                        }
+                        placeholder="напр. 350"
+                      />
+                      <span className="text-xs text-muted-foreground">₴</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}>
@@ -821,11 +941,27 @@ export default function PeoplePage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Ціна для учня</DialogTitle>
+            <DialogDescription>
+              Скільки учень платить за один урок із цим репетитором з обраного предмета.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <p className="text-sm text-muted-foreground">
-              Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span>
-            </p>
+          <div className="space-y-3 py-2">
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
+              <p>Репетитор: <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
+              <p>Предмет: <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
+              {(() => {
+                const tutorRate = tutorSubjectRates[studentDialog.tutorId]?.[studentDialog.subject];
+                if (tutorRate !== undefined && tutorRate > 0) {
+                  return (
+                    <p className="text-xs">
+                      Ставка репетитора з цього предмета: <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                    </p>
+                  );
+                }
+                return null;
+              })()}
+            </div>
             <div>
               <Label htmlFor="price">Ціна за один урок (₴)</Label>
               <Input
@@ -837,9 +973,6 @@ export default function PeoplePage() {
                 onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
                 placeholder="напр. 500"
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Скільки цей учень платить за урок з обраним репетитором
-              </p>
             </div>
           </div>
           <DialogFooter>
