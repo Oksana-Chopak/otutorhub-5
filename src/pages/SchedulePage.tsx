@@ -483,6 +483,28 @@ export default function SchedulePage() {
                     Це буде запит. Менеджер або репетитор підтвердить його.
                   </p>
                 )}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setNotesOpen((v) => !v)}
+                    className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                  >
+                    <span className="flex-1 text-left">
+                      Нотатки {form.notes ? `(${form.notes.length})` : "(опц.)"}
+                    </span>
+                    {notesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </button>
+                  {notesOpen && (
+                    <Textarea
+                      id="notes"
+                      rows={3}
+                      className="mt-2"
+                      value={form.notes}
+                      onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                      placeholder="Додаткова інформація..."
+                    />
+                  )}
+                </div>
               </div>
               <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
                 <Button variant="outline" onClick={() => setCreateOpen(false)}>
