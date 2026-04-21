@@ -175,11 +175,13 @@ export default function DashboardPage() {
                   <p className="mt-1 text-xs text-muted-foreground">У розділі “Розклад” можна вносити уроки заднім числом.</p>
                   <Button asChild size="sm" variant="outline" className="mt-3"><Link to="/schedule">Відкрити розклад</Link></Button>
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4">
-                  <p className="text-sm font-medium text-foreground">Внести оплату або виплату</p>
-                  <p className="mt-1 text-xs text-muted-foreground">У “Фінансах” можна позначати проведені оплати по завершених уроках.</p>
-                  <Button asChild size="sm" variant="outline" className="mt-3"><Link to="/finances">Відкрити фінанси</Link></Button>
-                </div>
+                {isManager && (
+                  <div className="rounded-xl border border-border bg-card p-4">
+                    <p className="text-sm font-medium text-foreground">Внести оплату або виплату</p>
+                    <p className="mt-1 text-xs text-muted-foreground">У “Фінансах” можна позначати проведені оплати по завершених уроках.</p>
+                    <Button asChild size="sm" variant="outline" className="mt-3"><Link to="/finances">Відкрити фінанси</Link></Button>
+                  </div>
+                )}
                 {isManager && pendingPayments.length > 0 && (
                   <div className="rounded-xl border border-border bg-card p-4">
                     <p className="text-sm font-medium text-foreground">Очікують дії: {pendingPayments.length}</p>
