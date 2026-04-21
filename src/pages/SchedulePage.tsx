@@ -616,6 +616,17 @@ export default function SchedulePage() {
                               {statusLabel[lesson.status]}
                             </Badge>
                           )}
+                          {canCopy && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => openCopy(lesson)}
+                              title="Копіювати урок"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                          )}
                           {canDelete && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
