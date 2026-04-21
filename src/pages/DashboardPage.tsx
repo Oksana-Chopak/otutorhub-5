@@ -128,7 +128,9 @@ export default function DashboardPage() {
             <StatCard label="Репетитори" value={tutorCount} icon={Users} />
             <StatCard label="Учні" value={studentCount} icon={Users} />
             <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} />
-            <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" />
+            {isManager && (
+              <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" />
+            )}
           </div>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
@@ -178,7 +180,7 @@ export default function DashboardPage() {
                   <p className="mt-1 text-xs text-muted-foreground">У “Фінансах” можна позначати проведені оплати по завершених уроках.</p>
                   <Button asChild size="sm" variant="outline" className="mt-3"><Link to="/finances">Відкрити фінанси</Link></Button>
                 </div>
-                {pendingPayments.length > 0 && (
+                {isManager && pendingPayments.length > 0 && (
                   <div className="rounded-xl border border-border bg-card p-4">
                     <p className="text-sm font-medium text-foreground">Очікують дії: {pendingPayments.length}</p>
                     <p className="mt-1 text-xs text-muted-foreground">Є завершені уроки без повністю внесених оплат або виплат.</p>
@@ -189,7 +191,7 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          {pendingPayments.length > 0 && (
+          {isManager && pendingPayments.length > 0 && (
             <div className="mt-8">
               <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Очікують оплати</h2>
               <div className="space-y-3">

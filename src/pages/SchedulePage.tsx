@@ -149,7 +149,7 @@ export default function SchedulePage() {
       supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name"),
       supabase.from("user_roles").select("user_id, role"),
-      supabase.from("tutor_details").select("user_id, subjects"),
+      supabase.from("tutor_public_details").select("user_id, subjects"),
     ]);
 
     const profiles = profilesRes.data ?? [];
