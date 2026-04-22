@@ -52,6 +52,7 @@ export default function FinancesPage() {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [tutorFilter, setTutorFilter] = useState<string>("all");
 
   const fetchData = async () => {
     setLoading(true);
@@ -88,9 +89,22 @@ export default function FinancesPage() {
     return Array.from(set).sort().reverse();
   }, [lessons]);
 
+  const tutorOptions = useMemo(() => {
+    const ids = Array.from(new Set(lessons.map((l) => l.tutor_id)));
+    return ids
+      .map((id) => ({ id, name: nameOf(id) }))
+      .sort((a, b) => a.name.localeCompare(b.name, "uk"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, profiles]);
+
   const filtered = useMemo(
-    () => (monthFilter === "all" ? lessons : lessons.filter((l) => monthKey(l.starts_at) === monthFilter)),
-    [lessons, monthFilter]
+    () =>
+      lessons.filter(
+        (l) =>
+          (monthFilter === "all" || monthKey(l.starts_at) === monthFilter) &&
+          (tutorFilter === "all" || l.tutor_id === tutorFilter)
+      ),
+    [lessons, monthFilter, tutorFilter]
   );
 
   // Враховуємо лише завершені уроки для фінансів
@@ -135,20 +149,37 @@ export default function FinancesPage() {
           <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
           <p className="text-sm text-muted-foreground">Оплати від учнів та виплати репетиторам</p>
         </div>
-        <div className="w-full sm:w-56">
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Період" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всі періоди</SelectItem>
-              {months.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {formatMonth(m)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+          <div className="w-full sm:w-56">
+            <Select value={tutorFilter} onValueChange={setTutorFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Репетитор" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі репетитори</SelectItem>
+                {tutorOptions.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-56">
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Період" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі періоди</SelectItem>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {formatMonth(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
