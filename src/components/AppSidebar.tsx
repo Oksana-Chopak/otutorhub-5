@@ -12,12 +12,15 @@ import {
   LogOut,
   CalendarClock,
   ShieldAlert,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
+import { useTheme } from "@/hooks/useTheme";
 
 const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" | "chats" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
@@ -40,6 +43,7 @@ export function AppSidebar() {
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
   const chatsBadge = useUnreadChats();
+  const { theme, toggleTheme } = useTheme();
 
   const navItems = allNavItems.filter((item) =>
     item.roles.some((r) => roles.includes(r))
@@ -132,15 +136,27 @@ export function AppSidebar() {
               </p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full justify-start"
-            onClick={signOut}
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Вийти
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1 justify-start"
+              onClick={signOut}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Вийти
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 shrink-0"
+              onClick={toggleTheme}
+              title={theme === "dark" ? "Світла тема" : "Темна тема"}
+              aria-label="Перемкнути тему"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
       </aside>
     </>

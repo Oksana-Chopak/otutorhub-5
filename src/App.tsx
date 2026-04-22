@@ -4,7 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useGlobalChatToasts } from "@/hooks/useGlobalChatToasts";
 import DashboardPage from "./pages/DashboardPage";
 import SchedulePage from "./pages/SchedulePage";
 import FinancesPage from "./pages/FinancesPage";
@@ -13,59 +15,71 @@ import PeoplePage from "./pages/PeoplePage";
 import AvailabilityPage from "./pages/AvailabilityPage";
 import AuditLogPage from "./pages/AuditLogPage";
 import AuthPage from "./pages/AuthPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+function AppRoutes() {
+  // Subscribe to global new-message toasts (no UI)
+  useGlobalChatToasts();
+  return (
+    <Routes>
+      <Route path="/auth" element={<AuthPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+      <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
+      <Route
+        path="/finances"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <FinancesPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
+      <Route
+        path="/availability"
+        element={
+          <ProtectedRoute allowedRoles={["manager", "tutor"]}>
+            <AvailabilityPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/people"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <PeoplePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/audit"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <AuditLogPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
-            <Route
-              path="/finances"
-              element={
-                <ProtectedRoute allowedRoles={["manager"]}>
-                  <FinancesPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/chats" element={<ProtectedRoute><ChatsPage /></ProtectedRoute>} />
-            <Route
-              path="/availability"
-              element={
-                <ProtectedRoute allowedRoles={["manager", "tutor"]}>
-                  <AvailabilityPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/people"
-              element={
-                <ProtectedRoute allowedRoles={["manager"]}>
-                  <PeoplePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/audit"
-              element={
-                <ProtectedRoute allowedRoles={["manager"]}>
-                  <AuditLogPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
