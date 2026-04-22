@@ -511,6 +511,8 @@ export default function PeoplePage() {
   const students = filteredUsers.filter((u) => u.role === "student");
   const managers = filteredUsers.filter((u) => u.role === "manager");
   const noRole = filteredUsers.filter((u) => !u.role);
+  // Unfiltered tutors list for student-card pricing rows
+  const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
     <div
