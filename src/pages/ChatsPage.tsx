@@ -508,47 +508,79 @@ export default function ChatsPage() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
           {/* Thread list */}
-          <div className="space-y-2 rounded-xl border border-border bg-card p-3 max-h-[70vh] overflow-y-auto">
-            {threads.map((t) => {
-              const readAt = readMap[t.id];
-              const isUnread =
-                t.id !== selectedId &&
-                t.last_message_at !== null &&
-                (!readAt || new Date(t.last_message_at) > new Date(readAt));
-              return (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedId(t.id)}
-                  className={cn(
-                    "w-full rounded-lg p-3 text-left transition-colors",
-                    selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
-                  )}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className={cn(
-                      "truncate text-sm text-foreground",
-                      isUnread ? "font-bold" : "font-medium"
-                    )}>
-                      {counterpartName(t)}
-                    </p>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <span className="text-xs text-muted-foreground">
-                        {timeShort(t.last_message_at)}
-                      </span>
-                      {isUnread && (
-                        <span className="h-2 w-2 rounded-full bg-primary" aria-label="Непрочитане" />
+          <div className="flex flex-col rounded-xl border border-border bg-card max-h-[70vh]">
+            <div className="space-y-2 border-b border-border p-3">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Пошук за іменем або текстом…"
+                  className="h-8 pl-8 text-sm"
+                />
+              </div>
+              <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="recent">За останнім повідомленням</SelectItem>
+                  <SelectItem value="unread">Спершу непрочитані</SelectItem>
+                  <SelectItem value="name">За іменем</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {visibleThreads.length === 0 ? (
+                <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                  {search ? "Нічого не знайдено" : "Немає чатів"}
+                </p>
+              ) : (
+                visibleThreads.map((t) => {
+                  const isUnread = t.id !== selectedId && isUnreadThread(t);
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setSelectedId(t.id)}
+                      className={cn(
+                        "w-full rounded-lg p-3 text-left transition-colors",
+                        selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
                       )}
-                    </div>
-                  </div>
-                  <p className={cn(
-                    "mt-1 truncate text-xs",
-                    isUnread ? "text-foreground" : "text-muted-foreground"
-                  )}>
-                    {t.last_message_preview ?? "Немає повідомлень"}
-                  </p>
-                </button>
-              );
-            })}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p
+                          className={cn(
+                            "truncate text-sm text-foreground",
+                            isUnread ? "font-bold" : "font-medium"
+                          )}
+                        >
+                          {counterpartName(t)}
+                        </p>
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <span className="text-xs text-muted-foreground">
+                            {timeShort(t.last_message_at)}
+                          </span>
+                          {isUnread && (
+                            <span
+                              className="h-2 w-2 rounded-full bg-primary"
+                              aria-label="Непрочитане"
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <p
+                        className={cn(
+                          "mt-1 truncate text-xs",
+                          isUnread ? "text-foreground" : "text-muted-foreground"
+                        )}
+                      >
+                        {t.last_message_preview ?? "Немає повідомлень"}
+                      </p>
+                    </button>
+                  );
+                })
+              )}
+            </div>
           </div>
 
           {/* Detail */}
