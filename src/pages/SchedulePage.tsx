@@ -437,16 +437,46 @@ export default function SchedulePage() {
     loadAll();
   };
 
-  // Group lessons by day
+  // Apply filters
+  const filteredLessons = useMemo(() => {
+    const now = Date.now();
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date();
+    const day = (weekStart.getDay() + 6) % 7;
+    weekStart.setDate(weekStart.getDate() - day);
+    weekStart.setHours(0, 0, 0, 0);
+
+    return lessons.filter((l) => {
+      if (filterStatus !== "all" && l.status !== filterStatus) return false;
+      if (filterTutor !== "all" && l.tutor_id !== filterTutor) return false;
+      if (filterStudent !== "all" && l.student_id !== filterStudent) return false;
+      const ts = new Date(l.starts_at).getTime();
+      if (filterPeriod === "upcoming" && ts < now - 60 * 60 * 1000) return false;
+      if (filterPeriod === "past" && ts >= now) return false;
+      if (filterPeriod === "month" && ts < monthStart.getTime()) return false;
+      if (filterPeriod === "week" && ts < weekStart.getTime()) return false;
+      return true;
+    });
+  }, [lessons, filterStatus, filterTutor, filterStudent, filterPeriod]);
+
+  // Group filtered lessons by day
   const grouped = useMemo(() => {
     const map = new Map<string, Lesson[]>();
-    lessons.forEach((l) => {
+    filteredLessons.forEach((l) => {
       const key = new Date(l.starts_at).toISOString().slice(0, 10);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
     return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
-  }, [lessons]);
+  }, [filteredLessons]);
+
+  const filtersActive =
+    filterStatus !== "all" ||
+    filterTutor !== "all" ||
+    filterStudent !== "all" ||
+    filterPeriod !== "all";
 
   // For students: list of distinct tutors they have lessons with
   const studentTutors = useMemo(() => {
