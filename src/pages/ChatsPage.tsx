@@ -219,6 +219,8 @@ export default function ChatsPage() {
         .eq("thread_id", selectedId)
         .order("created_at", { ascending: true });
       if (!cancelled) setMessages((data ?? []) as Message[]);
+      // Mark as read when opening
+      markRead(selectedId);
     };
 
     load();
@@ -234,6 +236,8 @@ export default function ChatsPage() {
             if (prev.some((m) => m.id === next.id)) return prev;
             return [...prev, next];
           });
+          // Auto-mark read while viewing thread
+          markRead(selectedId);
         }
       )
       .subscribe();
@@ -242,7 +246,37 @@ export default function ChatsPage() {
       cancelled = true;
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
+
+  // Realtime: refresh thread list metadata when any message arrives so unread badges update
+  useEffect(() => {
+    if (!myId) return;
+    const channel = supabase
+      .channel("threads-meta")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        (payload) => {
+          const msg = payload.new as Message;
+          setThreads((prev) =>
+            prev.map((t) =>
+              t.id === msg.thread_id
+                ? {
+                    ...t,
+                    last_message_at: msg.created_at,
+                    last_message_preview: msg.body.slice(0, 200),
+                  }
+                : t
+            )
+          );
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
