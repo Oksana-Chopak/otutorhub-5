@@ -2,9 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowDownLeft, ArrowUpRight, TrendingUp, DollarSign, Loader2 } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  TrendingUp,
+  DollarSign,
+  Loader2,
+  Download,
+  CheckCheck,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import {
   Select,
@@ -38,14 +47,18 @@ interface Profile {
   last_name: string;
 }
 
-const monthKey = (iso: string) => iso.slice(0, 7); // YYYY-MM
+const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
   const date = new Date(Number(y), Number(m) - 1, 1);
   return date.toLocaleDateString("uk-UA", { month: "long", year: "numeric" });
 };
 const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("uk-UA", { day: "2-digit", month: "2-digit", year: "numeric" });
+  new Date(iso).toLocaleDateString("uk-UA", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 
 export default function FinancesPage() {
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -53,24 +66,29 @@ export default function FinancesPage() {
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [tutorFilter, setTutorFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all"); // all|need_pay|need_payout|done
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] = await Promise.all([
-      supabase
-        .from("lessons_visible")
-        .select(
-          "id, subject, starts_at, status, student_id, tutor_id, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at"
-        )
-        .order("starts_at", { ascending: false }),
-      supabase.from("profiles").select("id, first_name, last_name"),
-    ]);
+    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
+      await Promise.all([
+        supabase
+          .from("lessons_visible")
+          .select(
+            "id, subject, starts_at, status, student_id, tutor_id, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at"
+          )
+          .order("starts_at", { ascending: false }),
+        supabase.from("profiles").select("id, first_name, last_name"),
+      ]);
     if (lErr) toast.error("Помилка завантаження уроків");
     if (pErr) toast.error("Помилка завантаження профілів");
     setLessons((lessonsData ?? []) as LessonRow[]);
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
+    setSelected(new Set());
     setLoading(false);
   };
 
@@ -107,8 +125,23 @@ export default function FinancesPage() {
     [lessons, monthFilter, tutorFilter]
   );
 
-  // Враховуємо лише завершені уроки для фінансів
   const billable = filtered.filter((l) => l.status === "completed");
+
+  const visibleRows = useMemo(() => {
+    switch (statusFilter) {
+      case "need_pay":
+        return billable.filter((l) => l.student_payment_status === "unpaid");
+      case "need_payout":
+        return billable.filter((l) => l.tutor_payout_status === "unpaid");
+      case "done":
+        return billable.filter(
+          (l) =>
+            l.student_payment_status === "paid" && l.tutor_payout_status === "paid"
+        );
+      default:
+        return billable;
+    }
+  }, [billable, statusFilter]);
 
   const totalIncome = billable
     .filter((l) => l.student_payment_status === "paid")
@@ -142,15 +175,96 @@ export default function FinancesPage() {
     fetchData();
   };
 
+  const toggleRow = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selected.size === visibleRows.length && visibleRows.length > 0) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(visibleRows.map((r) => r.id)));
+    }
+  };
+
+  const bulkMark = async (field: "student_payment_status" | "tutor_payout_status") => {
+    if (selected.size === 0) return;
+    setBulkBusy(true);
+    const ids = Array.from(selected);
+    const payload =
+      field === "student_payment_status"
+        ? { student_payment_status: "paid" as PaymentStatus }
+        : { tutor_payout_status: "paid" as PaymentStatus };
+    const { error } = await supabase.from("lessons").update(payload).in("id", ids);
+    setBulkBusy(false);
+    if (error) {
+      toast.error("Не вдалося оновити записи");
+      return;
+    }
+    toast.success(`Оновлено ${ids.length} записів`);
+    fetchData();
+  };
+
+  const exportCsv = () => {
+    const header = [
+      "Дата",
+      "Предмет",
+      "Учень",
+      "Ціна учня (₴)",
+      "Статус оплати учня",
+      "Дата оплати учня",
+      "Репетитор",
+      "Виплата (₴)",
+      "Статус виплати",
+      "Дата виплати",
+      "Прибуток (₴)",
+    ];
+    const rows = visibleRows.map((l) => [
+      formatDate(l.starts_at),
+      l.subject,
+      nameOf(l.student_id),
+      String(l.student_price),
+      l.student_payment_status === "paid" ? "Оплачено" : "Очікує",
+      l.student_paid_at ? formatDate(l.student_paid_at) : "",
+      nameOf(l.tutor_id),
+      String(l.tutor_payout),
+      l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує",
+      l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
+      String(Number(l.student_price) - Number(l.tutor_payout)),
+    ]);
+    const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+    const csv = [header, ...rows].map((r) => r.map(escape).join(",")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `finances_${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("CSV завантажено");
+  };
+
+  const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
+  const someSelected = selected.size > 0 && !allSelected;
+
   return (
     <AppLayout>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
-          <p className="text-sm text-muted-foreground">Оплати від учнів та виплати репетиторам</p>
+          <p className="text-sm text-muted-foreground">
+            Оплати від учнів та виплати репетиторам
+          </p>
         </div>
         <div className="flex w-full flex-wrap gap-3 sm:w-auto">
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:w-44">
             <Select value={tutorFilter} onValueChange={setTutorFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Репетитор" />
@@ -165,7 +279,7 @@ export default function FinancesPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:w-44">
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger>
                 <SelectValue placeholder="Період" />
@@ -180,6 +294,19 @@ export default function FinancesPage() {
               </SelectContent>
             </Select>
           </div>
+          <div className="w-full sm:w-44">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі статуси</SelectItem>
+                <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
+                <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                <SelectItem value="done">Все закрито</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -190,9 +317,19 @@ export default function FinancesPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Надходження" value={`${totalIncome} ₴`} icon={ArrowDownLeft} variant="success" />
+            <StatCard
+              label="Надходження"
+              value={`${totalIncome} ₴`}
+              icon={ArrowDownLeft}
+              variant="success"
+            />
             <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
-            <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant={profit >= 0 ? "success" : "warning"} />
+            <StatCard
+              label="Прибуток"
+              value={`${profit} ₴`}
+              icon={TrendingUp}
+              variant={profit >= 0 ? "success" : "warning"}
+            />
             <StatCard
               label="Очікує (отримати/виплатити)"
               value={`${pendingIncome} / ${pendingExpense} ₴`}
@@ -201,131 +338,187 @@ export default function FinancesPage() {
             />
           </div>
 
-          {/* Income */}
-          <Section
-            title="Надходження від учнів"
-            empty="Немає завершених уроків у цьому періоді"
-            rows={billable}
-            getPersonId={(l) => l.student_id}
-            amountClass="text-success"
-            sign="+"
-            getAmount={(l) => Number(l.student_price)}
-            getStatus={(l) => l.student_payment_status}
-            getPaidAt={(l) => l.student_paid_at}
-            onToggle={(l) => togglePayment(l, "student_payment_status")}
-            nameOf={nameOf}
-          />
+          {/* Bulk action bar */}
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {selected.size > 0 ? (
+                <span className="font-medium text-foreground">
+                  Обрано: {selected.size}
+                </span>
+              ) : (
+                <span>Оберіть рядки для масових дій</span>
+              )}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selected.size === 0 || bulkBusy}
+                onClick={() => bulkMark("student_payment_status")}
+              >
+                <CheckCheck className="h-4 w-4" />
+                Учні оплатили
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selected.size === 0 || bulkBusy}
+                onClick={() => bulkMark("tutor_payout_status")}
+              >
+                <CheckCheck className="h-4 w-4" />
+                Виплачено репетиторам
+              </Button>
+              <Button size="sm" variant="outline" onClick={exportCsv}>
+                <Download className="h-4 w-4" />
+                Експорт CSV
+              </Button>
+            </div>
+          </div>
 
-          {/* Expenses */}
-          <Section
-            title="Виплати репетиторам"
-            empty="Немає завершених уроків у цьому періоді"
-            rows={billable}
-            getPersonId={(l) => l.tutor_id}
-            amountClass="text-destructive"
-            sign="-"
-            getAmount={(l) => Number(l.tutor_payout)}
-            getStatus={(l) => l.tutor_payout_status}
-            getPaidAt={(l) => l.tutor_paid_at}
-            onToggle={(l) => togglePayment(l, "tutor_payout_status")}
-            nameOf={nameOf}
-          />
+          {/* Unified table */}
+          <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
+            {visibleRows.length === 0 ? (
+              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
+                Немає завершених уроків за цими фільтрами
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/50">
+                      <th className="px-3 py-3 w-10">
+                        <Checkbox
+                          checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                          onCheckedChange={toggleAll}
+                          aria-label="Обрати все"
+                        />
+                      </th>
+                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                        Дата
+                      </th>
+                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                        Урок
+                      </th>
+                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                        Учень
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium text-success">
+                        Надходження
+                      </th>
+                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                        Репетитор
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium text-destructive">
+                        Виплата
+                      </th>
+                      <th className="px-3 py-3 text-right font-medium text-muted-foreground">
+                        Прибуток
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleRows.map((l) => {
+                      const profit = Number(l.student_price) - Number(l.tutor_payout);
+                      const isSelected = selected.has(l.id);
+                      return (
+                        <tr
+                          key={l.id}
+                          className={`border-b border-border last:border-0 ${
+                            isSelected ? "bg-primary/5" : ""
+                          }`}
+                        >
+                          <td className="px-3 py-3">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleRow(l.id)}
+                              aria-label="Обрати рядок"
+                            />
+                          </td>
+                          <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                            {formatDate(l.starts_at)}
+                          </td>
+                          <td className="px-3 py-3 text-foreground">{l.subject}</td>
+                          {/* Student column */}
+                          <td className="px-3 py-3">
+                            <div className="font-medium text-foreground">
+                              {nameOf(l.student_id)}
+                            </div>
+                            {l.student_paid_at && (
+                              <div className="text-xs text-muted-foreground">
+                                опл.: {formatDate(l.student_paid_at)}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <div className="font-semibold text-success">
+                              +{l.student_price} ₴
+                            </div>
+                            <button
+                              onClick={() => togglePayment(l, "student_payment_status")}
+                              className="mt-1 inline-block"
+                            >
+                              <Badge
+                                className={
+                                  l.student_payment_status === "paid"
+                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                }
+                              >
+                                {l.student_payment_status === "paid"
+                                  ? "Оплачено"
+                                  : "Очікує"}
+                              </Badge>
+                            </button>
+                          </td>
+                          {/* Tutor column */}
+                          <td className="px-3 py-3">
+                            <div className="font-medium text-foreground">
+                              {nameOf(l.tutor_id)}
+                            </div>
+                            {l.tutor_paid_at && (
+                              <div className="text-xs text-muted-foreground">
+                                вип.: {formatDate(l.tutor_paid_at)}
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-3 py-3 text-right">
+                            <div className="font-semibold text-destructive">
+                              -{l.tutor_payout} ₴
+                            </div>
+                            <button
+                              onClick={() => togglePayment(l, "tutor_payout_status")}
+                              className="mt-1 inline-block"
+                            >
+                              <Badge
+                                className={
+                                  l.tutor_payout_status === "paid"
+                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                }
+                              >
+                                {l.tutor_payout_status === "paid"
+                                  ? "Виплачено"
+                                  : "Очікує"}
+                              </Badge>
+                            </button>
+                          </td>
+                          <td
+                            className={`px-3 py-3 text-right font-semibold ${
+                              profit >= 0 ? "text-foreground" : "text-destructive"
+                            }`}
+                          >
+                            {profit} ₴
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </>
       )}
     </AppLayout>
-  );
-}
-
-interface SectionProps {
-  title: string;
-  empty: string;
-  rows: LessonRow[];
-  getPersonId: (l: LessonRow) => string;
-  amountClass: string;
-  sign: string;
-  getAmount: (l: LessonRow) => number;
-  getStatus: (l: LessonRow) => PaymentStatus;
-  getPaidAt: (l: LessonRow) => string | null;
-  onToggle: (l: LessonRow) => void;
-  nameOf: (id: string) => string;
-}
-
-function Section({
-  title,
-  empty,
-  rows,
-  getPersonId,
-  amountClass,
-  sign,
-  getAmount,
-  getStatus,
-  getPaidAt,
-  onToggle,
-  nameOf,
-}: SectionProps) {
-  return (
-    <div className="mt-8">
-      <h2 className="font-display text-lg font-semibold text-foreground mb-4">{title}</h2>
-      <div className="overflow-hidden rounded-xl border border-border bg-card">
-        {rows.length === 0 ? (
-          <div className="px-4 py-8 text-center text-sm text-muted-foreground">{empty}</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-secondary/50">
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Особа</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Урок</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Дата</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Сума</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Статус</th>
-                  <th className="px-4 py-3 text-right font-medium text-muted-foreground">Дія</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((l) => {
-                  const status = getStatus(l);
-                  const paidAt = getPaidAt(l);
-                  return (
-                    <tr key={l.id} className="border-b border-border last:border-0">
-                      <td className="px-4 py-3 font-medium text-foreground">{nameOf(getPersonId(l))}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{l.subject}</td>
-                      <td className="px-4 py-3 text-muted-foreground">
-                        {formatDate(l.starts_at)}
-                        {paidAt && (
-                          <span className="block text-xs text-muted-foreground/70">
-                            оплата: {formatDate(paidAt)}
-                          </span>
-                        )}
-                      </td>
-                      <td className={`px-4 py-3 text-right font-semibold ${amountClass}`}>
-                        {sign}
-                        {getAmount(l)} ₴
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Badge
-                          className={
-                            status === "paid"
-                              ? "bg-success/10 text-success border-0"
-                              : "bg-warning/10 text-warning border-0"
-                          }
-                        >
-                          {status === "paid" ? "Оплачено" : "Очікує"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button size="sm" variant="outline" onClick={() => onToggle(l)}>
-                          {status === "paid" ? "Скасувати" : "Позначити оплату"}
-                        </Button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
