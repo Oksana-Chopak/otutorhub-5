@@ -49,12 +49,14 @@ interface Profile {
   first_name: string;
   last_name: string;
   is_pending: boolean;
+  avatar_url: string | null;
 }
 
 interface UserRow {
   id: string;
   first_name: string;
   last_name: string;
+  avatar_url: string | null;
   phone: string | null;
   email: string | null;
   telegram: string | null;
