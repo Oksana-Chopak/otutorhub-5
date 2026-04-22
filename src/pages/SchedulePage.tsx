@@ -751,6 +751,26 @@ export default function SchedulePage() {
                     Це буде запит. Менеджер або репетитор підтвердить його.
                   </p>
                 )}
+                {conflictWarning && (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
+                    ⚠ {conflictWarning}
+                  </div>
+                )}
+                {(isManager || isTutor) && (
+                  <div>
+                    <Label htmlFor="repeat">Повторювати щотижня</Label>
+                    <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
+                      <SelectTrigger id="repeat"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Не повторювати</SelectItem>
+                        <SelectItem value="2">2 тижні</SelectItem>
+                        <SelectItem value="4">4 тижні</SelectItem>
+                        <SelectItem value="8">8 тижнів</SelectItem>
+                        <SelectItem value="12">12 тижнів</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="pt-1">
                   <button
                     type="button"
