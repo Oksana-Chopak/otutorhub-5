@@ -43,6 +43,7 @@ import {
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface Profile {
   id: string;
