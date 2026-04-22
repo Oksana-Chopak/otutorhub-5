@@ -81,7 +81,16 @@ export function AppSidebar() {
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navItems.map((item) => {
-            const badge = item.badgeKey === "availability" ? availabilityBadge : 0;
+            const badge =
+              item.badgeKey === "availability"
+                ? availabilityBadge
+                : item.badgeKey === "chats"
+                ? chatsBadge
+                : 0;
+            const badgeClass =
+              item.badgeKey === "chats"
+                ? "bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground"
+                : "bg-warning px-1.5 text-[10px] font-semibold text-warning-foreground";
             return (
               <RouterNavLink
                 key={item.to}
