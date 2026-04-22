@@ -688,12 +688,12 @@ export default function PeoplePage() {
         </Button>
       )}
 
-      {u.role === "student" && tutors.length > 0 && (() => {
+      {u.role === "student" && allTutors.length > 0 && (() => {
         // Only show tutors that actually work with this student (have at least one rate set)
         const linkedTutorIds = new Set(
           studentRates.filter((r) => r.student_id === u.id).map((r) => r.tutor_id)
         );
-        const linkedTutors = tutors.filter((t) => linkedTutorIds.has(t.id));
+        const linkedTutors = allTutors.filter((t) => linkedTutorIds.has(t.id));
         if (linkedTutors.length === 0) {
           return (
             <div className="mt-3 pt-3 border-t border-border">
