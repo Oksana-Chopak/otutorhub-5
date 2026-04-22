@@ -150,8 +150,8 @@ export default function AuthPage() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <GraduationCap className="h-8 w-8 text-primary" />
-          <span className="font-display text-2xl font-bold text-foreground">TutorHub</span>
+          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+          <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
         </div>
 
         <Card>
