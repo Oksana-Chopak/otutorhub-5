@@ -89,9 +89,22 @@ export default function FinancesPage() {
     return Array.from(set).sort().reverse();
   }, [lessons]);
 
+  const tutorOptions = useMemo(() => {
+    const ids = Array.from(new Set(lessons.map((l) => l.tutor_id)));
+    return ids
+      .map((id) => ({ id, name: nameOf(id) }))
+      .sort((a, b) => a.name.localeCompare(b.name, "uk"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, profiles]);
+
   const filtered = useMemo(
-    () => (monthFilter === "all" ? lessons : lessons.filter((l) => monthKey(l.starts_at) === monthFilter)),
-    [lessons, monthFilter]
+    () =>
+      lessons.filter(
+        (l) =>
+          (monthFilter === "all" || monthKey(l.starts_at) === monthFilter) &&
+          (tutorFilter === "all" || l.tutor_id === tutorFilter)
+      ),
+    [lessons, monthFilter, tutorFilter]
   );
 
   // Враховуємо лише завершені уроки для фінансів
