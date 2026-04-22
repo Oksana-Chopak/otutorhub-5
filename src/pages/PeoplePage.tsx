@@ -203,6 +203,7 @@ export default function PeoplePage() {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
+        avatar_url: p.avatar_url ?? null,
         phone: c?.phone ?? null,
         email: c?.email ?? null,
         telegram: c?.telegram ?? null,
