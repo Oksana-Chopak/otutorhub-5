@@ -459,21 +459,37 @@ export default function ChatsPage() {
                     Немає активних пар (потрібен хоча б один урок або призначена ставка).
                   </p>
                 ) : (
-                  <Select value={selectedPair} onValueChange={setSelectedPair}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Виберіть репетитора та учня" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availablePairs.map((p) => {
-                        const key = `${p.tutor_id}|${p.student_id}`;
-                        return (
-                          <SelectItem key={key} value={key}>
-                            {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
+                  <>
+                    <Select value={selectedPair} onValueChange={setSelectedPair}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Виберіть репетитора та учня" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePairs.map((p) => {
+                          const key = `${p.tutor_id}|${p.student_id}`;
+                          const exists = threads.some(
+                            (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
+                          );
+                          return (
+                            <SelectItem key={key} value={key}>
+                              {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
+                              {exists ? "  · чат уже існує" : ""}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {selectedPair && (() => {
+                      const [tId, sId] = selectedPair.split("|");
+                      const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
+                      if (!existing) return null;
+                      return (
+                        <p className="text-xs text-warning">
+                          Чат для цієї пари вже існує — кнопка просто відкриє його.
+                        </p>
+                      );
+                    })()}
+                  </>
                 )}
               </div>
               <DialogFooter>
@@ -652,6 +668,26 @@ export default function ChatsPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {isManager && (
+                  <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-2">
+                    {[
+                      "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
+                      "Дякуємо за оплату — підтверджуємо отримання.",
+                      "Нагадуємо про урок сьогодні. До зустрічі!",
+                      "Будь ласка, надішліть скрін оплати для підтвердження.",
+                    ].map((tpl) => (
+                      <button
+                        key={tpl}
+                        type="button"
+                        onClick={() => setDraft(tpl)}
+                        className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                        title="Вставити шаблон"
+                      >
+                        {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();

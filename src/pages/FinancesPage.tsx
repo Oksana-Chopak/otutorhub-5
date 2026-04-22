@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
+import { FinanceMonthlyChart } from "@/components/FinanceMonthlyChart";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -336,6 +337,24 @@ export default function FinancesPage() {
               value={`${pendingIncome} / ${pendingExpense} ₴`}
               icon={DollarSign}
               variant="warning"
+            />
+          </div>
+
+          {/* Monthly chart */}
+          <div className="mt-6 rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">Помісячна динаміка (останні 12 місяців)</h2>
+              <span className="text-xs text-muted-foreground">Завершені уроки</span>
+            </div>
+            <FinanceMonthlyChart
+              lessons={filtered.map((l) => ({
+                starts_at: l.starts_at,
+                status: l.status,
+                student_price: Number(l.student_price),
+                tutor_payout: Number(l.tutor_payout),
+                student_payment_status: l.student_payment_status,
+                tutor_payout_status: l.tutor_payout_status,
+              }))}
             />
           </div>
 

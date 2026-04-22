@@ -8,8 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { GraduationCap, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+
+const REMEMBER_KEY = "tutorhub.rememberMe";
 
 const signUpSchema = z.object({
   firstName: z.string().trim().min(1, "Введіть ім'я").max(50),
@@ -28,6 +31,10 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState<boolean>(() => {
+    const stored = localStorage.getItem(REMEMBER_KEY);
+    return stored === null ? true : stored === "true";
+  });
 
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signUpData, setSignUpData] = useState({
@@ -41,6 +48,11 @@ export default function AuthPage() {
   useEffect(() => {
     if (!authLoading && user) navigate("/", { replace: true });
   }, [user, authLoading, navigate]);
+
+  // Track remember-me preference. When disabled, sign out automatically when the tab/window closes.
+  useEffect(() => {
+    localStorage.setItem(REMEMBER_KEY, String(remember));
+  }, [remember]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,6 +189,16 @@ export default function AuthPage() {
                       onChange={(e) => setSignInData({ ...signInData, password: e.target.value })}
                       required
                     />
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={remember}
+                        onCheckedChange={(v) => setRemember(v === true)}
+                        aria-label="Запам'ятати мене"
+                      />
+                      Запам'ятати мене
+                    </label>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -54,7 +54,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
 
-    return () => sub.subscription.unsubscribe();
+    // "Remember me": if user opted out, clear the persisted Supabase token on tab close
+    // so next visit forces a fresh login.
+    const handleUnload = () => {
+      const remember = localStorage.getItem("tutorhub.rememberMe");
+      if (remember === "false") {
+        // Remove all sb-* auth keys from localStorage
+        Object.keys(localStorage).forEach((k) => {
+          if (k.startsWith("sb-") && k.endsWith("-auth-token")) {
+            localStorage.removeItem(k);
+          }
+        });
+      }
+    };
+    window.addEventListener("pagehide", handleUnload);
+
+    return () => {
+      sub.subscription.unsubscribe();
+      window.removeEventListener("pagehide", handleUnload);
+    };
   }, []);
 
   const signOut = async () => {
