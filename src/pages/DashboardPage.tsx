@@ -4,9 +4,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarDays, DollarSign, Users, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { CalendarDays, DollarSign, Users, TrendingUp, Clock, Loader2, ChevronDown, Video } from "lucide-react";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "paid" | "unpaid";
@@ -23,6 +25,10 @@ interface LessonRow {
   tutor_payout: number;
   student_payment_status: PaymentStatus;
   tutor_payout_status: PaymentStatus;
+  meeting_url: string | null;
+  homework: string | null;
+  summary: string | null;
+  student_notes: string | null;
 }
 
 interface ProfileRow {
@@ -54,31 +60,32 @@ export default function DashboardPage() {
   const [tutorCount, setTutorCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
 
+  const loadData = async () => {
+    if (!user) return;
+
+    const [{ data: lessonsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
+      supabase.from("lessons_visible").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes").order("starts_at", { ascending: true }),
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("user_roles").select("user_id, role"),
+    ]);
+
+    const profileMap: Record<string, string> = {};
+    (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
+      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
+    });
+
+    const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
+    setTutorCount(roleRows.filter((row) => row.role === "tutor").length);
+    setStudentCount(roleRows.filter((row) => row.role === "student").length);
+    setProfiles(profileMap);
+    setLessons((lessonsData ?? []) as LessonRow[]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-      setLoading(true);
-
-      const [{ data: lessonsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
-        supabase.from("lessons_visible").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status").order("starts_at", { ascending: true }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-        supabase.from("user_roles").select("user_id, role"),
-      ]);
-
-      const profileMap: Record<string, string> = {};
-      (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
-        profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
-      });
-
-      const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
-      setTutorCount(roleRows.filter((row) => row.role === "tutor").length);
-      setStudentCount(roleRows.filter((row) => row.role === "student").length);
-      setProfiles(profileMap);
-      setLessons((lessonsData ?? []) as LessonRow[]);
-      setLoading(false);
-    };
-
+    setLoading(true);
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -156,32 +163,89 @@ export default function DashboardPage() {
                   upcomingLessons.map((lesson) => {
                     const lessonDate = new Date(lesson.starts_at);
                     const isToday = lesson.starts_at.slice(0, 10) === todayKey;
+                    const timeLabel = isToday
+                      ? `Сьогодні · ${lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
+                      : lessonDate.toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+                    const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
+                    const hasMeeting = !!(lesson.meeting_url && lesson.meeting_url.trim());
+
+                    if (isManager && !isParticipant) {
+                      return (
+                        <Link
+                          key={lesson.id}
+                          to="/schedule"
+                          className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-3 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                              <Clock className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-sm font-medium text-foreground">{timeLabel}</span>
+                            <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
+                          </div>
+                        </Link>
+                      );
+                    }
+
                     return (
-                      <Link
-                        key={lesson.id}
-                        to="/schedule"
-                        className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-3 transition-colors hover:border-primary/40 hover:bg-accent/30"
-                      >
-                        <div className="flex items-center gap-4 min-w-0">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                            <Clock className="h-4 w-4 text-primary" />
+                      <Collapsible key={lesson.id} className="rounded-xl border border-border bg-card">
+                        <div className="flex items-center justify-between gap-3 p-4">
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                              <Clock className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
+                              </p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
-                            </p>
+                          <div className="flex flex-col items-end gap-1 shrink-0">
+                            <span className="text-sm font-medium text-foreground">{timeLabel}</span>
+                            <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                           </div>
                         </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-sm font-medium text-foreground">
-                            {isToday
-                              ? `Сьогодні · ${lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
-                              : lessonDate.toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                          <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
+                        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2">
+                          {hasMeeting ? (
+                            <Button asChild size="sm" variant="default">
+                              <a href={lesson.meeting_url!} target="_blank" rel="noopener noreferrer">
+                                <Video className="mr-2 h-4 w-4" />
+                                Приєднатися
+                              </a>
+                            </Button>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">Без посилання на мітинг</span>
+                          )}
+                          <CollapsibleTrigger asChild>
+                            <Button size="sm" variant="ghost" className="group">
+                              Деталі
+                              <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                            </Button>
+                          </CollapsibleTrigger>
                         </div>
-                      </Link>
+                        <CollapsibleContent className="border-t border-border p-4">
+                          <LessonWorkspace
+                            lessonId={lesson.id}
+                            tutorId={lesson.tutor_id}
+                            studentId={lesson.student_id}
+                            meetingUrl={lesson.meeting_url}
+                            homework={lesson.homework}
+                            summary={lesson.summary}
+                            studentNotes={lesson.student_notes}
+                            onUpdated={loadData}
+                          />
+                        </CollapsibleContent>
+                      </Collapsible>
                     );
                   })
                 )}
