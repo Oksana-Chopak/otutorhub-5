@@ -4,9 +4,36 @@ import { MessageSquare, Eye } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ChatsPage() {
+  const { roles } = useAuth();
+  const isManager = roles.includes("manager");
   const [selectedChat, setSelectedChat] = useState<Chat>(chats[0]);
+
+  // Non-managers must NEVER see other people's threads or the manager monitoring UI.
+  // Real chat backend is not implemented yet, so show a friendly placeholder.
+  if (!isManager) {
+    return (
+      <AppLayout>
+        <div className="mb-6">
+          <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
+          <p className="text-sm text-muted-foreground">Ваше особисте листування з репетиторами та учнями</p>
+        </div>
+
+        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <MessageSquare className="h-5 w-5 text-primary" />
+          </div>
+          <p className="text-sm font-medium text-foreground">Чати скоро зʼявляться</p>
+          <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
+            Ми готуємо особисті переписки між репетиторами та учнями. Поки що скористайтеся
+            контактами, доступними у профілях.
+          </p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
