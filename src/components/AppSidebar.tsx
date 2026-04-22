@@ -6,7 +6,6 @@ import {
   DollarSign,
   MessageSquare,
   Users,
-  GraduationCap,
   Menu,
   X,
   LogOut,
@@ -101,9 +100,9 @@ export function AppSidebar() {
         )}
       >
         <div className="flex items-center gap-2 border-b border-border px-6 py-5">
-          <GraduationCap className="h-7 w-7 text-primary" />
+          <img src="/logo.png" alt="oTutorHub" className="h-8 w-8" />
           <span className="font-display text-lg font-bold text-foreground">
-            TutorHub
+            oTutorHub
           </span>
         </div>
 
