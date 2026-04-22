@@ -164,11 +164,38 @@ export default function ChatsPage() {
       .eq("role", "manager");
     const mIds = new Set<string>((managerRoleRows ?? []).map((r: any) => r.user_id));
 
+    // Load my read marks for these threads
+    let reads: Record<string, string> = {};
+    if (list.length > 0) {
+      const { data: readRows } = await supabase
+        .from("chat_reads")
+        .select("thread_id, last_read_at")
+        .eq("user_id", myId)
+        .in("thread_id", list.map((t) => t.id));
+      (readRows ?? []).forEach((r: any) => {
+        reads[r.thread_id] = r.last_read_at;
+      });
+    }
+
     setThreads(list);
     setProfiles(profileMap);
     setManagerIds(mIds);
+    setReadMap(reads);
     setSelectedId((prev) => prev ?? list[0]?.id ?? null);
     setLoading(false);
+  };
+
+  // Mark thread as read (upsert chat_reads)
+  const markRead = async (threadId: string) => {
+    if (!myId) return;
+    const now = new Date().toISOString();
+    setReadMap((prev) => ({ ...prev, [threadId]: now }));
+    await supabase
+      .from("chat_reads")
+      .upsert(
+        { thread_id: threadId, user_id: myId, last_read_at: now },
+        { onConflict: "thread_id,user_id" }
+      );
   };
 
   useEffect(() => {
