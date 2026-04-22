@@ -71,6 +71,31 @@ export default function AuthPage() {
     navigate("/", { replace: true });
   };
 
+  const handleForgotPassword = async () => {
+    const emailParse = z.string().trim().email().safeParse(signInData.email);
+    if (!emailParse.success) {
+      toast({
+        title: "Введіть email",
+        description: "Спочатку вкажіть email у полі вище — ми надішлемо посилання для скидання пароля.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: "Не вдалося надіслати лист", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "Перевірте пошту",
+      description: "Ми надіслали посилання для скидання пароля на " + emailParse.data,
+    });
+  };
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpData);
