@@ -1,5 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -43,18 +43,21 @@ import {
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
+import { UserAvatar } from "@/components/UserAvatar";
 
 interface Profile {
   id: string;
   first_name: string;
   last_name: string;
   is_pending: boolean;
+  avatar_url: string | null;
 }
 
 interface UserRow {
   id: string;
   first_name: string;
   last_name: string;
+  avatar_url: string | null;
   phone: string | null;
   email: string | null;
   telegram: string | null;
@@ -130,12 +133,17 @@ export default function PeoplePage() {
     user: null,
   });
 
+  // Search & filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+
   const loadData = async () => {
     setLoading(true);
     const isManager = roles.includes("manager");
     
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, is_pending"),
+      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
@@ -196,6 +204,7 @@ export default function PeoplePage() {
         id: p.id,
         first_name: p.first_name,
         last_name: p.last_name,
+        avatar_url: p.avatar_url ?? null,
         phone: c?.phone ?? null,
         email: c?.email ?? null,
         telegram: c?.telegram ?? null,
@@ -459,12 +468,55 @@ export default function PeoplePage() {
     loadData();
   };
 
-  const tutors = users.filter((u) => u.role === "tutor");
-  const students = users.filter((u) => u.role === "student");
-  const managers = users.filter((u) => u.role === "manager");
-  const noRole = users.filter((u) => !u.role);
-
   const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
+
+  // Build subject options from all tutors
+  const allSubjects = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => (u.subjects ?? []).forEach((s) => set.add(s)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
+  }, [users]);
+
+  // Apply filters once for all sections
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return users.filter((u) => {
+      if (statusFilter === "active" && u.is_pending) return false;
+      if (statusFilter === "pending" && !u.is_pending) return false;
+      if (subjectFilter !== "all") {
+        const subjects = u.subjects ?? [];
+        if (u.role === "tutor") {
+          if (!subjects.includes(subjectFilter)) return false;
+        } else if (u.role === "student") {
+          // Show student if any of their tutor rates includes that subject
+          const has = studentRates.some(
+            (r) => r.student_id === u.id && r.subject === subjectFilter
+          );
+          if (!has) return false;
+        } else {
+          return false; // managers/no-role hidden when filtering by subject
+        }
+      }
+      if (!q) return true;
+      const hay = [
+        fullName(u),
+        u.email ?? "",
+        u.phone ?? "",
+        u.telegram ?? "",
+        ...(u.subjects ?? []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [users, searchQuery, subjectFilter, statusFilter, studentRates]);
+
+  const tutors = filteredUsers.filter((u) => u.role === "tutor");
+  const students = filteredUsers.filter((u) => u.role === "student");
+  const managers = filteredUsers.filter((u) => u.role === "manager");
+  const noRole = filteredUsers.filter((u) => !u.role);
+  // Unfiltered tutors list for student-card pricing rows
+  const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
     <div
@@ -475,17 +527,20 @@ export default function PeoplePage() {
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-              u.is_pending
-                ? "bg-warning/20 text-warning"
-                : accent === "primary"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground"
-            }`}
-          >
-            {u.is_pending ? <Hourglass className="h-4 w-4" /> : (u.first_name[0] ?? "?") + (u.last_name[0] ?? "")}
-          </div>
+          {u.is_pending ? (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/20 text-warning">
+              <Hourglass className="h-4 w-4" />
+            </div>
+          ) : (
+            <UserAvatar
+              url={u.avatar_url}
+              firstName={u.first_name}
+              lastName={u.last_name}
+              className={`h-10 w-10 shrink-0 ${
+                accent === "primary" ? "ring-2 ring-primary/30" : ""
+              }`}
+            />
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
@@ -640,12 +695,12 @@ export default function PeoplePage() {
         </Button>
       )}
 
-      {u.role === "student" && tutors.length > 0 && (() => {
+      {u.role === "student" && allTutors.length > 0 && (() => {
         // Only show tutors that actually work with this student (have at least one rate set)
         const linkedTutorIds = new Set(
           studentRates.filter((r) => r.student_id === u.id).map((r) => r.tutor_id)
         );
-        const linkedTutors = tutors.filter((t) => linkedTutorIds.has(t.id));
+        const linkedTutors = allTutors.filter((t) => linkedTutorIds.has(t.id));
         if (linkedTutors.length === 0) {
           return (
             <div className="mt-3 pt-3 border-t border-border">
@@ -821,6 +876,46 @@ export default function PeoplePage() {
           </Dialog>
         )}
       </div>
+
+      {/* Search & filters */}
+      {!loading && (
+        <div className="mb-6 flex flex-wrap gap-3">
+          <div className="flex-1 min-w-[200px]">
+            <Input
+              placeholder="Пошук за іменем, email, телефоном..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="w-full sm:w-48">
+            <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Предмет" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Усі предмети</SelectItem>
+                {allSubjects.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-44">
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Усі статуси</SelectItem>
+                <SelectItem value="active">Активні</SelectItem>
+                <SelectItem value="pending">Очікують реєстрації</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">

@@ -31,7 +31,14 @@ import {
   Bell,
   Check,
   X,
+  Copy,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   WEEKDAYS_FULL_UK,
   WEEKDAYS_UK,
@@ -287,6 +294,37 @@ export default function AvailabilityPage() {
     return m;
   }, [weekly]);
 
+  // Total weekly hours (sum of all slots)
+  const totalWeeklyMinutes = useMemo(
+    () => weekly.reduce((s, w) => s + (w.end_minute - w.start_minute), 0),
+    [weekly]
+  );
+  const totalWeeklyHours = (totalWeeklyMinutes / 60).toFixed(1).replace(/\.0$/, "");
+
+  // Copy all slots from sourceDay to targetDay
+  const copyDaySlots = async (sourceDay: number, targetDay: number) => {
+    if (sourceDay === targetDay) return;
+    const source = groupedWeekly.get(sourceDay) ?? [];
+    if (source.length === 0) {
+      toast.error("У вихідному дні немає слотів для копіювання");
+      return;
+    }
+    const rows = source.map((s) => ({
+      tutor_id: tutorId,
+      weekday: targetDay,
+      start_minute: s.start_minute,
+      end_minute: s.end_minute,
+    }));
+    const { error } = await supabase.from("tutor_availability_weekly").insert(rows);
+    if (error) {
+      console.error(error);
+      toast.error("Не вдалося скопіювати слоти");
+      return;
+    }
+    toast.success(`Скопійовано ${rows.length} слот(и) → ${WEEKDAYS_FULL_UK[targetDay]}`);
+    loadAvailability();
+  };
+
   return (
     <AppLayout>
       <div className="mb-6">
@@ -363,8 +401,15 @@ export default function AvailabilityPage() {
         <>
           {/* WEEKLY */}
           <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-semibold text-foreground">Тижневий шаблон</h2>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <h2 className="font-display text-lg font-semibold text-foreground">Тижневий шаблон</h2>
+                {totalWeeklyMinutes > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {totalWeeklyHours} год/тиждень
+                  </Badge>
+                )}
+              </div>
               {canEdit && (
                 <Button size="sm" onClick={() => setWeeklyDialog((s) => ({ ...s, open: true }))}>
                   <Plus className="h-4 w-4 mr-1" />
@@ -398,7 +443,32 @@ export default function AvailabilityPage() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground">{WEEKDAYS_FULL_UK[day]}</p>
-                      {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {canEdit && groupedWeekly.size > 0 && items.length === 0 && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                title="Скопіювати з іншого дня"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {Array.from(groupedWeekly.entries())
+                                .filter(([d, list]) => d !== day && list.length > 0)
+                                .map(([d]) => (
+                                  <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>
+                                    Скопіювати з {WEEKDAYS_FULL_UK[d]}
+                                  </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                        {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
+                      </div>
                     </div>
                     {items.length === 0 ? (
                       <p className="text-xs italic text-muted-foreground">
