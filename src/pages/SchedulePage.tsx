@@ -477,7 +477,7 @@ export default function SchedulePage() {
                 </div>
                 <div>
                   <Label htmlFor="subject">Предмет</Label>
-                  {selectedTutor && selectedTutor.subjects && selectedTutor.subjects.length > 0 ? (
+                  {subjectOptions.length > 0 ? (
                     <Select
                       value={form.subject}
                       onValueChange={(v) => setForm((f) => ({ ...f, subject: v }))}
@@ -486,9 +486,10 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Оберіть предмет" />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedTutor.subjects.map((s) => (
+                        {subjectOptions.map((s) => (
                           <SelectItem key={s} value={s}>
                             {s}
+                            {pairSubjects.includes(s) ? " ✓" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
