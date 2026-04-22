@@ -105,6 +105,14 @@ export default function SchedulePage() {
   const [view, setView] = useState<"list" | "week">("list");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
 
+  // Filters
+  const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
+  const [filterTutor, setFilterTutor] = useState<string>("all");
+  const [filterStudent, setFilterStudent] = useState<string>("all");
+  const [filterPeriod, setFilterPeriod] = useState<"all" | "upcoming" | "past" | "month" | "week">(
+    "all"
+  );
+
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({
@@ -122,6 +130,7 @@ export default function SchedulePage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
   const openCopy = (lesson: Lesson) => {
     // Pre-fill form with lesson data; default new starts_at = +7 days same time
