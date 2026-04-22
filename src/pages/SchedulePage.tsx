@@ -105,6 +105,14 @@ export default function SchedulePage() {
   const [view, setView] = useState<"list" | "week">("list");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
 
+  // Filters
+  const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
+  const [filterTutor, setFilterTutor] = useState<string>("all");
+  const [filterStudent, setFilterStudent] = useState<string>("all");
+  const [filterPeriod, setFilterPeriod] = useState<"all" | "upcoming" | "past" | "month" | "week">(
+    "all"
+  );
+
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
   const [form, setForm] = useState({
@@ -122,6 +130,7 @@ export default function SchedulePage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
   const openCopy = (lesson: Lesson) => {
     // Pre-fill form with lesson data; default new starts_at = +7 days same time
@@ -302,6 +311,30 @@ export default function SchedulePage() {
     };
   }, [isManager, form.tutor_id, form.student_id, form.subject]);
 
+  // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
+  const conflictWarning = useMemo(() => {
+    if (!form.tutor_id || !form.starts_at) return null;
+    const startMs = new Date(form.starts_at).getTime();
+    if (Number.isNaN(startMs)) return null;
+    const dur = parseInt(form.duration_minutes) || 60;
+    const endMs = startMs + dur * 60 * 1000;
+    const conflict = lessons.find((l) => {
+      if (l.tutor_id !== form.tutor_id) return false;
+      if (l.status === "cancelled") return false;
+      const ls = new Date(l.starts_at).getTime();
+      const le = ls + (l.duration_minutes || 60) * 60 * 1000;
+      return ls < endMs && le > startMs;
+    });
+    if (!conflict) return null;
+    const t = new Date(conflict.starts_at).toLocaleString("uk-UA", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `У репетитора вже є урок (${conflict.subject}, ${t}). Можна продовжити, але час перетинається.`;
+  }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
+
   const handleCreate = async () => {
     if (!user) return;
     if (!form.tutor_id || !form.student_id || !form.subject || !form.starts_at) {
@@ -311,33 +344,46 @@ export default function SchedulePage() {
     setSubmitting(true);
 
     const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
+    const baseStart = new Date(form.starts_at);
 
-    const payload: any = {
-      tutor_id: form.tutor_id,
-      student_id: form.student_id,
-      subject: form.subject,
-      starts_at: new Date(form.starts_at).toISOString(),
-      duration_minutes: parseInt(form.duration_minutes) || 60,
-      notes: form.notes || null,
-      status: isManager ? form.status : status,
-      created_by: user.id,
-    };
-
-    if (isManager) {
-      payload.student_price = Number(form.student_price) || 0;
-      payload.tutor_payout = Number(form.tutor_payout) || 0;
-      payload.student_payment_status = form.student_payment_status;
-      payload.tutor_payout_status = form.tutor_payout_status;
+    const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
+    const payloads: any[] = [];
+    for (let i = 0; i < repeats; i++) {
+      const dt = new Date(baseStart);
+      dt.setDate(dt.getDate() + i * 7);
+      const payload: any = {
+        tutor_id: form.tutor_id,
+        student_id: form.student_id,
+        subject: form.subject,
+        starts_at: dt.toISOString(),
+        duration_minutes: parseInt(form.duration_minutes) || 60,
+        notes: form.notes || null,
+        status: isManager ? form.status : status,
+        created_by: user.id,
+      };
+      if (isManager) {
+        payload.student_price = Number(form.student_price) || 0;
+        payload.tutor_payout = Number(form.tutor_payout) || 0;
+        payload.student_payment_status = form.student_payment_status;
+        payload.tutor_payout_status = form.tutor_payout_status;
+      }
+      payloads.push(payload);
     }
 
-    const { error } = await supabase.from("lessons").insert(payload);
+    const { error } = await supabase.from("lessons").insert(payloads);
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
       toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
-    toast.success(status === "pending" ? "Запит створено" : "Урок створено");
+    toast.success(
+      repeats > 1
+        ? `Створено ${repeats} уроків`
+        : status === "pending"
+        ? "Запит створено"
+        : "Урок створено"
+    );
     setCreateOpen(false);
     setForm((f) => ({
       ...f,
@@ -349,6 +395,7 @@ export default function SchedulePage() {
       tutor_payout_status: "unpaid",
       status: "scheduled",
     }));
+    setRepeatWeeks("1");
     loadAll();
   };
 
@@ -390,16 +437,46 @@ export default function SchedulePage() {
     loadAll();
   };
 
-  // Group lessons by day
+  // Apply filters
+  const filteredLessons = useMemo(() => {
+    const now = Date.now();
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const weekStart = new Date();
+    const day = (weekStart.getDay() + 6) % 7;
+    weekStart.setDate(weekStart.getDate() - day);
+    weekStart.setHours(0, 0, 0, 0);
+
+    return lessons.filter((l) => {
+      if (filterStatus !== "all" && l.status !== filterStatus) return false;
+      if (filterTutor !== "all" && l.tutor_id !== filterTutor) return false;
+      if (filterStudent !== "all" && l.student_id !== filterStudent) return false;
+      const ts = new Date(l.starts_at).getTime();
+      if (filterPeriod === "upcoming" && ts < now - 60 * 60 * 1000) return false;
+      if (filterPeriod === "past" && ts >= now) return false;
+      if (filterPeriod === "month" && ts < monthStart.getTime()) return false;
+      if (filterPeriod === "week" && ts < weekStart.getTime()) return false;
+      return true;
+    });
+  }, [lessons, filterStatus, filterTutor, filterStudent, filterPeriod]);
+
+  // Group filtered lessons by day
   const grouped = useMemo(() => {
     const map = new Map<string, Lesson[]>();
-    lessons.forEach((l) => {
+    filteredLessons.forEach((l) => {
       const key = new Date(l.starts_at).toISOString().slice(0, 10);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
     return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
-  }, [lessons]);
+  }, [filteredLessons]);
+
+  const filtersActive =
+    filterStatus !== "all" ||
+    filterTutor !== "all" ||
+    filterStudent !== "all" ||
+    filterPeriod !== "all";
 
   // For students: list of distinct tutors they have lessons with
   const studentTutors = useMemo(() => {
@@ -425,25 +502,56 @@ export default function SchedulePage() {
               : "Ваші уроки та запити"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
+            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всі статуси</SelectItem>
+              <SelectItem value="pending">Запит</SelectItem>
+              <SelectItem value="scheduled">Заплановано</SelectItem>
+              <SelectItem value="completed">Проведено</SelectItem>
+              <SelectItem value="cancelled">Скасовано</SelectItem>
+            </SelectContent>
+          </Select>
+          {(isManager || isTutor) && (
+            <Select value={filterTutor} onValueChange={setFilterTutor}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі репетитори</SelectItem>
+                {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {(isManager || isTutor) && (
+            <Select value={filterStudent} onValueChange={setFilterStudent}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі учні</SelectItem>
+                {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
+            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Весь час</SelectItem>
+              <SelectItem value="upcoming">Майбутні</SelectItem>
+              <SelectItem value="past">Минулі</SelectItem>
+              <SelectItem value="week">Цей тиждень</SelectItem>
+              <SelectItem value="month">Цей місяць</SelectItem>
+            </SelectContent>
+          </Select>
+          {filtersActive && (
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => {
+              setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterPeriod("all");
+            }}>Скинути</Button>
+          )}
           <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
-            <Button
-              variant={view === "list" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setView("list")}
-            >
-              <List className="h-3.5 w-3.5" />
-              Список
+            <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
+              <List className="h-3.5 w-3.5" />Список
             </Button>
-            <Button
-              variant={view === "week" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setView("week")}
-            >
-              <CalendarRange className="h-3.5 w-3.5" />
-              Тиждень
+            <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
+              <CalendarRange className="h-3.5 w-3.5" />Тиждень
             </Button>
           </div>
         </div>
@@ -643,6 +751,26 @@ export default function SchedulePage() {
                     Це буде запит. Менеджер або репетитор підтвердить його.
                   </p>
                 )}
+                {conflictWarning && (
+                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
+                    ⚠ {conflictWarning}
+                  </div>
+                )}
+                {(isManager || isTutor) && (
+                  <div>
+                    <Label htmlFor="repeat">Повторювати щотижня</Label>
+                    <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
+                      <SelectTrigger id="repeat"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Не повторювати</SelectItem>
+                        <SelectItem value="2">2 тижні</SelectItem>
+                        <SelectItem value="4">4 тижні</SelectItem>
+                        <SelectItem value="8">8 тижнів</SelectItem>
+                        <SelectItem value="12">12 тижнів</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 <div className="pt-1">
                   <button
                     type="button"
@@ -696,7 +824,7 @@ export default function SchedulePage() {
       ) : view === "week" ? (
         <WeekCalendar
           weekStart={weekAnchor}
-          lessons={lessons.map((l) => ({
+          lessons={filteredLessons.map((l) => ({
             id: l.id,
             starts_at: l.starts_at,
             duration_minutes: l.duration_minutes,
