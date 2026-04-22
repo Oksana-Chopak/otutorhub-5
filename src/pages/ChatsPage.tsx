@@ -77,6 +77,8 @@ export default function ChatsPage() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [readMap, setReadMap] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<"recent" | "unread" | "name">("recent");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // New chat dialog (manager only)
