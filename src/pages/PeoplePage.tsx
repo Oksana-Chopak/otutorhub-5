@@ -704,7 +704,8 @@ export default function PeoplePage() {
             })}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
     </div>
