@@ -340,6 +340,24 @@ export default function FinancesPage() {
             />
           </div>
 
+          {/* Monthly chart */}
+          <div className="mt-6 rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-foreground">Помісячна динаміка (останні 12 місяців)</h2>
+              <span className="text-xs text-muted-foreground">Завершені уроки</span>
+            </div>
+            <FinanceMonthlyChart
+              lessons={filtered.map((l) => ({
+                starts_at: l.starts_at,
+                status: l.status,
+                student_price: Number(l.student_price),
+                tutor_payout: Number(l.tutor_payout),
+                student_payment_status: l.student_payment_status,
+                tutor_payout_status: l.tutor_payout_status,
+              }))}
+            />
+          </div>
+
           {/* Bulk action bar */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
