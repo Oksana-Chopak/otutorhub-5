@@ -443,7 +443,32 @@ export default function AvailabilityPage() {
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground">{WEEKDAYS_FULL_UK[day]}</p>
-                      {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
+                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                        {canEdit && groupedWeekly.size > 0 && items.length === 0 && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                                title="Скопіювати з іншого дня"
+                              >
+                                <Copy className="h-3 w-3" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {Array.from(groupedWeekly.entries())
+                                .filter(([d, list]) => d !== day && list.length > 0)
+                                .map(([d]) => (
+                                  <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>
+                                    Скопіювати з {WEEKDAYS_FULL_UK[d]}
+                                  </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                        {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
+                      </div>
                     </div>
                     {items.length === 0 ? (
                       <p className="text-xs italic text-muted-foreground">
