@@ -375,15 +375,43 @@ export default function AvailabilityPage() {
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {WEEKDAYS_UK.map((_, day) => {
                 const items = groupedWeekly.get(day) ?? [];
+                const openAdd = () => {
+                  if (!canEdit) return;
+                  setWeeklyDialog({ open: true, weekday: day, from: "16:00", to: "20:00" });
+                };
                 return (
-                  <div key={day} className="rounded-xl border border-border bg-card p-3">
-                    <p className="text-sm font-semibold text-foreground mb-2">{WEEKDAYS_FULL_UK[day]}</p>
+                  <div
+                    key={day}
+                    className={`rounded-xl border border-border bg-card p-3 transition-colors ${
+                      canEdit ? "cursor-pointer hover:border-primary/50 hover:bg-accent/30" : ""
+                    }`}
+                    onClick={canEdit ? openAdd : undefined}
+                    role={canEdit ? "button" : undefined}
+                    tabIndex={canEdit ? 0 : undefined}
+                    onKeyDown={(e) => {
+                      if (canEdit && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        openAdd();
+                      }
+                    }}
+                    aria-label={canEdit ? `Додати години на ${WEEKDAYS_FULL_UK[day]}` : undefined}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-sm font-semibold text-foreground">{WEEKDAYS_FULL_UK[day]}</p>
+                      {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
+                    </div>
                     {items.length === 0 ? (
-                      <p className="text-xs text-muted-foreground italic">Вихідний</p>
+                      <p className="text-xs italic text-muted-foreground">
+                        {canEdit ? "Натисніть, щоб додати години" : "Вихідний"}
+                      </p>
                     ) : (
                       <div className="space-y-1.5">
                         {items.map((w) => (
-                          <div key={w.id} className="flex items-center justify-between text-xs bg-muted/40 rounded px-2 py-1">
+                          <div
+                            key={w.id}
+                            className="flex items-center justify-between rounded bg-muted/40 px-2 py-1 text-xs"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <span className="font-mono text-foreground">
                               {minutesToHHMM(w.start_minute)} — {minutesToHHMM(w.end_minute)}
                             </span>
@@ -392,7 +420,10 @@ export default function AvailabilityPage() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-5 w-5 text-muted-foreground hover:text-destructive"
-                                onClick={() => removeWeekly(w.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeWeekly(w.id);
+                                }}
                               >
                                 <Trash2 className="h-3 w-3" />
                               </Button>
