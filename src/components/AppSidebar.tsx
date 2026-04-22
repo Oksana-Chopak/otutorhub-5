@@ -61,6 +61,20 @@ export function AppSidebar() {
 
   const primaryRole = roles[0];
   const initials = (user?.email ?? "??").slice(0, 2).toUpperCase();
+  const [profile, setProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("first_name, last_name, avatar_url")
+      .eq("id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setProfile(data);
+      });
+  }, [user?.id]);
 
   return (
     <>
