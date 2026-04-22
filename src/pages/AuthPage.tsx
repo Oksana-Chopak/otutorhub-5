@@ -31,6 +31,10 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [remember, setRemember] = useState<boolean>(() => {
+    const stored = localStorage.getItem(REMEMBER_KEY);
+    return stored === null ? true : stored === "true";
+  });
 
   const [signInData, setSignInData] = useState({ email: "", password: "" });
   const [signUpData, setSignUpData] = useState({
@@ -44,6 +48,11 @@ export default function AuthPage() {
   useEffect(() => {
     if (!authLoading && user) navigate("/", { replace: true });
   }, [user, authLoading, navigate]);
+
+  // Track remember-me preference. When disabled, sign out automatically when the tab/window closes.
+  useEffect(() => {
+    localStorage.setItem(REMEMBER_KEY, String(remember));
+  }, [remember]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
