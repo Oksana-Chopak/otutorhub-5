@@ -192,6 +192,113 @@ export default function SchedulePage() {
 
   const selectedTutor = tutors.find((t) => t.id === form.tutor_id);
 
+  // Smart-form: subjects available for the selected tutor (from tutor profile + tutor_subject_rates)
+  const [tutorRateSubjects, setTutorRateSubjects] = useState<string[]>([]);
+  // Smart-form: subjects this student already has a rate for with this tutor
+  const [pairSubjects, setPairSubjects] = useState<string[]>([]);
+  const [autoFilling, setAutoFilling] = useState(false);
+
+  // Load subjects from tutor_subject_rates whenever tutor changes
+  useEffect(() => {
+    if (!form.tutor_id) {
+      setTutorRateSubjects([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("tutor_subject_rates")
+        .select("subject")
+        .eq("tutor_id", form.tutor_id);
+      if (!cancelled) {
+        setTutorRateSubjects(((data ?? []) as { subject: string }[]).map((r) => r.subject));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [form.tutor_id]);
+
+  // Load subjects with existing student_rates for the pair (for hinting)
+  useEffect(() => {
+    if (!form.tutor_id || !form.student_id) {
+      setPairSubjects([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("student_rates")
+        .select("subject")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id);
+      if (!cancelled) {
+        setPairSubjects(((data ?? []) as { subject: string }[]).map((r) => r.subject));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [form.tutor_id, form.student_id]);
+
+  // Combined subject options for dropdown (union of tutor profile + rate subjects + pair subjects)
+  const subjectOptions = useMemo(() => {
+    const set = new Set<string>();
+    (selectedTutor?.subjects ?? []).forEach((s) => s && set.add(s));
+    tutorRateSubjects.forEach((s) => s && set.add(s));
+    pairSubjects.forEach((s) => s && set.add(s));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
+  }, [selectedTutor, tutorRateSubjects, pairSubjects]);
+
+  // Auto-fill prices for managers when tutor/student/subject change
+  useEffect(() => {
+    if (!isManager) return;
+    if (!form.tutor_id || !form.student_id || !form.subject) return;
+    let cancelled = false;
+    (async () => {
+      setAutoFilling(true);
+      const [rateRes, payoutRes, fallbackRes] = await Promise.all([
+        supabase
+          .from("student_rates")
+          .select("price_per_lesson")
+          .eq("tutor_id", form.tutor_id)
+          .eq("student_id", form.student_id)
+          .eq("subject", form.subject)
+          .maybeSingle(),
+        supabase
+          .from("tutor_subject_rates")
+          .select("rate_per_lesson")
+          .eq("tutor_id", form.tutor_id)
+          .eq("subject", form.subject)
+          .maybeSingle(),
+        supabase
+          .from("tutor_details")
+          .select("rate_per_lesson")
+          .eq("user_id", form.tutor_id)
+          .maybeSingle(),
+      ]);
+      if (cancelled) return;
+      const studentPrice = rateRes.data?.price_per_lesson;
+      const tutorPayout =
+        payoutRes.data?.rate_per_lesson ?? fallbackRes.data?.rate_per_lesson;
+      setForm((f) => ({
+        ...f,
+        student_price:
+          studentPrice !== undefined && studentPrice !== null
+            ? String(studentPrice)
+            : f.student_price,
+        tutor_payout:
+          tutorPayout !== undefined && tutorPayout !== null
+            ? String(tutorPayout)
+            : f.tutor_payout,
+      }));
+      setAutoFilling(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager, form.tutor_id, form.student_id, form.subject]);
+
   const handleCreate = async () => {
     if (!user) return;
     if (!form.tutor_id || !form.student_id || !form.subject || !form.starts_at) {
