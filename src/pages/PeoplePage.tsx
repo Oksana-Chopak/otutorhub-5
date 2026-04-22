@@ -640,11 +640,26 @@ export default function PeoplePage() {
         </Button>
       )}
 
-      {u.role === "student" && tutors.length > 0 && (
+      {u.role === "student" && tutors.length > 0 && (() => {
+        // Only show tutors that actually work with this student (have at least one rate set)
+        const linkedTutorIds = new Set(
+          studentRates.filter((r) => r.student_id === u.id).map((r) => r.tutor_id)
+        );
+        const linkedTutors = tutors.filter((t) => linkedTutorIds.has(t.id));
+        if (linkedTutors.length === 0) {
+          return (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground italic">
+                Ще не призначено жодного репетитора. Відкрийте картку репетитора, щоб задати ціну для цього учня.
+              </p>
+            </div>
+          );
+        }
+        return (
         <div className="mt-3 pt-3 border-t border-border">
           <p className="text-xs text-muted-foreground mb-2">Ціна за урок (по парах репетитор + предмет):</p>
           <div className="space-y-2">
-            {tutors.map((t) => {
+            {linkedTutors.map((t) => {
               const tSubjects = t.subjects ?? [];
               if (tSubjects.length === 0) return null;
               return (
