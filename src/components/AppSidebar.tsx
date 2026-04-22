@@ -17,13 +17,14 @@ import { useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
-const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" }[] = [
+const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" | "chats" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"] },
+  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
