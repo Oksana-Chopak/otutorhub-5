@@ -25,6 +25,10 @@ interface LessonRow {
   tutor_payout: number;
   student_payment_status: PaymentStatus;
   tutor_payout_status: PaymentStatus;
+  meeting_url: string | null;
+  homework: string | null;
+  summary: string | null;
+  student_notes: string | null;
 }
 
 interface ProfileRow {
