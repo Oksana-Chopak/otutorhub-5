@@ -60,31 +60,32 @@ export default function DashboardPage() {
   const [tutorCount, setTutorCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
 
+  const loadData = async () => {
+    if (!user) return;
+
+    const [{ data: lessonsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
+      supabase.from("lessons_visible").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes").order("starts_at", { ascending: true }),
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("user_roles").select("user_id, role"),
+    ]);
+
+    const profileMap: Record<string, string> = {};
+    (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
+      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
+    });
+
+    const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
+    setTutorCount(roleRows.filter((row) => row.role === "tutor").length);
+    setStudentCount(roleRows.filter((row) => row.role === "student").length);
+    setProfiles(profileMap);
+    setLessons((lessonsData ?? []) as LessonRow[]);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      if (!user) return;
-      setLoading(true);
-
-      const [{ data: lessonsData }, { data: profilesData }, { data: rolesData }] = await Promise.all([
-        supabase.from("lessons_visible").select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes").order("starts_at", { ascending: true }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-        supabase.from("user_roles").select("user_id, role"),
-      ]);
-
-      const profileMap: Record<string, string> = {};
-      (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
-        profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
-      });
-
-      const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
-      setTutorCount(roleRows.filter((row) => row.role === "tutor").length);
-      setStudentCount(roleRows.filter((row) => row.role === "student").length);
-      setProfiles(profileMap);
-      setLessons((lessonsData ?? []) as LessonRow[]);
-      setLoading(false);
-    };
-
+    setLoading(true);
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
