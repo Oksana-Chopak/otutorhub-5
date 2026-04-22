@@ -401,8 +401,15 @@ export default function AvailabilityPage() {
         <>
           {/* WEEKLY */}
           <section className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-lg font-semibold text-foreground">Тижневий шаблон</h2>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+              <div className="flex items-center gap-3">
+                <h2 className="font-display text-lg font-semibold text-foreground">Тижневий шаблон</h2>
+                {totalWeeklyMinutes > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {totalWeeklyHours} год/тиждень
+                  </Badge>
+                )}
+              </div>
               {canEdit && (
                 <Button size="sm" onClick={() => setWeeklyDialog((s) => ({ ...s, open: true }))}>
                   <Plus className="h-4 w-4 mr-1" />
