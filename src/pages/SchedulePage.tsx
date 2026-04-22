@@ -502,25 +502,56 @@ export default function SchedulePage() {
               : "Ваші уроки та запити"}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
+            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Всі статуси</SelectItem>
+              <SelectItem value="pending">Запит</SelectItem>
+              <SelectItem value="scheduled">Заплановано</SelectItem>
+              <SelectItem value="completed">Проведено</SelectItem>
+              <SelectItem value="cancelled">Скасовано</SelectItem>
+            </SelectContent>
+          </Select>
+          {(isManager || isTutor) && (
+            <Select value={filterTutor} onValueChange={setFilterTutor}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі репетитори</SelectItem>
+                {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          {(isManager || isTutor) && (
+            <Select value={filterStudent} onValueChange={setFilterStudent}>
+              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі учні</SelectItem>
+                {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
+            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Весь час</SelectItem>
+              <SelectItem value="upcoming">Майбутні</SelectItem>
+              <SelectItem value="past">Минулі</SelectItem>
+              <SelectItem value="week">Цей тиждень</SelectItem>
+              <SelectItem value="month">Цей місяць</SelectItem>
+            </SelectContent>
+          </Select>
+          {filtersActive && (
+            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => {
+              setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterPeriod("all");
+            }}>Скинути</Button>
+          )}
           <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
-            <Button
-              variant={view === "list" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setView("list")}
-            >
-              <List className="h-3.5 w-3.5" />
-              Список
+            <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
+              <List className="h-3.5 w-3.5" />Список
             </Button>
-            <Button
-              variant={view === "week" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setView("week")}
-            >
-              <CalendarRange className="h-3.5 w-3.5" />
-              Тиждень
+            <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
+              <CalendarRange className="h-3.5 w-3.5" />Тиждень
             </Button>
           </div>
         </div>
