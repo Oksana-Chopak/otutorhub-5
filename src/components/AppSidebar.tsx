@@ -6,7 +6,6 @@ import {
   DollarSign,
   MessageSquare,
   Users,
-  GraduationCap,
   Menu,
   X,
   LogOut,
