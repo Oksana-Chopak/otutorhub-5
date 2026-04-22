@@ -76,7 +76,7 @@ export function LessonWorkspace({
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
     const cleaned = field === "meeting_url" ? normalizeUrl(value) : value;
-    const payload: Record<string, string | null> = { [field]: cleaned || null };
+    const payload = { [field]: cleaned || null } as never;
     const { error } = await supabase.from("lessons").update(payload).eq("id", lessonId);
     setSaving(null);
     if (error) {
