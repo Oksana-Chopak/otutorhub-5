@@ -4,9 +4,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { CalendarDays, DollarSign, Users, TrendingUp, Clock, Loader2 } from "lucide-react";
+import { CalendarDays, DollarSign, Users, TrendingUp, Clock, Loader2, ChevronDown, Video } from "lucide-react";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "paid" | "unpaid";
