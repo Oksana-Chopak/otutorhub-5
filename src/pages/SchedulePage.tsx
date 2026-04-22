@@ -34,8 +34,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
+import { WeekCalendar } from "@/components/WeekCalendar";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -101,6 +102,8 @@ export default function SchedulePage() {
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+  const [view, setView] = useState<"list" | "week">("list");
+  const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -191,6 +194,113 @@ export default function SchedulePage() {
   }, [user?.id, isManager, isTutor, isStudent]);
 
   const selectedTutor = tutors.find((t) => t.id === form.tutor_id);
+
+  // Smart-form: subjects available for the selected tutor (from tutor profile + tutor_subject_rates)
+  const [tutorRateSubjects, setTutorRateSubjects] = useState<string[]>([]);
+  // Smart-form: subjects this student already has a rate for with this tutor
+  const [pairSubjects, setPairSubjects] = useState<string[]>([]);
+  const [autoFilling, setAutoFilling] = useState(false);
+
+  // Load subjects from tutor_subject_rates whenever tutor changes
+  useEffect(() => {
+    if (!form.tutor_id) {
+      setTutorRateSubjects([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("tutor_subject_rates")
+        .select("subject")
+        .eq("tutor_id", form.tutor_id);
+      if (!cancelled) {
+        setTutorRateSubjects(((data ?? []) as { subject: string }[]).map((r) => r.subject));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [form.tutor_id]);
+
+  // Load subjects with existing student_rates for the pair (for hinting)
+  useEffect(() => {
+    if (!form.tutor_id || !form.student_id) {
+      setPairSubjects([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("student_rates")
+        .select("subject")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id);
+      if (!cancelled) {
+        setPairSubjects(((data ?? []) as { subject: string }[]).map((r) => r.subject));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [form.tutor_id, form.student_id]);
+
+  // Combined subject options for dropdown (union of tutor profile + rate subjects + pair subjects)
+  const subjectOptions = useMemo(() => {
+    const set = new Set<string>();
+    (selectedTutor?.subjects ?? []).forEach((s) => s && set.add(s));
+    tutorRateSubjects.forEach((s) => s && set.add(s));
+    pairSubjects.forEach((s) => s && set.add(s));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
+  }, [selectedTutor, tutorRateSubjects, pairSubjects]);
+
+  // Auto-fill prices for managers when tutor/student/subject change
+  useEffect(() => {
+    if (!isManager) return;
+    if (!form.tutor_id || !form.student_id || !form.subject) return;
+    let cancelled = false;
+    (async () => {
+      setAutoFilling(true);
+      const [rateRes, payoutRes, fallbackRes] = await Promise.all([
+        supabase
+          .from("student_rates")
+          .select("price_per_lesson")
+          .eq("tutor_id", form.tutor_id)
+          .eq("student_id", form.student_id)
+          .eq("subject", form.subject)
+          .maybeSingle(),
+        supabase
+          .from("tutor_subject_rates")
+          .select("rate_per_lesson")
+          .eq("tutor_id", form.tutor_id)
+          .eq("subject", form.subject)
+          .maybeSingle(),
+        supabase
+          .from("tutor_details")
+          .select("rate_per_lesson")
+          .eq("user_id", form.tutor_id)
+          .maybeSingle(),
+      ]);
+      if (cancelled) return;
+      const studentPrice = rateRes.data?.price_per_lesson;
+      const tutorPayout =
+        payoutRes.data?.rate_per_lesson ?? fallbackRes.data?.rate_per_lesson;
+      setForm((f) => ({
+        ...f,
+        student_price:
+          studentPrice !== undefined && studentPrice !== null
+            ? String(studentPrice)
+            : f.student_price,
+        tutor_payout:
+          tutorPayout !== undefined && tutorPayout !== null
+            ? String(tutorPayout)
+            : f.tutor_payout,
+      }));
+      setAutoFilling(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager, form.tutor_id, form.student_id, form.subject]);
 
   const handleCreate = async () => {
     if (!user) return;
@@ -315,6 +425,28 @@ export default function SchedulePage() {
               : "Ваші уроки та запити"}
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setView("list")}
+            >
+              <List className="h-3.5 w-3.5" />
+              Список
+            </Button>
+            <Button
+              variant={view === "week" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setView("week")}
+            >
+              <CalendarRange className="h-3.5 w-3.5" />
+              Тиждень
+            </Button>
+          </div>
+        </div>
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
@@ -370,7 +502,7 @@ export default function SchedulePage() {
                 </div>
                 <div>
                   <Label htmlFor="subject">Предмет</Label>
-                  {selectedTutor && selectedTutor.subjects && selectedTutor.subjects.length > 0 ? (
+                  {subjectOptions.length > 0 ? (
                     <Select
                       value={form.subject}
                       onValueChange={(v) => setForm((f) => ({ ...f, subject: v }))}
@@ -379,9 +511,10 @@ export default function SchedulePage() {
                         <SelectValue placeholder="Оберіть предмет" />
                       </SelectTrigger>
                       <SelectContent>
-                        {selectedTutor.subjects.map((s) => (
+                        {subjectOptions.map((s) => (
                           <SelectItem key={s} value={s}>
                             {s}
+                            {pairSubjects.includes(s) ? " ✓" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -438,7 +571,10 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="student_price">Оплата учня (₴)</Label>
+                        <Label htmlFor="student_price" className="flex items-center gap-1.5">
+                          Оплата учня (₴)
+                          {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                        </Label>
                         <Input
                           id="student_price"
                           type="number"
@@ -449,7 +585,10 @@ export default function SchedulePage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="tutor_payout">Виплата репетитору (₴)</Label>
+                        <Label htmlFor="tutor_payout" className="flex items-center gap-1.5">
+                          Виплата репетитору (₴)
+                          {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                        </Label>
                         <Input
                           id="tutor_payout"
                           type="number"
@@ -460,6 +599,11 @@ export default function SchedulePage() {
                         />
                       </div>
                     </div>
+                    {form.tutor_id && form.student_id && form.subject && (
+                      <p className="text-xs text-muted-foreground -mt-2">
+                        💡 Ціни автоматично підтягуються з тарифів пари. Можна змінити вручну.
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Статус оплати учня</Label>
@@ -546,6 +690,40 @@ export default function SchedulePage() {
       )}
 
       {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : view === "week" ? (
+        <WeekCalendar
+          weekStart={weekAnchor}
+          lessons={lessons.map((l) => ({
+            id: l.id,
+            starts_at: l.starts_at,
+            duration_minutes: l.duration_minutes,
+            subject: l.subject,
+            status: l.status,
+            tutor_id: l.tutor_id,
+            student_id: l.student_id,
+          }))}
+          onPrev={() => {
+            const d = new Date(weekAnchor);
+            d.setDate(d.getDate() - 7);
+            setWeekAnchor(d);
+          }}
+          onNext={() => {
+            const d = new Date(weekAnchor);
+            d.setDate(d.getDate() + 7);
+            setWeekAnchor(d);
+          }}
+          onToday={() => setWeekAnchor(new Date())}
+          onSlotClick={(date) => {
+            if (!canCreate) return;
+            setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
+            setCreateOpen(true);
+          }}
+          nameOf={(id) => profilesMap[id] ?? "?"}
+        />
+      ) : loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>

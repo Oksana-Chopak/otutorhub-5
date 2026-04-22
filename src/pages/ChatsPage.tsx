@@ -76,6 +76,7 @@ export default function ChatsPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [readMap, setReadMap] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // New chat dialog (manager only)
@@ -163,11 +164,38 @@ export default function ChatsPage() {
       .eq("role", "manager");
     const mIds = new Set<string>((managerRoleRows ?? []).map((r: any) => r.user_id));
 
+    // Load my read marks for these threads
+    let reads: Record<string, string> = {};
+    if (list.length > 0) {
+      const { data: readRows } = await supabase
+        .from("chat_reads")
+        .select("thread_id, last_read_at")
+        .eq("user_id", myId)
+        .in("thread_id", list.map((t) => t.id));
+      (readRows ?? []).forEach((r: any) => {
+        reads[r.thread_id] = r.last_read_at;
+      });
+    }
+
     setThreads(list);
     setProfiles(profileMap);
     setManagerIds(mIds);
+    setReadMap(reads);
     setSelectedId((prev) => prev ?? list[0]?.id ?? null);
     setLoading(false);
+  };
+
+  // Mark thread as read (upsert chat_reads)
+  const markRead = async (threadId: string) => {
+    if (!myId) return;
+    const now = new Date().toISOString();
+    setReadMap((prev) => ({ ...prev, [threadId]: now }));
+    await supabase
+      .from("chat_reads")
+      .upsert(
+        { thread_id: threadId, user_id: myId, last_read_at: now },
+        { onConflict: "thread_id,user_id" }
+      );
   };
 
   useEffect(() => {
@@ -191,6 +219,8 @@ export default function ChatsPage() {
         .eq("thread_id", selectedId)
         .order("created_at", { ascending: true });
       if (!cancelled) setMessages((data ?? []) as Message[]);
+      // Mark as read when opening
+      markRead(selectedId);
     };
 
     load();
@@ -206,6 +236,8 @@ export default function ChatsPage() {
             if (prev.some((m) => m.id === next.id)) return prev;
             return [...prev, next];
           });
+          // Auto-mark read while viewing thread
+          markRead(selectedId);
         }
       )
       .subscribe();
@@ -214,7 +246,37 @@ export default function ChatsPage() {
       cancelled = true;
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
+
+  // Realtime: refresh thread list metadata when any message arrives so unread badges update
+  useEffect(() => {
+    if (!myId) return;
+    const channel = supabase
+      .channel("threads-meta")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "chat_messages" },
+        (payload) => {
+          const msg = payload.new as Message;
+          setThreads((prev) =>
+            prev.map((t) =>
+              t.id === msg.thread_id
+                ? {
+                    ...t,
+                    last_message_at: msg.created_at,
+                    last_message_preview: msg.body.slice(0, 200),
+                  }
+                : t
+            )
+          );
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [myId]);
 
   // Auto-scroll on new messages
   useEffect(() => {
@@ -402,26 +464,46 @@ export default function ChatsPage() {
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
           {/* Thread list */}
           <div className="space-y-2 rounded-xl border border-border bg-card p-3 max-h-[70vh] overflow-y-auto">
-            {threads.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedId(t.id)}
-                className={cn(
-                  "w-full rounded-lg p-3 text-left transition-colors",
-                  selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{counterpartName(t)}</p>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {timeShort(t.last_message_at)}
-                  </span>
-                </div>
-                <p className="mt-1 truncate text-xs text-muted-foreground">
-                  {t.last_message_preview ?? "Немає повідомлень"}
-                </p>
-              </button>
-            ))}
+            {threads.map((t) => {
+              const readAt = readMap[t.id];
+              const isUnread =
+                t.id !== selectedId &&
+                t.last_message_at !== null &&
+                (!readAt || new Date(t.last_message_at) > new Date(readAt));
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedId(t.id)}
+                  className={cn(
+                    "w-full rounded-lg p-3 text-left transition-colors",
+                    selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={cn(
+                      "truncate text-sm text-foreground",
+                      isUnread ? "font-bold" : "font-medium"
+                    )}>
+                      {counterpartName(t)}
+                    </p>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {timeShort(t.last_message_at)}
+                      </span>
+                      {isUnread && (
+                        <span className="h-2 w-2 rounded-full bg-primary" aria-label="Непрочитане" />
+                      )}
+                    </div>
+                  </div>
+                  <p className={cn(
+                    "mt-1 truncate text-xs",
+                    isUnread ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {t.last_message_preview ?? "Немає повідомлень"}
+                  </p>
+                </button>
+              );
+            })}
           </div>
 
           {/* Detail */}

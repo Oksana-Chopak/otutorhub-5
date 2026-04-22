@@ -17,13 +17,14 @@ import { useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
+import { useUnreadChats } from "@/hooks/useUnreadChats";
 
-const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" }[] = [
+const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" | "chats" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"] },
+  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
@@ -38,6 +39,7 @@ export function AppSidebar() {
   const [open, setOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
+  const chatsBadge = useUnreadChats();
 
   const navItems = allNavItems.filter((item) =>
     item.roles.some((r) => roles.includes(r))
@@ -79,7 +81,16 @@ export function AppSidebar() {
 
         <nav className="flex-1 space-y-1 px-3 py-4">
           {navItems.map((item) => {
-            const badge = item.badgeKey === "availability" ? availabilityBadge : 0;
+            const badge =
+              item.badgeKey === "availability"
+                ? availabilityBadge
+                : item.badgeKey === "chats"
+                ? chatsBadge
+                : 0;
+            const badgeClass =
+              item.badgeKey === "chats"
+                ? "bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground"
+                : "bg-warning px-1.5 text-[10px] font-semibold text-warning-foreground";
             return (
               <RouterNavLink
                 key={item.to}
@@ -98,7 +109,7 @@ export function AppSidebar() {
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-semibold text-warning-foreground">
+                  <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
                     {badge}
                   </span>
                 )}

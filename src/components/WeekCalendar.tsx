@@ -1,0 +1,240 @@
+import { useMemo } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+export interface CalendarLesson {
+  id: string;
+  starts_at: string;
+  duration_minutes: number;
+  subject: string;
+  status: "pending" | "scheduled" | "completed" | "cancelled";
+  tutor_id: string;
+  student_id: string;
+}
+
+interface Props {
+  weekStart: Date; // any date in the desired week
+  lessons: CalendarLesson[];
+  onPrev: () => void;
+  onNext: () => void;
+  onToday: () => void;
+  onLessonClick?: (lesson: CalendarLesson) => void;
+  onSlotClick?: (date: Date) => void;
+  nameOf: (id: string) => string;
+}
+
+const HOUR_HEIGHT = 48; // px per hour
+const START_HOUR = 7; // 07:00
+const END_HOUR = 23; // 23:00
+const HOURS = END_HOUR - START_HOUR;
+const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
+
+const statusColor: Record<CalendarLesson["status"], string> = {
+  pending: "bg-warning/15 border-warning/40 text-warning hover:bg-warning/25",
+  scheduled: "bg-primary/15 border-primary/40 text-primary hover:bg-primary/25",
+  completed: "bg-success/15 border-success/40 text-success hover:bg-success/25",
+  cancelled:
+    "bg-destructive/15 border-destructive/40 text-destructive line-through hover:bg-destructive/25",
+};
+
+function startOfWeek(d: Date) {
+  const date = new Date(d);
+  const day = (date.getDay() + 6) % 7; // Mon=0
+  date.setDate(date.getDate() - day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function formatRange(weekStart: Date) {
+  const end = new Date(weekStart);
+  end.setDate(end.getDate() + 6);
+  const sameMonth = weekStart.getMonth() === end.getMonth();
+  const opt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
+  if (sameMonth) {
+    return `${weekStart.getDate()}–${end.toLocaleDateString("uk-UA", opt)}`;
+  }
+  return `${weekStart.toLocaleDateString("uk-UA", opt)} – ${end.toLocaleDateString(
+    "uk-UA",
+    opt
+  )}`;
+}
+
+export function WeekCalendar({
+  weekStart,
+  lessons,
+  onPrev,
+  onNext,
+  onToday,
+  onLessonClick,
+  onSlotClick,
+  nameOf,
+}: Props) {
+  const start = useMemo(() => startOfWeek(weekStart), [weekStart]);
+  const days = useMemo(
+    () =>
+      Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        return d;
+      }),
+    [start]
+  );
+
+  const todayKey = new Date().toDateString();
+
+  const lessonsByDay = useMemo(() => {
+    const map = new Map<string, CalendarLesson[]>();
+    days.forEach((d) => map.set(d.toDateString(), []));
+    lessons.forEach((l) => {
+      const k = new Date(l.starts_at).toDateString();
+      if (map.has(k)) map.get(k)!.push(l);
+    });
+    return map;
+  }, [lessons, days]);
+
+  return (
+    <div className="rounded-xl border border-border bg-card">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
+        <Button variant="outline" size="sm" onClick={onToday} className="gap-1.5">
+          <CalendarDays className="h-3.5 w-3.5" />
+          Сьогодні
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <span className="text-sm font-medium text-foreground min-w-[120px] text-center">
+            {formatRange(start)}
+          </span>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNext}>
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+        <span className="text-xs text-muted-foreground hidden sm:block">
+          {start.getFullYear()}
+        </span>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-[40px_repeat(7,1fr)] border-b border-border bg-secondary/30">
+        <div />
+        {days.map((d, i) => {
+          const isToday = d.toDateString() === todayKey;
+          return (
+            <div
+              key={i}
+              className={cn(
+                "px-1 py-2 text-center text-xs",
+                isToday ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
+              )}
+            >
+              <div>{WEEKDAYS[i]}</div>
+              <div
+                className={cn(
+                  "mt-0.5 text-sm font-medium",
+                  isToday ? "text-primary" : "text-foreground"
+                )}
+              >
+                {d.getDate()}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Time grid */}
+      <div className="overflow-x-auto">
+        <div
+          className="grid grid-cols-[40px_repeat(7,1fr)] relative"
+          style={{ height: HOURS * HOUR_HEIGHT }}
+        >
+          {/* Hour labels */}
+          <div className="border-r border-border">
+            {Array.from({ length: HOURS }, (_, i) => (
+              <div
+                key={i}
+                className="text-[10px] text-muted-foreground text-right pr-1 border-b border-border/50"
+                style={{ height: HOUR_HEIGHT }}
+              >
+                {String(START_HOUR + i).padStart(2, "0")}:00
+              </div>
+            ))}
+          </div>
+
+          {/* Day columns */}
+          {days.map((d, dayIdx) => {
+            const isToday = d.toDateString() === todayKey;
+            const dayLessons = lessonsByDay.get(d.toDateString()) ?? [];
+            return (
+              <div
+                key={dayIdx}
+                className={cn(
+                  "relative border-r border-border last:border-r-0",
+                  isToday && "bg-primary/[0.03]"
+                )}
+              >
+                {/* Hour rows (clickable for slot create) */}
+                {Array.from({ length: HOURS }, (_, h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => {
+                      if (!onSlotClick) return;
+                      const slot = new Date(d);
+                      slot.setHours(START_HOUR + h, 0, 0, 0);
+                      onSlotClick(slot);
+                    }}
+                    className="block w-full border-b border-border/50 hover:bg-primary/5 transition-colors"
+                    style={{ height: HOUR_HEIGHT }}
+                    aria-label={`Створити урок на ${String(START_HOUR + h).padStart(2, "0")}:00`}
+                  />
+                ))}
+
+                {/* Lessons */}
+                {dayLessons.map((l) => {
+                  const startD = new Date(l.starts_at);
+                  const startMin =
+                    (startD.getHours() - START_HOUR) * 60 + startD.getMinutes();
+                  const top = (startMin / 60) * HOUR_HEIGHT;
+                  const height = Math.max(
+                    20,
+                    (l.duration_minutes / 60) * HOUR_HEIGHT - 2
+                  );
+                  if (top < 0 || top > HOURS * HOUR_HEIGHT) return null;
+                  return (
+                    <button
+                      key={l.id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onLessonClick?.(l);
+                      }}
+                      className={cn(
+                        "absolute left-0.5 right-0.5 rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight overflow-hidden transition-colors",
+                        statusColor[l.status]
+                      )}
+                      style={{ top, height }}
+                    >
+                      <div className="font-semibold truncate">
+                        {startD.toLocaleTimeString("uk-UA", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}{" "}
+                        {l.subject}
+                      </div>
+                      <div className="truncate opacity-80">
+                        {nameOf(l.student_id)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
