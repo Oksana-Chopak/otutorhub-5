@@ -526,17 +526,20 @@ export default function PeoplePage() {
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div
-            className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${
-              u.is_pending
-                ? "bg-warning/20 text-warning"
-                : accent === "primary"
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-foreground"
-            }`}
-          >
-            {u.is_pending ? <Hourglass className="h-4 w-4" /> : (u.first_name[0] ?? "?") + (u.last_name[0] ?? "")}
-          </div>
+          {u.is_pending ? (
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/20 text-warning">
+              <Hourglass className="h-4 w-4" />
+            </div>
+          ) : (
+            <UserAvatar
+              url={u.avatar_url}
+              firstName={u.first_name}
+              lastName={u.last_name}
+              className={`h-10 w-10 shrink-0 ${
+                accent === "primary" ? "ring-2 ring-primary/30" : ""
+              }`}
+            />
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
