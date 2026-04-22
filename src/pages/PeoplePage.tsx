@@ -464,12 +464,53 @@ export default function PeoplePage() {
     loadData();
   };
 
-  const tutors = users.filter((u) => u.role === "tutor");
-  const students = users.filter((u) => u.role === "student");
-  const managers = users.filter((u) => u.role === "manager");
-  const noRole = users.filter((u) => !u.role);
-
   const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
+
+  // Build subject options from all tutors
+  const allSubjects = useMemo(() => {
+    const set = new Set<string>();
+    users.forEach((u) => (u.subjects ?? []).forEach((s) => set.add(s)));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
+  }, [users]);
+
+  // Apply filters once for all sections
+  const filteredUsers = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return users.filter((u) => {
+      if (statusFilter === "active" && u.is_pending) return false;
+      if (statusFilter === "pending" && !u.is_pending) return false;
+      if (subjectFilter !== "all") {
+        const subjects = u.subjects ?? [];
+        if (u.role === "tutor") {
+          if (!subjects.includes(subjectFilter)) return false;
+        } else if (u.role === "student") {
+          // Show student if any of their tutor rates includes that subject
+          const has = studentRates.some(
+            (r) => r.student_id === u.id && r.subject === subjectFilter
+          );
+          if (!has) return false;
+        } else {
+          return false; // managers/no-role hidden when filtering by subject
+        }
+      }
+      if (!q) return true;
+      const hay = [
+        fullName(u),
+        u.email ?? "",
+        u.phone ?? "",
+        u.telegram ?? "",
+        ...(u.subjects ?? []),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [users, searchQuery, subjectFilter, statusFilter, studentRates]);
+
+  const tutors = filteredUsers.filter((u) => u.role === "tutor");
+  const students = filteredUsers.filter((u) => u.role === "student");
+  const managers = filteredUsers.filter((u) => u.role === "manager");
+  const noRole = filteredUsers.filter((u) => !u.role);
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
     <div
