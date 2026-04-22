@@ -135,16 +135,16 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people" />
-            <StatCard label="Учні" value={studentCount} icon={Users} to="/people" />
-            <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
-            {isManager && (
+          {isManager && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people" />
+              <StatCard label="Учні" value={studentCount} icon={Users} to="/people" />
+              <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
               <StatCard label="Прибуток" value={`${profit} ₴`} icon={TrendingUp} variant="success" to="/finances" />
-            )}
-          </div>
+            </div>
+          )}
 
-          <div className="mt-8 grid gap-4 lg:grid-cols-[1.2fr,0.8fr]">
+          <div className={`${isManager ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Найближчі уроки</h2>
               <div className="space-y-3">
