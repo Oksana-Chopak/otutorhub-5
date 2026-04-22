@@ -2,10 +2,27 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Eye, Loader2, MessageSquare, Send } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -54,95 +71,109 @@ export default function ChatsPage() {
   const [loading, setLoading] = useState(true);
   const [threads, setThreads] = useState<Thread[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
+  const [managerIds, setManagerIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
+  // New chat dialog (manager only)
+  const [newChatOpen, setNewChatOpen] = useState(false);
+  const [availablePairs, setAvailablePairs] = useState<
+    Array<{ tutor_id: string; student_id: string }>
+  >([]);
+  const [pairsLoading, setPairsLoading] = useState(false);
+  const [selectedPair, setSelectedPair] = useState<string>("");
+  const [creatingThread, setCreatingThread] = useState(false);
+
   // Load threads + bootstrap (auto-create threads for participants if missing)
-  useEffect(() => {
+  const loadThreads = async () => {
     if (!myId) return;
-    let cancelled = false;
+    setLoading(true);
 
-    const load = async () => {
-      setLoading(true);
+    if (!isManager) {
+      const counterpartIds = new Set<string>();
 
-      // For non-managers: ensure a thread exists for every active pair
-      if (!isManager) {
-        // Collect counterpart ids from lessons + student_rates where I'm a participant
-        const counterpartIds = new Set<string>();
+      const [lessonsRes, ratesRes] = await Promise.all([
+        supabase
+          .from("lessons")
+          .select("tutor_id, student_id")
+          .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
+        supabase
+          .from("student_rates")
+          .select("tutor_id, student_id")
+          .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
+      ]);
 
-        const [lessonsRes, ratesRes] = await Promise.all([
-          supabase
-            .from("lessons")
-            .select("tutor_id, student_id")
-            .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
-          supabase
-            .from("student_rates")
-            .select("tutor_id, student_id")
-            .or(`tutor_id.eq.${myId},student_id.eq.${myId}`),
-        ]);
+      const collect = (rows: Array<{ tutor_id: string; student_id: string }> | null) => {
+        (rows ?? []).forEach((r) => {
+          const other = r.tutor_id === myId ? r.student_id : r.tutor_id;
+          if (other && other !== myId) counterpartIds.add(`${r.tutor_id}|${r.student_id}`);
+        });
+      };
+      collect(lessonsRes.data as any);
+      collect(ratesRes.data as any);
 
-        const collect = (rows: Array<{ tutor_id: string; student_id: string }> | null) => {
-          (rows ?? []).forEach((r) => {
-            const other = r.tutor_id === myId ? r.student_id : r.tutor_id;
-            if (other && other !== myId) counterpartIds.add(`${r.tutor_id}|${r.student_id}`);
-          });
-        };
-        collect(lessonsRes.data as any);
-        collect(ratesRes.data as any);
-
-        // Create missing threads via RPC
-        for (const pair of counterpartIds) {
-          const [tutorId, studentId] = pair.split("|");
-          await supabase.rpc("get_or_create_chat_thread", {
-            _tutor_id: tutorId,
-            _student_id: studentId,
-          });
-        }
-      }
-
-      const { data: threadRows, error } = await supabase
-        .from("chat_threads")
-        .select("id, tutor_id, student_id, last_message_at, last_message_preview")
-        .order("last_message_at", { ascending: false, nullsFirst: false });
-
-      if (error) {
-        console.error(error);
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      const list = (threadRows ?? []) as Thread[];
-      const ids = new Set<string>();
-      list.forEach((t) => {
-        ids.add(t.tutor_id);
-        ids.add(t.student_id);
-      });
-
-      let profileMap: Record<string, ProfileLite> = {};
-      if (ids.size > 0) {
-        const { data: profileRows } = await supabase
-          .from("profiles")
-          .select("id, first_name, last_name")
-          .in("id", Array.from(ids));
-        (profileRows ?? []).forEach((p: any) => {
-          profileMap[p.id] = p;
+      for (const pair of counterpartIds) {
+        const [tutorId, studentId] = pair.split("|");
+        await supabase.rpc("get_or_create_chat_thread", {
+          _tutor_id: tutorId,
+          _student_id: studentId,
         });
       }
+    }
 
-      if (cancelled) return;
-      setThreads(list);
-      setProfiles(profileMap);
-      setSelectedId((prev) => prev ?? list[0]?.id ?? null);
+    const { data: threadRows, error } = await supabase
+      .from("chat_threads")
+      .select("id, tutor_id, student_id, last_message_at, last_message_preview")
+      .order("last_message_at", { ascending: false, nullsFirst: false });
+
+    if (error) {
+      console.error(error);
       setLoading(false);
-    };
+      return;
+    }
 
-    load();
-    return () => {
-      cancelled = true;
-    };
+    const list = (threadRows ?? []) as Thread[];
+    const ids = new Set<string>();
+    list.forEach((t) => {
+      ids.add(t.tutor_id);
+      ids.add(t.student_id);
+    });
+
+    // Also include current user (manager) so own messages render with name
+    if (myId) ids.add(myId);
+
+    let profileMap: Record<string, ProfileLite> = {};
+    if (ids.size > 0) {
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", Array.from(ids));
+      (profileRows ?? []).forEach((p: any) => {
+        profileMap[p.id] = p;
+      });
+    }
+
+    // Load all manager ids so we can mark manager-authored messages
+    const { data: managerRoleRows } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "manager");
+    const mIds = new Set<string>((managerRoleRows ?? []).map((r: any) => r.user_id));
+
+    setThreads(list);
+    setProfiles(profileMap);
+    setManagerIds(mIds);
+    setSelectedId((prev) => prev ?? list[0]?.id ?? null);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (!myId) return;
+    loadThreads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myId, isManager]);
 
   // Load messages for selected thread + subscribe to realtime
@@ -197,7 +228,7 @@ export default function ChatsPage() {
 
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text || !selectedThread || !myId || isManager) return;
+    if (!text || !selectedThread || !myId) return;
     setSending(true);
     const { error } = await supabase
       .from("chat_messages")
@@ -216,15 +247,139 @@ export default function ChatsPage() {
     return fullName(profiles[otherId]);
   };
 
+  // Manager: load all available tutor-student pairs (from lessons + rates)
+  const openNewChatDialog = async () => {
+    setNewChatOpen(true);
+    setSelectedPair("");
+    setPairsLoading(true);
+
+    const [lessonsRes, ratesRes] = await Promise.all([
+      supabase.from("lessons").select("tutor_id, student_id"),
+      supabase.from("student_rates").select("tutor_id, student_id"),
+    ]);
+
+    const seen = new Set<string>();
+    const pairs: Array<{ tutor_id: string; student_id: string }> = [];
+    const addPair = (rows: Array<{ tutor_id: string; student_id: string }> | null) => {
+      (rows ?? []).forEach((r) => {
+        const key = `${r.tutor_id}|${r.student_id}`;
+        if (!seen.has(key) && r.tutor_id && r.student_id) {
+          seen.add(key);
+          pairs.push({ tutor_id: r.tutor_id, student_id: r.student_id });
+        }
+      });
+    };
+    addPair(lessonsRes.data as any);
+    addPair(ratesRes.data as any);
+
+    // Ensure profiles for these pairs are loaded
+    const ids = new Set<string>();
+    pairs.forEach((p) => {
+      ids.add(p.tutor_id);
+      ids.add(p.student_id);
+    });
+    const missing = Array.from(ids).filter((id) => !profiles[id]);
+    if (missing.length > 0) {
+      const { data: profileRows } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", missing);
+      const next = { ...profiles };
+      (profileRows ?? []).forEach((p: any) => {
+        next[p.id] = p;
+      });
+      setProfiles(next);
+    }
+
+    setAvailablePairs(pairs);
+    setPairsLoading(false);
+  };
+
+  const createManagerThread = async () => {
+    if (!selectedPair) return;
+    const [tutorId, studentId] = selectedPair.split("|");
+    setCreatingThread(true);
+    const { data, error } = await supabase.rpc("get_or_create_chat_thread", {
+      _tutor_id: tutorId,
+      _student_id: studentId,
+    });
+    setCreatingThread(false);
+    if (error) {
+      toast({ title: "Не вдалося створити чат", description: error.message, variant: "destructive" });
+      return;
+    }
+    const newId = data as unknown as string;
+    setNewChatOpen(false);
+    await loadThreads();
+    if (newId) setSelectedId(newId);
+    toast({ title: "Чат створено" });
+  };
+
   return (
     <AppLayout>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
-        <p className="text-sm text-muted-foreground">
-          {isManager
-            ? "Перегляд переписок учнів та репетиторів"
-            : "Особисте листування з вашими репетиторами та учнями"}
-        </p>
+      <div className="mb-6 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
+          <p className="text-sm text-muted-foreground">
+            {isManager
+              ? "Перегляд і модерація переписок учнів та репетиторів"
+              : "Особисте листування з вашими репетиторами та учнями"}
+          </p>
+        </div>
+        {isManager && (
+          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={openNewChatDialog} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Створити чат
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Новий чат</DialogTitle>
+                <DialogDescription>
+                  Виберіть пару репетитор–учень. Чат стане доступним обом сторонам.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <Label>Пара</Label>
+                {pairsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Завантаження пар…
+                  </div>
+                ) : availablePairs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Немає активних пар (потрібен хоча б один урок або призначена ставка).
+                  </p>
+                ) : (
+                  <Select value={selectedPair} onValueChange={setSelectedPair}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Виберіть репетитора та учня" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availablePairs.map((p) => {
+                        const key = `${p.tutor_id}|${p.student_id}`;
+                        return (
+                          <SelectItem key={key} value={key}>
+                            {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
+                  Скасувати
+                </Button>
+                <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
+                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : "Створити"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {loading ? (
@@ -239,7 +394,7 @@ export default function ChatsPage() {
           <p className="text-sm font-medium text-foreground">Поки немає чатів</p>
           <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
             {isManager
-              ? "Чати зʼявляться, коли учасники почнуть листуватися."
+              ? "Створіть чат для будь-якої пари репетитор–учень кнопкою «Створити чат»."
               : "Чати зʼявляться, коли менеджер призначить вам урок або ставку."}
           </p>
         </div>
@@ -287,8 +442,8 @@ export default function ChatsPage() {
                   </div>
                   {isManager && (
                     <Badge variant="secondary" className="shrink-0 gap-1">
-                      <Eye className="h-3 w-3" />
-                      Режим перегляду
+                      <ShieldCheck className="h-3 w-3" />
+                      Менеджер
                     </Badge>
                   )}
                 </div>
@@ -298,17 +453,35 @@ export default function ChatsPage() {
                     <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
                   ) : (
                     messages.map((m) => {
-                      const mine = m.sender_id === myId && !isManager;
+                      const mine = m.sender_id === myId;
+                      const senderIsManager = managerIds.has(m.sender_id);
                       return (
                         <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                           <div
                             className={cn(
                               "max-w-[70%] rounded-xl px-4 py-2.5",
-                              mine ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"
+                              mine
+                                ? "bg-primary text-primary-foreground"
+                                : senderIsManager
+                                ? "bg-accent text-accent-foreground border border-primary/20"
+                                : "bg-secondary text-foreground"
                             )}
                           >
-                            <p className="mb-1 text-xs font-medium opacity-70">
+                            <p className="mb-1 flex items-center gap-1.5 text-xs font-medium opacity-80">
                               {fullName(profiles[m.sender_id])}
+                              {senderIsManager && (
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                                    mine
+                                      ? "bg-primary-foreground/20 text-primary-foreground"
+                                      : "bg-primary/15 text-primary"
+                                  )}
+                                >
+                                  <ShieldCheck className="h-2.5 w-2.5" />
+                                  Менеджер школи
+                                </span>
+                              )}
                             </p>
                             <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
@@ -320,31 +493,26 @@ export default function ChatsPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {isManager ? (
-                  <div className="flex items-center gap-2 border-t border-border px-5 py-3 text-muted-foreground">
-                    <MessageSquare className="h-4 w-4" />
-                    <span className="text-xs">Ви переглядаєте цей чат як менеджер (тільки читання)</span>
-                  </div>
-                ) : (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      sendMessage();
-                    }}
-                    className="flex items-center gap-2 border-t border-border p-3"
-                  >
-                    <Input
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      placeholder="Напишіть повідомлення…"
-                      maxLength={4000}
-                      disabled={sending}
-                    />
-                    <Button type="submit" size="icon" disabled={sending || draft.trim().length === 0}>
-                      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
-                  </form>
-                )}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    sendMessage();
+                  }}
+                  className="flex items-center gap-2 border-t border-border p-3"
+                >
+                  <Input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder={
+                      isManager ? "Написати від імені менеджера школи…" : "Напишіть повідомлення…"
+                    }
+                    maxLength={4000}
+                    disabled={sending}
+                  />
+                  <Button type="submit" size="icon" disabled={sending || draft.trim().length === 0}>
+                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </form>
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted-foreground">
