@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2 } from "lucide-react";
+import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
   lessonId: string;
