@@ -149,20 +149,37 @@ export default function FinancesPage() {
           <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
           <p className="text-sm text-muted-foreground">Оплати від учнів та виплати репетиторам</p>
         </div>
-        <div className="w-full sm:w-56">
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Період" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Всі періоди</SelectItem>
-              {months.map((m) => (
-                <SelectItem key={m} value={m}>
-                  {formatMonth(m)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+          <div className="w-full sm:w-56">
+            <Select value={tutorFilter} onValueChange={setTutorFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Репетитор" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі репетитори</SelectItem>
+                {tutorOptions.map((t) => (
+                  <SelectItem key={t.id} value={t.id}>
+                    {t.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-56">
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Період" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі періоди</SelectItem>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {formatMonth(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
