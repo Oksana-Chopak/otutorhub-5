@@ -15,12 +15,22 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useTheme } from "@/hooks/useTheme";
+import { supabase } from "@/integrations/supabase/client";
+import { UserAvatar } from "@/components/UserAvatar";
+import { AvatarUploader } from "@/components/AvatarUploader";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" | "chats" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
