@@ -52,6 +52,7 @@ export default function FinancesPage() {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
+  const [tutorFilter, setTutorFilter] = useState<string>("all");
 
   const fetchData = async () => {
     setLoading(true);
