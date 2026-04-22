@@ -245,15 +245,12 @@ export default function PeoplePage() {
       toast.error("Не можна знімати з себе роль менеджера");
       return;
     }
-    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
-    if (delErr) {
-      console.error("Failed to remove existing roles", delErr);
-      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
-      return;
-    }
-    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role: newRole });
-    if (insErr) {
-      console.error("Failed to insert role", insErr);
+    // Atomic role swap: upsert on user_id (one role per person guaranteed by DB unique constraint)
+    const { error: upsertErr } = await supabase
+      .from("user_roles")
+      .upsert({ user_id: userId, role: newRole }, { onConflict: "user_id" });
+    if (upsertErr) {
+      console.error("Failed to update role", upsertErr);
       toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
       return;
     }
