@@ -294,6 +294,37 @@ export default function AvailabilityPage() {
     return m;
   }, [weekly]);
 
+  // Total weekly hours (sum of all slots)
+  const totalWeeklyMinutes = useMemo(
+    () => weekly.reduce((s, w) => s + (w.end_minute - w.start_minute), 0),
+    [weekly]
+  );
+  const totalWeeklyHours = (totalWeeklyMinutes / 60).toFixed(1).replace(/\.0$/, "");
+
+  // Copy all slots from sourceDay to targetDay
+  const copyDaySlots = async (sourceDay: number, targetDay: number) => {
+    if (sourceDay === targetDay) return;
+    const source = groupedWeekly.get(sourceDay) ?? [];
+    if (source.length === 0) {
+      toast.error("У вихідному дні немає слотів для копіювання");
+      return;
+    }
+    const rows = source.map((s) => ({
+      tutor_id: tutorId,
+      weekday: targetDay,
+      start_minute: s.start_minute,
+      end_minute: s.end_minute,
+    }));
+    const { error } = await supabase.from("tutor_availability_weekly").insert(rows);
+    if (error) {
+      console.error(error);
+      toast.error("Не вдалося скопіювати слоти");
+      return;
+    }
+    toast.success(`Скопійовано ${rows.length} слот(и) → ${WEEKDAYS_FULL_UK[targetDay]}`);
+    loadAvailability();
+  };
+
   return (
     <AppLayout>
       <div className="mb-6">
