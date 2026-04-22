@@ -568,17 +568,21 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           duration_minutes: number | null
+          homework: string | null
           id: string | null
+          meeting_url: string | null
           notes: string | null
           starts_at: string | null
           status: Database["public"]["Enums"]["lesson_status"] | null
           student_id: string | null
+          student_notes: string | null
           student_paid_at: string | null
           student_payment_status:
             | Database["public"]["Enums"]["payment_status"]
             | null
           student_price: number | null
           subject: string | null
+          summary: string | null
           tutor_id: string | null
           tutor_paid_at: string | null
           tutor_payout: number | null
@@ -591,15 +595,19 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           duration_minutes?: number | null
+          homework?: string | null
           id?: string | null
+          meeting_url?: string | null
           notes?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["lesson_status"] | null
           student_id?: string | null
+          student_notes?: never
           student_paid_at?: never
           student_payment_status?: never
           student_price?: never
           subject?: string | null
+          summary?: string | null
           tutor_id?: string | null
           tutor_paid_at?: never
           tutor_payout?: never
@@ -610,15 +618,19 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           duration_minutes?: number | null
+          homework?: string | null
           id?: string | null
+          meeting_url?: string | null
           notes?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["lesson_status"] | null
           student_id?: string | null
+          student_notes?: never
           student_paid_at?: never
           student_payment_status?: never
           student_price?: never
           subject?: string | null
+          summary?: string | null
           tutor_id?: string | null
           tutor_paid_at?: never
           tutor_payout?: never
