@@ -130,6 +130,11 @@ export default function PeoplePage() {
     user: null,
   });
 
+  // Search & filters
+  const [searchQuery, setSearchQuery] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+
   const loadData = async () => {
     setLoading(true);
     const isManager = roles.includes("manager");
