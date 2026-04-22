@@ -824,7 +824,7 @@ export default function SchedulePage() {
       ) : view === "week" ? (
         <WeekCalendar
           weekStart={weekAnchor}
-          lessons={lessons.map((l) => ({
+          lessons={filteredLessons.map((l) => ({
             id: l.id,
             starts_at: l.starts_at,
             duration_minutes: l.duration_minutes,
