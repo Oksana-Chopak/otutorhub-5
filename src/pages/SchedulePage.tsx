@@ -102,6 +102,8 @@ export default function SchedulePage() {
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+  const [view, setView] = useState<"list" | "week">("list");
+  const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
