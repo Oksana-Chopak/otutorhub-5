@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2 } from "lucide-react";
+import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
   lessonId: string;
@@ -230,6 +231,11 @@ export function LessonWorkspace({
         ) : (
           <p className="text-xs text-muted-foreground">Конспект ще не додано.</p>
         )}
+      </section>
+
+      {/* Attachments */}
+      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+        <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
       {/* Student personal notes */}

@@ -109,6 +109,54 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          lesson_id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          uploader_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          lesson_id: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          uploader_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          lesson_id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_attachments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_attachments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           created_at: string
