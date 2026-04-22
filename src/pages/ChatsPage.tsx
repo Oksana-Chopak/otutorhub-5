@@ -668,6 +668,26 @@ export default function ChatsPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {isManager && (
+                  <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-2">
+                    {[
+                      "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
+                      "Дякуємо за оплату — підтверджуємо отримання.",
+                      "Нагадуємо про урок сьогодні. До зустрічі!",
+                      "Будь ласка, надішліть скрін оплати для підтвердження.",
+                    ].map((tpl) => (
+                      <button
+                        key={tpl}
+                        type="button"
+                        onClick={() => setDraft(tpl)}
+                        className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                        title="Вставити шаблон"
+                      >
+                        {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
