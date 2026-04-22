@@ -464,26 +464,46 @@ export default function ChatsPage() {
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
           {/* Thread list */}
           <div className="space-y-2 rounded-xl border border-border bg-card p-3 max-h-[70vh] overflow-y-auto">
-            {threads.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setSelectedId(t.id)}
-                className={cn(
-                  "w-full rounded-lg p-3 text-left transition-colors",
-                  selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <p className="truncate text-sm font-medium text-foreground">{counterpartName(t)}</p>
-                  <span className="shrink-0 text-xs text-muted-foreground">
-                    {timeShort(t.last_message_at)}
-                  </span>
-                </div>
-                <p className="mt-1 truncate text-xs text-muted-foreground">
-                  {t.last_message_preview ?? "Немає повідомлень"}
-                </p>
-              </button>
-            ))}
+            {threads.map((t) => {
+              const readAt = readMap[t.id];
+              const isUnread =
+                t.id !== selectedId &&
+                t.last_message_at !== null &&
+                (!readAt || new Date(t.last_message_at) > new Date(readAt));
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSelectedId(t.id)}
+                  className={cn(
+                    "w-full rounded-lg p-3 text-left transition-colors",
+                    selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={cn(
+                      "truncate text-sm text-foreground",
+                      isUnread ? "font-bold" : "font-medium"
+                    )}>
+                      {counterpartName(t)}
+                    </p>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span className="text-xs text-muted-foreground">
+                        {timeShort(t.last_message_at)}
+                      </span>
+                      {isUnread && (
+                        <span className="h-2 w-2 rounded-full bg-primary" aria-label="Непрочитане" />
+                      )}
+                    </div>
+                  </div>
+                  <p className={cn(
+                    "mt-1 truncate text-xs",
+                    isUnread ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {t.last_message_preview ?? "Немає повідомлень"}
+                  </p>
+                </button>
+              );
+            })}
           </div>
 
           {/* Detail */}
