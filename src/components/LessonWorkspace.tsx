@@ -233,6 +233,11 @@ export function LessonWorkspace({
         )}
       </section>
 
+      {/* Attachments */}
+      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+        <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
+      </section>
+
       {/* Student personal notes */}
       {(canEditStudentNotes || (isManager && studentNotes)) && (
         <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
