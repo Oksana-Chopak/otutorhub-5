@@ -31,7 +31,14 @@ import {
   Bell,
   Check,
   X,
+  Copy,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   WEEKDAYS_FULL_UK,
   WEEKDAYS_UK,
