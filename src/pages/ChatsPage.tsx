@@ -311,6 +311,49 @@ export default function ChatsPage() {
     return fullName(profiles[otherId]);
   };
 
+  const isUnreadThread = (t: Thread) => {
+    const readAt = readMap[t.id];
+    return (
+      t.last_message_at !== null &&
+      (!readAt || new Date(t.last_message_at) > new Date(readAt))
+    );
+  };
+
+  // Filter + sort thread list
+  const visibleThreads = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let list = threads;
+    if (q) {
+      list = list.filter((t) => {
+        const tutor = fullName(profiles[t.tutor_id]).toLowerCase();
+        const student = fullName(profiles[t.student_id]).toLowerCase();
+        const preview = (t.last_message_preview ?? "").toLowerCase();
+        return tutor.includes(q) || student.includes(q) || preview.includes(q);
+      });
+    }
+    const sorted = [...list];
+    if (sortMode === "name") {
+      sorted.sort((a, b) => counterpartName(a).localeCompare(counterpartName(b), "uk"));
+    } else if (sortMode === "unread") {
+      sorted.sort((a, b) => {
+        const ua = isUnreadThread(a) ? 1 : 0;
+        const ub = isUnreadThread(b) ? 1 : 0;
+        if (ua !== ub) return ub - ua;
+        const ta = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const tb = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return tb - ta;
+      });
+    } else {
+      sorted.sort((a, b) => {
+        const ta = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+        const tb = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+        return tb - ta;
+      });
+    }
+    return sorted;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, profiles, search, sortMode, readMap, isManager, myId]);
+
   // Manager: load all available tutor-student pairs (from lessons + rates)
   const openNewChatDialog = async () => {
     setNewChatOpen(true);
