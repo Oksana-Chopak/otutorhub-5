@@ -148,12 +148,43 @@ export function AppSidebar() {
 
         <div className="border-t border-border px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-              {initials}
-            </div>
+            <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
+              <DialogTrigger asChild>
+                <button
+                  className="rounded-full ring-offset-background transition hover:ring-2 hover:ring-primary/40 hover:ring-offset-2"
+                  title="Змінити фото"
+                  aria-label="Змінити фото профілю"
+                >
+                  <UserAvatar
+                    url={profile?.avatar_url}
+                    firstName={profile?.first_name || user?.email?.[0]?.toUpperCase() || ""}
+                    lastName={profile?.last_name}
+                    className="h-9 w-9"
+                  />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="max-w-sm">
+                <DialogHeader>
+                  <DialogTitle>Фото профілю</DialogTitle>
+                </DialogHeader>
+                {user && (
+                  <AvatarUploader
+                    userId={user.id}
+                    currentUrl={profile?.avatar_url}
+                    firstName={profile?.first_name}
+                    lastName={profile?.last_name}
+                    onChanged={(url) =>
+                      setProfile((p) => (p ? { ...p, avatar_url: url } : p))
+                    }
+                  />
+                )}
+              </DialogContent>
+            </Dialog>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-foreground">
-                {user?.email ?? "—"}
+                {profile && (profile.first_name || profile.last_name)
+                  ? `${profile.first_name} ${profile.last_name}`.trim()
+                  : user?.email ?? "—"}
               </p>
               <p className="text-xs text-muted-foreground">
                 {primaryRole ? roleLabel[primaryRole] : "Без ролі"}
