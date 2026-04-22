@@ -39,6 +39,7 @@ export function AppSidebar() {
   const [open, setOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
+  const chatsBadge = useUnreadChats();
 
   const navItems = allNavItems.filter((item) =>
     item.roles.some((r) => roles.includes(r))
