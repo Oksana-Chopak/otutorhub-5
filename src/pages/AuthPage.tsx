@@ -157,6 +157,13 @@ export default function AuthPage() {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Увійти
                   </Button>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="block w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    Забули пароль?
+                  </button>
                 </form>
               </TabsContent>
 
