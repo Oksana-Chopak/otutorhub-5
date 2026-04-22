@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
+import { EmptyState } from "@/components/EmptyState";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -856,10 +857,17 @@ export default function SchedulePage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : grouped.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border p-12 text-center">
-          <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
-          <p className="text-sm text-muted-foreground">Уроків ще немає</p>
-        </div>
+        <EmptyState
+          icon={Clock}
+          title="Уроків ще немає"
+          description={
+            canCreate
+              ? "Створіть перший урок — оберіть репетитора, учня та час."
+              : "Як тільки урок з'явиться у розкладі, ви побачите його тут."
+          }
+          actionLabel={canCreate ? "Створити перший урок" : undefined}
+          onAction={canCreate ? () => setCreateOpen(true) : undefined}
+        />
       ) : (
         <div className="space-y-6">
           {grouped.map(([dayKey, dayLessons]) => {

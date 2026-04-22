@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EmptyState } from "@/components/EmptyState";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -378,8 +379,12 @@ export default function FinancesPage() {
           {/* Unified table */}
           <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
             {visibleRows.length === 0 ? (
-              <div className="px-4 py-12 text-center text-sm text-muted-foreground">
-                Немає завершених уроків за цими фільтрами
+              <div className="p-6">
+                <EmptyState
+                  icon={DollarSign}
+                  title="Немає платежів за фільтрами"
+                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
+                />
               </div>
             ) : (
               <div className="overflow-x-auto">

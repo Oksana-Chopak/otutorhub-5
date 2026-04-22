@@ -102,9 +102,11 @@ export default function AuditLogPage() {
             ))}
           </div>
         ) : entries.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">
-            Поки що немає записів
-          </Card>
+          <EmptyState
+            icon={ShieldAlert}
+            title="Поки що немає записів"
+            description="Тут з'являться дії менеджера: зміна ролей, видалення профілів, оновлення платежів."
+          />
         ) : (
           <div className="space-y-2">
             {entries.map((e) => {
