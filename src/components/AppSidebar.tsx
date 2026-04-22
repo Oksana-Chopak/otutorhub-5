@@ -109,7 +109,7 @@ export function AppSidebar() {
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-warning px-1.5 text-[10px] font-semibold text-warning-foreground">
+                  <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
                     {badge}
                   </span>
                 )}
