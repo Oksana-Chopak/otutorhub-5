@@ -546,7 +546,10 @@ export default function SchedulePage() {
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label htmlFor="student_price">Оплата учня (₴)</Label>
+                        <Label htmlFor="student_price" className="flex items-center gap-1.5">
+                          Оплата учня (₴)
+                          {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                        </Label>
                         <Input
                           id="student_price"
                           type="number"
@@ -557,7 +560,10 @@ export default function SchedulePage() {
                         />
                       </div>
                       <div>
-                        <Label htmlFor="tutor_payout">Виплата репетитору (₴)</Label>
+                        <Label htmlFor="tutor_payout" className="flex items-center gap-1.5">
+                          Виплата репетитору (₴)
+                          {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                        </Label>
                         <Input
                           id="tutor_payout"
                           type="number"
@@ -568,6 +574,11 @@ export default function SchedulePage() {
                         />
                       </div>
                     </div>
+                    {form.tutor_id && form.student_id && form.subject && (
+                      <p className="text-xs text-muted-foreground -mt-2">
+                        💡 Ціни автоматично підтягуються з тарифів пари. Можна змінити вручну.
+                      </p>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Статус оплати учня</Label>
