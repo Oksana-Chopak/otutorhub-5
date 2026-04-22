@@ -311,6 +311,30 @@ export default function SchedulePage() {
     };
   }, [isManager, form.tutor_id, form.student_id, form.subject]);
 
+  // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
+  const conflictWarning = useMemo(() => {
+    if (!form.tutor_id || !form.starts_at) return null;
+    const startMs = new Date(form.starts_at).getTime();
+    if (Number.isNaN(startMs)) return null;
+    const dur = parseInt(form.duration_minutes) || 60;
+    const endMs = startMs + dur * 60 * 1000;
+    const conflict = lessons.find((l) => {
+      if (l.tutor_id !== form.tutor_id) return false;
+      if (l.status === "cancelled") return false;
+      const ls = new Date(l.starts_at).getTime();
+      const le = ls + (l.duration_minutes || 60) * 60 * 1000;
+      return ls < endMs && le > startMs;
+    });
+    if (!conflict) return null;
+    const t = new Date(conflict.starts_at).toLocaleString("uk-UA", {
+      day: "numeric",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `У репетитора вже є урок (${conflict.subject}, ${t}). Можна продовжити, але час перетинається.`;
+  }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
+
   const handleCreate = async () => {
     if (!user) return;
     if (!form.tutor_id || !form.student_id || !form.subject || !form.starts_at) {
@@ -320,33 +344,46 @@ export default function SchedulePage() {
     setSubmitting(true);
 
     const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
+    const baseStart = new Date(form.starts_at);
 
-    const payload: any = {
-      tutor_id: form.tutor_id,
-      student_id: form.student_id,
-      subject: form.subject,
-      starts_at: new Date(form.starts_at).toISOString(),
-      duration_minutes: parseInt(form.duration_minutes) || 60,
-      notes: form.notes || null,
-      status: isManager ? form.status : status,
-      created_by: user.id,
-    };
-
-    if (isManager) {
-      payload.student_price = Number(form.student_price) || 0;
-      payload.tutor_payout = Number(form.tutor_payout) || 0;
-      payload.student_payment_status = form.student_payment_status;
-      payload.tutor_payout_status = form.tutor_payout_status;
+    const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
+    const payloads: any[] = [];
+    for (let i = 0; i < repeats; i++) {
+      const dt = new Date(baseStart);
+      dt.setDate(dt.getDate() + i * 7);
+      const payload: any = {
+        tutor_id: form.tutor_id,
+        student_id: form.student_id,
+        subject: form.subject,
+        starts_at: dt.toISOString(),
+        duration_minutes: parseInt(form.duration_minutes) || 60,
+        notes: form.notes || null,
+        status: isManager ? form.status : status,
+        created_by: user.id,
+      };
+      if (isManager) {
+        payload.student_price = Number(form.student_price) || 0;
+        payload.tutor_payout = Number(form.tutor_payout) || 0;
+        payload.student_payment_status = form.student_payment_status;
+        payload.tutor_payout_status = form.tutor_payout_status;
+      }
+      payloads.push(payload);
     }
 
-    const { error } = await supabase.from("lessons").insert(payload);
+    const { error } = await supabase.from("lessons").insert(payloads);
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
       toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
-    toast.success(status === "pending" ? "Запит створено" : "Урок створено");
+    toast.success(
+      repeats > 1
+        ? `Створено ${repeats} уроків`
+        : status === "pending"
+        ? "Запит створено"
+        : "Урок створено"
+    );
     setCreateOpen(false);
     setForm((f) => ({
       ...f,
@@ -358,6 +395,7 @@ export default function SchedulePage() {
       tutor_payout_status: "unpaid",
       status: "scheduled",
     }));
+    setRepeatWeeks("1");
     loadAll();
   };
 
