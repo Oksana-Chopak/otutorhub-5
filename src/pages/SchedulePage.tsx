@@ -693,6 +693,40 @@ export default function SchedulePage() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
+      ) : view === "week" ? (
+        <WeekCalendar
+          weekStart={weekAnchor}
+          lessons={lessons.map((l) => ({
+            id: l.id,
+            starts_at: l.starts_at,
+            duration_minutes: l.duration_minutes,
+            subject: l.subject,
+            status: l.status,
+            tutor_id: l.tutor_id,
+            student_id: l.student_id,
+          }))}
+          onPrev={() => {
+            const d = new Date(weekAnchor);
+            d.setDate(d.getDate() - 7);
+            setWeekAnchor(d);
+          }}
+          onNext={() => {
+            const d = new Date(weekAnchor);
+            d.setDate(d.getDate() + 7);
+            setWeekAnchor(d);
+          }}
+          onToday={() => setWeekAnchor(new Date())}
+          onSlotClick={(date) => {
+            if (!canCreate) return;
+            setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
+            setCreateOpen(true);
+          }}
+          nameOf={(id) => profilesMap[id] ?? "?"}
+        />
+      ) : loading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
       ) : grouped.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-12 text-center">
           <Clock className="h-8 w-8 mx-auto text-muted-foreground mb-3" />
