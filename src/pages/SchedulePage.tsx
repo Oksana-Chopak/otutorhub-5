@@ -425,6 +425,28 @@ export default function SchedulePage() {
               : "Ваші уроки та запити"}
           </p>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+            <Button
+              variant={view === "list" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setView("list")}
+            >
+              <List className="h-3.5 w-3.5" />
+              Список
+            </Button>
+            <Button
+              variant={view === "week" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setView("week")}
+            >
+              <CalendarRange className="h-3.5 w-3.5" />
+              Тиждень
+            </Button>
+          </div>
+        </div>
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
