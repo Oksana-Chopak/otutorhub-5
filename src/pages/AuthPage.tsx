@@ -190,6 +190,16 @@ export default function AuthPage() {
                       required
                     />
                   </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
+                      <Checkbox
+                        checked={remember}
+                        onCheckedChange={(v) => setRemember(v === true)}
+                        aria-label="Запам'ятати мене"
+                      />
+                      Запам'ятати мене
+                    </label>
+                  </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Увійти
