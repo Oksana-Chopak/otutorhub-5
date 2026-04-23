@@ -377,33 +377,22 @@ export default function FinancesPage() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-muted-foreground">
-                    Маржа · цей тиждень
+                    Середня націнка хабу
                   </p>
                   <p
                     className={`mt-1 truncate text-2xl font-bold ${
-                      marginCurrent === null
+                      hubMarkup === null
                         ? "text-muted-foreground"
-                        : marginCurrent >= 0
+                        : hubMarkup >= 0
                         ? "text-success"
                         : "text-destructive"
                     }`}
                   >
-                    {marginCurrent === null ? "—" : `${marginCurrent.toFixed(1)}%`}
+                    {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
                   </p>
-                  {marginDelta !== null && (
-                    <p
-                      className={`mt-1 text-xs ${
-                        marginDelta >= 0 ? "text-success" : "text-destructive"
-                      }`}
-                    >
-                      {marginDelta >= 0 ? "▲" : "▼"} {Math.abs(marginDelta).toFixed(1)} п.п. до минулого тижня
-                    </p>
-                  )}
-                  {marginDelta === null && marginPrev !== null && (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Минулий тиждень: {marginPrev.toFixed(1)}%
-                    </p>
-                  )}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    (надходження − виплати) / виплати
+                  </p>
                 </div>
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <Percent className="h-4 w-4 text-primary" />
@@ -412,25 +401,77 @@ export default function FinancesPage() {
             </div>
           </div>
 
-          {/* Weekly dynamics chart */}
+          {/* Weekly dynamics chart — profit per tutor */}
           <div className="mt-6 rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-sm font-semibold text-foreground">
-                Тижнева динаміка (останні 12 тижнів)
+                Тижнева динаміка прибутку по репетиторах (12 тижнів)
               </h2>
               <span className="text-xs text-muted-foreground">Завершені уроки</span>
             </div>
             <FinanceWeeklyChart
+              tutorNames={Object.fromEntries(
+                Object.values(profiles).map((p) => [
+                  p.id,
+                  `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+                ])
+              )}
               lessons={filtered.map((l) => ({
                 starts_at: l.starts_at,
                 status: l.status,
-                student_id: l.student_id,
+                tutor_id: l.tutor_id,
                 student_price: Number(l.student_price),
                 tutor_payout: Number(l.tutor_payout),
                 student_payment_status: l.student_payment_status,
                 tutor_payout_status: l.tutor_payout_status,
               }))}
             />
+          </div>
+
+          {/* Markup per tutor */}
+          <div className="mt-6 rounded-xl border border-border bg-card p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-foreground">
+                Середня націнка по репетиторах
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                (ціна учня − виплата) / виплата
+              </span>
+            </div>
+            {markupByTutor.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border text-xs text-muted-foreground">
+                      <th className="px-2 py-2 text-left font-medium">Репетитор</th>
+                      <th className="px-2 py-2 text-right font-medium">Уроків</th>
+                      <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {markupByTutor.map((row) => (
+                      <tr key={row.tutorId} className="border-b border-border last:border-0">
+                        <td className="px-2 py-2 text-foreground">{row.name}</td>
+                        <td className="px-2 py-2 text-right text-muted-foreground">
+                          {row.lessonsCount}
+                        </td>
+                        <td
+                          className={`px-2 py-2 text-right font-semibold ${
+                            (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
+                          }`}
+                        >
+                          {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Bulk action bar */}
