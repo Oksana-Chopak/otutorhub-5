@@ -634,14 +634,17 @@ export default function DashboardPage() {
                         <div className="rounded-xl border border-border bg-card p-4">
                           <div className="flex items-start gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                              <Plus className="h-4 w-4 text-primary" />
+                              <Calendar className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Запросити урок</p>
+                              <p className="text-sm font-medium text-foreground">Уроки призначає репетитор</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
-                                Виберіть репетитора, дату й тему — менеджер підтвердить.
+                                Дату й час нових уроків додає ваш репетитор або менеджер. Якщо потрібен новий час — напишіть репетитору в чаті.
                               </p>
-                              <Button asChild size="sm" className="mt-3"><Link to="/schedule">До розкладу</Link></Button>
+                              <div className="mt-3 flex gap-2">
+                                <Button asChild size="sm" variant="outline"><Link to="/schedule">До розкладу</Link></Button>
+                                <Button asChild size="sm" variant="ghost"><Link to="/chats">Чати</Link></Button>
+                              </div>
                             </div>
                           </div>
                         </div>
