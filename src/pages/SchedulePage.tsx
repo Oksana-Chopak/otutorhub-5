@@ -926,17 +926,36 @@ export default function SchedulePage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : grouped.length === 0 ? (
-        <EmptyState
-          icon={Clock}
-          title="Уроків ще немає"
-          description={
-            canCreate
-              ? "Створіть перший урок — оберіть репетитора, учня та час."
-              : "Як тільки урок з'явиться у розкладі, ви побачите його тут."
-          }
-          actionLabel={canCreate ? "Створити перший урок" : undefined}
-          onAction={canCreate ? () => setCreateOpen(true) : undefined}
-        />
+        isPureStudent && !studentHasTutor ? (
+          <EmptyState
+            icon={HandHeart}
+            title="Поки немає репетитора"
+            description="Залиште запит менеджеру oTutorHub — ми підберемо репетитора під ваші цілі, бюджет і графік. Як тільки призначимо — тут з'являться уроки."
+          >
+            <FindTutorDialog
+              trigger={
+                <Button>
+                  <HandHeart className="h-4 w-4 mr-2" />
+                  Запит на підбір репетитора
+                </Button>
+              }
+            />
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={Clock}
+            title="Уроків ще немає"
+            description={
+              canCreate
+                ? isPureStudent
+                  ? "Запросіть свій перший урок — оберіть репетитора, дату й тему."
+                  : "Створіть перший урок — оберіть репетитора, учня та час."
+                : "Як тільки урок з'явиться у розкладі, ви побачите його тут."
+            }
+            actionLabel={canCreate ? (isPureStudent ? "Запросити урок" : "Створити перший урок") : undefined}
+            onAction={canCreate ? () => setCreateOpen(true) : undefined}
+          />
+        )
       ) : (
         <div className="space-y-6">
           {grouped.map(([dayKey, dayLessons]) => {
