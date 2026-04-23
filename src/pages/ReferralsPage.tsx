@@ -24,6 +24,8 @@ interface ReferralRow {
   subject: string | null;
   preferred_level: string | null;
   budget_note: string | null;
+  preferred_days: string | null;
+  preferred_times: string | null;
   message: string | null;
   status: "open" | "in_progress" | "fulfilled" | "closed";
   manager_response: string | null;
@@ -198,6 +200,18 @@ export default function ReferralsPage() {
                         <p>
                           <span className="text-muted-foreground">Бюджет:</span>{" "}
                           {r.budget_note}
+                        </p>
+                      )}
+                      {r.preferred_days && (
+                        <p>
+                          <span className="text-muted-foreground">Зручні дні:</span>{" "}
+                          {r.preferred_days}
+                        </p>
+                      )}
+                      {r.preferred_times && (
+                        <p>
+                          <span className="text-muted-foreground">Зручні години:</span>{" "}
+                          {r.preferred_times}
                         </p>
                       )}
                       {r.message && (

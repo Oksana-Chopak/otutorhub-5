@@ -354,25 +354,29 @@ export default function DashboardPage() {
           )}
           {(isTutor || isStudent) && !isManager && (
             <>
-              <Button asChild>
-                <Link to="/schedule">
-                  <Plus className="h-4 w-4" />
-                  {isStudent ? "Запросити урок" : "Створити урок"}
-                </Link>
-              </Button>
+              {isTutor && (
+                <Button asChild>
+                  <Link to="/schedule">
+                    <Plus className="h-4 w-4" />
+                    Створити урок
+                  </Link>
+                </Button>
+              )}
+              {isStudent && !isTutor && (
+                <FindTutorDialog
+                  trigger={
+                    <Button>
+                      <HandHeart className="h-4 w-4" />
+                      Запит на репетитора
+                    </Button>
+                  }
+                />
+              )}
               {isTutor && (
                 <Button asChild variant="outline">
                   <Link to="/availability">
                     <CalendarPlus className="h-4 w-4" />
                     Оновити години
-                  </Link>
-                </Button>
-              )}
-              {isStudent && (
-                <Button asChild variant="outline">
-                  <Link to="/availability">
-                    <CalendarPlus className="h-4 w-4" />
-                    Запросити години
                   </Link>
                 </Button>
               )}
