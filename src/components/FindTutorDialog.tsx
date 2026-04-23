@@ -30,21 +30,25 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
     subject: "",
     preferred_level: "",
     budget_note: "",
+    preferred_days: "",
+    preferred_times: "",
     message: "",
   });
 
   const submit = async () => {
     if (!user) return;
-    if (!form.subject.trim() && !form.message.trim()) {
-      toast.error("Вкажіть предмет або опишіть, що шукаєте");
+    if (!form.subject.trim()) {
+      toast.error("Вкажіть бажаний предмет");
       return;
     }
     setSubmitting(true);
     const { error } = await supabase.from("tutor_referral_requests").insert({
       student_id: user.id,
-      subject: form.subject.trim() || null,
+      subject: form.subject.trim(),
       preferred_level: form.preferred_level.trim() || null,
       budget_note: form.budget_note.trim() || null,
+      preferred_days: form.preferred_days.trim() || null,
+      preferred_times: form.preferred_times.trim() || null,
       message: form.message.trim() || null,
     });
     setSubmitting(false);
@@ -55,7 +59,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
     }
     toast.success("Запит надіслано! Менеджер скоро з вами зв'яжеться.");
     setOpen(false);
-    setForm({ subject: "", preferred_level: "", budget_note: "", message: "" });
+    setForm({ subject: "", preferred_level: "", budget_note: "", preferred_days: "", preferred_times: "", message: "" });
     onCreated?.();
   };
 
@@ -69,20 +73,21 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Знайти нового репетитора</DialogTitle>
+          <DialogTitle>Запит менеджеру на підбір репетитора</DialogTitle>
           <DialogDescription>
             Опишіть, кого шукаєте — менеджер oTutorHub підбере вам репетитора з нашого пулу.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label>Предмет</Label>
+            <Label>Бажаний предмет *</Label>
             <Input
               placeholder="Наприклад: англійська мова"
               value={form.subject}
               onChange={(e) => setForm({ ...form, subject: e.target.value })}
+              maxLength={120}
             />
           </div>
           <div className="space-y-1">
@@ -91,23 +96,44 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
               placeholder="Початковий, B2, 8 клас…"
               value={form.preferred_level}
               onChange={(e) => setForm({ ...form, preferred_level: e.target.value })}
+              maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Бюджет (необов'язково)</Label>
+            <Label>Орієнтовний діапазон ціни за один урок</Label>
             <Input
-              placeholder="Наприклад: до 400 ₴/урок"
+              placeholder="Наприклад: 300–450 ₴/урок"
               value={form.budget_note}
               onChange={(e) => setForm({ ...form, budget_note: e.target.value })}
+              maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Деталі</Label>
+            <Label>Зручні дні занять</Label>
+            <Input
+              placeholder="Пн, Ср, Пт або будні / вихідні"
+              value={form.preferred_days}
+              onChange={(e) => setForm({ ...form, preferred_days: e.target.value })}
+              maxLength={120}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Зручні години занять</Label>
+            <Input
+              placeholder="Наприклад: 17:00–20:00"
+              value={form.preferred_times}
+              onChange={(e) => setForm({ ...form, preferred_times: e.target.value })}
+              maxLength={120}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label>Особливі побажання</Label>
             <Textarea
-              rows={3}
-              placeholder="Час занять, цілі, особливі побажання…"
+              rows={4}
+              placeholder="Цілі навчання, формат, особливості, побажання щодо репетитора…"
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
+              maxLength={1500}
             />
           </div>
         </div>
