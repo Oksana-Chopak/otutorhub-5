@@ -445,12 +445,17 @@ export default function DashboardPage() {
                 {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
                     Найближчих уроків немає.
-                    {(isStudent || isTutor) && !isManager && (
+                    {isTutor && !isManager && (
                       <Button asChild size="sm" className="ml-3">
-                        <Link to="/schedule">
-                          {isStudent ? "Запросити урок" : "Створити урок"}
-                        </Link>
+                        <Link to="/schedule">Створити урок</Link>
                       </Button>
+                    )}
+                    {isStudent && !isTutor && !isManager && (
+                      <span className="ml-3 inline-block">
+                        <FindTutorDialog
+                          trigger={<Button size="sm">Запит на репетитора</Button>}
+                        />
+                      </span>
                     )}
                   </div>
                 ) : (
