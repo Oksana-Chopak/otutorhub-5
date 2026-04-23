@@ -451,10 +451,24 @@ export default function DashboardPage() {
                 ) : (
                   upcomingLessons.map((lesson) => {
                     const lessonDate = new Date(lesson.starts_at);
-                    const isToday = lesson.starts_at.slice(0, 10) === todayKey;
-                    const timeLabel = isToday
-                      ? `Сьогодні · ${lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}`
-                      : lessonDate.toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+                    const lessonDayKey = lesson.starts_at.slice(0, 10);
+                    const isToday = lessonDayKey === todayKey;
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const dayAfter = new Date();
+                    dayAfter.setDate(dayAfter.getDate() + 2);
+                    const tomorrowKey = tomorrow.toISOString().slice(0, 10);
+                    const dayAfterKey = dayAfter.toISOString().slice(0, 10);
+                    const weekday = lessonDate.toLocaleDateString("uk-UA", { weekday: "long" });
+                    const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+                    const timeStr = lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+                    let dayPart: string;
+                    if (isToday) dayPart = "Сьогодні";
+                    else if (lessonDayKey === tomorrowKey) dayPart = `Завтра · ${weekdayCap}`;
+                    else if (lessonDayKey === dayAfterKey) dayPart = `Післязавтра · ${weekdayCap}`;
+                    else
+                      dayPart = `${weekdayCap}, ${lessonDate.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}`;
+                    const timeLabel = `${dayPart} · ${timeStr}`;
 
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
                     const hasMeeting = !!(lesson.meeting_url && lesson.meeting_url.trim());
