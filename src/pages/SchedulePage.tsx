@@ -161,12 +161,15 @@ export default function SchedulePage() {
     if (!user) return;
     setLoading(true);
 
-    const [lessonsRes, profilesRes, rolesRes, tutorRes, sourcesRes] = await Promise.all([
+    const [lessonsRes, profilesRes, rolesRes, tutorRes, sourcesRes, ratesRes] = await Promise.all([
       supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name"),
+      // RLS: non-managers only see their own row here. Used by managers/tutors for filters.
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
       supabase.from("lessons").select("id, source"),
+      // Used by students to discover their assigned tutors (RLS allows student to see own rates).
+      supabase.from("student_rates").select("tutor_id, student_id"),
     ]);
 
     const profiles = profilesRes.data ?? [];
@@ -181,13 +184,35 @@ export default function SchedulePage() {
       tutorSubjects[t.user_id] = t.subjects ?? [];
     });
 
-    const tutorIds = (rolesRes.data ?? []).filter((r: any) => r.role === "tutor").map((r: any) => r.user_id);
-    const studentIds = (rolesRes.data ?? []).filter((r: any) => r.role === "student").map((r: any) => r.user_id);
+    const roleRows = rolesRes.data ?? [];
+    const rateRows = (ratesRes.data ?? []) as { tutor_id: string; student_id: string }[];
+
+    let tutorIds: string[] = [];
+    let studentIds: string[] = [];
+
+    if (isManager) {
+      tutorIds = roleRows.filter((r: any) => r.role === "tutor").map((r: any) => r.user_id);
+      studentIds = roleRows.filter((r: any) => r.role === "student").map((r: any) => r.user_id);
+    } else if (isStudent && !isTutor) {
+      // Student: tutors are those they have a rate with (or any past lesson tutor as fallback)
+      const lessonTutors = ((lessonsRes.data ?? []) as any[])
+        .filter((l) => l.student_id === user.id)
+        .map((l) => l.tutor_id);
+      tutorIds = Array.from(new Set([...rateRows.map((r) => r.tutor_id), ...lessonTutors]));
+      studentIds = [user.id];
+    } else if (isTutor && !isManager) {
+      // Tutor: students are those they have a rate with (or any lesson student as fallback)
+      const lessonStudents = ((lessonsRes.data ?? []) as any[])
+        .filter((l) => l.tutor_id === user.id)
+        .map((l) => l.student_id);
+      studentIds = Array.from(new Set([...rateRows.map((r) => r.student_id), ...lessonStudents]));
+      tutorIds = [user.id];
+    }
 
     setTutors(
-      tutorIds.map((id) => ({ id, name: pmap[id] ?? "?", subjects: tutorSubjects[id] ?? [] }))
+      tutorIds.map((id) => ({ id, name: pmap[id] ?? "Репетитор", subjects: tutorSubjects[id] ?? [] }))
     );
-    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "?" })));
+    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "Учень" })));
 
     const sourceMap: Record<string, LessonSource> = {};
     (sourcesRes.data ?? []).forEach((r: any) => {
