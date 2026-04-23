@@ -745,6 +745,7 @@ export default function ChatsPage() {
                     messages.map((m) => {
                       const mine = m.sender_id === myId;
                       const senderIsManager = managerIds.has(m.sender_id);
+                      const msgAttachments = attachments[m.id] ?? [];
                       return (
                         <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                           <div
@@ -769,11 +770,41 @@ export default function ChatsPage() {
                                   )}
                                 >
                                   <ShieldCheck className="h-2.5 w-2.5" />
-                                  Менеджер школи
+                                  Менеджер
                                 </span>
                               )}
                             </p>
-                            <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
+                            {m.body && <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>}
+                            {msgAttachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {msgAttachments.map((att) => {
+                                  const isImg = att.mime_type?.startsWith("image/");
+                                  return (
+                                    <button
+                                      key={att.id}
+                                      type="button"
+                                      onClick={() => openAttachment(att)}
+                                      className={cn(
+                                        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+                                        mine
+                                          ? "border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20"
+                                          : "border-border bg-background/60 hover:bg-background"
+                                      )}
+                                      disabled={openingAttachId === att.id}
+                                    >
+                                      {isImg ? <ImageIcon className="h-3.5 w-3.5 shrink-0" /> : <FileText className="h-3.5 w-3.5 shrink-0" />}
+                                      <span className="flex-1 truncate">{att.file_name}</span>
+                                      <span className="shrink-0 opacity-60">{formatBytes(att.size_bytes)}</span>
+                                      {openingAttachId === att.id ? (
+                                        <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+                                      ) : (
+                                        <Download className="h-3 w-3 shrink-0 opacity-60" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
                         </div>
@@ -803,6 +834,21 @@ export default function ChatsPage() {
                     ))}
                   </div>
                 )}
+                {pendingFile && (
+                  <div className="flex items-center gap-2 border-t border-border px-3 py-2 text-xs">
+                    <Paperclip className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="flex-1 truncate text-foreground">{pendingFile.name}</span>
+                    <span className="text-muted-foreground shrink-0">{formatBytes(pendingFile.size)}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                      aria-label="Прибрати файл"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -810,16 +856,44 @@ export default function ChatsPage() {
                   }}
                   className="flex items-center gap-2 border-t border-border p-3"
                 >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ATTACH_ACCEPT}
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (f.size > MAX_ATTACH_BYTES) {
+                          toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+                          e.target.value = "";
+                          return;
+                        }
+                        setPendingFile(f);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={sending}
+                    title="Прикріпити файл"
+                    aria-label="Прикріпити файл"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
                   <Input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder={
-                      isManager ? "Написати від імені менеджера школи…" : "Напишіть повідомлення…"
+                      isManager ? "Написати від імені менеджера…" : "Напишіть повідомлення…"
                     }
                     maxLength={4000}
                     disabled={sending}
                   />
-                  <Button type="submit" size="icon" disabled={sending || draft.trim().length === 0}>
+                  <Button type="submit" size="icon" disabled={sending || (draft.trim().length === 0 && !pendingFile)}>
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </Button>
                 </form>
