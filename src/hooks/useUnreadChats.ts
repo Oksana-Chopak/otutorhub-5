@@ -20,12 +20,17 @@ export function useUnreadChats(): number {
     let cancelled = false;
 
     const compute = async () => {
-      // Threads where user participates (manager sees all)
+      // Threads where user participates. RLS already enforces:
+      //  - manager → all threads
+      //  - tutor/student → only threads where they are tutor_id or student_id.
+      // We additionally request tutor_id/student_id so we can defensively re-check on the client.
       const { data: threads } = await supabase
         .from("chat_threads")
-        .select("id, last_message_at");
+        .select("id, tutor_id, student_id, last_message_at");
       const threadList = (threads ?? []) as Array<{
         id: string;
+        tutor_id: string;
+        student_id: string;
         last_message_at: string | null;
       }>;
       if (threadList.length === 0) {
