@@ -334,17 +334,67 @@ export default function ChatsPage() {
 
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text || !selectedThread || !myId) return;
+    const file = pendingFile;
+    if ((!text && !file) || !selectedThread || !myId) return;
     setSending(true);
-    const { error } = await supabase
+    const bodyText = text || (file ? `📎 ${file.name}` : "");
+    const { data: msgData, error } = await supabase
       .from("chat_messages")
-      .insert({ thread_id: selectedThread.id, sender_id: myId, body: text });
-    setSending(false);
-    if (error) {
-      toast({ title: "Не вдалося надіслати", description: error.message, variant: "destructive" });
+      .insert({ thread_id: selectedThread.id, sender_id: myId, body: bodyText })
+      .select("id")
+      .single();
+    if (error || !msgData) {
+      setSending(false);
+      toast({ title: "Не вдалося надіслати", description: error?.message, variant: "destructive" });
       return;
     }
+
+    if (file) {
+      if (file.size > MAX_ATTACH_BYTES) {
+        toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+        setSending(false);
+        setPendingFile(null);
+        return;
+      }
+      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${myId}/${selectedThread.id}/${crypto.randomUUID()}-${safeName}`;
+      const { error: upErr } = await supabase.storage
+        .from("chat-attachments")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        toast({ title: "Помилка завантаження файлу", description: upErr.message, variant: "destructive" });
+      } else {
+        const { error: insErr } = await supabase.from("chat_message_attachments").insert({
+          message_id: (msgData as any).id,
+          thread_id: selectedThread.id,
+          uploader_id: myId,
+          storage_path: path,
+          file_name: file.name,
+          mime_type: file.type || null,
+          size_bytes: file.size,
+        });
+        if (insErr) {
+          toast({ title: "Не вдалося прикріпити файл", description: insErr.message, variant: "destructive" });
+        }
+      }
+    }
+    setSending(false);
     setDraft("");
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const openAttachment = async (att: MessageAttachment) => {
+    setOpeningAttachId(att.id);
+    const { data, error } = await supabase.storage
+      .from("chat-attachments")
+      .createSignedUrl(att.storage_path, 60 * 10);
+    setOpeningAttachId(null);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Не вдалося відкрити файл", description: error?.message, variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const counterpartName = (t: Thread) => {
