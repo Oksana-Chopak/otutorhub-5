@@ -534,7 +534,10 @@ export default function SchedulePage() {
 
   const todayKey = new Date().toISOString().slice(0, 10);
 
-  const canCreate = isManager || isTutor || isStudent;
+  const isPureStudent = isStudent && !isManager && !isTutor;
+  // A student needs at least one assigned tutor (rate row or past lesson) before requesting a lesson.
+  const studentHasTutor = isPureStudent ? tutors.length > 0 : true;
+  const canCreate = (isManager || isTutor || isStudent) && studentHasTutor;
 
   return (
     <AppLayout>
