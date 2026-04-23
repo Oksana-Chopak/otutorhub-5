@@ -88,6 +88,7 @@ export default function DashboardPage() {
   const [studentCount, setStudentCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
+  const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
@@ -135,6 +136,17 @@ export default function DashboardPage() {
         linkedStudentIds.add(r.student_id)
       );
       setStudentsWithoutTutor(studentIds.filter((id) => !linkedStudentIds.has(id)).length);
+    }
+
+    if (isStudent && !isManager && !isTutor) {
+      const lessonRows = ((lessonsData ?? []) as LessonRow[]).filter((l) => l.student_id === user.id);
+      const fromLessons = new Set(lessonRows.map((l) => l.tutor_id));
+      const { data: myRates } = await supabase
+        .from("student_rates")
+        .select("tutor_id")
+        .eq("student_id", user.id);
+      (myRates ?? []).forEach((r: any) => fromLessons.add(r.tutor_id));
+      setStudentTutorCount(fromLessons.size);
     }
 
     setProfiles(profileMap);
@@ -618,38 +630,61 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                   {isStudent && (
                     <>
-                      <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                            <Plus className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground">Запросити урок</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              Виберіть репетитора, дату й тему — менеджер підтвердить.
-                            </p>
-                            <Button asChild size="sm" className="mt-3"><Link to="/schedule">До розкладу</Link></Button>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10">
-                            <Users className="h-4 w-4 text-warning" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground">Знайти нового репетитора</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">
-                              Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
-                            </p>
-                            <div className="mt-3">
-                              <FindTutorDialog
-                                trigger={<Button size="sm" variant="outline">Залишити запит</Button>}
-                              />
+                      {studentTutorCount > 0 ? (
+                        <div className="rounded-xl border border-border bg-card p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                              <Plus className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground">Запросити урок</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                Виберіть репетитора, дату й тему — менеджер підтвердить.
+                              </p>
+                              <Button asChild size="sm" className="mt-3"><Link to="/schedule">До розкладу</Link></Button>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                              <HandHeart className="h-4 w-4 text-primary" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground">Підібрати репетитора</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                У вас ще немає закріпленого репетитора. Залиште запит — менеджер oTutorHub підбере фахівця під ваші цілі, бюджет і графік.
+                              </p>
+                              <div className="mt-3">
+                                <FindTutorDialog
+                                  trigger={<Button size="sm">Залишити запит</Button>}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {studentTutorCount > 0 && (
+                        <div className="rounded-xl border border-border bg-card p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                              <Users className="h-4 w-4 text-warning" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-medium text-foreground">Знайти нового репетитора</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">
+                                Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
+                              </p>
+                              <div className="mt-3">
+                                <FindTutorDialog
+                                  trigger={<Button size="sm" variant="outline">Залишити запит</Button>}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
                   {isTutor && (
@@ -668,26 +703,28 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-                  <div className="rounded-xl border border-border bg-card p-4">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                        <CalendarPlus className="h-4 w-4 text-primary" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground">
-                          {isTutor ? "Оновити доступні години" : "Запросити нові години"}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {isTutor
-                            ? "Тримайте календар актуальним, щоб учні бачили вільні слоти."
-                            : "Якщо у репетитора немає вільних годин — попросіть оновити графік."}
-                        </p>
-                        <Button asChild size="sm" variant="outline" className="mt-3">
-                          <Link to="/availability">Відкрити</Link>
-                        </Button>
+                  {(isTutor || (isStudent && studentTutorCount > 0) || isManager) && (
+                    <div className="rounded-xl border border-border bg-card p-4">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                          <CalendarPlus className="h-4 w-4 text-primary" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground">
+                            {isTutor ? "Оновити доступні години" : "Запросити нові години"}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {isTutor
+                              ? "Тримайте календар актуальним, щоб учні бачили вільні слоти."
+                              : "Якщо у репетитора немає вільних годин — попросіть оновити графік."}
+                          </p>
+                          <Button asChild size="sm" variant="outline" className="mt-3">
+                            <Link to="/availability">Відкрити</Link>
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </section>
