@@ -160,39 +160,39 @@ export default function FinancesPage() {
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
 
-  // Margin %: profit / income * 100. Compare current week vs previous week.
-  const { marginCurrent, marginPrev } = useMemo(() => {
-    const now = new Date();
-    const day = (now.getDay() + 6) % 7;
-    const thisWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
-    thisWeekStart.setHours(0, 0, 0, 0);
-    const prevWeekStart = new Date(thisWeekStart);
-    prevWeekStart.setDate(thisWeekStart.getDate() - 7);
+  // Markup % ("маржа" як націнка): (income - payout) / payout * 100
+  // Рахуємо тільки по уроках, де відомі обидві суми (price > 0 і payout > 0),
+  // інакше націнка не визначена.
+  const computeMarkup = (rows: LessonRow[]): number | null => {
+    const valid = rows.filter(
+      (l) => l.status === "completed" && Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
+    );
+    if (valid.length === 0) return null;
+    const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
+    const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
+    if (payout === 0) return null;
+    return ((income - payout) / payout) * 100;
+  };
 
-    const calc = (from: Date, to: Date) => {
-      const range = filtered.filter((l) => {
-        if (l.status !== "completed") return false;
-        const t = new Date(l.starts_at).getTime();
-        return t >= from.getTime() && t < to.getTime();
-      });
-      const inc = range
-        .filter((l) => l.student_payment_status === "paid")
-        .reduce((s, l) => s + Number(l.student_price), 0);
-      const exp = range
-        .filter((l) => l.tutor_payout_status === "paid")
-        .reduce((s, l) => s + Number(l.tutor_payout), 0);
-      if (inc === 0) return null;
-      return ((inc - exp) / inc) * 100;
-    };
+  const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
 
-    return {
-      marginCurrent: calc(thisWeekStart, new Date(thisWeekStart.getTime() + 7 * 86400000)),
-      marginPrev: calc(prevWeekStart, thisWeekStart),
-    };
-  }, [filtered]);
-
-  const marginDelta =
-    marginCurrent !== null && marginPrev !== null ? marginCurrent - marginPrev : null;
+  const markupByTutor = useMemo(() => {
+    const groups: Record<string, LessonRow[]> = {};
+    billable.forEach((l) => {
+      if (!groups[l.tutor_id]) groups[l.tutor_id] = [];
+      groups[l.tutor_id].push(l);
+    });
+    return Object.entries(groups)
+      .map(([tutorId, rows]) => ({
+        tutorId,
+        name: nameOf(tutorId),
+        markup: computeMarkup(rows),
+        lessonsCount: rows.length,
+      }))
+      .filter((r) => r.markup !== null)
+      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable, profiles]);
 
   const togglePayment = async (
     lesson: LessonRow,
