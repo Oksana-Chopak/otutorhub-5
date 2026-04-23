@@ -535,9 +535,8 @@ export default function SchedulePage() {
   const todayKey = new Date().toISOString().slice(0, 10);
 
   const isPureStudent = isStudent && !isManager && !isTutor;
-  // A student needs at least one assigned tutor (rate row or past lesson) before requesting a lesson.
-  const studentHasTutor = isPureStudent ? tutors.length > 0 : true;
-  const canCreate = (isManager || isTutor || isStudent) && studentHasTutor;
+  // Students cannot create or request lessons — only tutors and managers schedule them.
+  const canCreate = isManager || isTutor;
 
   return (
     <AppLayout>
@@ -615,7 +614,7 @@ export default function SchedulePage() {
             </Button>
           </div>
         </div>
-        {isPureStudent && !studentHasTutor && (
+        {isPureStudent && studentTutors.length === 0 && (
           <FindTutorDialog
             trigger={
               <Button>
@@ -630,14 +629,12 @@ export default function SchedulePage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                {isStudent && !isManager && !isTutor ? "Запросити урок" : "Створити урок"}
+                Створити урок
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
               <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-                <DialogTitle>
-                  {isStudent && !isManager && !isTutor ? "Запит на урок" : "Новий урок"}
-                </DialogTitle>
+                <DialogTitle>Новий урок</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                 <div>
@@ -926,7 +923,7 @@ export default function SchedulePage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : grouped.length === 0 ? (
-        isPureStudent && !studentHasTutor ? (
+        isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
             title="Поки немає репетитора"
@@ -947,12 +944,10 @@ export default function SchedulePage() {
             title="Уроків ще немає"
             description={
               canCreate
-                ? isPureStudent
-                  ? "Запросіть свій перший урок — оберіть репетитора, дату й тему."
-                  : "Створіть перший урок — оберіть репетитора, учня та час."
-                : "Як тільки урок з'явиться у розкладі, ви побачите його тут."
+                ? "Створіть перший урок — оберіть репетитора, учня та час."
+                : "Як тільки репетитор або менеджер додасть урок, ви побачите його тут."
             }
-            actionLabel={canCreate ? (isPureStudent ? "Запросити урок" : "Створити перший урок") : undefined}
+            actionLabel={canCreate ? "Створити перший урок" : undefined}
             onAction={canCreate ? () => setCreateOpen(true) : undefined}
           />
         )

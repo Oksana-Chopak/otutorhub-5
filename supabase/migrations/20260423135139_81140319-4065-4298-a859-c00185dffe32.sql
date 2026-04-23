@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Student requests lesson" ON public.lessons;
