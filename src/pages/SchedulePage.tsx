@@ -615,6 +615,16 @@ export default function SchedulePage() {
             </Button>
           </div>
         </div>
+        {isPureStudent && !studentHasTutor && (
+          <FindTutorDialog
+            trigger={
+              <Button>
+                <HandHeart className="h-4 w-4 mr-2" />
+                Запит на підбір репетитора
+              </Button>
+            }
+          />
+        )}
         {canCreate && (
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogTrigger asChild>
