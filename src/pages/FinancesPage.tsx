@@ -160,6 +160,40 @@ export default function FinancesPage() {
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
 
+  // Margin %: profit / income * 100. Compare current week vs previous week.
+  const { marginCurrent, marginPrev } = useMemo(() => {
+    const now = new Date();
+    const day = (now.getDay() + 6) % 7;
+    const thisWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+    thisWeekStart.setHours(0, 0, 0, 0);
+    const prevWeekStart = new Date(thisWeekStart);
+    prevWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+    const calc = (from: Date, to: Date) => {
+      const range = filtered.filter((l) => {
+        if (l.status !== "completed") return false;
+        const t = new Date(l.starts_at).getTime();
+        return t >= from.getTime() && t < to.getTime();
+      });
+      const inc = range
+        .filter((l) => l.student_payment_status === "paid")
+        .reduce((s, l) => s + Number(l.student_price), 0);
+      const exp = range
+        .filter((l) => l.tutor_payout_status === "paid")
+        .reduce((s, l) => s + Number(l.tutor_payout), 0);
+      if (inc === 0) return null;
+      return ((inc - exp) / inc) * 100;
+    };
+
+    return {
+      marginCurrent: calc(thisWeekStart, new Date(thisWeekStart.getTime() + 7 * 86400000)),
+      marginPrev: calc(prevWeekStart, thisWeekStart),
+    };
+  }, [filtered]);
+
+  const marginDelta =
+    marginCurrent !== null && marginPrev !== null ? marginCurrent - marginPrev : null;
+
   const togglePayment = async (
     lesson: LessonRow,
     field: "student_payment_status" | "tutor_payout_status"
