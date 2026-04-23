@@ -22,9 +22,28 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
+
+interface MessageAttachment {
+  id: string;
+  message_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+}
+
+const MAX_ATTACH_BYTES = 15 * 1024 * 1024;
+const ATTACH_ACCEPT = "application/pdf,image/png,image/jpeg,image/jpg,image/webp,image/gif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+function formatBytes(b: number | null) {
+  if (!b) return "";
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / 1024 / 1024).toFixed(1)} MB`;
+}
 
 interface Thread {
   id: string;
@@ -78,7 +97,12 @@ export default function ChatsPage() {
   const [sending, setSending] = useState(false);
   const [readMap, setReadMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"recent" | "unread" | "name">("recent");
+  const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [openingAttachId, setOpeningAttachId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // New chat dialog (manager only)
@@ -220,7 +244,25 @@ export default function ChatsPage() {
         .select("id, thread_id, sender_id, body, created_at")
         .eq("thread_id", selectedId)
         .order("created_at", { ascending: true });
-      if (!cancelled) setMessages((data ?? []) as Message[]);
+      const msgs = (data ?? []) as Message[];
+      if (!cancelled) setMessages(msgs);
+      // Load attachments for these messages
+      if (msgs.length > 0) {
+        const { data: attachData } = await supabase
+          .from("chat_message_attachments")
+          .select("id, message_id, storage_path, file_name, mime_type, size_bytes")
+          .in("message_id", msgs.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, MessageAttachment[]> = {};
+          (attachData ?? []).forEach((a: any) => {
+            if (!grouped[a.message_id]) grouped[a.message_id] = [];
+            grouped[a.message_id].push(a);
+          });
+          setAttachments(grouped);
+        }
+      } else if (!cancelled) {
+        setAttachments({});
+      }
       // Mark as read when opening
       markRead(selectedId);
     };
@@ -292,17 +334,67 @@ export default function ChatsPage() {
 
   const sendMessage = async () => {
     const text = draft.trim();
-    if (!text || !selectedThread || !myId) return;
+    const file = pendingFile;
+    if ((!text && !file) || !selectedThread || !myId) return;
     setSending(true);
-    const { error } = await supabase
+    const bodyText = text || (file ? `📎 ${file.name}` : "");
+    const { data: msgData, error } = await supabase
       .from("chat_messages")
-      .insert({ thread_id: selectedThread.id, sender_id: myId, body: text });
-    setSending(false);
-    if (error) {
-      toast({ title: "Не вдалося надіслати", description: error.message, variant: "destructive" });
+      .insert({ thread_id: selectedThread.id, sender_id: myId, body: bodyText })
+      .select("id")
+      .single();
+    if (error || !msgData) {
+      setSending(false);
+      toast({ title: "Не вдалося надіслати", description: error?.message, variant: "destructive" });
       return;
     }
+
+    if (file) {
+      if (file.size > MAX_ATTACH_BYTES) {
+        toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+        setSending(false);
+        setPendingFile(null);
+        return;
+      }
+      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `${myId}/${selectedThread.id}/${crypto.randomUUID()}-${safeName}`;
+      const { error: upErr } = await supabase.storage
+        .from("chat-attachments")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) {
+        toast({ title: "Помилка завантаження файлу", description: upErr.message, variant: "destructive" });
+      } else {
+        const { error: insErr } = await supabase.from("chat_message_attachments").insert({
+          message_id: (msgData as any).id,
+          thread_id: selectedThread.id,
+          uploader_id: myId,
+          storage_path: path,
+          file_name: file.name,
+          mime_type: file.type || null,
+          size_bytes: file.size,
+        });
+        if (insErr) {
+          toast({ title: "Не вдалося прикріпити файл", description: insErr.message, variant: "destructive" });
+        }
+      }
+    }
+    setSending(false);
     setDraft("");
+    setPendingFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const openAttachment = async (att: MessageAttachment) => {
+    setOpeningAttachId(att.id);
+    const { data, error } = await supabase.storage
+      .from("chat-attachments")
+      .createSignedUrl(att.storage_path, 60 * 10);
+    setOpeningAttachId(null);
+    if (error || !data?.signedUrl) {
+      toast({ title: "Не вдалося відкрити файл", description: error?.message, variant: "destructive" });
+      return;
+    }
+    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const counterpartName = (t: Thread) => {
@@ -424,7 +516,7 @@ export default function ChatsPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-3">
+      <div className="mb-6 flex items-start justify-between gap-3 pl-12 lg:pl-0">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
           <p className="text-sm text-muted-foreground">
@@ -526,25 +618,48 @@ export default function ChatsPage() {
           {/* Thread list */}
           <div className="flex flex-col rounded-xl border border-border bg-card max-h-[70vh]">
             <div className="space-y-2 border-b border-border p-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Пошук за іменем або текстом…"
-                  className="h-8 pl-8 text-sm"
-                />
+              <div className="flex items-center gap-2">
+                {searchOpen ? (
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      autoFocus
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Пошук…"
+                      className="h-8 pl-8 pr-8 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setSearch(""); setSearchOpen(false); }}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                      aria-label="Закрити пошук"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setSearchOpen(true)}
+                    aria-label="Пошук"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+                <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
+                  <SelectTrigger className="h-8 flex-1 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">За останнім повідомленням</SelectItem>
+                    <SelectItem value="unread">Спершу непрочитані</SelectItem>
+                    <SelectItem value="name">За іменем</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">За останнім повідомленням</SelectItem>
-                  <SelectItem value="unread">Спершу непрочитані</SelectItem>
-                  <SelectItem value="name">За іменем</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {visibleThreads.length === 0 ? (
@@ -630,6 +745,7 @@ export default function ChatsPage() {
                     messages.map((m) => {
                       const mine = m.sender_id === myId;
                       const senderIsManager = managerIds.has(m.sender_id);
+                      const msgAttachments = attachments[m.id] ?? [];
                       return (
                         <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                           <div
@@ -654,11 +770,41 @@ export default function ChatsPage() {
                                   )}
                                 >
                                   <ShieldCheck className="h-2.5 w-2.5" />
-                                  Менеджер школи
+                                  Менеджер
                                 </span>
                               )}
                             </p>
-                            <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>
+                            {m.body && <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>}
+                            {msgAttachments.length > 0 && (
+                              <div className="mt-2 space-y-1">
+                                {msgAttachments.map((att) => {
+                                  const isImg = att.mime_type?.startsWith("image/");
+                                  return (
+                                    <button
+                                      key={att.id}
+                                      type="button"
+                                      onClick={() => openAttachment(att)}
+                                      className={cn(
+                                        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+                                        mine
+                                          ? "border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20"
+                                          : "border-border bg-background/60 hover:bg-background"
+                                      )}
+                                      disabled={openingAttachId === att.id}
+                                    >
+                                      {isImg ? <ImageIcon className="h-3.5 w-3.5 shrink-0" /> : <FileText className="h-3.5 w-3.5 shrink-0" />}
+                                      <span className="flex-1 truncate">{att.file_name}</span>
+                                      <span className="shrink-0 opacity-60">{formatBytes(att.size_bytes)}</span>
+                                      {openingAttachId === att.id ? (
+                                        <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
+                                      ) : (
+                                        <Download className="h-3 w-3 shrink-0 opacity-60" />
+                                      )}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
                         </div>
@@ -688,6 +834,21 @@ export default function ChatsPage() {
                     ))}
                   </div>
                 )}
+                {pendingFile && (
+                  <div className="flex items-center gap-2 border-t border-border px-3 py-2 text-xs">
+                    <Paperclip className="h-3.5 w-3.5 text-primary shrink-0" />
+                    <span className="flex-1 truncate text-foreground">{pendingFile.name}</span>
+                    <span className="text-muted-foreground shrink-0">{formatBytes(pendingFile.size)}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                      aria-label="Прибрати файл"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -695,16 +856,44 @@ export default function ChatsPage() {
                   }}
                   className="flex items-center gap-2 border-t border-border p-3"
                 >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept={ATTACH_ACCEPT}
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        if (f.size > MAX_ATTACH_BYTES) {
+                          toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+                          e.target.value = "";
+                          return;
+                        }
+                        setPendingFile(f);
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={sending}
+                    title="Прикріпити файл"
+                    aria-label="Прикріпити файл"
+                  >
+                    <Paperclip className="h-4 w-4" />
+                  </Button>
                   <Input
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     placeholder={
-                      isManager ? "Написати від імені менеджера школи…" : "Напишіть повідомлення…"
+                      isManager ? "Написати від імені менеджера…" : "Напишіть повідомлення…"
                     }
                     maxLength={4000}
                     disabled={sending}
                   />
-                  <Button type="submit" size="icon" disabled={sending || draft.trim().length === 0}>
+                  <Button type="submit" size="icon" disabled={sending || (draft.trim().length === 0 && !pendingFile)}>
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </Button>
                 </form>

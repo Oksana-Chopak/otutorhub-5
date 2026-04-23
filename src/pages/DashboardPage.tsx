@@ -23,6 +23,7 @@ import {
   CalendarPlus,
   StickyNote,
   Plus,
+  HandHeart,
 } from "lucide-react";
 import {
   Select,
@@ -354,25 +355,29 @@ export default function DashboardPage() {
           )}
           {(isTutor || isStudent) && !isManager && (
             <>
-              <Button asChild>
-                <Link to="/schedule">
-                  <Plus className="h-4 w-4" />
-                  {isStudent ? "Запросити урок" : "Створити урок"}
-                </Link>
-              </Button>
+              {isTutor && (
+                <Button asChild>
+                  <Link to="/schedule">
+                    <Plus className="h-4 w-4" />
+                    Створити урок
+                  </Link>
+                </Button>
+              )}
+              {isStudent && !isTutor && (
+                <FindTutorDialog
+                  trigger={
+                    <Button>
+                      <HandHeart className="h-4 w-4" />
+                      Запит на репетитора
+                    </Button>
+                  }
+                />
+              )}
               {isTutor && (
                 <Button asChild variant="outline">
                   <Link to="/availability">
                     <CalendarPlus className="h-4 w-4" />
                     Оновити години
-                  </Link>
-                </Button>
-              )}
-              {isStudent && (
-                <Button asChild variant="outline">
-                  <Link to="/availability">
-                    <CalendarPlus className="h-4 w-4" />
-                    Запросити години
                   </Link>
                 </Button>
               )}
@@ -440,12 +445,17 @@ export default function DashboardPage() {
                 {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
                     Найближчих уроків немає.
-                    {(isStudent || isTutor) && !isManager && (
+                    {isTutor && !isManager && (
                       <Button asChild size="sm" className="ml-3">
-                        <Link to="/schedule">
-                          {isStudent ? "Запросити урок" : "Створити урок"}
-                        </Link>
+                        <Link to="/schedule">Створити урок</Link>
                       </Button>
+                    )}
+                    {isStudent && !isTutor && !isManager && (
+                      <span className="ml-3 inline-block">
+                        <FindTutorDialog
+                          trigger={<Button size="sm">Запит на репетитора</Button>}
+                        />
+                      </span>
                     )}
                   </div>
                 ) : (
