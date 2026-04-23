@@ -97,7 +97,12 @@ export default function ChatsPage() {
   const [sending, setSending] = useState(false);
   const [readMap, setReadMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"recent" | "unread" | "name">("recent");
+  const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [openingAttachId, setOpeningAttachId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // New chat dialog (manager only)
