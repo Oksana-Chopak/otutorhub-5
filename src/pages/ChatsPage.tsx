@@ -244,7 +244,25 @@ export default function ChatsPage() {
         .select("id, thread_id, sender_id, body, created_at")
         .eq("thread_id", selectedId)
         .order("created_at", { ascending: true });
-      if (!cancelled) setMessages((data ?? []) as Message[]);
+      const msgs = (data ?? []) as Message[];
+      if (!cancelled) setMessages(msgs);
+      // Load attachments for these messages
+      if (msgs.length > 0) {
+        const { data: attachData } = await supabase
+          .from("chat_message_attachments")
+          .select("id, message_id, storage_path, file_name, mime_type, size_bytes")
+          .in("message_id", msgs.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, MessageAttachment[]> = {};
+          (attachData ?? []).forEach((a: any) => {
+            if (!grouped[a.message_id]) grouped[a.message_id] = [];
+            grouped[a.message_id].push(a);
+          });
+          setAttachments(grouped);
+        }
+      } else if (!cancelled) {
+        setAttachments({});
+      }
       // Mark as read when opening
       markRead(selectedId);
     };
