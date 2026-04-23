@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
-import { FinanceMonthlyChart } from "@/components/FinanceMonthlyChart";
+import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
+import { Percent } from "lucide-react";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -158,6 +159,40 @@ export default function FinancesPage() {
   const pendingExpense = billable
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
+
+  // Margin %: profit / income * 100. Compare current week vs previous week.
+  const { marginCurrent, marginPrev } = useMemo(() => {
+    const now = new Date();
+    const day = (now.getDay() + 6) % 7;
+    const thisWeekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
+    thisWeekStart.setHours(0, 0, 0, 0);
+    const prevWeekStart = new Date(thisWeekStart);
+    prevWeekStart.setDate(thisWeekStart.getDate() - 7);
+
+    const calc = (from: Date, to: Date) => {
+      const range = filtered.filter((l) => {
+        if (l.status !== "completed") return false;
+        const t = new Date(l.starts_at).getTime();
+        return t >= from.getTime() && t < to.getTime();
+      });
+      const inc = range
+        .filter((l) => l.student_payment_status === "paid")
+        .reduce((s, l) => s + Number(l.student_price), 0);
+      const exp = range
+        .filter((l) => l.tutor_payout_status === "paid")
+        .reduce((s, l) => s + Number(l.tutor_payout), 0);
+      if (inc === 0) return null;
+      return ((inc - exp) / inc) * 100;
+    };
+
+    return {
+      marginCurrent: calc(thisWeekStart, new Date(thisWeekStart.getTime() + 7 * 86400000)),
+      marginPrev: calc(prevWeekStart, thisWeekStart),
+    };
+  }, [filtered]);
+
+  const marginDelta =
+    marginCurrent !== null && marginPrev !== null ? marginCurrent - marginPrev : null;
 
   const togglePayment = async (
     lesson: LessonRow,
@@ -318,7 +353,7 @@ export default function FinancesPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             <StatCard
               label="Надходження"
               value={`${totalIncome} ₴`}
@@ -338,18 +373,58 @@ export default function FinancesPage() {
               icon={DollarSign}
               variant="warning"
             />
+            <div className="rounded-xl border border-border bg-card p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Маржа · цей тиждень
+                  </p>
+                  <p
+                    className={`mt-1 truncate text-2xl font-bold ${
+                      marginCurrent === null
+                        ? "text-muted-foreground"
+                        : marginCurrent >= 0
+                        ? "text-success"
+                        : "text-destructive"
+                    }`}
+                  >
+                    {marginCurrent === null ? "—" : `${marginCurrent.toFixed(1)}%`}
+                  </p>
+                  {marginDelta !== null && (
+                    <p
+                      className={`mt-1 text-xs ${
+                        marginDelta >= 0 ? "text-success" : "text-destructive"
+                      }`}
+                    >
+                      {marginDelta >= 0 ? "▲" : "▼"} {Math.abs(marginDelta).toFixed(1)} п.п. до минулого тижня
+                    </p>
+                  )}
+                  {marginDelta === null && marginPrev !== null && (
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Минулий тиждень: {marginPrev.toFixed(1)}%
+                    </p>
+                  )}
+                </div>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Percent className="h-4 w-4 text-primary" />
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Monthly chart */}
+          {/* Weekly dynamics chart */}
           <div className="mt-6 rounded-xl border border-border bg-card p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">Помісячна динаміка (останні 12 місяців)</h2>
+              <h2 className="text-sm font-semibold text-foreground">
+                Тижнева динаміка (останні 12 тижнів)
+              </h2>
               <span className="text-xs text-muted-foreground">Завершені уроки</span>
             </div>
-            <FinanceMonthlyChart
+            <FinanceWeeklyChart
               lessons={filtered.map((l) => ({
                 starts_at: l.starts_at,
                 status: l.status,
+                student_id: l.student_id,
                 student_price: Number(l.student_price),
                 tutor_payout: Number(l.tutor_payout),
                 student_payment_status: l.student_payment_status,
