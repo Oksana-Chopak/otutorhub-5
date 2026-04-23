@@ -923,7 +923,7 @@ export default function SchedulePage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : grouped.length === 0 ? (
-        isPureStudent && !studentHasTutor ? (
+        isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
             title="Поки немає репетитора"
@@ -944,12 +944,10 @@ export default function SchedulePage() {
             title="Уроків ще немає"
             description={
               canCreate
-                ? isPureStudent
-                  ? "Запросіть свій перший урок — оберіть репетитора, дату й тему."
-                  : "Створіть перший урок — оберіть репетитора, учня та час."
-                : "Як тільки урок з'явиться у розкладі, ви побачите його тут."
+                ? "Створіть перший урок — оберіть репетитора, учня та час."
+                : "Як тільки репетитор або менеджер додасть урок, ви побачите його тут."
             }
-            actionLabel={canCreate ? (isPureStudent ? "Запросити урок" : "Створити перший урок") : undefined}
+            actionLabel={canCreate ? "Створити перший урок" : undefined}
             onAction={canCreate ? () => setCreateOpen(true) : undefined}
           />
         )
