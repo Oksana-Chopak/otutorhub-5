@@ -228,7 +228,7 @@ export default function ChatsPage() {
     load();
 
     const channel = supabase
-      .channel(`chat-messages-${selectedId}`)
+      .channel(`chat-messages-${selectedId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `thread_id=eq.${selectedId}` },
@@ -255,7 +255,7 @@ export default function ChatsPage() {
   useEffect(() => {
     if (!myId) return;
     const channel = supabase
-      .channel("threads-meta")
+      .channel(`threads-meta-${myId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },

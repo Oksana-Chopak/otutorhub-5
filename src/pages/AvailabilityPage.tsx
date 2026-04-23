@@ -189,7 +189,7 @@ export default function AvailabilityPage() {
         ? `tutor_id=eq.${user.id}`
         : `requester_id=eq.${user.id}`;
     const ch = supabase
-      .channel(`availability-requests-page:${user.id}`)
+      .channel(`availability-requests-page:${user.id}:${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "availability_requests", ...(filter ? { filter } : {}) },

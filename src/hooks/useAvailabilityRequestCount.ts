@@ -48,7 +48,7 @@ export function useAvailabilityRequestCount(): number {
         ? `tutor_id=eq.${user.id}`
         : `requester_id=eq.${user.id}`;
     const ch = supabase
-      .channel(`avail-requests-count:${user.id}`)
+      .channel(`avail-requests-count:${user.id}:${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "availability_requests", ...(filter ? { filter } : {}) },
