@@ -22,9 +22,28 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
+
+interface MessageAttachment {
+  id: string;
+  message_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string | null;
+  size_bytes: number | null;
+}
+
+const MAX_ATTACH_BYTES = 15 * 1024 * 1024;
+const ATTACH_ACCEPT = "application/pdf,image/png,image/jpeg,image/jpg,image/webp,image/gif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
+function formatBytes(b: number | null) {
+  if (!b) return "";
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / 1024 / 1024).toFixed(1)} MB`;
+}
 
 interface Thread {
   id: string;
