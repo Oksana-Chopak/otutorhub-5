@@ -58,8 +58,9 @@ export function useUnreadChats(): number {
     compute();
 
     // Realtime: any new message OR our own read update should refresh
+    const suffix = `${myId}-${Math.random().toString(36).slice(2, 8)}`;
     const messagesChannel = supabase
-      .channel("unread-messages")
+      .channel(`unread-messages-${suffix}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
