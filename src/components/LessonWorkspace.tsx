@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2 } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
@@ -48,6 +48,29 @@ export function LessonWorkspace({
   const [notesDraft, setNotesDraft] = useState(studentNotes ?? "");
   const [defaultUrl, setDefaultUrl] = useState<string>("");
   const [saving, setSaving] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const generateAiSummary = async () => {
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-lesson-summary", {
+        body: { lessonId },
+      });
+      if (error) throw error;
+      const generated = (data as any)?.summary;
+      if (!generated) throw new Error("Порожня відповідь AI");
+      setSummaryDraft(generated);
+      toast({ title: "AI-конспект готовий", description: "Перевірте і збережіть." });
+    } catch (e: any) {
+      toast({
+        title: "Не вдалося згенерувати конспект",
+        description: e?.message ?? "Спробуйте ще раз пізніше",
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMeetingDraft(meetingUrl ?? "");
@@ -203,9 +226,28 @@ export function LessonWorkspace({
 
       {/* Summary / lesson notes */}
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
-        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-          <FileText className="h-4 w-4 text-primary" />
-          Конспект уроку
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <FileText className="h-4 w-4 text-primary" />
+            Конспект уроку
+          </div>
+          {canEditTutorFields && (
+            <Button
+              size="sm"
+              variant="outline"
+              type="button"
+              disabled={aiLoading}
+              onClick={generateAiSummary}
+              title="Згенерувати конспект на основі домашки, нотаток та чорнового тексту"
+            >
+              {aiLoading ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              AI-конспект
+            </Button>
+          )}
         </div>
         {canEditTutorFields ? (
           <>
