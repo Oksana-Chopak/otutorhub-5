@@ -516,7 +516,7 @@ export default function ChatsPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-3">
+      <div className="mb-6 flex items-start justify-between gap-3 pl-12 lg:pl-0">
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
           <p className="text-sm text-muted-foreground">
