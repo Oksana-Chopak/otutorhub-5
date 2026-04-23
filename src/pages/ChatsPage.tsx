@@ -618,25 +618,48 @@ export default function ChatsPage() {
           {/* Thread list */}
           <div className="flex flex-col rounded-xl border border-border bg-card max-h-[70vh]">
             <div className="space-y-2 border-b border-border p-3">
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Пошук за іменем або текстом…"
-                  className="h-8 pl-8 text-sm"
-                />
+              <div className="flex items-center gap-2">
+                {searchOpen ? (
+                  <div className="relative flex-1">
+                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      autoFocus
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Пошук…"
+                      className="h-8 pl-8 pr-8 text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => { setSearch(""); setSearchOpen(false); }}
+                      className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                      aria-label="Закрити пошук"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    onClick={() => setSearchOpen(true)}
+                    aria-label="Пошук"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+                <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
+                  <SelectTrigger className="h-8 flex-1 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recent">За останнім повідомленням</SelectItem>
+                    <SelectItem value="unread">Спершу непрочитані</SelectItem>
+                    <SelectItem value="name">За іменем</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recent">За останнім повідомленням</SelectItem>
-                  <SelectItem value="unread">Спершу непрочитані</SelectItem>
-                  <SelectItem value="name">За іменем</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {visibleThreads.length === 0 ? (
