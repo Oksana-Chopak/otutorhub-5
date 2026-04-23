@@ -521,6 +521,24 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_bot_state: {
+        Row: {
+          id: number
+          update_offset: number
+          updated_at: string
+        }
+        Insert: {
+          id: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          update_offset?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tutor_availability_overrides: {
         Row: {
           created_at: string
@@ -775,6 +793,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_telegram_links: {
+        Row: {
+          chat_id: number | null
+          created_at: string
+          id: string
+          link_code: string | null
+          link_code_expires_at: string | null
+          linked_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id?: number | null
+          created_at?: string
+          id?: string
+          link_code?: string | null
+          link_code_expires_at?: string | null
+          linked_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: number | null
+          created_at?: string
+          id?: string
+          link_code?: string | null
+          link_code_expires_at?: string | null
+          linked_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       lessons_visible: {
@@ -885,6 +936,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      generate_telegram_link_code: {
+        Args: { _user_id: string }
+        Returns: string
       }
       get_lesson_financials: {
         Args: { _lesson_id: string }
