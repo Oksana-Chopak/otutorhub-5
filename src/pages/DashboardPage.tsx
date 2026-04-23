@@ -634,7 +634,7 @@ export default function DashboardPage() {
                         <div className="rounded-xl border border-border bg-card p-4">
                           <div className="flex items-start gap-3">
                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                              <Calendar className="h-4 w-4 text-primary" />
+                              <CalendarDays className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium text-foreground">Уроки призначає репетитор</p>
