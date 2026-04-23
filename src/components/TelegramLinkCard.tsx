@@ -20,6 +20,13 @@ export function TelegramLinkCard() {
   const [link, setLink] = useState<LinkRow | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [botUsername, setBotUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.functions.invoke("telegram-bot-info").then(({ data }) => {
+      if (data?.username) setBotUsername(data.username);
+    });
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -109,14 +116,18 @@ export function TelegramLinkCard() {
               <p className="text-sm font-medium text-foreground">Завершіть підключення</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 1. Відкрийте бота{" "}
-                <a
-                  href={`https://t.me/${BOT_USERNAME}?start=${link.link_code}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary underline"
-                >
-                  @{BOT_USERNAME}
-                </a>
+                {botUsername ? (
+                  <a
+                    href={`https://t.me/${botUsername}?start=${link.link_code}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline"
+                  >
+                    @{botUsername}
+                  </a>
+                ) : (
+                  <span className="text-muted-foreground">(завантаження...)</span>
+                )}
                 <br />
                 2. Натисніть «Start» (або надішліть команду нижче):
               </p>
