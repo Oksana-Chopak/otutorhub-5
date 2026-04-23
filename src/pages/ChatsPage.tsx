@@ -162,7 +162,12 @@ export default function ChatsPage() {
       return;
     }
 
-    const list = (threadRows ?? []) as Thread[];
+    // Defense-in-depth: even though RLS already filters, double-check on the client
+    // that non-managers only see threads where they are tutor or student.
+    const rawList = (threadRows ?? []) as Thread[];
+    const list = isManager
+      ? rawList
+      : rawList.filter((t) => t.tutor_id === myId || t.student_id === myId);
     const ids = new Set<string>();
     list.forEach((t) => {
       ids.add(t.tutor_id);
