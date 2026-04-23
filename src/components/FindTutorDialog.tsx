@@ -102,7 +102,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
           <div className="space-y-1">
             <Label>Орієнтовний діапазон ціни за один урок</Label>
             <Input
-              placeholder="Наприклад: 300–450 ₴/урок"
+              placeholder="Наприклад: 600–800 ₴/урок"
               value={form.budget_note}
               onChange={(e) => setForm({ ...form, budget_note: e.target.value })}
               maxLength={120}
