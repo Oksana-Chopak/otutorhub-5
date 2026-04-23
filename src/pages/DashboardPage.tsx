@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
+import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -580,19 +581,20 @@ export default function DashboardPage() {
             <section>
               <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Що зробити далі</h2>
               {isManager ? (
-                smartTasks.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
-                      <TrendingUp className="h-4 w-4 text-success" />
+                <div className="space-y-3">
+                  <TelegramLinkCard />
+                  {smartTasks.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
+                        <TrendingUp className="h-4 w-4 text-success" />
+                      </div>
+                      <p className="text-sm font-medium text-foreground">Усе під контролем 🎉</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Немає термінових задач. Можна планувати наступний тиждень.
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-foreground">Усе під контролем 🎉</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Немає термінових задач. Можна планувати наступний тиждень.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {smartTasks.map((task) => {
+                  ) : (
+                    smartTasks.map((task) => {
                       const Icon = task.icon;
                       const toneClass =
                         task.tone === "destructive"
@@ -623,11 +625,12 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       );
-                    })}
-                  </div>
-                )
+                    })
+                  )}
+                </div>
               ) : (
                 <div className="space-y-3">
+                  <TelegramLinkCard />
                   {isStudent && (
                     <>
                       {studentTutorCount > 0 ? (
