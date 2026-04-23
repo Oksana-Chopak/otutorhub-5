@@ -138,6 +138,17 @@ export default function DashboardPage() {
       setStudentsWithoutTutor(studentIds.filter((id) => !linkedStudentIds.has(id)).length);
     }
 
+    if (isStudent && !isManager && !isTutor) {
+      const lessonRows = ((lessonsData ?? []) as LessonRow[]).filter((l) => l.student_id === user.id);
+      const fromLessons = new Set(lessonRows.map((l) => l.tutor_id));
+      const { data: myRates } = await supabase
+        .from("student_rates")
+        .select("tutor_id")
+        .eq("student_id", user.id);
+      (myRates ?? []).forEach((r: any) => fromLessons.add(r.tutor_id));
+      setStudentTutorCount(fromLessons.size);
+    }
+
     setProfiles(profileMap);
     setLessons((lessonsData ?? []) as LessonRow[]);
     setLoading(false);
