@@ -24,7 +24,7 @@ export function useGlobalChatToasts() {
     const myId = user.id;
 
     const channel = supabase
-      .channel("global-new-messages")
+      .channel(`global-new-messages-${myId}-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },

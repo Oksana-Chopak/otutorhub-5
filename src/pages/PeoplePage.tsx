@@ -230,7 +230,7 @@ export default function PeoplePage() {
   // Real-time: re-fetch when ghost is merged or new profile/role appears
   useEffect(() => {
     const channel = supabase
-      .channel("people-page-realtime")
+      .channel(`people-page-realtime-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())
