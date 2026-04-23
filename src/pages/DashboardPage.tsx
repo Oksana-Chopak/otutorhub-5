@@ -23,6 +23,7 @@ import {
   CalendarPlus,
   StickyNote,
   Plus,
+  HandHeart,
 } from "lucide-react";
 import {
   Select,
