@@ -69,7 +69,7 @@ export function useUnreadChats(): number {
       .subscribe();
 
     const readsChannel = supabase
-      .channel("unread-reads")
+      .channel(`unread-reads-${suffix}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_reads", filter: `user_id=eq.${myId}` },
