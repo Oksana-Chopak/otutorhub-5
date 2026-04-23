@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
+import { Loader2, GraduationCap, BookOpenCheck } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const REMEMBER_KEY = "tutorhub.rememberMe";
 
@@ -20,12 +21,15 @@ const signUpSchema = z.object({
   phone: z.string().trim().max(20).optional().or(z.literal("")),
   email: z.string().trim().email("Некоректний email").max(255),
   password: z.string().min(8, "Мінімум 8 символів").max(128),
+  role: z.enum(["student", "tutor"]),
 });
 
 const signInSchema = z.object({
   email: z.string().trim().email("Некоректний email").max(255),
   password: z.string().min(1, "Введіть пароль").max(128),
 }).required();
+
+type SignUpRole = "student" | "tutor";
 
 export default function AuthPage() {
   const navigate = useNavigate();
@@ -43,13 +47,13 @@ export default function AuthPage() {
     phone: "",
     email: "",
     password: "",
+    role: "student" as SignUpRole,
   });
 
   useEffect(() => {
     if (!authLoading && user) navigate("/", { replace: true });
   }, [user, authLoading, navigate]);
 
-  // Track remember-me preference. When disabled, sign out automatically when the tab/window closes.
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
   }, [remember]);
@@ -125,6 +129,8 @@ export default function AuthPage() {
           first_name: parsed.data.firstName,
           last_name: parsed.data.lastName,
           phone: parsed.data.phone || null,
+          role: parsed.data.role,
+          independent_workspace: parsed.data.role === "tutor",
         },
       },
     });
@@ -216,6 +222,41 @@ export default function AuthPage() {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  {/* Role selector */}
+                  <div className="space-y-2">
+                    <Label>Я реєструюся як</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSignUpData({ ...signUpData, role: "student" })}
+                        className={cn(
+                          "flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-colors",
+                          signUpData.role === "student"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        )}
+                      >
+                        <GraduationCap className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium">Учень</span>
+                        <span className="text-[10px] text-muted-foreground">Шукаю репетитора</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSignUpData({ ...signUpData, role: "tutor" })}
+                        className={cn(
+                          "flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-colors",
+                          signUpData.role === "tutor"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        )}
+                      >
+                        <BookOpenCheck className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium">Репетитор</span>
+                        <span className="text-[10px] text-muted-foreground">Веду своїх учнів</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
                       <Label htmlFor="su-fn">Ім'я</Label>
@@ -237,7 +278,7 @@ export default function AuthPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="su-phone">Телефон (приватно, бачить лише менеджер)</Label>
+                    <Label htmlFor="su-phone">Телефон</Label>
                     <Input
                       id="su-phone"
                       type="tel"
@@ -274,9 +315,11 @@ export default function AuthPage() {
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Створити акаунт
                   </Button>
-                  <p className="text-center text-xs text-muted-foreground">
-                    Після реєстрації менеджер призначить вам роль (репетитор / учень).
-                  </p>
+                  {signUpData.role === "tutor" && (
+                    <p className="text-center text-xs text-muted-foreground">
+                      Як репетитор ви зможете додавати власних учнів. До 5 учнів — безкоштовно.
+                    </p>
+                  )}
                 </form>
               </TabsContent>
             </Tabs>

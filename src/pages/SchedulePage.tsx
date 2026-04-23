@@ -38,6 +38,7 @@ import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { EmptyState } from "@/components/EmptyState";
+import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -55,6 +56,7 @@ interface Lesson {
   tutor_payout: number;
   student_payment_status: PaymentStatus;
   tutor_payout_status: PaymentStatus;
+  source?: LessonSource;
 }
 
 interface PersonOption {
@@ -110,6 +112,7 @@ export default function SchedulePage() {
   const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
   const [filterTutor, setFilterTutor] = useState<string>("all");
   const [filterStudent, setFilterStudent] = useState<string>("all");
+  const [filterSource, setFilterSource] = useState<"all" | LessonSource>("all");
   const [filterPeriod, setFilterPeriod] = useState<"all" | "upcoming" | "past" | "month" | "week">(
     "all"
   );
@@ -158,11 +161,12 @@ export default function SchedulePage() {
     if (!user) return;
     setLoading(true);
 
-    const [lessonsRes, profilesRes, rolesRes, tutorRes] = await Promise.all([
+    const [lessonsRes, profilesRes, rolesRes, tutorRes, sourcesRes] = await Promise.all([
       supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
+      supabase.from("lessons").select("id, source"),
     ]);
 
     const profiles = profilesRes.data ?? [];
@@ -185,7 +189,15 @@ export default function SchedulePage() {
     );
     setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "?" })));
 
-    setLessons((lessonsRes.data ?? []) as Lesson[]);
+    const sourceMap: Record<string, LessonSource> = {};
+    (sourcesRes.data ?? []).forEach((r: any) => {
+      sourceMap[r.id] = (r.source as LessonSource) ?? "hub";
+    });
+    const lessonsWithSource = ((lessonsRes.data ?? []) as any[]).map((l) => ({
+      ...l,
+      source: sourceMap[l.id] ?? "hub",
+    }));
+    setLessons(lessonsWithSource as Lesson[]);
     setLoading(false);
   };
 
@@ -453,6 +465,7 @@ export default function SchedulePage() {
       if (filterStatus !== "all" && l.status !== filterStatus) return false;
       if (filterTutor !== "all" && l.tutor_id !== filterTutor) return false;
       if (filterStudent !== "all" && l.student_id !== filterStudent) return false;
+      if (filterSource !== "all" && (l.source ?? "hub") !== filterSource) return false;
       const ts = new Date(l.starts_at).getTime();
       if (filterPeriod === "upcoming" && ts < now - 60 * 60 * 1000) return false;
       if (filterPeriod === "past" && ts >= now) return false;
@@ -460,7 +473,7 @@ export default function SchedulePage() {
       if (filterPeriod === "week" && ts < weekStart.getTime()) return false;
       return true;
     });
-  }, [lessons, filterStatus, filterTutor, filterStudent, filterPeriod]);
+  }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
 
   // Group filtered lessons by day
   const grouped = useMemo(() => {
@@ -477,7 +490,14 @@ export default function SchedulePage() {
     filterStatus !== "all" ||
     filterTutor !== "all" ||
     filterStudent !== "all" ||
+    filterSource !== "all" ||
     filterPeriod !== "all";
+
+  // Show source filter only when tutor has both hub & independent lessons (or for managers)
+  const hasMixedSources = useMemo(() => {
+    const sources = new Set(lessons.map((l) => l.source ?? "hub"));
+    return isManager || sources.size > 1;
+  }, [lessons, isManager]);
 
   // For students: list of distinct tutors they have lessons with
   const studentTutors = useMemo(() => {
@@ -542,9 +562,19 @@ export default function SchedulePage() {
               <SelectItem value="month">Цей місяць</SelectItem>
             </SelectContent>
           </Select>
+          {hasMixedSources && (
+            <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
+              <SelectTrigger className="h-8 w-[120px] text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Усі</SelectItem>
+                <SelectItem value="hub">Хаб</SelectItem>
+                <SelectItem value="independent">Мої</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
           {filtersActive && (
             <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => {
-              setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterPeriod("all");
+              setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
             }}>Скинути</Button>
           )}
           <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
@@ -901,15 +931,18 @@ export default function SchedulePage() {
                         key={lesson.id}
                         className={`flex items-center justify-between gap-3 rounded-xl border p-4 ${
                           isToday ? "border-primary/20 bg-primary/5" : "border-border bg-card"
-                        }`}
+                        } ${lessonSourceTint(lesson.source)}`}
                       >
                         <div className="flex items-center gap-4 min-w-0 flex-1">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                             <Clock className="h-4 w-4 text-primary" />
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              {lesson.subject} — {formatTime(lesson.starts_at)}
+                            <p className="text-sm font-medium text-foreground truncate flex items-center gap-2">
+                              <span className="truncate">{lesson.subject} — {formatTime(lesson.starts_at)}</span>
+                              {lesson.source && hasMixedSources && (
+                                <SourceBadge source={lesson.source} showIcon={false} />
+                              )}
                             </p>
                             <p className="text-xs text-muted-foreground truncate">
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв

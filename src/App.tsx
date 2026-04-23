@@ -16,6 +16,9 @@ import AvailabilityPage from "./pages/AvailabilityPage";
 import AuditLogPage from "./pages/AuditLogPage";
 import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import MyStudentsPage from "./pages/MyStudentsPage";
+import ReferralsPage from "./pages/ReferralsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +62,30 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["manager"]}>
             <AuditLogPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/onboarding"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <OnboardingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-students"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <MyStudentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/referrals"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <ReferralsPage />
           </ProtectedRoute>
         }
       />

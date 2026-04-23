@@ -193,6 +193,7 @@ export type Database = {
           id: string
           meeting_url: string | null
           notes: string | null
+          source: string
           starts_at: string
           status: Database["public"]["Enums"]["lesson_status"]
           student_id: string
@@ -216,6 +217,7 @@ export type Database = {
           id?: string
           meeting_url?: string | null
           notes?: string | null
+          source?: string
           starts_at: string
           status?: Database["public"]["Enums"]["lesson_status"]
           student_id: string
@@ -239,6 +241,7 @@ export type Database = {
           id?: string
           meeting_url?: string | null
           notes?: string | null
+          source?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["lesson_status"]
           student_id?: string
@@ -446,6 +449,7 @@ export type Database = {
           created_at: string
           id: string
           price_per_lesson: number
+          source: string
           student_id: string
           subject: string
           tutor_id: string
@@ -455,6 +459,7 @@ export type Database = {
           created_at?: string
           id?: string
           price_per_lesson?: number
+          source?: string
           student_id: string
           subject?: string
           tutor_id: string
@@ -464,6 +469,7 @@ export type Database = {
           created_at?: string
           id?: string
           price_per_lesson?: number
+          source?: string
           student_id?: string
           subject?: string
           tutor_id?: string
@@ -561,6 +567,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_referral_requests: {
+        Row: {
+          budget_note: string | null
+          created_at: string
+          id: string
+          manager_response: string | null
+          message: string | null
+          preferred_level: string | null
+          resolved_at: string | null
+          status: string
+          student_id: string
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget_note?: string | null
+          created_at?: string
+          id?: string
+          manager_response?: string | null
+          message?: string | null
+          preferred_level?: string | null
+          resolved_at?: string | null
+          status?: string
+          student_id: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget_note?: string | null
+          created_at?: string
+          id?: string
+          manager_response?: string | null
+          message?: string | null
+          preferred_level?: string | null
+          resolved_at?: string | null
+          status?: string
+          student_id?: string
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tutor_student_defaults: {
         Row: {
           created_at: string
@@ -614,6 +662,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      tutor_workspace_settings: {
+        Row: {
+          created_at: string
+          independent_workspace: boolean
+          onboarding_completed: boolean
+          onboarding_step: number
+          subscription_status: string
+          subscription_until: string | null
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          independent_workspace?: boolean
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          subscription_status?: string
+          subscription_until?: string | null
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          independent_workspace?: boolean
+          onboarding_completed?: boolean
+          onboarding_step?: number
+          subscription_status?: string
+          subscription_until?: string | null
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tutor_workspace_settings_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -763,6 +852,10 @@ export type Database = {
         Args: { _student_id: string; _tutor_id: string }
         Returns: string
       }
+      get_tutor_independent_student_count: {
+        Args: { _tutor_id: string }
+        Returns: number
+      }
       has_role:
         | {
             Args: { _role: Database["public"]["Enums"]["app_role"] }
@@ -775,6 +868,7 @@ export type Database = {
             }
             Returns: boolean
           }
+      is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
       list_lesson_financials: {
         Args: never
         Returns: {

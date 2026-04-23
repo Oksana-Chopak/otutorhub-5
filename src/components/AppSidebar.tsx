@@ -13,6 +13,9 @@ import {
   ShieldAlert,
   Sun,
   Moon,
+  GraduationCap,
+  Sparkles,
+  HandHeart,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -20,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useTheme } from "@/hooks/useTheme";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { UserAvatar } from "@/components/UserAvatar";
 import { AvatarUploader } from "@/components/AvatarUploader";
@@ -31,12 +35,24 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const allNavItems: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "availability" | "chats" }[] = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  roles: AppRole[];
+  badgeKey?: "availability" | "chats";
+  independentOnly?: boolean;
+};
+
+const allNavItems: NavItem[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
+  { to: "/my-students", label: "Мої учні", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
+  { to: "/onboarding", label: "Онбординг", icon: Sparkles, roles: ["tutor"], independentOnly: true },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
+  { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
@@ -53,10 +69,13 @@ export function AppSidebar() {
   const availabilityBadge = useAvailabilityRequestCount();
   const chatsBadge = useUnreadChats();
   const { theme, toggleTheme } = useTheme();
+  const { isIndependent } = useWorkspaceSettings();
 
-  const navItems = allNavItems.filter((item) =>
-    item.roles.some((r) => roles.includes(r))
-  );
+  const navItems = allNavItems.filter((item) => {
+    if (!item.roles.some((r) => roles.includes(r))) return false;
+    if (item.independentOnly && !isIndependent && !roles.includes("manager")) return false;
+    return true;
+  });
 
   const primaryRole = roles[0];
   const initials = (user?.email ?? "??").slice(0, 2).toUpperCase();

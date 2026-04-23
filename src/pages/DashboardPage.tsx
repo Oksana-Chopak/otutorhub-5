@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
+import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -592,20 +593,40 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {isStudent && (
-                    <div className="rounded-xl border border-border bg-card p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <Plus className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">Запросити урок</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            Виберіть репетитора, дату й тему — менеджер підтвердить.
-                          </p>
-                          <Button asChild size="sm" className="mt-3"><Link to="/schedule">До розкладу</Link></Button>
+                    <>
+                      <div className="rounded-xl border border-border bg-card p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                            <Plus className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground">Запросити урок</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              Виберіть репетитора, дату й тему — менеджер підтвердить.
+                            </p>
+                            <Button asChild size="sm" className="mt-3"><Link to="/schedule">До розкладу</Link></Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                      <div className="rounded-xl border border-border bg-card p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10">
+                            <Users className="h-4 w-4 text-warning" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-foreground">Знайти нового репетитора</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
+                            </p>
+                            <div className="mt-3">
+                              <FindTutorDialog
+                                trigger={<Button size="sm" variant="outline">Залишити запит</Button>}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
                   {isTutor && (
                     <div className="rounded-xl border border-border bg-card p-4">
