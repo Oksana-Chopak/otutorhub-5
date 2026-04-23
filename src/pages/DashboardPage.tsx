@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
+import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
