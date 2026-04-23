@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
-import { FinanceMonthlyChart } from "@/components/FinanceMonthlyChart";
+import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
+import { Percent } from "lucide-react";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
