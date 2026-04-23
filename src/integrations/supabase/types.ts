@@ -47,6 +47,50 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          id: string
+          message_id: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string
+          thread_id: string
+          uploader_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          id?: string
+          message_id: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path: string
+          thread_id: string
+          uploader_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string
+          thread_id?: string
+          uploader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_messages: {
         Row: {
           body: string
@@ -574,7 +618,9 @@ export type Database = {
           id: string
           manager_response: string | null
           message: string | null
+          preferred_days: string | null
           preferred_level: string | null
+          preferred_times: string | null
           resolved_at: string | null
           status: string
           student_id: string
@@ -587,7 +633,9 @@ export type Database = {
           id?: string
           manager_response?: string | null
           message?: string | null
+          preferred_days?: string | null
           preferred_level?: string | null
+          preferred_times?: string | null
           resolved_at?: string | null
           status?: string
           student_id: string
@@ -600,7 +648,9 @@ export type Database = {
           id?: string
           manager_response?: string | null
           message?: string | null
+          preferred_days?: string | null
           preferred_level?: string | null
+          preferred_times?: string | null
           resolved_at?: string | null
           status?: string
           student_id?: string
