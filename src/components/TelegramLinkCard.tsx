@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, MessageCircle, Check, Copy, X } from "lucide-react";
 import { toast } from "sonner";
 
-const BOT_USERNAME = "oTutorHubBot"; // TODO: replace with the real bot username after BotFather setup
+// Bot username is fetched from the edge function (telegram-bot-info)
 
 type LinkRow = {
   chat_id: number | null;
