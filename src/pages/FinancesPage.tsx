@@ -136,7 +136,19 @@ export default function FinancesPage() {
     [lessons, monthFilter, tutorFilter]
   );
 
-  const billable = filtered.filter((l) => l.status === "completed");
+  // Billable = lesson actually counts toward money flow.
+  // Includes: completed lessons, past lessons (date already passed), or any lesson
+  // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
+  // Excludes: cancelled, and pending requests that never happened.
+  const nowMs = Date.now();
+  const billable = filtered.filter((l) => {
+    if (l.status === "cancelled" || l.status === "pending") return false;
+    if (l.status === "completed") return true;
+    const isPast = new Date(l.starts_at).getTime() < nowMs;
+    const hasPayment =
+      l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
+    return isPast || hasPayment;
+  });
 
   const visibleRows = useMemo(() => {
     switch (statusFilter) {
