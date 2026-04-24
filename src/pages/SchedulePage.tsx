@@ -1141,48 +1141,92 @@ export default function SchedulePage() {
 
       {/* Edit lesson dialog (opened from calendar / list) */}
       <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Редагувати урок</DialogTitle>
+            <DialogTitle>
+              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
+                ? "Редагувати урок"
+                : "Деталі уроку"}
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div>
               <Label htmlFor="edit_subject">Предмет</Label>
               <Input id="edit_subject" value={editForm.subject}
+                disabled={!canEditScheduleFields(editingLesson)}
                 onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="edit_starts_at">Дата і час</Label>
                 <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
+                  disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
               </div>
               <div>
                 <Label htmlFor="edit_duration">Тривалість (хв)</Label>
                 <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
+                  disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
               </div>
             </div>
+
+            {/* Homework — primary teaching field */}
             <div>
-              <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5">
+              <Label htmlFor="edit_homework" className="flex items-center gap-1.5 font-medium">
+                📝 Домашнє завдання
+              </Label>
+              <Textarea
+                id="edit_homework"
+                rows={4}
+                value={editForm.homework}
+                disabled={!canEditTeachingFields(editingLesson)}
+                placeholder={canEditTeachingFields(editingLesson) ? "Що задано додому…" : "Не задано"}
+                onChange={(e) => setEditForm((f) => ({ ...f, homework: e.target.value }))}
+              />
+            </div>
+
+            {/* Summary — primary teaching field */}
+            <div>
+              <Label htmlFor="edit_summary" className="flex items-center gap-1.5 font-medium">
+                📚 Конспект уроку
+              </Label>
+              <Textarea
+                id="edit_summary"
+                rows={5}
+                value={editForm.summary}
+                disabled={!canEditTeachingFields(editingLesson)}
+                placeholder={canEditTeachingFields(editingLesson) ? "Що пройшли на уроці…" : "Конспект ще не додано"}
+                onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
+              />
+              {canEditTeachingFields(editingLesson) && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Учень отримає сповіщення про оновлення домашки чи конспекту.
+                </p>
+              )}
+            </div>
+
+            {/* Meeting link — collapsed at the bottom (rarely changed) */}
+            <div>
+              <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Video className="h-3.5 w-3.5" /> Посилання на зустріч
               </Label>
               <Input id="edit_meeting_url" type="url" placeholder="https://meet.google.com/..."
                 value={editForm.meeting_url}
+                disabled={!canEditTeachingFields(editingLesson)}
                 onChange={(e) => setEditForm((f) => ({ ...f, meeting_url: e.target.value }))} />
-            </div>
-            <div>
-              <Label htmlFor="edit_notes">Нотатки</Label>
-              <Textarea id="edit_notes" rows={3} value={editForm.notes}
-                onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingLesson(null)}>Скасувати</Button>
-            <Button onClick={saveEdit} disabled={editSubmitting}>
-              {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Зберегти
+            <Button variant="outline" onClick={() => setEditingLesson(null)}>
+              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? "Скасувати" : "Закрити"}
             </Button>
+            {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
+              <Button onClick={saveEdit} disabled={editSubmitting}>
+                {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Зберегти
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
