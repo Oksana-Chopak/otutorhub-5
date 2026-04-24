@@ -47,6 +47,7 @@ import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { useSearchParams } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
+import { MobileFilters } from "@/components/MobileFilters";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
