@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,6 +104,8 @@ export default function SchedulePage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
+  const { isIndependent } = useWorkspaceSettings();
+  const isIndependentTutor = isTutor && !isManager && isIndependent;
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -421,6 +424,7 @@ export default function SchedulePage() {
         notes: form.notes || null,
         status: isManager ? form.status : status,
         created_by: user.id,
+        source: isIndependentTutor ? "independent" : "hub",
       };
       if (isManager) {
         payload.student_price = Number(form.student_price) || 0;
