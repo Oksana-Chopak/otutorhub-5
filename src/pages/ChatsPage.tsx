@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download, ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
