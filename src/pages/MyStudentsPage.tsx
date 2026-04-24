@@ -48,6 +48,7 @@ interface MyStudent {
   rate_id: string | null;
   price: number;
   subject: string;
+  default_meeting_url: string | null;
 }
 
 interface FormData {
@@ -60,6 +61,7 @@ interface FormData {
   instagram_url: string;
   subject: string;
   price: string;
+  default_meeting_url: string;
 }
 
 const emptyForm: FormData = {
@@ -72,6 +74,7 @@ const emptyForm: FormData = {
   instagram_url: "",
   subject: "",
   price: "",
+  default_meeting_url: "",
 };
 
 export default function MyStudentsPage() {
