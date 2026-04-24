@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
 import { Check, Crown, Loader2, Sparkles, Users, Infinity as InfinityIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
 
 const PRO_PRICE = 145;
 
@@ -31,6 +31,7 @@ export default function SubscriptionPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { settings, loading, isIndependent, studentCount } = useWorkspaceSettings();
+  const [requestOpen, setRequestOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
@@ -54,9 +55,7 @@ export default function SubscriptionPage() {
   const remaining = Math.max(0, FREE_STUDENT_LIMIT - studentCount);
 
   const handleUpgrade = () => {
-    toast.info("Скоро тут буде онлайн-оплата", {
-      description: "Поки що напишіть менеджеру — ми все налаштуємо вручну.",
-    });
+    setRequestOpen(true);
   };
 
   return (
@@ -172,7 +171,7 @@ export default function SubscriptionPage() {
                 {isPro ? "Підписка активна" : "Оформити підписку"}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Онлайн-оплата готується. Поки що — оплата вручну через менеджера.
+                Заявка одразу піде менеджеру школи — він зв'яжеться з вами для оплати.
               </p>
             </CardContent>
           </Card>
@@ -182,6 +181,7 @@ export default function SubscriptionPage() {
           Скасувати або змінити план можна в будь-який момент. Залишок дня не пропадає.
         </p>
       </div>
+      <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} />
     </AppLayout>
   );
 }
