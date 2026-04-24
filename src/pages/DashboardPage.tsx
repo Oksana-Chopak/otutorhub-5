@@ -351,10 +351,10 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Дашборд</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">Дашборд</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             {isManager ? "Керуйте уроками, людьми та оплатами" : "Огляд ваших занять"}
           </p>
         </div>
