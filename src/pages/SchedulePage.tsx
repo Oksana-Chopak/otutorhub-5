@@ -47,6 +47,7 @@ import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { useSearchParams } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
+import { MobileFilters } from "@/components/MobileFilters";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -748,12 +749,18 @@ export default function SchedulePage() {
       ) : (
       <>
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div className="sr-only">
-          <h2>Уроки</h2>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <MobileFilters
+          activeCount={
+            (filterStatus !== "all" ? 1 : 0) +
+            (filterTutor !== "all" ? 1 : 0) +
+            (filterStudent !== "all" ? 1 : 0) +
+            (filterSource !== "all" ? 1 : 0) +
+            (filterPeriod !== "all" ? 1 : 0)
+          }
+          className="w-full sm:w-auto"
+        >
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
             <SelectContent>
                 <SelectItem value="all">Всі статуси</SelectItem>
                 <SelectItem value="scheduled">Заплановано</SelectItem>
@@ -763,7 +770,7 @@ export default function SchedulePage() {
           </Select>
           {isManager && (
             <Select value={filterTutor} onValueChange={setFilterTutor}>
-              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Всі репетитори</SelectItem>
                 {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
@@ -772,7 +779,7 @@ export default function SchedulePage() {
           )}
           {(isManager || isTutor) && (
             <Select value={filterStudent} onValueChange={setFilterStudent}>
-              <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Всі учні</SelectItem>
                 {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
@@ -780,7 +787,7 @@ export default function SchedulePage() {
             </Select>
           )}
           <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+            <SelectTrigger className="h-9 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Весь час</SelectItem>
               <SelectItem value="upcoming">Майбутні</SelectItem>
@@ -791,7 +798,7 @@ export default function SchedulePage() {
           </Select>
           {hasMixedSources && (
             <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-              <SelectTrigger className="h-8 w-[120px] text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-[120px] text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Усі</SelectItem>
                 <SelectItem value="hub">Хаб</SelectItem>
@@ -800,10 +807,12 @@ export default function SchedulePage() {
             </Select>
           )}
           {filtersActive && (
-            <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={() => {
+            <Button size="sm" variant="ghost" className="h-9 text-xs" onClick={() => {
               setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
             }}>Скинути</Button>
           )}
+        </MobileFilters>
+        <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
               <List className="h-3.5 w-3.5" />Список
