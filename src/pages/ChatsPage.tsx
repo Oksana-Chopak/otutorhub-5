@@ -732,11 +732,26 @@ export default function ChatsPage() {
           </div>
 
           {/* Detail */}
-          <div className="flex flex-col rounded-xl border border-border bg-card">
+          <div
+            className={cn(
+              "flex flex-col rounded-xl border border-border bg-card",
+              "h-[calc(100vh-8rem)] lg:h-auto",
+              !selectedThread && "hidden lg:flex"
+            )}
+          >
             {selectedThread ? (
               <>
-                <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                  <div className="min-w-0">
+                <div className="flex items-center gap-2 border-b border-border px-3 py-3 lg:px-5 lg:py-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 lg:hidden"
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Назад до списку"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {counterpartName(selectedThread)}
                     </p>
@@ -750,12 +765,13 @@ export default function ChatsPage() {
                   {isManager && (
                     <Badge variant="secondary" className="shrink-0 gap-1">
                       <ShieldCheck className="h-3 w-3" />
-                      Менеджер
+                      <span className="hidden sm:inline">Менеджер</span>
                     </Badge>
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3 p-5 min-h-[300px] max-h-[55vh] overflow-y-auto">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:max-h-[55vh] lg:min-h-[300px] lg:p-5">
+
                   {messages.length === 0 ? (
                     <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
                   ) : (
