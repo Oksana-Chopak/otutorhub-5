@@ -1243,18 +1243,38 @@ export default function SchedulePage() {
                                 </Select>
                               </div>
                             )}
-                            {/* Payment toggle for independent tutor on their own lessons */}
+                            {/* Price + payment toggle for independent tutor on their own lessons */}
                             {!isManager && isTutor && lesson.tutor_id === user?.id && lesson.source === "independent" && (
-                              <div className="mt-1 flex items-center gap-2 text-xs">
-                                <span className="text-muted-foreground">Оплата учня:</span>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
+                                {Number(lesson.student_price) > 0 ? (
+                                  <span className="font-medium text-foreground">
+                                    {Number(lesson.student_price)} ₴
+                                  </span>
+                                ) : (
+                                  <span className="rounded-md bg-warning/10 px-1.5 py-0.5 text-warning">
+                                    ⚠ Без ціни
+                                  </span>
+                                )}
+                                <span className="text-muted-foreground">·</span>
                                 <button
                                   type="button"
                                   onClick={() => updatePayment(lesson.id, "student_payment_status", lesson.student_payment_status === "paid" ? "unpaid" : "paid")}
                                   className={`px-2 py-0.5 rounded-md border ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success border-success/30 hover:bg-success/20" : "bg-warning/10 text-warning border-warning/30 hover:bg-warning/20"}`}
+                                  title="Натисніть, щоб змінити статус оплати"
                                 >
-                                  {lesson.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                  {lesson.student_payment_status === "paid" ? "✓ Оплачено" : "Очікує оплати"}
                                 </button>
                               </div>
+                            )}
+                            {/* Price visible to student on their own lessons */}
+                            {!isManager && isPureStudent && lesson.student_id === user?.id && Number(lesson.student_price) > 0 && (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                <span className="font-medium text-foreground">{Number(lesson.student_price)} ₴</span>
+                                {" · "}
+                                <span className={lesson.student_payment_status === "paid" ? "text-success" : "text-warning"}>
+                                  {lesson.student_payment_status === "paid" ? "Оплачено" : "Очікує оплати"}
+                                </span>
+                              </p>
                             )}
                           </div>
                         </div>
