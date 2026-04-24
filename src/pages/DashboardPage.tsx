@@ -406,28 +406,32 @@ export default function DashboardPage() {
       ) : (
         <>
           {isManager && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people" />
               <StatCard label="Учні" value={studentCount} icon={Users} to="/people" />
               <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
-              <div className="rounded-xl border border-border bg-card p-4 transition-colors hover:border-success/40">
+              <div className="rounded-xl border border-border bg-card p-3 transition-colors hover:border-success/40">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Прибуток · {profitPeriodLabel[profitPeriod]}
+                    <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
+                      Прибуток
                     </p>
                     <Link to="/finances" className="block">
-                      <p className={`mt-1 truncate text-2xl font-bold ${profit >= 0 ? "text-success" : "text-destructive"}`}>
+                      <p
+                        className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
+                          profit >= 0 ? "text-success" : "text-destructive"
+                        }`}
+                      >
                         {profit} ₴
                       </p>
                     </Link>
                   </div>
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-success/10">
-                    <TrendingUp className="h-4 w-4 text-success" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-success/10">
+                    <TrendingUp className="h-3.5 w-3.5 text-success" />
                   </div>
                 </div>
                 <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
-                  <SelectTrigger className="mt-3 h-7 w-full text-xs">
+                  <SelectTrigger className="mt-2 h-7 w-full text-[11px] sm:text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
