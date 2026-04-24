@@ -30,6 +30,7 @@ import {
   Trash2,
   Hourglass,
   Banknote,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -47,6 +48,7 @@ interface MyStudent {
   rate_id: string | null;
   price: number;
   subject: string;
+  default_meeting_url: string | null;
 }
 
 interface FormData {
@@ -59,6 +61,7 @@ interface FormData {
   instagram_url: string;
   subject: string;
   price: string;
+  default_meeting_url: string;
 }
 
 const emptyForm: FormData = {
@@ -71,6 +74,7 @@ const emptyForm: FormData = {
   instagram_url: "",
   subject: "",
   price: "",
+  default_meeting_url: "",
 };
 
 export default function MyStudentsPage() {
@@ -110,7 +114,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -119,10 +123,18 @@ export default function MyStudentsPage() {
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, facebook_url, instagram_url")
         .in("user_id", ids),
+      supabase
+        .from("tutor_student_defaults")
+        .select("student_id, default_meeting_url")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
     const contactMap = new Map((contacts ?? []).map((c: any) => [c.user_id, c]));
+    const defaultsMap = new Map(
+      (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
+    );
 
     const merged: MyStudent[] = ids.map((id) => {
       const p = profileMap.get(id) ?? {};
@@ -142,6 +154,7 @@ export default function MyStudentsPage() {
         rate_id: r?.id ?? null,
         price: Number(r?.price_per_lesson ?? 0),
         subject: r?.subject ?? "",
+        default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
@@ -169,6 +182,7 @@ export default function MyStudentsPage() {
       instagram_url: s.instagram_url ?? "",
       subject: s.subject ?? "",
       price: String(s.price ?? ""),
+      default_meeting_url: s.default_meeting_url ?? "",
     });
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
@@ -270,6 +284,19 @@ export default function MyStudentsPage() {
       // 5. Student details
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
 
+      // 6. Default meeting URL (Zoom/Meet) — optional
+      const meetingUrl = form.default_meeting_url.trim();
+      if (meetingUrl) {
+        await supabase.from("tutor_student_defaults").upsert(
+          {
+            tutor_id: user.id,
+            student_id: newId,
+            default_meeting_url: meetingUrl,
+          },
+          { onConflict: "tutor_id,student_id" }
+        );
+      }
+
       toast.success("Учня додано. Дані зв'яжуться з його акаунтом після реєстрації.");
     } else if (dialog.mode === "edit" && dialog.studentId) {
       // Update profile
@@ -299,6 +326,17 @@ export default function MyStudentsPage() {
           .update({ subject, price_per_lesson: price })
           .eq("id", existing.rate_id);
       }
+
+      // Default meeting URL — upsert or clear
+      const meetingUrl = form.default_meeting_url.trim();
+      await supabase.from("tutor_student_defaults").upsert(
+        {
+          tutor_id: user.id,
+          student_id: dialog.studentId,
+          default_meeting_url: meetingUrl || null,
+        },
+        { onConflict: "tutor_id,student_id" }
+      );
 
       toast.success("Дані учня оновлено");
     }
@@ -427,6 +465,17 @@ export default function MyStudentsPage() {
                         Instagram
                       </a>
                     )}
+                    {s.default_meeting_url && (
+                      <a
+                        href={s.default_meeting_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Video className="h-3 w-3" />
+                        Постійна кімната
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -536,6 +585,21 @@ export default function MyStudentsPage() {
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="flex items-center gap-1.5">
+                <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                Постійне посилання на Zoom / Google Meet
+              </Label>
+              <Input
+                type="url"
+                placeholder="https://zoom.us/j/... або https://meet.google.com/..."
+                value={form.default_meeting_url}
+                onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Якщо у вас одна постійна кімната — учень підключатиметься до неї одним кліком з кожного уроку.
+              </p>
             </div>
           </div>
           <DialogFooter>
