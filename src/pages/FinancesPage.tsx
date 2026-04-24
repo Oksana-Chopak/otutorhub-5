@@ -25,6 +25,8 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { Percent } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -64,6 +66,12 @@ const formatDate = (iso: string) =>
   });
 
 export default function FinancesPage() {
+  const { roles } = useAuth();
+  const { isIndependent } = useWorkspaceSettings();
+  const isManager = roles.includes("manager");
+  const isTutor = roles.includes("tutor");
+  const isIndependentTutor = isTutor && !isManager && isIndependent;
+
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
@@ -297,25 +305,29 @@ export default function FinancesPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
           <p className="text-sm text-muted-foreground">
-            Оплати від учнів та виплати репетиторам
+            {isIndependentTutor
+              ? "Оплати від ваших учнів"
+              : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
         <div className="flex w-full flex-wrap gap-3 sm:w-auto">
-          <div className="w-full sm:w-44">
-            <Select value={tutorFilter} onValueChange={setTutorFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Репетитор" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі репетитори</SelectItem>
-                {tutorOptions.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isIndependentTutor && (
+            <div className="w-full sm:w-44">
+              <Select value={tutorFilter} onValueChange={setTutorFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Репетитор" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  {tutorOptions.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="w-full sm:w-44">
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger>
@@ -339,7 +351,9 @@ export default function FinancesPage() {
               <SelectContent>
                 <SelectItem value="all">Всі статуси</SelectItem>
                 <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                {!isIndependentTutor && (
+                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                )}
                 <SelectItem value="done">Все закрито</SelectItem>
               </SelectContent>
             </Select>
@@ -353,126 +367,133 @@ export default function FinancesPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+          <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
             <StatCard
-              label="Надходження"
+              label={isIndependentTutor ? "Отримано" : "Надходження"}
               value={`${totalIncome} ₴`}
               icon={ArrowDownLeft}
               variant="success"
             />
-            <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+            {!isIndependentTutor && (
+              <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+            )}
+            {!isIndependentTutor && (
+              <StatCard
+                label="Прибуток"
+                value={`${profit} ₴`}
+                icon={TrendingUp}
+                variant={profit >= 0 ? "success" : "warning"}
+              />
+            )}
             <StatCard
-              label="Прибуток"
-              value={`${profit} ₴`}
-              icon={TrendingUp}
-              variant={profit >= 0 ? "success" : "warning"}
-            />
-            <StatCard
-              label="Очікує (отримати/виплатити)"
-              value={`${pendingIncome} / ${pendingExpense} ₴`}
+              label={isIndependentTutor ? "Очікує оплати" : "Очікує (отримати/виплатити)"}
+              value={isIndependentTutor ? `${pendingIncome} ₴` : `${pendingIncome} / ${pendingExpense} ₴`}
               icon={DollarSign}
               variant="warning"
             />
-            <div className="col-span-2 rounded-xl border border-border bg-card p-3 lg:col-span-1">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                    Середня націнка хабу
-                  </p>
-                  <p
-                    className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                      hubMarkup === null
-                        ? "text-muted-foreground"
-                        : hubMarkup >= 0
-                        ? "text-success"
-                        : "text-destructive"
-                    }`}
-                  >
-                    {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    (надходження − виплати) / виплати
-                  </p>
+            {!isIndependentTutor && (
+              <div className="col-span-2 rounded-xl border border-border bg-card p-3 lg:col-span-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
+                      Середня націнка хабу
+                    </p>
+                    <p
+                      className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
+                        hubMarkup === null
+                          ? "text-muted-foreground"
+                          : hubMarkup >= 0
+                          ? "text-success"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      (надходження − виплати) / виплати
+                    </p>
+                  </div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Percent className="h-3.5 w-3.5 text-primary" />
+                  </div>
                 </div>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Percent className="h-3.5 w-3.5 text-primary" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Weekly dynamics chart — profit per tutor */}
-          <div className="mt-6 rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">
-                Тижнева динаміка прибутку по репетиторах (12 тижнів)
-              </h2>
-              <span className="text-xs text-muted-foreground">Завершені уроки</span>
-            </div>
-            <FinanceWeeklyChart
-              tutorNames={Object.fromEntries(
-                Object.values(profiles).map((p) => [
-                  p.id,
-                  `${p.first_name} ${p.last_name}`.trim() || "Без імені",
-                ])
-              )}
-              lessons={filtered.map((l) => ({
-                starts_at: l.starts_at,
-                status: l.status,
-                tutor_id: l.tutor_id,
-                student_price: Number(l.student_price),
-                tutor_payout: Number(l.tutor_payout),
-                student_payment_status: l.student_payment_status,
-                tutor_payout_status: l.tutor_payout_status,
-              }))}
-            />
-          </div>
-
-          {/* Markup per tutor */}
-          <div className="mt-6 rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-foreground">
-                Середня націнка по репетиторах
-              </h2>
-              <span className="text-xs text-muted-foreground">
-                (ціна учня − виплата) / виплата
-              </span>
-            </div>
-            {markupByTutor.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-xs text-muted-foreground">
-                      <th className="px-2 py-2 text-left font-medium">Репетитор</th>
-                      <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                      <th className="px-2 py-2 text-right font-medium">Націнка</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {markupByTutor.map((row) => (
-                      <tr key={row.tutorId} className="border-b border-border last:border-0">
-                        <td className="px-2 py-2 text-foreground">{row.name}</td>
-                        <td className="px-2 py-2 text-right text-muted-foreground">
-                          {row.lessonsCount}
-                        </td>
-                        <td
-                          className={`px-2 py-2 text-right font-semibold ${
-                            (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
-                          }`}
-                        >
-                          {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
             )}
           </div>
+
+          {!isIndependentTutor && (
+            <div className="mt-6 rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Тижнева динаміка прибутку по репетиторах (12 тижнів)
+                </h2>
+                <span className="text-xs text-muted-foreground">Завершені уроки</span>
+              </div>
+              <FinanceWeeklyChart
+                tutorNames={Object.fromEntries(
+                  Object.values(profiles).map((p) => [
+                    p.id,
+                    `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+                  ])
+                )}
+                lessons={filtered.map((l) => ({
+                  starts_at: l.starts_at,
+                  status: l.status,
+                  tutor_id: l.tutor_id,
+                  student_price: Number(l.student_price),
+                  tutor_payout: Number(l.tutor_payout),
+                  student_payment_status: l.student_payment_status,
+                  tutor_payout_status: l.tutor_payout_status,
+                }))}
+              />
+            </div>
+          )}
+          {!isIndependentTutor && (
+            <div className="mt-6 rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Середня націнка по репетиторах
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  (ціна учня − виплата) / виплата
+                </span>
+              </div>
+              {markupByTutor.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-xs text-muted-foreground">
+                        <th className="px-2 py-2 text-left font-medium">Репетитор</th>
+                        <th className="px-2 py-2 text-right font-medium">Уроків</th>
+                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {markupByTutor.map((row) => (
+                        <tr key={row.tutorId} className="border-b border-border last:border-0">
+                          <td className="px-2 py-2 text-foreground">{row.name}</td>
+                          <td className="px-2 py-2 text-right text-muted-foreground">
+                            {row.lessonsCount}
+                          </td>
+                          <td
+                            className={`px-2 py-2 text-right font-semibold ${
+                              (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
+                            }`}
+                          >
+                            {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Bulk action bar */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
@@ -495,15 +516,17 @@ export default function FinancesPage() {
                 <CheckCheck className="h-4 w-4" />
                 Учні оплатили
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selected.size === 0 || bulkBusy}
-                onClick={() => bulkMark("tutor_payout_status")}
-              >
-                <CheckCheck className="h-4 w-4" />
-                Виплачено репетиторам
-              </Button>
+              {!isIndependentTutor && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkMark("tutor_payout_status")}
+                >
+                  <CheckCheck className="h-4 w-4" />
+                  Виплачено репетиторам
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={exportCsv}>
                 <Download className="h-4 w-4" />
                 Експорт CSV
@@ -545,15 +568,21 @@ export default function FinancesPage() {
                       <th className="px-3 py-3 text-right font-medium text-success">
                         Надходження
                       </th>
-                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                        Репетитор
-                      </th>
-                      <th className="px-3 py-3 text-right font-medium text-destructive">
-                        Виплата
-                      </th>
-                      <th className="px-3 py-3 text-right font-medium text-muted-foreground">
-                        Прибуток
-                      </th>
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                          Репетитор
+                        </th>
+                      )}
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-right font-medium text-destructive">
+                          Виплата
+                        </th>
+                      )}
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-right font-medium text-muted-foreground">
+                          Прибуток
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -610,45 +639,50 @@ export default function FinancesPage() {
                               </Badge>
                             </button>
                           </td>
-                          {/* Tutor column */}
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-foreground">
-                              {nameOf(l.tutor_id)}
-                            </div>
-                            {l.tutor_paid_at && (
-                              <div className="text-xs text-muted-foreground">
-                                вип.: {formatDate(l.tutor_paid_at)}
+                          {!isIndependentTutor && (
+                            <td className="px-3 py-3">
+                              <div className="font-medium text-foreground">
+                                {nameOf(l.tutor_id)}
                               </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <div className="font-semibold text-destructive">
-                              -{l.tutor_payout} ₴
-                            </div>
-                            <button
-                              onClick={() => togglePayment(l, "tutor_payout_status")}
-                              className="mt-1 inline-block"
-                            >
-                              <Badge
-                                className={
-                                  l.tutor_payout_status === "paid"
-                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                }
+                              {l.tutor_paid_at && (
+                                <div className="text-xs text-muted-foreground">
+                                  вип.: {formatDate(l.tutor_paid_at)}
+                                </div>
+                              )}
+                            </td>
+                          )}
+                          {!isIndependentTutor && (
+                            <td className="px-3 py-3 text-right">
+                              <div className="font-semibold text-destructive">
+                                -{l.tutor_payout} ₴
+                              </div>
+                              <button
+                                onClick={() => togglePayment(l, "tutor_payout_status")}
+                                className="mt-1 inline-block"
                               >
-                                {l.tutor_payout_status === "paid"
-                                  ? "Виплачено"
-                                  : "Очікує"}
-                              </Badge>
-                            </button>
-                          </td>
-                          <td
-                            className={`px-3 py-3 text-right font-semibold ${
-                              profit >= 0 ? "text-foreground" : "text-destructive"
-                            }`}
-                          >
-                            {profit} ₴
-                          </td>
+                                <Badge
+                                  className={
+                                    l.tutor_payout_status === "paid"
+                                      ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                      : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                  }
+                                >
+                                  {l.tutor_payout_status === "paid"
+                                    ? "Виплачено"
+                                    : "Очікує"}
+                                </Badge>
+                              </button>
+                            </td>
+                          )}
+                          {!isIndependentTutor && (
+                            <td
+                              className={`px-3 py-3 text-right font-semibold ${
+                                profit >= 0 ? "text-foreground" : "text-destructive"
+                              }`}
+                            >
+                              {profit} ₴
+                            </td>
+                          )}
                         </tr>
                       );
                     })}

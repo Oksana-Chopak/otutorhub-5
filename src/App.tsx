@@ -41,7 +41,7 @@ function AppRoutes() {
       <Route
         path="/finances"
         element={
-          <ProtectedRoute allowedRoles={["manager"]}>
+          <ProtectedRoute allowedRoles={["manager", "tutor"]}>
             <FinancesPage />
           </ProtectedRoute>
         }

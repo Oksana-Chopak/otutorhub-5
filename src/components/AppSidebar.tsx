@@ -57,7 +57,7 @@ const allNavItems: NavItem[] = [
   { to: "/subscription", label: "Підписка", icon: Crown, roles: ["tutor"], independentOnly: true },
   { to: "/analytics", label: "Аналітика", icon: BarChart3, roles: ["tutor"], independentOnly: true },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
-  { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
+  { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager", "tutor"], independentOnly: true },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
   { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
   { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },

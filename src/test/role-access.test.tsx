@@ -93,7 +93,7 @@ describe("Доступ для ролі MANAGER", () => {
     ["/ (Dashboard)", undefined],
     ["/schedule", undefined],
     ["/chats", undefined],
-    ["/finances", ["manager"] as AppRole[]],
+    ["/finances", ["manager", "tutor"] as AppRole[]],
     ["/people", ["manager"] as AppRole[]],
     ["/audit", ["manager"] as AppRole[]],
     ["/availability", ["manager", "tutor"] as AppRole[]],
@@ -111,13 +111,13 @@ describe("Доступ для ролі TUTOR", () => {
     ["/schedule", undefined],
     ["/chats", undefined],
     ["/availability", ["manager", "tutor"] as AppRole[]],
+    ["/finances", ["manager", "tutor"] as AppRole[]],
   ])("має доступ до %s", (_label, allowedRoles) => {
     renderRoute(allowedRoles);
     expect(screen.getByText("PROTECTED_CONTENT")).toBeInTheDocument();
   });
 
   it.each([
-    ["/finances", ["manager"] as AppRole[]],
     ["/people", ["manager"] as AppRole[]],
     ["/audit", ["manager"] as AppRole[]],
   ])("НЕ має доступу до %s — редіректить на /", (_label, allowedRoles) => {
@@ -140,7 +140,7 @@ describe("Доступ для ролі STUDENT", () => {
   });
 
   it.each([
-    ["/finances", ["manager"] as AppRole[]],
+    ["/finances", ["manager", "tutor"] as AppRole[]],
     ["/people", ["manager"] as AppRole[]],
     ["/audit", ["manager"] as AppRole[]],
     ["/availability", ["manager", "tutor"] as AppRole[]],
