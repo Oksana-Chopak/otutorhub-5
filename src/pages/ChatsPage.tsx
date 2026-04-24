@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, Image as ImageIcon, Download, ArrowLeft } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 
@@ -521,10 +521,16 @@ export default function ChatsPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-3">
+      {/* Header — hidden on mobile when a chat is open to maximize chat space */}
+      <div
+        className={cn(
+          "mb-4 flex items-start justify-between gap-3 lg:mb-6 lg:flex",
+          selectedId ? "hidden lg:flex" : "flex"
+        )}
+      >
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">Чати</h1>
+          <p className="text-xs text-muted-foreground lg:text-sm">
             {isManager
               ? "Перегляд і модерація переписок учнів та репетиторів"
               : "Особисте листування з вашими репетиторами та учнями"}
@@ -533,9 +539,9 @@ export default function ChatsPage() {
         {isManager && (
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNewChatDialog} className="gap-2">
+              <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
-                Створити чат
+                <span className="hidden sm:inline">Створити чат</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -620,8 +626,14 @@ export default function ChatsPage() {
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          {/* Thread list */}
-          <div className="flex flex-col rounded-xl border border-border bg-card max-h-[70vh]">
+          {/* Thread list — hidden on mobile when a chat is selected */}
+          <div
+            className={cn(
+              "flex flex-col rounded-xl border border-border bg-card lg:max-h-[70vh]",
+              "h-[calc(100vh-12rem)] lg:h-auto",
+              selectedId ? "hidden lg:flex" : "flex"
+            )}
+          >
             <div className="space-y-2 border-b border-border p-3">
               <div className="flex items-center gap-2">
                 {searchOpen ? (
@@ -720,11 +732,26 @@ export default function ChatsPage() {
           </div>
 
           {/* Detail */}
-          <div className="flex flex-col rounded-xl border border-border bg-card">
+          <div
+            className={cn(
+              "flex flex-col rounded-xl border border-border bg-card",
+              "h-[calc(100vh-8rem)] lg:h-auto",
+              !selectedThread && "hidden lg:flex"
+            )}
+          >
             {selectedThread ? (
               <>
-                <div className="flex items-center justify-between border-b border-border px-5 py-4">
-                  <div className="min-w-0">
+                <div className="flex items-center gap-2 border-b border-border px-3 py-3 lg:px-5 lg:py-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0 lg:hidden"
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Назад до списку"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">
                       {counterpartName(selectedThread)}
                     </p>
@@ -738,12 +765,13 @@ export default function ChatsPage() {
                   {isManager && (
                     <Badge variant="secondary" className="shrink-0 gap-1">
                       <ShieldCheck className="h-3 w-3" />
-                      Менеджер
+                      <span className="hidden sm:inline">Менеджер</span>
                     </Badge>
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3 p-5 min-h-[300px] max-h-[55vh] overflow-y-auto">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:max-h-[55vh] lg:min-h-[300px] lg:p-5">
+
                   {messages.length === 0 ? (
                     <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
                   ) : (
@@ -755,7 +783,7 @@ export default function ChatsPage() {
                         <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                           <div
                             className={cn(
-                              "max-w-[70%] rounded-xl px-4 py-2.5",
+                              "max-w-[85%] rounded-xl px-3 py-2 lg:max-w-[70%] lg:px-4 lg:py-2.5",
                               mine
                                 ? "bg-primary text-primary-foreground"
                                 : senderIsManager
@@ -820,7 +848,7 @@ export default function ChatsPage() {
                 </div>
 
                 {isManager && (
-                  <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-2">
+                  <div className="flex gap-1.5 overflow-x-auto border-t border-border px-3 pt-2 lg:flex-wrap lg:overflow-visible">
                     {[
                       "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
                       "Дякуємо за оплату — підтверджуємо отримання.",
@@ -831,7 +859,7 @@ export default function ChatsPage() {
                         key={tpl}
                         type="button"
                         onClick={() => setDraft(tpl)}
-                        className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                        className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                         title="Вставити шаблон"
                       >
                         {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
