@@ -438,6 +438,14 @@ export default function DashboardPage() {
                   </Link>
                 </Button>
               )}
+              {isIndependentTutor && (
+                <Button asChild variant="outline">
+                  <Link to="/finances">
+                    <TrendingUp className="h-4 w-4" />
+                    Фінанси
+                  </Link>
+                </Button>
+              )}
             </>
           )}
         </div>
