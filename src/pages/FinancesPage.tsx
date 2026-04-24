@@ -421,78 +421,79 @@ export default function FinancesPage() {
             )}
           </div>
 
-          {/* Weekly dynamics chart — profit per tutor */}
-          <div className="mt-6 rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-foreground">
-                Тижнева динаміка прибутку по репетиторах (12 тижнів)
-              </h2>
-              <span className="text-xs text-muted-foreground">Завершені уроки</span>
-            </div>
-            <FinanceWeeklyChart
-              tutorNames={Object.fromEntries(
-                Object.values(profiles).map((p) => [
-                  p.id,
-                  `${p.first_name} ${p.last_name}`.trim() || "Без імені",
-                ])
-              )}
-              lessons={filtered.map((l) => ({
-                starts_at: l.starts_at,
-                status: l.status,
-                tutor_id: l.tutor_id,
-                student_price: Number(l.student_price),
-                tutor_payout: Number(l.tutor_payout),
-                student_payment_status: l.student_payment_status,
-                tutor_payout_status: l.tutor_payout_status,
-              }))}
-            />
-          </div>
-
-          {/* Markup per tutor */}
-          <div className="mt-6 rounded-xl border border-border bg-card p-4">
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-sm font-semibold text-foreground">
-                Середня націнка по репетиторах
-              </h2>
-              <span className="text-xs text-muted-foreground">
-                (ціна учня − виплата) / виплата
-              </span>
-            </div>
-            {markupByTutor.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
-              </p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-xs text-muted-foreground">
-                      <th className="px-2 py-2 text-left font-medium">Репетитор</th>
-                      <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                      <th className="px-2 py-2 text-right font-medium">Націнка</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {markupByTutor.map((row) => (
-                      <tr key={row.tutorId} className="border-b border-border last:border-0">
-                        <td className="px-2 py-2 text-foreground">{row.name}</td>
-                        <td className="px-2 py-2 text-right text-muted-foreground">
-                          {row.lessonsCount}
-                        </td>
-                        <td
-                          className={`px-2 py-2 text-right font-semibold ${
-                            (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
-                          }`}
-                        >
-                          {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+          {!isIndependentTutor && (
+            <div className="mt-6 rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Тижнева динаміка прибутку по репетиторах (12 тижнів)
+                </h2>
+                <span className="text-xs text-muted-foreground">Завершені уроки</span>
               </div>
-            )}
-          </div>
+              <FinanceWeeklyChart
+                tutorNames={Object.fromEntries(
+                  Object.values(profiles).map((p) => [
+                    p.id,
+                    `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+                  ])
+                )}
+                lessons={filtered.map((l) => ({
+                  starts_at: l.starts_at,
+                  status: l.status,
+                  tutor_id: l.tutor_id,
+                  student_price: Number(l.student_price),
+                  tutor_payout: Number(l.tutor_payout),
+                  student_payment_status: l.student_payment_status,
+                  tutor_payout_status: l.tutor_payout_status,
+                }))}
+              />
+            </div>
+          )}
+          {!isIndependentTutor && (
+            <div className="mt-6 rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Середня націнка по репетиторах
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  (ціна учня − виплата) / виплата
+                </span>
+              </div>
+              {markupByTutor.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-xs text-muted-foreground">
+                        <th className="px-2 py-2 text-left font-medium">Репетитор</th>
+                        <th className="px-2 py-2 text-right font-medium">Уроків</th>
+                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {markupByTutor.map((row) => (
+                        <tr key={row.tutorId} className="border-b border-border last:border-0">
+                          <td className="px-2 py-2 text-foreground">{row.name}</td>
+                          <td className="px-2 py-2 text-right text-muted-foreground">
+                            {row.lessonsCount}
+                          </td>
+                          <td
+                            className={`px-2 py-2 text-right font-semibold ${
+                              (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
+                            }`}
+                          >
+                            {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Bulk action bar */}
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
