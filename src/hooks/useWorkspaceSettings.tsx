@@ -5,8 +5,9 @@ import { useAuth } from "@/hooks/useAuth";
 export interface WorkspaceSettings {
   tutor_id: string;
   independent_workspace: boolean;
-  subscription_status: "free" | "active" | "past_due" | "cancelled";
+  subscription_status: "free" | "trial" | "active" | "past_due" | "cancelled";
   subscription_until: string | null;
+  trial_until: string | null;
   onboarding_completed: boolean;
   onboarding_step: number;
 }
