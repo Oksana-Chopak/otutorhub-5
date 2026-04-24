@@ -464,6 +464,16 @@ export default function MyStudentsPage() {
                         <Instagram className="h-3 w-3" />
                         Instagram
                       </a>
+                    {s.default_meeting_url && (
+                      <a
+                        href={s.default_meeting_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Video className="h-3 w-3" />
+                        Постійна кімната
+                      </a>
                     )}
                   </div>
                 </div>
