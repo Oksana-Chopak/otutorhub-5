@@ -112,6 +112,14 @@ function AppRoutes() {
         }
       />
       <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <PremiumAnalyticsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/subscription-requests"
         element={
           <ProtectedRoute allowedRoles={["manager"]}>
