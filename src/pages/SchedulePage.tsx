@@ -384,10 +384,23 @@ export default function SchedulePage() {
 
   const handleCreate = async () => {
     if (!user) return;
-    if (!form.tutor_id || !form.student_id || !form.subject || !form.starts_at) {
+    const errors: {
+      tutor_id?: boolean;
+      student_id?: boolean;
+      subject?: boolean;
+      starts_at?: boolean;
+    } = {};
+    if (!form.tutor_id) errors.tutor_id = true;
+    if (!form.student_id) errors.student_id = true;
+    if (!form.subject || !form.subject.trim()) errors.subject = true;
+    if (!form.starts_at) errors.starts_at = true;
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       toast.error("Заповніть усі обов'язкові поля");
       return;
     }
+    setFormErrors({});
     setSubmitting(true);
 
     const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
