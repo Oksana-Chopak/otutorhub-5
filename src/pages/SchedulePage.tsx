@@ -1015,6 +1015,54 @@ export default function SchedulePage() {
         )}
       </div>
 
+      {/* Edit lesson dialog (opened from calendar / list) */}
+      <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Редагувати урок</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="edit_subject">Предмет</Label>
+              <Input id="edit_subject" value={editForm.subject}
+                onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="edit_starts_at">Дата і час</Label>
+                <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
+                  onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
+              </div>
+              <div>
+                <Label htmlFor="edit_duration">Тривалість (хв)</Label>
+                <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
+                  onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5">
+                <Video className="h-3.5 w-3.5" /> Посилання на зустріч
+              </Label>
+              <Input id="edit_meeting_url" type="url" placeholder="https://meet.google.com/..."
+                value={editForm.meeting_url}
+                onChange={(e) => setEditForm((f) => ({ ...f, meeting_url: e.target.value }))} />
+            </div>
+            <div>
+              <Label htmlFor="edit_notes">Нотатки</Label>
+              <Textarea id="edit_notes" rows={3} value={editForm.notes}
+                onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingLesson(null)}>Скасувати</Button>
+            <Button onClick={saveEdit} disabled={editSubmitting}>
+              {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Зберегти
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
           <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
