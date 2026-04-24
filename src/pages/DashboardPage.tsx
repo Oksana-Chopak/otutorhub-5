@@ -233,12 +233,16 @@ export default function DashboardPage() {
 
   const billableLessons = useMemo(
     () =>
-      lessons.filter(
-        (l) =>
-          l.status === "completed" &&
-          new Date(l.starts_at).getTime() >= periodStart
-      ),
-    [lessons, periodStart]
+      lessons.filter((l) => {
+        if (l.status === "cancelled" || l.status === "pending") return false;
+        if (new Date(l.starts_at).getTime() < periodStart) return false;
+        if (l.status === "completed") return true;
+        const isPast = new Date(l.starts_at).getTime() < nowMs;
+        const hasPayment =
+          l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
+        return isPast || hasPayment;
+      }),
+    [lessons, periodStart, nowMs]
   );
 
   const totalIncome = billableLessons
@@ -251,12 +255,16 @@ export default function DashboardPage() {
 
   const pendingPayments = useMemo(
     () =>
-      lessons.filter(
-        (l) =>
-          l.status === "completed" &&
+      lessons.filter((l) => {
+        if (l.status === "cancelled" || l.status === "pending") return false;
+        const isPast = new Date(l.starts_at).getTime() < nowMs;
+        const counts = l.status === "completed" || isPast;
+        return (
+          counts &&
           (l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid")
-      ),
-    [lessons]
+        );
+      }),
+    [lessons, nowMs]
   );
 
   const lessonsWithoutPrice = useMemo(
@@ -582,6 +590,24 @@ export default function DashboardPage() {
                       );
                     }
 
+                    const canTogglePayment =
+                      isManager || (user?.id === lesson.tutor_id && lesson.source === "independent");
+                    const isPaid = lesson.student_payment_status === "paid";
+
+                    const togglePayment = async () => {
+                      const next = isPaid ? "unpaid" : "paid";
+                      const { error } = await supabase
+                        .from("lessons")
+                        .update({ student_payment_status: next })
+                        .eq("id", lesson.id);
+                      if (error) {
+                        // eslint-disable-next-line no-console
+                        console.error(error);
+                        return;
+                      }
+                      loadData();
+                    };
+
                     return (
                       <Collapsible key={lesson.id} className="rounded-xl border border-border bg-card">
                         <div className="flex items-center justify-between gap-3 p-4">
@@ -601,17 +627,41 @@ export default function DashboardPage() {
                             <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                           </div>
                         </div>
-                        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2">
-                          {hasMeeting ? (
-                            <Button asChild size="sm" variant="default">
-                              <a href={meetingHref!} target="_blank" rel="noopener noreferrer">
-                                <Video className="mr-2 h-4 w-4" />
-                                Приєднатися
-                              </a>
-                            </Button>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">Без посилання на мітинг</span>
-                          )}
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {hasMeeting && (
+                              <Button asChild size="sm" variant="default">
+                                <a href={meetingHref!} target="_blank" rel="noopener noreferrer">
+                                  <Video className="mr-2 h-4 w-4" />
+                                  Приєднатися
+                                </a>
+                              </Button>
+                            )}
+                            {canTogglePayment ? (
+                              <button
+                                type="button"
+                                onClick={togglePayment}
+                                className={
+                                  isPaid
+                                    ? "rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success transition-colors hover:bg-success/20"
+                                    : "rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
+                                }
+                                title="Натисніть, щоб змінити статус оплати"
+                              >
+                                {isPaid ? "✓ Оплачено" : "Очікує оплати"}
+                              </button>
+                            ) : (
+                              <span
+                                className={
+                                  isPaid
+                                    ? "rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success"
+                                    : "rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning"
+                                }
+                              >
+                                {isPaid ? "✓ Оплачено" : "Очікує оплати"}
+                              </span>
+                            )}
+                          </div>
                           <CollapsibleTrigger asChild>
                             <Button size="sm" variant="ghost" className="group">
                               Деталі
