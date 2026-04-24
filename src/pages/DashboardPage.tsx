@@ -448,7 +448,9 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div className={`${isManager ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
+          {isIndependentTutor && <IndependentTutorStats />}
+
+          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">Найближчі уроки</h2>
