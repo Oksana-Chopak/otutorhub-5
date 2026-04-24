@@ -149,6 +149,53 @@ export default function SchedulePage() {
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
+  // Edit dialog state (quick edit from calendar / list)
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editForm, setEditForm] = useState({
+    subject: "",
+    starts_at: "",
+    duration_minutes: "60",
+    notes: "",
+    meeting_url: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  const openEdit = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setEditForm({
+      subject: lesson.subject,
+      starts_at: toLocalInputValue(lesson.starts_at),
+      duration_minutes: String(lesson.duration_minutes),
+      notes: lesson.notes ?? "",
+      meeting_url: (lesson as any).meeting_url ?? "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingLesson) return;
+    setEditSubmitting(true);
+    const payload: any = {
+      subject: editForm.subject,
+      starts_at: new Date(editForm.starts_at).toISOString(),
+      duration_minutes: parseInt(editForm.duration_minutes) || 60,
+      notes: editForm.notes || null,
+      meeting_url: editForm.meeting_url || null,
+    };
+    const { error } = await supabase
+      .from("lessons")
+      .update(payload)
+      .eq("id", editingLesson.id);
+    setEditSubmitting(false);
+    if (error) {
+      console.error(error);
+      toast.error("Не вдалося зберегти зміни");
+      return;
+    }
+    toast.success("Урок оновлено");
+    setEditingLesson(null);
+    loadAll();
+  };
+
   const openCopy = (lesson: Lesson) => {
     // Pre-fill form with lesson data; default new starts_at = +7 days same time
     const next = new Date(lesson.starts_at);
