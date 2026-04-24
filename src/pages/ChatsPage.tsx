@@ -521,10 +521,16 @@ export default function ChatsPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-3">
+      {/* Header — hidden on mobile when a chat is open to maximize chat space */}
+      <div
+        className={cn(
+          "mb-4 flex items-start justify-between gap-3 lg:mb-6 lg:flex",
+          selectedId ? "hidden lg:flex" : "flex"
+        )}
+      >
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Чати</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">Чати</h1>
+          <p className="text-xs text-muted-foreground lg:text-sm">
             {isManager
               ? "Перегляд і модерація переписок учнів та репетиторів"
               : "Особисте листування з вашими репетиторами та учнями"}
@@ -533,9 +539,9 @@ export default function ChatsPage() {
         {isManager && (
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
-              <Button onClick={openNewChatDialog} className="gap-2">
+              <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
-                Створити чат
+                <span className="hidden sm:inline">Створити чат</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -620,8 +626,14 @@ export default function ChatsPage() {
         </div>
       ) : (
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          {/* Thread list */}
-          <div className="flex flex-col rounded-xl border border-border bg-card max-h-[70vh]">
+          {/* Thread list — hidden on mobile when a chat is selected */}
+          <div
+            className={cn(
+              "flex flex-col rounded-xl border border-border bg-card lg:max-h-[70vh]",
+              "h-[calc(100vh-12rem)] lg:h-auto",
+              selectedId ? "hidden lg:flex" : "flex"
+            )}
+          >
             <div className="space-y-2 border-b border-border p-3">
               <div className="flex items-center gap-2">
                 {searchOpen ? (
