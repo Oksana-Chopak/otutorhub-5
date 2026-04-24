@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -17,6 +18,7 @@ import {
   CheckCircle2,
   ArrowRight,
   Loader2,
+  PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +30,18 @@ interface Step {
   to: string;
   icon: typeof UserPlus;
   badge?: string;
+  /** Key into the auto-detected `progress` object */
+  autoKey?: keyof StepProgress;
+  /** Hint shown under the title when the step has been auto-completed */
+  autoHint?: string;
+}
+
+interface StepProgress {
+  hasStudent: boolean;
+  hasLesson: boolean;
+  hasMeetingUrl: boolean;
+  hasChat: boolean;
+  hasPaidLesson: boolean;
 }
 
 const steps: Step[] = [
@@ -39,6 +53,8 @@ const steps: Step[] = [
     cta: "Додати учня",
     to: "/my-students",
     icon: UserPlus,
+    autoKey: "hasStudent",
+    autoHint: "Учень доданий ✓",
   },
   {
     id: 2,
@@ -48,6 +64,8 @@ const steps: Step[] = [
     cta: "Перейти до розкладу",
     to: "/schedule",
     icon: CalendarClock,
+    autoKey: "hasLesson",
+    autoHint: "Урок створено ✓",
   },
   {
     id: 3,
@@ -57,6 +75,8 @@ const steps: Step[] = [
     cta: "Налаштувати зустрічі",
     to: "/schedule",
     icon: Video,
+    autoKey: "hasMeetingUrl",
+    autoHint: "Посилання збережено ✓",
   },
   {
     id: 4,
@@ -76,6 +96,8 @@ const steps: Step[] = [
     cta: "Відкрити чати",
     to: "/chats",
     icon: MessageCircle,
+    autoKey: "hasChat",
+    autoHint: "Чат відкрито ✓",
   },
   {
     id: 6,
@@ -85,6 +107,8 @@ const steps: Step[] = [
     cta: "Перейти на дашборд",
     to: "/",
     icon: CreditCard,
+    autoKey: "hasPaidLesson",
+    autoHint: "Оплату відмічено ✓",
   },
 ];
 
@@ -94,6 +118,14 @@ export default function OnboardingPage() {
   const { settings, loading, updateSettings, isIndependent } = useWorkspaceSettings();
   const [activatingIndependent, setActivatingIndependent] = useState(false);
   const [dismissing, setDismissing] = useState(false);
+  const [progress, setProgress] = useState<StepProgress>({
+    hasStudent: false,
+    hasLesson: false,
+    hasMeetingUrl: false,
+    hasChat: false,
+    hasPaidLesson: false,
+  });
+  const [progressLoading, setProgressLoading] = useState(true);
 
   // Redirect non-tutors away
   useEffect(() => {
@@ -102,9 +134,108 @@ export default function OnboardingPage() {
     }
   }, [loading, user, roles, navigate]);
 
-  const currentStep = settings?.onboarding_step ?? 1;
+  // Detect actual progress from the database
+  useEffect(() => {
+    if (!user || !isIndependent) {
+      setProgressLoading(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      setProgressLoading(true);
+      const [
+        { data: students },
+        { data: lessons },
+        { data: defaults },
+        { data: threads },
+        { data: paid },
+      ] = await Promise.all([
+        supabase
+          .from("student_rates")
+          .select("student_id")
+          .eq("tutor_id", user.id)
+          .eq("source", "independent")
+          .limit(1),
+        supabase
+          .from("lessons")
+          .select("id, meeting_url")
+          .eq("tutor_id", user.id)
+          .eq("source", "independent")
+          .limit(50),
+        supabase
+          .from("tutor_student_defaults")
+          .select("default_meeting_url")
+          .eq("tutor_id", user.id)
+          .limit(20),
+        supabase
+          .from("chat_threads")
+          .select("id")
+          .eq("tutor_id", user.id)
+          .limit(1),
+        supabase
+          .from("lessons")
+          .select("id")
+          .eq("tutor_id", user.id)
+          .eq("source", "independent")
+          .eq("student_payment_status", "paid")
+          .limit(1),
+      ]);
+
+      if (cancelled) return;
+
+      const lessonsList = lessons ?? [];
+      const defaultsList = defaults ?? [];
+      const hasMeetingUrl =
+        lessonsList.some((l: any) => l.meeting_url && l.meeting_url.trim()) ||
+        defaultsList.some(
+          (d: any) => d.default_meeting_url && d.default_meeting_url.trim()
+        );
+
+      setProgress({
+        hasStudent: (students?.length ?? 0) > 0,
+        hasLesson: lessonsList.length > 0,
+        hasMeetingUrl,
+        hasChat: (threads?.length ?? 0) > 0,
+        hasPaidLesson: (paid?.length ?? 0) > 0,
+      });
+      setProgressLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, isIndependent]);
+
+  // Determine completed steps from auto-detected progress + saved step
+  const autoCompletedIds = useMemo(() => {
+    const ids = new Set<number>();
+    steps.forEach((s) => {
+      if (s.autoKey && progress[s.autoKey]) ids.add(s.id);
+    });
+    return ids;
+  }, [progress]);
+
+  const savedStep = settings?.onboarding_step ?? 1;
   const completed = settings?.onboarding_completed ?? false;
-  const progressPct = completed ? 100 : Math.round(((currentStep - 1) / steps.length) * 100);
+  const totalDone = completed
+    ? steps.length
+    : Math.max(
+        autoCompletedIds.size,
+        Math.min(savedStep - 1, steps.length)
+      );
+  const progressPct = Math.round((totalDone / steps.length) * 100);
+
+  // Sync onboarding_step in DB when auto-progress moves it forward
+  useEffect(() => {
+    if (!settings || progressLoading || completed) return;
+    const nextStep = Math.min(autoCompletedIds.size + 1, steps.length);
+    if (nextStep > (settings.onboarding_step ?? 1)) {
+      updateSettings({ onboarding_step: nextStep });
+    }
+    if (autoCompletedIds.size === steps.length && !completed) {
+      updateSettings({ onboarding_completed: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoCompletedIds.size, progressLoading, completed]);
 
   const enableIndependent = async () => {
     setActivatingIndependent(true);
@@ -112,13 +243,9 @@ export default function OnboardingPage() {
     setActivatingIndependent(false);
   };
 
-  const markStepDone = async (stepId: number) => {
-    const next = Math.min(stepId + 1, steps.length + 1);
-    const isComplete = next > steps.length;
-    await updateSettings({
-      onboarding_step: Math.min(next, steps.length),
-      onboarding_completed: isComplete ? true : settings?.onboarding_completed ?? false,
-    });
+  const skipStep = async (stepId: number) => {
+    const next = Math.min(stepId + 1, steps.length);
+    await updateSettings({ onboarding_step: next });
   };
 
   const finishOnboarding = async () => {
@@ -154,10 +281,18 @@ export default function OnboardingPage() {
                 До 5 учнів — безкоштовно, далі 145 ₴/міс.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
+              <ul className="space-y-1.5 text-sm text-muted-foreground">
+                <li>• Окремий розділ «Мої учні» з контактами і ставками</li>
+                <li>• Власний розклад, оплати та статистика</li>
+                <li>• Чати, домашка та посилання на Zoom/Meet — як у хабі</li>
+              </ul>
               <Button onClick={enableIndependent} disabled={activatingIndependent} className="w-full">
                 {activatingIndependent ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                 Активувати робочий простір
+              </Button>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link to="/">Я працюю лише з учнями хабу</Link>
               </Button>
             </CardContent>
           </Card>
@@ -165,6 +300,8 @@ export default function OnboardingPage() {
       </AppLayout>
     );
   }
+
+  const allDone = autoCompletedIds.size === steps.filter((s) => s.autoKey).length;
 
   return (
     <AppLayout>
@@ -174,7 +311,7 @@ export default function OnboardingPage() {
             Ласкаво просимо у ваш робочий простір 👋
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            6 кроків — і ви готові працювати з власними учнями.
+            Кроки автоматично відмічаються по мірі того, як ви виконуєте дії.
           </p>
           <div className="mt-4 flex items-center gap-3">
             <Progress value={progressPct} className="h-2 flex-1" />
@@ -184,10 +321,30 @@ export default function OnboardingPage() {
           </div>
         </div>
 
+        {(allDone || completed) && (
+          <Card className="mb-4 border-success/40 bg-success/5">
+            <CardContent className="flex items-center gap-3 p-4">
+              <PartyPopper className="h-5 w-5 text-success" />
+              <div className="flex-1">
+                <p className="font-medium text-foreground">
+                  Чудово! Ваш робочий простір готовий.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Можете повертатись сюди коли завгодно з розділу «Допомога».
+                </p>
+              </div>
+              <Button size="sm" onClick={() => navigate("/")}>
+                На дашборд
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="space-y-3">
           {steps.map((step) => {
-            const isDone = completed || currentStep > step.id;
-            const isCurrent = !completed && currentStep === step.id;
+            const isAutoDone = step.autoKey ? progress[step.autoKey] : false;
+            const isDone = isAutoDone || completed;
+            const isCurrent = !isDone && savedStep === step.id;
             const Icon = step.icon;
             return (
               <Card
@@ -221,27 +378,23 @@ export default function OnboardingPage() {
                           {step.badge}
                         </Badge>
                       )}
+                      {isAutoDone && step.autoHint && (
+                        <Badge variant="outline" className="border-success/40 text-[10px] text-success">
+                          {step.autoHint}
+                        </Badge>
+                      )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                     {!isDone && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          asChild
-                          size="sm"
-                          variant={isCurrent ? "default" : "outline"}
-                          onClick={() => markStepDone(step.id)}
-                        >
+                        <Button asChild size="sm" variant={isCurrent ? "default" : "outline"}>
                           <Link to={step.to}>
                             {step.cta}
                             <ArrowRight className="ml-1 h-3 w-3" />
                           </Link>
                         </Button>
-                        {isCurrent && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => markStepDone(step.id)}
-                          >
+                        {isCurrent && step.autoKey && (
+                          <Button size="sm" variant="ghost" onClick={() => skipStep(step.id)}>
                             Пропустити
                           </Button>
                         )}

@@ -3,13 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Loader2, Sparkles, Users, Infinity as InfinityIcon } from "lucide-react";
+import {
+  Check,
+  Crown,
+  Loader2,
+  Sparkles,
+  Users,
+  Infinity as InfinityIcon,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  MessageCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
+import { format } from "date-fns";
+import { uk } from "date-fns/locale";
 
 const PRO_PRICE = 145;
 
@@ -27,17 +41,99 @@ const proPerks = [
   "Пріоритетна підтримка",
 ];
 
+interface RequestRow {
+  id: string;
+  status: "new" | "in_progress" | "completed" | "rejected";
+  message: string | null;
+  manager_response: string | null;
+  created_at: string;
+  handled_at: string | null;
+}
+
+const statusMeta: Record<
+  RequestRow["status"],
+  {
+    label: string;
+    icon: typeof Clock;
+    tone: "default" | "secondary" | "outline" | "destructive";
+    description: string;
+  }
+> = {
+  new: {
+    label: "Очікує менеджера",
+    icon: Clock,
+    tone: "default",
+    description: "Менеджер уже бачить ваш запит і скоро з вами зв'яжеться.",
+  },
+  in_progress: {
+    label: "В обробці",
+    icon: Loader2,
+    tone: "secondary",
+    description: "Менеджер опрацьовує ваш запит — очікуйте контакту.",
+  },
+  completed: {
+    label: "Завершено",
+    icon: CheckCircle2,
+    tone: "outline",
+    description: "Запит виконано. Якщо підписка ще не активна — напишіть менеджеру.",
+  },
+  rejected: {
+    label: "Відхилено",
+    icon: XCircle,
+    tone: "destructive",
+    description: "Менеджер відхилив запит. Деталі — у відповіді нижче.",
+  },
+};
+
 export default function SubscriptionPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { settings, loading, isIndependent, studentCount } = useWorkspaceSettings();
   const [requestOpen, setRequestOpen] = useState(false);
+  const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
+  const [requestLoading, setRequestLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
       navigate("/", { replace: true });
     }
   }, [loading, user, roles, isIndependent, navigate]);
+
+  const loadRequest = async () => {
+    if (!user) return;
+    setRequestLoading(true);
+    const { data } = await supabase
+      .from("subscription_requests")
+      .select("id, status, message, manager_response, created_at, handled_at")
+      .eq("tutor_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setLatestRequest((data as RequestRow | null) ?? null);
+    setRequestLoading(false);
+  };
+
+  useEffect(() => {
+    loadRequest();
+    if (!user) return;
+    const channel = supabase
+      .channel(`my_subscription_requests_${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "subscription_requests",
+          filter: `tutor_id=eq.${user.id}`,
+        },
+        () => loadRequest()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (loading) {
     return (
@@ -115,6 +211,69 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
 
+        {/* Latest subscription request status */}
+        {!requestLoading && latestRequest && !isPro && (() => {
+          const meta = statusMeta[latestRequest.status];
+          const StatusIcon = meta.icon;
+          return (
+            <Card className="mb-6 border-primary/30 bg-primary/[0.03]">
+              <CardContent className="space-y-3 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <StatusIcon
+                        className={cn(
+                          "h-4 w-4",
+                          latestRequest.status === "in_progress" && "animate-spin"
+                        )}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Ваш запит на Pro
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Надіслано{" "}
+                        {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {
+                          locale: uk,
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={meta.tone}>{meta.label}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">{meta.description}</p>
+                {latestRequest.message && (
+                  <div className="rounded-lg bg-muted/40 p-3 text-sm">
+                    <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <MessageCircle className="h-3.5 w-3.5" /> Ваше повідомлення
+                    </div>
+                    <p className="text-foreground">{latestRequest.message}</p>
+                  </div>
+                )}
+                {latestRequest.manager_response && (
+                  <div className="rounded-lg border border-border p-3 text-sm">
+                    <div className="mb-1 text-xs text-muted-foreground">
+                      Відповідь менеджера
+                    </div>
+                    <p className="text-foreground">{latestRequest.manager_response}</p>
+                  </div>
+                )}
+                {(latestRequest.status === "completed" ||
+                  latestRequest.status === "rejected") && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setRequestOpen(true)}
+                  >
+                    Надіслати новий запит
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
         {/* Plans */}
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Free */}
@@ -167,9 +326,24 @@ export default function SubscriptionPage() {
                   </li>
                 ))}
               </ul>
-              <Button onClick={handleUpgrade} className="w-full" disabled={isPro}>
-                {isPro ? "Підписка активна" : "Оформити підписку"}
-              </Button>
+              {(() => {
+                const hasPending =
+                  latestRequest &&
+                  (latestRequest.status === "new" || latestRequest.status === "in_progress");
+                return (
+                  <Button
+                    onClick={handleUpgrade}
+                    className="w-full"
+                    disabled={isPro || !!hasPending}
+                  >
+                    {isPro
+                      ? "Підписка активна"
+                      : hasPending
+                      ? "Запит уже надіслано"
+                      : "Оформити підписку"}
+                  </Button>
+                );
+              })()}
               <p className="text-center text-xs text-muted-foreground">
                 Заявка одразу піде менеджеру школи — він зв'яжеться з вами для оплати.
               </p>

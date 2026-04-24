@@ -18,6 +18,7 @@ import {
   HandHeart,
   UserCircle,
   Crown,
+  HelpCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -52,7 +53,6 @@ const allNavItems: NavItem[] = [
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
   { to: "/my-students", label: "Мої учні", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
   { to: "/profile", label: "Мій профіль", icon: UserCircle, roles: ["tutor"] },
-  { to: "/onboarding", label: "Онбординг", icon: Sparkles, roles: ["tutor"], independentOnly: true },
   { to: "/subscription", label: "Підписка", icon: Crown, roles: ["tutor"], independentOnly: true },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
@@ -76,7 +76,9 @@ export function AppSidebar() {
   const chatsBadge = useUnreadChats();
   const subscriptionBadge = useSubscriptionRequestCount();
   const { theme, toggleTheme } = useTheme();
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, settings } = useWorkspaceSettings();
+  const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
+  const showOnboardingHelp = isTutorRole && (!isIndependent || !settings?.onboarding_completed);
 
   const navItems = allNavItems.filter((item) => {
     if (!item.roles.some((r) => roles.includes(r))) return false;
@@ -172,6 +174,34 @@ export function AppSidebar() {
             );
           })}
         </nav>
+
+        {showOnboardingHelp && (
+          <div className="border-t border-border px-3 py-3">
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Допомога
+            </p>
+            <RouterNavLink
+              to="/onboarding"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )
+              }
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="flex-1">Гайд по налаштуванню</span>
+              {isIndependent && !settings?.onboarding_completed && (
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
+                  {settings?.onboarding_step ?? 1}/6
+                </span>
+              )}
+            </RouterNavLink>
+          </div>
+        )}
 
         <div className="border-t border-border px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
