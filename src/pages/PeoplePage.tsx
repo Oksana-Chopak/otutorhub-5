@@ -44,6 +44,7 @@ import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
+import { MobileFilters } from "@/components/MobileFilters";
 
 interface Profile {
   id: string;
