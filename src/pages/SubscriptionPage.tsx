@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Check,
   Crown,
@@ -19,6 +18,10 @@ import {
   CheckCircle2,
   XCircle,
   MessageCircle,
+  BellRing,
+  CalendarX2,
+  BarChart3,
+  FileDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
@@ -28,17 +31,34 @@ import { uk } from "date-fns/locale";
 const PRO_PRICE = 145;
 
 const freePerks = [
-  `До ${FREE_STUDENT_LIMIT} учнів`,
+  "Необмежена кількість учнів",
   "Розклад, чат з учнями, домашка",
   "Облік оплат і прибутку",
   "Постійні Zoom/Meet-посилання",
+  "Базова статистика по доходах",
 ];
 
-const proPerks = [
-  "Необмежена кількість учнів",
-  "Усе з безкоштовного плану",
-  "AI-конспекти лекцій",
-  "Пріоритетна підтримка",
+const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
+  {
+    icon: BellRing,
+    title: "Авто-нагадування про оплату",
+    desc: "Учень отримує нагадування у Telegram. Ви обираєте: передоплата, за день до уроку чи за N днів після.",
+  },
+  {
+    icon: CalendarX2,
+    title: "Скасування і перенесення учнем",
+    desc: "Ви задаєте, за скільки годин до уроку дозволено безкоштовно. Запізно — повна або часткова оплата.",
+  },
+  {
+    icon: BarChart3,
+    title: "Преміум-аналітика з порадами",
+    desc: "Красиві графіки доходів, динаміка по учнях, аналіз і поради, що покращити.",
+  },
+  {
+    icon: FileDown,
+    title: "Детальні звіти та експорт",
+    desc: "Формуйте звіт за будь-який період і вивантажуйте у CSV/PDF.",
+  },
 ];
 
 interface RequestRow {
@@ -147,8 +167,6 @@ export default function SubscriptionPage() {
 
   const status = settings?.subscription_status ?? "free";
   const isPro = status === "active";
-  const usagePct = Math.min(100, Math.round((studentCount / FREE_STUDENT_LIMIT) * 100));
-  const remaining = Math.max(0, FREE_STUDENT_LIMIT - studentCount);
 
   const handleUpgrade = () => {
     setRequestOpen(true);
@@ -160,14 +178,15 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Керуйте своїм планом і слідкуйте за використанням.
+            Безкоштовний план — без обмежень. Pro додає авто-нагадування, керування скасуванням
+            і преміум-аналітику.
           </p>
         </div>
 
-        {/* Current usage */}
+        {/* Current plan card */}
         <Card className="mb-6">
           <CardContent className="p-5">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <div
                   className={cn(
@@ -180,7 +199,7 @@ export default function SubscriptionPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Поточний план</p>
                   <p className="font-display text-lg font-semibold text-foreground">
-                    {isPro ? "Pro — 145 ₴/міс" : "Безкоштовний"}
+                    {isPro ? `Pro — ${PRO_PRICE} ₴/міс` : "Безкоштовний"}
                   </p>
                 </div>
               </div>
@@ -188,26 +207,12 @@ export default function SubscriptionPage() {
                 {isPro ? "Активна" : status === "past_due" ? "Прострочена" : "Free"}
               </Badge>
             </div>
-
-            {!isPro && (
-              <>
-                <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    Використано {studentCount} з {FREE_STUDENT_LIMIT} учнів
-                  </span>
-                  <span>{remaining > 0 ? `Залишилось ${remaining}` : "Ліміт досягнуто"}</span>
-                </div>
-                <Progress value={usagePct} className="h-2" />
-              </>
-            )}
-            {isPro && (
-              <p className="text-sm text-muted-foreground">
-                Учнів зараз: <span className="font-semibold text-foreground">{studentCount}</span>{" "}
-                <span className="inline-flex items-center gap-1 align-middle">
-                  / <InfinityIcon className="inline h-3.5 w-3.5" />
-                </span>
-              </p>
-            )}
+            <p className="mt-3 text-sm text-muted-foreground">
+              Учнів зараз: <span className="font-semibold text-foreground">{studentCount}</span>{" "}
+              <span className="inline-flex items-center gap-1 align-middle">
+                / <InfinityIcon className="inline h-3.5 w-3.5" />
+              </span>
+            </p>
           </CardContent>
         </Card>
 
@@ -283,7 +288,7 @@ export default function SubscriptionPage() {
                 <CardTitle>Безкоштовний</CardTitle>
                 {!isPro && <Badge variant="secondary">Поточний</Badge>}
               </div>
-              <CardDescription>Для старту з невеликою кількістю учнів</CardDescription>
+              <CardDescription>Усе для спокійної роботи з учнями</CardDescription>
               <p className="mt-2 font-display text-3xl font-bold text-foreground">
                 0 ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
               </p>
@@ -312,17 +317,22 @@ export default function SubscriptionPage() {
                 <CardTitle>Pro</CardTitle>
                 {isPro && <Badge>Поточний</Badge>}
               </div>
-              <CardDescription>Для активних репетиторів без обмежень</CardDescription>
+              <CardDescription>Більше автоматизації та контролю</CardDescription>
               <p className="mt-2 font-display text-3xl font-bold text-foreground">
                 {PRO_PRICE} ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ul className="space-y-2 text-sm">
-                {proPerks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    <span className="text-foreground">{perk}</span>
+              <ul className="space-y-3 text-sm">
+                {proPerks.map(({ icon: Icon, title, desc }) => (
+                  <li key={title} className="flex items-start gap-2.5">
+                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Icon className="h-3.5 w-3.5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">{title}</p>
+                      <p className="text-xs text-muted-foreground">{desc}</p>
+                    </div>
                   </li>
                 ))}
               </ul>
