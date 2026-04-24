@@ -16,6 +16,7 @@ import {
   GraduationCap,
   Sparkles,
   HandHeart,
+  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -48,6 +49,7 @@ const allNavItems: NavItem[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
   { to: "/my-students", label: "Мої учні", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
+  { to: "/profile", label: "Мій профіль", icon: UserCircle, roles: ["tutor"] },
   { to: "/onboarding", label: "Онбординг", icon: Sparkles, roles: ["tutor"], independentOnly: true },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
