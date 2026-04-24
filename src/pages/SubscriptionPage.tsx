@@ -206,8 +206,7 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Безкоштовний план — без обмежень. Pro додає авто-нагадування, керування скасуванням
-            і преміум-аналітику.
+            Безкоштовний план — без обмежень. Pro-план додає автонагадування учням про оплати, керування скасуванням або перенесенням уроків, преміум-аналітику і можливість набирати додаткових учнів з хабу.
           </p>
         </div>
 
