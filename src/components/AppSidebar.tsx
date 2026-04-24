@@ -76,7 +76,9 @@ export function AppSidebar() {
   const chatsBadge = useUnreadChats();
   const subscriptionBadge = useSubscriptionRequestCount();
   const { theme, toggleTheme } = useTheme();
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, settings } = useWorkspaceSettings();
+  const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
+  const showOnboardingHelp = isTutorRole && (!isIndependent || !settings?.onboarding_completed);
 
   const navItems = allNavItems.filter((item) => {
     if (!item.roles.some((r) => roles.includes(r))) return false;
