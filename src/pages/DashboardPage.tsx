@@ -269,15 +269,22 @@ export default function DashboardPage() {
     [lessons]
   );
 
+  const effectiveMeetingUrl = (l: LessonRow): string | null => {
+    if (l.meeting_url && l.meeting_url.trim()) return l.meeting_url.trim();
+    const fallback = defaultMeetingUrls[`${l.tutor_id}:${l.student_id}`];
+    return fallback || null;
+  };
+
   const lessonsWithoutMeeting = useMemo(
     () =>
       lessons.filter(
         (l) =>
           l.status === "scheduled" &&
           new Date(l.starts_at).getTime() >= nowMs &&
-          (!l.meeting_url || !l.meeting_url.trim())
+          !effectiveMeetingUrl(l)
       ).length,
-    [lessons, nowMs]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lessons, nowMs, defaultMeetingUrls]
   );
 
   const pendingLessonRequests = useMemo(
