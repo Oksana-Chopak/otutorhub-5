@@ -1,22 +1,21 @@
 // Polls Telegram getUpdates and links app users via /start <code>
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram';
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
 
 Deno.serve(async () => {
   const startTime = Date.now();
-  const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-  const TELEGRAM_API_KEY = Deno.env.get('TELEGRAM_API_KEY');
+  const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
-  if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY || !supabaseUrl || !supabaseServiceKey) {
+  if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !supabaseServiceKey) {
     return new Response(JSON.stringify({ error: 'Missing env' }), { status: 500 });
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const TG_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
   const { data: state, error: stateErr } = await supabase
     .from('telegram_bot_state')
@@ -36,13 +35,9 @@ Deno.serve(async () => {
     const timeout = Math.min(50, Math.floor(remainingMs / 1000) - 5);
     if (timeout < 1) break;
 
-    const resp = await fetch(`${GATEWAY_URL}/getUpdates`, {
+    const resp = await fetch(`${TG_BASE}/getUpdates`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': TELEGRAM_API_KEY,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ offset: currentOffset, timeout, allowed_updates: ['message'] }),
     });
 
@@ -64,7 +59,7 @@ Deno.serve(async () => {
       if (startMatch) {
         const code = startMatch[1];
         if (!code) {
-          await sendTg(chatId, `Привіт, ${fromName}! 👋\n\nЩоб отримувати сповіщення з oTutorHub, відкрийте розділ <b>Налаштування → Telegram</b> в апці й натисніть "Підключити Telegram". Скопіюйте отриманий код і надішліть мені:\n\n<code>/start ВАШ_КОД</code>`, LOVABLE_API_KEY, TELEGRAM_API_KEY);
+          await sendTg(TG_BASE, chatId, `Привіт, ${fromName}! 👋\n\nЩоб отримувати сповіщення з oTutorHub, відкрийте розділ <b>Налаштування → Telegram</b> в апці й натисніть "Підключити Telegram". Скопіюйте отриманий код і надішліть мені:\n\n<code>/start ВАШ_КОД</code>`);
         } else {
           const codeUp = code.trim().toUpperCase();
           const { data: link } = await supabase
@@ -74,9 +69,9 @@ Deno.serve(async () => {
             .maybeSingle();
 
           if (!link) {
-            await sendTg(chatId, '❌ Код не знайдено. Згенеруйте новий у застосунку.', LOVABLE_API_KEY, TELEGRAM_API_KEY);
+            await sendTg(TG_BASE, chatId, '❌ Код не знайдено. Згенеруйте новий у застосунку.');
           } else if (link.link_code_expires_at && new Date(link.link_code_expires_at) < new Date()) {
-            await sendTg(chatId, '⌛ Код прострочений. Згенеруйте новий у застосунку.', LOVABLE_API_KEY, TELEGRAM_API_KEY);
+            await sendTg(TG_BASE, chatId, '⌛ Код прострочений. Згенеруйте новий у застосунку.');
           } else {
             await supabase
               .from('user_telegram_links')
@@ -87,12 +82,12 @@ Deno.serve(async () => {
                 link_code_expires_at: null,
               })
               .eq('user_id', link.user_id);
-            await sendTg(chatId, '✅ Готово! Я надсилатиму вам сповіщення про нові повідомлення в чатах oTutorHub.', LOVABLE_API_KEY, TELEGRAM_API_KEY);
+            await sendTg(TG_BASE, chatId, '✅ Готово! Я надсилатиму вам сповіщення про нові повідомлення в чатах oTutorHub.');
           }
         }
       } else if (text === '/stop' || text === '/unlink') {
         await supabase.from('user_telegram_links').delete().eq('chat_id', chatId);
-        await sendTg(chatId, 'Сповіщення вимкнено. Щоб увімкнути знову — згенеруйте новий код у застосунку.', LOVABLE_API_KEY, TELEGRAM_API_KEY);
+        await sendTg(TG_BASE, chatId, 'Сповіщення вимкнено. Щоб увімкнути знову — згенеруйте новий код у застосунку.');
       }
 
       processed++;
@@ -109,14 +104,10 @@ Deno.serve(async () => {
   return new Response(JSON.stringify({ ok: true, processed, finalOffset: currentOffset }));
 });
 
-async function sendTg(chatId: number, text: string, lovableKey: string, tgKey: string) {
-  await fetch(`${GATEWAY_URL}/sendMessage`, {
+async function sendTg(base: string, chatId: number, text: string) {
+  await fetch(`${base}/sendMessage`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${lovableKey}`,
-      'X-Connection-Api-Key': tgKey,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
   });
 }

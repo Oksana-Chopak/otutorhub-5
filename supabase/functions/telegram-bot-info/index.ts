@@ -4,14 +4,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram';
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
 
-  const lov = Deno.env.get('LOVABLE_API_KEY');
-  const tg = Deno.env.get('TELEGRAM_API_KEY');
-  if (!lov || !tg) {
+  const token = Deno.env.get('TELEGRAM_BOT_TOKEN');
+  if (!token) {
     return new Response(JSON.stringify({ configured: false, username: null, name: null, error: 'telegram_not_configured' }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -19,24 +16,15 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const r = await fetch(`${GATEWAY_URL}/getMe`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${lov}`,
-        'X-Connection-Api-Key': tg,
-        'Content-Type': 'application/json',
-      },
-    });
+    const r = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await r.json();
 
-    if (!r.ok) {
-      const isMissingCredential = r.status === 401 && data?.error?.message === 'Credential not found';
-
+    if (!r.ok || !data.ok) {
       return new Response(JSON.stringify({
         configured: false,
         username: null,
         name: null,
-        error: isMissingCredential ? 'telegram_credential_missing' : 'telegram_lookup_failed',
+        error: 'telegram_lookup_failed',
         status: r.status,
       }), {
         status: 200,
