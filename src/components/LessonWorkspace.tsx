@@ -47,8 +47,30 @@ export function LessonWorkspace({
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
-  const canTogglePayment = isTutor && source === "independent";
+  const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+
+  useEffect(() => {
+    setPaidLocal(studentPaymentStatus ?? "unpaid");
+  }, [studentPaymentStatus, lessonId]);
+
+  const togglePayment = async () => {
+    setPaymentBusy(true);
+    const next = paidLocal === "paid" ? "unpaid" : "paid";
+    const { error } = await supabase
+      .from("lessons")
+      .update({ student_payment_status: next })
+      .eq("id", lessonId);
+    setPaymentBusy(false);
+    if (error) {
+      toast({ title: "Не вдалося оновити оплату", description: error.message, variant: "destructive" });
+      return;
+    }
+    setPaidLocal(next);
+    toast({ title: next === "paid" ? "Позначено як оплачено" : "Позначено як неоплачено" });
+    onUpdated?.();
+  };
 
   const [meetingDraft, setMeetingDraft] = useState(meetingUrl ?? "");
   const [homeworkDraft, setHomeworkDraft] = useState(homework ?? "");
