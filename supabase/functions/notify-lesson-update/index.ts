@@ -1,7 +1,7 @@
 // Sends a Telegram notification to the student when the tutor (or manager)
 // updates the lesson homework and/or summary.
-import { corsHeaders } from "@supabase/supabase-js/cors";
-import { createClient } from "@supabase/supabase-js";
+import { corsHeaders } from "npm:@supabase/supabase-js/cors";
+import { createClient } from "npm:@supabase/supabase-js";
 
 interface RequestBody {
   lessonId: string;
