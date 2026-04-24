@@ -469,6 +469,10 @@ export default function SubscriptionPage() {
           </Card>
         </div>
 
+        <div className="mt-6">
+          <ProRulesCard />
+        </div>
+
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Тріал не вимагає картки. Після його завершення ви автоматично переходите на безкоштовний план — нічого не списується.
         </p>
