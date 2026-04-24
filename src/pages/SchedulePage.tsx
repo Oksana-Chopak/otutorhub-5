@@ -663,13 +663,23 @@ export default function SchedulePage() {
               </DialogHeader>
               <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                 <div>
-                  <Label>Репетитор</Label>
+                  <Label className={cn(formErrors.tutor_id && "text-destructive")}>
+                    Репетитор <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={form.tutor_id}
-                    onValueChange={(v) => setForm((f) => ({ ...f, tutor_id: v }))}
+                    onValueChange={(v) => {
+                      setForm((f) => ({ ...f, tutor_id: v }));
+                      if (formErrors.tutor_id) setFormErrors((e) => ({ ...e, tutor_id: false }));
+                    }}
                     disabled={isTutor && !isManager}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={cn(
+                        formErrors.tutor_id &&
+                          "border-destructive ring-1 ring-destructive focus:ring-destructive"
+                      )}
+                    >
                       <SelectValue placeholder="Оберіть репетитора" />
                     </SelectTrigger>
                     <SelectContent>
@@ -680,15 +690,28 @@ export default function SchedulePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.tutor_id && (
+                    <p className="mt-1 text-xs text-destructive">Оберіть репетитора</p>
+                  )}
                 </div>
                 <div>
-                  <Label>Учень</Label>
+                  <Label className={cn(formErrors.student_id && "text-destructive")}>
+                    Учень <span className="text-destructive">*</span>
+                  </Label>
                   <Select
                     value={form.student_id}
-                    onValueChange={(v) => setForm((f) => ({ ...f, student_id: v }))}
+                    onValueChange={(v) => {
+                      setForm((f) => ({ ...f, student_id: v }));
+                      if (formErrors.student_id) setFormErrors((e) => ({ ...e, student_id: false }));
+                    }}
                     disabled={isStudent && !isManager && !isTutor}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger
+                      className={cn(
+                        formErrors.student_id &&
+                          "border-destructive ring-1 ring-destructive focus:ring-destructive"
+                      )}
+                    >
                       <SelectValue placeholder="Оберіть учня" />
                     </SelectTrigger>
                     <SelectContent>
@@ -699,15 +722,28 @@ export default function SchedulePage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.student_id && (
+                    <p className="mt-1 text-xs text-destructive">Оберіть учня</p>
+                  )}
                 </div>
                 <div>
-                  <Label htmlFor="subject">Предмет</Label>
+                  <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
+                    Предмет <span className="text-destructive">*</span>
+                  </Label>
                   {subjectOptions.length > 0 ? (
                     <Select
                       value={form.subject}
-                      onValueChange={(v) => setForm((f) => ({ ...f, subject: v }))}
+                      onValueChange={(v) => {
+                        setForm((f) => ({ ...f, subject: v }));
+                        if (formErrors.subject) setFormErrors((e) => ({ ...e, subject: false }));
+                      }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          formErrors.subject &&
+                            "border-destructive ring-1 ring-destructive focus:ring-destructive"
+                        )}
+                      >
                         <SelectValue placeholder="Оберіть предмет" />
                       </SelectTrigger>
                       <SelectContent>
@@ -723,20 +759,46 @@ export default function SchedulePage() {
                     <Input
                       id="subject"
                       value={form.subject}
-                      onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, subject: e.target.value }));
+                        if (formErrors.subject && e.target.value.trim()) {
+                          setFormErrors((er) => ({ ...er, subject: false }));
+                        }
+                      }}
                       placeholder="напр. Англійська"
+                      className={cn(
+                        formErrors.subject &&
+                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
+                      )}
                     />
+                  )}
+                  {formErrors.subject && (
+                    <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="starts_at">Дата і час</Label>
+                    <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                      Дата і час <span className="text-destructive">*</span>
+                    </Label>
                     <Input
                       id="starts_at"
                       type="datetime-local"
                       value={form.starts_at}
-                      onChange={(e) => setForm((f) => ({ ...f, starts_at: e.target.value }))}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, starts_at: e.target.value }));
+                        if (formErrors.starts_at && e.target.value) {
+                          setFormErrors((er) => ({ ...er, starts_at: false }));
+                        }
+                      }}
+                      className={cn(
+                        formErrors.starts_at &&
+                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
+                      )}
                     />
+                    {formErrors.starts_at && (
+                      <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="duration">Тривалість (хв)</Label>
