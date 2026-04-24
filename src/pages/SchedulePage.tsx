@@ -519,10 +519,12 @@ export default function SchedulePage() {
     filterSource !== "all" ||
     filterPeriod !== "all";
 
-  // Show source filter only when tutor has both hub & independent lessons (or for managers)
+  // Show source filter only for managers (they may need to filter hub vs independent lessons across the school).
+  // For an independent tutor "Всі / Самостійний" фільтр не має сенсу — він і так бачить лише свої уроки.
   const hasMixedSources = useMemo(() => {
+    if (!isManager) return false;
     const sources = new Set(lessons.map((l) => l.source ?? "hub"));
-    return isManager || sources.size > 1;
+    return sources.size > 1;
   }, [lessons, isManager]);
 
   // For students: list of distinct tutors they have lessons with
@@ -562,7 +564,7 @@ export default function SchedulePage() {
               <SelectItem value="cancelled">Скасовано</SelectItem>
             </SelectContent>
           </Select>
-          {(isManager || isTutor) && (
+          {isManager && (
             <Select value={filterTutor} onValueChange={setFilterTutor}>
               <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
               <SelectContent>

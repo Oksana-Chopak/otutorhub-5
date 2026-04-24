@@ -10,6 +10,8 @@ import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import {
   CalendarDays,
   Users,
@@ -79,9 +81,11 @@ type ProfitPeriod = "all" | "month" | "week";
 
 export default function DashboardPage() {
   const { user, roles } = useAuth();
+  const { isIndependent } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
+  const isIndependentTutor = isTutor && !isManager && isIndependent;
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
@@ -444,7 +448,9 @@ export default function DashboardPage() {
             </div>
           )}
 
-          <div className={`${isManager ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
+          {isIndependentTutor && <IndependentTutorStats />}
+
+          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">Найближчі уроки</h2>
