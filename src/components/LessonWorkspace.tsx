@@ -310,6 +310,45 @@ export function LessonWorkspace({
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
+      {/* Payment status (independent tutor / manager) */}
+      {canTogglePayment && (
+        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Banknote className="h-4 w-4 text-primary" />
+              Оплата уроку
+              {studentPrice !== undefined && studentPrice !== null && (
+                <span className="ml-1 text-muted-foreground">— {studentPrice} ₴</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={
+                  paidLocal === "paid"
+                    ? "rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
+                    : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
+                }
+              >
+                {paidLocal === "paid" ? "Оплачено" : "Не оплачено"}
+              </span>
+              <Button
+                size="sm"
+                variant={paidLocal === "paid" ? "outline" : "default"}
+                disabled={paymentBusy}
+                onClick={togglePayment}
+              >
+                {paymentBusy ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 h-4 w-4" />
+                )}
+                {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Student personal notes */}
       {(canEditStudentNotes || (isManager && studentNotes)) && (
         <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
