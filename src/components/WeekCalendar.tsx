@@ -11,6 +11,8 @@ export interface CalendarLesson {
   status: "pending" | "scheduled" | "completed" | "cancelled";
   tutor_id: string;
   student_id: string;
+  student_price?: number | null;
+  student_payment_status?: "paid" | "unpaid" | null;
 }
 
 interface Props {
