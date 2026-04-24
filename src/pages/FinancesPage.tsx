@@ -305,25 +305,29 @@ export default function FinancesPage() {
         <div>
           <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
           <p className="text-sm text-muted-foreground">
-            Оплати від учнів та виплати репетиторам
+            {isIndependentTutor
+              ? "Оплати від ваших учнів"
+              : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
         <div className="flex w-full flex-wrap gap-3 sm:w-auto">
-          <div className="w-full sm:w-44">
-            <Select value={tutorFilter} onValueChange={setTutorFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Репетитор" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі репетитори</SelectItem>
-                {tutorOptions.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {t.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {!isIndependentTutor && (
+            <div className="w-full sm:w-44">
+              <Select value={tutorFilter} onValueChange={setTutorFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Репетитор" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  {tutorOptions.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="w-full sm:w-44">
             <Select value={monthFilter} onValueChange={setMonthFilter}>
               <SelectTrigger>
@@ -347,7 +351,9 @@ export default function FinancesPage() {
               <SelectContent>
                 <SelectItem value="all">Всі статуси</SelectItem>
                 <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                {!isIndependentTutor && (
+                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                )}
                 <SelectItem value="done">Все закрито</SelectItem>
               </SelectContent>
             </Select>
