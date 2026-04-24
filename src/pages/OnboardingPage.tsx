@@ -294,6 +294,20 @@ export default function OnboardingPage() {
               <Button variant="ghost" className="w-full" asChild>
                 <Link to="/">Я працюю лише з учнями хабу</Link>
               </Button>
+              <div className="rounded-lg bg-muted/50 p-3 text-sm">
+                <p className="font-medium text-foreground">Що це означає?</p>
+                <p className="mt-1 text-muted-foreground">
+                  Ви працюєте лише з учнями, яких призначає менеджер школи. 
+                  У вас немає власних учнів — розклад, оплата та комунікація 
+                  проходять через хаб. Підписка не потрібна.
+                </p>
+                <p className="mt-2 font-medium text-foreground">Приклад:</p>
+                <p className="text-muted-foreground">
+                  «Я — репетитор англійської, мені подобається викладати, 
+                  але я не хочу шукати учнів самостійно. Мені призначають 
+                  уроки, я їх проводжу — і все.»
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
