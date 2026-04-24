@@ -26,15 +26,43 @@ export default function ProfilePage() {
       setLoading(false);
       return;
     }
-    supabase
-      .from("tutor_details")
-      .select("subjects")
-      .eq("user_id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        setSubjects((data?.subjects as string[] | null) ?? []);
-        setLoading(false);
-      });
+    (async () => {
+      const [detailsRes, lessonsRes, ratesRes] = await Promise.all([
+        supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
+        supabase.from("lessons").select("subject").eq("tutor_id", user.id),
+        supabase.from("student_rates").select("subject").eq("tutor_id", user.id),
+      ]);
+
+      const stored = (detailsRes.data?.subjects as string[] | null) ?? [];
+      const fromLessons = (lessonsRes.data ?? [])
+        .map((l) => (l.subject ?? "").trim())
+        .filter(Boolean);
+      const fromRates = (ratesRes.data ?? [])
+        .map((r) => (r.subject ?? "").trim())
+        .filter(Boolean);
+
+      // Об'єднуємо без дублікатів (case-insensitive), але зберігаємо першу версію назви
+      const merged: string[] = [];
+      const seen = new Set<string>();
+      for (const item of [...stored, ...fromLessons, ...fromRates]) {
+        const key = item.toLowerCase();
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(item);
+        }
+      }
+
+      setSubjects(merged);
+
+      // Якщо знайшли нові предмети з уроків/ставок — мовчки збережемо їх у профіль
+      if (merged.length > stored.length) {
+        await supabase
+          .from("tutor_details")
+          .upsert({ user_id: user.id, subjects: merged }, { onConflict: "user_id" });
+      }
+
+      setLoading(false);
+    })();
   }, [user?.id, isTutor]);
 
   const customSubjects = useMemo(
