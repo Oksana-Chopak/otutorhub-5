@@ -14,9 +14,8 @@ import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount
 
 const items: { to: string; label: string; icon: typeof LayoutDashboard; roles: AppRole[]; badgeKey?: "chats" | "availability" }[] = [
   { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"] },
+  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"], badgeKey: "availability" },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
-  { to: "/availability", label: "Години", icon: CalendarClock, roles: ["tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager", "tutor"] },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
 ];
