@@ -633,6 +633,7 @@ export default function SchedulePage() {
 
   // Tabs: "lessons" (default) and "availability" — only for tutors/managers
   const showAvailabilityTab = isManager || isTutor;
+  const availabilityBadge = useAvailabilityRequestCount();
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = searchParams.get("tab") === "availability" && showAvailabilityTab ? "availability" : "lessons";
   const setTab = (t: "lessons" | "availability") => {
