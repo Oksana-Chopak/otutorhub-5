@@ -219,17 +219,45 @@ export default function FinancesPage() {
     field: "student_payment_status" | "tutor_payout_status"
   ) => {
     const next: PaymentStatus = lesson[field] === "paid" ? "unpaid" : "paid";
+    const nextPaidAt =
+      next === "paid" ? new Date().toISOString() : null;
+    const paidAtField =
+      field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+
+    // Optimistic update — no full page reload, no jump.
+    setLessons((prev) =>
+      prev.map((l) =>
+        l.id === lesson.id
+          ? { ...l, [field]: next, [paidAtField]: nextPaidAt } as LessonRow
+          : l
+      )
+    );
+
     const payload =
       field === "student_payment_status"
         ? { student_payment_status: next }
         : { tutor_payout_status: next };
     const { error } = await supabase.from("lessons").update(payload).eq("id", lesson.id);
     if (error) {
+      // Roll back
+      setLessons((prev) =>
+        prev.map((l) =>
+          l.id === lesson.id
+            ? {
+                ...l,
+                [field]: lesson[field],
+                [paidAtField]:
+                  field === "student_payment_status"
+                    ? lesson.student_paid_at
+                    : lesson.tutor_paid_at,
+              } as LessonRow
+            : l
+        )
+      );
       toast.error("Не вдалося оновити статус");
       return;
     }
     toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
-    fetchData();
   };
 
   const toggleRow = (id: string) => {
@@ -257,14 +285,25 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? { student_payment_status: "paid" as PaymentStatus }
         : { tutor_payout_status: "paid" as PaymentStatus };
+    // Optimistic
+    const nowIso = new Date().toISOString();
+    const paidAtField =
+      field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    setLessons((prev) =>
+      prev.map((l) =>
+        ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
+      )
+    );
     const { error } = await supabase.from("lessons").update(payload).in("id", ids);
     setBulkBusy(false);
     if (error) {
       toast.error("Не вдалося оновити записи");
+      // refetch to recover
+      fetchData();
       return;
     }
     toast.success(`Оновлено ${ids.length} записів`);
-    fetchData();
+    setSelected(new Set());
   };
 
   const exportCsv = () => {
