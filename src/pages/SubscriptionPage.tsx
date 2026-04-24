@@ -475,7 +475,7 @@ export default function SubscriptionPage() {
                 );
               })()}
               <p className="text-center text-xs text-muted-foreground">
-                Заявка одразу піде менеджеру школи — він зв'яжеться з вами для оплати.
+                Заявка одразу піде менеджеру — він зв'яжеться з вами для оплати.
               </p>
             </CardContent>
           </Card>
