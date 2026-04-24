@@ -568,15 +568,21 @@ export default function FinancesPage() {
                       <th className="px-3 py-3 text-right font-medium text-success">
                         Надходження
                       </th>
-                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                        Репетитор
-                      </th>
-                      <th className="px-3 py-3 text-right font-medium text-destructive">
-                        Виплата
-                      </th>
-                      <th className="px-3 py-3 text-right font-medium text-muted-foreground">
-                        Прибуток
-                      </th>
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                          Репетитор
+                        </th>
+                      )}
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-right font-medium text-destructive">
+                          Виплата
+                        </th>
+                      )}
+                      {!isIndependentTutor && (
+                        <th className="px-3 py-3 text-right font-medium text-muted-foreground">
+                          Прибуток
+                        </th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -633,45 +639,50 @@ export default function FinancesPage() {
                               </Badge>
                             </button>
                           </td>
-                          {/* Tutor column */}
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-foreground">
-                              {nameOf(l.tutor_id)}
-                            </div>
-                            {l.tutor_paid_at && (
-                              <div className="text-xs text-muted-foreground">
-                                вип.: {formatDate(l.tutor_paid_at)}
+                          {!isIndependentTutor && (
+                            <td className="px-3 py-3">
+                              <div className="font-medium text-foreground">
+                                {nameOf(l.tutor_id)}
                               </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <div className="font-semibold text-destructive">
-                              -{l.tutor_payout} ₴
-                            </div>
-                            <button
-                              onClick={() => togglePayment(l, "tutor_payout_status")}
-                              className="mt-1 inline-block"
-                            >
-                              <Badge
-                                className={
-                                  l.tutor_payout_status === "paid"
-                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                }
+                              {l.tutor_paid_at && (
+                                <div className="text-xs text-muted-foreground">
+                                  вип.: {formatDate(l.tutor_paid_at)}
+                                </div>
+                              )}
+                            </td>
+                          )}
+                          {!isIndependentTutor && (
+                            <td className="px-3 py-3 text-right">
+                              <div className="font-semibold text-destructive">
+                                -{l.tutor_payout} ₴
+                              </div>
+                              <button
+                                onClick={() => togglePayment(l, "tutor_payout_status")}
+                                className="mt-1 inline-block"
                               >
-                                {l.tutor_payout_status === "paid"
-                                  ? "Виплачено"
-                                  : "Очікує"}
-                              </Badge>
-                            </button>
-                          </td>
-                          <td
-                            className={`px-3 py-3 text-right font-semibold ${
-                              profit >= 0 ? "text-foreground" : "text-destructive"
-                            }`}
-                          >
-                            {profit} ₴
-                          </td>
+                                <Badge
+                                  className={
+                                    l.tutor_payout_status === "paid"
+                                      ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                      : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                  }
+                                >
+                                  {l.tutor_payout_status === "paid"
+                                    ? "Виплачено"
+                                    : "Очікує"}
+                                </Badge>
+                              </button>
+                            </td>
+                          )}
+                          {!isIndependentTutor && (
+                            <td
+                              className={`px-3 py-3 text-right font-semibold ${
+                                profit >= 0 ? "text-foreground" : "text-destructive"
+                              }`}
+                            >
+                              {profit} ₴
+                            </td>
+                          )}
                         </tr>
                       );
                     })}
