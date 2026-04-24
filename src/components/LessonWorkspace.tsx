@@ -165,65 +165,46 @@ export function LessonWorkspace({
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* Meeting link */}
-      <section className="rounded-lg border border-border bg-background/50 p-4">
-        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-          <Video className="h-4 w-4 text-primary" />
-          Онлайн-зустріч
-        </div>
-
-        {effectiveMeetingUrl ? (
-          <Button asChild size="sm" className="mb-3 w-full">
-            <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Приєднатися
-            </a>
-          </Button>
-        ) : (
-          <p className="mb-3 text-xs text-muted-foreground">Посилання ще не додано.</p>
-        )}
-
-        {canEditTutorFields && (
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs text-muted-foreground">Посилання для цього уроку</Label>
-              <div className="mt-1 flex gap-2">
-                <Input
-                  placeholder="https://meet.google.com/…"
-                  value={meetingDraft}
-                  onChange={(e) => setMeetingDraft(e.target.value)}
-                />
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={saving === "meeting_url" || meetingDraft === (meetingUrl ?? "")}
-                  onClick={() => updateLessonField("meeting_url", meetingDraft)}
-                >
-                  {saving === "meeting_url" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                </Button>
-              </div>
+      {/* 1. Payment status — top priority */}
+      {canTogglePayment && (
+        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Banknote className="h-4 w-4 text-primary" />
+              Оплата уроку
+              {studentPrice !== undefined && studentPrice !== null && (
+                <span className="ml-1 text-muted-foreground">— {studentPrice} ₴</span>
+              )}
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Постійне посилання для цієї пари</Label>
-              <div className="mt-1 flex gap-2">
-                <Input
-                  placeholder="https://us02web.zoom.us/j/…"
-                  value={defaultUrl}
-                  onChange={(e) => setDefaultUrl(e.target.value)}
-                />
-                <Button size="sm" variant="outline" disabled={saving === "default"} onClick={saveDefaultMeetingUrl}>
-                  {saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                </Button>
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Використовується, якщо для уроку не задано окреме посилання.
-              </p>
+            <div className="flex items-center gap-2">
+              <span
+                className={
+                  paidLocal === "paid"
+                    ? "rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
+                    : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
+                }
+              >
+                {paidLocal === "paid" ? "Оплачено" : "Не оплачено"}
+              </span>
+              <Button
+                size="sm"
+                variant={paidLocal === "paid" ? "outline" : "default"}
+                disabled={paymentBusy}
+                onClick={togglePayment}
+              >
+                {paymentBusy ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 h-4 w-4" />
+                )}
+                {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
+              </Button>
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
-      {/* Homework */}
+      {/* 2. Homework */}
       <section className="rounded-lg border border-border bg-background/50 p-4">
         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
           <BookOpen className="h-4 w-4 text-primary" />
@@ -255,7 +236,42 @@ export function LessonWorkspace({
         )}
       </section>
 
-      {/* Summary / lesson notes */}
+      {/* 3. Student personal notes (compact slot — second column on top row) */}
+      {(canEditStudentNotes || (isManager && studentNotes)) ? (
+        <section className="rounded-lg border border-border bg-background/50 p-4">
+          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
+            <NotebookPen className="h-4 w-4 text-primary" />
+            Мої нотатки {isManager && !canEditStudentNotes && <span className="text-xs text-muted-foreground">(учня)</span>}
+          </div>
+          {canEditStudentNotes ? (
+            <>
+              <Textarea
+                rows={4}
+                placeholder="Що було незрозуміло, питання до репетитора, власні думки…"
+                value={notesDraft}
+                onChange={(e) => setNotesDraft(e.target.value)}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="mt-2"
+                disabled={saving === "student_notes" || notesDraft === (studentNotes ?? "")}
+                onClick={() => updateLessonField("student_notes", notesDraft)}
+              >
+                {saving === "student_notes" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                Зберегти
+              </Button>
+            </>
+          ) : (
+            <p className="whitespace-pre-wrap text-sm text-foreground">{studentNotes}</p>
+          )}
+        </section>
+      ) : (
+        // Empty placeholder so the homework block doesn't span both columns awkwardly
+        <div className="hidden md:block" />
+      )}
+
+      {/* 4. Lesson summary */}
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -306,81 +322,99 @@ export function LessonWorkspace({
         )}
       </section>
 
-      {/* Attachments */}
+      {/* 5. Attachments */}
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
-      {/* Payment status (independent tutor / manager) */}
-      {canTogglePayment && (
-        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-              <Banknote className="h-4 w-4 text-primary" />
-              Оплата уроку
-              {studentPrice !== undefined && studentPrice !== null && (
-                <span className="ml-1 text-muted-foreground">— {studentPrice} ₴</span>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <span
-                className={
-                  paidLocal === "paid"
-                    ? "rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
-                    : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
-                }
-              >
-                {paidLocal === "paid" ? "Оплачено" : "Не оплачено"}
-              </span>
-              <Button
-                size="sm"
-                variant={paidLocal === "paid" ? "outline" : "default"}
-                disabled={paymentBusy}
-                onClick={togglePayment}
-              >
-                {paymentBusy ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+      {/* 6. Meeting link — moved to the bottom (low priority, rarely edited).
+             Tutors get a collapsible editor; non-editors see only a compact link row. */}
+      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+        {canEditTutorFields ? (
+          <Collapsible>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Video className="h-4 w-4 text-primary" />
+                Онлайн-зустріч
+                {effectiveMeetingUrl ? (
+                  <span className="text-xs font-normal text-success">· посилання є</span>
                 ) : (
-                  <Check className="mr-2 h-4 w-4" />
+                  <span className="text-xs font-normal text-warning">· посилання немає</span>
                 )}
-                {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
-              </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                {effectiveMeetingUrl && (
+                  <Button asChild size="sm" variant="outline">
+                    <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      Відкрити
+                    </a>
+                  </Button>
+                )}
+                <CollapsibleTrigger asChild>
+                  <Button size="sm" variant="ghost" className="group">
+                    Редагувати
+                    <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
             </div>
-          </div>
-        </section>
-      )}
-
-      {/* Student personal notes */}
-      {(canEditStudentNotes || (isManager && studentNotes)) && (
-        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
-            <NotebookPen className="h-4 w-4 text-primary" />
-            Мої нотатки {isManager && !canEditStudentNotes && <span className="text-xs text-muted-foreground">(учня)</span>}
-          </div>
-          {canEditStudentNotes ? (
-            <>
-              <Textarea
-                rows={4}
-                placeholder="Що було незрозуміло, питання до репетитора, власні думки…"
-                value={notesDraft}
-                onChange={(e) => setNotesDraft(e.target.value)}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-2"
-                disabled={saving === "student_notes" || notesDraft === (studentNotes ?? "")}
-                onClick={() => updateLessonField("student_notes", notesDraft)}
-              >
-                {saving === "student_notes" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-                Зберегти
+            <CollapsibleContent className="mt-3 space-y-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Посилання для цього уроку</Label>
+                <div className="mt-1 flex gap-2">
+                  <Input
+                    placeholder="https://meet.google.com/…"
+                    value={meetingDraft}
+                    onChange={(e) => setMeetingDraft(e.target.value)}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={saving === "meeting_url" || meetingDraft === (meetingUrl ?? "")}
+                    onClick={() => updateLessonField("meeting_url", meetingDraft)}
+                  >
+                    {saving === "meeting_url" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Постійне посилання для цієї пари</Label>
+                <div className="mt-1 flex gap-2">
+                  <Input
+                    placeholder="https://us02web.zoom.us/j/…"
+                    value={defaultUrl}
+                    onChange={(e) => setDefaultUrl(e.target.value)}
+                  />
+                  <Button size="sm" variant="outline" disabled={saving === "default"} onClick={saveDefaultMeetingUrl}>
+                    {saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Використовується, якщо для уроку не задано окреме посилання.
+                </p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        ) : (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Video className="h-4 w-4 text-primary" />
+              Онлайн-зустріч
+            </div>
+            {effectiveMeetingUrl ? (
+              <Button asChild size="sm" variant="outline">
+                <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Приєднатися
+                </a>
               </Button>
-            </>
-          ) : (
-            <p className="whitespace-pre-wrap text-sm text-foreground">{studentNotes}</p>
-          )}
-        </section>
-      )}
+            ) : (
+              <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
+            )}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
