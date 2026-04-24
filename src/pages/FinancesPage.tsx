@@ -516,15 +516,17 @@ export default function FinancesPage() {
                 <CheckCheck className="h-4 w-4" />
                 Учні оплатили
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selected.size === 0 || bulkBusy}
-                onClick={() => bulkMark("tutor_payout_status")}
-              >
-                <CheckCheck className="h-4 w-4" />
-                Виплачено репетиторам
-              </Button>
+              {!isIndependentTutor && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkMark("tutor_payout_status")}
+                >
+                  <CheckCheck className="h-4 w-4" />
+                  Виплачено репетиторам
+                </Button>
+              )}
               <Button size="sm" variant="outline" onClick={exportCsv}>
                 <Download className="h-4 w-4" />
                 Експорт CSV
