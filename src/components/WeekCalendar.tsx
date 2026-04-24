@@ -11,6 +11,8 @@ export interface CalendarLesson {
   status: "pending" | "scheduled" | "completed" | "cancelled";
   tutor_id: string;
   student_id: string;
+  student_price?: number | null;
+  student_payment_status?: "paid" | "unpaid" | null;
 }
 
 interface Props {
@@ -227,6 +229,13 @@ export function WeekCalendar({
                       <div className="truncate opacity-80">
                         {nameOf(l.student_id)}
                       </div>
+                      {l.student_price != null && Number(l.student_price) > 0 && (
+                        <div className="truncate opacity-90 mt-0.5">
+                          {Number(l.student_price)} ₴
+                          {l.student_payment_status === "paid" && " ✓"}
+                          {l.student_payment_status === "unpaid" && " •"}
+                        </div>
+                      )}
                     </button>
                   );
                 })}
