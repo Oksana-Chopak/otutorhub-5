@@ -182,6 +182,7 @@ export default function MyStudentsPage() {
       instagram_url: s.instagram_url ?? "",
       subject: s.subject ?? "",
       price: String(s.price ?? ""),
+      default_meeting_url: s.default_meeting_url ?? "",
     });
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
