@@ -463,6 +463,7 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {isIndependentTutor && <TutorWelcomeBanner />}
           {isIndependentTutor && <IndependentTutorStats />}
 
           <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
