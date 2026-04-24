@@ -23,6 +23,7 @@ import ProfilePage from "./pages/ProfilePage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionRequestsPage from "./pages/SubscriptionRequestsPage";
 import NotFound from "./pages/NotFound";
+import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
 
 const queryClient = new QueryClient();
 
