@@ -40,6 +40,8 @@ import { WeekCalendar } from "@/components/WeekCalendar";
 import { EmptyState } from "@/components/EmptyState";
 import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
+import { StudentLessonActions } from "@/components/StudentLessonActions";
+import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
