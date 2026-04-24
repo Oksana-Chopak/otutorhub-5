@@ -464,6 +464,7 @@ export default function MyStudentsPage() {
                         <Instagram className="h-3 w-3" />
                         Instagram
                       </a>
+                    )}
                     {s.default_meeting_url && (
                       <a
                         href={s.default_meeting_url}
