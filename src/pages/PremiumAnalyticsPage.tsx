@@ -31,7 +31,8 @@ import {
   Sparkles,
   Lightbulb,
   CheckCircle2,
-  Calendar
+  Calendar,
+  CalendarClock
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval } from "date-fns";
