@@ -2,15 +2,12 @@
 // to the recipient if they have linked their Telegram account.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const GATEWAY_URL = 'https://connector-gateway.lovable.dev/telegram';
-
 Deno.serve(async (req) => {
   try {
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const TELEGRAM_API_KEY = Deno.env.get('TELEGRAM_API_KEY');
+    const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!LOVABLE_API_KEY || !TELEGRAM_API_KEY || !supabaseUrl || !serviceKey) {
+    if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !serviceKey) {
       return new Response(JSON.stringify({ error: 'Missing env' }), { status: 500 });
     }
 
@@ -60,13 +57,9 @@ Deno.serve(async (req) => {
 
     const text = `💬 <b>${escapeHtml(senderName)}</b>\n\n${escapeHtml(preview)}\n\n<a href="https://otutorhub.lovable.app/chats">Відкрити чат</a>`;
 
-    const tgResp = await fetch(`${GATEWAY_URL}/sendMessage`, {
+    const tgResp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'X-Connection-Api-Key': TELEGRAM_API_KEY,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: link.chat_id,
         text,
