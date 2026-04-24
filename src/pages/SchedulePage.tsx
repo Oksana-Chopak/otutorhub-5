@@ -35,7 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil, CalendarClock, CalendarDays } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { EmptyState } from "@/components/EmptyState";
@@ -43,6 +43,8 @@ import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/S
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
+import { AvailabilityManager } from "@/components/AvailabilityManager";
+import { useSearchParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
