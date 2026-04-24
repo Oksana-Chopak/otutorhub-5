@@ -114,7 +114,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -123,10 +123,18 @@ export default function MyStudentsPage() {
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, facebook_url, instagram_url")
         .in("user_id", ids),
+      supabase
+        .from("tutor_student_defaults")
+        .select("student_id, default_meeting_url")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
     const contactMap = new Map((contacts ?? []).map((c: any) => [c.user_id, c]));
+    const defaultsMap = new Map(
+      (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
+    );
 
     const merged: MyStudent[] = ids.map((id) => {
       const p = profileMap.get(id) ?? {};
@@ -146,6 +154,7 @@ export default function MyStudentsPage() {
         rate_id: r?.id ?? null,
         price: Number(r?.price_per_lesson ?? 0),
         subject: r?.subject ?? "",
+        default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
