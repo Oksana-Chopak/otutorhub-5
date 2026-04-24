@@ -136,6 +136,12 @@ export default function SchedulePage() {
     tutor_payout_status: "unpaid" as PaymentStatus,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<{
+    tutor_id?: boolean;
+    student_id?: boolean;
+    subject?: boolean;
+    starts_at?: boolean;
+  }>({});
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
