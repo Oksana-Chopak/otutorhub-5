@@ -23,9 +23,16 @@ export function TelegramLinkCard() {
   const [botUsername, setBotUsername] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.functions.invoke("telegram-bot-info").then(({ data }) => {
-      if (data?.username) setBotUsername(data.username);
+    let active = true;
+
+    supabase.functions.invoke("telegram-bot-info").then(({ data, error }) => {
+      if (!active || error) return;
+      if (data?.configured && data?.username) setBotUsername(data.username);
     });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
