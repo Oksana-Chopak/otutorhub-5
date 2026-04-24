@@ -7,8 +7,15 @@ Deno.serve(async (req) => {
     const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !serviceKey) {
+    const webhookSecret = Deno.env.get('NOTIFY_CHAT_WEBHOOK_SECRET');
+    if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !serviceKey || !webhookSecret) {
       return new Response(JSON.stringify({ error: 'Missing env' }), { status: 500 });
+    }
+
+    // Require shared-secret header — only the database trigger knows this value.
+    const provided = req.headers.get('x-webhook-secret');
+    if (!provided || provided !== webhookSecret) {
+      return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
     }
 
     const body = await req.json();
