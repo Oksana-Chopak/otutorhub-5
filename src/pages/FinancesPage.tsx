@@ -27,6 +27,7 @@ import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { Percent } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { MobileFilters } from "@/components/MobileFilters";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
