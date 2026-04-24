@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { IndependentTutorStats } from "@/components/IndependentTutorStats";
+import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import {
   CalendarDays,
   Users,
