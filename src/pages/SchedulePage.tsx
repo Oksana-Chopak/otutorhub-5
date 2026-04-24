@@ -630,6 +630,17 @@ export default function SchedulePage() {
   // Students cannot create or request lessons — only tutors and managers schedule them.
   const canCreate = isManager || isTutor;
 
+  // Tabs: "lessons" (default) and "availability" — only for tutors/managers
+  const showAvailabilityTab = isManager || isTutor;
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("tab") === "availability" && showAvailabilityTab ? "availability" : "lessons";
+  const setTab = (t: "lessons" | "availability") => {
+    const next = new URLSearchParams(searchParams);
+    if (t === "lessons") next.delete("tab");
+    else next.set("tab", t);
+    setSearchParams(next, { replace: true });
+  };
+
   return (
     <AppLayout>
       <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
@@ -639,9 +650,42 @@ export default function SchedulePage() {
             {isManager
               ? "Усі уроки школи"
               : isTutor
-              ? "Ваші уроки"
+              ? "Ваші уроки та робочий графік"
               : "Ваші уроки та запити"}
           </p>
+        </div>
+      </div>
+
+      {showAvailabilityTab && (
+        <div className="mb-5 inline-flex rounded-lg border border-border bg-card p-0.5">
+          <Button
+            variant={activeTab === "lessons" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setTab("lessons")}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            Уроки
+          </Button>
+          <Button
+            variant={activeTab === "availability" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setTab("availability")}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            Мої години
+          </Button>
+        </div>
+      )}
+
+      {activeTab === "availability" ? (
+        <AvailabilityManager />
+      ) : (
+      <>
+      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
+        <div className="sr-only">
+          <h2>Уроки</h2>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
