@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,6 +111,25 @@ export default function AuthPage() {
       title: "Перевірте пошту",
       description: "Ми надіслали посилання для скидання пароля на " + emailParse.data,
     });
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setLoading(false);
+      toast({
+        title: "Не вдалося увійти через Google",
+        description: result.error.message ?? "Спробуйте ще раз.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (result.redirected) return;
+    setLoading(false);
+    navigate("/", { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
