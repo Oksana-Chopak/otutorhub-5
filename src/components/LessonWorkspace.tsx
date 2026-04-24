@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
