@@ -608,6 +608,48 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_requests: {
+        Row: {
+          created_at: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          manager_response: string | null
+          message: string | null
+          plan: string
+          price: number
+          status: Database["public"]["Enums"]["subscription_request_status"]
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          manager_response?: string | null
+          message?: string | null
+          plan?: string
+          price?: number
+          status?: Database["public"]["Enums"]["subscription_request_status"]
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          manager_response?: string | null
+          message?: string | null
+          plan?: string
+          price?: number
+          status?: Database["public"]["Enums"]["subscription_request_status"]
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1134,6 +1176,11 @@ export type Database = {
       app_role: "manager" | "tutor" | "student"
       lesson_status: "pending" | "scheduled" | "completed" | "cancelled"
       payment_status: "unpaid" | "paid"
+      subscription_request_status:
+        | "new"
+        | "in_progress"
+        | "completed"
+        | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1264,6 +1311,12 @@ export const Constants = {
       app_role: ["manager", "tutor", "student"],
       lesson_status: ["pending", "scheduled", "completed", "cancelled"],
       payment_status: ["unpaid", "paid"],
+      subscription_request_status: [
+        "new",
+        "in_progress",
+        "completed",
+        "rejected",
+      ],
     },
   },
 } as const
