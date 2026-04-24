@@ -154,48 +154,105 @@ export default function SchedulePage() {
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
   // Edit dialog state (quick edit from calendar / list)
-  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
     duration_minutes: "60",
-    notes: "",
+    homework: "",
+    summary: "",
     meeting_url: "",
   });
   const [editSubmitting, setEditSubmitting] = useState(false);
+  // Snapshot of original homework/summary so we can detect actual changes for notification
+  const [editOriginal, setEditOriginal] = useState<{ homework: string; summary: string }>({
+    homework: "",
+    summary: "",
+  });
 
-  const openEdit = (lesson: Lesson) => {
-    setEditingLesson(lesson);
+  const openEdit = async (lesson: Lesson) => {
+    // Re-fetch full lesson row to get current homework/summary (list query may not include them)
+    const { data } = await supabase
+      .from("lessons")
+      .select("homework, summary, meeting_url")
+      .eq("id", lesson.id)
+      .maybeSingle();
+    const homework = data?.homework ?? "";
+    const summary = data?.summary ?? "";
+    const meeting_url = data?.meeting_url ?? (lesson as any).meeting_url ?? "";
+
+    setEditingLesson({ ...lesson, homework, summary });
     setEditForm({
       subject: lesson.subject,
       starts_at: toLocalInputValue(lesson.starts_at),
       duration_minutes: String(lesson.duration_minutes),
-      notes: lesson.notes ?? "",
-      meeting_url: (lesson as any).meeting_url ?? "",
+      homework,
+      summary,
+      meeting_url,
     });
+    setEditOriginal({ homework, summary });
   };
+
+  // Permission helpers for the edit dialog
+  const canEditScheduleFields = (lesson: Lesson | null) =>
+    !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
+  const canEditTeachingFields = (lesson: Lesson | null) =>
+    !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
 
   const saveEdit = async () => {
     if (!editingLesson) return;
     setEditSubmitting(true);
-    const payload: any = {
-      subject: editForm.subject,
-      starts_at: new Date(editForm.starts_at).toISOString(),
-      duration_minutes: parseInt(editForm.duration_minutes) || 60,
-      notes: editForm.notes || null,
-      meeting_url: editForm.meeting_url || null,
-    };
+
+    const payload: any = {};
+    if (canEditScheduleFields(editingLesson)) {
+      payload.subject = editForm.subject;
+      payload.starts_at = new Date(editForm.starts_at).toISOString();
+      payload.duration_minutes = parseInt(editForm.duration_minutes) || 60;
+    }
+    if (canEditTeachingFields(editingLesson)) {
+      payload.homework = editForm.homework || null;
+      payload.summary = editForm.summary || null;
+      payload.meeting_url = editForm.meeting_url || null;
+    }
+
+    if (Object.keys(payload).length === 0) {
+      setEditSubmitting(false);
+      setEditingLesson(null);
+      return;
+    }
+
     const { error } = await supabase
       .from("lessons")
       .update(payload)
       .eq("id", editingLesson.id);
-    setEditSubmitting(false);
     if (error) {
+      setEditSubmitting(false);
       console.error(error);
       toast.error("Не вдалося зберегти зміни");
       return;
     }
-    toast.success("Урок оновлено");
+
+    // Detect homework/summary changes and notify the student via Telegram
+    const changed: Array<"homework" | "summary"> = [];
+    if (canEditTeachingFields(editingLesson)) {
+      if ((editForm.homework || "") !== (editOriginal.homework || "")) changed.push("homework");
+      if ((editForm.summary || "") !== (editOriginal.summary || "")) changed.push("summary");
+    }
+    if (changed.length > 0) {
+      // Fire-and-forget — failures shouldn't block the UI
+      supabase.functions
+        .invoke("notify-lesson-update", {
+          body: { lessonId: editingLesson.id, changed },
+        })
+        .catch((e) => console.warn("notify-lesson-update failed", e));
+    }
+
+    setEditSubmitting(false);
+    toast.success(
+      changed.length > 0
+        ? "Урок оновлено. Учень отримає сповіщення."
+        : "Урок оновлено"
+    );
     setEditingLesson(null);
     loadAll();
   };
