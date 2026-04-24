@@ -55,6 +55,7 @@ interface LessonRow {
   homework: string | null;
   summary: string | null;
   student_notes: string | null;
+  source: "hub" | "independent";
 }
 
 interface ProfileRow {
