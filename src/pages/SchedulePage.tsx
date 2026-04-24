@@ -361,20 +361,30 @@ export default function SchedulePage() {
     return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
   }, [selectedTutor, tutorRateSubjects, pairSubjects]);
 
-  // Auto-fill prices for managers when tutor/student/subject change
+  // Auto-fill prices for managers and independent tutors when tutor/student/subject change.
+  // For independent tutors, tutor_payout is irrelevant (they pay themselves) — but student_price matters.
   useEffect(() => {
-    if (!isManager) return;
+    if (!isManager && !isIndependentTutor) return;
     if (!form.tutor_id || !form.student_id || !form.subject) return;
     let cancelled = false;
     (async () => {
       setAutoFilling(true);
-      const [rateRes, payoutRes, fallbackRes] = await Promise.all([
+      const [exactRateRes, anyPairRateRes, payoutRes, fallbackRes] = await Promise.all([
         supabase
           .from("student_rates")
           .select("price_per_lesson")
           .eq("tutor_id", form.tutor_id)
           .eq("student_id", form.student_id)
           .eq("subject", form.subject)
+          .maybeSingle(),
+        // Fallback: any rate for this (tutor, student) pair (most recent)
+        supabase
+          .from("student_rates")
+          .select("price_per_lesson")
+          .eq("tutor_id", form.tutor_id)
+          .eq("student_id", form.student_id)
+          .order("updated_at", { ascending: false })
+          .limit(1)
           .maybeSingle(),
         supabase
           .from("tutor_subject_rates")
@@ -389,7 +399,11 @@ export default function SchedulePage() {
           .maybeSingle(),
       ]);
       if (cancelled) return;
-      const studentPrice = rateRes.data?.price_per_lesson;
+      const studentPrice =
+        exactRateRes.data?.price_per_lesson ??
+        anyPairRateRes.data?.price_per_lesson ??
+        payoutRes.data?.rate_per_lesson ??
+        fallbackRes.data?.rate_per_lesson;
       const tutorPayout =
         payoutRes.data?.rate_per_lesson ?? fallbackRes.data?.rate_per_lesson;
       setForm((f) => ({
@@ -408,7 +422,7 @@ export default function SchedulePage() {
     return () => {
       cancelled = true;
     };
-  }, [isManager, form.tutor_id, form.student_id, form.subject]);
+  }, [isManager, isIndependentTutor, form.tutor_id, form.student_id, form.subject]);
 
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
