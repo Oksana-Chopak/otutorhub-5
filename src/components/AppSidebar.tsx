@@ -18,6 +18,7 @@ import {
   HandHeart,
   UserCircle,
   Crown,
+  HelpCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
