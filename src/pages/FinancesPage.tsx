@@ -480,40 +480,298 @@ export default function FinancesPage() {
             )}
           </div>
 
-          {!isIndependentTutor && (
-            <div className="mt-6 rounded-xl border border-border bg-card p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-foreground">
-                  Тижнева динаміка прибутку по репетиторах (12 тижнів)
-                </h2>
-                <span className="text-xs text-muted-foreground">Завершені уроки</span>
+          {/* === Main: Payments table (priority for daily use) === */}
+          <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
+            {visibleRows.length === 0 ? (
+              <div className="p-6">
+                <EmptyState
+                  icon={DollarSign}
+                  title="Немає платежів за фільтрами"
+                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
+                />
               </div>
-              <FinanceWeeklyChart
-                tutorNames={Object.fromEntries(
-                  Object.values(profiles).map((p) => [
-                    p.id,
-                    `${p.first_name} ${p.last_name}`.trim() || "Без імені",
-                  ])
-                )}
-                lessons={filtered.map((l) => ({
-                  starts_at: l.starts_at,
-                  status: l.status,
-                  tutor_id: l.tutor_id,
-                  student_price: Number(l.student_price),
-                  tutor_payout: Number(l.tutor_payout),
-                  student_payment_status: l.student_payment_status,
-                  tutor_payout_status: l.tutor_payout_status,
-                }))}
-              />
+            ) : (
+              <>
+                {/* Mobile cards (< lg) */}
+                <div className="divide-y divide-border lg:hidden">
+                  {visibleRows.map((l) => {
+                    const profit = Number(l.student_price) - Number(l.tutor_payout);
+                    const isSelected = selected.has(l.id);
+                    return (
+                      <div
+                        key={l.id}
+                        className={`p-3 ${isSelected ? "bg-primary/5" : ""}`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-2 min-w-0 flex-1">
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={() => toggleRow(l.id)}
+                              aria-label="Обрати"
+                              className="mt-0.5"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm font-medium text-foreground">
+                                {l.subject}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(l.starts_at)}
+                              </p>
+                            </div>
+                          </div>
+                          {!isIndependentTutor && (
+                            <div
+                              className={`text-right shrink-0 text-sm font-semibold ${
+                                profit >= 0 ? "text-foreground" : "text-destructive"
+                              }`}
+                            >
+                              {profit} ₴
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
+                          <div className="flex items-center justify-between gap-2 rounded-md bg-success/5 px-2.5 py-1.5">
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium text-foreground">
+                                {nameOf(l.student_id)}
+                              </p>
+                              {l.student_paid_at && (
+                                <p className="truncate text-[11px] text-muted-foreground">
+                                  опл.: {formatDate(l.student_paid_at)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="text-sm font-semibold text-success">
+                                +{l.student_price} ₴
+                              </span>
+                              <button
+                                onClick={() => togglePayment(l, "student_payment_status")}
+                                aria-label="Змінити статус оплати учня"
+                              >
+                                <Badge
+                                  className={
+                                    l.student_payment_status === "paid"
+                                      ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
+                                      : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                                  }
+                                >
+                                  {l.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                </Badge>
+                              </button>
+                            </div>
+                          </div>
+
+                          {!isIndependentTutor && (
+                            <div className="flex items-center justify-between gap-2 rounded-md bg-destructive/5 px-2.5 py-1.5">
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate font-medium text-foreground">
+                                  {nameOf(l.tutor_id)}
+                                </p>
+                                {l.tutor_paid_at && (
+                                  <p className="truncate text-[11px] text-muted-foreground">
+                                    вип.: {formatDate(l.tutor_paid_at)}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 shrink-0">
+                                <span className="text-sm font-semibold text-destructive">
+                                  -{l.tutor_payout} ₴
+                                </span>
+                                <button
+                                  onClick={() => togglePayment(l, "tutor_payout_status")}
+                                  aria-label="Змінити статус виплати"
+                                >
+                                  <Badge
+                                    className={
+                                      l.tutor_payout_status === "paid"
+                                        ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
+                                        : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                                    }
+                                  >
+                                    {l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує"}
+                                  </Badge>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Desktop table (>= lg) */}
+                <div className="hidden lg:block overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-border bg-secondary/50">
+                        <th className="px-3 py-3 w-10">
+                          <Checkbox
+                            checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                            onCheckedChange={toggleAll}
+                            aria-label="Обрати все"
+                          />
+                        </th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Дата</th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Урок</th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Учень</th>
+                        <th className="px-3 py-3 text-right font-medium text-success">Надходження</th>
+                        {!isIndependentTutor && (
+                          <th className="px-3 py-3 text-left font-medium text-muted-foreground">Репетитор</th>
+                        )}
+                        {!isIndependentTutor && (
+                          <th className="px-3 py-3 text-right font-medium text-destructive">Виплата</th>
+                        )}
+                        {!isIndependentTutor && (
+                          <th className="px-3 py-3 text-right font-medium text-muted-foreground">Прибуток</th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {visibleRows.map((l) => {
+                        const profit = Number(l.student_price) - Number(l.tutor_payout);
+                        const isSelected = selected.has(l.id);
+                        return (
+                          <tr
+                            key={l.id}
+                            className={`border-b border-border last:border-0 ${
+                              isSelected ? "bg-primary/5" : ""
+                            }`}
+                          >
+                            <td className="px-3 py-3">
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleRow(l.id)}
+                                aria-label="Обрати рядок"
+                              />
+                            </td>
+                            <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                              {formatDate(l.starts_at)}
+                            </td>
+                            <td className="px-3 py-3 text-foreground">{l.subject}</td>
+                            <td className="px-3 py-3">
+                              <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
+                              {l.student_paid_at && (
+                                <div className="text-xs text-muted-foreground">
+                                  опл.: {formatDate(l.student_paid_at)}
+                                </div>
+                              )}
+                            </td>
+                            <td className="px-3 py-3 text-right">
+                              <div className="font-semibold text-success">+{l.student_price} ₴</div>
+                              <button
+                                onClick={() => togglePayment(l, "student_payment_status")}
+                                className="mt-1 inline-block"
+                              >
+                                <Badge
+                                  className={
+                                    l.student_payment_status === "paid"
+                                      ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                      : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                  }
+                                >
+                                  {l.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                </Badge>
+                              </button>
+                            </td>
+                            {!isIndependentTutor && (
+                              <td className="px-3 py-3">
+                                <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
+                                {l.tutor_paid_at && (
+                                  <div className="text-xs text-muted-foreground">
+                                    вип.: {formatDate(l.tutor_paid_at)}
+                                  </div>
+                                )}
+                              </td>
+                            )}
+                            {!isIndependentTutor && (
+                              <td className="px-3 py-3 text-right">
+                                <div className="font-semibold text-destructive">-{l.tutor_payout} ₴</div>
+                                <button
+                                  onClick={() => togglePayment(l, "tutor_payout_status")}
+                                  className="mt-1 inline-block"
+                                >
+                                  <Badge
+                                    className={
+                                      l.tutor_payout_status === "paid"
+                                        ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                        : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                    }
+                                  >
+                                    {l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує"}
+                                  </Badge>
+                                </button>
+                              </td>
+                            )}
+                            {!isIndependentTutor && (
+                              <td
+                                className={`px-3 py-3 text-right font-semibold ${
+                                  profit >= 0 ? "text-foreground" : "text-destructive"
+                                }`}
+                              >
+                                {profit} ₴
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* === Bulk actions — secondary, after table === */}
+          <details className="mt-4 rounded-xl border border-border bg-card">
+            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-muted-foreground">
+                  Масові дії {selected.size > 0 && (
+                    <span className="ml-1 font-semibold text-foreground">({selected.size})</span>
+                  )}
+                </span>
+                <span className="text-xs text-muted-foreground">розгорнути</span>
+              </div>
+            </summary>
+            <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={selected.size === 0 || bulkBusy}
+                onClick={() => bulkMark("student_payment_status")}
+              >
+                <CheckCheck className="h-4 w-4" />
+                Учні оплатили
+              </Button>
+              {!isIndependentTutor && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.size === 0 || bulkBusy}
+                  onClick={() => bulkMark("tutor_payout_status")}
+                >
+                  <CheckCheck className="h-4 w-4" />
+                  Виплачено репетиторам
+                </Button>
+              )}
+              <Button size="sm" variant="outline" onClick={exportCsv}>
+                <Download className="h-4 w-4" />
+                Експорт CSV
+              </Button>
             </div>
-          )}
+          </details>
+
+          {/* === Markup table — analytics, secondary === */}
           {!isIndependentTutor && (
-            <div className="mt-6 rounded-xl border border-border bg-card p-4">
+            <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
                   Середня націнка по репетиторах
                 </h2>
-                <span className="text-xs text-muted-foreground">
+                <span className="hidden text-xs text-muted-foreground sm:inline">
                   (ціна учня − виплата) / виплата
                 </span>
               </div>
@@ -554,204 +812,37 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {/* Bulk action bar */}
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {selected.size > 0 ? (
-                <span className="font-medium text-foreground">
-                  Обрано: {selected.size}
-                </span>
-              ) : (
-                <span>Оберіть рядки для масових дій</span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selected.size === 0 || bulkBusy}
-                onClick={() => bulkMark("student_payment_status")}
-              >
-                <CheckCheck className="h-4 w-4" />
-                Учні оплатили
-              </Button>
-              {!isIndependentTutor && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={selected.size === 0 || bulkBusy}
-                  onClick={() => bulkMark("tutor_payout_status")}
-                >
-                  <CheckCheck className="h-4 w-4" />
-                  Виплачено репетиторам
-                </Button>
-              )}
-              <Button size="sm" variant="outline" onClick={exportCsv}>
-                <Download className="h-4 w-4" />
-                Експорт CSV
-              </Button>
-            </div>
-          </div>
-
-          {/* Unified table */}
-          <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card">
-            {visibleRows.length === 0 ? (
-              <div className="p-6">
-                <EmptyState
-                  icon={DollarSign}
-                  title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
-                />
+          {/* === Chart — moved to the bottom === */}
+          {!isIndependentTutor && (
+            <div className="mt-4 rounded-xl border border-border bg-card p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h2 className="text-sm font-semibold text-foreground">
+                  Тижнева динаміка прибутку (12 тижнів)
+                </h2>
+                <span className="hidden text-xs text-muted-foreground sm:inline">Завершені уроки</span>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/50">
-                      <th className="px-3 py-3 w-10">
-                        <Checkbox
-                          checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                          onCheckedChange={toggleAll}
-                          aria-label="Обрати все"
-                        />
-                      </th>
-                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                        Дата
-                      </th>
-                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                        Урок
-                      </th>
-                      <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                        Учень
-                      </th>
-                      <th className="px-3 py-3 text-right font-medium text-success">
-                        Надходження
-                      </th>
-                      {!isIndependentTutor && (
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">
-                          Репетитор
-                        </th>
-                      )}
-                      {!isIndependentTutor && (
-                        <th className="px-3 py-3 text-right font-medium text-destructive">
-                          Виплата
-                        </th>
-                      )}
-                      {!isIndependentTutor && (
-                        <th className="px-3 py-3 text-right font-medium text-muted-foreground">
-                          Прибуток
-                        </th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {visibleRows.map((l) => {
-                      const profit = Number(l.student_price) - Number(l.tutor_payout);
-                      const isSelected = selected.has(l.id);
-                      return (
-                        <tr
-                          key={l.id}
-                          className={`border-b border-border last:border-0 ${
-                            isSelected ? "bg-primary/5" : ""
-                          }`}
-                        >
-                          <td className="px-3 py-3">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleRow(l.id)}
-                              aria-label="Обрати рядок"
-                            />
-                          </td>
-                          <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-                            {formatDate(l.starts_at)}
-                          </td>
-                          <td className="px-3 py-3 text-foreground">{l.subject}</td>
-                          {/* Student column */}
-                          <td className="px-3 py-3">
-                            <div className="font-medium text-foreground">
-                              {nameOf(l.student_id)}
-                            </div>
-                            {l.student_paid_at && (
-                              <div className="text-xs text-muted-foreground">
-                                опл.: {formatDate(l.student_paid_at)}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <div className="font-semibold text-success">
-                              +{l.student_price} ₴
-                            </div>
-                            <button
-                              onClick={() => togglePayment(l, "student_payment_status")}
-                              className="mt-1 inline-block"
-                            >
-                              <Badge
-                                className={
-                                  l.student_payment_status === "paid"
-                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                }
-                              >
-                                {l.student_payment_status === "paid"
-                                  ? "Оплачено"
-                                  : "Очікує"}
-                              </Badge>
-                            </button>
-                          </td>
-                          {!isIndependentTutor && (
-                            <td className="px-3 py-3">
-                              <div className="font-medium text-foreground">
-                                {nameOf(l.tutor_id)}
-                              </div>
-                              {l.tutor_paid_at && (
-                                <div className="text-xs text-muted-foreground">
-                                  вип.: {formatDate(l.tutor_paid_at)}
-                                </div>
-                              )}
-                            </td>
-                          )}
-                          {!isIndependentTutor && (
-                            <td className="px-3 py-3 text-right">
-                              <div className="font-semibold text-destructive">
-                                -{l.tutor_payout} ₴
-                              </div>
-                              <button
-                                onClick={() => togglePayment(l, "tutor_payout_status")}
-                                className="mt-1 inline-block"
-                              >
-                                <Badge
-                                  className={
-                                    l.tutor_payout_status === "paid"
-                                      ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                      : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                  }
-                                >
-                                  {l.tutor_payout_status === "paid"
-                                    ? "Виплачено"
-                                    : "Очікує"}
-                                </Badge>
-                              </button>
-                            </td>
-                          )}
-                          {!isIndependentTutor && (
-                            <td
-                              className={`px-3 py-3 text-right font-semibold ${
-                                profit >= 0 ? "text-foreground" : "text-destructive"
-                              }`}
-                            >
-                              {profit} ₴
-                            </td>
-                          )}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+              <FinanceWeeklyChart
+                tutorNames={Object.fromEntries(
+                  Object.values(profiles).map((p) => [
+                    p.id,
+                    `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+                  ])
+                )}
+                lessons={filtered.map((l) => ({
+                  starts_at: l.starts_at,
+                  status: l.status,
+                  tutor_id: l.tutor_id,
+                  student_price: Number(l.student_price),
+                  tutor_payout: Number(l.tutor_payout),
+                  student_payment_status: l.student_payment_status,
+                  tutor_payout_status: l.tutor_payout_status,
+                }))}
+              />
+            </div>
+          )}
         </>
       )}
     </AppLayout>
   );
 }
+
