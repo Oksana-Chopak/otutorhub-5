@@ -30,6 +30,7 @@ import {
   Trash2,
   Hourglass,
   Banknote,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 
