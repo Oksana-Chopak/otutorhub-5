@@ -57,7 +57,7 @@ export function FeedbackButton() {
       <DialogTrigger asChild>
         <Button
           size="lg"
-          className="fixed bottom-20 right-4 z-40 h-12 gap-2 rounded-full shadow-lg lg:bottom-6 lg:right-6"
+          className="fixed bottom-20 left-4 z-40 h-12 gap-2 rounded-full shadow-lg lg:bottom-6 lg:right-6 lg:left-auto"
           aria-label="Залишити фідбек"
         >
           <MessageCircleHeart className="h-5 w-5" />
