@@ -64,7 +64,16 @@ export function useWorkspaceSettings() {
   };
 
   const isIndependent = settings?.independent_workspace ?? false;
-  const isPro = settings?.subscription_status === "active";
+  const isActiveSub = settings?.subscription_status === "active";
+  const trialActive =
+    settings?.subscription_status === "trial" &&
+    !!settings?.trial_until &&
+    new Date(settings.trial_until).getTime() > Date.now();
+  const isPro = isActiveSub || trialActive;
+  const trialUntil = settings?.trial_until ? new Date(settings.trial_until) : null;
+  const trialDaysLeft = trialActive && trialUntil
+    ? Math.max(0, Math.ceil((trialUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+    : 0;
 
   return {
     settings,
@@ -72,6 +81,9 @@ export function useWorkspaceSettings() {
     studentCount,
     isIndependent,
     isPro,
+    isTrial: trialActive,
+    trialUntil,
+    trialDaysLeft,
     updateSettings,
     refresh: load,
   };
