@@ -107,7 +107,7 @@ export default function SubscriptionRequestsPage() {
 
   const updateStatus = async (id: string, status: RequestStatus) => {
     setSavingId(id);
-    const patch: Partial<SubscriptionRequest> = { status };
+    const patch: { status: RequestStatus; manager_response?: string } = { status };
     if (responseDrafts[id]?.trim()) {
       patch.manager_response = responseDrafts[id].trim();
     }

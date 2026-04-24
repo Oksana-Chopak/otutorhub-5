@@ -171,7 +171,7 @@ export default function SubscriptionPage() {
                 {isPro ? "Підписка активна" : "Оформити підписку"}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Онлайн-оплата готується. Поки що — оплата вручну через менеджера.
+                Заявка одразу піде менеджеру школи — він зв'яжеться з вами для оплати.
               </p>
             </CardContent>
           </Card>
@@ -181,6 +181,7 @@ export default function SubscriptionPage() {
           Скасувати або змінити план можна в будь-який момент. Залишок дня не пропадає.
         </p>
       </div>
+      <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} />
     </AppLayout>
   );
 }
