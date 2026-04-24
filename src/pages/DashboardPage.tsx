@@ -112,6 +112,8 @@ export default function DashboardPage() {
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
+  const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
+
   const loadData = async () => {
     if (!user) return;
 
@@ -121,6 +123,7 @@ export default function DashboardPage() {
       { data: rolesData },
       { data: requestRows },
       { data: ratesData },
+      { data: defaultsData },
     ] = await Promise.all([
       supabase
         .from("lessons_visible")
@@ -136,12 +139,27 @@ export default function DashboardPage() {
       isManager
         ? supabase.from("student_rates").select("student_id")
         : Promise.resolve({ data: [] as any[] }),
+      supabase
+        .from("tutor_student_defaults")
+        .select("tutor_id, student_id, default_meeting_url"),
     ]);
 
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
       profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
     });
+
+    const defaultsMap: Record<string, string> = {};
+    ((defaultsData ?? []) as Array<{
+      tutor_id: string;
+      student_id: string;
+      default_meeting_url: string | null;
+    }>).forEach((d) => {
+      if (d.default_meeting_url && d.default_meeting_url.trim()) {
+        defaultsMap[`${d.tutor_id}:${d.student_id}`] = d.default_meeting_url.trim();
+      }
+    });
+    setDefaultMeetingUrls(defaultsMap);
 
     const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
     const tutorIds = roleRows.filter((r) => r.role === "tutor").map((r) => r.user_id);
