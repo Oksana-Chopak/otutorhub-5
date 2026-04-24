@@ -564,7 +564,7 @@ export default function SchedulePage() {
               <SelectItem value="cancelled">Скасовано</SelectItem>
             </SelectContent>
           </Select>
-          {(isManager || isTutor) && (
+          {isManager && (
             <Select value={filterTutor} onValueChange={setFilterTutor}>
               <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
               <SelectContent>
