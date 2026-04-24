@@ -230,7 +230,36 @@ export default function MyStudentsPage() {
         return;
       }
 
-      // 2. Contacts
+      // 2. Student role (RLS allows independent tutor to assign 'student' role to a pending ghost profile)
+      const { error: roleErr } = await supabase
+        .from("user_roles")
+        .insert({ user_id: newId, role: "student" });
+      if (roleErr) {
+        console.error(roleErr);
+        await supabase.from("profiles").delete().eq("id", newId);
+        toast.error("Не вдалося призначити роль");
+        setSubmitting(false);
+        return;
+      }
+
+      // 3. Rate (independent source) — must exist BEFORE contacts/details so RLS for independent tutor passes
+      const { error: rateErr } = await supabase.from("student_rates").insert({
+        tutor_id: user.id,
+        student_id: newId,
+        subject,
+        price_per_lesson: price,
+        source: "independent",
+      });
+      if (rateErr) {
+        console.error(rateErr);
+        await supabase.from("user_roles").delete().eq("user_id", newId);
+        await supabase.from("profiles").delete().eq("id", newId);
+        toast.error("Не вдалося зберегти ціну");
+        setSubmitting(false);
+        return;
+      }
+
+      // 4. Contacts (now allowed by 'Independent tutor manages own student contacts' RLS)
       const { error: contErr } = await supabase.from("profile_contacts").insert({
         user_id: newId,
         email: email || null,
@@ -241,6 +270,8 @@ export default function MyStudentsPage() {
       });
       if (contErr) {
         console.error(contErr);
+        await supabase.from("student_rates").delete().eq("tutor_id", user.id).eq("student_id", newId);
+        await supabase.from("user_roles").delete().eq("user_id", newId);
         await supabase.from("profiles").delete().eq("id", newId);
         toast.error(
           String(contErr.message || "").includes("email_lower")
@@ -251,36 +282,8 @@ export default function MyStudentsPage() {
         return;
       }
 
-      // 3. Student role
-      const { error: roleErr } = await supabase
-        .from("user_roles")
-        .insert({ user_id: newId, role: "student" });
-      if (roleErr) {
-        console.error(roleErr);
-        await supabase.from("profile_contacts").delete().eq("user_id", newId);
-        await supabase.from("profiles").delete().eq("id", newId);
-        toast.error("Не вдалося призначити роль");
-        setSubmitting(false);
-        return;
-      }
-
-      // 4. Student details
+      // 5. Student details
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
-
-      // 5. Rate (independent source)
-      const { error: rateErr } = await supabase.from("student_rates").insert({
-        tutor_id: user.id,
-        student_id: newId,
-        subject,
-        price_per_lesson: price,
-        source: "independent",
-      });
-      if (rateErr) {
-        console.error(rateErr);
-        toast.error("Не вдалося зберегти ціну");
-        setSubmitting(false);
-        return;
-      }
 
       toast.success("Учня додано. Дані зв'яжуться з його акаунтом після реєстрації.");
     } else if (dialog.mode === "edit" && dialog.studentId) {
