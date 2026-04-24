@@ -47,8 +47,30 @@ export function LessonWorkspace({
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
-  const canTogglePayment = isTutor && source === "independent";
+  const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+
+  useEffect(() => {
+    setPaidLocal(studentPaymentStatus ?? "unpaid");
+  }, [studentPaymentStatus, lessonId]);
+
+  const togglePayment = async () => {
+    setPaymentBusy(true);
+    const next = paidLocal === "paid" ? "unpaid" : "paid";
+    const { error } = await supabase
+      .from("lessons")
+      .update({ student_payment_status: next })
+      .eq("id", lessonId);
+    setPaymentBusy(false);
+    if (error) {
+      toast({ title: "Не вдалося оновити оплату", description: error.message, variant: "destructive" });
+      return;
+    }
+    setPaidLocal(next);
+    toast({ title: next === "paid" ? "Позначено як оплачено" : "Позначено як неоплачено" });
+    onUpdated?.();
+  };
 
   const [meetingDraft, setMeetingDraft] = useState(meetingUrl ?? "");
   const [homeworkDraft, setHomeworkDraft] = useState(homework ?? "");
@@ -287,6 +309,45 @@ export function LessonWorkspace({
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
+
+      {/* Payment status (independent tutor / manager) */}
+      {canTogglePayment && (
+        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Banknote className="h-4 w-4 text-primary" />
+              Оплата уроку
+              {studentPrice !== undefined && studentPrice !== null && (
+                <span className="ml-1 text-muted-foreground">— {studentPrice} ₴</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <span
+                className={
+                  paidLocal === "paid"
+                    ? "rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
+                    : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
+                }
+              >
+                {paidLocal === "paid" ? "Оплачено" : "Не оплачено"}
+              </span>
+              <Button
+                size="sm"
+                variant={paidLocal === "paid" ? "outline" : "default"}
+                disabled={paymentBusy}
+                onClick={togglePayment}
+              >
+                {paymentBusy ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 h-4 w-4" />
+                )}
+                {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
+              </Button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Student personal notes */}
       {(canEditStudentNotes || (isManager && studentNotes)) && (
