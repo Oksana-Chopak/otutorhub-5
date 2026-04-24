@@ -35,7 +35,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { EmptyState } from "@/components/EmptyState";
@@ -61,6 +61,7 @@ interface Lesson {
   tutor_payout: number;
   student_payment_status: PaymentStatus;
   tutor_payout_status: PaymentStatus;
+  meeting_url?: string | null;
   source?: LessonSource;
 }
 
@@ -148,6 +149,53 @@ export default function SchedulePage() {
   }>({});
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
+
+  // Edit dialog state (quick edit from calendar / list)
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [editForm, setEditForm] = useState({
+    subject: "",
+    starts_at: "",
+    duration_minutes: "60",
+    notes: "",
+    meeting_url: "",
+  });
+  const [editSubmitting, setEditSubmitting] = useState(false);
+
+  const openEdit = (lesson: Lesson) => {
+    setEditingLesson(lesson);
+    setEditForm({
+      subject: lesson.subject,
+      starts_at: toLocalInputValue(lesson.starts_at),
+      duration_minutes: String(lesson.duration_minutes),
+      notes: lesson.notes ?? "",
+      meeting_url: (lesson as any).meeting_url ?? "",
+    });
+  };
+
+  const saveEdit = async () => {
+    if (!editingLesson) return;
+    setEditSubmitting(true);
+    const payload: any = {
+      subject: editForm.subject,
+      starts_at: new Date(editForm.starts_at).toISOString(),
+      duration_minutes: parseInt(editForm.duration_minutes) || 60,
+      notes: editForm.notes || null,
+      meeting_url: editForm.meeting_url || null,
+    };
+    const { error } = await supabase
+      .from("lessons")
+      .update(payload)
+      .eq("id", editingLesson.id);
+    setEditSubmitting(false);
+    if (error) {
+      console.error(error);
+      toast.error("Не вдалося зберегти зміни");
+      return;
+    }
+    toast.success("Урок оновлено");
+    setEditingLesson(null);
+    loadAll();
+  };
 
   const openCopy = (lesson: Lesson) => {
     // Pre-fill form with lesson data; default new starts_at = +7 days same time
@@ -967,6 +1015,54 @@ export default function SchedulePage() {
         )}
       </div>
 
+      {/* Edit lesson dialog (opened from calendar / list) */}
+      <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Редагувати урок</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="edit_subject">Предмет</Label>
+              <Input id="edit_subject" value={editForm.subject}
+                onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="edit_starts_at">Дата і час</Label>
+                <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
+                  onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
+              </div>
+              <div>
+                <Label htmlFor="edit_duration">Тривалість (хв)</Label>
+                <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
+                  onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5">
+                <Video className="h-3.5 w-3.5" /> Посилання на зустріч
+              </Label>
+              <Input id="edit_meeting_url" type="url" placeholder="https://meet.google.com/..."
+                value={editForm.meeting_url}
+                onChange={(e) => setEditForm((f) => ({ ...f, meeting_url: e.target.value }))} />
+            </div>
+            <div>
+              <Label htmlFor="edit_notes">Нотатки</Label>
+              <Textarea id="edit_notes" rows={3} value={editForm.notes}
+                onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingLesson(null)}>Скасувати</Button>
+            <Button onClick={saveEdit} disabled={editSubmitting}>
+              {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Зберегти
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
           <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
@@ -1013,6 +1109,10 @@ export default function SchedulePage() {
             if (!canCreate) return;
             setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
             setCreateOpen(true);
+          }}
+          onLessonClick={(l) => {
+            const full = lessons.find((x) => x.id === l.id);
+            if (full) openEdit(full);
           }}
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
@@ -1129,9 +1229,34 @@ export default function SchedulePage() {
                                 </Select>
                               </div>
                             )}
+                            {/* Payment toggle for independent tutor on their own lessons */}
+                            {!isManager && isTutor && lesson.tutor_id === user?.id && lesson.source === "independent" && (
+                              <div className="mt-1 flex items-center gap-2 text-xs">
+                                <span className="text-muted-foreground">Оплата учня:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => updatePayment(lesson.id, "student_payment_status", lesson.student_payment_status === "paid" ? "unpaid" : "paid")}
+                                  className={`px-2 py-0.5 rounded-md border ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success border-success/30 hover:bg-success/20" : "bg-warning/10 text-warning border-warning/30 hover:bg-warning/20"}`}
+                                >
+                                  {lesson.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
+                          {/* Edit button (tutor or manager) */}
+                          {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => openEdit(lesson)}
+                              title="Редагувати урок"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
                           {canEditStatus ? (
                             <Select
                               value={lesson.status}

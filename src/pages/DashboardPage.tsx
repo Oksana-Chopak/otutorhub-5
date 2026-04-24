@@ -112,6 +112,8 @@ export default function DashboardPage() {
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
+  const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
+
   const loadData = async () => {
     if (!user) return;
 
@@ -121,6 +123,7 @@ export default function DashboardPage() {
       { data: rolesData },
       { data: requestRows },
       { data: ratesData },
+      { data: defaultsData },
     ] = await Promise.all([
       supabase
         .from("lessons_visible")
@@ -136,12 +139,27 @@ export default function DashboardPage() {
       isManager
         ? supabase.from("student_rates").select("student_id")
         : Promise.resolve({ data: [] as any[] }),
+      supabase
+        .from("tutor_student_defaults")
+        .select("tutor_id, student_id, default_meeting_url"),
     ]);
 
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
       profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
     });
+
+    const defaultsMap: Record<string, string> = {};
+    ((defaultsData ?? []) as Array<{
+      tutor_id: string;
+      student_id: string;
+      default_meeting_url: string | null;
+    }>).forEach((d) => {
+      if (d.default_meeting_url && d.default_meeting_url.trim()) {
+        defaultsMap[`${d.tutor_id}:${d.student_id}`] = d.default_meeting_url.trim();
+      }
+    });
+    setDefaultMeetingUrls(defaultsMap);
 
     const roleRows = (rolesData ?? []) as Array<{ user_id: string; role: string }>;
     const tutorIds = roleRows.filter((r) => r.role === "tutor").map((r) => r.user_id);
@@ -251,15 +269,22 @@ export default function DashboardPage() {
     [lessons]
   );
 
+  const effectiveMeetingUrl = (l: LessonRow): string | null => {
+    if (l.meeting_url && l.meeting_url.trim()) return l.meeting_url.trim();
+    const fallback = defaultMeetingUrls[`${l.tutor_id}:${l.student_id}`];
+    return fallback || null;
+  };
+
   const lessonsWithoutMeeting = useMemo(
     () =>
       lessons.filter(
         (l) =>
           l.status === "scheduled" &&
           new Date(l.starts_at).getTime() >= nowMs &&
-          (!l.meeting_url || !l.meeting_url.trim())
+          !effectiveMeetingUrl(l)
       ).length,
-    [lessons, nowMs]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [lessons, nowMs, defaultMeetingUrls]
   );
 
   const pendingLessonRequests = useMemo(
@@ -520,7 +545,8 @@ export default function DashboardPage() {
                     const timeLabel = `${dayPart} · ${timeStr}`;
 
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
-                    const hasMeeting = !!(lesson.meeting_url && lesson.meeting_url.trim());
+                    const meetingHref = effectiveMeetingUrl(lesson);
+                    const hasMeeting = !!meetingHref;
 
                     if (isManager && !isParticipant) {
                       return (
@@ -570,7 +596,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2">
                           {hasMeeting ? (
                             <Button asChild size="sm" variant="default">
-                              <a href={lesson.meeting_url!} target="_blank" rel="noopener noreferrer">
+                              <a href={meetingHref!} target="_blank" rel="noopener noreferrer">
                                 <Video className="mr-2 h-4 w-4" />
                                 Приєднатися
                               </a>
