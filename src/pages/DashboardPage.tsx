@@ -579,6 +579,9 @@ export default function DashboardPage() {
                             homework={lesson.homework}
                             summary={lesson.summary}
                             studentNotes={lesson.student_notes}
+                            source={lesson.source}
+                            studentPrice={lesson.student_price}
+                            studentPaymentStatus={lesson.student_payment_status}
                             onUpdated={loadData}
                           />
                         </CollapsibleContent>
