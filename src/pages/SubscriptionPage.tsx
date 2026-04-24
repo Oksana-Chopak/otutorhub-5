@@ -22,13 +22,16 @@ import {
   CalendarX2,
   BarChart3,
   FileDown,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
-import { format } from "date-fns";
+import { format, formatDistanceToNowStrict } from "date-fns";
 import { uk } from "date-fns/locale";
 
-const PRO_PRICE = 145;
+const PRO_PRICE_MONTHLY = 129;
+const PRO_PRICE_YEARLY_PER_MONTH = 99;
+const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
 
 const freePerks = [
   "Необмежена кількість учнів",
