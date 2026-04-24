@@ -82,12 +82,25 @@ const statusClass: Record<LessonStatus, string> = {
 type ProfitPeriod = "all" | "month" | "week";
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { user, roles } = useAuth();
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+
+  // Auto-redirect: tutor (not manager) who never opened the app — show onboarding
+  // first instead of an empty dashboard. We trigger it only when the workspace
+  // has not been activated AND the tutor has not explicitly skipped (no settings row).
+  useEffect(() => {
+    if (wsLoading) return;
+    if (!isTutor || isManager || isStudent) return;
+    if (settings === null) {
+      navigate("/onboarding", { replace: true });
+    }
+  }, [wsLoading, isTutor, isManager, isStudent, settings, navigate]);
+
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
