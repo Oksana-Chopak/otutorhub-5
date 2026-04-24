@@ -175,6 +175,34 @@ export function AppSidebar() {
           })}
         </nav>
 
+        {showOnboardingHelp && (
+          <div className="border-t border-border px-3 py-3">
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Допомога
+            </p>
+            <RouterNavLink
+              to="/onboarding"
+              onClick={() => setOpen(false)}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                )
+              }
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="flex-1">Гайд по налаштуванню</span>
+              {isIndependent && !settings?.onboarding_completed && (
+                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
+                  {settings?.onboarding_step ?? 1}/6
+                </span>
+              )}
+            </RouterNavLink>
+          </div>
+        )}
+
         <div className="border-t border-border px-4 py-4 space-y-3">
           <div className="flex items-center gap-3">
             <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
