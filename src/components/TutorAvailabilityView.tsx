@@ -1,24 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
-import {
-  Loader2,
-  CalendarClock,
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { Loader2, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   WEEKDAYS_FULL_UK,
   computeAvailableForDate,
@@ -30,36 +13,27 @@ import {
   type OverrideRow,
   type BookedRow,
 } from "@/lib/availability";
-import { useAuth } from "@/hooks/useAuth";
 
 interface TutorCalendarProps {
   tutorId: string;
   tutorName: string;
-  /** if provided, used as default subject when booking */
-  defaultSubject?: string;
 }
 
 const DAYS_AHEAD = 14;
 const SLOT_MINUTES = 60;
 
-export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: TutorCalendarProps) {
-  const { user, roles } = useAuth();
-  const isStudent = roles.includes("student");
-  const isManager = roles.includes("manager");
-
+/**
+ * Read-only календар вільних годин репетитора для учня.
+ * Учень НЕ може створювати уроки чи надсилати запити —
+ * він лише бачить, коли його репетитор вільний, а далі домовляється
+ * з репетитором у чаті. Уроки створює тільки репетитор або менеджер.
+ */
+export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps) {
   const [loading, setLoading] = useState(true);
   const [weekly, setWeekly] = useState<WeeklyRow[]>([]);
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
   const [booked, setBooked] = useState<BookedRow[]>([]);
-  const [openRequest, setOpenRequest] = useState(false);
-  const [requestMsg, setRequestMsg] = useState("");
-  const [sending, setSending] = useState(false);
-  const [hasOpenRequest, setHasOpenRequest] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
-
-  const [bookSlot, setBookSlot] = useState<{ date: Date; start: number } | null>(null);
-  const [booking, setBooking] = useState(false);
-  const [subject, setSubject] = useState(defaultSubject ?? "");
 
   const load = async () => {
     setLoading(true);
@@ -68,7 +42,7 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
     horizon.setDate(horizon.getDate() + DAYS_AHEAD);
     const horizonIso = toLocalISODate(horizon);
 
-    const [wRes, oRes, lRes, reqRes] = await Promise.all([
+    const [wRes, oRes, lRes] = await Promise.all([
       supabase.from("tutor_availability_weekly").select("*").eq("tutor_id", tutorId),
       supabase
         .from("tutor_availability_overrides")
@@ -82,26 +56,16 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
         .eq("tutor_id", tutorId)
         .gte("starts_at", new Date().toISOString())
         .in("status", ["pending", "scheduled"]),
-      user
-        ? supabase
-            .from("availability_requests")
-            .select("id")
-            .eq("tutor_id", tutorId)
-            .eq("requester_id", user.id)
-            .eq("status", "open")
-            .limit(1)
-        : Promise.resolve({ data: [] }),
     ]);
     setWeekly((wRes.data ?? []) as WeeklyRow[]);
     setOverrides((oRes.data ?? []) as OverrideRow[]);
     setBooked((lRes.data ?? []) as BookedRow[]);
-    setHasOpenRequest(((reqRes as any).data ?? []).length > 0);
     setLoading(false);
   };
 
   useEffect(() => {
     load();
-  }, [tutorId, user?.id]);
+  }, [tutorId]);
 
   const hasAnyAvailability = weekly.length > 0 || overrides.some((o) => o.is_available);
 
@@ -114,7 +78,6 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
       d.setDate(start.getDate() + i);
       const intervals = computeAvailableForDate(d, weekly, overrides, booked);
       const slots = splitIntoSlots(intervals, SLOT_MINUTES);
-      // filter past slots for today
       const now = new Date();
       const filtered = slots.filter((s) => {
         const slotDate = buildLocalDate(d, s.start);
@@ -125,61 +88,6 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
     return arr;
   }, [weekly, overrides, booked, weekOffset]);
 
-  const sendRequest = async () => {
-    if (!user) return;
-    setSending(true);
-    const { error } = await supabase.from("availability_requests").insert({
-      tutor_id: tutorId,
-      requester_id: user.id,
-      message: requestMsg.trim() || null,
-    });
-    setSending(false);
-    if (error) {
-      console.error(error);
-      toast.error("Не вдалося надіслати запит");
-      return;
-    }
-    toast.success("Запит надіслано — репетитор отримає сповіщення");
-    setRequestMsg("");
-    setOpenRequest(false);
-    setHasOpenRequest(true);
-  };
-
-  const confirmBooking = async () => {
-    if (!bookSlot || !user) return;
-    if (!subject.trim()) {
-      toast.error("Вкажіть предмет уроку");
-      return;
-    }
-    setBooking(true);
-    const startsAt = buildLocalDate(bookSlot.date, bookSlot.start).toISOString();
-    const lessonInsert: any = {
-      tutor_id: tutorId,
-      student_id: user.id,
-      created_by: user.id,
-      starts_at: startsAt,
-      duration_minutes: SLOT_MINUTES,
-      subject: subject.trim(),
-    };
-    if (isStudent && !isManager) {
-      lessonInsert.status = "pending";
-      lessonInsert.student_payment_status = "unpaid";
-      lessonInsert.tutor_payout_status = "unpaid";
-      lessonInsert.student_price = 0;
-      lessonInsert.tutor_payout = 0;
-    }
-    const { error } = await supabase.from("lessons").insert(lessonInsert);
-    setBooking(false);
-    if (error) {
-      console.error(error);
-      toast.error(error.message || "Не вдалося створити запит на урок");
-      return;
-    }
-    toast.success("Урок запитано — очікуйте підтвердження");
-    setBookSlot(null);
-    load();
-  };
-
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -188,7 +96,9 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
             <CalendarClock className="h-4 w-4 text-primary" />
             Доступні години — {tutorName}
           </h3>
-          <p className="text-xs text-muted-foreground">Найближчі 14 днів</p>
+          <p className="text-xs text-muted-foreground">
+            Найближчі 14 днів. Щоб домовитися про урок — напишіть репетитору в чат.
+          </p>
         </div>
         {hasAnyAvailability && (
           <div className="flex items-center gap-1">
@@ -219,20 +129,9 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       ) : !hasAnyAvailability ? (
-        <div className="text-center py-6 space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Репетитор ще не вказав свої доступні години.
-          </p>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => setOpenRequest(true)}
-            disabled={hasOpenRequest}
-          >
-            <Bell className="h-3.5 w-3.5 mr-1" />
-            {hasOpenRequest ? "Запит уже надіслано" : "Запитати про доступні години"}
-          </Button>
-        </div>
+        <p className="text-center text-sm text-muted-foreground py-6">
+          Репетитор ще не вказав свої доступні години.
+        </p>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
           {days.map(({ date, slots }) => {
@@ -255,16 +154,13 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
                     <p className="text-[10px] text-muted-foreground italic">—</p>
                   ) : (
                     slots.map((s) => (
-                      <button
+                      <div
                         key={s.start}
-                        type="button"
-                        onClick={() => (isStudent || isManager) && setBookSlot({ date, start: s.start })}
-                        disabled={!(isStudent || isManager)}
-                        className="w-full text-[10px] font-mono rounded bg-primary/10 hover:bg-primary/20 disabled:hover:bg-primary/10 text-primary px-1 py-0.5 transition-colors"
+                        className="w-full text-[10px] font-mono rounded bg-primary/10 text-primary px-1 py-0.5"
                         title={`${minutesToHHMM(s.start)} — ${minutesToHHMM(s.end)}`}
                       >
                         {minutesToHHMM(s.start)}
-                      </button>
+                      </div>
                     ))
                   )}
                 </div>
@@ -273,73 +169,6 @@ export function TutorAvailabilityView({ tutorId, tutorName, defaultSubject }: Tu
           })}
         </div>
       )}
-
-      {/* Request dialog */}
-      <Dialog open={openRequest} onOpenChange={setOpenRequest}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Запит репетитору</DialogTitle>
-            <DialogDescription>
-              {tutorName} отримає сповіщення з проханням проставити доступні години.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-2">
-            <Label htmlFor="msg">Коментар (необов'язково)</Label>
-            <Input
-              id="msg"
-              value={requestMsg}
-              onChange={(e) => setRequestMsg(e.target.value)}
-              placeholder="Напр.: на наступний тиждень"
-              maxLength={200}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenRequest(false)} disabled={sending}>
-              Скасувати
-            </Button>
-            <Button onClick={sendRequest} disabled={sending}>
-              {sending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              Надіслати
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Booking dialog */}
-      <Dialog open={!!bookSlot} onOpenChange={(o) => !o && setBookSlot(null)}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Запитати урок</DialogTitle>
-            <DialogDescription>
-              {bookSlot && (
-                <>
-                  {bookSlot.date.toLocaleDateString("uk-UA", { day: "2-digit", month: "long", weekday: "long" })} о{" "}
-                  {minutesToHHMM(bookSlot.start)} — {tutorName}
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-2">
-            <Label htmlFor="subj">Предмет</Label>
-            <Input
-              id="subj"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Напр.: Англійська"
-              maxLength={100}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBookSlot(null)} disabled={booking}>
-              Скасувати
-            </Button>
-            <Button onClick={confirmBooking} disabled={booking}>
-              {booking ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : null}
-              {isStudent && !isManager ? "Запитати урок" : "Створити урок"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
