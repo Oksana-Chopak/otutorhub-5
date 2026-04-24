@@ -105,13 +105,14 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile toggle */}
+      {/* Mobile FAB toggle — bottom-right, large tap target */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed top-4 left-4 z-50 rounded-lg bg-card p-2 shadow-md lg:hidden"
-        aria-label="Toggle menu"
+        className="fixed bottom-20 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
+        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+        aria-label={open ? "Закрити меню" : "Відкрити меню"}
       >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
 
       {open && (
