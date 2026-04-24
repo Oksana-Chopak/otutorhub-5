@@ -25,6 +25,8 @@ import {
 import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { Percent } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -64,6 +66,12 @@ const formatDate = (iso: string) =>
   });
 
 export default function FinancesPage() {
+  const { roles } = useAuth();
+  const { isIndependent } = useWorkspaceSettings();
+  const isManager = roles.includes("manager");
+  const isTutor = roles.includes("tutor");
+  const isIndependentTutor = isTutor && !isManager && isIndependent;
+
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
