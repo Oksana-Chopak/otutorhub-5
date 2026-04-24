@@ -859,7 +859,7 @@ export default function ChatsPage() {
                         key={tpl}
                         type="button"
                         onClick={() => setDraft(tpl)}
-                        className="rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground hover:border-primary/40 hover:text-foreground transition-colors"
+                        className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
                         title="Вставити шаблон"
                       >
                         {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
