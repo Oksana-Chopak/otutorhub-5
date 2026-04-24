@@ -545,7 +545,8 @@ export default function DashboardPage() {
                     const timeLabel = `${dayPart} · ${timeStr}`;
 
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
-                    const hasMeeting = !!(lesson.meeting_url && lesson.meeting_url.trim());
+                    const meetingHref = effectiveMeetingUrl(lesson);
+                    const hasMeeting = !!meetingHref;
 
                     if (isManager && !isParticipant) {
                       return (
@@ -595,7 +596,7 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2">
                           {hasMeeting ? (
                             <Button asChild size="sm" variant="default">
-                              <a href={lesson.meeting_url!} target="_blank" rel="noopener noreferrer">
+                              <a href={meetingHref!} target="_blank" rel="noopener noreferrer">
                                 <Video className="mr-2 h-4 w-4" />
                                 Приєднатися
                               </a>
