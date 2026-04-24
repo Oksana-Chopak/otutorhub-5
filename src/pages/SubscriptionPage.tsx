@@ -469,8 +469,8 @@ export default function SubscriptionPage() {
                       : hasPending
                       ? "Запит уже надіслано"
                       : isTrial
-                      ? `Активувати Pro (${billing === "yearly" ? "рік" : "місяць"})`
-                      : `Оформити Pro (${billing === "yearly" ? "рік" : "місяць"})`}
+                      ? `Активувати Pro`
+                      : `Оформити Pro`}
                   </Button>
                 );
               })()}

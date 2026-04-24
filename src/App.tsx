@@ -24,6 +24,7 @@ import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionRequestsPage from "./pages/SubscriptionRequestsPage";
 import NotFound from "./pages/NotFound";
 import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
+import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["tutor"]}>
             <SubscriptionPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <PremiumAnalyticsPage />
           </ProtectedRoute>
         }
       />
