@@ -65,6 +65,16 @@ const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
     title: "Детальні звіти та експорт",
     desc: "Формуйте звіт за будь-який період і вивантажуйте у CSV/PDF.",
   },
+  {
+    icon: UserPlus,
+    title: "Більше учнів з нашого Хабу",
+    desc: "Пріоритетні рекомендації нових учнів зі спільноти oTutorHub.",
+  },
+  {
+    icon: Headset,
+    title: "Персональна підтримка менеджера",
+    desc: "Особистий менеджер швидко допоможе з будь-яким питанням і налаштуваннями.",
+  },
 ];
 
 interface RequestRow {
