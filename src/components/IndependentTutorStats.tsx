@@ -130,12 +130,14 @@ export function IndependentTutorStats() {
           value={loading ? "…" : `${totalIncome} ₴`}
           icon={ArrowDownLeft}
           variant="success"
+          to={isPro ? "/analytics" : undefined}
         />
         <StatCard
           label="Очікує оплати"
           value={loading ? "…" : `${pendingIncome} ₴`}
           icon={TrendingUp}
           variant={pendingIncome > 0 ? "warning" : "default"}
+          to={isPro ? "/analytics" : undefined}
         />
       </div>
 
