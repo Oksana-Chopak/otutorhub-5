@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
-import { format, formatDistanceToNowStrict } from "date-fns";
+import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 
 const PRO_PRICE_MONTHLY = 129;
