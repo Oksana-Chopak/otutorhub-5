@@ -977,6 +977,7 @@ export type Database = {
           payment_reminder_enabled: boolean
           subscription_status: string
           subscription_until: string | null
+          trial_until: string | null
           tutor_id: string
           updated_at: string
         }
@@ -991,6 +992,7 @@ export type Database = {
           payment_reminder_enabled?: boolean
           subscription_status?: string
           subscription_until?: string | null
+          trial_until?: string | null
           tutor_id: string
           updated_at?: string
         }
@@ -1005,6 +1007,7 @@ export type Database = {
           payment_reminder_enabled?: boolean
           subscription_status?: string
           subscription_until?: string | null
+          trial_until?: string | null
           tutor_id?: string
           updated_at?: string
         }
@@ -1231,6 +1234,7 @@ export type Database = {
             Returns: boolean
           }
       is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
+      is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
       list_lesson_financials: {
         Args: never
         Returns: {
