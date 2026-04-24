@@ -948,6 +948,7 @@ export type Database = {
           id: string | null
           meeting_url: string | null
           notes: string | null
+          source: string | null
           starts_at: string | null
           status: Database["public"]["Enums"]["lesson_status"] | null
           student_id: string | null
@@ -975,6 +976,7 @@ export type Database = {
           id?: string | null
           meeting_url?: string | null
           notes?: string | null
+          source?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["lesson_status"] | null
           student_id?: string | null
@@ -998,6 +1000,7 @@ export type Database = {
           id?: string | null
           meeting_url?: string | null
           notes?: string | null
+          source?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["lesson_status"] | null
           student_id?: string | null
