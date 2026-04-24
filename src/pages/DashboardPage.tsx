@@ -111,7 +111,7 @@ export default function DashboardPage() {
       supabase
         .from("lessons_visible")
         .select(
-          "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes"
+          "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source"
         )
         .order("starts_at", { ascending: true }),
       supabase.from("profiles").select("id, first_name, last_name"),
