@@ -41,17 +41,99 @@ const proPerks = [
   "Пріоритетна підтримка",
 ];
 
+interface RequestRow {
+  id: string;
+  status: "new" | "in_progress" | "completed" | "rejected";
+  message: string | null;
+  manager_response: string | null;
+  created_at: string;
+  handled_at: string | null;
+}
+
+const statusMeta: Record<
+  RequestRow["status"],
+  {
+    label: string;
+    icon: typeof Clock;
+    tone: "default" | "secondary" | "outline" | "destructive";
+    description: string;
+  }
+> = {
+  new: {
+    label: "Очікує менеджера",
+    icon: Clock,
+    tone: "default",
+    description: "Менеджер уже бачить ваш запит і скоро з вами зв'яжеться.",
+  },
+  in_progress: {
+    label: "В обробці",
+    icon: Loader2,
+    tone: "secondary",
+    description: "Менеджер опрацьовує ваш запит — очікуйте контакту.",
+  },
+  completed: {
+    label: "Завершено",
+    icon: CheckCircle2,
+    tone: "outline",
+    description: "Запит виконано. Якщо підписка ще не активна — напишіть менеджеру.",
+  },
+  rejected: {
+    label: "Відхилено",
+    icon: XCircle,
+    tone: "destructive",
+    description: "Менеджер відхилив запит. Деталі — у відповіді нижче.",
+  },
+};
+
 export default function SubscriptionPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { settings, loading, isIndependent, studentCount } = useWorkspaceSettings();
   const [requestOpen, setRequestOpen] = useState(false);
+  const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
+  const [requestLoading, setRequestLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
       navigate("/", { replace: true });
     }
   }, [loading, user, roles, isIndependent, navigate]);
+
+  const loadRequest = async () => {
+    if (!user) return;
+    setRequestLoading(true);
+    const { data } = await supabase
+      .from("subscription_requests")
+      .select("id, status, message, manager_response, created_at, handled_at")
+      .eq("tutor_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    setLatestRequest((data as RequestRow | null) ?? null);
+    setRequestLoading(false);
+  };
+
+  useEffect(() => {
+    loadRequest();
+    if (!user) return;
+    const channel = supabase
+      .channel(`my_subscription_requests_${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "subscription_requests",
+          filter: `tutor_id=eq.${user.id}`,
+        },
+        () => loadRequest()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   if (loading) {
     return (
