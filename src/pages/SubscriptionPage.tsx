@@ -326,9 +326,24 @@ export default function SubscriptionPage() {
                   </li>
                 ))}
               </ul>
-              <Button onClick={handleUpgrade} className="w-full" disabled={isPro}>
-                {isPro ? "Підписка активна" : "Оформити підписку"}
-              </Button>
+              {(() => {
+                const hasPending =
+                  latestRequest &&
+                  (latestRequest.status === "new" || latestRequest.status === "in_progress");
+                return (
+                  <Button
+                    onClick={handleUpgrade}
+                    className="w-full"
+                    disabled={isPro || !!hasPending}
+                  >
+                    {isPro
+                      ? "Підписка активна"
+                      : hasPending
+                      ? "Запит уже надіслано"
+                      : "Оформити підписку"}
+                  </Button>
+                );
+              })()}
               <p className="text-center text-xs text-muted-foreground">
                 Заявка одразу піде менеджеру школи — він зв'яжеться з вами для оплати.
               </p>
