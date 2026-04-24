@@ -1061,6 +1061,14 @@ export default function SchedulePage() {
                               {statusLabel[lesson.status]}
                             </Badge>
                           )}
+                          {isPureStudent && lesson.student_id === user?.id && (
+                            <StudentLessonActions
+                              lessonId={lesson.id}
+                              tutorId={lesson.tutor_id}
+                              startsAt={lesson.starts_at}
+                              status={lesson.status}
+                            />
+                          )}
                           {canCopy && (
                             <Button
                               variant="ghost"
