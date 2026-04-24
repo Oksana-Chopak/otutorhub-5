@@ -61,6 +61,7 @@ interface Lesson {
   tutor_payout: number;
   student_payment_status: PaymentStatus;
   tutor_payout_status: PaymentStatus;
+  meeting_url?: string | null;
   source?: LessonSource;
 }
 
