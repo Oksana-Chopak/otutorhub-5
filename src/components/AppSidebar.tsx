@@ -24,6 +24,7 @@ import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
+import { useSubscriptionRequestCount } from "@/hooks/useSubscriptionRequestCount";
 import { useTheme } from "@/hooks/useTheme";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +43,7 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   roles: AppRole[];
-  badgeKey?: "availability" | "chats";
+  badgeKey?: "availability" | "chats" | "subscription";
   independentOnly?: boolean;
 };
 
@@ -56,9 +57,10 @@ const allNavItems: NavItem[] = [
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
-  { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
-  { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
-  { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
+    { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
+    { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
+    { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
+    { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
 
 const roleLabel: Record<AppRole, string> = {
@@ -72,6 +74,7 @@ export function AppSidebar() {
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
   const chatsBadge = useUnreadChats();
+  const subscriptionBadge = useSubscriptionRequestCount();
   const { theme, toggleTheme } = useTheme();
   const { isIndependent } = useWorkspaceSettings();
 
@@ -136,6 +139,8 @@ export function AppSidebar() {
                 ? availabilityBadge
                 : item.badgeKey === "chats"
                 ? chatsBadge
+                : item.badgeKey === "subscription"
+                ? subscriptionBadge
                 : 0;
             const badgeClass =
               item.badgeKey === "chats"
