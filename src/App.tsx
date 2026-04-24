@@ -20,6 +20,7 @@ import OnboardingPage from "./pages/OnboardingPage";
 import MyStudentsPage from "./pages/MyStudentsPage";
 import ReferralsPage from "./pages/ReferralsPage";
 import ProfilePage from "./pages/ProfilePage";
+import SubscriptionPage from "./pages/SubscriptionPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,6 +96,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["tutor"]}>
             <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/subscription"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <SubscriptionPage />
           </ProtectedRoute>
         }
       />
