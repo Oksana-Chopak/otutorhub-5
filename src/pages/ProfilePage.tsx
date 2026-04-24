@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 
@@ -17,6 +19,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [newSubject, setNewSubject] = useState("");
 
   useEffect(() => {
     if (!user || !isTutor) {
@@ -34,10 +37,36 @@ export default function ProfilePage() {
       });
   }, [user?.id, isTutor]);
 
+  const customSubjects = useMemo(
+    () => subjects.filter((s) => !SUBJECT_OPTIONS.includes(s)),
+    [subjects]
+  );
+
   const toggleSubject = (subject: string) => {
     setSubjects((prev) =>
       prev.includes(subject) ? prev.filter((s) => s !== subject) : [...prev, subject]
     );
+  };
+
+  const addCustomSubject = () => {
+    const trimmed = newSubject.trim();
+    if (!trimmed) return;
+    if (trimmed.length > 60) {
+      toast.error("Назва предмета занадто довга");
+      return;
+    }
+    const exists = subjects.some((s) => s.toLowerCase() === trimmed.toLowerCase());
+    if (exists) {
+      toast.info("Цей предмет вже є у списку");
+      setNewSubject("");
+      return;
+    }
+    setSubjects((prev) => [...prev, trimmed]);
+    setNewSubject("");
+  };
+
+  const removeCustomSubject = (subject: string) => {
+    setSubjects((prev) => prev.filter((s) => s !== subject));
   };
 
   const save = async () => {
@@ -82,7 +111,9 @@ export default function ProfilePage() {
         <Card>
           <CardHeader>
             <CardTitle>Предмети</CardTitle>
-            <CardDescription>Оберіть один або кілька предметів зі списку.</CardDescription>
+            <CardDescription>
+              Оберіть зі списку або додайте власний предмет, якщо його немає.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
@@ -108,6 +139,62 @@ export default function ProfilePage() {
                     );
                   })}
                 </div>
+
+                <div className="mt-6 space-y-3 rounded-lg border border-dashed border-border p-4">
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Власні предмети</p>
+                    <p className="text-xs text-muted-foreground">
+                      Додайте предмет, якого немає у списку вище.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Input
+                      value={newSubject}
+                      onChange={(e) => setNewSubject(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addCustomSubject();
+                        }
+                      }}
+                      placeholder="Напр.: Логіка, Робототехніка"
+                      maxLength={60}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={addCustomSubject}
+                      disabled={!newSubject.trim()}
+                    >
+                      <Plus className="mr-1 h-4 w-4" />
+                      Додати
+                    </Button>
+                  </div>
+
+                  {customSubjects.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {customSubjects.map((subject) => (
+                        <Badge
+                          key={subject}
+                          variant="secondary"
+                          className="gap-1 py-1 pl-3 pr-1 text-sm font-normal"
+                        >
+                          {subject}
+                          <button
+                            type="button"
+                            onClick={() => removeCustomSubject(subject)}
+                            className="ml-1 rounded-full p-0.5 transition-colors hover:bg-background"
+                            aria-label={`Видалити ${subject}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="mt-6 flex justify-end">
                   <Button onClick={save} disabled={saving}>
                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
