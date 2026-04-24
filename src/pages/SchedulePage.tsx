@@ -647,7 +647,10 @@ export default function SchedulePage() {
           />
         )}
         {canCreate && (
-          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <Dialog open={createOpen} onOpenChange={(open) => {
+            setCreateOpen(open);
+            if (!open) setFormErrors({});
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
