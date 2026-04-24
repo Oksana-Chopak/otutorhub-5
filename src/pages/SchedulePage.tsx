@@ -1107,6 +1107,8 @@ export default function SchedulePage() {
             status: l.status,
             tutor_id: l.tutor_id,
             student_id: l.student_id,
+            student_price: l.student_price,
+            student_payment_status: l.student_payment_status,
           }))}
           onPrev={() => {
             const d = new Date(weekAnchor);
