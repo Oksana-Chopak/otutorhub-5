@@ -10,6 +10,8 @@ import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import {
   CalendarDays,
   Users,
