@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,12 +39,12 @@ interface LessonRow {
 
 /**
  * Stats block for an independent tutor: own students count + own income/pending.
- * Mirrors manager finance KPIs but scoped to lessons where tutor_id = current user
- * and source = 'independent'. Uses RLS-safe queries (tutor sees only own lessons).
+ * Free план — без обмежень на кількість учнів. Pro дає premium-аналітику,
+ * нагадування про оплату й експорт звітів.
  */
 export function IndependentTutorStats() {
   const { user } = useAuth();
-  const { studentCount, settings } = useWorkspaceSettings();
+  const { studentCount, isPro } = useWorkspaceSettings();
   const [period, setPeriod] = useState<Period>("month");
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,9 +94,6 @@ export function IndependentTutorStats() {
     .reduce((s, l) => s + Number(l.student_price), 0);
   const completedCount = billable.length;
 
-  const isPro = settings?.subscription_status === "active";
-  const remaining = Math.max(0, FREE_STUDENT_LIMIT - studentCount);
-
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -118,7 +115,7 @@ export function IndependentTutorStats() {
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard
           label="Мої учні"
-          value={loading ? "…" : `${studentCount}${isPro ? "" : ` / ${FREE_STUDENT_LIMIT}`}`}
+          value={loading ? "…" : studentCount}
           icon={Users}
           to="/my-students"
         />
@@ -150,15 +147,16 @@ export function IndependentTutorStats() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">
-                Безкоштовний план: залишилось {remaining} з {FREE_STUDENT_LIMIT} учнів
+                Перейдіть на Pro — більше керування і красива аналітика
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                Оформіть Pro за 145 ₴/міс для необмеженої кількості учнів.
+                Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами,
+                детальні звіти та експорт.
               </p>
             </div>
           </div>
           <Button asChild size="sm">
-            <Link to="/subscription">Підписка</Link>
+            <Link to="/subscription">Деталі</Link>
           </Button>
         </div>
       )}
