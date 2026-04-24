@@ -40,6 +40,8 @@ import { WeekCalendar } from "@/components/WeekCalendar";
 import { EmptyState } from "@/components/EmptyState";
 import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
+import { StudentLessonActions } from "@/components/StudentLessonActions";
+import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -885,6 +887,12 @@ export default function SchedulePage() {
         </div>
       )}
 
+      {isTutor && !isManager && (
+        <div className="mb-6">
+          <TutorChangeRequestsCard nameOf={(id) => profilesMap[id] ?? "?"} />
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -1058,6 +1066,14 @@ export default function SchedulePage() {
                             <Badge className={statusBadgeClass[lesson.status]}>
                               {statusLabel[lesson.status]}
                             </Badge>
+                          )}
+                          {isPureStudent && lesson.student_id === user?.id && (
+                            <StudentLessonActions
+                              lessonId={lesson.id}
+                              tutorId={lesson.tutor_id}
+                              startsAt={lesson.starts_at}
+                              status={lesson.status}
+                            />
                           )}
                           {canCopy && (
                             <Button

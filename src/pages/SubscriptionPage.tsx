@@ -23,6 +23,8 @@ import {
   BarChart3,
   FileDown,
   Gift,
+  UserPlus,
+  Headset,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
@@ -62,6 +64,16 @@ const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
     icon: FileDown,
     title: "Детальні звіти та експорт",
     desc: "Формуйте звіт за будь-який період і вивантажуйте у CSV/PDF.",
+  },
+  {
+    icon: UserPlus,
+    title: "Більше учнів з нашого Хабу",
+    desc: "Пріоритетні рекомендації нових учнів зі спільноти oTutorHub.",
+  },
+  {
+    icon: Headset,
+    title: "Персональна підтримка менеджера",
+    desc: "Особистий менеджер швидко допоможе з будь-яким питанням і налаштуваннями.",
   },
 ];
 
