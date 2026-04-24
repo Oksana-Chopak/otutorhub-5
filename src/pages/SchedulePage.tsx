@@ -1062,6 +1062,10 @@ export default function SchedulePage() {
             setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
             setCreateOpen(true);
           }}
+          onLessonClick={(l) => {
+            const full = lessons.find((x) => x.id === l.id);
+            if (full) openEdit(full);
+          }}
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
       ) : loading ? (
