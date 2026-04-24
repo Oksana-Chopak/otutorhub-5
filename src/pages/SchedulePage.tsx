@@ -887,6 +887,12 @@ export default function SchedulePage() {
         </div>
       )}
 
+      {isTutor && !isManager && (
+        <div className="mb-6">
+          <TutorChangeRequestsCard nameOf={(id) => profilesMap[id] ?? "?"} />
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
