@@ -42,6 +42,7 @@ import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/S
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
+import { cn } from "@/lib/utils";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
