@@ -875,43 +875,48 @@ export default function PeoplePage() {
         )}
       </div>
 
-      {/* Search & filters */}
+      {/* Search + filters (filters collapse on mobile) */}
       {!loading && (
-        <div className="mb-6 flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[200px]">
-            <Input
-              placeholder="Пошук за іменем, email, телефоном..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="w-full sm:w-48">
-            <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Предмет" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Усі предмети</SelectItem>
-                {allSubjects.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-44">
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Усі статуси</SelectItem>
-                <SelectItem value="active">Активні</SelectItem>
-                <SelectItem value="pending">Очікують реєстрації</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <div className="mb-6 space-y-3">
+          <Input
+            placeholder="Пошук за іменем, email, телефоном..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="h-9"
+          />
+          <MobileFilters
+            activeCount={
+              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
+            }
+          >
+            <div className="w-full sm:w-48">
+              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Предмет" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Усі предмети</SelectItem>
+                  {allSubjects.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-44">
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Статус" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Усі статуси</SelectItem>
+                  <SelectItem value="active">Активні</SelectItem>
+                  <SelectItem value="pending">Очікують реєстрації</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </MobileFilters>
         </div>
       )}
 
