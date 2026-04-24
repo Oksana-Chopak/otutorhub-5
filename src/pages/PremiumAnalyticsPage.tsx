@@ -31,7 +31,8 @@ import {
   Sparkles,
   Lightbulb,
   CheckCircle2,
-  Calendar
+  Calendar,
+  CalendarClock
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval, isWithinInterval } from "date-fns";
@@ -292,7 +293,7 @@ export default function PremiumAnalyticsPage() {
                 <div>
                   <p className="font-medium text-foreground">Залучення учнів</p>
                   <p className="text-sm text-muted-foreground">
-                    У вас {stats.studentCount} активних учнів. Для стабільного зростання рекомендуємо підтримувати заповненість графіку на 80%. Наразі у вас є вільні слоти — перевірте розділ Хабу.
+                    У вас {stats.studentCount} активних учнів. Для стабільного зростання рекомендуємо підтримувати заповненість графіку на 80%. Наразі у вас є вільні слоти — перевірте розділ <CalendarClock className="inline h-4 w-4 align-text-bottom" /> Години.
                   </p>
                 </div>
               </div>
