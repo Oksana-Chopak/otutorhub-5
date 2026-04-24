@@ -3,13 +3,27 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Check, Crown, Loader2, Sparkles, Users, Infinity as InfinityIcon } from "lucide-react";
+import {
+  Check,
+  Crown,
+  Loader2,
+  Sparkles,
+  Users,
+  Infinity as InfinityIcon,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  MessageCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
+import { format } from "date-fns";
+import { uk } from "date-fns/locale";
 
 const PRO_PRICE = 145;
 
