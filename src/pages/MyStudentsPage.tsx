@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
-import { SubscriptionLimitDialog } from "@/components/SubscriptionLimitDialog";
 import { EmptyState } from "@/components/EmptyState";
 import {
   UserPlus,
@@ -30,7 +29,6 @@ import {
   Pencil,
   Trash2,
   Hourglass,
-  Crown,
   Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -79,7 +77,7 @@ export default function MyStudentsPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
-  const { isIndependent, studentCount, isAtLimit, refresh, loading: wsLoading } =
+  const { isIndependent, studentCount, refresh, loading: wsLoading } =
     useWorkspaceSettings();
 
   const [loading, setLoading] = useState(true);
@@ -89,7 +87,6 @@ export default function MyStudentsPage() {
   );
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
-  const [limitOpen, setLimitOpen] = useState(false);
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
@@ -157,10 +154,6 @@ export default function MyStudentsPage() {
   }, [user?.id]);
 
   const openCreate = () => {
-    if (isAtLimit) {
-      setLimitOpen(true);
-      return;
-    }
     setForm(emptyForm);
     setDialog({ open: true, mode: "create", studentId: null });
   };
@@ -209,14 +202,6 @@ export default function MyStudentsPage() {
     setSubmitting(true);
 
     if (dialog.mode === "create") {
-      // Re-check limit at submit time
-      if (isAtLimit) {
-        setSubmitting(false);
-        setDialog({ open: false, mode: "create", studentId: null });
-        setLimitOpen(true);
-        return;
-      }
-
       const newId = crypto.randomUUID();
 
       // 1. Ghost profile
@@ -336,7 +321,7 @@ export default function MyStudentsPage() {
     await Promise.all([load(), refresh()]);
   };
 
-  const remainingFree = Math.max(0, FREE_STUDENT_LIMIT - studentCount);
+  
 
   return (
     <AppLayout>
@@ -349,7 +334,7 @@ export default function MyStudentsPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-            {studentCount} / {FREE_STUDENT_LIMIT} безкоштовно
+            {studentCount} {studentCount === 1 ? "учень" : "учнів"}
           </span>
           <Button onClick={openCreate}>
             <UserPlus className="mr-2 h-4 w-4" />
@@ -357,25 +342,6 @@ export default function MyStudentsPage() {
           </Button>
         </div>
       </div>
-
-      {isAtLimit && (
-        <Card className="mb-4 border-warning/50 bg-warning/5">
-          <CardContent className="flex items-start gap-3 p-4">
-            <Crown className="mt-0.5 h-5 w-5 text-warning" />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-foreground">
-                Ви досягли ліміту безкоштовного плану
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Оформіть підписку 145 ₴/міс, щоб додавати більше учнів.
-              </p>
-            </div>
-            <Button size="sm" onClick={() => setLimitOpen(true)}>
-              Підписка
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
@@ -385,7 +351,7 @@ export default function MyStudentsPage() {
         <EmptyState
           icon={UserPlus}
           title="У вас поки немає власних учнів"
-          description="Додайте першого учня — і почніть планувати уроки. До 5 учнів — безкоштовно."
+          description="Додайте першого учня — і почніть планувати уроки. Кількість учнів на безкоштовному плані не обмежена."
           actionLabel="Додати учня"
           onAction={openCreate}
         />
@@ -586,12 +552,6 @@ export default function MyStudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <SubscriptionLimitDialog
-        open={limitOpen}
-        onOpenChange={setLimitOpen}
-        studentCount={studentCount}
-      />
     </AppLayout>
   );
 }

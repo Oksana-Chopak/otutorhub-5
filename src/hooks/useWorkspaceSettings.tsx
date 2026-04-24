@@ -11,8 +11,12 @@ export interface WorkspaceSettings {
   onboarding_step: number;
 }
 
-export const FREE_STUDENT_LIMIT = 5;
-
+/**
+ * Free план тепер має необмежену кількість учнів — лімітів немає,
+ * лишаємо лічильник для статистики у дашборді.
+ * Premium-фічі: нагадування про оплату, керування скасуванням/перенесенням,
+ * детальна аналітика та експорт звітів.
+ */
 export function useWorkspaceSettings() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
@@ -59,17 +63,14 @@ export function useWorkspaceSettings() {
   };
 
   const isIndependent = settings?.independent_workspace ?? false;
-  const isAtLimit =
-    isIndependent &&
-    settings?.subscription_status === "free" &&
-    studentCount >= FREE_STUDENT_LIMIT;
+  const isPro = settings?.subscription_status === "active";
 
   return {
     settings,
     loading,
     studentCount,
     isIndependent,
-    isAtLimit,
+    isPro,
     updateSettings,
     refresh: load,
   };

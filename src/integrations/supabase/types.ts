@@ -315,6 +315,87 @@ export type Database = {
           },
         ]
       }
+      lesson_change_requests: {
+        Row: {
+          charge_decision: string | null
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          id: string
+          kind: string
+          lesson_id: string
+          proposed_starts_at: string | null
+          reason: string | null
+          status: string
+          student_id: string
+          tutor_id: string
+          tutor_response: string | null
+          updated_at: string
+        }
+        Insert: {
+          charge_decision?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          kind: string
+          lesson_id: string
+          proposed_starts_at?: string | null
+          reason?: string | null
+          status?: string
+          student_id: string
+          tutor_id: string
+          tutor_response?: string | null
+          updated_at?: string
+        }
+        Update: {
+          charge_decision?: string | null
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          id?: string
+          kind?: string
+          lesson_id?: string
+          proposed_starts_at?: string | null
+          reason?: string | null
+          status?: string
+          student_id?: string
+          tutor_id?: string
+          tutor_response?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      lesson_payment_reminders: {
+        Row: {
+          channel: string
+          id: string
+          lesson_id: string
+          reminder_kind: string
+          sent_at: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          channel?: string
+          id?: string
+          lesson_id: string
+          reminder_kind: string
+          sent_at?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          lesson_id?: string
+          reminder_kind?: string
+          sent_at?: string
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       lessons: {
         Row: {
           created_at: string
@@ -886,30 +967,42 @@ export type Database = {
       }
       tutor_workspace_settings: {
         Row: {
+          cancel_free_hours: number
           created_at: string
           independent_workspace: boolean
           onboarding_completed: boolean
           onboarding_step: number
+          payment_due_days: number
+          payment_due_mode: string
+          payment_reminder_enabled: boolean
           subscription_status: string
           subscription_until: string | null
           tutor_id: string
           updated_at: string
         }
         Insert: {
+          cancel_free_hours?: number
           created_at?: string
           independent_workspace?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
+          payment_due_days?: number
+          payment_due_mode?: string
+          payment_reminder_enabled?: boolean
           subscription_status?: string
           subscription_until?: string | null
           tutor_id: string
           updated_at?: string
         }
         Update: {
+          cancel_free_hours?: number
           created_at?: string
           independent_workspace?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
+          payment_due_days?: number
+          payment_due_mode?: string
+          payment_reminder_enabled?: boolean
           subscription_status?: string
           subscription_until?: string | null
           tutor_id?: string
