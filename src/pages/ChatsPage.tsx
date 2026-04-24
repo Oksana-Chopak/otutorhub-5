@@ -848,7 +848,7 @@ export default function ChatsPage() {
                 </div>
 
                 {isManager && (
-                  <div className="flex flex-wrap gap-1.5 border-t border-border px-3 pt-2">
+                  <div className="flex gap-1.5 overflow-x-auto border-t border-border px-3 pt-2 lg:flex-wrap lg:overflow-visible">
                     {[
                       "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
                       "Дякуємо за оплату — підтверджуємо отримання.",
