@@ -671,11 +671,16 @@ export default function SchedulePage() {
           <Button
             variant={activeTab === "availability" ? "secondary" : "ghost"}
             size="sm"
-            className="h-8 gap-1.5"
+            className="h-8 gap-1.5 relative"
             onClick={() => setTab("availability")}
           >
             <CalendarClock className="h-3.5 w-3.5" />
             Мої години
+            {availabilityBadge > 0 && (
+              <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground">
+                {availabilityBadge}
+              </span>
+            )}
           </Button>
         </div>
       )}
