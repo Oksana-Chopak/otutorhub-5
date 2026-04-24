@@ -111,10 +111,20 @@ const statusMeta: Record<
 export default function SubscriptionPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
-  const { settings, loading, isIndependent, studentCount } = useWorkspaceSettings();
+  const {
+    settings,
+    loading,
+    isIndependent,
+    studentCount,
+    isPro,
+    isTrial,
+    trialUntil,
+    trialDaysLeft,
+  } = useWorkspaceSettings();
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
+  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
@@ -169,11 +179,13 @@ export default function SubscriptionPage() {
   }
 
   const status = settings?.subscription_status ?? "free";
-  const isPro = status === "active";
+  const isActive = status === "active";
 
   const handleUpgrade = () => {
     setRequestOpen(true);
   };
+
+  const proPrice = billing === "yearly" ? PRO_PRICE_YEARLY_PER_MONTH : PRO_PRICE_MONTHLY;
 
   return (
     <AppLayout>
@@ -185,6 +197,37 @@ export default function SubscriptionPage() {
             і преміум-аналітику.
           </p>
         </div>
+
+        {/* Trial banner */}
+        {isTrial && trialUntil && (
+          <Card className="mb-4 border-primary/40 bg-primary/[0.04]">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Gift className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="font-medium text-foreground">
+                    Ви на безкоштовному Pro-тріалі
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Залишилось {trialDaysLeft}{" "}
+                    {trialDaysLeft === 1
+                      ? "день"
+                      : trialDaysLeft >= 2 && trialDaysLeft <= 4
+                      ? "дні"
+                      : "днів"}{" "}
+                    · до{" "}
+                    {format(trialUntil, "d MMMM, HH:mm", { locale: uk })}
+                  </p>
+                </div>
+              </div>
+              <Badge variant="default" className="gap-1">
+                <Sparkles className="h-3 w-3" /> Pro доступний
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Current plan card */}
         <Card className="mb-6">
@@ -202,12 +245,22 @@ export default function SubscriptionPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Поточний план</p>
                   <p className="font-display text-lg font-semibold text-foreground">
-                    {isPro ? `Pro — ${PRO_PRICE} ₴/міс` : "Безкоштовний"}
+                    {isActive
+                      ? "Pro"
+                      : isTrial
+                      ? "Pro (тріал)"
+                      : "Безкоштовний"}
                   </p>
                 </div>
               </div>
               <Badge variant={isPro ? "default" : "secondary"}>
-                {isPro ? "Активна" : status === "past_due" ? "Прострочена" : "Free"}
+                {isActive
+                  ? "Активна"
+                  : isTrial
+                  ? "Тріал"
+                  : status === "past_due"
+                  ? "Прострочена"
+                  : "Free"}
               </Badge>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
@@ -220,7 +273,7 @@ export default function SubscriptionPage() {
         </Card>
 
         {/* Latest subscription request status */}
-        {!requestLoading && latestRequest && !isPro && (() => {
+        {!requestLoading && latestRequest && !isActive && (() => {
           const meta = statusMeta[latestRequest.status];
           const StatusIcon = meta.icon;
           return (
@@ -282,6 +335,39 @@ export default function SubscriptionPage() {
           );
         })()}
 
+        {/* Billing toggle */}
+        <div className="mb-4 flex justify-center">
+          <div className="inline-flex rounded-full border border-border bg-muted/40 p-1">
+            <button
+              type="button"
+              onClick={() => setBilling("monthly")}
+              className={cn(
+                "rounded-full px-4 py-1.5 text-sm font-medium transition",
+                billing === "monthly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Щомісяця
+            </button>
+            <button
+              type="button"
+              onClick={() => setBilling("yearly")}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition",
+                billing === "yearly"
+                  ? "bg-background text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              Щороку
+              <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                −23%
+              </span>
+            </button>
+          </div>
+        </div>
+
         {/* Plans */}
         <div className="grid gap-4 sm:grid-cols-2">
           {/* Free */}
@@ -291,7 +377,7 @@ export default function SubscriptionPage() {
                 <CardTitle>Безкоштовний</CardTitle>
                 {!isPro && <Badge variant="secondary">Поточний</Badge>}
               </div>
-              <CardDescription>Усе для спокійної роботи з учнями</CardDescription>
+              <CardDescription>Назавжди. Без картки. Без обмежень за учнями.</CardDescription>
               <p className="mt-2 font-display text-3xl font-bold text-foreground">
                 0 ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
               </p>
@@ -318,12 +404,28 @@ export default function SubscriptionPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Pro</CardTitle>
-                {isPro && <Badge>Поточний</Badge>}
+                {isActive && <Badge>Поточний</Badge>}
+                {isTrial && !isActive && <Badge variant="secondary">Тріал</Badge>}
               </div>
-              <CardDescription>Більше автоматизації та контролю</CardDescription>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">
-                {PRO_PRICE} ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
-              </p>
+              <CardDescription>
+                14 днів повного Pro безкоштовно — без картки.
+              </CardDescription>
+              <div className="mt-2 flex items-baseline gap-2">
+                <p className="font-display text-3xl font-bold text-foreground">
+                  {proPrice} ₴
+                </p>
+                <span className="text-sm text-muted-foreground">/міс</span>
+                {billing === "yearly" && (
+                  <span className="text-xs text-muted-foreground">
+                    · {PRO_PRICE_YEARLY_TOTAL} ₴ на рік
+                  </span>
+                )}
+              </div>
+              {billing === "monthly" && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Або {PRO_PRICE_YEARLY_PER_MONTH} ₴/міс при оплаті за рік
+                </p>
+              )}
             </CardHeader>
             <CardContent className="space-y-4">
               <ul className="space-y-3 text-sm">
@@ -347,13 +449,15 @@ export default function SubscriptionPage() {
                   <Button
                     onClick={handleUpgrade}
                     className="w-full"
-                    disabled={isPro || !!hasPending}
+                    disabled={isActive || !!hasPending}
                   >
-                    {isPro
+                    {isActive
                       ? "Підписка активна"
                       : hasPending
                       ? "Запит уже надіслано"
-                      : "Оформити підписку"}
+                      : isTrial
+                      ? `Активувати Pro (${billing === "yearly" ? "рік" : "місяць"})`
+                      : `Оформити Pro (${billing === "yearly" ? "рік" : "місяць"})`}
                   </Button>
                 );
               })()}
@@ -365,10 +469,14 @@ export default function SubscriptionPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Скасувати або змінити план можна в будь-який момент. Залишок дня не пропадає.
+          Тріал не вимагає картки. Після його завершення ви автоматично переходите на безкоштовний план — нічого не списується.
         </p>
       </div>
-      <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} />
+      <SubscriptionRequestDialog
+        open={requestOpen}
+        onOpenChange={setRequestOpen}
+        defaultBilling={billing}
+      />
     </AppLayout>
   );
 }
