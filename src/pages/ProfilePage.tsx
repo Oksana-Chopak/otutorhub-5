@@ -38,7 +38,7 @@ export default function ProfilePage() {
   }, [user?.id, isTutor]);
 
   const customSubjects = useMemo(
-    () => subjects.filter((s) => !SUBJECT_OPTIONS.includes(s)),
+    () => subjects.filter((s) => !(SUBJECT_OPTIONS as readonly string[]).includes(s)),
     [subjects]
   );
 
