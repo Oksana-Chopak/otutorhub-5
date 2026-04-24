@@ -284,6 +284,19 @@ export default function MyStudentsPage() {
       // 5. Student details
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
 
+      // 6. Default meeting URL (Zoom/Meet) — optional
+      const meetingUrl = form.default_meeting_url.trim();
+      if (meetingUrl) {
+        await supabase.from("tutor_student_defaults").upsert(
+          {
+            tutor_id: user.id,
+            student_id: newId,
+            default_meeting_url: meetingUrl,
+          },
+          { onConflict: "tutor_id,student_id" }
+        );
+      }
+
       toast.success("Учня додано. Дані зв'яжуться з його акаунтом після реєстрації.");
     } else if (dialog.mode === "edit" && dialog.studentId) {
       // Update profile
@@ -313,6 +326,17 @@ export default function MyStudentsPage() {
           .update({ subject, price_per_lesson: price })
           .eq("id", existing.rate_id);
       }
+
+      // Default meeting URL — upsert or clear
+      const meetingUrl = form.default_meeting_url.trim();
+      await supabase.from("tutor_student_defaults").upsert(
+        {
+          tutor_id: user.id,
+          student_id: dialog.studentId,
+          default_meeting_url: meetingUrl || null,
+        },
+        { onConflict: "tutor_id,student_id" }
+      );
 
       toast.success("Дані учня оновлено");
     }
