@@ -1,0 +1,167 @@
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings, FREE_STUDENT_LIMIT } from "@/hooks/useWorkspaceSettings";
+import { StatCard } from "@/components/StatCard";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Users,
+  TrendingUp,
+  ArrowDownLeft,
+  Clock4,
+  Crown,
+} from "lucide-react";
+
+type Period = "all" | "month" | "week";
+
+const periodLabel: Record<Period, string> = {
+  all: "За весь час",
+  month: "За цей місяць",
+  week: "За цей тиждень",
+};
+
+interface LessonRow {
+  id: string;
+  starts_at: string;
+  status: "pending" | "scheduled" | "completed" | "cancelled";
+  student_id: string;
+  student_price: number;
+  student_payment_status: "paid" | "unpaid";
+}
+
+/**
+ * Stats block for an independent tutor: own students count + own income/pending.
+ * Mirrors manager finance KPIs but scoped to lessons where tutor_id = current user
+ * and source = 'independent'. Uses RLS-safe queries (tutor sees only own lessons).
+ */
+export function IndependentTutorStats() {
+  const { user } = useAuth();
+  const { studentCount, settings } = useWorkspaceSettings();
+  const [period, setPeriod] = useState<Period>("month");
+  const [lessons, setLessons] = useState<LessonRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from("lessons")
+        .select("id, starts_at, status, student_id, student_price, student_payment_status")
+        .eq("tutor_id", user.id)
+        .eq("source", "independent");
+      if (!cancelled) {
+        setLessons((data ?? []) as LessonRow[]);
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
+  const periodStart = useMemo(() => {
+    const d = new Date();
+    if (period === "month") return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+    if (period === "week") {
+      const day = (d.getDay() + 6) % 7;
+      const ws = new Date(d);
+      ws.setDate(d.getDate() - day);
+      ws.setHours(0, 0, 0, 0);
+      return ws.getTime();
+    }
+    return 0;
+  }, [period]);
+
+  const billable = lessons.filter(
+    (l) => l.status === "completed" && new Date(l.starts_at).getTime() >= periodStart
+  );
+
+  const totalIncome = billable
+    .filter((l) => l.student_payment_status === "paid")
+    .reduce((s, l) => s + Number(l.student_price), 0);
+  const pendingIncome = billable
+    .filter((l) => l.student_payment_status === "unpaid")
+    .reduce((s, l) => s + Number(l.student_price), 0);
+  const completedCount = billable.length;
+
+  const isPro = settings?.subscription_status === "active";
+  const remaining = Math.max(0, FREE_STUDENT_LIMIT - studentCount);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-display text-base font-semibold text-foreground">
+          Ваша статистика
+        </h2>
+        <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+          <SelectTrigger className="h-8 w-[170px] text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{periodLabel.all}</SelectItem>
+            <SelectItem value="month">{periodLabel.month}</SelectItem>
+            <SelectItem value="week">{periodLabel.week}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Мої учні"
+          value={loading ? "…" : `${studentCount}${isPro ? "" : ` / ${FREE_STUDENT_LIMIT}`}`}
+          icon={Users}
+          to="/my-students"
+        />
+        <StatCard
+          label="Проведено уроків"
+          value={loading ? "…" : completedCount}
+          icon={Clock4}
+          to="/schedule"
+        />
+        <StatCard
+          label="Отримано"
+          value={loading ? "…" : `${totalIncome} ₴`}
+          icon={ArrowDownLeft}
+          variant="success"
+        />
+        <StatCard
+          label="Очікує оплати"
+          value={loading ? "…" : `${pendingIncome} ₴`}
+          icon={TrendingUp}
+          variant={pendingIncome > 0 ? "warning" : "default"}
+        />
+      </div>
+
+      {!isPro && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <Crown className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                Безкоштовний план: залишилось {remaining} з {FREE_STUDENT_LIMIT} учнів
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Оформіть Pro за 145 ₴/міс для необмеженої кількості учнів.
+              </p>
+            </div>
+          </div>
+          <Button asChild size="sm">
+            <Link to="/subscription">Підписка</Link>
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
