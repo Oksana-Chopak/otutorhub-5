@@ -185,7 +185,7 @@ export default function FinancesPage() {
   // інакше націнка не визначена.
   const computeMarkup = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
-      (l) => l.status === "completed" && Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
+      (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
     );
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
