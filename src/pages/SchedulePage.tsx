@@ -106,7 +106,7 @@ export default function SchedulePage() {
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
-  const [view, setView] = useState<"list" | "week">("list");
+  const [view, setView] = useState<"list" | "week">("week");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
 
   // Filters
@@ -557,9 +557,8 @@ export default function SchedulePage() {
           <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
             <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всі статуси</SelectItem>
-              <SelectItem value="pending">Запит</SelectItem>
-              <SelectItem value="scheduled">Заплановано</SelectItem>
+                <SelectItem value="all">Всі статуси</SelectItem>
+                <SelectItem value="scheduled">Заплановано</SelectItem>
               <SelectItem value="completed">Проведено</SelectItem>
               <SelectItem value="cancelled">Скасовано</SelectItem>
             </SelectContent>
