@@ -1229,9 +1229,34 @@ export default function SchedulePage() {
                                 </Select>
                               </div>
                             )}
+                            {/* Payment toggle for independent tutor on their own lessons */}
+                            {!isManager && isTutor && lesson.tutor_id === user?.id && lesson.source === "independent" && (
+                              <div className="mt-1 flex items-center gap-2 text-xs">
+                                <span className="text-muted-foreground">Оплата учня:</span>
+                                <button
+                                  type="button"
+                                  onClick={() => updatePayment(lesson.id, "student_payment_status", lesson.student_payment_status === "paid" ? "unpaid" : "paid")}
+                                  className={`px-2 py-0.5 rounded-md border ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success border-success/30 hover:bg-success/20" : "bg-warning/10 text-warning border-warning/30 hover:bg-warning/20"}`}
+                                >
+                                  {lesson.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                </button>
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
+                          {/* Edit button (tutor or manager) */}
+                          {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-muted-foreground hover:text-primary"
+                              onClick={() => openEdit(lesson)}
+                              title="Редагувати урок"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          )}
                           {canEditStatus ? (
                             <Select
                               value={lesson.status}
