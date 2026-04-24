@@ -23,6 +23,8 @@ import {
   BarChart3,
   FileDown,
   Gift,
+  UserPlus,
+  Headset,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
