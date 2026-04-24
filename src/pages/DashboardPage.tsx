@@ -81,9 +81,11 @@ type ProfitPeriod = "all" | "month" | "week";
 
 export default function DashboardPage() {
   const { user, roles } = useAuth();
+  const { isIndependent } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
+  const isIndependentTutor = isTutor && !isManager && isIndependent;
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
