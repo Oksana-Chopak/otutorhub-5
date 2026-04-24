@@ -233,12 +233,16 @@ export default function DashboardPage() {
 
   const billableLessons = useMemo(
     () =>
-      lessons.filter(
-        (l) =>
-          l.status === "completed" &&
-          new Date(l.starts_at).getTime() >= periodStart
-      ),
-    [lessons, periodStart]
+      lessons.filter((l) => {
+        if (l.status === "cancelled" || l.status === "pending") return false;
+        if (new Date(l.starts_at).getTime() < periodStart) return false;
+        if (l.status === "completed") return true;
+        const isPast = new Date(l.starts_at).getTime() < nowMs;
+        const hasPayment =
+          l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
+        return isPast || hasPayment;
+      }),
+    [lessons, periodStart, nowMs]
   );
 
   const totalIncome = billableLessons
@@ -251,12 +255,16 @@ export default function DashboardPage() {
 
   const pendingPayments = useMemo(
     () =>
-      lessons.filter(
-        (l) =>
-          l.status === "completed" &&
+      lessons.filter((l) => {
+        if (l.status === "cancelled" || l.status === "pending") return false;
+        const isPast = new Date(l.starts_at).getTime() < nowMs;
+        const counts = l.status === "completed" || isPast;
+        return (
+          counts &&
           (l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid")
-      ),
-    [lessons]
+        );
+      }),
+    [lessons, nowMs]
   );
 
   const lessonsWithoutPrice = useMemo(
