@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
@@ -17,6 +17,9 @@ interface LessonWorkspaceProps {
   homework: string | null;
   summary: string | null;
   studentNotes: string | null;
+  source?: "hub" | "independent";
+  studentPrice?: number;
+  studentPaymentStatus?: "paid" | "unpaid";
   onUpdated?: () => void;
 }
 
@@ -35,12 +38,17 @@ export function LessonWorkspace({
   homework,
   summary,
   studentNotes,
+  source,
+  studentPrice,
+  studentPaymentStatus,
   onUpdated,
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
+  const canTogglePayment = isTutor && source === "independent";
+  const [paymentBusy, setPaymentBusy] = useState(false);
 
   const [meetingDraft, setMeetingDraft] = useState(meetingUrl ?? "");
   const [homeworkDraft, setHomeworkDraft] = useState(homework ?? "");
