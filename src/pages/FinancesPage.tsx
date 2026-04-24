@@ -367,52 +367,58 @@ export default function FinancesPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5">
+          <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
             <StatCard
-              label="Надходження"
+              label={isIndependentTutor ? "Отримано" : "Надходження"}
               value={`${totalIncome} ₴`}
               icon={ArrowDownLeft}
               variant="success"
             />
-            <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+            {!isIndependentTutor && (
+              <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+            )}
+            {!isIndependentTutor && (
+              <StatCard
+                label="Прибуток"
+                value={`${profit} ₴`}
+                icon={TrendingUp}
+                variant={profit >= 0 ? "success" : "warning"}
+              />
+            )}
             <StatCard
-              label="Прибуток"
-              value={`${profit} ₴`}
-              icon={TrendingUp}
-              variant={profit >= 0 ? "success" : "warning"}
-            />
-            <StatCard
-              label="Очікує (отримати/виплатити)"
-              value={`${pendingIncome} / ${pendingExpense} ₴`}
+              label={isIndependentTutor ? "Очікує оплати" : "Очікує (отримати/виплатити)"}
+              value={isIndependentTutor ? `${pendingIncome} ₴` : `${pendingIncome} / ${pendingExpense} ₴`}
               icon={DollarSign}
               variant="warning"
             />
-            <div className="col-span-2 rounded-xl border border-border bg-card p-3 lg:col-span-1">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                    Середня націнка хабу
-                  </p>
-                  <p
-                    className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                      hubMarkup === null
-                        ? "text-muted-foreground"
-                        : hubMarkup >= 0
-                        ? "text-success"
-                        : "text-destructive"
-                    }`}
-                  >
-                    {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
-                  </p>
-                  <p className="mt-1 text-[11px] text-muted-foreground">
-                    (надходження − виплати) / виплати
-                  </p>
-                </div>
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                  <Percent className="h-3.5 w-3.5 text-primary" />
+            {!isIndependentTutor && (
+              <div className="col-span-2 rounded-xl border border-border bg-card p-3 lg:col-span-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
+                      Середня націнка хабу
+                    </p>
+                    <p
+                      className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
+                        hubMarkup === null
+                          ? "text-muted-foreground"
+                          : hubMarkup >= 0
+                          ? "text-success"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
+                    </p>
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      (надходження − виплати) / виплати
+                    </p>
+                  </div>
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Percent className="h-3.5 w-3.5 text-primary" />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Weekly dynamics chart — profit per tutor */}
