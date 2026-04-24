@@ -575,6 +575,21 @@ export default function MyStudentsPage() {
                 />
               </div>
             </div>
+            <div className="space-y-1">
+              <Label className="flex items-center gap-1.5">
+                <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                Постійне посилання на Zoom / Google Meet
+              </Label>
+              <Input
+                type="url"
+                placeholder="https://zoom.us/j/... або https://meet.google.com/..."
+                value={form.default_meeting_url}
+                onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Якщо у вас одна постійна кімната — учень підключатиметься до неї одним кліком з кожного уроку.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button
