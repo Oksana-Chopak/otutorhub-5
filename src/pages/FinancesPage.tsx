@@ -353,20 +353,27 @@ export default function FinancesPage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Фінанси</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">Фінанси</h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             {isIndependentTutor
               ? "Оплати від ваших учнів"
               : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
-        <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+        <MobileFilters
+          activeCount={
+            (monthFilter !== "all" ? 1 : 0) +
+            (tutorFilter !== "all" ? 1 : 0) +
+            (statusFilter !== "all" ? 1 : 0)
+          }
+          className="w-full sm:w-auto"
+        >
           {!isIndependentTutor && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue placeholder="Репетитор" />
                 </SelectTrigger>
                 <SelectContent>
@@ -382,7 +389,7 @@ export default function FinancesPage() {
           )}
           <div className="w-full sm:w-44">
             <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Період" />
               </SelectTrigger>
               <SelectContent>
@@ -397,7 +404,7 @@ export default function FinancesPage() {
           </div>
           <div className="w-full sm:w-44">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9">
                 <SelectValue placeholder="Статус" />
               </SelectTrigger>
               <SelectContent>
@@ -410,7 +417,7 @@ export default function FinancesPage() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </MobileFilters>
       </div>
 
       {loading ? (
