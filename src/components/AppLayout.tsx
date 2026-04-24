@@ -1,5 +1,6 @@
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { FeedbackButton } from "./FeedbackButton";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </main>
       <MobileBottomNav />
+      <FeedbackButton />
     </div>
   );
 }
