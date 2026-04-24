@@ -19,6 +19,7 @@ import {
   UserCircle,
   Crown,
   HelpCircle,
+  BarChart3,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -54,13 +55,14 @@ const allNavItems: NavItem[] = [
   { to: "/my-students", label: "Мої учні", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
   { to: "/profile", label: "Мій профіль", icon: UserCircle, roles: ["tutor"] },
   { to: "/subscription", label: "Підписка", icon: Crown, roles: ["tutor"], independentOnly: true },
+  { to: "/analytics", label: "Аналітика", icon: BarChart3, roles: ["tutor"], independentOnly: true },
   { to: "/availability", label: "Доступні години", icon: CalendarClock, roles: ["manager", "tutor"], badgeKey: "availability" },
   { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
-    { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
-    { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
-    { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
-    { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
+  { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
+  { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
+  { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
+  { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
 
 const roleLabel: Record<AppRole, string> = {
@@ -87,7 +89,6 @@ export function AppSidebar() {
   });
 
   const primaryRole = roles[0];
-  const initials = (user?.email ?? "??").slice(0, 2).toUpperCase();
   const [profile, setProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
 
