@@ -822,20 +822,16 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-                  {(isTutor || (isStudent && studentTutorCount > 0) || isManager) && (
+                  {(isTutor || isManager) && (
                     <div className="rounded-xl border border-border bg-card p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                           <CalendarPlus className="h-4 w-4 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">
-                            {isTutor ? "Оновити доступні години" : "Запросити нові години"}
-                          </p>
+                          <p className="text-sm font-medium text-foreground">Оновити доступні години</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            {isTutor
-                              ? "Тримайте календар актуальним, щоб учні бачили вільні слоти."
-                              : "Якщо у репетитора немає вільних годин — попросіть оновити графік."}
+                            Тримайте календар актуальним, щоб учні бачили вільні слоти.
                           </p>
                           <Button asChild size="sm" variant="outline" className="mt-3">
                             <Link to="/availability">Відкрити</Link>

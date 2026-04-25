@@ -119,6 +119,8 @@ export default function SchedulePage() {
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
   const [view, setView] = useState<"list" | "week">("week");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
+  // Student-only sub-tab in list view: upcoming (default) vs archive (past).
+  const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
@@ -650,16 +652,41 @@ export default function SchedulePage() {
     });
   }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
 
-  // Group filtered lessons by day
+  // Pure student in list view: split into upcoming vs archive (past) and sort accordingly.
+  // Upcoming → ascending (closest first). Past → descending (most recent first).
+  const isPureStudentForList = isStudent && !isManager && !isTutor;
+  const lessonsForList = useMemo(() => {
+    if (!isPureStudentForList || view !== "list") return filteredLessons;
+    const now = Date.now();
+    const cutoff = now - 60 * 60 * 1000; // give a 1h grace period
+    return filteredLessons.filter((l) => {
+      const ts = new Date(l.starts_at).getTime();
+      return studentArchive === "upcoming" ? ts >= cutoff : ts < cutoff;
+    });
+  }, [filteredLessons, isPureStudentForList, view, studentArchive]);
+
+  // Group lessons by day. Sort ascending for upcoming-student view, descending otherwise.
   const grouped = useMemo(() => {
     const map = new Map<string, Lesson[]>();
-    filteredLessons.forEach((l) => {
+    lessonsForList.forEach((l) => {
       const key = new Date(l.starts_at).toISOString().slice(0, 10);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
-    return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
-  }, [filteredLessons]);
+    const ascending = isPureStudentForList && view === "list" && studentArchive === "upcoming";
+    const entries = Array.from(map.entries()).sort(([a], [b]) =>
+      ascending ? a.localeCompare(b) : b.localeCompare(a)
+    );
+    // Sort lessons within each day in matching order
+    entries.forEach(([, items]) => {
+      items.sort((a, b) => {
+        const ta = new Date(a.starts_at).getTime();
+        const tb = new Date(b.starts_at).getTime();
+        return ascending ? ta - tb : tb - ta;
+      });
+    });
+    return entries;
+  }, [lessonsForList, isPureStudentForList, view, studentArchive]);
 
   const filtersActive =
     filterStatus !== "all" ||
@@ -1312,7 +1339,31 @@ export default function SchedulePage() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : grouped.length === 0 ? (
+      ) : (
+        <>
+        {isPureStudentForList && (
+          <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5">
+            <Button
+              variant={studentArchive === "upcoming" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setStudentArchive("upcoming")}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              Майбутні
+            </Button>
+            <Button
+              variant={studentArchive === "past" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setStudentArchive("past")}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              Архів
+            </Button>
+          </div>
+        )}
+        {grouped.length === 0 ? (
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
@@ -1556,6 +1607,8 @@ export default function SchedulePage() {
             );
           })}
         </div>
+      )}
+        </>
       )}
       </>
       )}

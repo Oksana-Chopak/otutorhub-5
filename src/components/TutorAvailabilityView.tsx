@@ -67,7 +67,13 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
     load();
   }, [tutorId]);
 
-  const hasAnyAvailability = weekly.length > 0 || overrides.some((o) => o.is_available);
+  // Differentiate three states:
+  //   1) tutor has never set anything → "ще не вказав години"
+  //   2) tutor set hours / overrides, but next 14 days have no free slots → "немає вільних слотів"
+  //   3) tutor has free slots → render calendar
+  const hasWeekly = weekly.length > 0;
+  const hasPositiveOverride = overrides.some((o) => o.is_available);
+  const hasAnySchedule = hasWeekly || hasPositiveOverride || overrides.length > 0;
 
   const days = useMemo(() => {
     const arr: { date: Date; slots: { start: number; end: number }[] }[] = [];
@@ -88,6 +94,9 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
     return arr;
   }, [weekly, overrides, booked, weekOffset]);
 
+  // Whether at least one slot exists across the rendered week
+  const hasAnySlotInView = days.some((d) => d.slots.length > 0);
+
   return (
     <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
@@ -100,7 +109,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             Найближчі 14 днів. Щоб домовитися про урок — напишіть репетитору в чат.
           </p>
         </div>
-        {hasAnyAvailability && (
+        {hasWeekly || hasPositiveOverride ? (
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
@@ -121,16 +130,22 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {loading ? (
         <div className="flex justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      ) : !hasAnyAvailability ? (
+      ) : !hasWeekly && !hasPositiveOverride ? (
         <p className="text-center text-sm text-muted-foreground py-6">
-          Репетитор ще не вказав свої доступні години.
+          {hasAnySchedule
+            ? "У репетитора зараз немає вільних годин для нових уроків. Напишіть йому в чат, щоб домовитись."
+            : "Репетитор ще не вказав свої доступні години. Напишіть йому в чат, щоб домовитись про час."}
+        </p>
+      ) : !hasAnySlotInView ? (
+        <p className="text-center text-sm text-muted-foreground py-6">
+          У цьому тижні немає вільних слотів. Перегляньте наступний тиждень або напишіть репетитору в чат.
         </p>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
