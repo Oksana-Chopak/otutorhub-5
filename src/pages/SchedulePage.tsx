@@ -652,16 +652,41 @@ export default function SchedulePage() {
     });
   }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
 
-  // Group filtered lessons by day
+  // Pure student in list view: split into upcoming vs archive (past) and sort accordingly.
+  // Upcoming → ascending (closest first). Past → descending (most recent first).
+  const isPureStudentForList = isStudent && !isManager && !isTutor;
+  const lessonsForList = useMemo(() => {
+    if (!isPureStudentForList || view !== "list") return filteredLessons;
+    const now = Date.now();
+    const cutoff = now - 60 * 60 * 1000; // give a 1h grace period
+    return filteredLessons.filter((l) => {
+      const ts = new Date(l.starts_at).getTime();
+      return studentArchive === "upcoming" ? ts >= cutoff : ts < cutoff;
+    });
+  }, [filteredLessons, isPureStudentForList, view, studentArchive]);
+
+  // Group lessons by day. Sort ascending for upcoming-student view, descending otherwise.
   const grouped = useMemo(() => {
     const map = new Map<string, Lesson[]>();
-    filteredLessons.forEach((l) => {
+    lessonsForList.forEach((l) => {
       const key = new Date(l.starts_at).toISOString().slice(0, 10);
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
-    return Array.from(map.entries()).sort(([a], [b]) => b.localeCompare(a));
-  }, [filteredLessons]);
+    const ascending = isPureStudentForList && view === "list" && studentArchive === "upcoming";
+    const entries = Array.from(map.entries()).sort(([a], [b]) =>
+      ascending ? a.localeCompare(b) : b.localeCompare(a)
+    );
+    // Sort lessons within each day in matching order
+    entries.forEach(([, items]) => {
+      items.sort((a, b) => {
+        const ta = new Date(a.starts_at).getTime();
+        const tb = new Date(b.starts_at).getTime();
+        return ascending ? ta - tb : tb - ta;
+      });
+    });
+    return entries;
+  }, [lessonsForList, isPureStudentForList, view, studentArchive]);
 
   const filtersActive =
     filterStatus !== "all" ||
