@@ -569,9 +569,9 @@ export default function DashboardPage() {
                         <Link
                           key={lesson.id}
                           to="/schedule"
-                          className="flex items-center justify-between rounded-xl border border-border bg-card p-4 gap-3 transition-colors hover:border-primary/40 hover:bg-accent/30"
+                          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-accent/30 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                         >
-                          <div className="flex items-center gap-4 min-w-0">
+                          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                               <Clock className="h-4 w-4 text-primary" />
                             </div>
@@ -582,8 +582,8 @@ export default function DashboardPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className="text-sm font-medium text-foreground">{timeLabel}</span>
+                          <div className="flex w-full items-center justify-between gap-2 border-t border-border pt-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
+                            <span className="min-w-0 text-xs font-medium leading-snug text-foreground sm:text-sm">{timeLabel}</span>
                             <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                           </div>
                         </Link>
@@ -610,8 +610,8 @@ export default function DashboardPage() {
 
                     return (
                       <Collapsible key={lesson.id} className="rounded-xl border border-border bg-card">
-                        <div className="flex items-center justify-between gap-3 p-4">
-                          <div className="flex items-center gap-4 min-w-0">
+                        <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                               <Clock className="h-4 w-4 text-primary" />
                             </div>
@@ -622,8 +622,8 @@ export default function DashboardPage() {
                               </p>
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-1 shrink-0">
-                            <span className="text-sm font-medium text-foreground">{timeLabel}</span>
+                          <div className="flex w-full items-center justify-between gap-2 border-t border-border pt-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
+                            <span className="min-w-0 text-xs font-medium leading-snug text-foreground sm:text-sm">{timeLabel}</span>
                             <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                           </div>
                         </div>

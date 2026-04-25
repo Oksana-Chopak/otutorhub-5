@@ -32,8 +32,7 @@ export function FeedbackButton() {
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Hide for managers (they receive feedback, not give it)
-  if (!user || roles.includes("manager")) return null;
+  if (!user) return null;
 
   const handleSubmit = async () => {
     if (message.trim().length < 5) {
