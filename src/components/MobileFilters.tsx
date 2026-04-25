@@ -32,11 +32,13 @@ export function MobileFilters({
   activeCount = 0,
   className,
   desktopInline = true,
+  compact = false,
+  align = "left",
 }: MobileFiltersProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className={className}>
+    <div className={cn("relative", className)}>
       {/* Mobile: collapsible trigger + content */}
       <Collapsible
         open={open}
@@ -44,25 +46,51 @@ export function MobileFilters({
         className={cn(desktopInline && "lg:hidden")}
       >
         <CollapsibleTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className="h-9 w-full justify-between gap-2 sm:w-auto"
-          >
-            <span className="flex items-center gap-2">
+          {compact ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="relative h-9 w-9 shrink-0"
+              aria-label="Фільтри"
+            >
               {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
-              Фільтри
-              {activeCount > 0 && (
-                <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+              {activeCount > 0 && !open && (
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground shadow-sm">
                   {activeCount}
                 </span>
               )}
-            </span>
-          </Button>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 w-full justify-between gap-2 sm:w-auto"
+            >
+              <span className="flex items-center gap-2">
+                {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
+                Фільтри
+                {activeCount > 0 && (
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                    {activeCount}
+                  </span>
+                )}
+              </span>
+            </Button>
+          )}
         </CollapsibleTrigger>
-        <CollapsibleContent className="mt-3">
-          <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-card p-3">
+        <CollapsibleContent
+          className={cn(
+            "mt-2",
+            compact &&
+              cn(
+                "absolute z-30 w-[calc(100vw-2rem)] max-w-xs",
+                align === "right" ? "right-0" : "left-0",
+              ),
+          )}
+        >
+          <div className="flex flex-wrap gap-2 rounded-lg border border-border bg-popover p-3 shadow-lg">
             {children}
           </div>
         </CollapsibleContent>
