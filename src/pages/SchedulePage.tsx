@@ -703,10 +703,13 @@ export default function SchedulePage() {
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Розклад занять</h1>
-          <p className="text-sm text-muted-foreground">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
+            <span>📅</span>
+            <span className="truncate">Розклад занять</span>
+          </h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
             {isManager
               ? "Усі уроки школи"
               : isTutor
@@ -714,106 +717,73 @@ export default function SchedulePage() {
               : "Ваші уроки та запити"}
           </p>
         </div>
-      </div>
-
-      {showAvailabilityTab && (
-        <div className="mb-5 inline-flex rounded-lg border border-border bg-card p-0.5">
-          <Button
-            variant={activeTab === "lessons" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => setTab("lessons")}
+        <div className="flex shrink-0 items-center gap-2">
+          <MobileFilters
+            compact
+            align="right"
+            desktopInline={false}
+            activeCount={
+              (filterStatus !== "all" ? 1 : 0) +
+              (filterTutor !== "all" ? 1 : 0) +
+              (filterStudent !== "all" ? 1 : 0) +
+              (filterSource !== "all" ? 1 : 0) +
+              (filterPeriod !== "all" ? 1 : 0)
+            }
           >
-            <CalendarDays className="h-3.5 w-3.5" />
-            Уроки
-          </Button>
-          <Button
-            variant={activeTab === "availability" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 gap-1.5 relative"
-            onClick={() => setTab("availability")}
-          >
-            <CalendarClock className="h-3.5 w-3.5" />
-            Мої години
-            {availabilityBadge > 0 && (
-              <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground">
-                {availabilityBadge}
-              </span>
-            )}
-          </Button>
-        </div>
-      )}
-
-      {activeTab === "availability" ? (
-        <AvailabilityManager />
-      ) : (
-      <>
-      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <MobileFilters
-          activeCount={
-            (filterStatus !== "all" ? 1 : 0) +
-            (filterTutor !== "all" ? 1 : 0) +
-            (filterStudent !== "all" ? 1 : 0) +
-            (filterSource !== "all" ? 1 : 0) +
-            (filterPeriod !== "all" ? 1 : 0)
-          }
-          className="w-full sm:w-auto"
-        >
-          <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-            <SelectTrigger className="h-9 w-[130px] text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
-            <SelectContent>
+            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+              <SelectContent>
                 <SelectItem value="all">Всі статуси</SelectItem>
                 <SelectItem value="scheduled">Заплановано</SelectItem>
-              <SelectItem value="completed">Проведено</SelectItem>
-              <SelectItem value="cancelled">Скасовано</SelectItem>
-            </SelectContent>
-          </Select>
-          {isManager && (
-            <Select value={filterTutor} onValueChange={setFilterTutor}>
-              <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі репетитори</SelectItem>
-                {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                <SelectItem value="completed">Проведено</SelectItem>
+                <SelectItem value="cancelled">Скасовано</SelectItem>
               </SelectContent>
             </Select>
-          )}
-          {(isManager || isTutor) && (
-            <Select value={filterStudent} onValueChange={setFilterStudent}>
-              <SelectTrigger className="h-9 w-[140px] text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+            {isManager && (
+              <Select value={filterTutor} onValueChange={setFilterTutor}>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            {(isManager || isTutor) && (
+              <Select value={filterStudent} onValueChange={setFilterStudent}>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі учні</SelectItem>
+                  {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Всі учні</SelectItem>
-                {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                <SelectItem value="all">Весь час</SelectItem>
+                <SelectItem value="upcoming">Майбутні</SelectItem>
+                <SelectItem value="past">Минулі</SelectItem>
+                <SelectItem value="week">Цей тиждень</SelectItem>
+                <SelectItem value="month">Цей місяць</SelectItem>
               </SelectContent>
             </Select>
-          )}
-          <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-            <SelectTrigger className="h-9 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Весь час</SelectItem>
-              <SelectItem value="upcoming">Майбутні</SelectItem>
-              <SelectItem value="past">Минулі</SelectItem>
-              <SelectItem value="week">Цей тиждень</SelectItem>
-              <SelectItem value="month">Цей місяць</SelectItem>
-            </SelectContent>
-          </Select>
-          {hasMixedSources && (
-            <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-              <SelectTrigger className="h-9 w-[120px] text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Усі</SelectItem>
-                <SelectItem value="hub">Хаб</SelectItem>
-                <SelectItem value="independent">Мої</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-          {filtersActive && (
-            <Button size="sm" variant="ghost" className="h-9 text-xs" onClick={() => {
-              setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
-            }}>Скинути</Button>
-          )}
-        </MobileFilters>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex rounded-lg border border-border bg-card p-0.5">
+            {hasMixedSources && (
+              <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Усі</SelectItem>
+                  <SelectItem value="hub">Хаб</SelectItem>
+                  <SelectItem value="independent">Мої</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+            {filtersActive && (
+              <Button size="sm" variant="ghost" className="h-9 w-full text-xs" onClick={() => {
+                setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
+              }}>Скинути фільтри</Button>
+            )}
+          </MobileFilters>
+          <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
               <List className="h-3.5 w-3.5" />Список
             </Button>
@@ -821,53 +791,53 @@ export default function SchedulePage() {
               <CalendarRange className="h-3.5 w-3.5" />Тиждень
             </Button>
           </div>
-        </div>
-        {isPureStudent && studentTutors.length === 0 && (
-          <FindTutorDialog
-            trigger={
-              <Button>
-                <HandHeart className="h-4 w-4 mr-2" />
-                Запит на підбір репетитора
-              </Button>
-            }
-          />
-        )}
-        {canCreate && (
-          <Dialog open={createOpen} onOpenChange={(open) => {
-            setCreateOpen(open);
-            if (!open) setFormErrors({});
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Створити урок
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
-              <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-                <DialogTitle>Новий урок</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
-                <div>
-                  <Label className={cn(formErrors.tutor_id && "text-destructive")}>
-                    Репетитор <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={form.tutor_id}
-                    onValueChange={(v) => {
-                      setForm((f) => ({ ...f, tutor_id: v }));
-                      if (formErrors.tutor_id) setFormErrors((e) => ({ ...e, tutor_id: false }));
-                    }}
-                    disabled={isTutor && !isManager}
-                  >
-                    <SelectTrigger
-                      className={cn(
-                        formErrors.tutor_id &&
-                          "border-destructive ring-1 ring-destructive focus:ring-destructive"
-                      )}
+          {isPureStudent && studentTutors.length === 0 && (
+            <FindTutorDialog
+              trigger={
+                <Button size="sm" className="h-9 gap-1.5">
+                  <HandHeart className="h-4 w-4" />
+                  <span className="hidden sm:inline">Запит на підбір</span>
+                </Button>
+              }
+            />
+          )}
+          {canCreate && (
+            <Dialog open={createOpen} onOpenChange={(open) => {
+              setCreateOpen(open);
+              if (!open) setFormErrors({});
+            }}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="h-9 gap-1.5 px-3">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden sm:inline">Створити урок</span>
+                  <span className="sm:hidden">Урок</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
+                <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
+                  <DialogTitle>Новий урок</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
+                  <div>
+                    <Label className={cn(formErrors.tutor_id && "text-destructive")}>
+                      Репетитор <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={form.tutor_id}
+                      onValueChange={(v) => {
+                        setForm((f) => ({ ...f, tutor_id: v }));
+                        if (formErrors.tutor_id) setFormErrors((e) => ({ ...e, tutor_id: false }));
+                      }}
+                      disabled={isTutor && !isManager}
                     >
-                      <SelectValue placeholder="Оберіть репетитора" />
-                    </SelectTrigger>
+                      <SelectTrigger
+                        className={cn(
+                          formErrors.tutor_id &&
+                            "border-destructive ring-1 ring-destructive focus:ring-destructive"
+                        )}
+                      >
+                        <SelectValue placeholder="Оберіть репетитора" />
+                      </SelectTrigger>
                     <SelectContent>
                       {tutors.map((t) => (
                         <SelectItem key={t.id} value={t.id}>
@@ -1147,6 +1117,7 @@ export default function SchedulePage() {
           </Dialog>
         )}
       </div>
+      </div>
 
       {/* Edit lesson dialog (opened from calendar / list) */}
       <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
@@ -1240,6 +1211,48 @@ export default function SchedulePage() {
         </DialogContent>
       </Dialog>
 
+      {showAvailabilityTab && (
+        <div className="mb-5 inline-flex rounded-lg border border-border bg-card p-0.5">
+          <Button
+            variant={activeTab === "lessons" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setTab("lessons")}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            Уроки
+          </Button>
+          <Button
+            variant={activeTab === "availability" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5 relative"
+            onClick={() => setTab("availability")}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            Мої години
+            {availabilityBadge > 0 && (
+              <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground">
+                {availabilityBadge}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile-only view switcher */}
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5 sm:hidden">
+        <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
+          <List className="h-3.5 w-3.5" />Список
+        </Button>
+        <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
+          <CalendarRange className="h-3.5 w-3.5" />Тиждень
+        </Button>
+      </div>
+
+      {activeTab === "availability" ? (
+        <AvailabilityManager />
+      ) : (
+      <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
           <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
@@ -1378,34 +1391,41 @@ export default function SchedulePage() {
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв
                             </p>
                             {isManager && (
-                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
-                                <span>Учень: {lesson.student_price} ₴</span>
-                                <Select
-                                  value={lesson.student_payment_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.student_payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">Очікує</SelectItem>
-                                    <SelectItem value="paid">Оплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <span className="mx-1">·</span>
-                                <span>Виплата: {lesson.tutor_payout} ₴</span>
-                                <Select
-                                  value={lesson.tutor_payout_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.tutor_payout_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">Очікує</SelectItem>
-                                    <SelectItem value="paid">Виплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                              <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2 sm:grid-cols-2">
+                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                    🎓 {lesson.student_price}₴
+                                  </span>
+                                  <Select
+                                    value={lesson.student_payment_status}
+                                    onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                                  >
+                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                      <SelectItem value="paid">✓ Оплачено</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                    💼 {lesson.tutor_payout}₴
+                                  </span>
+                                  <Select
+                                    value={lesson.tutor_payout_status}
+                                    onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                  >
+                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                      <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             )}
                             {/* Price + payment toggle for independent tutor on their own lessons */}
