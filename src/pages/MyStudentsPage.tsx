@@ -97,7 +97,9 @@ export default function MyStudentsPage() {
     name: string;
     email: string | null;
     phone: string | null;
-  }>({ open: false, name: "", email: null, phone: null });
+    studentId: string | null;
+    emailSent: boolean;
+  }>({ open: false, name: "", email: null, phone: null, studentId: null, emailSent: false });
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
@@ -305,12 +307,30 @@ export default function MyStudentsPage() {
       }
 
       toast.success("Учня додано");
-      // Show invite dialog so the tutor can copy the registration link
+
+      // Auto-send email invite if we have an email
+      let inviteSent = false;
+      if (email) {
+        const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
+          "send-student-invite",
+          { body: { studentId: newId } }
+        );
+        if (!inviteErr && (inviteResp as any)?.success) {
+          inviteSent = true;
+          toast.success("Запрошення надіслано на email учня");
+        } else if (inviteErr) {
+          console.warn("Auto-invite failed", inviteErr);
+        }
+      }
+
+      // Show invite dialog so the tutor can copy/resend the registration link
       setInvite({
         open: true,
         name: `${fn} ${ln}`.trim(),
         email: email || null,
         phone: phone || null,
+        studentId: newId,
+        emailSent: inviteSent,
       });
     } else if (dialog.mode === "edit" && dialog.studentId) {
       // Update profile
@@ -637,6 +657,8 @@ export default function MyStudentsPage() {
         personName={invite.name}
         email={invite.email}
         phone={invite.phone}
+        studentId={invite.studentId}
+        emailSent={invite.emailSent}
         role="student"
       />
     </AppLayout>

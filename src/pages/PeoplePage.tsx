@@ -134,7 +134,9 @@ export default function PeoplePage() {
     email: string | null;
     phone: string | null;
     role: "student" | "tutor";
-  }>({ open: false, name: "", email: null, phone: null, role: "student" });
+    studentId: string | null;
+    emailSent: boolean;
+  }>({ open: false, name: "", email: null, phone: null, role: "student", studentId: null, emailSent: false });
 
   // Contact edit dialog
   const [contactDialog, setContactDialog] = useState<{ open: boolean; user: UserRow | null }>({
@@ -452,13 +454,31 @@ export default function PeoplePage() {
     setAdding(false);
     toast.success("Людину додано");
     setAddOpen(false);
-    // Show invite dialog so the manager can copy the registration link
+
+    // Auto-send email invite to students with email
+    let emailSent = false;
+    if (addForm.role === "student" && email) {
+      const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
+        "send-student-invite",
+        { body: { studentId: newId } }
+      );
+      if (!inviteErr && (inviteResp as any)?.success) {
+        emailSent = true;
+        toast.success("Запрошення надіслано на email учня");
+      } else if (inviteErr) {
+        console.warn("Auto-invite failed", inviteErr);
+      }
+    }
+
+    // Show invite dialog so the manager can copy/resend the registration link
     setInvite({
       open: true,
       name: `${fn} ${ln}`.trim(),
       email: email || null,
       phone: phone || null,
       role: addForm.role === "tutor" ? "tutor" : "student",
+      studentId: addForm.role === "student" ? newId : null,
+      emailSent,
     });
     setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
     loadData();
@@ -1141,6 +1161,8 @@ export default function PeoplePage() {
         email={invite.email}
         phone={invite.phone}
         role={invite.role}
+        studentId={invite.studentId}
+        emailSent={invite.emailSent}
       />
     </AppLayout>
   );
