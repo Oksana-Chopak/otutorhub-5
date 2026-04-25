@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, GraduationCap, BookOpenCheck, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
 const REMEMBER_KEY = "tutorhub.rememberMe";
@@ -33,6 +35,7 @@ const signInSchema = z.object({
 type SignUpRole = "student" | "tutor";
 
 export default function AuthPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
@@ -91,7 +94,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signInSchema.safeParse(signInData);
     if (!parsed.success) {
-      toast({ title: "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: t("auth.errorTitle"), description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -115,21 +118,20 @@ export default function AuthPage() {
           setSignUpData((prev) => ({ ...prev, email: parsed.data.email }));
           setActiveTab("signup");
           toast({
-            title: "Потрібна реєстрація",
-            description:
-              "Вас додав репетитор, але акаунту ще немає. Створіть його з цим email — ваші уроки автоматично з'являться.",
+            title: t("auth.pendingToastTitle"),
+            description: t("auth.pendingToastDesc"),
           });
           return;
         }
       }
 
       toast({
-        title: "Не вдалося увійти",
+        title: t("auth.loginFailed"),
         description: error.message === "Invalid login credentials"
-          ? "Невірний email або пароль"
+          ? t("auth.invalidCreds")
           : error.message === "Email not confirmed"
-          ? "Підтвердіть email — ми надіслали посилання на пошту"
-          : "Не вдалося увійти. Спробуйте ще раз.",
+          ? t("auth.emailNotConfirmed")
+          : t("auth.loginRetry"),
         variant: "destructive",
       });
       return;
@@ -141,8 +143,8 @@ export default function AuthPage() {
     const emailParse = z.string().trim().email().safeParse(signInData.email);
     if (!emailParse.success) {
       toast({
-        title: "Введіть email",
-        description: "Спочатку вкажіть email у полі вище — ми надішлемо посилання для скидання пароля.",
+        title: t("auth.enterEmailFirst"),
+        description: t("auth.enterEmailFirstDesc"),
         variant: "destructive",
       });
       return;
@@ -153,12 +155,12 @@ export default function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Не вдалося надіслати лист", description: error.message, variant: "destructive" });
+      toast({ title: t("auth.resetFailedTitle"), description: error.message, variant: "destructive" });
       return;
     }
     toast({
-      title: "Перевірте пошту",
-      description: "Ми надіслали посилання для скидання пароля на " + emailParse.data,
+      title: t("auth.checkInbox"),
+      description: t("auth.resetSentTo") + emailParse.data,
     });
   };
 
@@ -170,8 +172,8 @@ export default function AuthPage() {
     if (result.error) {
       setLoading(false);
       toast({
-        title: "Не вдалося увійти через Google",
-        description: result.error.message ?? "Спробуйте ще раз.",
+        title: t("auth.googleFailed"),
+        description: result.error.message ?? t("auth.tryAgain"),
         variant: "destructive",
       });
       return;
@@ -216,42 +218,47 @@ export default function AuthPage() {
       return;
     }
     toast({
-      title: "Майже готово!",
-      description: "Ми надіслали лист для підтвердження. Перевірте пошту.",
+      title: t("auth.almostDone"),
+      description: t("auth.almostDoneDesc"),
     });
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
-          <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+        <div className="mb-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+          </div>
+          <LanguageSwitcher variant="ghost" size="sm" />
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Ласкаво просимо</CardTitle>
-            <CardDescription>Увійдіть або створіть акаунт</CardDescription>
+            <CardTitle>{t("auth.welcome")}</CardTitle>
+            <CardDescription>{t("auth.welcomeSub")}</CardDescription>
           </CardHeader>
           <CardContent>
             {pendingHint && (
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
                 <div className="mb-1 flex items-center gap-1.5 font-medium text-primary">
                   <Mail className="h-3.5 w-3.5" />
-                  Вас додав репетитор
+                  {t("auth.invitedByTutor")}
                 </div>
                 <p className="text-muted-foreground">
-                  За email <span className="font-medium text-foreground">{pendingHint}</span> вже
-                  створено профіль учня, але акаунт ще не зареєстрований. Заповніть форму нижче — і
-                  всі ваші уроки автоматично з'являться у кабінеті.
+                  <Trans
+                    i18nKey="auth.invitedByTutorDesc"
+                    values={{ email: pendingHint }}
+                    components={{ 1: <span className="font-medium text-foreground" /> }}
+                  />
                 </p>
               </div>
             )}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Вхід</TabsTrigger>
-                <TabsTrigger value="signup">Реєстрація</TabsTrigger>
+                <TabsTrigger value="signin">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
@@ -268,12 +275,12 @@ export default function AuthPage() {
                     <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/>
                   </svg>
-                  Продовжити з Google
+                  {t("auth.googleSignIn")}
                 </Button>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">або</span>
+                    <span className="bg-card px-2 text-muted-foreground">{t("common.or")}</span>
                   </div>
                 </div>
               </div>
@@ -292,7 +299,7 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Пароль</Label>
+                    <Label htmlFor="signin-password">{t("auth.password")}</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -307,21 +314,21 @@ export default function AuthPage() {
                       <Checkbox
                         checked={remember}
                         onCheckedChange={(v) => setRemember(v === true)}
-                        aria-label="Запам'ятати мене"
+                        aria-label={t("auth.rememberMe")}
                       />
-                      Запам'ятати мене
+                      {t("auth.rememberMe")}
                     </label>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Увійти
+                    {t("auth.login")}
                   </Button>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
                     className="block w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"
                   >
-                    Забули пароль?
+                    {t("auth.forgotPassword")}
                   </button>
                 </form>
               </TabsContent>
@@ -330,7 +337,7 @@ export default function AuthPage() {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   {/* Role selector */}
                   <div className="space-y-2">
-                    <Label>Я реєструюся як</Label>
+                    <Label>{t("auth.iAm")}</Label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -343,8 +350,8 @@ export default function AuthPage() {
                         )}
                       >
                         <GraduationCap className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">Учень</span>
-                        <span className="text-[10px] text-muted-foreground">Шукаю репетитора</span>
+                        <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("auth.studentHint")}</span>
                       </button>
                       <button
                         type="button"
@@ -357,15 +364,15 @@ export default function AuthPage() {
                         )}
                       >
                         <BookOpenCheck className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">Репетитор</span>
-                        <span className="text-[10px] text-muted-foreground">Веду своїх учнів</span>
+                        <span className="text-sm font-medium">{t("auth.roleTutor")}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("auth.tutorHint")}</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="su-fn">Ім'я</Label>
+                      <Label htmlFor="su-fn">{t("auth.firstName")}</Label>
                       <Input
                         id="su-fn"
                         value={signUpData.firstName}
@@ -374,7 +381,7 @@ export default function AuthPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="su-ln">Прізвище</Label>
+                      <Label htmlFor="su-ln">{t("auth.lastName")}</Label>
                       <Input
                         id="su-ln"
                         value={signUpData.lastName}
@@ -384,7 +391,7 @@ export default function AuthPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="su-phone">Телефон</Label>
+                    <Label htmlFor="su-phone">{t("auth.phone")}</Label>
                     <Input
                       id="su-phone"
                       type="tel"
@@ -405,7 +412,7 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="su-password">Пароль</Label>
+                    <Label htmlFor="su-password">{t("auth.password")}</Label>
                     <Input
                       id="su-password"
                       type="password"
@@ -415,15 +422,15 @@ export default function AuthPage() {
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Мінімум 8 символів</p>
+                    <p className="text-xs text-muted-foreground">{t("auth.minPasswordHint")}</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Створити акаунт
+                    {t("auth.createAccount")}
                   </Button>
                   {signUpData.role === "tutor" && (
                     <p className="text-center text-xs text-muted-foreground">
-                      Як репетитор ви зможете додавати власних учнів. До 5 учнів — безкоштовно.
+                      {t("auth.tutorFreeHint")}
                     </p>
                   )}
                 </form>
