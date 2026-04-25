@@ -8,8 +8,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, Check, Mail, Send } from "lucide-react";
+import { Copy, Check, Mail, Send, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Props {
   open: boolean;
@@ -24,6 +25,10 @@ interface Props {
   inviterName?: string;
   /** Role assigned to the ghost ("student" by default) */
   role?: "student" | "tutor";
+  /** Ghost profile id — required to enable the "Resend email" action */
+  studentId?: string | null;
+  /** Whether the auto-invite email was already sent successfully */
+  emailSent?: boolean;
 }
 
 export function InviteLinkDialog({
@@ -34,9 +39,13 @@ export function InviteLinkDialog({
   phone,
   inviterName,
   role = "student",
+  studentId,
+  emailSent = false,
 }: Props) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(emailSent);
 
   const inviteUrl = useMemo(() => {
     const params = new URLSearchParams();
