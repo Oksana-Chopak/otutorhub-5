@@ -95,7 +95,7 @@ const landingStyles = `
   font-size: 13px; font-weight: 600;
   padding: 6px 14px; border-radius: 100px;
   margin-bottom: 24px;
-  border: 1px solid rgba(91,75,222,0.2);
+  border: 1px solid rgba(10,186,181,0.2);
 }
 .landing-root .hero-badge-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -128,12 +128,12 @@ const landingStyles = `
   padding: 14px 32px; border-radius: 100px;
   text-decoration: none; border: none; cursor: pointer;
   transition: all 0.2s; display: inline-block;
-  box-shadow: 0 4px 20px rgba(91,75,222,0.35);
+  box-shadow: 0 4px 20px rgba(10,186,181,0.35);
 }
 .landing-root .btn-primary:hover {
   background: var(--l-accent2);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(91,75,222,0.4);
+  box-shadow: 0 8px 28px rgba(10,186,181,0.4);
 }
 .landing-root .btn-ghost {
   background: transparent; color: var(--ink);
@@ -388,7 +388,7 @@ const landingStyles = `
 }
 .landing-root .price-card.featured {
   border: 2px solid var(--l-accent);
-  box-shadow: 0 0 0 6px rgba(91,75,222,0.06);
+  box-shadow: 0 0 0 6px rgba(10,186,181,0.06);
 }
 .landing-root .price-badge {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
@@ -465,8 +465,8 @@ const landingStyles = `
 .landing-root .cta-section::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(91,75,222,0.3) 0%, transparent 60%),
-              radial-gradient(circle at 70% 50%, rgba(124,110,240,0.2) 0%, transparent 60%);
+  background: radial-gradient(circle at 30% 50%, rgba(10,186,181,0.3) 0%, transparent 60%),
+              radial-gradient(circle at 70% 50%, rgba(45,212,207,0.2) 0%, transparent 60%);
   pointer-events: none;
 }
 .landing-root .cta-inner { max-width: 680px; margin: 0 auto; position: relative; }
