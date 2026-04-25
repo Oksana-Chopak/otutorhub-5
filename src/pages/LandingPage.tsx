@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
@@ -528,6 +530,7 @@ const landingStyles = `
 `;
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   useEffect(() => {
     document.title = "oTutorHub — Порядок у репетиторстві";
     const obs = new IntersectionObserver(
@@ -560,11 +563,14 @@ export default function LandingPage() {
             oTutorHub
           </a>
           <ul className="nav-links">
-            <li><a href="#features">Можливості</a></li>
-            <li><a href="#pricing">Ціни</a></li>
-            <li><a href="#compare">Порівняння</a></li>
+            <li><a href="#features">{t("landing.nav.features")}</a></li>
+            <li><a href="#pricing">{t("landing.nav.pricing")}</a></li>
+            <li><a href="#compare">{t("landing.nav.compare")}</a></li>
           </ul>
-          <Link to={signupHref} className="btn-nav">Спробувати безкоштовно</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <LanguageSwitcher variant="ghost" size="sm" />
+            <Link to={signupHref} className="btn-nav">{t("landing.nav.tryFree")}</Link>
+          </div>
         </div>
       </nav>
 
