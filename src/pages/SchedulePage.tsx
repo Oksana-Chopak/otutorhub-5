@@ -1391,16 +1391,16 @@ export default function SchedulePage() {
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв
                             </p>
                             {isManager && (
-                              <div className="mt-2 grid grid-cols-2 gap-1.5">
-                                <div className="flex items-center justify-between gap-1.5 rounded-md bg-muted/50 px-2 py-1">
-                                  <span className="text-[11px] text-muted-foreground">
-                                    🎓 {lesson.student_price} ₴
+                              <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2 sm:grid-cols-2">
+                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                    🎓 {lesson.student_price}₴
                                   </span>
                                   <Select
                                     value={lesson.student_payment_status}
                                     onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
                                   >
-                                    <SelectTrigger className={`h-6 w-[88px] border-0 px-1.5 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -1409,15 +1409,15 @@ export default function SchedulePage() {
                                     </SelectContent>
                                   </Select>
                                 </div>
-                                <div className="flex items-center justify-between gap-1.5 rounded-md bg-muted/50 px-2 py-1">
-                                  <span className="text-[11px] text-muted-foreground">
-                                    💼 {lesson.tutor_payout} ₴
+                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                    💼 {lesson.tutor_payout}₴
                                   </span>
                                   <Select
                                     value={lesson.tutor_payout_status}
                                     onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
                                   >
-                                    <SelectTrigger className={`h-6 w-[88px] border-0 px-1.5 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                                       <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
