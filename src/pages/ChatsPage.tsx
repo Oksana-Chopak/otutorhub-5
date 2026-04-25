@@ -810,33 +810,10 @@ export default function ChatsPage() {
                             </p>
                             {m.body && <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>}
                             {msgAttachments.length > 0 && (
-                              <div className="mt-2 space-y-1">
-                                {msgAttachments.map((att) => {
-                                  const isImg = att.mime_type?.startsWith("image/");
-                                  return (
-                                    <button
-                                      key={att.id}
-                                      type="button"
-                                      onClick={() => openAttachment(att)}
-                                      className={cn(
-                                        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
-                                        mine
-                                          ? "border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20"
-                                          : "border-border bg-background/60 hover:bg-background"
-                                      )}
-                                      disabled={openingAttachId === att.id}
-                                    >
-                                      {isImg ? <ImageIcon className="h-3.5 w-3.5 shrink-0" /> : <FileText className="h-3.5 w-3.5 shrink-0" />}
-                                      <span className="flex-1 truncate">{att.file_name}</span>
-                                      <span className="shrink-0 opacity-60">{formatBytes(att.size_bytes)}</span>
-                                      {openingAttachId === att.id ? (
-                                        <Loader2 className="h-3 w-3 shrink-0 animate-spin" />
-                                      ) : (
-                                        <Download className="h-3 w-3 shrink-0 opacity-60" />
-                                      )}
-                                    </button>
-                                  );
-                                })}
+                              <div className="mt-2 space-y-1.5">
+                                {msgAttachments.map((att) => (
+                                  <ChatAttachment key={att.id} attachment={att} mine={mine} />
+                                ))}
                               </div>
                             )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
