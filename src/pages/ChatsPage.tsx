@@ -103,7 +103,7 @@ export default function ChatsPage() {
   const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [openingAttachId, setOpeningAttachId] = useState<string | null>(null);
+  
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // New chat dialog (manager only)
