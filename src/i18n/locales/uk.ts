@@ -47,17 +47,34 @@ export const uk = {
     schedule: "Розклад",
     finances: "Фінанси",
     chats: "Чати",
-    people: "Користувачі",
+    people: "Люди",
     myStudents: "Мої учні",
     availability: "Доступні години",
-    audit: "Журнал дій",
-    referrals: "Запити учнів",
+    audit: "Аудит",
+    referrals: "Запити на репетиторів",
     subscription: "Підписка",
-    subscriptionRequests: "Запити підписок",
+    subscriptionRequests: "Запити на підписку",
     analytics: "Аналітика",
     paywallMetrics: "Метрики paywall",
-    profile: "Профіль",
+    profile: "Мій профіль",
     onboarding: "Початкове налаштування",
+    help: "Допомога",
+    setupGuide: "Гайд по налаштуванню",
+    openMenu: "Відкрити меню",
+    closeMenu: "Закрити меню",
+  },
+
+  roles: {
+    manager: "Менеджер",
+    tutor: "Репетитор",
+    student: "Учень",
+    none: "Без ролі",
+  },
+
+  theme: {
+    light: "Світла тема",
+    dark: "Темна тема",
+    toggle: "Перемкнути тему",
   },
 
   // Landing page
@@ -344,6 +361,8 @@ export const uk = {
     instagram: "Instagram",
     saved: "Збережено",
     saveFailed: "Не вдалося зберегти",
+    changePhoto: "Змінити фото профілю",
+    profilePhoto: "Фото профілю",
   },
 };
 
