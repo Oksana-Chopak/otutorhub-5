@@ -1,80 +1,64 @@
-# 📊 Метрики paywall-кліків
 
-Мета: побачити, які саме Pro-фічі найчастіше «провокують» Free-юзерів натискати на замок → це покаже, що реально варто продавати, а що ні.
+## Корінь проблеми
 
----
+Коли самостійний репетитор додає учня — створюється лише **ghost-профіль** (`profiles.is_pending=true`) і `profile_contacts.email`. У `auth.users` запису **немає**. Тому при спробі учня **увійти** Supabase повертає `Invalid login credentials` — це технічно правильна відповідь.
 
-## 1. База даних: таблиця `paywall_events`
+Учень має **зареєструватись** (Sign Up) — тоді спрацьовує тригер `handle_new_user` → `merge_pending_profile`, і ghost зливається з реальним юзером (переносяться уроки, ставки, роль).
 
-Через міграцію створимо таблицю-журнал кліків:
-
-| Поле | Тип | Опис |
-|---|---|---|
-| `id` | uuid PK | — |
-| `user_id` | uuid → auth.users | хто клікнув |
-| `feature_key` | text | напр. `ai_summary`, `premium_analytics`, `payment_reminder`, `bulk_actions`, `subscription_page_visit` |
-| `source` | text | звідки прийшов клік (`lesson_workspace`, `finances`, `sidebar`, `dashboard` тощо) |
-| `subscription_status` | text | статус юзера на момент кліку (`free`/`trial`/`active`) — щоб не плутати «розвідку» Free-юзерів з кліками Pro |
-| `metadata` | jsonb | вільне поле (lesson_id, plan тощо) |
-| `created_at` | timestamptz default now() | — |
-
-**RLS:**
-- INSERT — будь-який авторизований юзер (тільки `user_id = auth.uid()`).
-- SELECT — лише `manager`.
-- Індекси: `(feature_key, created_at)`, `(user_id, created_at)`.
+Зараз цей флоу ніяк не комунікований учневі. Потрібно: (1) повідомити учня що його додали, (2) пояснити йому що треба зареєструватись, (3) підказати на сторінці входу, якщо людина з ghost-email-ом помилково жме "Увійти".
 
 ---
 
-## 2. Хук `usePaywallTracking`
+## Зміни
 
-Створю `src/hooks/usePaywallTracking.ts` з функцією:
+### 1. Покращити UX на `AuthPage` — підказка коли користувач намагається увійти, але існує лише ghost
 
-```ts
-trackPaywallClick(featureKey, source, metadata?)
+Файл: `src/pages/AuthPage.tsx`
+
+Коли login повертає `invalid_credentials`, перевірити через публічний RPC, чи існує ghost-профіль з таким email. Якщо так — показати спеціальне повідомлення замість загального "невірний пароль":
+
+> "Вас додав репетитор, але ви ще не створили акаунт. Будь ласка, зареєструйтесь з цим email — ваш профіль автоматично підʼєднається."
+
+І автоматично переключити на таб "Реєстрація" з підставленим email і роллю `student`.
+
+Для цього потрібен новий **SECURITY DEFINER** RPC `is_pending_email(_email text) → boolean`, який не видає чужих даних (тільки true/false), і доступний для `anon`. Логіка:
+```sql
+SELECT EXISTS (
+  SELECT 1 FROM profile_contacts c
+  JOIN profiles p ON p.id = c.user_id
+  WHERE p.is_pending = true AND lower(c.email) = lower(_email)
+);
 ```
 
-— робить fire-and-forget INSERT, не чекає відповіді (UI не блокується). Сам підтягне поточний `subscription_status` з `useWorkspaceSettings`.
+### 2. У формі додавання учня (`MyStudentsPage`) — після успішного створення показати інструкцію
+
+Файл: `src/pages/MyStudentsPage.tsx`
+
+Після створення ghost-учня показувати **діалог з інструкцією для репетитора**:
+- "Учень доданий. Передайте йому це посилання, щоб він створив акаунт:"
+- Кнопка "Скопіювати запрошення" з текстом на зразок:
+  > "Привіт! Я додав(ла) тебе в TutorHub як свого учня. Щоб бачити уроки та домашні завдання, зареєструйся за посиланням: https://otutorhub.com/auth?signup=1&email=<email>&role=student. Використай цей же email — твій профіль буде підʼєднаний автоматично."
+- Кнопка "Скопіювати посилання" з прямим URL.
+
+### 3. Підтримати query-параметри на `AuthPage` для preselection
+
+Файл: `src/pages/AuthPage.tsx`
+
+Коли учень переходить за посиланням `?signup=1&email=...&role=student`:
+- Автоматично відкрити таб "Реєстрація".
+- Заповнити email і role.
+- (email можна зробити readonly, щоб уникнути помилок).
+
+### 4. (опційно, якщо погодишся) Авто-надіслати email учню при додаванні
+
+Якщо хочеш, можу підняти transactional email через існуючу `send-transactional-email` інфраструктуру — і коли репетитор додає учня з email, автоматично слати йому invite-лист із кнопкою "Створити акаунт". Це зніме потребу в ручному копіюванні посилання.
+
+Якщо так — потрібен буде email-домен (перевірю чи вже налаштований). Якщо ні — обмежимось пунктами 1-3.
 
 ---
 
-## 3. Інструментація існуючих paywall-точок
+## Питання до тебе перед імплементацією
 
-Додам виклик `trackPaywallClick` у місцях, де Free-юзер натикається на замок або переходить на `/subscription`:
-
-| Місце | feature_key | Коли спрацьовує |
-|---|---|---|
-| `LessonWorkspace.tsx` — кнопка «✨ AI-конспект (Pro)» | `ai_summary` | onClick на заблокованій кнопці |
-| `PremiumAnalyticsPage.tsx` — редірект Free → /subscription | `premium_analytics` | в useEffect перед navigate |
-| `FinancesPage.tsx` — кнопки масових дій (якщо вирішимо ґейтити їх для Free) | `bulk_actions` | onClick |
-| `FinancesPage.tsx` — нагадування про оплату (Pro-фіча) | `payment_reminder` | onClick |
-| `SubscriptionPage.tsx` — візит | `subscription_page_visit` | в useEffect, з `?from=` параметром у URL |
-| Sidebar / Dashboard банер «Trial / Upgrade» | `upgrade_banner` | onClick |
-
-> Pro/Trial-юзери теж трекаються (це важливо для воронки), але в дашборді ми зможемо фільтрувати по `subscription_status = 'free'`.
-
----
-
-## 4. Дашборд для менеджера: `/paywall-metrics`
-
-Нова сторінка (тільки для `manager`), доступна з сайдбара поруч з «Аудит». Зміст:
-
-- **Топ-фічі за кліками Free-юзерів** (за останні 7/30/90 днів) — горизонтальний bar-chart.
-- **Унікальні юзери на фічу** — скільки реальних людей клікнули (не просто кліків).
-- **Conversion-funnel:** клік на paywall → візит `/subscription` → апгрейд (`subscription_status` змінився на `active` після кліку). Дає простий «click→pay» % на фічу.
-- **Таблиця останніх 100 подій** (для якісного аналізу: хто, коли, звідки).
-- Фільтри: період, `feature_key`, `subscription_status`.
-
-Графіки — на базі вже використовуваного `recharts` (як у `FinanceWeeklyChart`).
-
----
-
-## ❓ Що уточнити перед стартом
-
-1. **Назва таблиці:** `paywall_events` ок чи хочеш `feature_interest_events` / щось інше?
-2. **Де розмістити дашборд:**
-   - (a) окрема сторінка `/paywall-metrics` у сайдбарі менеджера, **або**
-   - (b) додати таб всередину існуючої `PremiumAnalyticsPage` (вона зараз для тьюторів — довелось би роздвоїти за роллю)?
-3. **Чи трекати візити `/subscription` з параметром `?from=...`** (звідки прийшов)? Це дає повну воронку, але потребує додавати `?from=ai_summary` у всі `navigate("/subscription")`.
-4. **Ґейтити Bulk-actions і Payment reminders для Free** прямо зараз, чи поки лише трекати інтерес без блокування?
-
-Підтвердь або скоригуй — і я іду робити.
+1. **Лист-запрошення** — додавати автосенд email учню зараз, чи поки залишити лише копіювання посилання репетитором?
+2. **Email у формі реєстрації по інвайт-лінку** — робити readonly чи дозволяти редагувати (на випадок описки в інвайті)?
+3. **Чи робити те ж саме для учнів, доданих менеджером** на сторінці `/people` (`PeoplePage.tsx`) — там та сама проблема, ghost-профілі без `auth.users`. Логічно поширити ту ж саму інструкцію/інвайт-лінк і там.
