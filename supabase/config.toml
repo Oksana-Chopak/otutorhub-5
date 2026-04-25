@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.send-student-invite]
 verify_jwt = true
+
+[functions.liqpay-callback]
+verify_jwt = false
+
+[functions.liqpay-create-payment]
+verify_jwt = true
