@@ -109,7 +109,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             Найближчі 14 днів. Щоб домовитися про урок — напишіть репетитору в чат.
           </p>
         </div>
-        {hasAnyAvailability && (
+        {hasWeekly || hasPositiveOverride ? (
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
@@ -130,16 +130,22 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
               <ChevronRight className="h-3.5 w-3.5" />
             </Button>
           </div>
-        )}
+        ) : null}
       </div>
 
       {loading ? (
         <div className="flex justify-center py-6">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
-      ) : !hasAnyAvailability ? (
+      ) : !hasWeekly && !hasPositiveOverride ? (
         <p className="text-center text-sm text-muted-foreground py-6">
-          Репетитор ще не вказав свої доступні години.
+          {hasAnySchedule
+            ? "У репетитора зараз немає вільних годин для нових уроків. Напишіть йому в чат, щоб домовитись."
+            : "Репетитор ще не вказав свої доступні години. Напишіть йому в чат, щоб домовитись про час."}
+        </p>
+      ) : !hasAnySlotInView ? (
+        <p className="text-center text-sm text-muted-foreground py-6">
+          У цьому тижні немає вільних слотів. Перегляньте наступний тиждень або напишіть репетитору в чат.
         </p>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
