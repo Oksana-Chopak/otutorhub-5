@@ -94,7 +94,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signInSchema.safeParse(signInData);
     if (!parsed.success) {
-      toast({ title: "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: t("auth.errorTitle"), description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -118,21 +118,20 @@ export default function AuthPage() {
           setSignUpData((prev) => ({ ...prev, email: parsed.data.email }));
           setActiveTab("signup");
           toast({
-            title: "Потрібна реєстрація",
-            description:
-              "Вас додав репетитор, але акаунту ще немає. Створіть його з цим email — ваші уроки автоматично з'являться.",
+            title: t("auth.pendingToastTitle"),
+            description: t("auth.pendingToastDesc"),
           });
           return;
         }
       }
 
       toast({
-        title: "Не вдалося увійти",
+        title: t("auth.loginFailed"),
         description: error.message === "Invalid login credentials"
-          ? "Невірний email або пароль"
+          ? t("auth.invalidCreds")
           : error.message === "Email not confirmed"
-          ? "Підтвердіть email — ми надіслали посилання на пошту"
-          : "Не вдалося увійти. Спробуйте ще раз.",
+          ? t("auth.emailNotConfirmed")
+          : t("auth.loginRetry"),
         variant: "destructive",
       });
       return;
@@ -144,8 +143,8 @@ export default function AuthPage() {
     const emailParse = z.string().trim().email().safeParse(signInData.email);
     if (!emailParse.success) {
       toast({
-        title: "Введіть email",
-        description: "Спочатку вкажіть email у полі вище — ми надішлемо посилання для скидання пароля.",
+        title: t("auth.enterEmailFirst"),
+        description: t("auth.enterEmailFirstDesc"),
         variant: "destructive",
       });
       return;
@@ -156,12 +155,12 @@ export default function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      toast({ title: "Не вдалося надіслати лист", description: error.message, variant: "destructive" });
+      toast({ title: t("auth.resetFailedTitle"), description: error.message, variant: "destructive" });
       return;
     }
     toast({
-      title: "Перевірте пошту",
-      description: "Ми надіслали посилання для скидання пароля на " + emailParse.data,
+      title: t("auth.checkInbox"),
+      description: t("auth.resetSentTo") + emailParse.data,
     });
   };
 
@@ -173,8 +172,8 @@ export default function AuthPage() {
     if (result.error) {
       setLoading(false);
       toast({
-        title: "Не вдалося увійти через Google",
-        description: result.error.message ?? "Спробуйте ще раз.",
+        title: t("auth.googleFailed"),
+        description: result.error.message ?? t("auth.tryAgain"),
         variant: "destructive",
       });
       return;
