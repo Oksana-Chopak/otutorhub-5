@@ -1133,6 +1133,15 @@ export default function PeoplePage() {
           onSaved={loadData}
         />
       )}
+
+      <InviteLinkDialog
+        open={invite.open}
+        onOpenChange={(v) => setInvite((prev) => ({ ...prev, open: v }))}
+        personName={invite.name}
+        email={invite.email}
+        phone={invite.phone}
+        role={invite.role}
+      />
     </AppLayout>
   );
 }
