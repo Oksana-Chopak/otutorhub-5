@@ -158,6 +158,15 @@ export default function SubscriptionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  // Показуємо тост після повернення з LiqPay
+  useEffect(() => {
+    if (searchParams.get("paid") === "1") {
+      import("sonner").then(({ toast }) => {
+        toast.success("Дякуємо за оплату! Підписка активується протягом хвилини.");
+      });
+    }
+  }, [searchParams]);
+
   const loadRequest = async () => {
     if (!user) return;
     setRequestLoading(true);
