@@ -47,9 +47,14 @@ export function LessonWorkspace({
   onUpdated,
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
+  const navigate = useNavigate();
+  const { isPro, isIndependent } = useWorkspaceSettings();
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
+  // AI summary доступний всім тьюторам у hub-режимі (школа платить),
+  // а в самостійному режимі — лише Pro/Trial
+  const aiAllowed = !isIndependent || isPro;
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
