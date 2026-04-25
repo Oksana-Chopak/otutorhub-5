@@ -470,24 +470,39 @@ export default function SubscriptionPage() {
                 const hasPending =
                   latestRequest &&
                   (latestRequest.status === "new" || latestRequest.status === "in_progress");
+                if (isActive) {
+                  return (
+                    <Button className="w-full" disabled>
+                      Підписка активна
+                    </Button>
+                  );
+                }
                 return (
-                  <Button
-                    onClick={handleUpgrade}
-                    className="w-full"
-                    disabled={isActive || !!hasPending}
-                  >
-                    {isActive
-                      ? "Підписка активна"
-                      : hasPending
-                      ? "Запит уже надіслано"
-                      : isTrial
-                      ? `Активувати Pro`
-                      : `Оформити Pro`}
-                  </Button>
+                  <div className="space-y-2">
+                    <LiqPayPayButton
+                      plan={billing}
+                      recurring
+                      className="w-full"
+                      label={
+                        billing === "yearly"
+                          ? `Сплатити ${PRO_PRICE_YEARLY_TOTAL} ₴ карткою`
+                          : `Сплатити ${PRO_PRICE_MONTHLY} ₴ карткою`
+                      }
+                    />
+                    <Button
+                      onClick={handleUpgrade}
+                      variant="outline"
+                      className="w-full"
+                      disabled={!!hasPending}
+                    >
+                      {hasPending ? "Запит уже надіслано" : "Через менеджера"}
+                    </Button>
+                  </div>
                 );
               })()}
               <p className="text-center text-xs text-muted-foreground">
-                Заявка одразу піде менеджеру — він зв'яжеться з вами для оплати.
+                Оплата карткою через LiqPay — доступ активується автоматично за кілька секунд.
+                {recurringNote()}
               </p>
             </CardContent>
           </Card>
