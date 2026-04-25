@@ -440,15 +440,16 @@ export default function SchedulePage() {
           .eq("student_id", form.student_id)
           .eq("subject", form.subject)
           .maybeSingle(),
-        // Fallback: any rate for this (tutor, student) pair (most recent)
+        // Fallback: any rate for this (tutor, student) pair (most recent).
+        // NOTE: do not use .maybeSingle() here — pair may legitimately have several
+        // subject rates and that would throw "multiple rows returned".
         supabase
           .from("student_rates")
           .select("price_per_lesson")
           .eq("tutor_id", form.tutor_id)
           .eq("student_id", form.student_id)
           .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+          .limit(1),
         supabase
           .from("tutor_subject_rates")
           .select("rate_per_lesson")
@@ -462,9 +463,10 @@ export default function SchedulePage() {
           .maybeSingle(),
       ]);
       if (cancelled) return;
+      const anyPairRate = anyPairRateRes.data?.[0]?.price_per_lesson;
       const studentPrice =
         exactRateRes.data?.price_per_lesson ??
-        anyPairRateRes.data?.price_per_lesson ??
+        anyPairRate ??
         payoutRes.data?.rate_per_lesson ??
         fallbackRes.data?.rate_per_lesson;
       const tutorPayout =
@@ -480,6 +482,10 @@ export default function SchedulePage() {
             ? String(tutorPayout)
             : f.tutor_payout,
       }));
+      // Track whether this (student, subject) already has a saved rate.
+      // For independent tutors we use this to decide whether we need to upsert
+      // student_rates after creating the lesson.
+      setExistingRateForPair(!!exactRateRes.data);
       setAutoFilling(false);
     })();
     return () => {
