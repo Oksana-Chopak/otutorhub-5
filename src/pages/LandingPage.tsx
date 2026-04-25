@@ -16,9 +16,9 @@ const landingStyles = `
   --bg: #f7f6f2;
   --bg2: #eeece6;
   --white: #ffffff;
-  --l-accent: #5b4bde;
-  --l-accent2: #7c6ef0;
-  --accent-light: #ede9ff;
+  --l-accent: #0ABAB5;
+  --l-accent2: #2dd4cf;
+  --accent-light: #d6f5f3;
   --l-success: #1a9e75;
   --success-light: #e0f5ee;
   --l-warning: #c47a15;
@@ -27,7 +27,7 @@ const landingStyles = `
   --border2: rgba(26,26,46,0.06);
   --l-radius: 16px;
   --radius-sm: 10px;
-  --shadow: 0 2px 24px rgba(91,75,222,0.08);
+  --shadow: 0 2px 24px rgba(10,186,181,0.08);
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.06);
 
   font-family: 'Golos Text', sans-serif;
