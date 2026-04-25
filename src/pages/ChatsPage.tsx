@@ -734,7 +734,7 @@ export default function ChatsPage() {
           {/* Detail */}
           <div
             className={cn(
-              "flex flex-col rounded-xl border border-border bg-card",
+              "flex min-w-0 flex-col rounded-xl border border-border bg-card",
               "h-[calc(100vh-8rem)] lg:h-auto",
               !selectedThread && "hidden lg:flex"
             )}
