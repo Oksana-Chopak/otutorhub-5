@@ -28,6 +28,8 @@ import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
 import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 import PaywallMetricsPage from "./pages/PaywallMetricsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +42,8 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />

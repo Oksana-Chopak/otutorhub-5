@@ -960,6 +960,8 @@ export default function LandingPage() {
           <div className="footer-logo">oTutorHub</div>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
             <Link to="/auth">Застосунок</Link>
+            <Link to="/terms">Договір оферти</Link>
+            <Link to="/privacy">Політика конфіденційності</Link>
             <a href="mailto:hello@otutorhub.com">Зв'язатись</a>
           </div>
           <div>© 2026 oTutorHub</div>
