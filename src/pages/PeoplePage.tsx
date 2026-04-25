@@ -23,6 +23,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   GraduationCap,
   BookOpen,
