@@ -1210,6 +1210,48 @@ export default function SchedulePage() {
         </DialogContent>
       </Dialog>
 
+      {showAvailabilityTab && (
+        <div className="mb-5 inline-flex rounded-lg border border-border bg-card p-0.5">
+          <Button
+            variant={activeTab === "lessons" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5"
+            onClick={() => setTab("lessons")}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            Уроки
+          </Button>
+          <Button
+            variant={activeTab === "availability" ? "secondary" : "ghost"}
+            size="sm"
+            className="h-8 gap-1.5 relative"
+            onClick={() => setTab("availability")}
+          >
+            <CalendarClock className="h-3.5 w-3.5" />
+            Мої години
+            {availabilityBadge > 0 && (
+              <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground">
+                {availabilityBadge}
+              </span>
+            )}
+          </Button>
+        </div>
+      )}
+
+      {/* Mobile-only view switcher */}
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5 sm:hidden">
+        <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
+          <List className="h-3.5 w-3.5" />Список
+        </Button>
+        <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
+          <CalendarRange className="h-3.5 w-3.5" />Тиждень
+        </Button>
+      </div>
+
+      {activeTab === "availability" ? (
+        <AvailabilityManager />
+      ) : (
+      <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
           <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
