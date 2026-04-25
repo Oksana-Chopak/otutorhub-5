@@ -218,42 +218,47 @@ export default function AuthPage() {
       return;
     }
     toast({
-      title: "Майже готово!",
-      description: "Ми надіслали лист для підтвердження. Перевірте пошту.",
+      title: t("auth.almostDone"),
+      description: t("auth.almostDoneDesc"),
     });
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="w-full max-w-md">
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
-          <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+        <div className="mb-6 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+          </div>
+          <LanguageSwitcher variant="ghost" size="sm" />
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Ласкаво просимо</CardTitle>
-            <CardDescription>Увійдіть або створіть акаунт</CardDescription>
+            <CardTitle>{t("auth.welcome")}</CardTitle>
+            <CardDescription>{t("auth.welcomeSub")}</CardDescription>
           </CardHeader>
           <CardContent>
             {pendingHint && (
               <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
                 <div className="mb-1 flex items-center gap-1.5 font-medium text-primary">
                   <Mail className="h-3.5 w-3.5" />
-                  Вас додав репетитор
+                  {t("auth.invitedByTutor")}
                 </div>
                 <p className="text-muted-foreground">
-                  За email <span className="font-medium text-foreground">{pendingHint}</span> вже
-                  створено профіль учня, але акаунт ще не зареєстрований. Заповніть форму нижче — і
-                  всі ваші уроки автоматично з'являться у кабінеті.
+                  <Trans
+                    i18nKey="auth.invitedByTutorDesc"
+                    values={{ email: pendingHint }}
+                    components={{ 1: <span className="font-medium text-foreground" /> }}
+                  />
                 </p>
               </div>
             )}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Вхід</TabsTrigger>
-                <TabsTrigger value="signup">Реєстрація</TabsTrigger>
+                <TabsTrigger value="signin">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
