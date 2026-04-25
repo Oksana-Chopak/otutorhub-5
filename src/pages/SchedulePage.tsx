@@ -1117,6 +1117,7 @@ export default function SchedulePage() {
           </Dialog>
         )}
       </div>
+      </div>
 
       {/* Edit lesson dialog (opened from calendar / list) */}
       <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
