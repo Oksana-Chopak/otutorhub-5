@@ -54,16 +54,18 @@ export default function PremiumAnalyticsPage() {
   const { isPro, loading: settingsLoading, studentCount } = useWorkspaceSettings();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { trackPaywallClick } = usePaywallTracking();
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (settingsLoading) return;
     if (!isPro) {
-      navigate("/subscription");
+      trackPaywallClick("premium_analytics", "analytics_page");
+      navigate("/subscription?from=premium_analytics");
       return;
     }
-  }, [isPro, settingsLoading, navigate]);
+  }, [isPro, settingsLoading, navigate, trackPaywallClick]);
 
   useEffect(() => {
     if (!user || !isPro) return;
