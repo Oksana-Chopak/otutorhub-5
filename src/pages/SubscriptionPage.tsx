@@ -148,6 +148,15 @@ export default function SubscriptionPage() {
     }
   }, [loading, user, roles, isIndependent, navigate]);
 
+  // Track визиту сторінки підписки + звідки прийшли (для воронки)
+  useEffect(() => {
+    if (!user) return;
+    trackPaywallClick("subscription_page_visit", "subscription_page", {
+      from: searchParams.get("from") ?? "direct",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
   const loadRequest = async () => {
     if (!user) return;
     setRequestLoading(true);
