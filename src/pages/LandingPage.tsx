@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
@@ -16,9 +18,9 @@ const landingStyles = `
   --bg: #f7f6f2;
   --bg2: #eeece6;
   --white: #ffffff;
-  --l-accent: #5b4bde;
-  --l-accent2: #7c6ef0;
-  --accent-light: #ede9ff;
+  --l-accent: #0ABAB5;
+  --l-accent2: #2dd4cf;
+  --accent-light: #d6f5f3;
   --l-success: #1a9e75;
   --success-light: #e0f5ee;
   --l-warning: #c47a15;
@@ -27,7 +29,7 @@ const landingStyles = `
   --border2: rgba(26,26,46,0.06);
   --l-radius: 16px;
   --radius-sm: 10px;
-  --shadow: 0 2px 24px rgba(91,75,222,0.08);
+  --shadow: 0 2px 24px rgba(10,186,181,0.08);
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.06);
 
   font-family: 'Golos Text', sans-serif;
@@ -95,7 +97,7 @@ const landingStyles = `
   font-size: 13px; font-weight: 600;
   padding: 6px 14px; border-radius: 100px;
   margin-bottom: 24px;
-  border: 1px solid rgba(91,75,222,0.2);
+  border: 1px solid rgba(10,186,181,0.2);
 }
 .landing-root .hero-badge-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -128,12 +130,12 @@ const landingStyles = `
   padding: 14px 32px; border-radius: 100px;
   text-decoration: none; border: none; cursor: pointer;
   transition: all 0.2s; display: inline-block;
-  box-shadow: 0 4px 20px rgba(91,75,222,0.35);
+  box-shadow: 0 4px 20px rgba(10,186,181,0.35);
 }
 .landing-root .btn-primary:hover {
   background: var(--l-accent2);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(91,75,222,0.4);
+  box-shadow: 0 8px 28px rgba(10,186,181,0.4);
 }
 .landing-root .btn-ghost {
   background: transparent; color: var(--ink);
@@ -388,7 +390,7 @@ const landingStyles = `
 }
 .landing-root .price-card.featured {
   border: 2px solid var(--l-accent);
-  box-shadow: 0 0 0 6px rgba(91,75,222,0.06);
+  box-shadow: 0 0 0 6px rgba(10,186,181,0.06);
 }
 .landing-root .price-badge {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
@@ -465,8 +467,8 @@ const landingStyles = `
 .landing-root .cta-section::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(91,75,222,0.3) 0%, transparent 60%),
-              radial-gradient(circle at 70% 50%, rgba(124,110,240,0.2) 0%, transparent 60%);
+  background: radial-gradient(circle at 30% 50%, rgba(10,186,181,0.3) 0%, transparent 60%),
+              radial-gradient(circle at 70% 50%, rgba(45,212,207,0.2) 0%, transparent 60%);
   pointer-events: none;
 }
 .landing-root .cta-inner { max-width: 680px; margin: 0 auto; position: relative; }
@@ -528,6 +530,7 @@ const landingStyles = `
 `;
 
 export default function LandingPage() {
+  const { t } = useTranslation();
   useEffect(() => {
     document.title = "oTutorHub — Порядок у репетиторстві";
     const obs = new IntersectionObserver(
@@ -560,11 +563,14 @@ export default function LandingPage() {
             oTutorHub
           </a>
           <ul className="nav-links">
-            <li><a href="#features">Можливості</a></li>
-            <li><a href="#pricing">Ціни</a></li>
-            <li><a href="#compare">Порівняння</a></li>
+            <li><a href="#features">{t("landing.nav.features")}</a></li>
+            <li><a href="#pricing">{t("landing.nav.pricing")}</a></li>
+            <li><a href="#compare">{t("landing.nav.compare")}</a></li>
           </ul>
-          <Link to={signupHref} className="btn-nav">Спробувати безкоштовно</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <LanguageSwitcher variant="ghost" size="sm" />
+            <Link to={signupHref} className="btn-nav">{t("landing.nav.tryFree")}</Link>
+          </div>
         </div>
       </nav>
 
@@ -574,22 +580,20 @@ export default function LandingPage() {
           <div>
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              Безкоштовно · Без карток · Без обмежень
+              {t("landing.hero.badge")}
             </div>
-            <h1>Порядок у<br /><span className="accent">репетиторстві.</span><br />Нарешті.</h1>
-            <p className="hero-sub">
-              Розклад, оплати і чати з учнями — в одному місці. Без Excel, без нотаток у телефоні, без забутих боргів.
-            </p>
+            <h1>{t("landing.hero.titleLine1")}<br /><span className="accent">{t("landing.hero.titleLine2")}</span><br />{t("landing.hero.titleLine3")}</h1>
+            <p className="hero-sub">{t("landing.hero.sub")}</p>
             <div className="hero-cta">
-              <Link to={signupHref} className="btn-primary">Почати безкоштовно</Link>
-              <a href="#features" className="btn-ghost">Як це працює</a>
+              <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
+              <a href="#features" className="btn-ghost">{t("landing.hero.ctaSecondary")}</a>
             </div>
-            <p className="hero-note">Необмежена кількість учнів. Назавжди безкоштовно.</p>
+            <p className="hero-note">{t("landing.hero.note")}</p>
           </div>
 
           <div className="hero-visual">
             <div className="float-badge">
-              <span className="badge-icon">🔔</span>Учень отримав нагадування
+              <span className="badge-icon">🔔</span>{t("landing.hero.reminderBadge")}
             </div>
             <div className="app-frame">
               <div className="app-topbar">
@@ -598,45 +602,45 @@ export default function LandingPage() {
                 <div className="dot dot-g"></div>
               </div>
               <div className="app-content">
-                <div className="app-title">Дашборд</div>
+                <div className="app-title">{t("landing.hero.dashboard")}</div>
                 <div className="stat-row">
                   <div className="stat-card-l">
-                    <div className="stat-label-l">Учні</div>
+                    <div className="stat-label-l">{t("landing.hero.students")}</div>
                     <div className="stat-val purple">12</div>
                   </div>
                   <div className="stat-card-l">
-                    <div className="stat-label-l">Прибуток / міс</div>
+                    <div className="stat-label-l">{t("landing.hero.revenuePerMonth")}</div>
                     <div className="stat-val green">18 400 ₴</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "var(--l-muted)", marginBottom: 10 }}>
-                  Найближчі уроки
+                  {t("landing.hero.upcomingLessons")}
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Марія К. — Математика</div>
-                    <div className="lesson-sub">Сьогодні · 16:00</div>
+                    <div className="lesson-name">{t("landing.hero.lesson1")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson1Time")}</div>
                   </div>
-                  <span className="pill pill-purple">Заплановано</span>
+                  <span className="pill pill-purple">{t("landing.hero.lesson1Status")}</span>
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Олег Т. — Англійська</div>
-                    <div className="lesson-sub">Завтра · 10:00</div>
+                    <div className="lesson-name">{t("landing.hero.lesson2")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson2Time")}</div>
                   </div>
-                  <span className="pill pill-warning">Очікує оплати</span>
+                  <span className="pill pill-warning">{t("landing.hero.lesson2Status")}</span>
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Аня В. — Фізика</div>
-                    <div className="lesson-sub">Завтра · 14:30</div>
+                    <div className="lesson-name">{t("landing.hero.lesson3")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson3Time")}</div>
                   </div>
-                  <span className="pill pill-green">Оплачено ✓</span>
+                  <span className="pill pill-green">{t("landing.hero.lesson3Status")}</span>
                 </div>
               </div>
             </div>
             <div className="float-badge2">
-              <span className="badge-icon">✅</span>Аня оплатила урок
+              <span className="badge-icon">✅</span>{t("landing.hero.paidBadge")}
             </div>
           </div>
         </div>
@@ -647,22 +651,22 @@ export default function LandingPage() {
         <div className="social-inner">
           <div className="social-stat">
             <span className="social-stat-num">∞</span>
-            <span className="social-stat-label">учнів безкоштовно</span>
+            <span className="social-stat-label">{t("landing.social.students")}</span>
           </div>
           <div className="social-divider"></div>
           <div className="social-stat">
             <span className="social-stat-num">0 ₴</span>
-            <span className="social-stat-label">щоб почати</span>
+            <span className="social-stat-label">{t("landing.social.toStart")}</span>
           </div>
           <div className="social-divider"></div>
           <div className="social-stat">
-            <span className="social-stat-num">14 днів</span>
-            <span className="social-stat-label">Pro безкоштовно</span>
+            <span className="social-stat-num">14</span>
+            <span className="social-stat-label">{t("landing.social.proFree")}</span>
           </div>
           <div className="social-divider"></div>
           <div className="social-stat">
             <span className="social-stat-num">Telegram</span>
-            <span className="social-stat-label">нагадування учням</span>
+            <span className="social-stat-label">{t("landing.social.telegramReminders")}</span>
           </div>
         </div>
       </div>
@@ -670,27 +674,25 @@ export default function LandingPage() {
       {/* PAIN */}
       <section className="l-section section-alt" id="features">
         <div className="section-inner">
-          <div className="section-label">Знайомо?</div>
-          <h2>Репетитор — не бухгалтер.<br />А веде облік як бухгалтер.</h2>
-          <p className="section-sub">
-            Ми поговорили з десятками репетиторів. Ось що їх реально дістає.
-          </p>
+          <div className="section-label">{t("landing.pain.label")}</div>
+          <h2>{t("landing.pain.title1")}<br />{t("landing.pain.title2")}</h2>
+          <p className="section-sub">{t("landing.pain.sub")}</p>
 
           <div className="pain-grid fade-up">
             <div className="pain-card">
               <div className="pain-icon">📱</div>
-              <div className="pain-title">"Хто скільки мені винен?"</div>
-              <p className="pain-text">Борги губляться у вайбері. Незручно нагадувати самій — здається нав'язливим. А гроші висять.</p>
+              <div className="pain-title">{t("landing.pain.card1Title")}</div>
+              <p className="pain-text">{t("landing.pain.card1Text")}</p>
             </div>
             <div className="pain-card">
               <div className="pain-icon">📅</div>
-              <div className="pain-title">"Коли у нас урок?"</div>
-              <p className="pain-text">Переноси, скасування, нові запити — все в різних чатах. Розклад тримаєш у голові, і це стресово.</p>
+              <div className="pain-title">{t("landing.pain.card2Title")}</div>
+              <p className="pain-text">{t("landing.pain.card2Text")}</p>
             </div>
             <div className="pain-card">
               <div className="pain-icon">💸</div>
-              <div className="pain-title">"Скільки я заробила?"</div>
-              <p className="pain-text">Рахуєш в Excel в кінці місяця — і щоразу інша сума. Не розумієш, звідки різниця.</p>
+              <div className="pain-title">{t("landing.pain.card3Title")}</div>
+              <p className="pain-text">{t("landing.pain.card3Text")}</p>
             </div>
           </div>
         </div>
@@ -699,50 +701,50 @@ export default function LandingPage() {
       {/* FEATURES */}
       <section className="l-section features-bg">
         <div className="section-inner">
-          <div className="section-label">Рішення</div>
-          <h2>Все що потрібно —<br />в одному застосунку</h2>
+          <div className="section-label">{t("landing.features.label")}</div>
+          <h2>{t("landing.features.title1")}<br />{t("landing.features.title2")}</h2>
 
           <div className="features-grid">
             <div className="feature-list fade-up">
               <div className="feature-item">
                 <div className="feature-ico">📋</div>
                 <div>
-                  <div className="feature-title">Розклад і уроки</div>
-                  <p className="feature-text">Тижневий та списковий вид. Створюйте повторювані уроки, додавайте домашнє завдання, конспекти і Zoom-посилання.</p>
+                  <div className="feature-title">{t("landing.features.f1Title")}</div>
+                  <p className="feature-text">{t("landing.features.f1Text")}</p>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-ico">💰</div>
                 <div>
-                  <div className="feature-title">Облік оплат</div>
-                  <p className="feature-text">Відмічайте оплачені уроки одним кліком. Бачите хто заборгував, скільки зароблено за місяць, де є дірки.</p>
+                  <div className="feature-title">{t("landing.features.f2Title")}</div>
+                  <p className="feature-text">{t("landing.features.f2Text")}</p>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-ico">💬</div>
                 <div>
-                  <div className="feature-title">Чати з учнями</div>
-                  <p className="feature-text">Окремий чат з кожним. Надсилайте файли і домашку. Нові повідомлення — одразу у Telegram-сповіщеннях.</p>
+                  <div className="feature-title">{t("landing.features.f3Title")}</div>
+                  <p className="feature-text">{t("landing.features.f3Text")}</p>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-ico">🔔</div>
                 <div>
                   <div className="feature-title">
-                    Автонагадування про оплату
-                    <span className="feature-tag">Pro</span>
+                    {t("landing.features.f4Title")}
+                    <span className="feature-tag">{t("landing.features.proTag")}</span>
                   </div>
-                  <p className="feature-text">Учень сам отримує нагадування у Telegram. Вам більше не треба писати "нагадую про оплату" — застосунок зробить це за вас.</p>
+                  <p className="feature-text">{t("landing.features.f4Text")}</p>
                 </div>
               </div>
               <div className="feature-item">
                 <div className="feature-ico">📊</div>
                 <div>
                   <div className="feature-title">
-                    Аналітика з порадами
-                    <span className="feature-tag">Pro</span>
+                    {t("landing.features.f5Title")}
+                    <span className="feature-tag">{t("landing.features.proTag")}</span>
                   </div>
-                  <p className="feature-text">Графіки доходів, динаміка по учнях і конкретні поради — що підтягнути, щоб заробляти більше.</p>
+                  <p className="feature-text">{t("landing.features.f5Text")}</p>
                 </div>
               </div>
             </div>
@@ -751,24 +753,24 @@ export default function LandingPage() {
               <div className="phone-frame">
                 <div className="phone-notch"><div className="phone-notch-bar"></div></div>
                 <div className="phone-screen">
-                  <div className="phone-header">Чати</div>
+                  <div className="phone-header">{t("landing.features.phoneHeader")}</div>
 
                   <div style={{ marginBottom: 6 }}>
-                    <div className="chat-label">oTutorHub Bot</div>
+                    <div className="chat-label">{t("landing.features.botName")}</div>
                     <div className="chat-bubble chat-in">
-                      🔔 <strong>Нагадування про оплату</strong><br />
-                      Олег, у вас є урок Англійська завтра о 10:00. Оплата ще не отримана (450 ₴).
+                      <strong>{t("landing.features.botMsgTitle")}</strong><br />
+                      {t("landing.features.botMsg")}
                     </div>
                   </div>
 
                   <div style={{ margin: "12px 0 6px", borderTop: "1px solid var(--border2)", paddingTop: 12 }}>
-                    <div className="chat-label">Марія К.</div>
-                    <div className="chat-bubble chat-in">Дякую за урок! Завтра переказую 🙏</div>
-                    <div className="chat-bubble chat-out">Добре, чекаю! Домашнє завдання у застосунку</div>
+                    <div className="chat-label">{t("landing.features.chatStudent")}</div>
+                    <div className="chat-bubble chat-in">{t("landing.features.chatIn")}</div>
+                    <div className="chat-bubble chat-out">{t("landing.features.chatOut")}</div>
                   </div>
 
                   <div style={{ margin: "12px 0 6px", borderTop: "1px solid var(--border2)", paddingTop: 12 }}>
-                    <div className="chat-label" style={{ color: "var(--l-success)" }}>✓ Аня В. оплатила</div>
+                    <div className="chat-label" style={{ color: "var(--l-success)" }}>{t("landing.features.chatPaidLabel")}</div>
                     <div
                       className="chat-bubble"
                       style={{
@@ -780,7 +782,7 @@ export default function LandingPage() {
                         padding: "8px 12px",
                       }}
                     >
-                      400 ₴ · Фізика · 18 квітня
+                      {t("landing.features.chatPaidText")}
                     </div>
                   </div>
                 </div>
@@ -793,50 +795,26 @@ export default function LandingPage() {
       {/* COMPARE */}
       <section className="l-section section-alt" id="compare">
         <div className="section-inner">
-          <div className="section-label">Порівняння</div>
-          <h2>Чому oTutorHub,<br />а не конкуренти?</h2>
-          <p className="section-sub">Головна різниця — ми не обмежуємо тебе кількістю учнів на безкоштовному плані.</p>
+          <div className="section-label">{t("landing.compare.label")}</div>
+          <h2>{t("landing.compare.title1")}<br />{t("landing.compare.title2")}</h2>
+          <p className="section-sub">{t("landing.compare.sub")}</p>
 
           <div className="compare-wrap fade-up">
             <table className="compare-table">
               <thead>
                 <tr>
-                  <th style={{ width: "40%" }}>Функція</th>
+                  <th style={{ width: "40%" }}>{t("landing.compare.colFeature")}</th>
                   <th className="ours">oTutorHub</th>
-                  <th>Конкуренти</th>
+                  <th>{t("landing.compare.colCompetitors")}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Учнів безкоштовно</td>
-                  <td className="yes">∞ необмежено</td>
-                  <td className="no">до 5 учнів</td>
-                </tr>
-                <tr>
-                  <td>Чат з учнями</td>
-                  <td className="yes">✓ вбудований</td>
-                  <td className="no">зазвичай немає</td>
-                </tr>
-                <tr>
-                  <td>Telegram-сповіщення</td>
-                  <td className="yes">✓ безкоштовно</td>
-                  <td className="no">немає</td>
-                </tr>
-                <tr>
-                  <td>Автонагадування учням</td>
-                  <td className="yes">✓ в Pro-плані</td>
-                  <td className="no">немає</td>
-                </tr>
-                <tr>
-                  <td>Вкладення у чаті (PDF, фото)</td>
-                  <td className="yes">✓ до 15 МБ</td>
-                  <td className="no">не завжди</td>
-                </tr>
-                <tr>
-                  <td>Тижнева ціна Pro</td>
-                  <td className="yes">від 99 ₴/міс</td>
-                  <td className="no">150 ₴/міс</td>
-                </tr>
+                <tr><td>{t("landing.compare.r1")}</td><td className="yes">{t("landing.compare.r1Ours")}</td><td className="no">{t("landing.compare.r1Them")}</td></tr>
+                <tr><td>{t("landing.compare.r2")}</td><td className="yes">{t("landing.compare.r2Ours")}</td><td className="no">{t("landing.compare.r2Them")}</td></tr>
+                <tr><td>{t("landing.compare.r3")}</td><td className="yes">{t("landing.compare.r3Ours")}</td><td className="no">{t("landing.compare.r3Them")}</td></tr>
+                <tr><td>{t("landing.compare.r4")}</td><td className="yes">{t("landing.compare.r4Ours")}</td><td className="no">{t("landing.compare.r4Them")}</td></tr>
+                <tr><td>{t("landing.compare.r5")}</td><td className="yes">{t("landing.compare.r5Ours")}</td><td className="no">{t("landing.compare.r5Them")}</td></tr>
+                <tr><td>{t("landing.compare.r6")}</td><td className="yes">{t("landing.compare.r6Ours")}</td><td className="no">{t("landing.compare.r6Them")}</td></tr>
               </tbody>
             </table>
           </div>
@@ -846,55 +824,49 @@ export default function LandingPage() {
       {/* PRICING */}
       <section className="l-section features-bg" id="pricing">
         <div className="section-inner" style={{ textAlign: "center" }}>
-          <div className="section-label">Ціни</div>
-          <h2>Просто і чесно</h2>
-          <p className="section-sub" style={{ margin: "0 auto" }}>
-            Безкоштовний план — назавжди. Без прихованих умов. Без карток.
-          </p>
+          <div className="section-label">{t("landing.pricing.label")}</div>
+          <h2>{t("landing.pricing.title")}</h2>
+          <p className="section-sub" style={{ margin: "0 auto" }}>{t("landing.pricing.sub")}</p>
 
           <div className="pricing-grid fade-up">
             {/* FREE */}
             <div className="price-card">
-              <div className="price-plan">Безкоштовний</div>
-              <div className="price-amount">0 ₴</div>
-              <div className="price-period">назавжди · без карток</div>
+              <div className="price-plan">{t("landing.pricing.freePlan")}</div>
+              <div className="price-amount">{t("landing.pricing.freePrice")}</div>
+              <div className="price-period">{t("landing.pricing.freePeriod")}</div>
               <ul className="price-list">
-                <li><span className="check">✓</span> Необмежена кількість учнів</li>
-                <li><span className="check">✓</span> Розклад і облік оплат</li>
-                <li><span className="check">✓</span> Чат і вкладення</li>
-                <li><span className="check">✓</span> Telegram-сповіщення</li>
-                <li><span className="check">✓</span> Zoom/Meet посилання</li>
-                <li><span className="cross">–</span> Автонагадування учням</li>
-                <li><span className="cross">–</span> Преміум аналітика</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free1")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free2")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free3")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free4")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free5")}</li>
+                <li><span className="cross">–</span> {t("landing.pricing.free6")}</li>
+                <li><span className="cross">–</span> {t("landing.pricing.free7")}</li>
               </ul>
               <Link to={signupHref} className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>
-                Почати безкоштовно
+                {t("landing.pricing.freeCta")}
               </Link>
             </div>
 
             {/* PRO */}
             <div className="price-card featured">
-              <div className="price-badge">⭐ Рекомендовано</div>
-              <div className="price-plan">Pro</div>
-              <div className="price-amount">99 ₴</div>
-              <div className="price-period">на місяць при оплаті за рік · або 129 ₴/міс</div>
+              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
+              <div className="price-plan">{t("landing.pricing.proPlan")}</div>
+              <div className="price-amount">{t("landing.pricing.proPrice")}</div>
+              <div className="price-period">{t("landing.pricing.proPeriod")}</div>
               <ul className="price-list">
-                <li><span className="check">✓</span> Все з безкоштовного</li>
-                <li><span className="check">✓</span> Авто-нагадування учням у Telegram</li>
-                <li><span className="check">✓</span> Управління скасуванням уроків</li>
-                <li><span className="check">✓</span> Преміум аналітика з порадами</li>
-                <li><span className="check">✓</span> Експорт звітів CSV/PDF</li>
-                <li><span className="check">✓</span> Пріоритет у підборі нових учнів</li>
-                <li><span className="check">✓</span> Персональна підтримка менеджера</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro1")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro2")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro3")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro4")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro5")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro6")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro7")}</li>
               </ul>
-              <Link
-                to={signupHref}
-                className="btn-primary"
-                style={{ width: "100%", textAlign: "center", boxSizing: "border-box" }}
-              >
-                14 днів безкоштовно
+              <Link to={signupHref} className="btn-primary" style={{ width: "100%", textAlign: "center", boxSizing: "border-box" }}>
+                {t("landing.pricing.proCta")}
               </Link>
-              <p className="price-note">Без картки. Після тріалу — безкоштовний план.</p>
+              <p className="price-note">{t("landing.pricing.proNote")}</p>
             </div>
           </div>
         </div>
@@ -903,40 +875,40 @@ export default function LandingPage() {
       {/* TESTIMONIALS */}
       <section className="l-section section-alt">
         <div className="section-inner">
-          <div className="section-label">Відгуки</div>
-          <h2>Що кажуть репетитори</h2>
+          <div className="section-label">{t("landing.testimonials.label")}</div>
+          <h2>{t("landing.testimonials.title")}</h2>
 
           <div className="testi-grid fade-up">
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Нарешті перестала вести блокнот з боргами. Все в застосунку — хто заплатив, хто ні. Заощаджую мінімум годину на тиждень."</p>
+              <p className="testi-text">{t("landing.testimonials.t1Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ОМ</div>
                 <div>
-                  <div className="testi-name">Оксана М.</div>
-                  <div className="testi-role">Репетитор з математики · 9 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t1Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t1Role")}</div>
                 </div>
               </div>
             </div>
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Автонагадування в Telegram — це вбивча функція. Учні самі платять, я нічого не прошу. Незручних розмов стало в рази менше."</p>
+              <p className="testi-text">{t("landing.testimonials.t2Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ВД</div>
                 <div>
-                  <div className="testi-name">Вікторія Д.</div>
-                  <div className="testi-role">Репетитор з англійської · 14 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t2Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t2Role")}</div>
                 </div>
               </div>
             </div>
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Спробувала інші застосунки — скрізь обмеження по учнях. Тут необмежено безкоштовно. Переїхала за один вечір."</p>
+              <p className="testi-text">{t("landing.testimonials.t3Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ІК</div>
                 <div>
-                  <div className="testi-name">Ірина К.</div>
-                  <div className="testi-role">Репетитор з хімії · 11 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t3Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t3Role")}</div>
                 </div>
               </div>
             </div>
@@ -947,10 +919,10 @@ export default function LandingPage() {
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
-          <h2>Готова навести порядок?</h2>
-          <p>Реєстрація займає 2 хвилини. Перший учень — за 5 хвилин. Перший оплачений урок — вже сьогодні.</p>
-          <Link to={signupHref} className="btn-white">Спробувати безкоштовно →</Link>
-          <p className="cta-footnote">14 днів Pro без картки · Необмежена кількість учнів назавжди</p>
+          <h2>{t("landing.finalCta.title")}</h2>
+          <p>{t("landing.finalCta.sub")}</p>
+          <Link to={signupHref} className="btn-white">{t("landing.finalCta.cta")}</Link>
+          <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
         </div>
       </section>
 
@@ -959,12 +931,12 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div className="footer-logo">oTutorHub</div>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            <Link to="/auth">Застосунок</Link>
-            <Link to="/terms">Договір оферти</Link>
-            <Link to="/privacy">Політика конфіденційності</Link>
-            <a href="mailto:hello@otutorhub.com">Зв'язатись</a>
+            <Link to="/auth">{t("landing.footer.app")}</Link>
+            <Link to="/terms">{t("landing.footer.terms")}</Link>
+            <Link to="/privacy">{t("landing.footer.privacy")}</Link>
+            <a href="mailto:hello@otutorhub.com">{t("landing.footer.contact")}</a>
           </div>
-          <div>© 2026 oTutorHub</div>
+          <div>{t("landing.footer.copyright")}</div>
         </div>
       </footer>
     </div>
