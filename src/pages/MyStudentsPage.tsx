@@ -630,6 +630,15 @@ export default function MyStudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <InviteLinkDialog
+        open={invite.open}
+        onOpenChange={(v) => setInvite((prev) => ({ ...prev, open: v }))}
+        personName={invite.name}
+        email={invite.email}
+        phone={invite.phone}
+        role="student"
+      />
     </AppLayout>
   );
 }
