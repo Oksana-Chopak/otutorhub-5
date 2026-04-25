@@ -371,6 +371,9 @@ export default function SchedulePage() {
   // Smart-form: subjects this student already has a rate for with this tutor
   const [pairSubjects, setPairSubjects] = useState<string[]>([]);
   const [autoFilling, setAutoFilling] = useState(false);
+  // Whether (tutor, student, subject) already has a saved rate.
+  // Used by independent tutors so we know if we need to upsert student_rates after creating a lesson.
+  const [existingRateForPair, setExistingRateForPair] = useState<boolean>(false);
 
   // Load subjects from tutor_subject_rates whenever tutor changes
   useEffect(() => {
@@ -440,15 +443,16 @@ export default function SchedulePage() {
           .eq("student_id", form.student_id)
           .eq("subject", form.subject)
           .maybeSingle(),
-        // Fallback: any rate for this (tutor, student) pair (most recent)
+        // Fallback: any rate for this (tutor, student) pair (most recent).
+        // NOTE: do not use .maybeSingle() here — pair may legitimately have several
+        // subject rates and that would throw "multiple rows returned".
         supabase
           .from("student_rates")
           .select("price_per_lesson")
           .eq("tutor_id", form.tutor_id)
           .eq("student_id", form.student_id)
           .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
+          .limit(1),
         supabase
           .from("tutor_subject_rates")
           .select("rate_per_lesson")
@@ -462,9 +466,10 @@ export default function SchedulePage() {
           .maybeSingle(),
       ]);
       if (cancelled) return;
+      const anyPairRate = anyPairRateRes.data?.[0]?.price_per_lesson;
       const studentPrice =
         exactRateRes.data?.price_per_lesson ??
-        anyPairRateRes.data?.price_per_lesson ??
+        anyPairRate ??
         payoutRes.data?.rate_per_lesson ??
         fallbackRes.data?.rate_per_lesson;
       const tutorPayout =
@@ -480,6 +485,10 @@ export default function SchedulePage() {
             ? String(tutorPayout)
             : f.tutor_payout,
       }));
+      // Track whether this (student, subject) already has a saved rate.
+      // For independent tutors we use this to decide whether we need to upsert
+      // student_rates after creating the lesson.
+      setExistingRateForPair(!!exactRateRes.data);
       setAutoFilling(false);
     })();
     return () => {
@@ -535,6 +544,35 @@ export default function SchedulePage() {
     const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
     const baseStart = new Date(form.starts_at);
 
+    // For independent tutors: if the form contains a price and we don't yet have
+    // a saved student_rate for this exact (student, subject) pair, save it first.
+    // The autofill_lesson_prices trigger will then pick it up automatically when
+    // the lesson is inserted, and all future lessons for the same subject will
+    // inherit the price as well.
+    if (isIndependentTutor) {
+      const priceFromForm = Number(form.student_price);
+      if (!existingRateForPair && priceFromForm > 0) {
+        const { error: rateErr } = await supabase
+          .from("student_rates")
+          .upsert(
+            {
+              tutor_id: user.id,
+              student_id: form.student_id,
+              subject: form.subject,
+              price_per_lesson: priceFromForm,
+              source: "independent",
+            },
+            { onConflict: "tutor_id,student_id,subject" }
+          );
+        if (rateErr) {
+          // Not fatal: we'll still try to create the lesson, but warn the user.
+          console.warn("Could not save subject rate", rateErr);
+        } else {
+          setExistingRateForPair(true);
+        }
+      }
+    }
+
     const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
     const payloads: any[] = [];
     for (let i = 0; i < repeats; i++) {
@@ -556,6 +594,13 @@ export default function SchedulePage() {
         payload.tutor_payout = Number(form.tutor_payout) || 0;
         payload.student_payment_status = form.student_payment_status;
         payload.tutor_payout_status = form.tutor_payout_status;
+      } else if (isIndependentTutor) {
+        // Pass the price explicitly so even if the trigger fallback misses (e.g.
+        // the rate upsert failed), the lesson still has the right price.
+        const priceFromForm = Number(form.student_price);
+        if (priceFromForm > 0) {
+          payload.student_price = priceFromForm;
+        }
       }
       payloads.push(payload);
     }
@@ -995,6 +1040,27 @@ export default function SchedulePage() {
                     />
                   </div>
                 </div>
+                {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
+                  <div>
+                    <Label htmlFor="indep_student_price" className="flex items-center gap-1.5">
+                      Ціна за урок (₴)
+                      {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                    </Label>
+                    <Input
+                      id="indep_student_price"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={form.student_price}
+                      onChange={(e) => setForm((f) => ({ ...f, student_price: e.target.value }))}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {existingRateForPair
+                        ? "💡 Ціна підтягнута з тарифу учня. Можна змінити для цього уроку."
+                        : "🆕 Для цього предмета ще немає ціни — введіть її, і вона збережеться для майбутніх уроків."}
+                    </p>
+                  </div>
+                )}
                 {isManager && (
                   <>
                     <div>

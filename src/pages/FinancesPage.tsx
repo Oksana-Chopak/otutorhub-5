@@ -413,7 +413,9 @@ export default function FinancesPage() {
                 {!isIndependentTutor && (
                   <SelectItem value="need_payout">Очікує виплати</SelectItem>
                 )}
-                <SelectItem value="done">Все закрито</SelectItem>
+                {!isIndependentTutor && (
+                  <SelectItem value="done">Все закрито</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
