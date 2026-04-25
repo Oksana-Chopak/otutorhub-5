@@ -345,6 +345,6 @@ export const uk = {
     saved: "Збережено",
     saveFailed: "Не вдалося зберегти",
   },
-} as const;
+};
 
 export type Translations = typeof uk;
