@@ -1264,6 +1264,7 @@ export type Database = {
             Returns: boolean
           }
       is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
+      is_pending_email: { Args: { _email: string }; Returns: boolean }
       is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
       list_lesson_financials: {
         Args: never
