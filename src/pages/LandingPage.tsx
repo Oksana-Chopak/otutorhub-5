@@ -546,7 +546,7 @@ export default function LandingPage() {
   }, []);
 
   // CTAs lead to /auth with role pre-selected for tutor signup
-  const signupHref = "/auth?mode=signup&role=tutor";
+  const signupHref = "/auth?signup=1&role=tutor";
 
   return (
     <div className="landing-root">
