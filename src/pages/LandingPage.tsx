@@ -795,50 +795,26 @@ export default function LandingPage() {
       {/* COMPARE */}
       <section className="l-section section-alt" id="compare">
         <div className="section-inner">
-          <div className="section-label">Порівняння</div>
-          <h2>Чому oTutorHub,<br />а не конкуренти?</h2>
-          <p className="section-sub">Головна різниця — ми не обмежуємо тебе кількістю учнів на безкоштовному плані.</p>
+          <div className="section-label">{t("landing.compare.label")}</div>
+          <h2>{t("landing.compare.title1")}<br />{t("landing.compare.title2")}</h2>
+          <p className="section-sub">{t("landing.compare.sub")}</p>
 
           <div className="compare-wrap fade-up">
             <table className="compare-table">
               <thead>
                 <tr>
-                  <th style={{ width: "40%" }}>Функція</th>
+                  <th style={{ width: "40%" }}>{t("landing.compare.colFeature")}</th>
                   <th className="ours">oTutorHub</th>
-                  <th>Конкуренти</th>
+                  <th>{t("landing.compare.colCompetitors")}</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Учнів безкоштовно</td>
-                  <td className="yes">∞ необмежено</td>
-                  <td className="no">до 5 учнів</td>
-                </tr>
-                <tr>
-                  <td>Чат з учнями</td>
-                  <td className="yes">✓ вбудований</td>
-                  <td className="no">зазвичай немає</td>
-                </tr>
-                <tr>
-                  <td>Telegram-сповіщення</td>
-                  <td className="yes">✓ безкоштовно</td>
-                  <td className="no">немає</td>
-                </tr>
-                <tr>
-                  <td>Автонагадування учням</td>
-                  <td className="yes">✓ в Pro-плані</td>
-                  <td className="no">немає</td>
-                </tr>
-                <tr>
-                  <td>Вкладення у чаті (PDF, фото)</td>
-                  <td className="yes">✓ до 15 МБ</td>
-                  <td className="no">не завжди</td>
-                </tr>
-                <tr>
-                  <td>Тижнева ціна Pro</td>
-                  <td className="yes">від 99 ₴/міс</td>
-                  <td className="no">150 ₴/міс</td>
-                </tr>
+                <tr><td>{t("landing.compare.r1")}</td><td className="yes">{t("landing.compare.r1Ours")}</td><td className="no">{t("landing.compare.r1Them")}</td></tr>
+                <tr><td>{t("landing.compare.r2")}</td><td className="yes">{t("landing.compare.r2Ours")}</td><td className="no">{t("landing.compare.r2Them")}</td></tr>
+                <tr><td>{t("landing.compare.r3")}</td><td className="yes">{t("landing.compare.r3Ours")}</td><td className="no">{t("landing.compare.r3Them")}</td></tr>
+                <tr><td>{t("landing.compare.r4")}</td><td className="yes">{t("landing.compare.r4Ours")}</td><td className="no">{t("landing.compare.r4Them")}</td></tr>
+                <tr><td>{t("landing.compare.r5")}</td><td className="yes">{t("landing.compare.r5Ours")}</td><td className="no">{t("landing.compare.r5Them")}</td></tr>
+                <tr><td>{t("landing.compare.r6")}</td><td className="yes">{t("landing.compare.r6Ours")}</td><td className="no">{t("landing.compare.r6Them")}</td></tr>
               </tbody>
             </table>
           </div>
@@ -848,55 +824,49 @@ export default function LandingPage() {
       {/* PRICING */}
       <section className="l-section features-bg" id="pricing">
         <div className="section-inner" style={{ textAlign: "center" }}>
-          <div className="section-label">Ціни</div>
-          <h2>Просто і чесно</h2>
-          <p className="section-sub" style={{ margin: "0 auto" }}>
-            Безкоштовний план — назавжди. Без прихованих умов. Без карток.
-          </p>
+          <div className="section-label">{t("landing.pricing.label")}</div>
+          <h2>{t("landing.pricing.title")}</h2>
+          <p className="section-sub" style={{ margin: "0 auto" }}>{t("landing.pricing.sub")}</p>
 
           <div className="pricing-grid fade-up">
             {/* FREE */}
             <div className="price-card">
-              <div className="price-plan">Безкоштовний</div>
-              <div className="price-amount">0 ₴</div>
-              <div className="price-period">назавжди · без карток</div>
+              <div className="price-plan">{t("landing.pricing.freePlan")}</div>
+              <div className="price-amount">{t("landing.pricing.freePrice")}</div>
+              <div className="price-period">{t("landing.pricing.freePeriod")}</div>
               <ul className="price-list">
-                <li><span className="check">✓</span> Необмежена кількість учнів</li>
-                <li><span className="check">✓</span> Розклад і облік оплат</li>
-                <li><span className="check">✓</span> Чат і вкладення</li>
-                <li><span className="check">✓</span> Telegram-сповіщення</li>
-                <li><span className="check">✓</span> Zoom/Meet посилання</li>
-                <li><span className="cross">–</span> Автонагадування учням</li>
-                <li><span className="cross">–</span> Преміум аналітика</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free1")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free2")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free3")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free4")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.free5")}</li>
+                <li><span className="cross">–</span> {t("landing.pricing.free6")}</li>
+                <li><span className="cross">–</span> {t("landing.pricing.free7")}</li>
               </ul>
               <Link to={signupHref} className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>
-                Почати безкоштовно
+                {t("landing.pricing.freeCta")}
               </Link>
             </div>
 
             {/* PRO */}
             <div className="price-card featured">
-              <div className="price-badge">⭐ Рекомендовано</div>
-              <div className="price-plan">Pro</div>
-              <div className="price-amount">99 ₴</div>
-              <div className="price-period">на місяць при оплаті за рік · або 129 ₴/міс</div>
+              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
+              <div className="price-plan">{t("landing.pricing.proPlan")}</div>
+              <div className="price-amount">{t("landing.pricing.proPrice")}</div>
+              <div className="price-period">{t("landing.pricing.proPeriod")}</div>
               <ul className="price-list">
-                <li><span className="check">✓</span> Все з безкоштовного</li>
-                <li><span className="check">✓</span> Авто-нагадування учням у Telegram</li>
-                <li><span className="check">✓</span> Управління скасуванням уроків</li>
-                <li><span className="check">✓</span> Преміум аналітика з порадами</li>
-                <li><span className="check">✓</span> Експорт звітів CSV/PDF</li>
-                <li><span className="check">✓</span> Пріоритет у підборі нових учнів</li>
-                <li><span className="check">✓</span> Персональна підтримка менеджера</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro1")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro2")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro3")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro4")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro5")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro6")}</li>
+                <li><span className="check">✓</span> {t("landing.pricing.pro7")}</li>
               </ul>
-              <Link
-                to={signupHref}
-                className="btn-primary"
-                style={{ width: "100%", textAlign: "center", boxSizing: "border-box" }}
-              >
-                14 днів безкоштовно
+              <Link to={signupHref} className="btn-primary" style={{ width: "100%", textAlign: "center", boxSizing: "border-box" }}>
+                {t("landing.pricing.proCta")}
               </Link>
-              <p className="price-note">Без картки. Після тріалу — безкоштовний план.</p>
+              <p className="price-note">{t("landing.pricing.proNote")}</p>
             </div>
           </div>
         </div>
@@ -905,40 +875,40 @@ export default function LandingPage() {
       {/* TESTIMONIALS */}
       <section className="l-section section-alt">
         <div className="section-inner">
-          <div className="section-label">Відгуки</div>
-          <h2>Що кажуть репетитори</h2>
+          <div className="section-label">{t("landing.testimonials.label")}</div>
+          <h2>{t("landing.testimonials.title")}</h2>
 
           <div className="testi-grid fade-up">
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Нарешті перестала вести блокнот з боргами. Все в застосунку — хто заплатив, хто ні. Заощаджую мінімум годину на тиждень."</p>
+              <p className="testi-text">{t("landing.testimonials.t1Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ОМ</div>
                 <div>
-                  <div className="testi-name">Оксана М.</div>
-                  <div className="testi-role">Репетитор з математики · 9 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t1Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t1Role")}</div>
                 </div>
               </div>
             </div>
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Автонагадування в Telegram — це вбивча функція. Учні самі платять, я нічого не прошу. Незручних розмов стало в рази менше."</p>
+              <p className="testi-text">{t("landing.testimonials.t2Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ВД</div>
                 <div>
-                  <div className="testi-name">Вікторія Д.</div>
-                  <div className="testi-role">Репетитор з англійської · 14 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t2Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t2Role")}</div>
                 </div>
               </div>
             </div>
             <div className="testi-card">
               <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">"Спробувала інші застосунки — скрізь обмеження по учнях. Тут необмежено безкоштовно. Переїхала за один вечір."</p>
+              <p className="testi-text">{t("landing.testimonials.t3Text")}</p>
               <div className="testi-author">
                 <div className="testi-avatar">ІК</div>
                 <div>
-                  <div className="testi-name">Ірина К.</div>
-                  <div className="testi-role">Репетитор з хімії · 11 учнів</div>
+                  <div className="testi-name">{t("landing.testimonials.t3Name")}</div>
+                  <div className="testi-role">{t("landing.testimonials.t3Role")}</div>
                 </div>
               </div>
             </div>
@@ -949,10 +919,10 @@ export default function LandingPage() {
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
-          <h2>Готова навести порядок?</h2>
-          <p>Реєстрація займає 2 хвилини. Перший учень — за 5 хвилин. Перший оплачений урок — вже сьогодні.</p>
-          <Link to={signupHref} className="btn-white">Спробувати безкоштовно →</Link>
-          <p className="cta-footnote">14 днів Pro без картки · Необмежена кількість учнів назавжди</p>
+          <h2>{t("landing.finalCta.title")}</h2>
+          <p>{t("landing.finalCta.sub")}</p>
+          <Link to={signupHref} className="btn-white">{t("landing.finalCta.cta")}</Link>
+          <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
         </div>
       </section>
 
@@ -961,12 +931,12 @@ export default function LandingPage() {
         <div className="footer-inner">
           <div className="footer-logo">oTutorHub</div>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            <Link to="/auth">Застосунок</Link>
-            <Link to="/terms">Договір оферти</Link>
-            <Link to="/privacy">Політика конфіденційності</Link>
-            <a href="mailto:hello@otutorhub.com">Зв'язатись</a>
+            <Link to="/auth">{t("landing.footer.app")}</Link>
+            <Link to="/terms">{t("landing.footer.terms")}</Link>
+            <Link to="/privacy">{t("landing.footer.privacy")}</Link>
+            <a href="mailto:hello@otutorhub.com">{t("landing.footer.contact")}</a>
           </div>
-          <div>© 2026 oTutorHub</div>
+          <div>{t("landing.footer.copyright")}</div>
         </div>
       </footer>
     </div>
