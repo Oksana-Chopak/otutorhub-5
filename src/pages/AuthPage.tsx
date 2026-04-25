@@ -235,7 +235,20 @@ export default function AuthPage() {
             <CardDescription>Увійдіть або створіть акаунт</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            {pendingHint && (
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
+                <div className="mb-1 flex items-center gap-1.5 font-medium text-primary">
+                  <Mail className="h-3.5 w-3.5" />
+                  Вас додав репетитор
+                </div>
+                <p className="text-muted-foreground">
+                  За email <span className="font-medium text-foreground">{pendingHint}</span> вже
+                  створено профіль учня, але акаунт ще не зареєстрований. Заповніть форму нижче — і
+                  всі ваші уроки автоматично з'являться у кабінеті.
+                </p>
+              </div>
+            )}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Вхід</TabsTrigger>
                 <TabsTrigger value="signup">Реєстрація</TabsTrigger>
