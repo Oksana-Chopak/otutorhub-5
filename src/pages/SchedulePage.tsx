@@ -544,6 +544,35 @@ export default function SchedulePage() {
     const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
     const baseStart = new Date(form.starts_at);
 
+    // For independent tutors: if the form contains a price and we don't yet have
+    // a saved student_rate for this exact (student, subject) pair, save it first.
+    // The autofill_lesson_prices trigger will then pick it up automatically when
+    // the lesson is inserted, and all future lessons for the same subject will
+    // inherit the price as well.
+    if (isIndependentTutor) {
+      const priceFromForm = Number(form.student_price);
+      if (!existingRateForPair && priceFromForm > 0) {
+        const { error: rateErr } = await supabase
+          .from("student_rates")
+          .upsert(
+            {
+              tutor_id: user.id,
+              student_id: form.student_id,
+              subject: form.subject,
+              price_per_lesson: priceFromForm,
+              source: "independent",
+            },
+            { onConflict: "tutor_id,student_id,subject" }
+          );
+        if (rateErr) {
+          // Not fatal: we'll still try to create the lesson, but warn the user.
+          console.warn("Could not save subject rate", rateErr);
+        } else {
+          setExistingRateForPair(true);
+        }
+      }
+    }
+
     const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
     const payloads: any[] = [];
     for (let i = 0; i < repeats; i++) {
@@ -565,6 +594,13 @@ export default function SchedulePage() {
         payload.tutor_payout = Number(form.tutor_payout) || 0;
         payload.student_payment_status = form.student_payment_status;
         payload.tutor_payout_status = form.tutor_payout_status;
+      } else if (isIndependentTutor) {
+        // Pass the price explicitly so even if the trigger fallback misses (e.g.
+        // the rate upsert failed), the lesson still has the right price.
+        const priceFromForm = Number(form.student_price);
+        if (priceFromForm > 0) {
+          payload.student_price = priceFromForm;
+        }
       }
       payloads.push(payload);
     }
