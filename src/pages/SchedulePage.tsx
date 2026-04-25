@@ -1608,6 +1608,8 @@ export default function SchedulePage() {
           })}
         </div>
       )}
+        </>
+      )}
       </>
       )}
     </AppLayout>
