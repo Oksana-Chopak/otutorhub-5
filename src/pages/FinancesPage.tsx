@@ -496,28 +496,19 @@ export default function FinancesPage() {
                 <div className="divide-y divide-border lg:hidden">
                   {visibleRows.map((l) => {
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
-                    const isSelected = selected.has(l.id);
                     return (
                       <div
                         key={l.id}
-                        className={`p-3 ${isSelected ? "bg-primary/5" : ""}`}
+                        className="p-3"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleRow(l.id)}
-                              aria-label="Обрати"
-                              className="mt-0.5"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                {l.subject}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(l.starts_at)}
-                              </p>
-                            </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {l.subject}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(l.starts_at)}
+                            </p>
                           </div>
                           {!isIndependentTutor && (
                             <div
