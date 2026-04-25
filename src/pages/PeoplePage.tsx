@@ -23,6 +23,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   GraduationCap,
   BookOpen,
@@ -127,6 +128,13 @@ export default function PeoplePage() {
     subjects: [] as string[],
   });
   const [adding, setAdding] = useState(false);
+  const [invite, setInvite] = useState<{
+    open: boolean;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    role: "student" | "tutor";
+  }>({ open: false, name: "", email: null, phone: null, role: "student" });
 
   // Contact edit dialog
   const [contactDialog, setContactDialog] = useState<{ open: boolean; user: UserRow | null }>({
@@ -442,8 +450,16 @@ export default function PeoplePage() {
     }
 
     setAdding(false);
-    toast.success("Людину додано. Дані будуть зв'язані після її реєстрації.");
+    toast.success("Людину додано");
     setAddOpen(false);
+    // Show invite dialog so the manager can copy the registration link
+    setInvite({
+      open: true,
+      name: `${fn} ${ln}`.trim(),
+      email: email || null,
+      phone: phone || null,
+      role: addForm.role === "tutor" ? "tutor" : "student",
+    });
     setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
     loadData();
   };
@@ -1117,6 +1133,15 @@ export default function PeoplePage() {
           onSaved={loadData}
         />
       )}
+
+      <InviteLinkDialog
+        open={invite.open}
+        onOpenChange={(v) => setInvite((prev) => ({ ...prev, open: v }))}
+        personName={invite.name}
+        email={invite.email}
+        phone={invite.phone}
+        role={invite.role}
+      />
     </AppLayout>
   );
 }

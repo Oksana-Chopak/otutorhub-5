@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, GraduationCap, BookOpenCheck } from "lucide-react";
+import { Loader2, GraduationCap, BookOpenCheck, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +34,7 @@ type SignUpRole = "student" | "tutor";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState<boolean>(() => {
@@ -41,14 +42,25 @@ export default function AuthPage() {
     return stored === null ? true : stored === "true";
   });
 
-  const [signInData, setSignInData] = useState({ email: "", password: "" });
+  // Invite-link / preselected tab support: ?signup=1&email=...&role=student|tutor
+  const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [pendingHint, setPendingHint] = useState<string | null>(null);
+
+  const [signInData, setSignInData] = useState({
+    email: searchParams.get("email") ?? "",
+    password: "",
+  });
   const [signUpData, setSignUpData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
-    email: "",
+    email: searchParams.get("email") ?? "",
     password: "",
-    role: "student" as SignUpRole,
+    role: ((): SignUpRole => {
+      const r = searchParams.get("role");
+      return r === "tutor" ? "tutor" : "student";
+    })(),
   });
 
   useEffect(() => {
@@ -58,6 +70,22 @@ export default function AuthPage() {
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
   }, [remember]);
+
+  // If we arrived via invite link, immediately check whether the email
+  // matches an existing ghost profile so the hint is visible upfront.
+  useEffect(() => {
+    const emailFromUrl = searchParams.get("email");
+    if (searchParams.get("signup") === "1" && emailFromUrl) {
+      supabase
+        .rpc("is_pending_email", { _email: emailFromUrl })
+        .then(({ data }) => {
+          if (data === true) {
+            setPendingHint(emailFromUrl);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,6 +102,27 @@ export default function AuthPage() {
     setLoading(false);
     if (error) {
       console.error("Sign-in failed", error);
+
+      // Special-case: an "Invalid credentials" error might actually mean
+      // the user was added by a tutor/manager but never registered.
+      // Check via public RPC and guide them to sign up instead.
+      if (error.message === "Invalid login credentials") {
+        const { data: isPending } = await supabase.rpc("is_pending_email", {
+          _email: parsed.data.email,
+        });
+        if (isPending === true) {
+          setPendingHint(parsed.data.email);
+          setSignUpData((prev) => ({ ...prev, email: parsed.data.email }));
+          setActiveTab("signup");
+          toast({
+            title: "Потрібна реєстрація",
+            description:
+              "Вас додав репетитор, але акаунту ще немає. Створіть його з цим email — ваші уроки автоматично з'являться.",
+          });
+          return;
+        }
+      }
+
       toast({
         title: "Не вдалося увійти",
         description: error.message === "Invalid login credentials"
@@ -186,7 +235,20 @@ export default function AuthPage() {
             <CardDescription>Увійдіть або створіть акаунт</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
+            {pendingHint && (
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
+                <div className="mb-1 flex items-center gap-1.5 font-medium text-primary">
+                  <Mail className="h-3.5 w-3.5" />
+                  Вас додав репетитор
+                </div>
+                <p className="text-muted-foreground">
+                  За email <span className="font-medium text-foreground">{pendingHint}</span> вже
+                  створено профіль учня, але акаунт ще не зареєстрований. Заповніть форму нижче — і
+                  всі ваші уроки автоматично з'являться у кабінеті.
+                </p>
+              </div>
+            )}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Вхід</TabsTrigger>
                 <TabsTrigger value="signup">Реєстрація</TabsTrigger>

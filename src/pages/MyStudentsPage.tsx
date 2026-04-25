@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { EmptyState } from "@/components/EmptyState";
+import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   UserPlus,
   Loader2,
@@ -91,6 +92,12 @@ export default function MyStudentsPage() {
   );
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [invite, setInvite] = useState<{
+    open: boolean;
+    name: string;
+    email: string | null;
+    phone: string | null;
+  }>({ open: false, name: "", email: null, phone: null });
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
@@ -297,7 +304,14 @@ export default function MyStudentsPage() {
         );
       }
 
-      toast.success("Учня додано. Дані зв'яжуться з його акаунтом після реєстрації.");
+      toast.success("Учня додано");
+      // Show invite dialog so the tutor can copy the registration link
+      setInvite({
+        open: true,
+        name: `${fn} ${ln}`.trim(),
+        email: email || null,
+        phone: phone || null,
+      });
     } else if (dialog.mode === "edit" && dialog.studentId) {
       // Update profile
       await supabase
@@ -616,6 +630,15 @@ export default function MyStudentsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <InviteLinkDialog
+        open={invite.open}
+        onOpenChange={(v) => setInvite((prev) => ({ ...prev, open: v }))}
+        personName={invite.name}
+        email={invite.email}
+        phone={invite.phone}
+        role="student"
+      />
     </AppLayout>
   );
 }
