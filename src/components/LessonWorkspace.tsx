@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 
 interface LessonWorkspaceProps {
@@ -45,9 +47,14 @@ export function LessonWorkspace({
   onUpdated,
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
+  const navigate = useNavigate();
+  const { isPro, isIndependent } = useWorkspaceSettings();
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
+  // AI summary доступний всім тьюторам у hub-режимі (школа платить),
+  // а в самостійному режимі — лише Pro/Trial
+  const aiAllowed = !isIndependent || isPro;
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
@@ -279,25 +286,49 @@ export function LessonWorkspace({
             Конспект уроку
           </div>
           {canEditTutorFields && (
-            <Button
-              size="sm"
-              variant="outline"
-              type="button"
-              disabled={aiLoading}
-              onClick={generateAiSummary}
-              title="Згенерувати конспект на основі домашки, нотаток та чорнового тексту"
-            >
-              {aiLoading ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              )}
-              AI-конспект
-            </Button>
+            aiAllowed ? (
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                disabled={aiLoading}
+                onClick={generateAiSummary}
+                title="AI допише детальний конспект на основі ваших нотаток"
+              >
+                {aiLoading ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                ✨ AI-конспект
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={() => navigate("/subscription")}
+                title="AI-конспект доступний на тарифі Pro"
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <Lock className="mr-1.5 h-3.5 w-3.5" />
+                ✨ AI-конспект (Pro)
+              </Button>
+            )
           )}
         </div>
         {canEditTutorFields ? (
           <>
+            {aiAllowed && (
+              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-foreground/80">
+                <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <p>
+                  <span className="font-medium text-foreground">Порада:</span> коротко занотуйте тему та головні
+                  пункти уроку (наприклад: «Past Simple — твердження, заперечення, неправильні дієслова»),
+                  і AI розпише конспект детальніше — структуровано, з прикладами та порадами що повторити. 📝
+                </p>
+              </div>
+            )}
             <Textarea
               rows={5}
               placeholder="Що пройшли на уроці, ключові моменти, посилання на матеріали…"
