@@ -67,7 +67,13 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
     load();
   }, [tutorId]);
 
-  const hasAnyAvailability = weekly.length > 0 || overrides.some((o) => o.is_available);
+  // Differentiate three states:
+  //   1) tutor has never set anything → "ще не вказав години"
+  //   2) tutor set hours / overrides, but next 14 days have no free slots → "немає вільних слотів"
+  //   3) tutor has free slots → render calendar
+  const hasWeekly = weekly.length > 0;
+  const hasPositiveOverride = overrides.some((o) => o.is_available);
+  const hasAnySchedule = hasWeekly || hasPositiveOverride || overrides.length > 0;
 
   const days = useMemo(() => {
     const arr: { date: Date; slots: { start: number; end: number }[] }[] = [];
@@ -87,6 +93,9 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
     }
     return arr;
   }, [weekly, overrides, booked, weekOffset]);
+
+  // Whether at least one slot exists across the rendered week
+  const hasAnySlotInView = days.some((d) => d.slots.length > 0);
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
