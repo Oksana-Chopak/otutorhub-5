@@ -16,6 +16,10 @@ interface MobileFiltersProps {
   className?: string;
   /** Optional desktop slot — when set, on `lg+` shows children inline instead of trigger. */
   desktopInline?: boolean;
+  /** When true, mobile trigger is rendered as a compact icon-only button. */
+  compact?: boolean;
+  /** Where the collapsible content panel anchors. Defaults to 'left'. */
+  align?: "left" | "right";
 }
 
 /**
