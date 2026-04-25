@@ -1040,6 +1040,27 @@ export default function SchedulePage() {
                     />
                   </div>
                 </div>
+                {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
+                  <div>
+                    <Label htmlFor="indep_student_price" className="flex items-center gap-1.5">
+                      Ціна за урок (₴)
+                      {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                    </Label>
+                    <Input
+                      id="indep_student_price"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={form.student_price}
+                      onChange={(e) => setForm((f) => ({ ...f, student_price: e.target.value }))}
+                    />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {existingRateForPair
+                        ? "💡 Ціна підтягнута з тарифу учня. Можна змінити для цього уроку."
+                        : "🆕 Для цього предмета ще немає ціни — введіть її, і вона збережеться для майбутніх уроків."}
+                    </p>
+                  </div>
+                )}
                 {isManager && (
                   <>
                     <div>
