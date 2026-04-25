@@ -1150,15 +1150,15 @@ export default function SchedulePage() {
 
       {/* Edit lesson dialog (opened from calendar / list) */}
       <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
-        <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
             <DialogTitle>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
                 ? "Редагувати урок"
                 : "Деталі уроку"}
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-y-auto px-6 py-4 flex-1 min-h-0">
             <div>
               <Label htmlFor="edit_subject">Предмет</Label>
               <Input id="edit_subject" value={editForm.subject}
@@ -1226,7 +1226,7 @@ export default function SchedulePage() {
                 onChange={(e) => setEditForm((f) => ({ ...f, meeting_url: e.target.value }))} />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="px-6 py-3 border-t border-border shrink-0 bg-card">
             <Button variant="outline" onClick={() => setEditingLesson(null)}>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? "Скасувати" : "Закрити"}
             </Button>
