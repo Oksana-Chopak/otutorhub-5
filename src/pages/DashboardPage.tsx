@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { Badge } from "@/components/ui/badge";
@@ -82,6 +83,7 @@ const statusClass: Record<LessonStatus, string> = {
 type ProfitPeriod = "all" | "month" | "week";
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
@@ -405,17 +407,17 @@ export default function DashboardPage() {
     <AppLayout>
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">Дашборд</h1>
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("dashboard.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            {isManager ? "Керуйте уроками, людьми та оплатами" : "Огляд ваших занять"}
+            {isManager ? t("dashboard.subManager") : t("dashboard.subOther")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {isManager && (
             <>
-              <Button asChild variant="outline"><Link to="/people">Люди</Link></Button>
-              <Button asChild variant="outline"><Link to="/schedule">Уроки</Link></Button>
-              <Button asChild><Link to="/finances">Оплати</Link></Button>
+              <Button asChild variant="outline"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
+              <Button asChild variant="outline"><Link to="/schedule">{t("dashboard.btnLessons")}</Link></Button>
+              <Button asChild><Link to="/finances">{t("dashboard.btnPayments")}</Link></Button>
             </>
           )}
           {(isTutor || isStudent) && !isManager && (
@@ -424,7 +426,7 @@ export default function DashboardPage() {
                 <Button asChild>
                   <Link to="/schedule">
                     <Plus className="h-4 w-4" />
-                    Створити урок
+                    {t("dashboard.btnCreateLesson")}
                   </Link>
                 </Button>
               )}
@@ -433,7 +435,7 @@ export default function DashboardPage() {
                   trigger={
                     <Button>
                       <HandHeart className="h-4 w-4" />
-                      Запит на репетитора
+                      {t("dashboard.btnRequestTutor")}
                     </Button>
                   }
                 />
@@ -442,7 +444,7 @@ export default function DashboardPage() {
                 <Button asChild variant="outline">
                   <Link to="/availability">
                     <CalendarPlus className="h-4 w-4" />
-                    Оновити години
+                    {t("dashboard.btnUpdateHours")}
                   </Link>
                 </Button>
               )}
@@ -450,7 +452,7 @@ export default function DashboardPage() {
                 <Button asChild variant="outline">
                   <Link to="/finances">
                     <TrendingUp className="h-4 w-4" />
-                    Фінанси
+                    {t("dashboard.btnFinances")}
                   </Link>
                 </Button>
               )}
@@ -467,14 +469,14 @@ export default function DashboardPage() {
         <>
           {isManager && (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-              <StatCard label="Репетитори" value={tutorCount} icon={Users} to="/people" />
-              <StatCard label="Учні" value={studentCount} icon={Users} to="/people" />
-              <StatCard label="Уроків сьогодні" value={todayLessons.length} icon={CalendarDays} to="/schedule" />
+              <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
+              <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
+              <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
               <div className="rounded-xl border border-border bg-card p-3 transition-colors hover:border-success/40">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Прибуток
+                      {t("dashboard.cardProfit")}
                     </p>
                     <Link to="/finances" className="block">
                       <p
@@ -495,9 +497,9 @@ export default function DashboardPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">За весь час</SelectItem>
-                    <SelectItem value="month">За цей місяць</SelectItem>
-                    <SelectItem value="week">За цей тиждень</SelectItem>
+                    <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
+                    <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
+                    <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -510,30 +512,30 @@ export default function DashboardPage() {
           <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-display text-lg font-semibold text-foreground">Найближчі уроки</h2>
+                <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
                 {upcomingAll.length > 5 && (
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowAllUpcoming((v) => !v)}
                   >
-                    {showAllUpcoming ? "Сховати" : `Показати всі (${upcomingAll.length})`}
+                    {showAllUpcoming ? t("dashboard.hide") : t("dashboard.showAll", { count: upcomingAll.length })}
                   </Button>
                 )}
               </div>
               <div className={`space-y-3 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-                    Найближчих уроків немає.
+                    {t("dashboard.noUpcoming")}
                     {isTutor && !isManager && (
                       <Button asChild size="sm" className="ml-3">
-                        <Link to="/schedule">Створити урок</Link>
+                        <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
                       </Button>
                     )}
                     {isStudent && !isTutor && !isManager && (
                       <span className="ml-3 inline-block">
                         <FindTutorDialog
-                          trigger={<Button size="sm">Запит на репетитора</Button>}
+                          trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
                         />
                       </span>
                     )}
@@ -692,7 +694,7 @@ export default function DashboardPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 font-display text-lg font-semibold text-foreground">Що зробити далі</h2>
+              <h2 className="mb-4 font-display text-lg font-semibold text-foreground">{t("dashboard.nextSteps")}</h2>
               {isManager ? (
                 <div className="space-y-3">
                   <TelegramLinkCard />
