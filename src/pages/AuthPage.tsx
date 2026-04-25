@@ -102,6 +102,27 @@ export default function AuthPage() {
     setLoading(false);
     if (error) {
       console.error("Sign-in failed", error);
+
+      // Special-case: an "Invalid credentials" error might actually mean
+      // the user was added by a tutor/manager but never registered.
+      // Check via public RPC and guide them to sign up instead.
+      if (error.message === "Invalid login credentials") {
+        const { data: isPending } = await supabase.rpc("is_pending_email", {
+          _email: parsed.data.email,
+        });
+        if (isPending === true) {
+          setPendingHint(parsed.data.email);
+          setSignUpData((prev) => ({ ...prev, email: parsed.data.email }));
+          setActiveTab("signup");
+          toast({
+            title: "Потрібна реєстрація",
+            description:
+              "Вас додав репетитор, але акаунту ще немає. Створіть його з цим email — ваші уроки автоматично з'являться.",
+          });
+          return;
+        }
+      }
+
       toast({
         title: "Не вдалося увійти",
         description: error.message === "Invalid login credentials"
