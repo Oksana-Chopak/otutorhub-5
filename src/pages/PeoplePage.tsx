@@ -450,8 +450,16 @@ export default function PeoplePage() {
     }
 
     setAdding(false);
-    toast.success("Людину додано. Дані будуть зв'язані після її реєстрації.");
+    toast.success("Людину додано");
     setAddOpen(false);
+    // Show invite dialog so the manager can copy the registration link
+    setInvite({
+      open: true,
+      name: `${fn} ${ln}`.trim(),
+      email: email || null,
+      phone: phone || null,
+      role: addForm.role === "tutor" ? "tutor" : "student",
+    });
     setAddForm({ first_name: "", last_name: "", email: "", phone: "", role: "student", subjects: [] });
     loadData();
   };
