@@ -34,6 +34,7 @@ type SignUpRole = "student" | "tutor";
 
 export default function AuthPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState<boolean>(() => {
@@ -41,14 +42,25 @@ export default function AuthPage() {
     return stored === null ? true : stored === "true";
   });
 
-  const [signInData, setSignInData] = useState({ email: "", password: "" });
+  // Invite-link / preselected tab support: ?signup=1&email=...&role=student|tutor
+  const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
+  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [pendingHint, setPendingHint] = useState<string | null>(null);
+
+  const [signInData, setSignInData] = useState({
+    email: searchParams.get("email") ?? "",
+    password: "",
+  });
   const [signUpData, setSignUpData] = useState({
     firstName: "",
     lastName: "",
     phone: "",
-    email: "",
+    email: searchParams.get("email") ?? "",
     password: "",
-    role: "student" as SignUpRole,
+    role: ((): SignUpRole => {
+      const r = searchParams.get("role");
+      return r === "tutor" ? "tutor" : "student";
+    })(),
   });
 
   useEffect(() => {
@@ -58,6 +70,22 @@ export default function AuthPage() {
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
   }, [remember]);
+
+  // If we arrived via invite link, immediately check whether the email
+  // matches an existing ghost profile so the hint is visible upfront.
+  useEffect(() => {
+    const emailFromUrl = searchParams.get("email");
+    if (searchParams.get("signup") === "1" && emailFromUrl) {
+      supabase
+        .rpc("is_pending_email", { _email: emailFromUrl })
+        .then(({ data }) => {
+          if (data === true) {
+            setPendingHint(emailFromUrl);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
