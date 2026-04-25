@@ -128,6 +128,13 @@ export default function PeoplePage() {
     subjects: [] as string[],
   });
   const [adding, setAdding] = useState(false);
+  const [invite, setInvite] = useState<{
+    open: boolean;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    role: "student" | "tutor";
+  }>({ open: false, name: "", email: null, phone: null, role: "student" });
 
   // Contact edit dialog
   const [contactDialog, setContactDialog] = useState<{ open: boolean; user: UserRow | null }>({
