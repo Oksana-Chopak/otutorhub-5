@@ -282,14 +282,15 @@ export default function FinancesPage() {
     if (selected.size === 0) return;
     setBulkBusy(true);
     const ids = Array.from(selected);
+    const nowIso = new Date().toISOString();
     const payload =
       field === "student_payment_status"
-        ? { student_payment_status: "paid" as PaymentStatus }
-        : { tutor_payout_status: "paid" as PaymentStatus };
+        ? { student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }
+        : { tutor_payout_status: "paid" as PaymentStatus, tutor_paid_at: nowIso };
     // Optimistic
-    const nowIso = new Date().toISOString();
     const paidAtField =
       field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    const previousLessons = lessons;
     setLessons((prev) =>
       prev.map((l) =>
         ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
@@ -299,8 +300,7 @@ export default function FinancesPage() {
     setBulkBusy(false);
     if (error) {
       toast.error("Не вдалося оновити записи");
-      // refetch to recover
-      fetchData();
+      setLessons(previousLessons);
       return;
     }
     toast.success(`Оновлено ${ids.length} записів`);
