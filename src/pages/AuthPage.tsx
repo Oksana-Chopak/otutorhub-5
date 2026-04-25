@@ -275,12 +275,12 @@ export default function AuthPage() {
                     <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.83z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/>
                   </svg>
-                  Продовжити з Google
+                  {t("auth.googleSignIn")}
                 </Button>
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
                   <div className="relative flex justify-center text-xs uppercase">
-                    <span className="bg-card px-2 text-muted-foreground">або</span>
+                    <span className="bg-card px-2 text-muted-foreground">{t("common.or")}</span>
                   </div>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Пароль</Label>
+                    <Label htmlFor="signin-password">{t("auth.password")}</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -314,21 +314,21 @@ export default function AuthPage() {
                       <Checkbox
                         checked={remember}
                         onCheckedChange={(v) => setRemember(v === true)}
-                        aria-label="Запам'ятати мене"
+                        aria-label={t("auth.rememberMe")}
                       />
-                      Запам'ятати мене
+                      {t("auth.rememberMe")}
                     </label>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Увійти
+                    {t("auth.login")}
                   </Button>
                   <button
                     type="button"
                     onClick={handleForgotPassword}
                     className="block w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"
                   >
-                    Забули пароль?
+                    {t("auth.forgotPassword")}
                   </button>
                 </form>
               </TabsContent>
@@ -337,7 +337,7 @@ export default function AuthPage() {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   {/* Role selector */}
                   <div className="space-y-2">
-                    <Label>Я реєструюся як</Label>
+                    <Label>{t("auth.iAm")}</Label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -350,8 +350,8 @@ export default function AuthPage() {
                         )}
                       >
                         <GraduationCap className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">Учень</span>
-                        <span className="text-[10px] text-muted-foreground">Шукаю репетитора</span>
+                        <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("auth.studentHint")}</span>
                       </button>
                       <button
                         type="button"
@@ -364,15 +364,15 @@ export default function AuthPage() {
                         )}
                       >
                         <BookOpenCheck className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">Репетитор</span>
-                        <span className="text-[10px] text-muted-foreground">Веду своїх учнів</span>
+                        <span className="text-sm font-medium">{t("auth.roleTutor")}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("auth.tutorHint")}</span>
                       </button>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="su-fn">Ім'я</Label>
+                      <Label htmlFor="su-fn">{t("auth.firstName")}</Label>
                       <Input
                         id="su-fn"
                         value={signUpData.firstName}
@@ -381,7 +381,7 @@ export default function AuthPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="su-ln">Прізвище</Label>
+                      <Label htmlFor="su-ln">{t("auth.lastName")}</Label>
                       <Input
                         id="su-ln"
                         value={signUpData.lastName}
@@ -391,7 +391,7 @@ export default function AuthPage() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="su-phone">Телефон</Label>
+                    <Label htmlFor="su-phone">{t("auth.phone")}</Label>
                     <Input
                       id="su-phone"
                       type="tel"
@@ -412,7 +412,7 @@ export default function AuthPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="su-password">Пароль</Label>
+                    <Label htmlFor="su-password">{t("auth.password")}</Label>
                     <Input
                       id="su-password"
                       type="password"
@@ -422,15 +422,15 @@ export default function AuthPage() {
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Мінімум 8 символів</p>
+                    <p className="text-xs text-muted-foreground">{t("auth.minPasswordHint")}</p>
                   </div>
                   <Button type="submit" className="w-full" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Створити акаунт
+                    {t("auth.createAccount")}
                   </Button>
                   {signUpData.role === "tutor" && (
                     <p className="text-center text-xs text-muted-foreground">
-                      Як репетитор ви зможете додавати власних учнів. До 5 учнів — безкоштовно.
+                      {t("auth.tutorFreeHint")}
                     </p>
                   )}
                 </form>
