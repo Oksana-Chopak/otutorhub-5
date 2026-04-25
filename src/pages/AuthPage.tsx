@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -12,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, GraduationCap, BookOpenCheck, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
 const REMEMBER_KEY = "tutorhub.rememberMe";
@@ -33,6 +35,7 @@ const signInSchema = z.object({
 type SignUpRole = "student" | "tutor";
 
 export default function AuthPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
