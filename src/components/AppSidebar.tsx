@@ -1,5 +1,7 @@
 import { NavLink as RouterNavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   LayoutDashboard,
   CalendarDays,
@@ -42,7 +44,7 @@ import {
 
 type NavItem = {
   to: string;
-  label: string;
+  labelKey: string;
   icon: typeof LayoutDashboard;
   roles: AppRole[];
   badgeKey?: "availability" | "chats" | "subscription";
@@ -50,28 +52,29 @@ type NavItem = {
 };
 
 const allNavItems: NavItem[] = [
-  { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager", "tutor", "student"], badgeKey: "availability" },
-  { to: "/my-students", label: "Мої учні", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
-  { to: "/profile", label: "Мій профіль", icon: UserCircle, roles: ["tutor"] },
-  { to: "/subscription", label: "Підписка", icon: Crown, roles: ["tutor"], independentOnly: true },
-  { to: "/analytics", label: "Аналітика", icon: BarChart3, roles: ["tutor"], independentOnly: true },
-  { to: "/finances", label: "Фінанси", icon: DollarSign, roles: ["manager", "tutor"], independentOnly: true },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
-  { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
-  { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
-  { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
-  { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3, roles: ["manager"] },
-  { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["manager", "tutor", "student"], badgeKey: "availability" },
+  { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
+  { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
+  { to: "/subscription", labelKey: "nav.subscription", icon: Crown, roles: ["tutor"], independentOnly: true },
+  { to: "/analytics", labelKey: "nav.analytics", icon: BarChart3, roles: ["tutor"], independentOnly: true },
+  { to: "/finances", labelKey: "nav.finances", icon: DollarSign, roles: ["manager", "tutor"], independentOnly: true },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
+  { to: "/referrals", labelKey: "nav.referrals", icon: HandHeart, roles: ["manager"] },
+  { to: "/subscription-requests", labelKey: "nav.subscriptionRequests", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
+  { to: "/people", labelKey: "nav.people", icon: Users, roles: ["manager"] },
+  { to: "/paywall-metrics", labelKey: "nav.paywallMetrics", icon: BarChart3, roles: ["manager"] },
+  { to: "/audit", labelKey: "nav.audit", icon: ShieldAlert, roles: ["manager"] },
 ];
 
-const roleLabel: Record<AppRole, string> = {
-  manager: "Менеджер",
-  tutor: "Репетитор",
-  student: "Учень",
+const roleLabelKey: Record<AppRole, string> = {
+  manager: "roles.manager",
+  tutor: "roles.tutor",
+  student: "roles.student",
 };
 
 export function AppSidebar() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
@@ -111,7 +114,7 @@ export function AppSidebar() {
         onClick={() => setOpen(!open)}
         className="fixed bottom-20 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
-        aria-label={open ? "Закрити меню" : "Відкрити меню"}
+        aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
       >
         {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </button>
@@ -166,7 +169,7 @@ export function AppSidebar() {
                 end={item.to === "/"}
               >
                 <item.icon className="h-4 w-4" />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1">{t(item.labelKey)}</span>
                 {badge > 0 && (
                   <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
                     {badge}
@@ -180,7 +183,7 @@ export function AppSidebar() {
         {showOnboardingHelp && (
           <div className="border-t border-border px-3 py-3">
             <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Допомога
+              {t("nav.help")}
             </p>
             <RouterNavLink
               to="/onboarding"
@@ -195,7 +198,7 @@ export function AppSidebar() {
               }
             >
               <Sparkles className="h-4 w-4" />
-              <span className="flex-1">Гайд по налаштуванню</span>
+              <span className="flex-1">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
                 <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
                   {settings?.onboarding_step ?? 1}/6
@@ -211,8 +214,8 @@ export function AppSidebar() {
               <DialogTrigger asChild>
                 <button
                   className="rounded-full ring-offset-background transition hover:ring-2 hover:ring-primary/40 hover:ring-offset-2"
-                  title="Змінити фото"
-                  aria-label="Змінити фото профілю"
+                  title={t("profile.changePhoto")}
+                  aria-label={t("profile.changePhoto")}
                 >
                   <UserAvatar
                     url={profile?.avatar_url}
@@ -224,7 +227,7 @@ export function AppSidebar() {
               </DialogTrigger>
               <DialogContent className="max-w-sm">
                 <DialogHeader>
-                  <DialogTitle>Фото профілю</DialogTitle>
+                  <DialogTitle>{t("profile.profilePhoto")}</DialogTitle>
                 </DialogHeader>
                 {user && (
                   <AvatarUploader
@@ -246,7 +249,7 @@ export function AppSidebar() {
                   : user?.email ?? "—"}
               </p>
               <p className="text-xs text-muted-foreground">
-                {primaryRole ? roleLabel[primaryRole] : "Без ролі"}
+                {primaryRole ? t(roleLabelKey[primaryRole]) : t("roles.none")}
               </p>
             </div>
           </div>
@@ -258,18 +261,19 @@ export function AppSidebar() {
               onClick={signOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Вийти
+              {t("common.logout")}
             </Button>
             <Button
               variant="outline"
               size="icon"
               className="h-9 w-9 shrink-0"
               onClick={toggleTheme}
-              title={theme === "dark" ? "Світла тема" : "Темна тема"}
-              aria-label="Перемкнути тему"
+              title={theme === "dark" ? t("theme.light") : t("theme.dark")}
+              aria-label={t("theme.toggle")}
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
+            <LanguageSwitcher variant="outline" size="icon" showLabel={false} className="h-9 w-9 shrink-0" />
           </div>
         </div>
       </aside>
