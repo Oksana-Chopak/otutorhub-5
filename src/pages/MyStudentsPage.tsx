@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { EmptyState } from "@/components/EmptyState";
+import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   UserPlus,
   Loader2,
