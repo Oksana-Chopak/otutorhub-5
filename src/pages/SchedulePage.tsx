@@ -1339,7 +1339,31 @@ export default function SchedulePage() {
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : grouped.length === 0 ? (
+      ) : (
+        <>
+        {isPureStudentForList && (
+          <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5">
+            <Button
+              variant={studentArchive === "upcoming" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setStudentArchive("upcoming")}
+            >
+              <Clock className="h-3.5 w-3.5" />
+              Майбутні
+            </Button>
+            <Button
+              variant={studentArchive === "past" ? "secondary" : "ghost"}
+              size="sm"
+              className="h-8 gap-1.5"
+              onClick={() => setStudentArchive("past")}
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+              Архів
+            </Button>
+          </div>
+        )}
+        {grouped.length === 0 ? (
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
