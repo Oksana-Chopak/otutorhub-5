@@ -580,22 +580,20 @@ export default function LandingPage() {
           <div>
             <div className="hero-badge">
               <span className="hero-badge-dot"></span>
-              Безкоштовно · Без карток · Без обмежень
+              {t("landing.hero.badge")}
             </div>
-            <h1>Порядок у<br /><span className="accent">репетиторстві.</span><br />Нарешті.</h1>
-            <p className="hero-sub">
-              Розклад, оплати і чати з учнями — в одному місці. Без Excel, без нотаток у телефоні, без забутих боргів.
-            </p>
+            <h1>{t("landing.hero.titleLine1")}<br /><span className="accent">{t("landing.hero.titleLine2")}</span><br />{t("landing.hero.titleLine3")}</h1>
+            <p className="hero-sub">{t("landing.hero.sub")}</p>
             <div className="hero-cta">
-              <Link to={signupHref} className="btn-primary">Почати безкоштовно</Link>
-              <a href="#features" className="btn-ghost">Як це працює</a>
+              <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
+              <a href="#features" className="btn-ghost">{t("landing.hero.ctaSecondary")}</a>
             </div>
-            <p className="hero-note">Необмежена кількість учнів. Назавжди безкоштовно.</p>
+            <p className="hero-note">{t("landing.hero.note")}</p>
           </div>
 
           <div className="hero-visual">
             <div className="float-badge">
-              <span className="badge-icon">🔔</span>Учень отримав нагадування
+              <span className="badge-icon">🔔</span>{t("landing.hero.reminderBadge")}
             </div>
             <div className="app-frame">
               <div className="app-topbar">
@@ -604,45 +602,45 @@ export default function LandingPage() {
                 <div className="dot dot-g"></div>
               </div>
               <div className="app-content">
-                <div className="app-title">Дашборд</div>
+                <div className="app-title">{t("landing.hero.dashboard")}</div>
                 <div className="stat-row">
                   <div className="stat-card-l">
-                    <div className="stat-label-l">Учні</div>
+                    <div className="stat-label-l">{t("landing.hero.students")}</div>
                     <div className="stat-val purple">12</div>
                   </div>
                   <div className="stat-card-l">
-                    <div className="stat-label-l">Прибуток / міс</div>
+                    <div className="stat-label-l">{t("landing.hero.revenuePerMonth")}</div>
                     <div className="stat-val green">18 400 ₴</div>
                   </div>
                 </div>
                 <div style={{ fontSize: 12, fontWeight: 600, color: "var(--l-muted)", marginBottom: 10 }}>
-                  Найближчі уроки
+                  {t("landing.hero.upcomingLessons")}
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Марія К. — Математика</div>
-                    <div className="lesson-sub">Сьогодні · 16:00</div>
+                    <div className="lesson-name">{t("landing.hero.lesson1")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson1Time")}</div>
                   </div>
-                  <span className="pill pill-purple">Заплановано</span>
+                  <span className="pill pill-purple">{t("landing.hero.lesson1Status")}</span>
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Олег Т. — Англійська</div>
-                    <div className="lesson-sub">Завтра · 10:00</div>
+                    <div className="lesson-name">{t("landing.hero.lesson2")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson2Time")}</div>
                   </div>
-                  <span className="pill pill-warning">Очікує оплати</span>
+                  <span className="pill pill-warning">{t("landing.hero.lesson2Status")}</span>
                 </div>
                 <div className="lesson-item">
                   <div>
-                    <div className="lesson-name">Аня В. — Фізика</div>
-                    <div className="lesson-sub">Завтра · 14:30</div>
+                    <div className="lesson-name">{t("landing.hero.lesson3")}</div>
+                    <div className="lesson-sub">{t("landing.hero.lesson3Time")}</div>
                   </div>
-                  <span className="pill pill-green">Оплачено ✓</span>
+                  <span className="pill pill-green">{t("landing.hero.lesson3Status")}</span>
                 </div>
               </div>
             </div>
             <div className="float-badge2">
-              <span className="badge-icon">✅</span>Аня оплатила урок
+              <span className="badge-icon">✅</span>{t("landing.hero.paidBadge")}
             </div>
           </div>
         </div>
