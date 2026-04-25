@@ -119,6 +119,8 @@ export default function SchedulePage() {
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
   const [view, setView] = useState<"list" | "week">("week");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
+  // Student-only sub-tab in list view: upcoming (default) vs archive (past).
+  const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
