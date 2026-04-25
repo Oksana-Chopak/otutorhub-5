@@ -92,6 +92,12 @@ export default function MyStudentsPage() {
   );
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [invite, setInvite] = useState<{
+    open: boolean;
+    name: string;
+    email: string | null;
+    phone: string | null;
+  }>({ open: false, name: "", email: null, phone: null });
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
