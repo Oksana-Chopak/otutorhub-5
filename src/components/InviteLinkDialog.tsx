@@ -172,6 +172,25 @@ export function InviteLinkDialog({
             </Button>
           </div>
 
+          {email && studentId && (
+            <Button
+              variant={resent ? "outline" : "default"}
+              size="sm"
+              className="w-full"
+              onClick={handleResendEmail}
+              disabled={resending}
+            >
+              {resending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : resent ? (
+                <MailCheck className="mr-2 h-4 w-4" />
+              ) : (
+                <Mail className="mr-2 h-4 w-4" />
+              )}
+              {resent ? "Надіслати ще раз" : "Надіслати email учню"}
+            </Button>
+          )}
+
           {email && (
             <a
               href={`mailto:${email}?subject=${encodeURIComponent(
@@ -179,9 +198,9 @@ export function InviteLinkDialog({
               )}&body=${encodeURIComponent(message)}`}
               className="block"
             >
-              <Button variant="secondary" size="sm" className="w-full">
+              <Button variant="ghost" size="sm" className="w-full">
                 <Mail className="mr-2 h-4 w-4" />
-                Відкрити в поштовому клієнті
+                Або відкрити у власному поштовому клієнті
               </Button>
             </a>
           )}
