@@ -1391,34 +1391,41 @@ export default function SchedulePage() {
                               {tutorName} → {studentName} · {lesson.duration_minutes} хв
                             </p>
                             {isManager && (
-                              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground mt-1">
-                                <span>Учень: {lesson.student_price} ₴</span>
-                                <Select
-                                  value={lesson.student_payment_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.student_payment_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">Очікує</SelectItem>
-                                    <SelectItem value="paid">Оплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                                <span className="mx-1">·</span>
-                                <span>Виплата: {lesson.tutor_payout} ₴</span>
-                                <Select
-                                  value={lesson.tutor_payout_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 w-[110px] text-xs ${lesson.tutor_payout_status === 'paid' ? 'text-success border-success/30' : 'text-warning border-warning/30'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">Очікує</SelectItem>
-                                    <SelectItem value="paid">Виплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                                <div className="flex items-center justify-between gap-1.5 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] text-muted-foreground">
+                                    🎓 {lesson.student_price} ₴
+                                  </span>
+                                  <Select
+                                    value={lesson.student_payment_status}
+                                    onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                                  >
+                                    <SelectTrigger className={`h-6 w-[88px] border-0 px-1.5 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                      <SelectItem value="paid">✓ Оплачено</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="flex items-center justify-between gap-1.5 rounded-md bg-muted/50 px-2 py-1">
+                                  <span className="text-[11px] text-muted-foreground">
+                                    💼 {lesson.tutor_payout} ₴
+                                  </span>
+                                  <Select
+                                    value={lesson.tutor_payout_status}
+                                    onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                  >
+                                    <SelectTrigger className={`h-6 w-[88px] border-0 px-1.5 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                      <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             )}
                             {/* Price + payment toggle for independent tutor on their own lessons */}
