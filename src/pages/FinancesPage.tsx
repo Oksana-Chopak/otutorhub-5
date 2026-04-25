@@ -716,7 +716,7 @@ export default function FinancesPage() {
           </div>
 
           {/* === Bulk actions — secondary, after table === */}
-          <details className="mt-4 rounded-xl border border-border bg-card">
+          <details className="mt-4 hidden rounded-xl border border-border bg-card lg:block">
             <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">
