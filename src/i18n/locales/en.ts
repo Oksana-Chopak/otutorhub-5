@@ -273,7 +273,7 @@ export const en: Translations = {
     createAccount: "Create account",
     tutorFreeHint: "As a tutor you can add your own students. Up to 5 students — free.",
     invitedByTutor: "A tutor invited you",
-    invitedByTutorDesc: "A student profile for {{email}} already exists, but the account hasn't been registered yet. Fill in the form below — and all your lessons will automatically appear in your dashboard.",
+    invitedByTutorDesc: "A student profile for <1>{{email}}</1> already exists, but the account hasn't been registered yet. Fill in the form below — and all your lessons will automatically appear in your dashboard.",
     pendingToastTitle: "Registration needed",
     pendingToastDesc: "A tutor added you, but there's no account yet. Create one with this email — your lessons will appear automatically.",
     invalidCreds: "Invalid email or password",
