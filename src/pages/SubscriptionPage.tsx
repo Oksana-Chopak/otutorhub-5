@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
+import { LiqPayPayButton } from "@/components/LiqPayPayButton";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
