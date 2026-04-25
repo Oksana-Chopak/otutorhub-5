@@ -282,14 +282,15 @@ export default function FinancesPage() {
     if (selected.size === 0) return;
     setBulkBusy(true);
     const ids = Array.from(selected);
+    const nowIso = new Date().toISOString();
     const payload =
       field === "student_payment_status"
-        ? { student_payment_status: "paid" as PaymentStatus }
-        : { tutor_payout_status: "paid" as PaymentStatus };
+        ? { student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }
+        : { tutor_payout_status: "paid" as PaymentStatus, tutor_paid_at: nowIso };
     // Optimistic
-    const nowIso = new Date().toISOString();
     const paidAtField =
       field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    const previousLessons = lessons;
     setLessons((prev) =>
       prev.map((l) =>
         ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
@@ -299,8 +300,7 @@ export default function FinancesPage() {
     setBulkBusy(false);
     if (error) {
       toast.error("Не вдалося оновити записи");
-      // refetch to recover
-      fetchData();
+      setLessons(previousLessons);
       return;
     }
     toast.success(`Оновлено ${ids.length} записів`);
@@ -496,28 +496,19 @@ export default function FinancesPage() {
                 <div className="divide-y divide-border lg:hidden">
                   {visibleRows.map((l) => {
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
-                    const isSelected = selected.has(l.id);
                     return (
                       <div
                         key={l.id}
-                        className={`p-3 ${isSelected ? "bg-primary/5" : ""}`}
+                        className="p-3"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-start gap-2 min-w-0 flex-1">
-                            <Checkbox
-                              checked={isSelected}
-                              onCheckedChange={() => toggleRow(l.id)}
-                              aria-label="Обрати"
-                              className="mt-0.5"
-                            />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                {l.subject}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(l.starts_at)}
-                              </p>
-                            </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-foreground">
+                              {l.subject}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(l.starts_at)}
+                            </p>
                           </div>
                           {!isIndependentTutor && (
                             <div
@@ -725,7 +716,7 @@ export default function FinancesPage() {
           </div>
 
           {/* === Bulk actions — secondary, after table === */}
-          <details className="mt-4 rounded-xl border border-border bg-card">
+          <details className="mt-4 hidden rounded-xl border border-border bg-card lg:block">
             <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">
