@@ -47,17 +47,34 @@ export const en: Translations = {
     schedule: "Schedule",
     finances: "Finances",
     chats: "Chats",
-    people: "Users",
+    people: "People",
     myStudents: "My students",
     availability: "Availability",
     audit: "Audit log",
-    referrals: "Student requests",
+    referrals: "Tutor requests",
     subscription: "Subscription",
     subscriptionRequests: "Subscription requests",
     analytics: "Analytics",
     paywallMetrics: "Paywall metrics",
-    profile: "Profile",
+    profile: "My profile",
     onboarding: "Onboarding",
+    help: "Help",
+    setupGuide: "Setup guide",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
+  },
+
+  roles: {
+    manager: "Manager",
+    tutor: "Tutor",
+    student: "Student",
+    none: "No role",
+  },
+
+  theme: {
+    light: "Light theme",
+    dark: "Dark theme",
+    toggle: "Toggle theme",
   },
 
   landing: {
@@ -337,5 +354,7 @@ export const en: Translations = {
     instagram: "Instagram",
     saved: "Saved",
     saveFailed: "Could not save",
+    changePhoto: "Change profile photo",
+    profilePhoto: "Profile photo",
   },
 };
