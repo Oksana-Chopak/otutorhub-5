@@ -304,7 +304,14 @@ export default function MyStudentsPage() {
         );
       }
 
-      toast.success("Учня додано. Дані зв'яжуться з його акаунтом після реєстрації.");
+      toast.success("Учня додано");
+      // Show invite dialog so the tutor can copy the registration link
+      setInvite({
+        open: true,
+        name: `${fn} ${ln}`.trim(),
+        email: email || null,
+        phone: phone || null,
+      });
     } else if (dialog.mode === "edit" && dialog.studentId) {
       // Update profile
       await supabase
