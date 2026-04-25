@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
+import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
   lessonId: string;
@@ -49,6 +50,7 @@ export function LessonWorkspace({
   const { user, roles } = useAuth();
   const navigate = useNavigate();
   const { isPro, isIndependent } = useWorkspaceSettings();
+  const { trackPaywallClick } = usePaywallTracking();
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
@@ -307,7 +309,10 @@ export function LessonWorkspace({
                 size="sm"
                 variant="outline"
                 type="button"
-                onClick={() => navigate("/subscription")}
+                onClick={() => {
+                  trackPaywallClick("ai_summary", "lesson_workspace", { lessonId });
+                  navigate("/subscription?from=ai_summary");
+                }}
                 title="AI-конспект доступний на тарифі Pro"
                 className="border-primary/40 text-primary hover:bg-primary/10"
               >

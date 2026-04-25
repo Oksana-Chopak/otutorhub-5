@@ -25,6 +25,7 @@ import SubscriptionRequestsPage from "./pages/SubscriptionRequestsPage";
 import NotFound from "./pages/NotFound";
 import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
 import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
+import PaywallMetricsPage from "./pages/PaywallMetricsPage";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +125,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["manager"]}>
             <SubscriptionRequestsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/paywall-metrics"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <PaywallMetricsPage />
           </ProtectedRoute>
         }
       />

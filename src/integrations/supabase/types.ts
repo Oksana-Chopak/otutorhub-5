@@ -531,6 +531,36 @@ export type Database = {
         }
         Relationships: []
       }
+      paywall_events: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          metadata: Json
+          source: string
+          subscription_status: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          metadata?: Json
+          source?: string
+          subscription_status?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          metadata?: Json
+          source?: string
+          subscription_status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_contacts: {
         Row: {
           created_at: string

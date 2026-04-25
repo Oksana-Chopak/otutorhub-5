@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useAuth } from "@/hooks/useAuth";
+import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,16 +55,18 @@ export default function PremiumAnalyticsPage() {
   const { isPro, loading: settingsLoading, studentCount } = useWorkspaceSettings();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { trackPaywallClick } = usePaywallTracking();
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (settingsLoading) return;
     if (!isPro) {
-      navigate("/subscription");
+      trackPaywallClick("premium_analytics", "analytics_page");
+      navigate("/subscription?from=premium_analytics");
       return;
     }
-  }, [isPro, settingsLoading, navigate]);
+  }, [isPro, settingsLoading, navigate, trackPaywallClick]);
 
   useEffect(() => {
     if (!user || !isPro) return;

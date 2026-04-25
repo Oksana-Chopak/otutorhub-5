@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,7 +124,9 @@ const statusMeta: Record<
 
 export default function SubscriptionPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, roles } = useAuth();
+  const { trackPaywallClick } = usePaywallTracking();
   const {
     settings,
     loading,
@@ -144,6 +147,15 @@ export default function SubscriptionPage() {
       navigate("/", { replace: true });
     }
   }, [loading, user, roles, isIndependent, navigate]);
+
+  // Track визиту сторінки підписки + звідки прийшли (для воронки)
+  useEffect(() => {
+    if (!user) return;
+    trackPaywallClick("subscription_page_visit", "subscription_page", {
+      from: searchParams.get("from") ?? "direct",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const loadRequest = async () => {
     if (!user) return;

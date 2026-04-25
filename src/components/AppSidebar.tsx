@@ -61,6 +61,7 @@ const allNavItems: NavItem[] = [
   { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart, roles: ["manager"] },
   { to: "/subscription-requests", label: "Запити на підписку", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
+  { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3, roles: ["manager"] },
   { to: "/audit", label: "Аудит", icon: ShieldAlert, roles: ["manager"] },
 ];
 
