@@ -471,6 +471,74 @@ export type Database = {
         }
         Relationships: []
       }
+      liqpay_payments: {
+        Row: {
+          amount: number
+          card_token: string | null
+          created_at: string
+          currency: string
+          id: string
+          is_recurring: boolean
+          liqpay_action: string | null
+          liqpay_payment_id: string | null
+          order_id: string
+          paid_at: string | null
+          period_end: string | null
+          period_start: string | null
+          plan: string
+          raw_callback: Json | null
+          status: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          card_token?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_recurring?: boolean
+          liqpay_action?: string | null
+          liqpay_payment_id?: string | null
+          order_id: string
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          plan: string
+          raw_callback?: Json | null
+          status?: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          card_token?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          is_recurring?: boolean
+          liqpay_action?: string | null
+          liqpay_payment_id?: string | null
+          order_id?: string
+          paid_at?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          plan?: string
+          raw_callback?: Json | null
+          status?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "liqpay_payments_tutor_id_fkey"
+            columns: ["tutor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manager_audit_log: {
         Row: {
           action: string
@@ -999,7 +1067,10 @@ export type Database = {
         Row: {
           cancel_free_hours: number
           created_at: string
+          current_plan: string | null
           independent_workspace: boolean
+          liqpay_card_token: string | null
+          liqpay_recurring_active: boolean
           onboarding_completed: boolean
           onboarding_step: number
           payment_due_days: number
@@ -1014,7 +1085,10 @@ export type Database = {
         Insert: {
           cancel_free_hours?: number
           created_at?: string
+          current_plan?: string | null
           independent_workspace?: boolean
+          liqpay_card_token?: string | null
+          liqpay_recurring_active?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -1029,7 +1103,10 @@ export type Database = {
         Update: {
           cancel_free_hours?: number
           created_at?: string
+          current_plan?: string | null
           independent_workspace?: boolean
+          liqpay_card_token?: string | null
+          liqpay_recurring_active?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
