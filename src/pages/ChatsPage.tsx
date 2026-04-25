@@ -625,11 +625,11 @@ export default function ChatsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
           {/* Thread list — hidden on mobile when a chat is selected */}
           <div
             className={cn(
-              "flex flex-col rounded-xl border border-border bg-card lg:max-h-[70vh]",
+              "flex min-w-0 flex-col rounded-xl border border-border bg-card lg:max-h-[70vh]",
               "h-[calc(100vh-12rem)] lg:h-auto",
               selectedId ? "hidden lg:flex" : "flex"
             )}
