@@ -371,6 +371,9 @@ export default function SchedulePage() {
   // Smart-form: subjects this student already has a rate for with this tutor
   const [pairSubjects, setPairSubjects] = useState<string[]>([]);
   const [autoFilling, setAutoFilling] = useState(false);
+  // Whether (tutor, student, subject) already has a saved rate.
+  // Used by independent tutors so we know if we need to upsert student_rates after creating a lesson.
+  const [existingRateForPair, setExistingRateForPair] = useState<boolean>(false);
 
   // Load subjects from tutor_subject_rates whenever tutor changes
   useEffect(() => {
