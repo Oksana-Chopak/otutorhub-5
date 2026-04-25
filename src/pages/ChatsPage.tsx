@@ -390,19 +390,6 @@ export default function ChatsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const openAttachment = async (att: MessageAttachment) => {
-    setOpeningAttachId(att.id);
-    const { data, error } = await supabase.storage
-      .from("chat-attachments")
-      .createSignedUrl(att.storage_path, 60 * 10);
-    setOpeningAttachId(null);
-    if (error || !data?.signedUrl) {
-      toast({ title: "Не вдалося відкрити файл", description: error?.message, variant: "destructive" });
-      return;
-    }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
-  };
-
   const counterpartName = (t: Thread) => {
     if (isManager) return `${fullName(profiles[t.tutor_id])} ↔ ${fullName(profiles[t.student_id])}`;
     const otherId = t.tutor_id === myId ? t.student_id : t.tutor_id;
