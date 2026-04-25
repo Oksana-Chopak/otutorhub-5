@@ -26,6 +26,7 @@ import NotFound from "./pages/NotFound";
 import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
 import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 import PaywallMetricsPage from "./pages/PaywallMetricsPage";
+import UnsubscribePage from "./pages/UnsubscribePage";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ function AppRoutes() {
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
+      <Route path="/unsubscribe" element={<UnsubscribePage />} />
       <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
       <Route
