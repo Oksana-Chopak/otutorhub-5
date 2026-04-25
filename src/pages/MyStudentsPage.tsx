@@ -97,7 +97,9 @@ export default function MyStudentsPage() {
     name: string;
     email: string | null;
     phone: string | null;
-  }>({ open: false, name: "", email: null, phone: null });
+    studentId: string | null;
+    emailSent: boolean;
+  }>({ open: false, name: "", email: null, phone: null, studentId: null, emailSent: false });
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
@@ -655,6 +657,8 @@ export default function MyStudentsPage() {
         personName={invite.name}
         email={invite.email}
         phone={invite.phone}
+        studentId={invite.studentId}
+        emailSent={invite.emailSent}
         role="student"
       />
     </AppLayout>
