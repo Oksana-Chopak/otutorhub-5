@@ -286,25 +286,49 @@ export function LessonWorkspace({
             Конспект уроку
           </div>
           {canEditTutorFields && (
-            <Button
-              size="sm"
-              variant="outline"
-              type="button"
-              disabled={aiLoading}
-              onClick={generateAiSummary}
-              title="Згенерувати конспект на основі домашки, нотаток та чорнового тексту"
-            >
-              {aiLoading ? (
-                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-              )}
-              AI-конспект
-            </Button>
+            aiAllowed ? (
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                disabled={aiLoading}
+                onClick={generateAiSummary}
+                title="AI допише детальний конспект на основі ваших нотаток"
+              >
+                {aiLoading ? (
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                ✨ AI-конспект
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                type="button"
+                onClick={() => navigate("/subscription")}
+                title="AI-конспект доступний на тарифі Pro"
+                className="border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <Lock className="mr-1.5 h-3.5 w-3.5" />
+                ✨ AI-конспект (Pro)
+              </Button>
+            )
           )}
         </div>
         {canEditTutorFields ? (
           <>
+            {aiAllowed && (
+              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-foreground/80">
+                <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+                <p>
+                  <span className="font-medium text-foreground">Порада:</span> коротко занотуйте тему та головні
+                  пункти уроку (наприклад: «Past Simple — твердження, заперечення, неправильні дієслова»),
+                  і AI розпише конспект детальніше — структуровано, з прикладами та порадами що повторити. 📝
+                </p>
+              </div>
+            )}
             <Textarea
               rows={5}
               placeholder="Що пройшли на уроці, ключові моменти, посилання на матеріали…"
