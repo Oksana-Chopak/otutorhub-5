@@ -395,7 +395,40 @@ export default function PeoplePage() {
     loadData();
   };
 
-  const addPerson = async () => {
+  const saveAddTutorToStudent = async () => {
+    if (!addTutorToStudent.tutorId) {
+      toast.error("Оберіть репетитора");
+      return;
+    }
+    if (!addTutorToStudent.subject) {
+      toast.error("Оберіть предмет");
+      return;
+    }
+    const price = Number.parseFloat(addTutorToStudent.price.replace(",", "."));
+    if (!Number.isFinite(price) || price < 0) {
+      toast.error("Вкажіть коректну ціну");
+      return;
+    }
+    const { error } = await supabase.from("student_rates").upsert(
+      {
+        tutor_id: addTutorToStudent.tutorId,
+        student_id: addTutorToStudent.studentId,
+        subject: addTutorToStudent.subject,
+        price_per_lesson: price,
+      },
+      { onConflict: "tutor_id,student_id,subject" },
+    );
+    if (error) {
+      console.error("Failed to add tutor to student", error);
+      toast.error("Не вдалося додати репетитора. Спробуйте ще раз.");
+      return;
+    }
+    toast.success("Репетитора додано до учня");
+    setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+    loadData();
+  };
+
+
     const fn = addForm.first_name.trim();
     const ln = addForm.last_name.trim();
     const email = addForm.email.trim().toLowerCase();
