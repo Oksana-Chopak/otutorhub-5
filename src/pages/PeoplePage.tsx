@@ -619,7 +619,11 @@ export default function PeoplePage() {
     <div
       key={u.id}
       className={`rounded-xl border bg-card p-5 ${
-        u.is_pending ? "border-warning/40 bg-warning/5" : "border-border"
+        u.archived_at
+          ? "border-border opacity-70"
+          : u.is_pending
+            ? "border-warning/40 bg-warning/5"
+            : "border-border"
       }`}
     >
       <div className="flex items-center justify-between gap-3 mb-3">
