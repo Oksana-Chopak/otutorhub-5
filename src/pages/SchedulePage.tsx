@@ -44,7 +44,7 @@ import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
 import { MobileFilters } from "@/components/MobileFilters";
@@ -953,6 +953,23 @@ export default function SchedulePage() {
                   </Select>
                   {formErrors.student_id && (
                     <p className="mt-1 text-xs text-destructive">Оберіть учня</p>
+                  )}
+                  {students.length === 0 && isTutor && !isManager && (
+                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs">
+                      <p className="text-muted-foreground mb-2">
+                        {isIndependentTutor
+                          ? "У вас ще немає учнів. Додайте першого учня — і зможете створити урок."
+                          : "У вас ще немає прив'язаних учнів. Зверніться до менеджера, щоб призначити учня."}
+                      </p>
+                      {isIndependentTutor && (
+                        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                          <Link to="/my-students" onClick={() => setCreateOpen(false)}>
+                            <Plus className="h-3.5 w-3.5 mr-1" />
+                            Додати учня
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div>
