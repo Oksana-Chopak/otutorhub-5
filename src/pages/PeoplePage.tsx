@@ -151,7 +151,7 @@ export default function PeoplePage() {
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all">("active");
+  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all">("all");
 
   const loadData = async () => {
     setLoading(true);
@@ -1017,7 +1017,7 @@ export default function PeoplePage() {
           />
           <MobileFilters
             activeCount={
-              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "active" ? 1 : 0)
+              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
             }
           >
             <div className="w-full sm:w-48">
