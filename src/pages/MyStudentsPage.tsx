@@ -384,16 +384,32 @@ export default function MyStudentsPage() {
     await Promise.all([load(), refresh()]);
   };
 
-  const remove = async (s: MyStudent) => {
-    if (!confirm(`Видалити учня ${s.first_name} ${s.last_name} з ваших учнів?`)) return;
-    if (s.rate_id) {
-      await supabase.from("student_rates").delete().eq("id", s.rate_id);
+  const archive = async (s: MyStudent) => {
+    if (!s.rate_id) return;
+    if (!confirm(`Перенести ${`${s.first_name} ${s.last_name}`.trim() || "учня"} в архів? Історію уроків буде збережено.`)) return;
+    const { error } = await supabase
+      .from("student_rates")
+      .update({ archived_at: new Date().toISOString() } as any)
+      .eq("id", s.rate_id);
+    if (error) {
+      toast.error("Не вдалося архівувати");
+      return;
     }
-    // Delete ghost profile if pending
-    if (s.is_pending) {
-      await supabase.from("profiles").delete().eq("id", s.id);
+    toast.success("Перенесено в архів");
+    await Promise.all([load(), refresh()]);
+  };
+
+  const unarchive = async (s: MyStudent) => {
+    if (!s.rate_id) return;
+    const { error } = await supabase
+      .from("student_rates")
+      .update({ archived_at: null } as any)
+      .eq("id", s.rate_id);
+    if (error) {
+      toast.error("Не вдалося відновити");
+      return;
     }
-    toast.success("Видалено");
+    toast.success("Учня повернено зі списку архіву");
     await Promise.all([load(), refresh()]);
   };
 
