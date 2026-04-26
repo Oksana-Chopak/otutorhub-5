@@ -28,7 +28,8 @@ import {
   Facebook,
   Instagram,
   Pencil,
-  Trash2,
+  Archive,
+  ArchiveRestore,
   Hourglass,
   Banknote,
   Video,
@@ -50,6 +51,7 @@ interface MyStudent {
   price: number;
   subject: string;
   default_meeting_url: string | null;
+  archived_at: string | null;
 }
 
 interface FormData {
@@ -87,6 +89,7 @@ export default function MyStudentsPage() {
 
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<MyStudent[]>([]);
+  const [view, setView] = useState<"active" | "archived">("active");
   const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; studentId: string | null }>(
     { open: false, mode: "create", studentId: null }
   );
@@ -112,7 +115,7 @@ export default function MyStudentsPage() {
     setLoading(true);
     const { data: rates } = await supabase
       .from("student_rates")
-      .select("id, student_id, subject, price_per_lesson")
+      .select("id, student_id, subject, price_per_lesson, archived_at")
       .eq("tutor_id", user.id)
       .eq("source", "independent");
 
@@ -164,6 +167,7 @@ export default function MyStudentsPage() {
         price: Number(r?.price_per_lesson ?? 0),
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
+        archived_at: (r as any)?.archived_at ?? null,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
@@ -380,20 +384,38 @@ export default function MyStudentsPage() {
     await Promise.all([load(), refresh()]);
   };
 
-  const remove = async (s: MyStudent) => {
-    if (!confirm(`Видалити учня ${s.first_name} ${s.last_name} з ваших учнів?`)) return;
-    if (s.rate_id) {
-      await supabase.from("student_rates").delete().eq("id", s.rate_id);
+  const archive = async (s: MyStudent) => {
+    if (!s.rate_id) return;
+    if (!confirm(`Перенести ${`${s.first_name} ${s.last_name}`.trim() || "учня"} в архів? Історію уроків буде збережено.`)) return;
+    const { error } = await supabase
+      .from("student_rates")
+      .update({ archived_at: new Date().toISOString() } as any)
+      .eq("id", s.rate_id);
+    if (error) {
+      toast.error("Не вдалося архівувати");
+      return;
     }
-    // Delete ghost profile if pending
-    if (s.is_pending) {
-      await supabase.from("profiles").delete().eq("id", s.id);
-    }
-    toast.success("Видалено");
+    toast.success("Перенесено в архів");
     await Promise.all([load(), refresh()]);
   };
 
-  
+  const unarchive = async (s: MyStudent) => {
+    if (!s.rate_id) return;
+    const { error } = await supabase
+      .from("student_rates")
+      .update({ archived_at: null } as any)
+      .eq("id", s.rate_id);
+    if (error) {
+      toast.error("Не вдалося відновити");
+      return;
+    }
+    toast.success("Учня повернено зі списку архіву");
+    await Promise.all([load(), refresh()]);
+  };
+
+  const activeStudents = students.filter((s) => !s.archived_at);
+  const archivedStudents = students.filter((s) => !!s.archived_at);
+  const visibleStudents = view === "active" ? activeStudents : archivedStudents;
 
   return (
     <AppLayout>
@@ -415,22 +437,55 @@ export default function MyStudentsPage() {
         </div>
       </div>
 
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-1">
+        <button
+          type="button"
+          onClick={() => setView("active")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            view === "active"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Активні ({activeStudents.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setView("archived")}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+            view === "archived"
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          В архіві ({archivedStudents.length})
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : students.length === 0 ? (
-        <EmptyState
-          icon={UserPlus}
-          title="У вас поки немає власних учнів"
-          description="Додайте першого учня — і почніть планувати уроки. Кількість учнів на безкоштовному плані не обмежена."
-          actionLabel="Додати учня"
-          onAction={openCreate}
-        />
+      ) : visibleStudents.length === 0 ? (
+        view === "active" ? (
+          <EmptyState
+            icon={UserPlus}
+            title="У вас поки немає власних учнів"
+            description="Додайте першого учня — і почніть планувати уроки. Кількість учнів на безкоштовному плані не обмежена."
+            actionLabel="Додати учня"
+            onAction={openCreate}
+          />
+        ) : (
+          <EmptyState
+            icon={Archive}
+            title="Архів порожній"
+            description="Сюди потрапляють учні, з якими ви тимчасово не працюєте. Історія уроків і платежів зберігається."
+          />
+        )
       ) : (
         <div className="space-y-3">
-          {students.map((s) => (
-            <Card key={s.id}>
+          {visibleStudents.map((s) => (
+            <Card key={s.id} className={s.archived_at ? "opacity-70" : undefined}>
               <CardContent className="flex items-start gap-4 p-4">
                 <UserAvatar
                   url={s.avatar_url}
@@ -443,13 +498,19 @@ export default function MyStudentsPage() {
                     <p className="font-medium text-foreground">
                       {`${s.first_name} ${s.last_name}`.trim() || "Без імені"}
                     </p>
-                    {s.is_pending && (
+                    {s.is_pending && !s.archived_at && (
                       <span
                         className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning"
                         title="Учень ще не зареєструвався"
                       >
                         <Hourglass className="h-3 w-3" />
                         Очікує реєстрації
+                      </span>
+                    )}
+                    {s.archived_at && (
+                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        <Archive className="h-3 w-3" />
+                        В архіві
                       </span>
                     )}
                   </div>
@@ -513,12 +574,30 @@ export default function MyStudentsPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
-                  <Button size="sm" variant="ghost" onClick={() => openEdit(s)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => remove(s)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
+                  {!s.archived_at && (
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Редагувати">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {s.archived_at ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => unarchive(s)}
+                      title="Повернути з архіву"
+                    >
+                      <ArchiveRestore className="h-4 w-4 text-primary" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => archive(s)}
+                      title="В архів (історію збережено)"
+                    >
+                      <Archive className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
