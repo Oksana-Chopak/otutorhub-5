@@ -963,7 +963,7 @@ export default function SchedulePage() {
                       </p>
                       {isIndependentTutor && (
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
-                          <Link to="/my-students" onClick={() => setOpen(false)}>
+                          <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
                             Додати учня
                           </Link>
