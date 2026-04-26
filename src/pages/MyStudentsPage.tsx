@@ -89,6 +89,7 @@ export default function MyStudentsPage() {
 
   const [loading, setLoading] = useState(true);
   const [students, setStudents] = useState<MyStudent[]>([]);
+  const [view, setView] = useState<"active" | "archived">("active");
   const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; studentId: string | null }>(
     { open: false, mode: "create", studentId: null }
   );
