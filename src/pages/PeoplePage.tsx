@@ -572,8 +572,14 @@ export default function PeoplePage() {
   const filteredUsers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return users.filter((u) => {
-      if (statusFilter === "active" && u.is_pending) return false;
-      if (statusFilter === "pending" && !u.is_pending) return false;
+      const isArchived = !!u.archived_at;
+      if (statusFilter === "archived") {
+        if (!isArchived) return false;
+      } else {
+        if (isArchived) return false;
+        if (statusFilter === "active" && u.is_pending) return false;
+        if (statusFilter === "pending" && !u.is_pending) return false;
+      }
       if (subjectFilter !== "all") {
         const subjects = u.subjects ?? [];
         if (u.role === "tutor") {
