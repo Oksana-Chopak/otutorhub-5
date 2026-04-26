@@ -1425,7 +1425,7 @@ export default function PeoplePage() {
         </DialogContent>
       </Dialog>
 
-
+      {contactDialog.user && (
         <ContactEditDialog
           open={contactDialog.open}
           onOpenChange={(o) => setContactDialog((s) => ({ ...s, open: o }))}
