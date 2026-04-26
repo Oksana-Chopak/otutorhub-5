@@ -681,15 +681,27 @@ export default function PeoplePage() {
           )}
           {isManager && u.id !== currentUser?.id && (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                onClick={() => deletePerson(u)}
-                title="Видалити (зберегти пов'язані дані)"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {u.archived_at ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  onClick={() => unarchivePerson(u)}
+                  title="Повернути з архіву"
+                >
+                  <ArchiveRestore className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => archivePerson(u)}
+                  title="В архів (історію збережено)"
+                >
+                  <Archive className="h-3.5 w-3.5" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
