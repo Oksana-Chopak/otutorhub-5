@@ -151,7 +151,7 @@ export default function PeoplePage() {
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all">("active");
 
   const loadData = async () => {
     setLoading(true);
