@@ -32,7 +32,8 @@ import {
   Loader2,
   UserPlus,
   Hourglass,
-  Trash2,
+  Archive,
+  ArchiveRestore,
   FlameKindling,
   Send,
   MessageCircle,
@@ -54,6 +55,7 @@ interface Profile {
   last_name: string;
   is_pending: boolean;
   avatar_url: string | null;
+  archived_at: string | null;
 }
 
 interface UserRow {
@@ -71,6 +73,7 @@ interface UserRow {
   bank_card_last4?: string | null;
   bank_name?: string | null;
   is_pending: boolean;
+  archived_at: string | null;
   role: AppRole | null;
   rate_per_lesson?: number;
   subjects?: string[];
@@ -148,14 +151,14 @@ export default function PeoplePage() {
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "pending">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all">("active");
 
   const loadData = async () => {
     setLoading(true);
     const isManager = roles.includes("manager");
     
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url"),
+      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
@@ -226,6 +229,7 @@ export default function PeoplePage() {
         bank_card_last4: f?.bank_card_last4 ?? null,
         bank_name: f?.bank_name ?? null,
         is_pending: p.is_pending,
+        archived_at: p.archived_at ?? null,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
@@ -485,21 +489,38 @@ export default function PeoplePage() {
     loadData();
   };
 
-  const deletePerson = async (u: UserRow) => {
+  const archivePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна видалити власний акаунт");
+      toast.error("Не можна архівувати власний акаунт");
       return;
     }
-    if (!confirm(`Видалити ${fullName(u)}? Всі пов'язані дані залишаться, але людина зникне зі списку.`)) {
+    if (!confirm(`Перемістити ${fullName(u)} в архів? Усі уроки, ставки та історія залишаться. Профіль зникне з основних списків — повернути можна будь-коли з вкладки «В архіві».`)) {
       return;
     }
-    const { error } = await supabase.from("profiles").delete().eq("id", u.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", u.id);
     if (error) {
-      console.error("Failed to delete profile", error);
-      toast.error("Не вдалося видалити. Можливо, є пов'язані уроки.");
+      console.error("Failed to archive profile", error);
+      toast.error("Не вдалося архівувати");
       return;
     }
-    toast.success("Видалено");
+    toast.success("Переміщено в архів");
+    loadData();
+  };
+
+  const unarchivePerson = async (u: UserRow) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ archived_at: null })
+      .eq("id", u.id);
+    if (error) {
+      console.error("Failed to unarchive profile", error);
+      toast.error("Не вдалося відновити");
+      return;
+    }
+    toast.success("Профіль повернуто");
     loadData();
   };
 
@@ -551,8 +572,14 @@ export default function PeoplePage() {
   const filteredUsers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return users.filter((u) => {
-      if (statusFilter === "active" && u.is_pending) return false;
-      if (statusFilter === "pending" && !u.is_pending) return false;
+      const isArchived = !!u.archived_at;
+      if (statusFilter === "archived") {
+        if (!isArchived) return false;
+      } else {
+        if (isArchived) return false;
+        if (statusFilter === "active" && u.is_pending) return false;
+        if (statusFilter === "pending" && !u.is_pending) return false;
+      }
       if (subjectFilter !== "all") {
         const subjects = u.subjects ?? [];
         if (u.role === "tutor") {
@@ -592,7 +619,11 @@ export default function PeoplePage() {
     <div
       key={u.id}
       className={`rounded-xl border bg-card p-5 ${
-        u.is_pending ? "border-warning/40 bg-warning/5" : "border-border"
+        u.archived_at
+          ? "border-border opacity-70"
+          : u.is_pending
+            ? "border-warning/40 bg-warning/5"
+            : "border-border"
       }`}
     >
       <div className="flex items-center justify-between gap-3 mb-3">
@@ -617,6 +648,11 @@ export default function PeoplePage() {
               {u.is_pending && (
                 <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
                   Очікує реєстрації
+                </Badge>
+              )}
+              {u.archived_at && (
+                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
+                  В архіві
                 </Badge>
               )}
             </div>
@@ -654,15 +690,27 @@ export default function PeoplePage() {
           )}
           {isManager && u.id !== currentUser?.id && (
             <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                onClick={() => deletePerson(u)}
-                title="Видалити (зберегти пов'язані дані)"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              {u.archived_at ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  onClick={() => unarchivePerson(u)}
+                  title="Повернути з архіву"
+                >
+                  <ArchiveRestore className="h-3.5 w-3.5" />
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => archivePerson(u)}
+                  title="В архів (історію збережено)"
+                >
+                  <Archive className="h-3.5 w-3.5" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
@@ -969,7 +1017,7 @@ export default function PeoplePage() {
           />
           <MobileFilters
             activeCount={
-              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
+              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "active" ? 1 : 0)
             }
           >
             <div className="w-full sm:w-48">
@@ -993,9 +1041,10 @@ export default function PeoplePage() {
                   <SelectValue placeholder="Статус" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі статуси</SelectItem>
                   <SelectItem value="active">Активні</SelectItem>
                   <SelectItem value="pending">Очікують реєстрації</SelectItem>
+                  <SelectItem value="archived">В архіві</SelectItem>
+                  <SelectItem value="all">Усі (крім архіву)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
