@@ -919,7 +919,7 @@ export default function PeoplePage() {
                   Створюється запис-привид. Коли ця людина зареєструється з тим самим email або телефоном, всі її уроки, оплати і ставки автоматично перенесуться на її акаунт.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 py-2">
+              <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="fn">Ім'я</Label>
