@@ -867,70 +867,96 @@ export default function PeoplePage() {
         </Button>
       )}
 
-      {u.role === "student" && allTutors.length > 0 && (() => {
+      {u.role === "student" && (() => {
         // Only show tutors that actually work with this student (have at least one rate set)
         const linkedTutorIds = new Set(
           studentRates.filter((r) => r.student_id === u.id).map((r) => r.tutor_id)
         );
         const linkedTutors = allTutors.filter((t) => linkedTutorIds.has(t.id));
-        if (linkedTutors.length === 0) {
-          return (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground italic">
-                Ще не призначено жодного репетитора. Відкрийте картку репетитора, щоб задати ціну для цього учня.
-              </p>
-            </div>
-          );
-        }
+        const openAddTutor = () =>
+          setAddTutorToStudent({
+            open: true,
+            studentId: u.id,
+            studentName: fullName(u),
+            tutorId: "",
+            subject: "",
+            price: "",
+          });
+        const hasAnyTutor = allTutors.some((t) => (t.subjects ?? []).length > 0);
         return (
-        <div className="mt-3 pt-3 border-t border-border">
-          <p className="text-xs text-muted-foreground mb-2">Ціна за урок (по парах репетитор + предмет):</p>
-          <div className="space-y-2">
-            {linkedTutors.map((t) => {
-              const tSubjects = t.subjects ?? [];
-              if (tSubjects.length === 0) return null;
-              return (
-                <div key={t.id} className="space-y-1">
-                  <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
-                  {tSubjects.map((subj) => {
-                    const rate = studentRates.find(
-                      (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
-                    );
-                    return (
-                      <div key={subj} className="flex items-center justify-between text-xs pl-2">
-                        <span className="text-muted-foreground truncate flex-1">{subj}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="font-medium text-foreground">
-                            {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 px-2 text-xs"
-                            onClick={() =>
-                              setStudentDialog({
-                                open: true,
-                                studentId: u.id,
-                                studentName: fullName(u),
-                                tutorId: t.id,
-                                tutorName: fullName(t),
-                                subject: subj,
-                                price: rate ? String(rate.price_per_lesson) : "",
-                                existingId: rate?.id ?? null,
-                              })
-                            }
-                          >
-                            Змінити
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+          <div className="mt-3 pt-3 border-t border-border">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <p className="text-xs text-muted-foreground">
+                {linkedTutors.length === 0
+                  ? "Ще не призначено жодного репетитора."
+                  : "Ціна за урок (по парах репетитор + предмет):"}
+              </p>
+              {isManager && hasAnyTutor && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={openAddTutor}
+                >
+                  <UserPlus className="h-3.5 w-3.5 mr-1" />
+                  Додати репетитора
+                </Button>
+              )}
+            </div>
+            {linkedTutors.length === 0 ? (
+              !hasAnyTutor && (
+                <p className="text-xs text-muted-foreground italic">
+                  Спочатку додайте репетитора з предметами у розділі «Репетитори».
+                </p>
+              )
+            ) : (
+              <div className="space-y-2">
+                {linkedTutors.map((t) => {
+                  const tSubjects = t.subjects ?? [];
+                  if (tSubjects.length === 0) return null;
+                  return (
+                    <div key={t.id} className="space-y-1">
+                      <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
+                      {tSubjects.map((subj) => {
+                        const rate = studentRates.find(
+                          (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
+                        );
+                        return (
+                          <div key={subj} className="flex items-center justify-between text-xs pl-2">
+                            <span className="text-muted-foreground truncate flex-1">{subj}</span>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="font-medium text-foreground">
+                                {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs"
+                                onClick={() =>
+                                  setStudentDialog({
+                                    open: true,
+                                    studentId: u.id,
+                                    studentName: fullName(u),
+                                    tutorId: t.id,
+                                    tutorName: fullName(t),
+                                    subject: subj,
+                                    price: rate ? String(rate.price_per_lesson) : "",
+                                    existingId: rate?.id ?? null,
+                                  })
+                                }
+                              >
+                                Змінити
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </div>
         );
       })()}
 
