@@ -1355,6 +1355,7 @@ export type Database = {
           tutor_payout_status: Database["public"]["Enums"]["payment_status"]
         }[]
       }
+      manager_purge_user: { Args: { _user_id: string }; Returns: undefined }
       merge_pending_profile: {
         Args: { _email: string; _phone: string; _real_id: string }
         Returns: string
