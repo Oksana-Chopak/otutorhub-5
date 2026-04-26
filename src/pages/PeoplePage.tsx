@@ -121,6 +121,16 @@ export default function PeoplePage() {
     existingId: string | null;
   }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
 
+  // Add tutor to student dialog (manager picks tutor + subject + price)
+  const [addTutorToStudent, setAddTutorToStudent] = useState<{
+    open: boolean;
+    studentId: string;
+    studentName: string;
+    tutorId: string;
+    subject: string;
+    price: string;
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
   const [addForm, setAddForm] = useState({
