@@ -1008,7 +1008,7 @@ export default function PeoplePage() {
           />
           <MobileFilters
             activeCount={
-              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
+              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "active" ? 1 : 0)
             }
           >
             <div className="w-full sm:w-48">
@@ -1032,9 +1032,10 @@ export default function PeoplePage() {
                   <SelectValue placeholder="Статус" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі статуси</SelectItem>
                   <SelectItem value="active">Активні</SelectItem>
                   <SelectItem value="pending">Очікують реєстрації</SelectItem>
+                  <SelectItem value="archived">В архіві</SelectItem>
+                  <SelectItem value="all">Усі (крім архіву)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
