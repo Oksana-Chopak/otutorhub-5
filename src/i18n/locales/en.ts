@@ -271,7 +271,7 @@ export const en: Translations = {
     tutorHint: "I teach my own students",
     minPasswordHint: "At least 8 characters",
     createAccount: "Create account",
-    tutorFreeHint: "As a tutor you can add your own students. Up to 5 students — free.",
+    tutorFreeHint: "As a tutor you can add and manage your own students in the app.",
     invitedByTutor: "A tutor invited you",
     invitedByTutorDesc: "A student profile for <1>{{email}}</1> already exists, but the account hasn't been registered yet. Fill in the form below — and all your lessons will automatically appear in your dashboard.",
     pendingToastTitle: "Registration needed",
