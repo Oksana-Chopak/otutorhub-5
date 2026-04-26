@@ -653,15 +653,26 @@ export default function PeoplePage() {
             </Button>
           )}
           {isManager && u.id !== currentUser?.id && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-              onClick={() => deletePerson(u)}
-              title="Видалити"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => deletePerson(u)}
+                title="Видалити (зберегти пов'язані дані)"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={() => purgePerson(u)}
+                title="Повне видалення (з усіма даними)"
+              >
+                <FlameKindling className="h-3.5 w-3.5" />
+              </Button>
+            </>
           )}
         </div>
       </div>
