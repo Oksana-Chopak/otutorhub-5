@@ -467,11 +467,12 @@ export default function SchedulePage() {
       ]);
       if (cancelled) return;
       const anyPairRate = anyPairRateRes.data?.[0]?.price_per_lesson;
+      // ВАЖЛИВО: student_price має братись ВИКЛЮЧНО зі student_rates (ціна для конкретного учня).
+      // tutor_subject_rates / tutor_details — це СТАВКА ВИПЛАТИ репетитору, а не ціна для учня.
+      // Раніше тут був фолбек на ставку репетитора — це робило student_price = tutor_payout, що ламало фінанси.
       const studentPrice =
         exactRateRes.data?.price_per_lesson ??
-        anyPairRate ??
-        payoutRes.data?.rate_per_lesson ??
-        fallbackRes.data?.rate_per_lesson;
+        anyPairRate;
       const tutorPayout =
         payoutRes.data?.rate_per_lesson ?? fallbackRes.data?.rate_per_lesson;
       setForm((f) => ({
