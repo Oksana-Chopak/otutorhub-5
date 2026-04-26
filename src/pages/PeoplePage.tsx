@@ -1299,7 +1299,133 @@ export default function PeoplePage() {
         </DialogContent>
       </Dialog>
 
-      {contactDialog.user && (
+      {/* Add tutor to student dialog */}
+      <Dialog
+        open={addTutorToStudent.open}
+        onOpenChange={(o) => setAddTutorToStudent((s) => ({ ...s, open: o }))}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Додати репетитора до учня</DialogTitle>
+            <DialogDescription>
+              Оберіть репетитора, предмет і ціну за один урок для учня{" "}
+              <span className="font-medium text-foreground">{addTutorToStudent.studentName}</span>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div>
+              <Label>Репетитор</Label>
+              <Select
+                value={addTutorToStudent.tutorId}
+                onValueChange={(v) =>
+                  setAddTutorToStudent((s) => ({ ...s, tutorId: v, subject: "" }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Оберіть репетитора" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allTutors
+                    .filter((t) => (t.subjects ?? []).length > 0)
+                    .map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {fullName(t)}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {addTutorToStudent.tutorId && (() => {
+              const tutor = allTutors.find((t) => t.id === addTutorToStudent.tutorId);
+              const tSubjects = tutor?.subjects ?? [];
+              const takenSubjects = new Set(
+                studentRates
+                  .filter(
+                    (r) =>
+                      r.tutor_id === addTutorToStudent.tutorId &&
+                      r.student_id === addTutorToStudent.studentId,
+                  )
+                  .map((r) => r.subject),
+              );
+              const availableSubjects = tSubjects.filter((s) => !takenSubjects.has(s));
+              if (availableSubjects.length === 0) {
+                return (
+                  <p className="text-xs text-muted-foreground italic">
+                    Для цього репетитора всі його предмети вже додано цьому учневі.
+                  </p>
+                );
+              }
+              return (
+                <>
+                  <div>
+                    <Label>Предмет</Label>
+                    <Select
+                      value={addTutorToStudent.subject}
+                      onValueChange={(v) => {
+                        const tutorRate = tutorSubjectRates[addTutorToStudent.tutorId]?.[v];
+                        setAddTutorToStudent((s) => ({
+                          ...s,
+                          subject: v,
+                          price: s.price || (tutorRate ? String(tutorRate) : ""),
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Оберіть предмет" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableSubjects.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {addTutorToStudent.subject && (() => {
+                    const tutorRate =
+                      tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject];
+                    if (tutorRate !== undefined && tutorRate > 0) {
+                      return (
+                        <p className="text-xs text-muted-foreground">
+                          Ставка репетитора з цього предмета:{" "}
+                          <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
+                  <div>
+                    <Label htmlFor="add-tutor-price">Ціна за один урок (₴) для учня</Label>
+                    <Input
+                      id="add-tutor-price"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={addTutorToStudent.price}
+                      onChange={(e) =>
+                        setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
+                      }
+                      placeholder="напр. 550"
+                    />
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
+            >
+              Скасувати
+            </Button>
+            <Button onClick={saveAddTutorToStudent}>Додати</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
         <ContactEditDialog
           open={contactDialog.open}
           onOpenChange={(o) => setContactDialog((s) => ({ ...s, open: o }))}
