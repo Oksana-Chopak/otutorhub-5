@@ -428,7 +428,7 @@ export default function PeoplePage() {
     loadData();
   };
 
-
+  const addPerson = async () => {
     const fn = addForm.first_name.trim();
     const ln = addForm.last_name.trim();
     const email = addForm.email.trim().toLowerCase();
