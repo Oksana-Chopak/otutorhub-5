@@ -912,7 +912,7 @@ export default function PeoplePage() {
                 Додати людину
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Нова людина</DialogTitle>
                 <DialogDescription>
