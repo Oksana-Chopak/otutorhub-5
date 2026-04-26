@@ -167,6 +167,7 @@ export default function MyStudentsPage() {
         price: Number(r?.price_per_lesson ?? 0),
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
+        archived_at: (r as any)?.archived_at ?? null,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
