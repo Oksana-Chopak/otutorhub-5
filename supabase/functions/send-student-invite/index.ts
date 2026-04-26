@@ -146,12 +146,15 @@ Deno.serve(async (req) => {
   const origin = req.headers.get('origin') || 'https://otutorhub.com'
   const inviteUrl = `${origin}/auth?signup=1&email=${encodeURIComponent(email)}&role=student`
 
-  // 7. Invoke send-transactional-email with service-role auth
+  // 7. Invoke send-transactional-email forwarding the caller's JWT
+  // (send-transactional-email has verify_jwt=true and requires a valid user JWT,
+  // not the service-role key)
   const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${supabaseServiceKey}`,
+      Authorization: authHeader,
+      apikey: supabaseAnonKey,
     },
     body: JSON.stringify({
       templateName: 'student-invite',
