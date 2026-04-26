@@ -502,6 +502,41 @@ export default function PeoplePage() {
     loadData();
   };
 
+  const purgePerson = async (u: UserRow) => {
+    if (u.id === currentUser?.id) {
+      toast.error("Не можна видалити власний акаунт");
+      return;
+    }
+    const name = fullName(u);
+    const first = window.confirm(
+      `ПОВНЕ ВИДАЛЕННЯ для ${name}.\n\n` +
+        `Назавжди буде видалено:\n` +
+        `• усі уроки, домашки та конспекти\n` +
+        `• ставки за предметами\n` +
+        `• чати, повідомлення й вкладені файли\n` +
+        `• нагадування про оплати, запити та доступність\n` +
+        `• передплати, платежі, нотатки менеджера\n` +
+        `• сам профіль\n\n` +
+        `Дію неможливо скасувати. Продовжити?`
+    );
+    if (!first) return;
+    const typed = window.prompt(
+      `Для підтвердження введіть DELETE великими літерами:`
+    );
+    if (typed !== "DELETE") {
+      toast.info("Видалення скасовано");
+      return;
+    }
+    const { error } = await supabase.rpc("manager_purge_user", { _user_id: u.id });
+    if (error) {
+      console.error("Failed to purge user", error);
+      toast.error(`Не вдалося видалити: ${error.message}`);
+      return;
+    }
+    toast.success(`${name} та всі пов'язані дані видалено`);
+    loadData();
+  };
+
   const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
 
   // Build subject options from all tutors
