@@ -51,6 +51,7 @@ interface MyStudent {
   price: number;
   subject: string;
   default_meeting_url: string | null;
+  archived_at: string | null;
 }
 
 interface FormData {
