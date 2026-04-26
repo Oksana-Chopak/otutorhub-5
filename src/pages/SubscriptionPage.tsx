@@ -492,11 +492,7 @@ export default function SubscriptionPage() {
                       plan={billing}
                       recurring
                       className="w-full"
-                      label={
-                        billing === "yearly"
-                          ? `Сплатити ${PRO_PRICE_YEARLY_TOTAL} ₴ карткою`
-                          : `Сплатити ${PRO_PRICE_MONTHLY} ₴ карткою`
-                      }
+                      label="Перейти до оплати"
                     />
                     <Button
                       onClick={handleUpgrade}

@@ -29,6 +29,13 @@ export function LiqPayPayButton({
 
   const handlePay = async () => {
     setLoading(true);
+    const checkoutWindowName = `liqpay_checkout_${Date.now()}`;
+    const checkoutWindow = window.open("", checkoutWindowName);
+    if (checkoutWindow) {
+      checkoutWindow.opener = null;
+      checkoutWindow.document.write("<p>Переходимо до LiqPay…</p>");
+    }
+
     try {
       const { data, error } = await supabase.functions.invoke("liqpay-create-payment", {
         body: {
@@ -40,6 +47,7 @@ export function LiqPayPayButton({
 
       if (error || !data?.data || !data?.signature) {
         console.error("LiqPay create error:", error, data);
+        checkoutWindow?.close();
         toast.error("Не вдалося створити платіж. Спробуйте пізніше.");
         return;
       }
@@ -49,7 +57,7 @@ export function LiqPayPayButton({
       form.method = "POST";
       form.action = "https://www.liqpay.ua/api/3/checkout";
       form.acceptCharset = "utf-8";
-      form.target = "_blank";
+      form.target = checkoutWindow ? checkoutWindowName : "_self";
 
       const dataInput = document.createElement("input");
       dataInput.type = "hidden";
@@ -70,6 +78,7 @@ export function LiqPayPayButton({
       toast.success("Відкриваємо вікно оплати LiqPay…");
     } catch (e) {
       console.error(e);
+      checkoutWindow?.close();
       toast.error("Сталася помилка. Спробуйте ще раз.");
     } finally {
       setLoading(false);
