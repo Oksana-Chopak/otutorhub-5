@@ -524,8 +524,16 @@ const landingStyles = `
   .landing-root .compare-wrap { font-size: 13px; }
 }
 @media (max-width: 600px) {
+  .landing-root nav { padding: 0 1rem; }
+  .landing-root .nav-inner { height: 56px; gap: 8px; }
+  .landing-root .logo { font-size: 15px; gap: 6px; }
+  .landing-root .btn-nav { padding: 8px 14px; font-size: 13px; }
   .landing-root .pain-grid { grid-template-columns: 1fr; }
   .landing-root .stat-row { grid-template-columns: 1fr 1fr; }
+  .landing-root .hero { padding: 32px 1rem 40px; }
+  .landing-root .hero-cta { flex-direction: column; align-items: stretch; gap: 10px; }
+  .landing-root .hero-cta .btn-primary,
+  .landing-root .hero-cta .btn-ghost { width: 100%; justify-content: center; text-align: center; }
 }
 `;
 
