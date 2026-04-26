@@ -1017,7 +1017,7 @@ export default function PeoplePage() {
           />
           <MobileFilters
             activeCount={
-              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "active" ? 1 : 0)
+              (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
             }
           >
             <div className="w-full sm:w-48">
