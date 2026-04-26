@@ -1,5 +1,5 @@
 import { Check, Plus } from "lucide-react";
-import { useState, KeyboardEvent } from "react";
+import { useState, KeyboardEvent, forwardRef } from "react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,88 +15,91 @@ interface Props {
 /**
  * Compact multi-select for tutor subjects. Click chip to toggle.
  * Allows adding custom subjects via inline input.
+ * forwardRef lets Radix Dialog forward focus refs without warnings.
  */
-export function SubjectMultiSelect({ value, onChange, className }: Props) {
-  const [custom, setCustom] = useState("");
+export const SubjectMultiSelect = forwardRef<HTMLDivElement, Props>(
+  function SubjectMultiSelect({ value, onChange, className }, ref) {
+    const [custom, setCustom] = useState("");
 
-  const toggle = (s: string) => {
-    if (value.includes(s)) onChange(value.filter((v) => v !== s));
-    else onChange([...value, s]);
-  };
+    const toggle = (s: string) => {
+      if (value.includes(s)) onChange(value.filter((v) => v !== s));
+      else onChange([...value, s]);
+    };
 
-  const addCustom = () => {
-    const trimmed = custom.trim();
-    if (!trimmed) return;
-    if (!value.includes(trimmed)) {
-      onChange([...value, trimmed]);
-    }
-    setCustom("");
-  };
+    const addCustom = () => {
+      const trimmed = custom.trim();
+      if (!trimmed) return;
+      if (!value.includes(trimmed)) {
+        onChange([...value, trimmed]);
+      }
+      setCustom("");
+    };
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      addCustom();
-    }
-  };
+    const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addCustom();
+      }
+    };
 
-  // Preserve any custom subjects not in canonical list
-  const extras = value.filter((v) => !SUBJECT_OPTIONS.includes(v as any));
+    // Preserve any custom subjects not in canonical list
+    const extras = value.filter((v) => !SUBJECT_OPTIONS.includes(v as any));
 
-  return (
-    <div className={cn("space-y-2", className)}>
-      <div className="flex flex-wrap gap-2">
-        {SUBJECT_OPTIONS.map((s) => {
-          const active = value.includes(s);
-          return (
-            <button
+    return (
+      <div ref={ref} className={cn("space-y-2", className)}>
+        <div className="flex flex-wrap gap-2">
+          {SUBJECT_OPTIONS.map((s) => {
+            const active = value.includes(s);
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => toggle(s)}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
+                  active
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                )}
+              >
+                {active && <Check className="h-3 w-3" />}
+                {s}
+              </button>
+            );
+          })}
+          {extras.map((s) => (
+            <Badge
               key={s}
-              type="button"
+              variant="secondary"
+              className="cursor-pointer"
               onClick={() => toggle(s)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
-                active
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-              )}
+              title="Натисніть щоб видалити"
             >
-              {active && <Check className="h-3 w-3" />}
-              {s}
-            </button>
-          );
-        })}
-        {extras.map((s) => (
-          <Badge
-            key={s}
-            variant="secondary"
-            className="cursor-pointer"
-            onClick={() => toggle(s)}
-            title="Натисніть щоб видалити"
+              {s} ✕
+            </Badge>
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Input
+            value={custom}
+            onChange={(e) => setCustom(e.target.value)}
+            onKeyDown={onKeyDown}
+            placeholder="Свій предмет..."
+            className="h-8 text-xs"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addCustom}
+            disabled={!custom.trim()}
+            className="h-8 shrink-0"
           >
-            {s} ✕
-          </Badge>
-        ))}
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            Додати
+          </Button>
+        </div>
       </div>
-      <div className="flex gap-2">
-        <Input
-          value={custom}
-          onChange={(e) => setCustom(e.target.value)}
-          onKeyDown={onKeyDown}
-          placeholder="Свій предмет..."
-          className="h-8 text-xs"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addCustom}
-          disabled={!custom.trim()}
-          className="h-8 shrink-0"
-        >
-          <Plus className="h-3.5 w-3.5 mr-1" />
-          Додати
-        </Button>
-      </div>
-    </div>
-  );
-}
+    );
+  }
+);

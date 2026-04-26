@@ -912,14 +912,14 @@ export default function PeoplePage() {
                 Додати людину
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Нова людина</DialogTitle>
                 <DialogDescription>
                   Створюється запис-привид. Коли ця людина зареєструється з тим самим email або телефоном, всі її уроки, оплати і ставки автоматично перенесуться на її акаунт.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3 py-2">
+              <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="fn">Ім'я</Label>
@@ -1116,14 +1116,14 @@ export default function PeoplePage() {
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Налаштування репетитора</DialogTitle>
             <DialogDescription>
               Оберіть предмети, які викладає репетитор, і вкажіть ставку (виплату) за урок для кожного.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
             <div>
               <Label>Предмети</Label>
               <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
