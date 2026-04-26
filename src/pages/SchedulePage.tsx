@@ -954,6 +954,23 @@ export default function SchedulePage() {
                   {formErrors.student_id && (
                     <p className="mt-1 text-xs text-destructive">Оберіть учня</p>
                   )}
+                  {students.length === 0 && isTutor && !isManager && (
+                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs">
+                      <p className="text-muted-foreground mb-2">
+                        {isIndependentTutor
+                          ? "У вас ще немає учнів. Додайте першого учня — і зможете створити урок."
+                          : "У вас ще немає прив'язаних учнів. Зверніться до менеджера, щоб призначити учня."}
+                      </p>
+                      {isIndependentTutor && (
+                        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                          <Link to="/my-students" onClick={() => setOpen(false)}>
+                            <Plus className="h-3.5 w-3.5 mr-1" />
+                            Додати учня
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
