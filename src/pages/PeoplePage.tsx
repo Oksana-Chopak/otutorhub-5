@@ -55,6 +55,7 @@ interface Profile {
   last_name: string;
   is_pending: boolean;
   avatar_url: string | null;
+  archived_at: string | null;
 }
 
 interface UserRow {
