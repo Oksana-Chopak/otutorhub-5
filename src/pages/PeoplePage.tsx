@@ -72,6 +72,7 @@ interface UserRow {
   bank_card_last4?: string | null;
   bank_name?: string | null;
   is_pending: boolean;
+  archived_at: string | null;
   role: AppRole | null;
   rate_per_lesson?: number;
   subjects?: string[];
