@@ -115,7 +115,7 @@ export default function MyStudentsPage() {
     setLoading(true);
     const { data: rates } = await supabase
       .from("student_rates")
-      .select("id, student_id, subject, price_per_lesson")
+      .select("id, student_id, subject, price_per_lesson, archived_at")
       .eq("tutor_id", user.id)
       .eq("source", "independent");
 
