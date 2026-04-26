@@ -650,6 +650,11 @@ export default function PeoplePage() {
                   Очікує реєстрації
                 </Badge>
               )}
+              {u.archived_at && (
+                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
+                  В архіві
+                </Badge>
+              )}
             </div>
             {(u.email || u.phone) && (
               <p className="text-xs text-muted-foreground truncate">
