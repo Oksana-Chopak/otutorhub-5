@@ -229,6 +229,7 @@ export default function PeoplePage() {
         bank_card_last4: f?.bank_card_last4 ?? null,
         bank_name: f?.bank_name ?? null,
         is_pending: p.is_pending,
+        archived_at: p.archived_at ?? null,
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
