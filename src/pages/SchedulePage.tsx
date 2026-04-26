@@ -1111,10 +1111,17 @@ export default function SchedulePage() {
                         />
                       </div>
                     </div>
-                    {form.tutor_id && form.student_id && form.subject && (
-                      <p className="text-xs text-muted-foreground -mt-2">
-                        💡 Ціни автоматично підтягуються з тарифів пари. Можна змінити вручну.
-                      </p>
+                    {form.tutor_id && form.student_id && form.subject && !autoFilling && (
+                      <>
+                        {(!form.student_price || form.student_price === "0") && (
+                          <p className="text-xs text-warning -mt-2">
+                            ⚠️ Для цього учня з обраного предмета ще не задано ціну. Введіть її вручну або задайте на сторінці «Люди» → «Учні репетитора».
+                          </p>
+                        )}
+                        <p className="text-xs text-muted-foreground -mt-2">
+                          💡 Ціна учня береться з його тарифу, виплата — зі ставки репетитора. Можна змінити вручну.
+                        </p>
+                      </>
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
