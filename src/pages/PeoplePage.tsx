@@ -489,21 +489,38 @@ export default function PeoplePage() {
     loadData();
   };
 
-  const deletePerson = async (u: UserRow) => {
+  const archivePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна видалити власний акаунт");
+      toast.error("Не можна архівувати власний акаунт");
       return;
     }
-    if (!confirm(`Видалити ${fullName(u)}? Всі пов'язані дані залишаться, але людина зникне зі списку.`)) {
+    if (!confirm(`Перемістити ${fullName(u)} в архів? Усі уроки, ставки та історія залишаться. Профіль зникне з основних списків — повернути можна будь-коли з вкладки «В архіві».`)) {
       return;
     }
-    const { error } = await supabase.from("profiles").delete().eq("id", u.id);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", u.id);
     if (error) {
-      console.error("Failed to delete profile", error);
-      toast.error("Не вдалося видалити. Можливо, є пов'язані уроки.");
+      console.error("Failed to archive profile", error);
+      toast.error("Не вдалося архівувати");
       return;
     }
-    toast.success("Видалено");
+    toast.success("Переміщено в архів");
+    loadData();
+  };
+
+  const unarchivePerson = async (u: UserRow) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ archived_at: null })
+      .eq("id", u.id);
+    if (error) {
+      console.error("Failed to unarchive profile", error);
+      toast.error("Не вдалося відновити");
+      return;
+    }
+    toast.success("Профіль повернуто");
     loadData();
   };
 
