@@ -224,8 +224,8 @@ export const en: Translations = {
     finalCta: {
       title: "Ready to bring order?",
       sub: "Sign up takes 2 minutes. Your first student — in 5 minutes. Your first paid lesson — today.",
-      cta: "Try for free →",
-      footnote: "14 days of Pro without a card · Unlimited students forever",
+      cta: "Try Pro free for 14 days →",
+      footnote: "No card · Unlimited students forever · Cancel anytime",
     },
     footer: {
       app: "App",
