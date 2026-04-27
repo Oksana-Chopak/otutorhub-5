@@ -663,7 +663,7 @@ export default function LandingPage() {
           </div>
           <div className="social-divider"></div>
           <div className="social-stat">
-            <span className="social-stat-num">0 ₴</span>
+            <span className="social-stat-num">2 хв</span>
             <span className="social-stat-label">{t("landing.social.toStart")}</span>
           </div>
           <div className="social-divider"></div>
@@ -676,6 +676,9 @@ export default function LandingPage() {
             <span className="social-stat-num">Telegram</span>
             <span className="social-stat-label">{t("landing.social.telegramReminders")}</span>
           </div>
+        </div>
+        <div style={{ maxWidth: 1100, margin: "16px auto 0", textAlign: "center", color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
+          {t("landing.social.trustedBy")}
         </div>
       </div>
 
