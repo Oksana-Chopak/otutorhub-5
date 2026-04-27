@@ -90,9 +90,9 @@ export const en: Translations = {
       titleLine2: "tutoring business.",
       titleLine3: "At last.",
       sub: "Schedule, payments and chats with students — all in one place. No more Excel, sticky notes, or forgotten debts.",
-      ctaPrimary: "Start for free",
+      ctaPrimary: "Try Pro free for 14 days →",
       ctaSecondary: "How it works",
-      note: "Unlimited students. Free forever.",
+      note: "No card · 2-minute signup · Cancel anytime",
       reminderBadge: "Student got a reminder",
       paidBadge: "Anna paid for the lesson",
       dashboard: "Dashboard",
@@ -110,10 +110,11 @@ export const en: Translations = {
       lesson3Status: "Paid ✓",
     },
     social: {
-      students: "students free",
+      students: "students — no limits",
       toStart: "to get started",
-      proFree: "Pro free",
+      proFree: "days of Pro on us",
       telegramReminders: "reminders to students",
+      trustedBy: "Trusted by tutors across Ukraine, Poland and Sweden",
     },
     pain: {
       label: "Sound familiar?",
@@ -223,8 +224,8 @@ export const en: Translations = {
     finalCta: {
       title: "Ready to bring order?",
       sub: "Sign up takes 2 minutes. Your first student — in 5 minutes. Your first paid lesson — today.",
-      cta: "Try for free →",
-      footnote: "14 days of Pro without a card · Unlimited students forever",
+      cta: "Try Pro free for 14 days →",
+      footnote: "No card · Unlimited students forever · Cancel anytime",
     },
     footer: {
       app: "App",
