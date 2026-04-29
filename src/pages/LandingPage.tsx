@@ -296,11 +296,15 @@ const landingStyles = `
   transform: translateY(-3px);
 }
 .landing-root .pain-icon {
-  width: 44px; height: 44px;
-  border-radius: 12px;
+  width: 48px; height: 48px;
+  border-radius: 14px;
   background: var(--accent-light);
   display: flex; align-items: center; justify-content: center;
-  font-size: 22px; margin-bottom: 16px;
+  font-size: 26px; margin-bottom: 16px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.landing-root .pain-card:hover .pain-icon {
+  transform: rotate(-8deg) scale(1.1);
 }
 .landing-root .pain-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
 .landing-root .pain-text { font-size: 14px; color: var(--l-muted); line-height: 1.6; }

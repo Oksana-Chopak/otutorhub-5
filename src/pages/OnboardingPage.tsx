@@ -29,6 +29,8 @@ interface Step {
   cta: string;
   to: string;
   icon: typeof UserPlus;
+  emoji: string;
+  xp: number;
   badge?: string;
   /** Key into the auto-detected `progress` object */
   autoKey?: keyof StepProgress;
@@ -53,6 +55,8 @@ const steps: Step[] = [
     cta: "Додати учня",
     to: "/my-students",
     icon: UserPlus,
+    emoji: "👋",
+    xp: 50,
     autoKey: "hasStudent",
     autoHint: "Учень доданий ✓",
   },
@@ -64,6 +68,8 @@ const steps: Step[] = [
     cta: "Перейти до розкладу",
     to: "/schedule",
     icon: CalendarClock,
+    emoji: "📅",
+    xp: 75,
     autoKey: "hasLesson",
     autoHint: "Урок створено ✓",
   },
@@ -75,6 +81,8 @@ const steps: Step[] = [
     cta: "Відкрити «Мої учні»",
     to: "/my-students",
     icon: Video,
+    emoji: "🎥",
+    xp: 50,
     autoKey: "hasMeetingUrl",
     autoHint: "Посилання збережено ✓",
   },
@@ -86,6 +94,8 @@ const steps: Step[] = [
     cta: "Відкрити чати",
     to: "/chats",
     icon: MessageCircle,
+    emoji: "💬",
+    xp: 50,
     autoKey: "hasChat",
     autoHint: "Чат відкрито ✓",
   },
@@ -97,6 +107,8 @@ const steps: Step[] = [
     cta: "Перейти до фінансів",
     to: "/finances",
     icon: CreditCard,
+    emoji: "💰",
+    xp: 100,
     autoKey: "hasPaidLesson",
     autoHint: "Оплату відмічено ✓",
   },
@@ -108,6 +120,8 @@ const steps: Step[] = [
     cta: "Дізнатися більше",
     to: "/schedule",
     icon: Sparkles,
+    emoji: "✨",
+    xp: 150,
     badge: "Скоро",
   },
 ];
@@ -316,42 +330,66 @@ export default function OnboardingPage() {
   }
 
   const allDone = autoCompletedIds.size === steps.filter((s) => s.autoKey).length;
+  const earnedXP = steps
+    .filter((s) => s.autoKey && progress[s.autoKey])
+    .reduce((sum, s) => sum + s.xp, 0);
+  const totalXP = steps.reduce((sum, s) => sum + s.xp, 0);
 
   return (
     <AppLayout>
       <div className="mx-auto max-w-3xl">
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-foreground">
-            Ласкаво просимо у ваш робочий простір 👋
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Кроки автоматично відмічаються по мірі того, як ви виконуєте дії.
-          </p>
+        {/* Hero header with XP & level */}
+        <div className="mb-6 overflow-hidden rounded-3xl border-2 border-primary/20 bg-gradient-to-br from-primary/10 via-card to-success/10 p-5 shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.2)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-2xl font-bold text-foreground">
+                Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Виконайте квести — отримайте XP і налаштуйте простір.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="gamify-sticker">
+                ⭐ {earnedXP} / {totalXP} XP
+              </span>
+              <span className="gamify-sticker success">
+                🏆 Рівень {totalDone}
+              </span>
+            </div>
+          </div>
           <div className="mt-4 flex items-center gap-3">
-            <Progress value={progressPct} className="h-2 flex-1" />
-            <span className="text-xs font-medium text-muted-foreground">
+            <div className="h-3 flex-1 overflow-hidden rounded-full bg-background/60 ring-1 ring-border">
+              <div
+                className="h-full gamify-progress-fill transition-all duration-700"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+            <span className="font-display text-sm font-bold text-foreground">
               {progressPct}%
             </span>
           </div>
         </div>
 
         {(allDone || completed) && (
-          <Card className="mb-4 border-success/40 bg-success/5">
-            <CardContent className="flex items-center gap-3 p-4">
-              <PartyPopper className="h-5 w-5 text-success" />
+          <div className="mb-4 overflow-hidden rounded-2xl border-2 border-success/40 bg-gradient-to-r from-success/10 to-primary/10 p-4 animate-pop">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-success text-success-foreground shadow-lg animate-bounce-soft">
+                <PartyPopper className="h-6 w-6" />
+              </div>
               <div className="flex-1">
-                <p className="font-medium text-foreground">
-                  Чудово! Ваш робочий простір готовий.
+                <p className="font-display text-base font-bold text-foreground">
+                  🎉 Квест завершено!
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Можете повертатись сюди коли завгодно з розділу «Допомога».
+                  Ваш робочий простір готовий. Можете повертатись сюди з розділу «Допомога».
                 </p>
               </div>
-              <Button size="sm" onClick={() => navigate("/")}>
+              <Button size="sm" onClick={() => navigate("/")} className="rounded-full">
                 На дашборд
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         <div className="space-y-3">
@@ -361,62 +399,77 @@ export default function OnboardingPage() {
             const isCurrent = !isDone && savedStep === step.id;
             const Icon = step.icon;
             return (
-              <Card
+              <div
                 key={step.id}
                 className={cn(
-                  "transition-colors",
-                  isCurrent && "border-primary",
-                  isDone && "opacity-70"
+                  "gamify-card overflow-hidden",
+                  isCurrent && "border-primary ring-2 ring-primary/20",
+                  isDone && "opacity-75"
                 )}
               >
-                <CardContent className="flex items-start gap-4 p-4">
+                <div className="flex items-start gap-4 p-4">
                   <div
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full",
+                      "relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-2xl shadow-md transition-transform",
                       isDone
-                        ? "bg-success/15 text-success"
+                        ? "bg-gradient-to-br from-success to-success/70 text-success-foreground"
                         : isCurrent
-                        ? "bg-primary text-primary-foreground"
+                        ? "bg-gradient-to-br from-primary to-primary/70 text-primary-foreground animate-bounce-soft"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {isDone ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-5 w-5" />}
+                    {isDone ? (
+                      <CheckCircle2 className="h-7 w-7 animate-pop" />
+                    ) : (
+                      <span aria-hidden>{step.emoji}</span>
+                    )}
+                    <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-card text-[10px] font-black text-foreground shadow ring-1 ring-border">
+                      {step.id}
+                    </span>
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="font-semibold text-foreground">
-                        Крок {step.id}: {step.title}
+                      <h3 className="font-display font-bold text-foreground">
+                        {step.title}
                       </h3>
+                      <span className="gamify-sticker warning text-[10px]">
+                        +{step.xp} XP
+                      </span>
                       {step.badge && (
                         <Badge variant="outline" className="text-[10px]">
                           {step.badge}
                         </Badge>
                       )}
                       {isAutoDone && step.autoHint && (
-                        <Badge variant="outline" className="border-success/40 text-[10px] text-success">
+                        <span className="gamify-sticker success text-[10px] animate-pop">
                           {step.autoHint}
-                        </Badge>
+                        </span>
                       )}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                     {!isDone && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Button asChild size="sm" variant={isCurrent ? "default" : "outline"}>
+                        <Button
+                          asChild
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className="rounded-full hover:scale-105 transition-transform"
+                        >
                           <Link to={step.to}>
                             {step.cta}
                             <ArrowRight className="ml-1 h-3 w-3" />
                           </Link>
                         </Button>
                         {isCurrent && step.autoKey && (
-                          <Button size="sm" variant="ghost" onClick={() => skipStep(step.id)}>
+                          <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
                             Пропустити
                           </Button>
                         )}
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>

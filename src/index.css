@@ -119,3 +119,52 @@
     font-family: var(--font-display);
   }
 }
+
+@layer components {
+  /* ===== Playful / gamification utilities ===== */
+
+  /* Soft, rounded card with playful hover lift — opt-in via class */
+  .gamify-card {
+    @apply rounded-2xl border border-border bg-card transition-all duration-200;
+    box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 4px 16px hsl(var(--foreground) / 0.04);
+  }
+  .gamify-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px hsl(var(--primary) / 0.08), 0 12px 28px hsl(var(--primary) / 0.10);
+  }
+
+  /* Sticker-style badge — used for achievements / progress hints */
+  .gamify-sticker {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold;
+    background: hsl(var(--primary) / 0.12);
+    color: hsl(var(--primary));
+    box-shadow: inset 0 0 0 1px hsl(var(--primary) / 0.25);
+  }
+  .gamify-sticker.success {
+    background: hsl(var(--success) / 0.14);
+    color: hsl(var(--success));
+    box-shadow: inset 0 0 0 1px hsl(var(--success) / 0.3);
+  }
+  .gamify-sticker.warning {
+    background: hsl(var(--warning) / 0.16);
+    color: hsl(var(--warning));
+    box-shadow: inset 0 0 0 1px hsl(var(--warning) / 0.3);
+  }
+
+  /* Animated gradient progress bar fill */
+  .gamify-progress-fill {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--primary)),
+      hsl(var(--success)),
+      hsl(var(--primary))
+    );
+    background-size: 200% 100%;
+    animation: gradient-shift 6s ease infinite;
+  }
+
+  /* Wiggle on hover — perfect for icon emphasis */
+  .hover-wiggle:hover {
+    animation: wiggle 0.6s ease-in-out;
+  }
+}
