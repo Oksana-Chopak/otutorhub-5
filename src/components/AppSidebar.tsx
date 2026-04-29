@@ -160,7 +160,7 @@ export function AppSidebar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors lg:py-2.5 lg:text-sm",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
