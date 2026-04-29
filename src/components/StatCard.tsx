@@ -29,14 +29,14 @@ export function StatCard({
   const iconBox = (
     <div
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-lg",
-        compact ? "h-8 w-8" : "h-9 w-9",
-        variant === "success" && "bg-success/10 text-success",
-        variant === "warning" && "bg-warning/10 text-warning",
-        variant === "default" && "bg-primary/10 text-primary",
+        "flex shrink-0 items-center justify-center rounded-xl shadow-sm transition-transform group-hover:scale-110 group-hover:-rotate-6",
+        compact ? "h-9 w-9" : "h-10 w-10",
+        variant === "success" && "bg-gradient-to-br from-success/20 to-success/10 text-success",
+        variant === "warning" && "bg-gradient-to-br from-warning/20 to-warning/10 text-warning",
+        variant === "default" && "bg-gradient-to-br from-primary/20 to-primary/10 text-primary",
       )}
     >
-      <Icon className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
+      <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} />
     </div>
   );
 
@@ -70,7 +70,7 @@ export function StatCard({
   );
 
   const baseClasses = cn(
-    "rounded-xl border border-border bg-card transition-all",
+    "group rounded-2xl border border-border bg-card transition-all duration-200",
     compact ? "p-3" : "p-5",
   );
 
@@ -78,7 +78,10 @@ export function StatCard({
     return (
       <Link
         to={to}
-        className={cn(baseClasses, "block hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5")}
+        className={cn(
+          baseClasses,
+          "block hover:border-primary/40 hover:-translate-y-1 hover:shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.25)]",
+        )}
       >
         {content}
       </Link>
