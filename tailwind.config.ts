@@ -88,11 +88,38 @@ export default {
           from: { transform: "translateX(100%)", opacity: "0" },
           to: { transform: "translateX(0)", opacity: "1" },
         },
+        wiggle: {
+          "0%, 100%": { transform: "rotate(-4deg)" },
+          "50%": { transform: "rotate(4deg)" },
+        },
+        "bounce-soft": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
+        pop: {
+          "0%": { transform: "scale(0.6)", opacity: "0" },
+          "70%": { transform: "scale(1.1)", opacity: "1" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        float: {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        "gradient-shift": {
+          "0%, 100%": { "background-position": "0% 50%" },
+          "50%": { "background-position": "100% 50%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "slide-in": "slide-in 0.2s ease-out",
+        wiggle: "wiggle 0.6s ease-in-out",
+        "wiggle-slow": "wiggle 2.4s ease-in-out infinite",
+        "bounce-soft": "bounce-soft 1.6s ease-in-out infinite",
+        pop: "pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        float: "float 3s ease-in-out infinite",
+        "gradient-shift": "gradient-shift 6s ease infinite",
       },
     },
   },
