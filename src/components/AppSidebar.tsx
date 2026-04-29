@@ -168,7 +168,7 @@ export function AppSidebar() {
                 }
                 end={item.to === "/"}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-5 w-5 lg:h-4 lg:w-4" />
                 <span className="flex-1">{t(item.labelKey)}</span>
                 {badge > 0 && (
                   <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
