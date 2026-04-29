@@ -44,20 +44,20 @@ export function MobileBottomNav() {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "relative flex flex-col items-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors",
+                    "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[12px] font-medium transition-colors",
                     isActive ? "text-primary" : "text-muted-foreground"
                   )
                 }
               >
                 <span className="relative">
-                  <item.icon className="h-5 w-5" />
+                  <item.icon className="h-6 w-6" />
                   {badge > 0 && (
-                    <span className="absolute -right-2 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                    <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
                       {badge > 9 ? "9+" : badge}
                     </span>
                   )}
                 </span>
-                <span className="truncate">{item.label}</span>
+                <span className="truncate leading-tight">{item.label}</span>
               </NavLink>
             </li>
           );
