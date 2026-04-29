@@ -112,11 +112,11 @@ export function AppSidebar() {
       {/* Mobile FAB toggle — bottom-right, large tap target */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-20 right-4 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
+        className="fixed bottom-24 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
         style={{ marginBottom: "env(safe-area-inset-bottom)" }}
         aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
       >
-        {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
       </button>
 
       {open && (
@@ -160,7 +160,7 @@ export function AppSidebar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors lg:py-2.5 lg:text-sm",
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:bg-secondary hover:text-foreground"
@@ -168,7 +168,7 @@ export function AppSidebar() {
                 }
                 end={item.to === "/"}
               >
-                <item.icon className="h-4 w-4" />
+                <item.icon className="h-5 w-5 lg:h-4 lg:w-4" />
                 <span className="flex-1">{t(item.labelKey)}</span>
                 {badge > 0 && (
                   <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
