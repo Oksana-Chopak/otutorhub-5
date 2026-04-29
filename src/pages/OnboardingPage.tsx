@@ -29,6 +29,8 @@ interface Step {
   cta: string;
   to: string;
   icon: typeof UserPlus;
+  emoji: string;
+  xp: number;
   badge?: string;
   /** Key into the auto-detected `progress` object */
   autoKey?: keyof StepProgress;
@@ -53,6 +55,8 @@ const steps: Step[] = [
     cta: "Додати учня",
     to: "/my-students",
     icon: UserPlus,
+    emoji: "👋",
+    xp: 50,
     autoKey: "hasStudent",
     autoHint: "Учень доданий ✓",
   },
@@ -64,6 +68,8 @@ const steps: Step[] = [
     cta: "Перейти до розкладу",
     to: "/schedule",
     icon: CalendarClock,
+    emoji: "📅",
+    xp: 75,
     autoKey: "hasLesson",
     autoHint: "Урок створено ✓",
   },
@@ -75,6 +81,8 @@ const steps: Step[] = [
     cta: "Відкрити «Мої учні»",
     to: "/my-students",
     icon: Video,
+    emoji: "🎥",
+    xp: 50,
     autoKey: "hasMeetingUrl",
     autoHint: "Посилання збережено ✓",
   },
@@ -86,6 +94,8 @@ const steps: Step[] = [
     cta: "Відкрити чати",
     to: "/chats",
     icon: MessageCircle,
+    emoji: "💬",
+    xp: 50,
     autoKey: "hasChat",
     autoHint: "Чат відкрито ✓",
   },
@@ -97,6 +107,8 @@ const steps: Step[] = [
     cta: "Перейти до фінансів",
     to: "/finances",
     icon: CreditCard,
+    emoji: "💰",
+    xp: 100,
     autoKey: "hasPaidLesson",
     autoHint: "Оплату відмічено ✓",
   },
@@ -108,6 +120,8 @@ const steps: Step[] = [
     cta: "Дізнатися більше",
     to: "/schedule",
     icon: Sparkles,
+    emoji: "✨",
+    xp: 150,
     badge: "Скоро",
   },
 ];
