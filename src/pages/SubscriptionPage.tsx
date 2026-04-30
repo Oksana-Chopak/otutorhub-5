@@ -142,6 +142,9 @@ export default function SubscriptionPage() {
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
+  const EARLY_BIRD_LIMIT = 20;
+  const REGULAR_PRICE_MONTHLY = 499;
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
