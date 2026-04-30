@@ -170,6 +170,32 @@ export default function SubscriptionPage() {
     }
   }, [searchParams]);
 
+  // Лічильник перших 20 Pro-репетиторів (active + trial)
+  useEffect(() => {
+    let cancelled = false;
+    const loadCount = async () => {
+      const { count } = await supabase
+        .from("tutor_workspace_settings")
+        .select("tutor_id", { count: "exact", head: true })
+        .eq("independent_workspace", true)
+        .in("subscription_status", ["active", "trial"]);
+      if (!cancelled) setEarlyBirdCount(count ?? 0);
+    };
+    loadCount();
+    const channel = supabase
+      .channel("early_bird_count")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "tutor_workspace_settings" },
+        () => loadCount()
+      )
+      .subscribe();
+    return () => {
+      cancelled = true;
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const loadRequest = async () => {
     if (!user) return;
     setRequestLoading(true);
