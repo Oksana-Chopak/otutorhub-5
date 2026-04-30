@@ -629,6 +629,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pro_bonus_ledger: {
+        Row: {
+          created_at: string
+          days_granted: number
+          id: string
+          metadata: Json | null
+          reason: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          days_granted: number
+          id?: string
+          metadata?: Json | null
+          reason: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          days_granted?: number
+          id?: string
+          metadata?: Json | null
+          reason?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       profile_contacts: {
         Row: {
           created_at: string
@@ -727,6 +754,63 @@ export type Database = {
           is_pending?: boolean
           last_name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          tutor_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          tutor_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          pro_bonus_granted: boolean
+          referred_id: string
+          referrer_id: string
+          signed_up_at: string
+          signup_bonus_granted: boolean
+          upgraded_to_pro_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          pro_bonus_granted?: boolean
+          referred_id: string
+          referrer_id: string
+          signed_up_at?: string
+          signup_bonus_granted?: boolean
+          upgraded_to_pro_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          pro_bonus_granted?: boolean
+          referred_id?: string
+          referrer_id?: string
+          signed_up_at?: string
+          signup_bonus_granted?: boolean
+          upgraded_to_pro_at?: string | null
         }
         Relationships: []
       }
@@ -940,6 +1024,30 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_badges: {
+        Row: {
+          awarded_at: string
+          badge_key: string
+          id: string
+          metadata: Json | null
+          tutor_id: string
+        }
+        Insert: {
+          awarded_at?: string
+          badge_key: string
+          id?: string
+          metadata?: Json | null
+          tutor_id: string
+        }
+        Update: {
+          awarded_at?: string
+          badge_key?: string
+          id?: string
+          metadata?: Json | null
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       tutor_details: {
         Row: {
           bio: string | null
@@ -1011,6 +1119,33 @@ export type Database = {
           status?: string
           student_id?: string
           subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_streaks: {
+        Row: {
+          bonus_granted_at: string | null
+          current_streak: number
+          last_lesson_date: string | null
+          longest_streak: number
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_granted_at?: string | null
+          current_streak?: number
+          last_lesson_date?: string | null
+          longest_streak?: number
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_granted_at?: string | null
+          current_streak?: number
+          last_lesson_date?: string | null
+          longest_streak?: number
+          tutor_id?: string
           updated_at?: string
         }
         Relationships: []
@@ -1302,6 +1437,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_referral: { Args: { _code: string }; Returns: Json }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1310,6 +1446,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      generate_referral_code: { Args: { _tutor_id: string }; Returns: string }
       generate_telegram_link_code: {
         Args: { _user_id: string }
         Returns: string
@@ -1330,9 +1467,33 @@ export type Database = {
         Args: { _student_id: string; _tutor_id: string }
         Returns: string
       }
+      get_referral_leaderboard: {
+        Args: { _month: number; _year: number }
+        Returns: {
+          first_name: string
+          last_name: string
+          pro_upgrades: number
+          referrer_id: string
+          total_signups: number
+        }[]
+      }
       get_tutor_independent_student_count: {
         Args: { _tutor_id: string }
         Returns: number
+      }
+      get_tutor_level: { Args: { _tutor_id: string }; Returns: Json }
+      get_tutor_monthly_summary: {
+        Args: { _month: number; _tutor_id: string; _year: number }
+        Returns: Json
+      }
+      grant_pro_days: {
+        Args: {
+          _days: number
+          _metadata?: Json
+          _reason: string
+          _tutor_id: string
+        }
+        Returns: undefined
       }
       has_role:
         | {
@@ -1363,6 +1524,10 @@ export type Database = {
         }[]
       }
       manager_purge_user: { Args: { _user_id: string }; Returns: undefined }
+      mark_referral_pro_upgrade: {
+        Args: { _tutor_id: string }
+        Returns: undefined
+      }
       merge_pending_profile: {
         Args: { _email: string; _phone: string; _real_id: string }
         Returns: string

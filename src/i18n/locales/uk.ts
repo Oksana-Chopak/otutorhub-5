@@ -52,6 +52,8 @@ export const uk = {
     availability: "Доступні години",
     audit: "Аудит",
     referrals: "Запити на репетиторів",
+    myReferrals: "Реферали",
+    achievements: "Досягнення",
     subscription: "Підписка",
     subscriptionRequests: "Запити на підписку",
     analytics: "Аналітика",

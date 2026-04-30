@@ -14,6 +14,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
+import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
+import { ReferralWidget } from "@/components/ReferralWidget";
 import {
   CalendarDays,
   Users,
@@ -508,6 +510,12 @@ export default function DashboardPage() {
 
           {isIndependentTutor && <TutorWelcomeBanner />}
           {isIndependentTutor && <IndependentTutorStats />}
+          {isIndependentTutor && (
+            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <MonthlySummaryCard />
+              <ReferralWidget compact />
+            </div>
+          )}
 
           <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>

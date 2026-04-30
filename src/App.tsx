@@ -20,6 +20,9 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import MyStudentsPage from "./pages/MyStudentsPage";
 import ReferralsPage from "./pages/ReferralsPage";
+import MyReferralsPage from "./pages/MyReferralsPage";
+import AchievementsPage from "./pages/AchievementsPage";
+import JoinPage from "./pages/JoinPage";
 import ProfilePage from "./pages/ProfilePage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SubscriptionRequestsPage from "./pages/SubscriptionRequestsPage";
@@ -44,6 +47,7 @@ function AppRoutes() {
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
@@ -101,6 +105,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["manager"]}>
             <ReferralsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-referrals"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <MyReferralsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/achievements"
+        element={
+          <ProtectedRoute allowedRoles={["tutor"]}>
+            <AchievementsPage />
           </ProtectedRoute>
         }
       />
