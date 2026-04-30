@@ -208,7 +208,7 @@ export function AppSidebar() {
           </div>
         )}
 
-        <div className="border-t border-border px-4 py-4 space-y-3">
+        <div className="shrink-0 border-t border-border px-4 py-4 space-y-3" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
           <div className="flex items-center gap-3">
             <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
               <DialogTrigger asChild>
