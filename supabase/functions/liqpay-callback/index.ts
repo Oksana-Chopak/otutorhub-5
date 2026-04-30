@@ -121,6 +121,13 @@ Deno.serve(async (req) => {
       await admin
         .from("tutor_workspace_settings")
         .upsert(update, { onConflict: "tutor_id" });
+
+      // Reward referrer if this tutor was referred (one-time per referral)
+      try {
+        await admin.rpc("mark_referral_pro_upgrade", { _tutor_id: paymentRow.tutor_id });
+      } catch (refErr) {
+        console.error("mark_referral_pro_upgrade failed:", refErr);
+      }
     }
 
     // Обробка скасування підписки
