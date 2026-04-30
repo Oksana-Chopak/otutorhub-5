@@ -32,12 +32,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Set up listener FIRST
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       setUser(newSession?.user ?? null);
       if (newSession?.user) {
         // Defer Supabase calls to avoid deadlock
         setTimeout(() => fetchRoles(newSession.user.id), 0);
+        // Claim pending referral code (set by /join/:code page) on first sign-in after signup
+        if (event === "SIGNED_IN") {
+          const code = localStorage.getItem("tutorhub.referralCode");
+          if (code) {
+            setTimeout(() => {
+              supabase.rpc("claim_referral", { _code: code }).then(({ data, error }) => {
+                if (!error && (data as any)?.ok) {
+                  localStorage.removeItem("tutorhub.referralCode");
+                } else if ((data as any)?.reason === "already_referred" || (data as any)?.reason === "self") {
+                  localStorage.removeItem("tutorhub.referralCode");
+                }
+              });
+            }, 500);
+          }
+        }
       } else {
         setRoles([]);
       }
