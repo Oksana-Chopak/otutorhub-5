@@ -22,6 +22,7 @@ import {
   Crown,
   HelpCircle,
   BarChart3,
+  Trophy,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -58,6 +59,8 @@ const allNavItems: NavItem[] = [
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
   { to: "/subscription", labelKey: "nav.subscription", icon: Crown, roles: ["tutor"], independentOnly: true },
   { to: "/analytics", labelKey: "nav.analytics", icon: BarChart3, roles: ["tutor"], independentOnly: true },
+  { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"], independentOnly: true },
+  { to: "/my-referrals", labelKey: "nav.myReferrals", icon: HandHeart, roles: ["tutor"], independentOnly: true },
   { to: "/finances", labelKey: "nav.finances", icon: DollarSign, roles: ["manager", "tutor"], independentOnly: true },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
   { to: "/referrals", labelKey: "nav.referrals", icon: HandHeart, roles: ["manager"] },
