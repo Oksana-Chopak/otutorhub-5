@@ -36,7 +36,7 @@ export default function MyReferralsPage() {
   }, [year, month]);
 
   return (
-    <AppLayout title="Реферальна програма">
+    <AppLayout>
       <div className="space-y-6">
         <ReferralWidget />
 
