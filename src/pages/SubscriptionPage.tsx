@@ -261,7 +261,74 @@ export default function SubscriptionPage() {
           </p>
         </div>
 
-        {/* Trial banner */}
+        {/* Early-bird акція */}
+        {!isActive && (() => {
+          const taken = earlyBirdCount ?? 0;
+          const left = Math.max(0, EARLY_BIRD_LIMIT - taken);
+          const progress = Math.min(100, (taken / EARLY_BIRD_LIMIT) * 100);
+          const soldOut = left === 0;
+          return (
+            <Card className="mb-4 overflow-hidden border-primary/40 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent">
+              <CardContent className="p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary text-xl">
+                      🎁
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-display text-base font-bold text-foreground">
+                          14 днів безкоштовно — спробуй без картки
+                        </p>
+                        {!soldOut && (
+                          <Badge variant="default" className="gap-1">
+                            <Sparkles className="h-3 w-3" /> Early bird
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Після тріалу —{" "}
+                        <span className="font-semibold text-foreground">
+                          {PRO_PRICE_YEARLY_PER_MONTH} ₴/міс
+                        </span>{" "}
+                        для перших {EARLY_BIRD_LIMIT} репетиторів{" "}
+                        <span className="text-muted-foreground">
+                          (потім {REGULAR_PRICE_MONTHLY} ₴/міс)
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                      {soldOut
+                        ? "Місця закінчились"
+                        : `Підписалось вже ${taken} з ${EARLY_BIRD_LIMIT}`}
+                    </span>
+                    {!soldOut && (
+                      <span className="font-semibold text-primary">
+                        ще {left}{" "}
+                        {left === 1
+                          ? "місце"
+                          : left >= 2 && left <= 4
+                          ? "місця"
+                          : "місць"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })()}
         {isTrial && trialUntil && (
           <Card className="mb-4 border-primary/40 bg-primary/[0.04]">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
