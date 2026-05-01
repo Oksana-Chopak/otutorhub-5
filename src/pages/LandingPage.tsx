@@ -428,13 +428,18 @@ const landingStyles = `
 .landing-root .compare-table th {
   font-family: 'Unbounded', sans-serif;
   font-size: 13px; font-weight: 700;
-  padding: 16px 20px;
+  padding: 14px 12px;
   text-align: left; color: var(--l-muted);
 }
 .landing-root .compare-table th.ours { color: var(--l-accent); }
 .landing-root .compare-table td {
-  padding: 14px 20px; font-size: 14px; color: var(--ink);
+  padding: 12px; font-size: 13px; color: var(--ink);
   border-top: 1px solid var(--border2);
+  word-break: break-word;
+}
+@media (min-width: 640px) {
+  .landing-root .compare-table th { padding: 16px 20px; font-size: 13px; }
+  .landing-root .compare-table td { padding: 14px 20px; font-size: 14px; }
 }
 .landing-root .compare-table tr:hover td { background: var(--bg); }
 .landing-root .yes { color: var(--l-success); font-weight: 600; }
