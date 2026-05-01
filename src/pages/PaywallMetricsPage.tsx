@@ -238,7 +238,36 @@ export default function PaywallMetricsPage() {
             <CardTitle className="text-lg">Деталі по фічах</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {featureStats.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Немає даних</p>
+              ) : (
+                featureStats.map((f) => (
+                  <div key={f.key} className="rounded-xl border border-border bg-card p-3">
+                    <div className="mb-2 text-sm font-medium text-foreground">{f.label}</div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">Кліків</div>
+                        <div className="text-sm font-semibold">{f.clicks}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">Юзерів</div>
+                        <div className="text-sm font-semibold">{f.uniqueUsers}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">К/Ю</div>
+                        <div className="text-sm font-semibold">
+                          {(f.clicks / Math.max(1, f.uniqueUsers)).toFixed(1)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Desktop table */}
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
