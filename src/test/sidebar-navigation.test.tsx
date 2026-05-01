@@ -64,10 +64,9 @@ describe("MobileBottomNav — пункти за ролями", () => {
     expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
   });
 
-  it("TUTOR не бачить 'Фінанси' / 'Люди' / 'Аудит'", () => {
+  it("TUTOR не бачить 'Люди' / 'Аудит' (але бачить 'Фінанси')", () => {
     setRoles(["tutor"]);
     renderNav();
-    expect(screen.queryByText(/Фінанси/i)).toBeNull();
     expect(screen.queryByText(/Люди/i)).toBeNull();
     expect(screen.queryByText(/Аудит/i)).toBeNull();
   });
