@@ -309,7 +309,48 @@ export default function PaywallMetricsPage() {
             <CardDescription>До 100 останніх кліків з фільтром</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {recent.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Немає подій</p>
+              ) : (
+                recent.map((e) => (
+                  <div key={e.id} className="rounded-xl border border-border bg-card p-3">
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <div className="text-sm font-medium text-foreground">
+                        {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
+                      </div>
+                      <Badge
+                        variant={
+                          e.subscription_status === "active"
+                            ? "default"
+                            : e.subscription_status === "trial"
+                              ? "secondary"
+                              : "outline"
+                        }
+                        className="shrink-0 text-[10px]"
+                      >
+                        {STATUS_LABELS[e.subscription_status ?? "free"] ?? e.subscription_status}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      <span className="whitespace-nowrap">
+                        {new Date(e.created_at).toLocaleString("uk-UA", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <span>· {e.source}</span>
+                      <span className="font-mono">· {e.user_id.slice(0, 8)}…</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Desktop table */}
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
