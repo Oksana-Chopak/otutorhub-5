@@ -238,7 +238,36 @@ export default function PaywallMetricsPage() {
             <CardTitle className="text-lg">Деталі по фічах</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {featureStats.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Немає даних</p>
+              ) : (
+                featureStats.map((f) => (
+                  <div key={f.key} className="rounded-xl border border-border bg-card p-3">
+                    <div className="mb-2 text-sm font-medium text-foreground">{f.label}</div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">Кліків</div>
+                        <div className="text-sm font-semibold">{f.clicks}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">Юзерів</div>
+                        <div className="text-sm font-semibold">{f.uniqueUsers}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase text-muted-foreground">К/Ю</div>
+                        <div className="text-sm font-semibold">
+                          {(f.clicks / Math.max(1, f.uniqueUsers)).toFixed(1)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Desktop table */}
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -280,7 +309,48 @@ export default function PaywallMetricsPage() {
             <CardDescription>До 100 останніх кліків з фільтром</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Mobile cards */}
+            <div className="space-y-2 md:hidden">
+              {recent.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">Немає подій</p>
+              ) : (
+                recent.map((e) => (
+                  <div key={e.id} className="rounded-xl border border-border bg-card p-3">
+                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                      <div className="text-sm font-medium text-foreground">
+                        {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
+                      </div>
+                      <Badge
+                        variant={
+                          e.subscription_status === "active"
+                            ? "default"
+                            : e.subscription_status === "trial"
+                              ? "secondary"
+                              : "outline"
+                        }
+                        className="shrink-0 text-[10px]"
+                      >
+                        {STATUS_LABELS[e.subscription_status ?? "free"] ?? e.subscription_status}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+                      <span className="whitespace-nowrap">
+                        {new Date(e.created_at).toLocaleString("uk-UA", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                      <span>· {e.source}</span>
+                      <span className="font-mono">· {e.user_id.slice(0, 8)}…</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            {/* Desktop table */}
+            <div className="hidden overflow-x-auto md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
