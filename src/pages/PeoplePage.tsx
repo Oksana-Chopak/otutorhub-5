@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
+import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
@@ -157,6 +158,15 @@ export default function PeoplePage() {
     open: false,
     user: null,
   });
+
+  const [propagate, setPropagate] = useState<{
+    open: boolean;
+    tutorId: string;
+    studentId: string;
+    subject: string;
+    newPrice: number;
+    oldPrice: number;
+  } | null>(null);
 
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -367,7 +377,11 @@ export default function PeoplePage() {
       toast.error("Оберіть предмет");
       return;
     }
-    if (studentDialog.existingId) {
+    let oldPrice = 0;
+    const isUpdate = !!studentDialog.existingId;
+    if (isUpdate) {
+      const existing = studentRates.find((r) => r.id === studentDialog.existingId);
+      oldPrice = Number(existing?.price_per_lesson ?? 0);
       const { error } = await supabase
         .from("student_rates")
         .update({ price_per_lesson: price })
@@ -391,7 +405,19 @@ export default function PeoplePage() {
       }
     }
     toast.success("Ціну збережено");
+    const propPayload =
+      isUpdate && oldPrice !== price
+        ? {
+            open: true,
+            tutorId: studentDialog.tutorId,
+            studentId: studentDialog.studentId,
+            subject: studentDialog.subject,
+            newPrice: price,
+            oldPrice,
+          }
+        : null;
     setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+    if (propPayload) setPropagate(propPayload);
     loadData();
   };
 
@@ -1455,6 +1481,19 @@ export default function PeoplePage() {
         studentId={invite.studentId}
         emailSent={invite.emailSent}
       />
+
+      {propagate && (
+        <RatePropagationDialog
+          open={propagate.open}
+          onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
+          tutorId={propagate.tutorId}
+          studentId={propagate.studentId}
+          subject={propagate.subject}
+          newPrice={propagate.newPrice}
+          oldPrice={propagate.oldPrice}
+          onDone={loadData}
+        />
+      )}
     </AppLayout>
   );
 }

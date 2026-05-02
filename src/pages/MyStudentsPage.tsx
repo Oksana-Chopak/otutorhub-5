@@ -33,8 +33,11 @@ import {
   Hourglass,
   Banknote,
   Video,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { RatePropagationDialog } from "@/components/RatePropagationDialog";
+import { WalletDialog } from "@/components/WalletDialog";
 
 interface MyStudent {
   id: string;
@@ -103,6 +106,16 @@ export default function MyStudentsPage() {
     studentId: string | null;
     emailSent: boolean;
   }>({ open: false, name: "", email: null, phone: null, studentId: null, emailSent: false });
+
+  const [propagate, setPropagate] = useState<
+    | { open: boolean; tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number }
+    | null
+  >(null);
+
+  const [walletDialog, setWalletDialog] = useState<
+    | { open: boolean; tutorId: string; studentId: string; studentName: string; tutorName: string; rate: number }
+    | null
+  >(null);
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
@@ -358,11 +371,22 @@ export default function MyStudentsPage() {
 
       // Update rate
       const existing = students.find((s) => s.id === dialog.studentId);
+      let priceChanged: { tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number } | null = null;
       if (existing?.rate_id) {
+        const oldPrice = Number(existing.price ?? 0);
         await supabase
           .from("student_rates")
           .update({ subject, price_per_lesson: price })
           .eq("id", existing.rate_id);
+        if (oldPrice !== price) {
+          priceChanged = {
+            tutorId: user.id,
+            studentId: dialog.studentId,
+            subject,
+            oldPrice,
+            newPrice: price,
+          };
+        }
       }
 
       // Default meeting URL — upsert or clear
@@ -377,6 +401,9 @@ export default function MyStudentsPage() {
       );
 
       toast.success("Дані учня оновлено");
+      if (priceChanged) {
+        setPropagate({ open: true, ...priceChanged });
+      }
     }
 
     setSubmitting(false);
@@ -575,6 +602,25 @@ export default function MyStudentsPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {!s.archived_at && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setWalletDialog({
+                          open: true,
+                          tutorId: user!.id,
+                          studentId: s.id,
+                          studentName: `${s.first_name} ${s.last_name}`.trim() || "—",
+                          tutorName: "Ви",
+                          rate: s.price,
+                        })
+                      }
+                      title="Гаманець (передоплата)"
+                    >
+                      <Wallet className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
+                  {!s.archived_at && (
                     <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Редагувати">
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -740,6 +786,34 @@ export default function MyStudentsPage() {
         emailSent={invite.emailSent}
         role="student"
       />
+
+      {propagate && (
+        <RatePropagationDialog
+          open={propagate.open}
+          onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
+          tutorId={propagate.tutorId}
+          studentId={propagate.studentId}
+          subject={propagate.subject}
+          newPrice={propagate.newPrice}
+          oldPrice={propagate.oldPrice}
+          onDone={load}
+        />
+      )}
+
+      {walletDialog && (
+        <WalletDialog
+          open={walletDialog.open}
+          onOpenChange={(o) => {
+            if (!o) setWalletDialog(null);
+          }}
+          tutorId={walletDialog.tutorId}
+          studentId={walletDialog.studentId}
+          studentName={walletDialog.studentName}
+          tutorName={walletDialog.tutorName}
+          ratePerLesson={walletDialog.rate}
+          canTopUp={true}
+        />
+      )}
     </AppLayout>
   );
 }
