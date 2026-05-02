@@ -358,11 +358,22 @@ export default function MyStudentsPage() {
 
       // Update rate
       const existing = students.find((s) => s.id === dialog.studentId);
+      let priceChanged: { tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number } | null = null;
       if (existing?.rate_id) {
+        const oldPrice = Number(existing.price ?? 0);
         await supabase
           .from("student_rates")
           .update({ subject, price_per_lesson: price })
           .eq("id", existing.rate_id);
+        if (oldPrice !== price) {
+          priceChanged = {
+            tutorId: user.id,
+            studentId: dialog.studentId,
+            subject,
+            oldPrice,
+            newPrice: price,
+          };
+        }
       }
 
       // Default meeting URL — upsert or clear
@@ -377,6 +388,9 @@ export default function MyStudentsPage() {
       );
 
       toast.success("Дані учня оновлено");
+      if (priceChanged) {
+        setPropagate({ open: true, ...priceChanged });
+      }
     }
 
     setSubmitting(false);
