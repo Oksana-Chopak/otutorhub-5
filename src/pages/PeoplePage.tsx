@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
+import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
