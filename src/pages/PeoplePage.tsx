@@ -159,6 +159,15 @@ export default function PeoplePage() {
     user: null,
   });
 
+  const [propagate, setPropagate] = useState<{
+    open: boolean;
+    tutorId: string;
+    studentId: string;
+    subject: string;
+    newPrice: number;
+    oldPrice: number;
+  } | null>(null);
+
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
