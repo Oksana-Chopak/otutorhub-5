@@ -107,6 +107,16 @@ export default function MyStudentsPage() {
     emailSent: boolean;
   }>({ open: false, name: "", email: null, phone: null, studentId: null, emailSent: false });
 
+  const [propagate, setPropagate] = useState<
+    | { open: boolean; tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number }
+    | null
+  >(null);
+
+  const [walletDialog, setWalletDialog] = useState<
+    | { open: boolean; tutorId: string; studentId: string; studentName: string; tutorName: string; rate: number }
+    | null
+  >(null);
+
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
       navigate("/onboarding", { replace: true });
