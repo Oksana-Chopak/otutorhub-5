@@ -30,6 +30,7 @@ import NotFound from "./pages/NotFound";
 import FeedbackPreviewPage from "./pages/FeedbackPreviewPage";
 import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 import PaywallMetricsPage from "./pages/PaywallMetricsPage";
+import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
@@ -161,6 +162,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["manager"]}>
             <PaywallMetricsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/wallets"
+        element={
+          <ProtectedRoute allowedRoles={["manager", "tutor"]}>
+            <WalletsPage />
           </ProtectedRoute>
         }
       />
