@@ -16,6 +16,7 @@ import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
+import { StudentWalletCard } from "@/components/StudentWalletCard";
 import {
   CalendarDays,
   Users,
@@ -514,6 +515,12 @@ export default function DashboardPage() {
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <MonthlySummaryCard />
               <ReferralWidget compact />
+            </div>
+          )}
+
+          {isStudent && !isTutor && !isManager && user && (
+            <div className="mt-4">
+              <StudentWalletCard studentId={user.id} />
             </div>
           )}
 
