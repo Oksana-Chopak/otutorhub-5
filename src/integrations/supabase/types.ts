@@ -877,6 +877,45 @@ export type Database = {
         }
         Relationships: []
       }
+      student_wallet_transactions: {
+        Row: {
+          amount_delta: number
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          lesson_id: string | null
+          lessons_delta: number
+          note: string | null
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          amount_delta?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          lesson_id?: string | null
+          lessons_delta?: number
+          note?: string | null
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          amount_delta?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          lesson_id?: string | null
+          lessons_delta?: number
+          note?: string | null
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       subscription_requests: {
         Row: {
           created_at: string
@@ -1404,6 +1443,16 @@ export type Database = {
         }
         Relationships: []
       }
+      student_wallet_balances: {
+        Row: {
+          amount_balance: number | null
+          last_transaction_at: string | null
+          lessons_balance: number | null
+          student_id: string | null
+          tutor_id: string | null
+        }
+        Relationships: []
+      }
       tutor_public_details: {
         Row: {
           bio: string | null
@@ -1486,6 +1535,13 @@ export type Database = {
         Args: { _month: number; _tutor_id: string; _year: number }
         Returns: Json
       }
+      get_wallet_balance: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: {
+          amount_balance: number
+          lessons_balance: number
+        }[]
+      }
       grant_pro_days: {
         Args: {
           _days: number
@@ -1548,6 +1604,26 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      wallet_adjust: {
+        Args: {
+          _amount_delta: number
+          _lessons_delta: number
+          _note: string
+          _student_id: string
+          _tutor_id: string
+        }
+        Returns: string
+      }
+      wallet_topup: {
+        Args: {
+          _amount_delta: number
+          _lessons_delta: number
+          _note?: string
+          _student_id: string
+          _tutor_id: string
+        }
+        Returns: string
       }
     }
     Enums: {
