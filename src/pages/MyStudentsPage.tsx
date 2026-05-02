@@ -602,6 +602,25 @@ export default function MyStudentsPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
                   {!s.archived_at && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setWalletDialog({
+                          open: true,
+                          tutorId: user!.id,
+                          studentId: s.id,
+                          studentName: `${s.first_name} ${s.last_name}`.trim() || "—",
+                          tutorName: "Ви",
+                          rate: s.price,
+                        })
+                      }
+                      title="Гаманець (передоплата)"
+                    >
+                      <Wallet className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
+                  {!s.archived_at && (
                     <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Редагувати">
                       <Pencil className="h-4 w-4" />
                     </Button>
