@@ -1481,6 +1481,19 @@ export default function PeoplePage() {
         studentId={invite.studentId}
         emailSent={invite.emailSent}
       />
+
+      {propagate && (
+        <RatePropagationDialog
+          open={propagate.open}
+          onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
+          tutorId={propagate.tutorId}
+          studentId={propagate.studentId}
+          subject={propagate.subject}
+          newPrice={propagate.newPrice}
+          oldPrice={propagate.oldPrice}
+          onDone={loadData}
+        />
+      )}
     </AppLayout>
   );
 }
