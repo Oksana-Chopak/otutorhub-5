@@ -33,11 +33,11 @@ import {
   Hourglass,
   Banknote,
   Video,
+  Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
-import { Wallet } from "lucide-react";
 
 interface MyStudent {
   id: string;
