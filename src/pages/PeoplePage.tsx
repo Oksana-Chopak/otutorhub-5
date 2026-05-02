@@ -377,7 +377,11 @@ export default function PeoplePage() {
       toast.error("Оберіть предмет");
       return;
     }
-    if (studentDialog.existingId) {
+    let oldPrice = 0;
+    const isUpdate = !!studentDialog.existingId;
+    if (isUpdate) {
+      const existing = studentRates.find((r) => r.id === studentDialog.existingId);
+      oldPrice = Number(existing?.price_per_lesson ?? 0);
       const { error } = await supabase
         .from("student_rates")
         .update({ price_per_lesson: price })
@@ -401,7 +405,19 @@ export default function PeoplePage() {
       }
     }
     toast.success("Ціну збережено");
+    const propPayload =
+      isUpdate && oldPrice !== price
+        ? {
+            open: true,
+            tutorId: studentDialog.tutorId,
+            studentId: studentDialog.studentId,
+            subject: studentDialog.subject,
+            newPrice: price,
+            oldPrice,
+          }
+        : null;
     setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+    if (propPayload) setPropagate(propPayload);
     loadData();
   };
 
