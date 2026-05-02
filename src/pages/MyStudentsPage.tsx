@@ -786,6 +786,34 @@ export default function MyStudentsPage() {
         emailSent={invite.emailSent}
         role="student"
       />
+
+      {propagate && (
+        <RatePropagationDialog
+          open={propagate.open}
+          onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
+          tutorId={propagate.tutorId}
+          studentId={propagate.studentId}
+          subject={propagate.subject}
+          newPrice={propagate.newPrice}
+          oldPrice={propagate.oldPrice}
+          onDone={load}
+        />
+      )}
+
+      {walletDialog && (
+        <WalletDialog
+          open={walletDialog.open}
+          onOpenChange={(o) => {
+            if (!o) setWalletDialog(null);
+          }}
+          tutorId={walletDialog.tutorId}
+          studentId={walletDialog.studentId}
+          studentName={walletDialog.studentName}
+          tutorName={walletDialog.tutorName}
+          ratePerLesson={walletDialog.rate}
+          canTopUp={true}
+        />
+      )}
     </AppLayout>
   );
 }
