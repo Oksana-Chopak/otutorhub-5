@@ -62,13 +62,13 @@ export function RatePropagationDialog({
     }
     // "all" — no extra filter
 
-    const { error, count } = await q.select("id", { count: "exact", head: true });
+    const { data, error } = await q.select("id");
     setBusy(false);
     if (error) {
       toast.error("Не вдалося оновити уроки");
       return;
     }
-    toast.success(`Оновлено уроків: ${count ?? 0}`);
+    toast.success(`Оновлено уроків: ${data?.length ?? 0}`);
     onOpenChange(false);
     onDone?.();
   };
