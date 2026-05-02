@@ -636,14 +636,16 @@ export default function SchedulePage() {
   };
 
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
+    const prev = lessons;
+    setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
       console.error("Failed to update lesson status", error);
       toast.error("Не вдалося оновити статус. Спробуйте ще раз.");
+      setLessons(prev);
       return;
     }
     toast.success("Статус оновлено");
-    loadAll();
   };
 
   const updatePayment = async (
@@ -651,26 +653,30 @@ export default function SchedulePage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus
   ) => {
+    const prev = lessons;
+    setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     const update: any = { [field]: value };
     const { error } = await supabase.from("lessons").update(update).eq("id", lessonId);
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      setLessons(prev);
       return;
     }
     toast.success("Оплату оновлено");
-    loadAll();
   };
 
   const deleteLesson = async (lessonId: string) => {
+    const prev = lessons;
+    setLessons((curr) => curr.filter((l) => l.id !== lessonId));
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
       console.error("Failed to delete lesson", error);
       toast.error("Не вдалося видалити урок. Спробуйте ще раз.");
+      setLessons(prev);
       return;
     }
     toast.success("Урок видалено");
-    loadAll();
   };
 
   // Apply filters
