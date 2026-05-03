@@ -144,6 +144,8 @@ export default function OnboardingPage() {
     hasPaidLesson: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [progressReloadKey, setProgressReloadKey] = useState(0);
 
   // Redirect non-tutors away
   useEffect(() => {
