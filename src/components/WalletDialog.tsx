@@ -26,6 +26,8 @@ interface WalletDialogProps {
   canTopUp: boolean;
   /** ставка за урок (для зручного перерахунку) */
   ratePerLesson?: number;
+  /** дозволяє менеджеру видаляти/сторнувати транзакції */
+  canDelete?: boolean;
 }
 
 const formatDateTime = (iso: string) =>
