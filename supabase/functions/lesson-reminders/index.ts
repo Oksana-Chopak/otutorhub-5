@@ -95,8 +95,53 @@ Deno.serve(async () => {
   let sent = 0;
   let skipped = 0;
 
+  // Build lesson -> has-feedback map (so we don't nag students who already rated)
+  const completedIds = lessons.filter((l: any) => l.status === "completed").map((l: any) => l.id);
+  const feedbackSet = new Set<string>();
+  if (completedIds.length > 0) {
+    const { data: fb } = await supabase
+      .from("lesson_feedback")
+      .select("lesson_id")
+      .in("lesson_id", completedIds);
+    for (const r of fb ?? []) feedbackSet.add(r.lesson_id);
+  }
+
   for (const lesson of lessons) {
     const startMs = new Date(lesson.starts_at).getTime();
+
+    // ─── Post-lesson feedback nudge to student ───
+    // Trigger ~1h after lesson end (start + duration + 60min), only if completed and no feedback yet.
+    if (lesson.status === "completed" && !feedbackSet.has(lesson.id)) {
+      const endMs = startMs + (lesson.duration_minutes ?? 60) * MIN_MS;
+      const fbTrigger = endMs + 60 * MIN_MS;
+      const fbWindow = 90 * MIN_MS;
+      if (now >= fbTrigger && now - fbTrigger <= fbWindow) {
+        const studentChat = chatByUser.get(lesson.student_id);
+        const fbKey = `${lesson.id}:${lesson.student_id}:feedback_nudge`;
+        if (studentChat && !sentSet.has(fbKey)) {
+          const tutorName = nameById.get(lesson.tutor_id) ?? "репетитором";
+          const text =
+            `⭐ Як пройшов урок з <b>${tutorName}</b> (${lesson.subject})?\n\n` +
+            `Відкрийте урок у застосунку і поставте оцінку — це допоможе репетитору і іншим учням.`;
+          if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
+            await supabase.from("lesson_reminders").insert({
+              lesson_id: lesson.id,
+              tutor_id: lesson.tutor_id,
+              student_id: lesson.student_id,
+              recipient_id: lesson.student_id,
+              recipient_role: "student",
+              reminder_kind: "feedback_nudge",
+              channel: "telegram",
+            });
+            sent++;
+          } else skipped++;
+        }
+      }
+    }
+
+    // ─── Pre-lesson reminders ───
+    if (lesson.status !== "scheduled") continue;
+
     for (const rule of RULES) {
       const triggerMs = startMs - rule.minutesBefore * MIN_MS;
       // Fire only when trigger time has passed but we're still within the window
