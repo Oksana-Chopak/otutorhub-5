@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil, CalendarClock, CalendarDays } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
+import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
