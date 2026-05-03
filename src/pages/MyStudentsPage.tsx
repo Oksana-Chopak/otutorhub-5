@@ -61,7 +61,7 @@ interface MyStudent {
   last_lesson_at: string | null;
 }
 
-type StudentStatus = "ok" | "debt" | "inactive" | "new";
+import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 
 interface FormData {
   first_name: string;
@@ -503,30 +503,8 @@ export default function MyStudentsPage() {
   const archivedStudents = students.filter((s) => !!s.archived_at);
   const visibleStudents = view === "active" ? activeStudents : archivedStudents;
 
-  const INACTIVE_DAYS = 21;
-  const statusOf = (s: MyStudent): { status: StudentStatus; label: string } => {
-    if (s.unpaid_count > 0) {
-      return {
-        status: "debt",
-        label: `Борг: ${s.unpaid_total} ₴ (${s.unpaid_count})`,
-      };
-    }
-    if (!s.last_lesson_at) {
-      return { status: "new", label: "Без уроків" };
-    }
-    const ageMs = Date.now() - new Date(s.last_lesson_at).getTime();
-    if (ageMs > INACTIVE_DAYS * 24 * 60 * 60 * 1000) {
-      const days = Math.round(ageMs / (24 * 60 * 60 * 1000));
-      return { status: "inactive", label: `Не виходить на зв'язок ${days}д` };
-    }
-    return { status: "ok", label: "Все оплачено" };
-  };
-  const statusDotClass: Record<StudentStatus, string> = {
-    ok: "bg-success",
-    debt: "bg-warning",
-    inactive: "bg-destructive",
-    new: "bg-muted-foreground/40",
-  };
+  const statusOf = (s: MyStudent) => computeStudentStatus(s);
+  const statusDotClass = studentStatusDotClass;
 
   return (
     <AppLayout>
