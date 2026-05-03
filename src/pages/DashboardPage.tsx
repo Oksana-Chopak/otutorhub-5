@@ -16,6 +16,7 @@ import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
+import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
@@ -575,6 +576,11 @@ export default function DashboardPage() {
             />
           )}
           {isIndependentTutor && <IndependentTutorStats />}
+          {isTutor && !isManager && (
+            <div className="mt-4">
+              <PendingPaymentsCard />
+            </div>
+          )}
           {isIndependentTutor && (
             <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
               <MonthlySummaryCard />

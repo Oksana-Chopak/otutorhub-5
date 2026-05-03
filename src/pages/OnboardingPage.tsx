@@ -21,6 +21,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 
 interface Step {
   id: number;
@@ -36,6 +37,8 @@ interface Step {
   autoKey?: keyof StepProgress;
   /** Hint shown under the title when the step has been auto-completed */
   autoHint?: string;
+  /** If set, CTA opens an inline action instead of navigating to `to` */
+  action?: "addStudent";
 }
 
 interface StepProgress {
@@ -53,7 +56,8 @@ const steps: Step[] = [
     description:
       "Введіть ім'я, телефон, email, телеграм/інстаграм. Учень отримає запрошення приєднатися до вашого кабінету.",
     cta: "Додати учня",
-    to: "/my-students?new=1",
+    to: "/my-students",
+    action: "addStudent",
     icon: UserPlus,
     emoji: "👋",
     xp: 50,
@@ -140,6 +144,8 @@ export default function OnboardingPage() {
     hasPaidLesson: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [progressReloadKey, setProgressReloadKey] = useState(0);
 
   // Redirect non-tutors away
   useEffect(() => {
@@ -217,7 +223,7 @@ export default function OnboardingPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, isIndependent]);
+  }, [user?.id, isIndependent, progressReloadKey]);
 
   // Determine completed steps from auto-detected progress + saved step
   const autoCompletedIds = useMemo(() => {
@@ -449,17 +455,29 @@ export default function OnboardingPage() {
                     <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                     {!isDone && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          asChild
-                          size="sm"
-                          variant={isCurrent ? "default" : "outline"}
-                          className="rounded-full hover:scale-105 transition-transform"
-                        >
-                          <Link to={step.to}>
+                        {step.action === "addStudent" ? (
+                          <Button
+                            size="sm"
+                            variant={isCurrent ? "default" : "outline"}
+                            className="rounded-full hover:scale-105 transition-transform"
+                            onClick={() => setAddStudentOpen(true)}
+                          >
                             {step.cta}
                             <ArrowRight className="ml-1 h-3 w-3" />
-                          </Link>
-                        </Button>
+                          </Button>
+                        ) : (
+                          <Button
+                            asChild
+                            size="sm"
+                            variant={isCurrent ? "default" : "outline"}
+                            className="rounded-full hover:scale-105 transition-transform"
+                          >
+                            <Link to={step.to}>
+                              {step.cta}
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Link>
+                          </Button>
+                        )}
                         {isCurrent && step.autoKey && (
                           <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
                             Пропустити
@@ -481,6 +499,11 @@ export default function OnboardingPage() {
           </Button>
         </div>
       </div>
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => setProgressReloadKey((k) => k + 1)}
+      />
     </AppLayout>
   );
 }

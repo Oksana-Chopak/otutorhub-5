@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil, CalendarClock, CalendarDays } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
+import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { EmptyState } from "@/components/EmptyState";
 import { SourceBadge, lessonSourceTint, type LessonSource } from "@/components/SourceBadge";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
@@ -133,6 +134,7 @@ export default function SchedulePage() {
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
+  const [quickSlot, setQuickSlot] = useState<Date | null>(null);
   const [form, setForm] = useState({
     tutor_id: "",
     student_id: "",
@@ -141,7 +143,7 @@ export default function SchedulePage() {
     duration_minutes: "60",
     notes: "",
     status: "scheduled" as LessonStatus,
-    student_price: "0",
+    student_price: "",
     tutor_payout: "0",
     student_payment_status: "unpaid" as PaymentStatus,
     tutor_payout_status: "unpaid" as PaymentStatus,
@@ -497,6 +499,37 @@ export default function SchedulePage() {
     };
   }, [isManager, isIndependentTutor, form.tutor_id, form.student_id, form.subject]);
 
+  // Pre-fill student_price from the most recent rate for this (tutor, student)
+  // pair as soon as the student is picked — even before subject is chosen.
+  // Prevents "0 ₴" lessons when tutor forgets to type the price.
+  useEffect(() => {
+    if (!isManager && !isIndependentTutor) return;
+    if (!form.tutor_id || !form.student_id) return;
+    if (form.student_price && form.student_price !== "0") return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("student_rates")
+        .select("price_per_lesson")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const price = data?.[0]?.price_per_lesson;
+      if (price !== undefined && price !== null) {
+        setForm((f) =>
+          f.student_price && f.student_price !== "0"
+            ? f
+            : { ...f, student_price: String(price) }
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager, isIndependentTutor, form.tutor_id, form.student_id]);
+
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
     if (!form.tutor_id || !form.starts_at) return null;
@@ -625,7 +658,7 @@ export default function SchedulePage() {
       ...f,
       subject: "",
       notes: "",
-      student_price: "0",
+      student_price: "",
       tutor_payout: "0",
       student_payment_status: "unpaid",
       tutor_payout_status: "unpaid",
@@ -1425,6 +1458,10 @@ export default function SchedulePage() {
           onToday={() => setWeekAnchor(new Date())}
           onSlotClick={(date) => {
             if (!canCreate) return;
+            if (isIndependentTutor) {
+              setQuickSlot(date);
+              return;
+            }
             setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
             setCreateOpen(true);
           }}
@@ -1711,6 +1748,16 @@ export default function SchedulePage() {
       )}
       </>
       )}
+      <QuickLessonDialog
+        open={!!quickSlot}
+        onOpenChange={(v) => !v && setQuickSlot(null)}
+        startsAt={quickSlot}
+        onCreated={() => loadAll()}
+        onWantFullForm={(date) => {
+          setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
+          setCreateOpen(true);
+        }}
+      />
     </AppLayout>
   );
 }
