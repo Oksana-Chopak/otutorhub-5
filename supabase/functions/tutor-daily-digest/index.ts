@@ -60,16 +60,20 @@ async function sendTg(
   return resp.ok;
 }
 
-Deno.serve(async (_req) => {
+Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: "Missing env" }), { status: 500 });
   }
-  // Auth: function deploys with verify_jwt = true by default, so any caller
-  // must already present a valid Supabase JWT (anon or service role). The
-  // function itself only reads service-role-only data via the service client.
+  // Restrict invocation to cron / service-role callers only.
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
+  const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
+  if (!provided || provided !== serviceKey) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  }
+
 
   const supabase = createClient(supabaseUrl, serviceKey);
   const today = todayDateInKyiv();
