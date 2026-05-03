@@ -145,7 +145,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }, { data: defaults }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -159,6 +159,11 @@ export default function MyStudentsPage() {
         .select("student_id, default_meeting_url")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
+      supabase
+        .from("lessons")
+        .select("student_id, starts_at, status, student_payment_status, student_price")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
@@ -167,10 +172,39 @@ export default function MyStudentsPage() {
       (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
     );
 
+    // Aggregate lesson stats per student
+    const statsMap = new Map<
+      string,
+      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+    >();
+    for (const l of (lessonsAgg ?? []) as any[]) {
+      const s = statsMap.get(l.student_id) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null as string | null,
+      };
+      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+        s.unpaid_count += 1;
+        s.unpaid_total += Number(l.student_price ?? 0);
+      }
+      if (
+        (l.status === "completed" || l.status === "scheduled") &&
+        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
+      ) {
+        s.last_lesson_at = l.starts_at;
+      }
+      statsMap.set(l.student_id, s);
+    }
+
     const merged: MyStudent[] = ids.map((id) => {
-      const p = profileMap.get(id) ?? {};
-      const c = contactMap.get(id) ?? {};
+      const p: any = profileMap.get(id) ?? {};
+      const c: any = contactMap.get(id) ?? {};
       const r = (rates ?? []).find((x: any) => x.student_id === id);
+      const stats = statsMap.get(id) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null,
+      };
       return {
         id,
         first_name: p.first_name ?? "",
@@ -187,6 +221,9 @@ export default function MyStudentsPage() {
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
         archived_at: (r as any)?.archived_at ?? null,
+        unpaid_count: stats.unpaid_count,
+        unpaid_total: stats.unpaid_total,
+        last_lesson_at: stats.last_lesson_at,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
