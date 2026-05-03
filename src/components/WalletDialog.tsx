@@ -271,17 +271,47 @@ export function WalletDialog({
                           )}
                         </div>
                       </div>
-                      <div className="text-right text-sm tabular-nums">
-                        {tx.lessons_delta !== 0 && (
-                          <div className={isPositive ? "text-success" : "text-warning"}>
-                            {tx.lessons_delta > 0 ? "+" : ""}
-                            {tx.lessons_delta} ур.
-                          </div>
-                        )}
-                        {Number(tx.amount_delta) !== 0 && (
-                          <div className={isPositive ? "text-success" : "text-warning"}>
-                            {tx.amount_delta > 0 ? "+" : ""}
-                            {Number(tx.amount_delta).toFixed(0)} ₴
+                      <div className="flex items-start gap-2">
+                        <div className="text-right text-sm tabular-nums">
+                          {tx.lessons_delta !== 0 && (
+                            <div className={isPositive ? "text-success" : "text-warning"}>
+                              {tx.lessons_delta > 0 ? "+" : ""}
+                              {tx.lessons_delta} ур.
+                            </div>
+                          )}
+                          {Number(tx.amount_delta) !== 0 && (
+                            <div className={isPositive ? "text-success" : "text-warning"}>
+                              {tx.amount_delta > 0 ? "+" : ""}
+                              {Number(tx.amount_delta).toFixed(0)} ₴
+                            </div>
+                          )}
+                        </div>
+                        {canDelete && tx.kind !== "lesson_charge" && (
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              title="Сторнувати"
+                              disabled={deletingId === tx.id}
+                              onClick={() => handleDelete(tx.id, false)}
+                            >
+                              {deletingId === tx.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Undo2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-destructive hover:text-destructive"
+                              title="Видалити без сліду"
+                              disabled={deletingId === tx.id}
+                              onClick={() => handleDelete(tx.id, true)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         )}
                       </div>
