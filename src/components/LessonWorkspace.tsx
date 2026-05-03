@@ -25,6 +25,7 @@ interface LessonWorkspaceProps {
   source?: "hub" | "independent";
   studentPrice?: number;
   studentPaymentStatus?: "paid" | "unpaid";
+  lessonStatus?: string;
   onUpdated?: () => void;
 }
 
