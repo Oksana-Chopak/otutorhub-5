@@ -960,6 +960,18 @@ export default function DashboardPage() {
         </>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
+      {walletPair && (
+        <WalletDialog
+          open={!!walletPair}
+          onOpenChange={(o) => { if (!o) setWalletPair(null); }}
+          tutorId={walletPair.tutor_id}
+          studentId={walletPair.student_id}
+          tutorName={walletPair.tutor_name}
+          studentName={walletPair.student_name}
+          canTopUp={isManager}
+          canDelete={isManager}
+        />
+      )}
     </AppLayout>
   );
 }
