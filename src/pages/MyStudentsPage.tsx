@@ -736,7 +736,8 @@ export default function MyStudentsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
