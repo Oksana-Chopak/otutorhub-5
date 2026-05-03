@@ -664,6 +664,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* TRY DEMO */}
+      <LandingTryDemo />
+
       {/* SOCIAL STRIP */}
       <div className="social-strip">
         <div className="social-inner">
