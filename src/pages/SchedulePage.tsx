@@ -141,7 +141,7 @@ export default function SchedulePage() {
     duration_minutes: "60",
     notes: "",
     status: "scheduled" as LessonStatus,
-    student_price: "0",
+    student_price: "",
     tutor_payout: "0",
     student_payment_status: "unpaid" as PaymentStatus,
     tutor_payout_status: "unpaid" as PaymentStatus,
