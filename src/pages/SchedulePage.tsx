@@ -625,7 +625,7 @@ export default function SchedulePage() {
       ...f,
       subject: "",
       notes: "",
-      student_price: "0",
+      student_price: "",
       tutor_payout: "0",
       student_payment_status: "unpaid",
       tutor_payout_status: "unpaid",
