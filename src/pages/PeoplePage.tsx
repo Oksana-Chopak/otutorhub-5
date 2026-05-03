@@ -1069,7 +1069,8 @@ export default function PeoplePage() {
 
       {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
     </div>
-  );
+    );
+  };
 
   return (
     <AppLayout>
