@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { UserAvatar } from "@/components/UserAvatar";
-import { HandHeart, Loader2, MessageCircle, CheckCircle2, X } from "lucide-react";
+import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { AssignTutorDialog } from "@/components/AssignTutorDialog";
 
 interface ReferralRow {
   id: string;
@@ -54,6 +55,7 @@ export default function ReferralsPage() {
   const [requests, setRequests] = useState<ReferralRow[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [assignTarget, setAssignTarget] = useState<ReferralRow | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -273,6 +275,13 @@ export default function ReferralsPage() {
                   <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-2">
                     <Button
                       size="sm"
+                      onClick={() => setAssignTarget(r)}
+                    >
+                      <UserCheck className="mr-1 h-3 w-3" />
+                      Призначити репетитора
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="ghost"
                       onClick={() => updateStatus(r.id, "fulfilled")}
                     >
@@ -294,6 +303,13 @@ export default function ReferralsPage() {
           ))}
         </div>
       )}
+
+      <AssignTutorDialog
+        open={!!assignTarget}
+        onOpenChange={(o) => !o && setAssignTarget(null)}
+        request={assignTarget}
+        onAssigned={load}
+      />
     </AppLayout>
   );
 }
