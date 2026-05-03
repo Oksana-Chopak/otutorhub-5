@@ -623,6 +623,17 @@ export default function MyStudentsPage() {
                         Очікує реєстрації
                       </span>
                     )}
+                    {!s.archived_at && (st.status === "debt" || st.status === "inactive") && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                          st.status === "debt"
+                            ? "bg-warning/15 text-warning"
+                            : "bg-destructive/15 text-destructive"
+                        }`}
+                      >
+                        {st.label}
+                      </span>
+                    )}
                     {s.archived_at && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                         <Archive className="h-3 w-3" />
