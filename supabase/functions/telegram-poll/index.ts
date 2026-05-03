@@ -4,7 +4,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const MAX_RUNTIME_MS = 55_000;
 const MIN_REMAINING_MS = 5_000;
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
   const startTime = Date.now();
   const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -12,6 +12,11 @@ Deno.serve(async () => {
 
   if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !supabaseServiceKey) {
     return new Response(JSON.stringify({ error: 'Missing env' }), { status: 500 });
+  }
+  const auth = req.headers.get('authorization') || req.headers.get('Authorization');
+  const provided = auth?.replace(/^Bearer\s+/i, '') || req.headers.get('x-cron-secret');
+  if (!provided || provided !== supabaseServiceKey) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
