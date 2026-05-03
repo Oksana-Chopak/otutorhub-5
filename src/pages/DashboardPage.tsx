@@ -762,6 +762,7 @@ export default function DashboardPage() {
                             source={lesson.source}
                             studentPrice={lesson.student_price}
                             studentPaymentStatus={lesson.student_payment_status}
+                            lessonStatus={lesson.status}
                             onUpdated={loadData}
                           />
                         </CollapsibleContent>
