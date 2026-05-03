@@ -1166,6 +1166,9 @@ export type Database = {
         Row: {
           bonus_granted_at: string | null
           current_streak: number
+          freezes_available: number
+          freezes_granted_month: string | null
+          last_freeze_used_at: string | null
           last_lesson_date: string | null
           longest_streak: number
           tutor_id: string
@@ -1174,6 +1177,9 @@ export type Database = {
         Insert: {
           bonus_granted_at?: string | null
           current_streak?: number
+          freezes_available?: number
+          freezes_granted_month?: string | null
+          last_freeze_used_at?: string | null
           last_lesson_date?: string | null
           longest_streak?: number
           tutor_id: string
@@ -1182,6 +1188,9 @@ export type Database = {
         Update: {
           bonus_granted_at?: string | null
           current_streak?: number
+          freezes_available?: number
+          freezes_granted_month?: string | null
+          last_freeze_used_at?: string | null
           last_lesson_date?: string | null
           longest_streak?: number
           tutor_id?: string
