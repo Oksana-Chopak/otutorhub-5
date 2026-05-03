@@ -134,6 +134,7 @@ export default function SchedulePage() {
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
+  const [quickSlot, setQuickSlot] = useState<Date | null>(null);
   const [form, setForm] = useState({
     tutor_id: "",
     student_id: "",
