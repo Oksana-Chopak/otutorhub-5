@@ -322,6 +322,16 @@ export default function DashboardPage() {
     [lessons]
   );
 
+  // Used to gate the referral nudge banner — show only after the tutor has
+  // completed enough lessons to actually understand the product's value.
+  const myCompletedLessonsCount = useMemo(
+    () =>
+      user
+        ? lessons.filter((l) => l.tutor_id === user.id && l.status === "completed").length
+        : 0,
+    [lessons, user?.id]
+  );
+
   const profitPeriodLabel: Record<ProfitPeriod, string> = {
     all: "за весь час",
     month: "за цей місяць",
@@ -527,6 +537,12 @@ export default function DashboardPage() {
           )}
 
           {isIndependentTutor && <TutorWelcomeBanner />}
+          {isIndependentTutor && (
+            <ReferralNudgeBanner
+              completedLessons={myCompletedLessonsCount}
+              invitedCount={referralInvitedCount}
+            />
+          )}
           {isIndependentTutor && <IndependentTutorStats />}
           {isIndependentTutor && (
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
