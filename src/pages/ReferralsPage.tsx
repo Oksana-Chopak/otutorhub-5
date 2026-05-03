@@ -55,6 +55,7 @@ export default function ReferralsPage() {
   const [requests, setRequests] = useState<ReferralRow[]>([]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
+  const [assignTarget, setAssignTarget] = useState<ReferralRow | null>(null);
 
   const load = async () => {
     setLoading(true);
