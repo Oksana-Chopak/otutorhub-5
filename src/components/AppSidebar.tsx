@@ -43,6 +43,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { OnboardingDialog } from "@/components/OnboardingDialog";
 
 type NavItem = {
   to: string;
@@ -99,6 +100,7 @@ export function AppSidebar() {
   const primaryRole = roles[0];
   const [profile, setProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -190,26 +192,22 @@ export function AppSidebar() {
             <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               {t("nav.help")}
             </p>
-            <RouterNavLink
-              to="/onboarding"
-              onClick={() => setOpen(false)}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground"
-                )
-              }
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                setOnboardingOpen(true);
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
               <Sparkles className="h-4 w-4" />
-              <span className="flex-1">{t("nav.setupGuide")}</span>
+              <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
                 <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
                   {settings?.onboarding_step ?? 1}/6
                 </span>
               )}
-            </RouterNavLink>
+            </button>
           </div>
         )}
 
