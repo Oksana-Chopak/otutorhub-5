@@ -280,6 +280,7 @@ export function AppSidebar() {
           </div>
         </div>
       </aside>
+      <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
     </>
   );
 }
