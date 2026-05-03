@@ -55,6 +55,7 @@ export function WalletDialog({
   tutorName,
   canTopUp,
   ratePerLesson,
+  canDelete = false,
 }: WalletDialogProps) {
   const { balance, transactions, loading, refresh } = useStudentWallet(
     open ? tutorId : null,
