@@ -192,6 +192,17 @@ export default function MyStudentsPage() {
     load();
   }, [user?.id]);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("new") === "1" && isTutor && isIndependent) {
+      setForm(emptyForm);
+      setDialog({ open: true, mode: "create", studentId: null });
+      const next = new URLSearchParams(searchParams);
+      next.delete("new");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, isTutor, isIndependent, setSearchParams]);
+
   const openCreate = () => {
     setForm(emptyForm);
     setDialog({ open: true, mode: "create", studentId: null });
