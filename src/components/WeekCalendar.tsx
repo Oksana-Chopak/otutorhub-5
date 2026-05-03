@@ -176,11 +176,28 @@ export function WeekCalendar({
       </div>
 
       {/* Time grid */}
-      <div className="overflow-x-auto">
+      <div ref={scrollRef} className="overflow-auto max-h-[70vh]">
         <div
           className="grid grid-cols-[40px_repeat(7,1fr)] relative"
           style={{ height: HOURS * HOUR_HEIGHT }}
         >
+          {/* "Now" red line — spans the whole grid, highlighted on today's column */}
+          {showNowLine && (
+            <div
+              className="pointer-events-none absolute left-0 right-0 z-20"
+              style={{ top: nowTopPx }}
+            >
+              <div className="relative h-px bg-destructive">
+                <span className="absolute -left-1 -top-[3px] inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
+                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[9px] font-semibold text-destructive-foreground">
+                  {now.toLocaleTimeString("uk-UA", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </span>
+              </div>
+            </div>
+          )}
           {/* Hour labels */}
           <div className="border-r border-border">
             {Array.from({ length: HOURS }, (_, i) => (
