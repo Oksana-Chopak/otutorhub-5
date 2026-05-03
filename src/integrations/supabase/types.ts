@@ -366,6 +366,39 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          lesson_id: string
+          rating: number
+          student_id: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          lesson_id: string
+          rating: number
+          student_id: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          rating?: number
+          student_id?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lesson_payment_reminders: {
         Row: {
           channel: string
@@ -389,6 +422,42 @@ export type Database = {
           channel?: string
           id?: string
           lesson_id?: string
+          reminder_kind?: string
+          sent_at?: string
+          student_id?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
+      lesson_reminders: {
+        Row: {
+          channel: string
+          id: string
+          lesson_id: string
+          recipient_id: string
+          recipient_role: string
+          reminder_kind: string
+          sent_at: string
+          student_id: string
+          tutor_id: string
+        }
+        Insert: {
+          channel?: string
+          id?: string
+          lesson_id: string
+          recipient_id: string
+          recipient_role: string
+          reminder_kind: string
+          sent_at?: string
+          student_id: string
+          tutor_id: string
+        }
+        Update: {
+          channel?: string
+          id?: string
+          lesson_id?: string
+          recipient_id?: string
+          recipient_role?: string
           reminder_kind?: string
           sent_at?: string
           student_id?: string
