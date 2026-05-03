@@ -285,6 +285,7 @@ export default function WalletsPage() {
           tutorName={active.tutor_name}
           ratePerLesson={active.rate}
           canTopUp={isManager || isIndependentTutor}
+          canDelete={isManager}
         />
       )}
     </AppLayout>
