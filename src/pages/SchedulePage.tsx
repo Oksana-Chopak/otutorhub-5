@@ -750,30 +750,50 @@ export default function SchedulePage() {
     });
   }, [filteredLessons, isPureStudentForList, view, studentArchive]);
 
-  // Group lessons by day. Sort ascending for upcoming-student view, descending otherwise.
+  // Group lessons into human buckets: Сьогодні / Завтра / Цей тиждень / Пізніше / Минулі.
+  // Within each bucket, sort by time (upcoming asc, past desc).
   const grouped = useMemo(() => {
-    const map = new Map<string, Lesson[]>();
+    const now = new Date();
+    const todayStart = new Date(now); todayStart.setHours(0, 0, 0, 0);
+    const tomorrowStart = new Date(todayStart); tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+    const dayAfterStart = new Date(todayStart); dayAfterStart.setDate(dayAfterStart.getDate() + 2);
+    // End of current week (Sunday 23:59 — week starts Monday)
+    const weekDay = (todayStart.getDay() + 6) % 7; // Mon=0
+    const weekEnd = new Date(todayStart); weekEnd.setDate(todayStart.getDate() + (7 - weekDay)); // next Mon 00:00
+    type Bucket = "today" | "tomorrow" | "thisWeek" | "later" | "past";
+    const order: Bucket[] = ["today", "tomorrow", "thisWeek", "later", "past"];
+    const labels: Record<Bucket, string> = {
+      today: "Сьогодні",
+      tomorrow: "Завтра",
+      thisWeek: "Цей тиждень",
+      later: "Пізніше",
+      past: "Минулі",
+    };
+    const map = new Map<Bucket, Lesson[]>();
+    order.forEach((k) => map.set(k, []));
     lessonsForList.forEach((l) => {
-      const key = new Date(l.starts_at).toISOString().slice(0, 10);
-      if (!map.has(key)) map.set(key, []);
+      const ts = new Date(l.starts_at);
+      let key: Bucket;
+      if (ts < todayStart) key = "past";
+      else if (ts < tomorrowStart) key = "today";
+      else if (ts < dayAfterStart) key = "tomorrow";
+      else if (ts < weekEnd) key = "thisWeek";
+      else key = "later";
       map.get(key)!.push(l);
     });
-    const ascending =
-      (isPureStudentForList && view === "list" && studentArchive === "upcoming") ||
-      (view === "list" && filterPeriod === "upcoming");
-    const entries = Array.from(map.entries()).sort(([a], [b]) =>
-      ascending ? a.localeCompare(b) : b.localeCompare(a)
-    );
-    // Sort lessons within each day in matching order
-    entries.forEach(([, items]) => {
+    const entries: Array<[string, Lesson[]]> = [];
+    for (const k of order) {
+      const items = map.get(k)!;
+      if (items.length === 0) continue;
       items.sort((a, b) => {
         const ta = new Date(a.starts_at).getTime();
         const tb = new Date(b.starts_at).getTime();
-        return ascending ? ta - tb : tb - ta;
+        return k === "past" ? tb - ta : ta - tb;
       });
-    });
+      entries.push([labels[k], items]);
+    }
     return entries;
-  }, [lessonsForList, isPureStudentForList, view, studentArchive]);
+  }, [lessonsForList]);
 
   const filtersActive =
     filterStatus !== "all" ||
@@ -1530,17 +1550,17 @@ export default function SchedulePage() {
         )
       ) : (
         <div className="space-y-6">
-          {grouped.map(([dayKey, dayLessons]) => {
-            const isToday = dayKey === todayKey;
+          {grouped.map(([bucketLabel, dayLessons]) => {
+            const isToday = bucketLabel === "Сьогодні";
             return (
-              <div key={dayKey}>
+              <div key={bucketLabel}>
                 <h3
                   className={`font-display text-sm font-semibold mb-3 ${
                     isToday ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  {formatDateGroup(dayLessons[0].starts_at)}
-                  {isToday && " (сьогодні)"}
+                  {bucketLabel}
+                  <span className="ml-2 text-xs font-normal opacity-70">· {dayLessons.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {dayLessons.map((lesson) => {
@@ -1569,7 +1589,7 @@ export default function SchedulePage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground truncate flex items-center gap-2">
-                              <span className="truncate">{lesson.subject} — {formatTime(lesson.starts_at)}</span>
+                              <span className="truncate">{lesson.subject} — {formatDateGroup(lesson.starts_at)}, {formatTime(lesson.starts_at)}</span>
                               {lesson.source && hasMixedSources && (
                                 <SourceBadge source={lesson.source} showIcon={false} />
                               )}

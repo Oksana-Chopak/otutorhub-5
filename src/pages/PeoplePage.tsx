@@ -78,6 +78,7 @@ interface UserRow {
   role: AppRole | null;
   rate_per_lesson?: number;
   subjects?: string[];
+  last_interaction_at?: string | null;
 }
 
 const roleLabel: Record<AppRole, string> = {
@@ -188,6 +189,20 @@ export default function PeoplePage() {
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
+    // Last interaction: most-recent lesson per participant
+    const { data: recentLessons } = await supabase
+      .from("lessons")
+      .select("tutor_id, student_id, starts_at")
+      .order("starts_at", { ascending: false })
+      .limit(2000);
+    const lastInteractionMap = new Map<string, string>();
+    (recentLessons ?? []).forEach((l: any) => {
+      for (const uid of [l.tutor_id, l.student_id]) {
+        const cur = lastInteractionMap.get(uid);
+        if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
+      }
+    });
+
     // Fetch financial contacts separately (only for managers)
     let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
     if (isManager) {
@@ -253,6 +268,7 @@ export default function PeoplePage() {
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
+        last_interaction_at: lastInteractionMap.get(p.id) ?? null,
       };
     });
     setUsers(merged);
@@ -677,8 +693,14 @@ export default function PeoplePage() {
     });
   }, [users, searchQuery, subjectFilter, statusFilter, studentRates]);
 
-  const tutors = filteredUsers.filter((u) => u.role === "tutor");
-  const students = filteredUsers.filter((u) => u.role === "student");
+  const sortByRecency = (a: UserRow, b: UserRow) => {
+    const aT = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
+    const bT = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
+    if (aT !== bT) return bT - aT;
+    return fullName(a).localeCompare(fullName(b), "uk");
+  };
+  const tutors = filteredUsers.filter((u) => u.role === "tutor").sort(sortByRecency);
+  const students = filteredUsers.filter((u) => u.role === "student").sort(sortByRecency);
   const managers = filteredUsers.filter((u) => u.role === "manager");
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows

@@ -46,9 +46,9 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceKey);
   const now = Date.now();
 
-  // Window: lessons that started up to 4h ago (for post-lesson feedback nudge)
+  // Window: lessons that started up to 48h ago (for "mark status" nudge)
   // and lessons starting up to 90 min ahead.
-  const fromIso = new Date(now - 4 * 60 * MIN_MS).toISOString();
+  const fromIso = new Date(now - 48 * 60 * MIN_MS).toISOString();
   const toIso = new Date(now + 90 * MIN_MS).toISOString();
 
   const { data: lessons, error } = await supabase
@@ -142,6 +142,48 @@ Deno.serve(async (req) => {
             sent++;
           } else skipped++;
         }
+      }
+    }
+
+    // ─── Nudge tutor to mark unfinished lesson as completed/cancelled ───
+    // Trigger ~30 min after the lesson should have ended, then again at 24h, while it's still scheduled.
+    if (lesson.status === "scheduled") {
+      const endMs = startMs + (lesson.duration_minutes ?? 60) * MIN_MS;
+      const nudges = [
+        { kind: "mark_status_30m", delayMs: 30 * MIN_MS, windowMs: 90 * MIN_MS },
+        { kind: "mark_status_24h", delayMs: 24 * 60 * MIN_MS, windowMs: 6 * 60 * MIN_MS },
+      ];
+      for (const n of nudges) {
+        const trigger = endMs + n.delayMs;
+        if (now < trigger) continue;
+        if (now - trigger > n.windowMs) continue;
+        const tutorChat = chatByUser.get(lesson.tutor_id);
+        const key = `${lesson.id}:${lesson.tutor_id}:${n.kind}`;
+        if (!tutorChat || sentSet.has(key)) continue;
+        const studentName = nameById.get(lesson.student_id) ?? "учнем";
+        const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
+          timeZone: "Europe/Kyiv",
+          day: "2-digit",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+        const text =
+          `📝 Урок з <b>${studentName}</b> (${lesson.subject}) ${dateStr} вже мав відбутися.\n\n` +
+          `Будь ласка, відмітьте у застосунку: <b>Проведено</b> ✅ або <b>Скасовано</b> ❌.\n` +
+          `Без статусу оплата за урок не нараховується.`;
+        if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
+          await supabase.from("lesson_reminders").insert({
+            lesson_id: lesson.id,
+            tutor_id: lesson.tutor_id,
+            student_id: lesson.student_id,
+            recipient_id: lesson.tutor_id,
+            recipient_role: "tutor",
+            reminder_kind: n.kind,
+            channel: "telegram",
+          });
+          sent++;
+        } else skipped++;
       }
     }
 

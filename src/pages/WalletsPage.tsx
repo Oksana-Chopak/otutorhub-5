@@ -41,7 +41,7 @@ export default function WalletsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<PairRow | null>(null);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
@@ -123,7 +123,11 @@ export default function WalletsPage() {
         );
       })
       .sort((a, b) => {
-        // Pairs with balance first, then by name
+        // Most recent activity first
+        const aT = a.last_transaction_at ? new Date(a.last_transaction_at).getTime() : 0;
+        const bT = b.last_transaction_at ? new Date(b.last_transaction_at).getTime() : 0;
+        if (aT !== bT) return bT - aT;
+        // Then balance > 0 above empty
         const aHas = a.lessons_balance > 0 || a.amount_balance > 0 ? 1 : 0;
         const bHas = b.lessons_balance > 0 || b.amount_balance > 0 ? 1 : 0;
         if (aHas !== bHas) return bHas - aHas;
@@ -281,6 +285,7 @@ export default function WalletsPage() {
           tutorName={active.tutor_name}
           ratePerLesson={active.rate}
           canTopUp={isManager || isIndependentTutor}
+          canDelete={isManager}
         />
       )}
     </AppLayout>

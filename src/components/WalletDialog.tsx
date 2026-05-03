@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight, Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useStudentWallet } from "@/hooks/useStudentWallet";
 
@@ -26,6 +26,8 @@ interface WalletDialogProps {
   canTopUp: boolean;
   /** ставка за урок (для зручного перерахунку) */
   ratePerLesson?: number;
+  /** дозволяє менеджеру видаляти/сторнувати транзакції */
+  canDelete?: boolean;
 }
 
 const formatDateTime = (iso: string) =>
@@ -53,6 +55,7 @@ export function WalletDialog({
   tutorName,
   canTopUp,
   ratePerLesson,
+  canDelete = false,
 }: WalletDialogProps) {
   const { balance, transactions, loading, refresh } = useStudentWallet(
     open ? tutorId : null,
@@ -64,6 +67,24 @@ export function WalletDialog({
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (txId: string, hard: boolean) => {
+    const label = hard ? "видалити транзакцію без сліду" : "сторнувати цю операцію";
+    if (!window.confirm(`Точно ${label}?`)) return;
+    setDeletingId(txId);
+    const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
+      _tx_id: txId,
+      _hard: hard,
+    });
+    setDeletingId(null);
+    if (error) {
+      toast.error("Не вдалося", { description: error.message });
+      return;
+    }
+    toast.success(hard ? "Видалено" : "Сторновано");
+    refresh();
+  };
 
   const reset = () => {
     setLessonsCount("");
@@ -250,17 +271,47 @@ export function WalletDialog({
                           )}
                         </div>
                       </div>
-                      <div className="text-right text-sm tabular-nums">
-                        {tx.lessons_delta !== 0 && (
-                          <div className={isPositive ? "text-success" : "text-warning"}>
-                            {tx.lessons_delta > 0 ? "+" : ""}
-                            {tx.lessons_delta} ур.
-                          </div>
-                        )}
-                        {Number(tx.amount_delta) !== 0 && (
-                          <div className={isPositive ? "text-success" : "text-warning"}>
-                            {tx.amount_delta > 0 ? "+" : ""}
-                            {Number(tx.amount_delta).toFixed(0)} ₴
+                      <div className="flex items-start gap-2">
+                        <div className="text-right text-sm tabular-nums">
+                          {tx.lessons_delta !== 0 && (
+                            <div className={isPositive ? "text-success" : "text-warning"}>
+                              {tx.lessons_delta > 0 ? "+" : ""}
+                              {tx.lessons_delta} ур.
+                            </div>
+                          )}
+                          {Number(tx.amount_delta) !== 0 && (
+                            <div className={isPositive ? "text-success" : "text-warning"}>
+                              {tx.amount_delta > 0 ? "+" : ""}
+                              {Number(tx.amount_delta).toFixed(0)} ₴
+                            </div>
+                          )}
+                        </div>
+                        {canDelete && tx.kind !== "lesson_charge" && (
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6"
+                              title="Сторнувати"
+                              disabled={deletingId === tx.id}
+                              onClick={() => handleDelete(tx.id, false)}
+                            >
+                              {deletingId === tx.id ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                <Undo2 className="h-3 w-3" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-destructive hover:text-destructive"
+                              title="Видалити без сліду"
+                              disabled={deletingId === tx.id}
+                              onClick={() => handleDelete(tx.id, true)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
                           </div>
                         )}
                       </div>
