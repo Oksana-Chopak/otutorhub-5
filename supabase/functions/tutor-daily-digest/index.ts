@@ -73,11 +73,7 @@ Deno.serve(async (req) => {
   if (!provided || provided !== serviceKey) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
-    return new Response(JSON.stringify({ error: "Missing env" }), { status: 500 });
-  }
-  // Auth: function deploys with verify_jwt = true by default, so any caller
-  // must already present a valid Supabase JWT (anon or service role). The
-  // function itself only reads service-role-only data via the service client.
+
 
   const supabase = createClient(supabaseUrl, serviceKey);
   const today = todayDateInKyiv();
