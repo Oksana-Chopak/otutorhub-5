@@ -590,15 +590,25 @@ export default function MyStudentsPage() {
         )
       ) : (
         <div className="space-y-3">
-          {visibleStudents.map((s) => (
+          {visibleStudents.map((s) => {
+            const st = statusOf(s);
+            return (
             <Card key={s.id} className={s.archived_at ? "opacity-70" : undefined}>
               <CardContent className="flex items-start gap-4 p-4">
-                <UserAvatar
-                  url={s.avatar_url}
-                  firstName={s.first_name}
-                  lastName={s.last_name}
-                  className="h-10 w-10"
-                />
+                <div className="relative shrink-0">
+                  <UserAvatar
+                    url={s.avatar_url}
+                    firstName={s.first_name}
+                    lastName={s.last_name}
+                    className="h-10 w-10"
+                  />
+                  {!s.archived_at && (
+                    <span
+                      title={st.label}
+                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${statusDotClass[st.status]}`}
+                    />
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-foreground">
