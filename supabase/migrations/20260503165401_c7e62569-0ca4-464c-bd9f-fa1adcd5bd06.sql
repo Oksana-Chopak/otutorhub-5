@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.wallet_delete_transaction(uuid, boolean) FROM PUBLIC, anon;
