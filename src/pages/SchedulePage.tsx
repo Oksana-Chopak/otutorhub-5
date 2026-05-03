@@ -1589,7 +1589,7 @@ export default function SchedulePage() {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground truncate flex items-center gap-2">
-                              <span className="truncate">{lesson.subject} — {formatTime(lesson.starts_at)}</span>
+                              <span className="truncate">{lesson.subject} — {formatDateGroup(lesson.starts_at)}, {formatTime(lesson.starts_at)}</span>
                               {lesson.source && hasMixedSources && (
                                 <SourceBadge source={lesson.source} showIcon={false} />
                               )}
