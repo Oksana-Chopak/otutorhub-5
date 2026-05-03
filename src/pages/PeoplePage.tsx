@@ -195,17 +195,39 @@ export default function PeoplePage() {
     ]);
 
     // Last interaction: most-recent lesson per participant
+    // Also compute student payment-status aggregates (unpaid completed + last lesson date)
     const { data: recentLessons } = await supabase
       .from("lessons")
-      .select("tutor_id, student_id, starts_at")
+      .select("tutor_id, student_id, starts_at, status, student_payment_status, student_price")
       .order("starts_at", { ascending: false })
       .limit(2000);
     const lastInteractionMap = new Map<string, string>();
+    const studentStatsMap = new Map<
+      string,
+      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+    >();
     (recentLessons ?? []).forEach((l: any) => {
       for (const uid of [l.tutor_id, l.student_id]) {
         const cur = lastInteractionMap.get(uid);
         if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
       }
+      const sid = l.student_id;
+      const s = studentStatsMap.get(sid) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null as string | null,
+      };
+      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+        s.unpaid_count += 1;
+        s.unpaid_total += Number(l.student_price ?? 0);
+      }
+      if (
+        (l.status === "completed" || l.status === "scheduled") &&
+        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
+      ) {
+        s.last_lesson_at = l.starts_at;
+      }
+      studentStatsMap.set(sid, s);
     });
 
     // Fetch financial contacts separately (only for managers)
@@ -274,6 +296,9 @@ export default function PeoplePage() {
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
         last_interaction_at: lastInteractionMap.get(p.id) ?? null,
+        unpaid_count: studentStatsMap.get(p.id)?.unpaid_count ?? 0,
+        unpaid_total: studentStatsMap.get(p.id)?.unpaid_total ?? 0,
+        last_lesson_at: studentStatsMap.get(p.id)?.last_lesson_at ?? null,
       };
     });
     setUsers(merged);
