@@ -366,6 +366,14 @@ export function LessonWorkspace({
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
+      {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
+      <LessonFeedback
+        lessonId={lessonId}
+        tutorId={tutorId}
+        studentId={studentId}
+        lessonStatus={lessonStatus ?? ""}
+      />
+
       {/* 6. Meeting link — moved to the bottom (low priority, rarely edited).
              Tutors get a collapsible editor; non-editors see only a compact link row. */}
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
