@@ -40,8 +40,9 @@ Deno.serve(async () => {
   const supabase = createClient(supabaseUrl, serviceKey);
   const now = Date.now();
 
-  // Look at lessons starting in the next 90 minutes
-  const fromIso = new Date(now - 5 * MIN_MS).toISOString();
+  // Window: lessons that started up to 4h ago (for post-lesson feedback nudge)
+  // and lessons starting up to 90 min ahead.
+  const fromIso = new Date(now - 4 * 60 * MIN_MS).toISOString();
   const toIso = new Date(now + 90 * MIN_MS).toISOString();
 
   const { data: lessons, error } = await supabase
@@ -49,7 +50,7 @@ Deno.serve(async () => {
     .select("id, tutor_id, student_id, starts_at, status, subject, meeting_url, duration_minutes")
     .gte("starts_at", fromIso)
     .lte("starts_at", toIso)
-    .eq("status", "scheduled");
+    .in("status", ["scheduled", "completed"]);
 
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 });
   if (!lessons || lessons.length === 0) {
