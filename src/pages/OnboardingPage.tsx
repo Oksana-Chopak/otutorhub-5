@@ -499,6 +499,11 @@ export default function OnboardingPage() {
           </Button>
         </div>
       </div>
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => setProgressReloadKey((k) => k + 1)}
+      />
     </AppLayout>
   );
 }
