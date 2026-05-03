@@ -37,6 +37,8 @@ interface Step {
   autoKey?: keyof StepProgress;
   /** Hint shown under the title when the step has been auto-completed */
   autoHint?: string;
+  /** If set, CTA opens an inline action instead of navigating to `to` */
+  action?: "addStudent";
 }
 
 interface StepProgress {
