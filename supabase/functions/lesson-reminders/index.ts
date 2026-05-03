@@ -30,12 +30,18 @@ async function sendTg(botToken: string, chatId: number, text: string): Promise<b
   return resp.ok;
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!TELEGRAM_BOT_TOKEN || !supabaseUrl || !serviceKey) {
     return new Response(JSON.stringify({ error: "Missing env" }), { status: 500 });
+  }
+  // Require shared-secret auth (service role key) — only trusted cron/internal callers.
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
+  const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
+  if (!provided || provided !== serviceKey) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
   const supabase = createClient(supabaseUrl, serviceKey);
   const now = Date.now();

@@ -42,6 +42,7 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.error('Missing required environment variables')
@@ -52,6 +53,43 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
+  }
+
+  // Authorization: allow service-role callers OR authenticated users with role manager/tutor.
+  // Students must not be able to call this directly — they should go through validated
+  // intermediary functions like send-student-invite.
+  const authHeader = req.headers.get('Authorization') || req.headers.get('authorization')
+  const bearer = authHeader?.replace(/^Bearer\s+/i, '') ?? ''
+  const isServiceRole = bearer && bearer === supabaseServiceKey
+  if (!isServiceRole) {
+    if (!bearer || !supabaseAnonKey) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: `Bearer ${bearer}` } },
+    })
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(bearer)
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+    const adminCheck = createClient(supabaseUrl, supabaseServiceKey)
+    const { data: roles } = await adminCheck
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', claimsData.claims.sub)
+    const allowed = (roles ?? []).some((r: any) => r.role === 'manager' || r.role === 'tutor')
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
   }
 
   // Parse request body
