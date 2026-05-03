@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       order_id: orderId,
       language: "uk",
       server_url: serverUrl,
-      result_url: body.result_url ?? undefined,
+      result_url: safeResultUrl,
     };
 
     if (recurring) {
