@@ -47,6 +47,7 @@ export function LessonWorkspace({
   source,
   studentPrice,
   studentPaymentStatus,
+  lessonStatus,
   onUpdated,
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
