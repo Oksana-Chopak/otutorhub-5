@@ -15,8 +15,9 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { UserAvatar } from "@/components/UserAvatar";
-import { HandHeart, Loader2, MessageCircle, CheckCircle2, X } from "lucide-react";
+import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import { AssignTutorDialog } from "@/components/AssignTutorDialog";
 
 interface ReferralRow {
   id: string;
