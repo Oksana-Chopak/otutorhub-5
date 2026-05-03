@@ -147,15 +147,15 @@ Deno.serve(async (req) => {
   const APP_BASE_URL = Deno.env.get('APP_BASE_URL') ?? 'https://otutorhub.com'
   const inviteUrl = `${APP_BASE_URL}/auth?signup=1&email=${encodeURIComponent(email)}&role=student`
 
-  // 7. Invoke send-transactional-email forwarding the caller's JWT
-  // (send-transactional-email has verify_jwt=true and requires a valid user JWT,
-  // not the service-role key)
+  // 7. Invoke send-transactional-email using the service-role key.
+  // send-transactional-email is restricted to service-role callers to prevent
+  // arbitrary clients from supplying templateData (e.g. phishing inviteUrl).
   const sendRes = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: authHeader,
-      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseServiceKey}`,
+      apikey: supabaseServiceKey,
     },
     body: JSON.stringify({
       templateName: 'student-invite',
