@@ -46,9 +46,9 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, serviceKey);
   const now = Date.now();
 
-  // Window: lessons that started up to 4h ago (for post-lesson feedback nudge)
+  // Window: lessons that started up to 48h ago (for "mark status" nudge)
   // and lessons starting up to 90 min ahead.
-  const fromIso = new Date(now - 4 * 60 * MIN_MS).toISOString();
+  const fromIso = new Date(now - 48 * 60 * MIN_MS).toISOString();
   const toIso = new Date(now + 90 * MIN_MS).toISOString();
 
   const { data: lessons, error } = await supabase
