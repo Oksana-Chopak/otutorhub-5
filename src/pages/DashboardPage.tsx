@@ -657,10 +657,9 @@ export default function DashboardPage() {
 
                     if (isManager && !isParticipant) {
                       return (
-                        <Link
+                        <div
                           key={lesson.id}
-                          to="/schedule"
-                          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 hover:bg-accent/30 sm:flex-row sm:items-center sm:justify-between sm:p-4"
+                          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                         >
                           <div className="flex min-w-0 items-center gap-3 sm:gap-4">
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -671,13 +670,35 @@ export default function DashboardPage() {
                               <p className="truncate text-xs text-muted-foreground">
                                 {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
                               </p>
+                              <p className="text-xs text-muted-foreground sm:hidden mt-0.5">{timeLabel}</p>
                             </div>
                           </div>
-                          <div className="flex w-full items-center justify-between gap-2 border-t border-border pt-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
-                            <span className="min-w-0 text-xs font-medium leading-snug text-foreground sm:text-sm">{timeLabel}</span>
+                          <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
+                            <span className="hidden sm:block text-xs font-medium text-foreground">{timeLabel}</span>
                             <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
+                            <div className="flex items-center gap-1.5">
+                              <Button asChild size="sm" variant="outline" className="h-7">
+                                <Link to="/schedule">Відкрити</Link>
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 gap-1"
+                                onClick={() =>
+                                  setWalletPair({
+                                    tutor_id: lesson.tutor_id,
+                                    student_id: lesson.student_id,
+                                    tutor_name: profiles[lesson.tutor_id] ?? "—",
+                                    student_name: profiles[lesson.student_id] ?? "—",
+                                  })
+                                }
+                              >
+                                <Wallet className="h-3 w-3" />
+                                Оплати
+                              </Button>
+                            </div>
                           </div>
-                        </Link>
+                        </div>
                       );
                     }
 
