@@ -49,6 +49,7 @@ import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
+import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 
 interface Profile {
   id: string;
@@ -79,6 +80,10 @@ interface UserRow {
   rate_per_lesson?: number;
   subjects?: string[];
   last_interaction_at?: string | null;
+  // Student-only payment status aggregates
+  unpaid_count?: number;
+  unpaid_total?: number;
+  last_lesson_at?: string | null;
 }
 
 const roleLabel: Record<AppRole, string> = {
