@@ -122,6 +122,20 @@ export default function DashboardPage() {
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
 
+  // Gamification: badge unlock toasts + referral nudge counters
+  const { badges, loading: gamificationLoading } = useTutorGamification();
+  useBadgeUnlockToasts(badges, gamificationLoading);
+  const [referralInvitedCount, setReferralInvitedCount] = useState(0);
+  useEffect(() => {
+    if (!user || !isIndependentTutor) return;
+    supabase
+      .from("referrals")
+      .select("id", { count: "exact", head: true })
+      .eq("referrer_id", user.id)
+      .then(({ count }) => setReferralInvitedCount(count ?? 0));
+  }, [user?.id, isIndependentTutor]);
+
+
   const loadData = async () => {
     if (!user) return;
 
