@@ -1720,6 +1720,10 @@ export type Database = {
         }
         Returns: string
       }
+      wallet_delete_transaction: {
+        Args: { _hard?: boolean; _tx_id: string }
+        Returns: string
+      }
       wallet_topup: {
         Args: {
           _amount_delta: number
