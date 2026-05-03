@@ -142,9 +142,10 @@ Deno.serve(async (req) => {
   const studentName =
     [student.first_name, student.last_name].filter(Boolean).join(' ').trim() || undefined
 
-  // 6. Build invite URL
-  const origin = req.headers.get('origin') || 'https://otutorhub.com'
-  const inviteUrl = `${origin}/auth?signup=1&email=${encodeURIComponent(email)}&role=student`
+  // 6. Build invite URL — use server-side constant to prevent phishing via
+  // attacker-controlled Origin header.
+  const APP_BASE_URL = Deno.env.get('APP_BASE_URL') ?? 'https://otutorhub.com'
+  const inviteUrl = `${APP_BASE_URL}/auth?signup=1&email=${encodeURIComponent(email)}&role=student`
 
   // 7. Invoke send-transactional-email forwarding the caller's JWT
   // (send-transactional-email has verify_jwt=true and requires a valid user JWT,
