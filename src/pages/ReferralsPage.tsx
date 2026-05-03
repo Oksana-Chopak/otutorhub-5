@@ -275,6 +275,13 @@ export default function ReferralsPage() {
                   <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-2">
                     <Button
                       size="sm"
+                      onClick={() => setAssignTarget(r)}
+                    >
+                      <UserCheck className="mr-1 h-3 w-3" />
+                      Призначити репетитора
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="ghost"
                       onClick={() => updateStatus(r.id, "fulfilled")}
                     >
