@@ -16,7 +16,10 @@ import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
+import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
+import { useTutorGamification } from "@/hooks/useTutorGamification";
+import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import {
   CalendarDays,
   Users,
