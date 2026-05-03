@@ -67,6 +67,24 @@ export function WalletDialog({
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (txId: string, hard: boolean) => {
+    const label = hard ? "видалити транзакцію без сліду" : "сторнувати цю операцію";
+    if (!window.confirm(`Точно ${label}?`)) return;
+    setDeletingId(txId);
+    const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
+      _tx_id: txId,
+      _hard: hard,
+    });
+    setDeletingId(null);
+    if (error) {
+      toast.error("Не вдалося", { description: error.message });
+      return;
+    }
+    toast.success(hard ? "Видалено" : "Сторновано");
+    refresh();
+  };
 
   const reset = () => {
     setLessonsCount("");
