@@ -1748,6 +1748,16 @@ export default function SchedulePage() {
       )}
       </>
       )}
+      <QuickLessonDialog
+        open={!!quickSlot}
+        onOpenChange={(v) => !v && setQuickSlot(null)}
+        startsAt={quickSlot}
+        onCreated={() => loadAll()}
+        onWantFullForm={(date) => {
+          setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
+          setCreateOpen(true);
+        }}
+      />
     </AppLayout>
   );
 }
