@@ -11,6 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { toast } from "@/hooks/use-toast";
 import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
+import { LessonFeedback } from "@/components/LessonFeedback";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
@@ -24,6 +25,7 @@ interface LessonWorkspaceProps {
   source?: "hub" | "independent";
   studentPrice?: number;
   studentPaymentStatus?: "paid" | "unpaid";
+  lessonStatus?: string;
   onUpdated?: () => void;
 }
 
@@ -45,6 +47,7 @@ export function LessonWorkspace({
   source,
   studentPrice,
   studentPaymentStatus,
+  lessonStatus,
   onUpdated,
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
@@ -362,6 +365,14 @@ export function LessonWorkspace({
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
+
+      {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
+      <LessonFeedback
+        lessonId={lessonId}
+        tutorId={tutorId}
+        studentId={studentId}
+        lessonStatus={lessonStatus ?? ""}
+      />
 
       {/* 6. Meeting link — moved to the bottom (low priority, rarely edited).
              Tutors get a collapsible editor; non-editors see only a compact link row. */}
