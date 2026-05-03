@@ -226,7 +226,12 @@ export default function MyStudentsPage() {
         last_lesson_at: stats.last_lesson_at,
       };
     });
-    merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
+    merged.sort((a, b) => {
+      const aT = a.last_lesson_at ? new Date(a.last_lesson_at).getTime() : 0;
+      const bT = b.last_lesson_at ? new Date(b.last_lesson_at).getTime() : 0;
+      if (aT !== bT) return bT - aT;
+      return `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk");
+    });
     setStudents(merged);
     setLoading(false);
   };
