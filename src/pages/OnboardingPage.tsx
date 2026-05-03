@@ -21,6 +21,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 
 interface Step {
   id: number;
