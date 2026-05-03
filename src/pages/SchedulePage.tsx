@@ -1550,17 +1550,17 @@ export default function SchedulePage() {
         )
       ) : (
         <div className="space-y-6">
-          {grouped.map(([dayKey, dayLessons]) => {
-            const isToday = dayKey === todayKey;
+          {grouped.map(([bucketLabel, dayLessons]) => {
+            const isToday = bucketLabel === "Сьогодні";
             return (
-              <div key={dayKey}>
+              <div key={bucketLabel}>
                 <h3
                   className={`font-display text-sm font-semibold mb-3 ${
                     isToday ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
-                  {formatDateGroup(dayLessons[0].starts_at)}
-                  {isToday && " (сьогодні)"}
+                  {bucketLabel}
+                  <span className="ml-2 text-xs font-normal opacity-70">· {dayLessons.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {dayLessons.map((lesson) => {
