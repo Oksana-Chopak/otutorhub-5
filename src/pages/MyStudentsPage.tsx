@@ -55,7 +55,13 @@ interface MyStudent {
   subject: string;
   default_meeting_url: string | null;
   archived_at: string | null;
+  // Activity / payment status
+  unpaid_count: number;
+  unpaid_total: number;
+  last_lesson_at: string | null;
 }
+
+type StudentStatus = "ok" | "debt" | "inactive" | "new";
 
 interface FormData {
   first_name: string;
@@ -139,7 +145,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }, { data: defaults }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -153,6 +159,11 @@ export default function MyStudentsPage() {
         .select("student_id, default_meeting_url")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
+      supabase
+        .from("lessons")
+        .select("student_id, starts_at, status, student_payment_status, student_price")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
@@ -161,10 +172,39 @@ export default function MyStudentsPage() {
       (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
     );
 
+    // Aggregate lesson stats per student
+    const statsMap = new Map<
+      string,
+      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+    >();
+    for (const l of (lessonsAgg ?? []) as any[]) {
+      const s = statsMap.get(l.student_id) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null as string | null,
+      };
+      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+        s.unpaid_count += 1;
+        s.unpaid_total += Number(l.student_price ?? 0);
+      }
+      if (
+        (l.status === "completed" || l.status === "scheduled") &&
+        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
+      ) {
+        s.last_lesson_at = l.starts_at;
+      }
+      statsMap.set(l.student_id, s);
+    }
+
     const merged: MyStudent[] = ids.map((id) => {
-      const p = profileMap.get(id) ?? {};
-      const c = contactMap.get(id) ?? {};
+      const p: any = profileMap.get(id) ?? {};
+      const c: any = contactMap.get(id) ?? {};
       const r = (rates ?? []).find((x: any) => x.student_id === id);
+      const stats = statsMap.get(id) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null,
+      };
       return {
         id,
         first_name: p.first_name ?? "",
@@ -181,6 +221,9 @@ export default function MyStudentsPage() {
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
         archived_at: (r as any)?.archived_at ?? null,
+        unpaid_count: stats.unpaid_count,
+        unpaid_total: stats.unpaid_total,
+        last_lesson_at: stats.last_lesson_at,
       };
     });
     merged.sort((a, b) => `${a.first_name} ${a.last_name}`.localeCompare(`${b.first_name} ${b.last_name}`, "uk"));
@@ -455,6 +498,31 @@ export default function MyStudentsPage() {
   const archivedStudents = students.filter((s) => !!s.archived_at);
   const visibleStudents = view === "active" ? activeStudents : archivedStudents;
 
+  const INACTIVE_DAYS = 21;
+  const statusOf = (s: MyStudent): { status: StudentStatus; label: string } => {
+    if (s.unpaid_count > 0) {
+      return {
+        status: "debt",
+        label: `Борг: ${s.unpaid_total} ₴ (${s.unpaid_count})`,
+      };
+    }
+    if (!s.last_lesson_at) {
+      return { status: "new", label: "Без уроків" };
+    }
+    const ageMs = Date.now() - new Date(s.last_lesson_at).getTime();
+    if (ageMs > INACTIVE_DAYS * 24 * 60 * 60 * 1000) {
+      const days = Math.round(ageMs / (24 * 60 * 60 * 1000));
+      return { status: "inactive", label: `Не виходить на зв'язок ${days}д` };
+    }
+    return { status: "ok", label: "Все оплачено" };
+  };
+  const statusDotClass: Record<StudentStatus, string> = {
+    ok: "bg-success",
+    debt: "bg-warning",
+    inactive: "bg-destructive",
+    new: "bg-muted-foreground/40",
+  };
+
   return (
     <AppLayout>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -522,15 +590,25 @@ export default function MyStudentsPage() {
         )
       ) : (
         <div className="space-y-3">
-          {visibleStudents.map((s) => (
+          {visibleStudents.map((s) => {
+            const st = statusOf(s);
+            return (
             <Card key={s.id} className={s.archived_at ? "opacity-70" : undefined}>
               <CardContent className="flex items-start gap-4 p-4">
-                <UserAvatar
-                  url={s.avatar_url}
-                  firstName={s.first_name}
-                  lastName={s.last_name}
-                  className="h-10 w-10"
-                />
+                <div className="relative shrink-0">
+                  <UserAvatar
+                    url={s.avatar_url}
+                    firstName={s.first_name}
+                    lastName={s.last_name}
+                    className="h-10 w-10"
+                  />
+                  {!s.archived_at && (
+                    <span
+                      title={st.label}
+                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${statusDotClass[st.status]}`}
+                    />
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-foreground">
@@ -543,6 +621,17 @@ export default function MyStudentsPage() {
                       >
                         <Hourglass className="h-3 w-3" />
                         Очікує реєстрації
+                      </span>
+                    )}
+                    {!s.archived_at && (st.status === "debt" || st.status === "inactive") && (
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
+                          st.status === "debt"
+                            ? "bg-warning/15 text-warning"
+                            : "bg-destructive/15 text-destructive"
+                        }`}
+                      >
+                        {st.label}
                       </span>
                     )}
                     {s.archived_at && (
@@ -658,7 +747,8 @@ export default function MyStudentsPage() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
 
