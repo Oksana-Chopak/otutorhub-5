@@ -455,17 +455,29 @@ export default function OnboardingPage() {
                     <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                     {!isDone && (
                       <div className="mt-3 flex flex-wrap gap-2">
-                        <Button
-                          asChild
-                          size="sm"
-                          variant={isCurrent ? "default" : "outline"}
-                          className="rounded-full hover:scale-105 transition-transform"
-                        >
-                          <Link to={step.to}>
+                        {step.action === "addStudent" ? (
+                          <Button
+                            size="sm"
+                            variant={isCurrent ? "default" : "outline"}
+                            className="rounded-full hover:scale-105 transition-transform"
+                            onClick={() => setAddStudentOpen(true)}
+                          >
                             {step.cta}
                             <ArrowRight className="ml-1 h-3 w-3" />
-                          </Link>
-                        </Button>
+                          </Button>
+                        ) : (
+                          <Button
+                            asChild
+                            size="sm"
+                            variant={isCurrent ? "default" : "outline"}
+                            className="rounded-full hover:scale-105 transition-transform"
+                          >
+                            <Link to={step.to}>
+                              {step.cta}
+                              <ArrowRight className="ml-1 h-3 w-3" />
+                            </Link>
+                          </Button>
+                        )}
                         {isCurrent && step.autoKey && (
                           <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
                             Пропустити
