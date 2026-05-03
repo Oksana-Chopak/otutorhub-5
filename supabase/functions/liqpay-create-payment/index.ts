@@ -69,6 +69,31 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Validate result_url against an allowlist to prevent open redirect
+    const ALLOWED_RESULT_ORIGINS = new Set([
+      "https://otutorhub.com",
+      "https://www.otutorhub.com",
+      "https://otutorhub.lovable.app",
+      "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app",
+    ]);
+    let safeResultUrl: string | undefined;
+    if (body.result_url) {
+      try {
+        const u = new URL(String(body.result_url));
+        if (ALLOWED_RESULT_ORIGINS.has(u.origin)) {
+          safeResultUrl = u.toString();
+        }
+      } catch {
+        // ignore invalid URL
+      }
+      if (!safeResultUrl) {
+        return new Response(JSON.stringify({ error: "Invalid result_url" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     const planConfig = PLANS[plan];
     const orderId = `tutorhub_${userId}_${Date.now()}`;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
