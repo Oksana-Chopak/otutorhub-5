@@ -693,8 +693,14 @@ export default function PeoplePage() {
     });
   }, [users, searchQuery, subjectFilter, statusFilter, studentRates]);
 
-  const tutors = filteredUsers.filter((u) => u.role === "tutor");
-  const students = filteredUsers.filter((u) => u.role === "student");
+  const sortByRecency = (a: UserRow, b: UserRow) => {
+    const aT = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
+    const bT = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
+    if (aT !== bT) return bT - aT;
+    return fullName(a).localeCompare(fullName(b), "uk");
+  };
+  const tutors = filteredUsers.filter((u) => u.role === "tutor").sort(sortByRecency);
+  const students = filteredUsers.filter((u) => u.role === "student").sort(sortByRecency);
   const managers = filteredUsers.filter((u) => u.role === "manager");
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows
