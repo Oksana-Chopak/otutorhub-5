@@ -49,6 +49,7 @@ import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
+import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 
 interface Profile {
   id: string;
@@ -79,6 +80,10 @@ interface UserRow {
   rate_per_lesson?: number;
   subjects?: string[];
   last_interaction_at?: string | null;
+  // Student-only payment status aggregates
+  unpaid_count?: number;
+  unpaid_total?: number;
+  last_lesson_at?: string | null;
 }
 
 const roleLabel: Record<AppRole, string> = {
@@ -190,17 +195,39 @@ export default function PeoplePage() {
     ]);
 
     // Last interaction: most-recent lesson per participant
+    // Also compute student payment-status aggregates (unpaid completed + last lesson date)
     const { data: recentLessons } = await supabase
       .from("lessons")
-      .select("tutor_id, student_id, starts_at")
+      .select("tutor_id, student_id, starts_at, status, student_payment_status, student_price")
       .order("starts_at", { ascending: false })
       .limit(2000);
     const lastInteractionMap = new Map<string, string>();
+    const studentStatsMap = new Map<
+      string,
+      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+    >();
     (recentLessons ?? []).forEach((l: any) => {
       for (const uid of [l.tutor_id, l.student_id]) {
         const cur = lastInteractionMap.get(uid);
         if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
       }
+      const sid = l.student_id;
+      const s = studentStatsMap.get(sid) ?? {
+        unpaid_count: 0,
+        unpaid_total: 0,
+        last_lesson_at: null as string | null,
+      };
+      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+        s.unpaid_count += 1;
+        s.unpaid_total += Number(l.student_price ?? 0);
+      }
+      if (
+        (l.status === "completed" || l.status === "scheduled") &&
+        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
+      ) {
+        s.last_lesson_at = l.starts_at;
+      }
+      studentStatsMap.set(sid, s);
     });
 
     // Fetch financial contacts separately (only for managers)
@@ -269,6 +296,9 @@ export default function PeoplePage() {
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
         last_interaction_at: lastInteractionMap.get(p.id) ?? null,
+        unpaid_count: studentStatsMap.get(p.id)?.unpaid_count ?? 0,
+        unpaid_total: studentStatsMap.get(p.id)?.unpaid_total ?? 0,
+        last_lesson_at: studentStatsMap.get(p.id)?.last_lesson_at ?? null,
       };
     });
     setUsers(merged);
@@ -706,7 +736,16 @@ export default function PeoplePage() {
   // Unfiltered tutors list for student-card pricing rows
   const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
 
-  const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
+  const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => {
+    const studentSt =
+      u.role === "student" && !u.archived_at && !u.is_pending
+        ? computeStudentStatus({
+            unpaid_count: u.unpaid_count ?? 0,
+            unpaid_total: u.unpaid_total ?? 0,
+            last_lesson_at: u.last_lesson_at ?? null,
+          })
+        : null;
+    return (
     <div
       key={u.id}
       className={`rounded-xl border bg-card p-5 ${
@@ -719,20 +758,28 @@ export default function PeoplePage() {
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {u.is_pending ? (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/20 text-warning">
-              <Hourglass className="h-4 w-4" />
-            </div>
-          ) : (
-            <UserAvatar
-              url={u.avatar_url}
-              firstName={u.first_name}
-              lastName={u.last_name}
-              className={`h-10 w-10 shrink-0 ${
-                accent === "primary" ? "ring-2 ring-primary/30" : ""
-              }`}
-            />
-          )}
+          <div className="relative shrink-0">
+            {u.is_pending ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
+                <Hourglass className="h-4 w-4" />
+              </div>
+            ) : (
+              <UserAvatar
+                url={u.avatar_url}
+                firstName={u.first_name}
+                lastName={u.last_name}
+                className={`h-10 w-10 ${
+                  accent === "primary" ? "ring-2 ring-primary/30" : ""
+                }`}
+              />
+            )}
+            {studentSt && (
+              <span
+                title={studentSt.label}
+                className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${studentStatusDotClass[studentSt.status]}`}
+              />
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
@@ -744,6 +791,18 @@ export default function PeoplePage() {
               {u.archived_at && (
                 <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
                   В архіві
+                </Badge>
+              )}
+              {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 ${
+                    studentSt.status === "debt"
+                      ? "border-warning/40 text-warning"
+                      : "border-destructive/40 text-destructive"
+                  }`}
+                >
+                  {studentSt.label}
                 </Badge>
               )}
             </div>
@@ -1010,7 +1069,8 @@ export default function PeoplePage() {
 
       {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
     </div>
-  );
+    );
+  };
 
   return (
     <AppLayout>
