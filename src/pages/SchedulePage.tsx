@@ -725,7 +725,9 @@ export default function SchedulePage() {
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(l);
     });
-    const ascending = isPureStudentForList && view === "list" && studentArchive === "upcoming";
+    const ascending =
+      (isPureStudentForList && view === "list" && studentArchive === "upcoming") ||
+      (view === "list" && filterPeriod === "upcoming");
     const entries = Array.from(map.entries()).sort(([a], [b]) =>
       ascending ? a.localeCompare(b) : b.localeCompare(a)
     );
