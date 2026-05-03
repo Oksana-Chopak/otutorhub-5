@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LandingTryDemo } from "@/components/LandingTryDemo";
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
