@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -191,6 +191,17 @@ export default function MyStudentsPage() {
   useEffect(() => {
     load();
   }, [user?.id]);
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("new") === "1" && isTutor && isIndependent) {
+      setForm(emptyForm);
+      setDialog({ open: true, mode: "create", studentId: null });
+      const next = new URLSearchParams(searchParams);
+      next.delete("new");
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, isTutor, isIndependent, setSearchParams]);
 
   const openCreate = () => {
     setForm(emptyForm);

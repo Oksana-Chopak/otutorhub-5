@@ -145,6 +145,26 @@ export default function SubscriptionPage() {
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
   const REGULAR_PRICE_MONTHLY = 499;
+  // Дедлайн акції — 14 днів від моменту першого відкриття. Зберігаємо в localStorage,
+  // щоб у одного користувача таймер не «скакав» між заходами.
+  const EARLY_BIRD_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
+  const [now, setNow] = useState(() => Date.now());
+  const [earlyBirdDeadline] = useState<number>(() => {
+    if (typeof window === "undefined") return Date.now() + EARLY_BIRD_DURATION_MS;
+    const key = "early_bird_deadline_v1";
+    const stored = window.localStorage.getItem(key);
+    if (stored) {
+      const n = Number(stored);
+      if (Number.isFinite(n) && n > Date.now()) return n;
+    }
+    const next = Date.now() + EARLY_BIRD_DURATION_MS;
+    window.localStorage.setItem(key, String(next));
+    return next;
+  });
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
@@ -299,6 +319,40 @@ export default function SubscriptionPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Live countdown — створює реальне відчуття терміновості */}
+                {(() => {
+                  const msLeft = Math.max(0, earlyBirdDeadline - now);
+                  const totalSec = Math.floor(msLeft / 1000);
+                  const days = Math.floor(totalSec / 86400);
+                  const hours = Math.floor((totalSec % 86400) / 3600);
+                  const minutes = Math.floor((totalSec % 3600) / 60);
+                  const seconds = totalSec % 60;
+                  const Cell = ({ n, label }: { n: number; label: string }) => (
+                    <div className="flex flex-col items-center rounded-lg bg-background/80 px-2.5 py-1.5 ring-1 ring-border min-w-[44px]">
+                      <span className="font-display text-base font-bold tabular-nums text-foreground leading-none">
+                        {String(n).padStart(2, "0")}
+                      </span>
+                      <span className="mt-0.5 text-[9px] uppercase tracking-wide text-muted-foreground">
+                        {label}
+                      </span>
+                    </div>
+                  );
+                  return (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
+                        <Clock className="h-3.5 w-3.5 text-primary" />
+                        До кінця акції:
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <Cell n={days} label="днів" />
+                        <Cell n={hours} label="год" />
+                        <Cell n={minutes} label="хв" />
+                        <Cell n={seconds} label="сек" />
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs">
