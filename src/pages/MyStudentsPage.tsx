@@ -55,7 +55,13 @@ interface MyStudent {
   subject: string;
   default_meeting_url: string | null;
   archived_at: string | null;
+  // Activity / payment status
+  unpaid_count: number;
+  unpaid_total: number;
+  last_lesson_at: string | null;
 }
+
+type StudentStatus = "ok" | "debt" | "inactive" | "new";
 
 interface FormData {
   first_name: string;
