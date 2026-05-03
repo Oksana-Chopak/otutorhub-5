@@ -223,7 +223,7 @@ export default function OnboardingPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, isIndependent]);
+  }, [user?.id, isIndependent, progressReloadKey]);
 
   // Determine completed steps from auto-detected progress + saved step
   const autoCompletedIds = useMemo(() => {
