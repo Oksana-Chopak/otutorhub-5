@@ -1458,6 +1458,10 @@ export default function SchedulePage() {
           onToday={() => setWeekAnchor(new Date())}
           onSlotClick={(date) => {
             if (!canCreate) return;
+            if (isIndependentTutor) {
+              setQuickSlot(date);
+              return;
+            }
             setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
             setCreateOpen(true);
           }}
