@@ -27,6 +27,8 @@ export interface TutorStreak {
   current_streak: number;
   longest_streak: number;
   last_lesson_date: string | null;
+  freezes_available: number;
+  last_freeze_used_at: string | null;
 }
 
 export interface TutorBadge {

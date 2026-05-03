@@ -16,7 +16,10 @@ import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
+import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
+import { useTutorGamification } from "@/hooks/useTutorGamification";
+import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import {
   CalendarDays,
   Users,
@@ -118,6 +121,51 @@ export default function DashboardPage() {
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
+
+  // Gamification: badge unlock toasts + referral nudge counters
+  const { badges, loading: gamificationLoading } = useTutorGamification();
+  useBadgeUnlockToasts(badges, gamificationLoading);
+  const [referralInvitedCount, setReferralInvitedCount] = useState(0);
+  useEffect(() => {
+    if (!user || !isIndependentTutor) return;
+    supabase
+      .from("referrals")
+      .select("id", { count: "exact", head: true })
+      .eq("referrer_id", user.id)
+      .then(({ count }) => setReferralInvitedCount(count ?? 0));
+  }, [user?.id, isIndependentTutor]);
+
+  // Announce the monthly recap card on the 1st-7th of each month.
+  // Without this, tutors often never notice the "Твій <місяць>" share-card.
+  useEffect(() => {
+    if (!user || !isIndependentTutor) return;
+    const today = new Date();
+    if (today.getDate() > 7) return;
+    const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    const seenKey = `monthly_recap_announced_${monthKey}`;
+    if (localStorage.getItem(seenKey) === "1") return;
+    const months = [
+      "січень", "лютий", "березень", "квітень", "травень", "червень",
+      "липень", "серпень", "вересень", "жовтень", "листопад", "грудень",
+    ];
+    const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
+    import("sonner").then(({ toast }) => {
+      toast(`🎉 Твій ${months[prevMonthIdx]} готовий!`, {
+        description: "Подивись підсумок місяця та поділись з друзями.",
+        duration: 8000,
+        action: {
+          label: "Подивитись",
+          onClick: () => {
+            const el = document.getElementById("monthly-summary-anchor");
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          },
+        },
+      });
+    });
+    localStorage.setItem(seenKey, "1");
+  }, [user?.id, isIndependentTutor]);
+
+
 
   const loadData = async () => {
     if (!user) return;
@@ -303,6 +351,16 @@ export default function DashboardPage() {
   const pendingLessonRequests = useMemo(
     () => lessons.filter((l) => l.status === "pending").length,
     [lessons]
+  );
+
+  // Used to gate the referral nudge banner — show only after the tutor has
+  // completed enough lessons to actually understand the product's value.
+  const myCompletedLessonsCount = useMemo(
+    () =>
+      user
+        ? lessons.filter((l) => l.tutor_id === user.id && l.status === "completed").length
+        : 0,
+    [lessons, user?.id]
   );
 
   const profitPeriodLabel: Record<ProfitPeriod, string> = {
@@ -510,9 +568,15 @@ export default function DashboardPage() {
           )}
 
           {isIndependentTutor && <TutorWelcomeBanner />}
+          {isIndependentTutor && (
+            <ReferralNudgeBanner
+              completedLessons={myCompletedLessonsCount}
+              invitedCount={referralInvitedCount}
+            />
+          )}
           {isIndependentTutor && <IndependentTutorStats />}
           {isIndependentTutor && (
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
               <MonthlySummaryCard />
               <ReferralWidget compact />
             </div>
