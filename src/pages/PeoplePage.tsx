@@ -268,6 +268,7 @@ export default function PeoplePage() {
         role: r?.role ?? null,
         rate_per_lesson: td?.rate,
         subjects: td?.subjects,
+        last_interaction_at: lastInteractionMap.get(p.id) ?? null,
       };
     });
     setUsers(merged);
