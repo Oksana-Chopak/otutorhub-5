@@ -303,6 +303,13 @@ export default function ReferralsPage() {
           ))}
         </div>
       )}
+
+      <AssignTutorDialog
+        open={!!assignTarget}
+        onOpenChange={(o) => !o && setAssignTarget(null)}
+        request={assignTarget}
+        onAssigned={load}
+      />
     </AppLayout>
   );
 }
