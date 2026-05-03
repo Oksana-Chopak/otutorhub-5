@@ -189,6 +189,20 @@ export default function PeoplePage() {
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
+    // Last interaction: most-recent lesson per participant
+    const { data: recentLessons } = await supabase
+      .from("lessons")
+      .select("tutor_id, student_id, starts_at")
+      .order("starts_at", { ascending: false })
+      .limit(2000);
+    const lastInteractionMap = new Map<string, string>();
+    (recentLessons ?? []).forEach((l: any) => {
+      for (const uid of [l.tutor_id, l.student_id]) {
+        const cur = lastInteractionMap.get(uid);
+        if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
+      }
+    });
+
     // Fetch financial contacts separately (only for managers)
     let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
     if (isManager) {
