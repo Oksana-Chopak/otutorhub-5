@@ -736,7 +736,16 @@ export default function PeoplePage() {
   // Unfiltered tutors list for student-card pricing rows
   const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
 
-  const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => (
+  const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => {
+    const studentSt =
+      u.role === "student" && !u.archived_at && !u.is_pending
+        ? computeStudentStatus({
+            unpaid_count: u.unpaid_count ?? 0,
+            unpaid_total: u.unpaid_total ?? 0,
+            last_lesson_at: u.last_lesson_at ?? null,
+          })
+        : null;
+    return (
     <div
       key={u.id}
       className={`rounded-xl border bg-card p-5 ${
@@ -749,20 +758,28 @@ export default function PeoplePage() {
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          {u.is_pending ? (
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-warning/20 text-warning">
-              <Hourglass className="h-4 w-4" />
-            </div>
-          ) : (
-            <UserAvatar
-              url={u.avatar_url}
-              firstName={u.first_name}
-              lastName={u.last_name}
-              className={`h-10 w-10 shrink-0 ${
-                accent === "primary" ? "ring-2 ring-primary/30" : ""
-              }`}
-            />
-          )}
+          <div className="relative shrink-0">
+            {u.is_pending ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
+                <Hourglass className="h-4 w-4" />
+              </div>
+            ) : (
+              <UserAvatar
+                url={u.avatar_url}
+                firstName={u.first_name}
+                lastName={u.last_name}
+                className={`h-10 w-10 ${
+                  accent === "primary" ? "ring-2 ring-primary/30" : ""
+                }`}
+              />
+            )}
+            {studentSt && (
+              <span
+                title={studentSt.label}
+                className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${studentStatusDotClass[studentSt.status]}`}
+              />
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
@@ -774,6 +791,18 @@ export default function PeoplePage() {
               {u.archived_at && (
                 <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
                   В архіві
+                </Badge>
+              )}
+              {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 ${
+                    studentSt.status === "debt"
+                      ? "border-warning/40 text-warning"
+                      : "border-destructive/40 text-destructive"
+                  }`}
+                >
+                  {studentSt.label}
                 </Badge>
               )}
             </div>
