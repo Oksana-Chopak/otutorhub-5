@@ -497,6 +497,37 @@ export default function SchedulePage() {
     };
   }, [isManager, isIndependentTutor, form.tutor_id, form.student_id, form.subject]);
 
+  // Pre-fill student_price from the most recent rate for this (tutor, student)
+  // pair as soon as the student is picked — even before subject is chosen.
+  // Prevents "0 ₴" lessons when tutor forgets to type the price.
+  useEffect(() => {
+    if (!isManager && !isIndependentTutor) return;
+    if (!form.tutor_id || !form.student_id) return;
+    if (form.student_price && form.student_price !== "0") return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("student_rates")
+        .select("price_per_lesson")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id)
+        .order("updated_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const price = data?.[0]?.price_per_lesson;
+      if (price !== undefined && price !== null) {
+        setForm((f) =>
+          f.student_price && f.student_price !== "0"
+            ? f
+            : { ...f, student_price: String(price) }
+        );
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isManager, isIndependentTutor, form.tutor_id, form.student_id]);
+
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
     if (!form.tutor_id || !form.starts_at) return null;
