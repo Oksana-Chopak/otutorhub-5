@@ -935,6 +935,7 @@ export default function DashboardPage() {
           </div>
         </>
       )}
+      {isTutor && !isManager && <QuickPaymentFab />}
     </AppLayout>
   );
 }
