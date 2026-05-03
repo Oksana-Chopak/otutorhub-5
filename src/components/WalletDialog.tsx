@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
+import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight, Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useStudentWallet } from "@/hooks/useStudentWallet";
 
