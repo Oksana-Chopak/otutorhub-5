@@ -135,6 +135,37 @@ export default function DashboardPage() {
       .then(({ count }) => setReferralInvitedCount(count ?? 0));
   }, [user?.id, isIndependentTutor]);
 
+  // Announce the monthly recap card on the 1st-7th of each month.
+  // Without this, tutors often never notice the "Твій <місяць>" share-card.
+  useEffect(() => {
+    if (!user || !isIndependentTutor) return;
+    const today = new Date();
+    if (today.getDate() > 7) return;
+    const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    const seenKey = `monthly_recap_announced_${monthKey}`;
+    if (localStorage.getItem(seenKey) === "1") return;
+    const months = [
+      "січень", "лютий", "березень", "квітень", "травень", "червень",
+      "липень", "серпень", "вересень", "жовтень", "листопад", "грудень",
+    ];
+    const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
+    import("sonner").then(({ toast }) => {
+      toast(`🎉 Твій ${months[prevMonthIdx]} готовий!`, {
+        description: "Подивись підсумок місяця та поділись з друзями.",
+        duration: 8000,
+        action: {
+          label: "Подивитись",
+          onClick: () => {
+            const el = document.getElementById("monthly-summary-anchor");
+            el?.scrollIntoView({ behavior: "smooth", block: "center" });
+          },
+        },
+      });
+    });
+    localStorage.setItem(seenKey, "1");
+  }, [user?.id, isIndependentTutor]);
+
+
 
   const loadData = async () => {
     if (!user) return;
@@ -545,7 +576,7 @@ export default function DashboardPage() {
           )}
           {isIndependentTutor && <IndependentTutorStats />}
           {isIndependentTutor && (
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
               <MonthlySummaryCard />
               <ReferralWidget compact />
             </div>
