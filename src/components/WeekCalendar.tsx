@@ -85,6 +85,35 @@ export function WeekCalendar({
 
   const todayKey = new Date().toDateString();
 
+  // Live "now" indicator: tick every minute so the red line stays accurate
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const now = new Date(nowTick);
+  const nowMinutesFromStart =
+    (now.getHours() - START_HOUR) * 60 + now.getMinutes();
+  const showNowLine =
+    nowMinutesFromStart >= 0 && nowMinutesFromStart <= HOURS * 60;
+  const nowTopPx = (nowMinutesFromStart / 60) * HOUR_HEIGHT;
+  const todayColIndex = days.findIndex((d) => d.toDateString() === todayKey);
+
+  // Auto-scroll to current hour when the current week is visible
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const didScrollRef = useRef(false);
+  useEffect(() => {
+    if (didScrollRef.current) return;
+    if (todayColIndex < 0 || !showNowLine) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    // Try to center the now-line; offset back by ~2 hours for context
+    const target = Math.max(0, nowTopPx - HOUR_HEIGHT * 2);
+    el.scrollTop = target;
+    didScrollRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayColIndex, showNowLine]);
+
   const lessonsByDay = useMemo(() => {
     const map = new Map<string, CalendarLesson[]>();
     days.forEach((d) => map.set(d.toDateString(), []));
