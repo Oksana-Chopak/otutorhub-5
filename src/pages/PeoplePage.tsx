@@ -78,6 +78,7 @@ interface UserRow {
   role: AppRole | null;
   rate_per_lesson?: number;
   subjects?: string[];
+  last_interaction_at?: string | null;
 }
 
 const roleLabel: Record<AppRole, string> = {
