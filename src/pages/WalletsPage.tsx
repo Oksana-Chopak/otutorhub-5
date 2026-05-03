@@ -41,7 +41,7 @@ export default function WalletsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [active, setActive] = useState<PairRow | null>(null);
-  const [showAll, setShowAll] = useState(false);
+  const [showAll, setShowAll] = useState(true);
 
   const loadData = async () => {
     setLoading(true);
