@@ -53,7 +53,7 @@ const steps: Step[] = [
     description:
       "Введіть ім'я, телефон, email, телеграм/інстаграм. Учень отримає запрошення приєднатися до вашого кабінету.",
     cta: "Додати учня",
-    to: "/my-students",
+    to: "/my-students?new=1",
     icon: UserPlus,
     emoji: "👋",
     xp: 50,

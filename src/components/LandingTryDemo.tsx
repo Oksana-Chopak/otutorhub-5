@@ -43,9 +43,20 @@ export function LandingTryDemo() {
   const [pAmount, setPAmount] = useState("");
   const [pLessons, setPLessons] = useState("");
 
+  // Auto-share entered student name across tabs — feels like the system "remembers"
+  const sharedStudent = sName.trim() || lStudent.trim() || pStudent.trim();
+
   const switchTab = (id: Tab) => {
     setTab(id);
     setDone(null);
+    if (id === "lesson" && !lStudent.trim() && sharedStudent) setLStudent(sharedStudent);
+    if (id === "payment" && !pStudent.trim() && sharedStudent) setPStudent(sharedStudent);
+    if (id === "payment" && !pAmount.trim() && sPrice.trim() && (pLessons.trim() || true)) {
+      // suggest amount = price * lessons (default 5)
+      const lessonsN = Number(pLessons) || 5;
+      const priceN = Number(sPrice);
+      if (priceN > 0) setPAmount(String(priceN * lessonsN));
+    }
   };
 
   const submit = (e: React.FormEvent) => {
