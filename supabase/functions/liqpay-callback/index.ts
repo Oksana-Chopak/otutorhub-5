@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
 
     return new Response("OK", { headers: corsHeaders });
   } catch (e) {
-    console.error("liqpay-callback error:", e);
-    return new Response(`Error: ${String(e)}`, { status: 500, headers: corsHeaders });
+    console.error("liqpay-callback unhandled error:", e);
+    return new Response("Internal server error", { status: 500, headers: corsHeaders });
   }
 });
