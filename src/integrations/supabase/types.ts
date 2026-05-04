@@ -1631,6 +1631,7 @@ export type Database = {
           total_signups: number
         }[]
       }
+      get_referral_savings_uah: { Args: { _tutor_id: string }; Returns: number }
       get_tutor_independent_student_count: {
         Args: { _tutor_id: string }
         Returns: number
