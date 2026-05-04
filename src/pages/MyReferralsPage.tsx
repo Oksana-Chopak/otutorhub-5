@@ -47,7 +47,7 @@ export default function MyReferralsPage() {
               Топ рефереів місяця
             </CardTitle>
             <CardDescription>
-              Призи: 🥇 1 місце — рік Pro · 🥈 2–3 місце — 6 місяців Pro · 🥉 4–10 — 3 місяці Pro
+              Призи топ-рефереру: 🥇 +6 міс · 🥈🥉 +3 міс · 4–10 місце — +1 міс Pro
             </CardDescription>
           </CardHeader>
           <CardContent>
