@@ -34,10 +34,14 @@ import {
   Banknote,
   Video,
   Wallet,
+  MessageSquare,
+  CalendarPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
+import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 
 interface MyStudent {
   id: string;
@@ -120,6 +124,14 @@ export default function MyStudentsPage() {
 
   const [walletDialog, setWalletDialog] = useState<
     | { open: boolean; tutorId: string; studentId: string; studentName: string; tutorName: string; rate: number }
+    | null
+  >(null);
+  const [chatDialog, setChatDialog] = useState<
+    | { open: boolean; studentId: string; studentName: string }
+    | null
+  >(null);
+  const [lessonDialog, setLessonDialog] = useState<
+    | { open: boolean; studentId: string }
     | null
   >(null);
 
@@ -684,6 +696,32 @@ export default function MyStudentsPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  {!s.archived_at && !s.is_pending && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setChatDialog({
+                          open: true,
+                          studentId: s.id,
+                          studentName: `${s.first_name} ${s.last_name}`.trim() || "Учень",
+                        })
+                      }
+                      title="Написати учню"
+                    >
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
+                  {!s.archived_at && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setLessonDialog({ open: true, studentId: s.id })}
+                      title="Створити урок"
+                    >
+                      <CalendarPlus className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
                   {!s.archived_at && (
                     <Button
                       size="sm"
@@ -896,6 +934,29 @@ export default function MyStudentsPage() {
           tutorName={walletDialog.tutorName}
           ratePerLesson={walletDialog.rate}
           canTopUp={true}
+        />
+      )}
+
+      {chatDialog && user && (
+        <ChatThreadDialog
+          open={chatDialog.open}
+          onOpenChange={(o) => !o && setChatDialog(null)}
+          tutorId={user.id}
+          studentId={chatDialog.studentId}
+          counterpartName={chatDialog.studentName}
+        />
+      )}
+
+      {lessonDialog && (
+        <QuickLessonDialog
+          open={lessonDialog.open}
+          onOpenChange={(o) => !o && setLessonDialog(null)}
+          startsAt={new Date(Date.now() + 60 * 60 * 1000)}
+          initialStudentId={lessonDialog.studentId}
+          onCreated={() => {
+            setLessonDialog(null);
+            load();
+          }}
         />
       )}
     </AppLayout>

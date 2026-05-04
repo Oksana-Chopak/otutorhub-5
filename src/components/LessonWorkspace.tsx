@@ -9,9 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock, Wallet, MessageSquare } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 import { LessonFeedback } from "@/components/LessonFeedback";
+import { WalletDialog } from "@/components/WalletDialog";
+import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
@@ -63,6 +65,9 @@ export function LessonWorkspace({
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const canOpenWallet = (isTutor && source === "independent") || isManager;
 
   useEffect(() => {
     setPaidLocal(studentPaymentStatus ?? "unpaid");
@@ -211,6 +216,16 @@ export function LessonWorkspace({
                 )}
                 {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
               </Button>
+              {canOpenWallet && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setWalletOpen(true)}
+                  title="Гаманець (передоплата / списання)"
+                >
+                  <Wallet className="h-4 w-4 text-primary" />
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -398,6 +413,15 @@ export function LessonWorkspace({
                     </a>
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setChatOpen(true)}
+                  title="Написати учню"
+                >
+                  <MessageSquare className="mr-1 h-4 w-4" />
+                  Написати
+                </Button>
                 <CollapsibleTrigger asChild>
                   <Button size="sm" variant="ghost" className="group">
                     Редагувати
@@ -449,19 +473,50 @@ export function LessonWorkspace({
               <Video className="h-4 w-4 text-primary" />
               Онлайн-зустріч
             </div>
-            {effectiveMeetingUrl ? (
-              <Button asChild size="sm" variant="outline">
-                <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Приєднатися
-                </a>
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
-            )}
+            <div className="flex items-center gap-2">
+              {effectiveMeetingUrl ? (
+                <Button asChild size="sm" variant="outline">
+                  <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Приєднатися
+                  </a>
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
+              )}
+              {(isStudent || isTutor) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setChatOpen(true)}
+                  title="Чат"
+                >
+                  <MessageSquare className="mr-1 h-4 w-4" />
+                  Чат
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </section>
+
+      {canOpenWallet && (
+        <WalletDialog
+          open={walletOpen}
+          onOpenChange={setWalletOpen}
+          tutorId={tutorId}
+          studentId={studentId}
+          canTopUp={true}
+          ratePerLesson={studentPrice}
+        />
+      )}
+
+      <ChatThreadDialog
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        tutorId={tutorId}
+        studentId={studentId}
+      />
     </div>
   );
 }
