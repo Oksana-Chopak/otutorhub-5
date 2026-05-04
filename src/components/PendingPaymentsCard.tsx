@@ -19,6 +19,7 @@ import {
   Bell,
 } from "lucide-react";
 import { toast } from "sonner";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 
 interface UnpaidRow {
   id: string;
