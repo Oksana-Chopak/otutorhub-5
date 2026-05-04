@@ -110,6 +110,25 @@ export function PendingPaymentsCard() {
     toast.success(ids.length === 1 ? "Позначено як оплачено" : `Позначено ${ids.length} уроків`);
   };
 
+  const remindStudent = async (lessonId: string) => {
+    setRemindingId(lessonId);
+    const { data, error } = await supabase.functions.invoke("remind-payment", {
+      body: { lessonId },
+    });
+    setRemindingId(null);
+    if (error) {
+      toast.error("Не вдалося надіслати нагадування");
+      return;
+    }
+    if ((data as any)?.success) {
+      const channels = (data as any).channels as string[];
+      const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
+      toast.success(`Нагадування надіслано: ${labels.join(" + ")}`);
+    } else {
+      toast.error("Учень не має ні Telegram, ні email — додайте контакт");
+    }
+  };
+
   if (loading) {
     return (
       <Card>
