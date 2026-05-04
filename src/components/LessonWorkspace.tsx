@@ -473,19 +473,50 @@ export function LessonWorkspace({
               <Video className="h-4 w-4 text-primary" />
               Онлайн-зустріч
             </div>
-            {effectiveMeetingUrl ? (
-              <Button asChild size="sm" variant="outline">
-                <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  Приєднатися
-                </a>
-              </Button>
-            ) : (
-              <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
-            )}
+            <div className="flex items-center gap-2">
+              {effectiveMeetingUrl ? (
+                <Button asChild size="sm" variant="outline">
+                  <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    Приєднатися
+                  </a>
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
+              )}
+              {(isStudent || isTutor) && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setChatOpen(true)}
+                  title="Чат"
+                >
+                  <MessageSquare className="mr-1 h-4 w-4" />
+                  Чат
+                </Button>
+              )}
+            </div>
           </div>
         )}
       </section>
+
+      {canOpenWallet && (
+        <WalletDialog
+          open={walletOpen}
+          onOpenChange={setWalletOpen}
+          tutorId={tutorId}
+          studentId={studentId}
+          canTopUp={true}
+          ratePerLesson={studentPrice}
+        />
+      )}
+
+      <ChatThreadDialog
+        open={chatOpen}
+        onOpenChange={setChatOpen}
+        tutorId={tutorId}
+        studentId={studentId}
+      />
     </div>
   );
 }
