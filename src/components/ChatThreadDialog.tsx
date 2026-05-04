@@ -153,6 +153,18 @@ export function ChatThreadDialog({
               </p>
             ) : (
               <ul className="space-y-1.5">
+                {!showArchived && messages.length > 0 && (
+                  <li className="flex justify-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs text-muted-foreground"
+                      onClick={() => setShowArchived(true)}
+                    >
+                      Показати всю історію
+                    </Button>
+                  </li>
+                )}
                 {messages.map((m) => {
                   const mine = m.sender_id === myId;
                   return (
