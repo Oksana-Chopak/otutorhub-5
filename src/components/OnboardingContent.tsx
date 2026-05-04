@@ -149,6 +149,79 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [progressLoading, setProgressLoading] = useState(true);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [progressReloadKey, setProgressReloadKey] = useState(0);
+  const [demoNotice, setDemoNotice] = useState<string | null>(null);
+
+  // Auto-import demo data captured on the landing page (LandingTryDemo).
+  useEffect(() => {
+    if (!user || !isIndependent) return;
+    let cancelled = false;
+    (async () => {
+      const raw = localStorage.getItem("tutorhub.demo");
+      if (!raw) return;
+      let demo: any;
+      try { demo = JSON.parse(raw); } catch { localStorage.removeItem("tutorhub.demo"); return; }
+      if (!demo) { localStorage.removeItem("tutorhub.demo"); return; }
+
+      try {
+        let studentId: string | null = null;
+        const studentName: string | null =
+          demo?.student?.name || demo?.lesson?.studentName || demo?.payment?.studentName || null;
+
+        if (studentName) {
+          const [first, ...rest] = studentName.split(/\s+/);
+          const last = rest.join(" ");
+          studentId = crypto.randomUUID();
+
+          const { error: profErr } = await supabase
+            .from("profiles")
+            .insert({ id: studentId, first_name: first, last_name: last, is_pending: true });
+          if (profErr) throw profErr;
+
+          await supabase.from("user_roles").insert({ user_id: studentId, role: "student" });
+
+          const subject = (demo?.student?.subject || "Загальний предмет").toString();
+          const price = Number(demo?.student?.price ?? demo?.payment?.amount ?? 0) || 0;
+          await supabase.from("student_rates").insert({
+            tutor_id: user.id,
+            student_id: studentId,
+            subject,
+            price_per_lesson: price,
+            source: "independent",
+          });
+        }
+
+        if (studentId && demo?.lesson?.date && demo?.lesson?.time) {
+          const startsAt = new Date(`${demo.lesson.date}T${demo.lesson.time}:00`);
+          if (!isNaN(startsAt.getTime())) {
+            const subject = (demo?.student?.subject || "Загальний предмет").toString();
+            const price = Number(demo?.student?.price ?? 0) || 0;
+            await supabase.from("lessons").insert({
+              tutor_id: user.id,
+              student_id: studentId,
+              subject,
+              starts_at: startsAt.toISOString(),
+              duration_minutes: 60,
+              status: "scheduled",
+              source: "independent",
+              student_price: price,
+              tutor_payout: 0,
+              created_by: user.id,
+            } as any);
+          }
+        }
+
+        if (!cancelled) {
+          setDemoNotice(studentName);
+          setProgressReloadKey((k) => k + 1);
+        }
+      } catch (err) {
+        console.error("Demo import failed", err);
+      } finally {
+        localStorage.removeItem("tutorhub.demo");
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, isIndependent]);
 
   useEffect(() => {
     if (!user || !isIndependent) {
