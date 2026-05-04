@@ -65,6 +65,9 @@ export function LessonWorkspace({
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const canOpenWallet = (isTutor && source === "independent") || isManager;
 
   useEffect(() => {
     setPaidLocal(studentPaymentStatus ?? "unpaid");
