@@ -46,9 +46,11 @@ export default function AuthPage() {
   });
 
   // Invite-link / preselected tab support: ?signup=1&email=...&role=student|tutor
+  const isConfirmed = searchParams.get("confirmed") === "1";
   const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(isConfirmed ? "signin" : initialTab);
   const [pendingHint, setPendingHint] = useState<string | null>(null);
+  const [confirmedNotice, setConfirmedNotice] = useState<boolean>(isConfirmed);
 
   const [signInData, setSignInData] = useState({
     email: searchParams.get("email") ?? "",
