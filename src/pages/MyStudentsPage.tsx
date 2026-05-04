@@ -696,6 +696,32 @@ export default function MyStudentsPage() {
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  {!s.archived_at && !s.is_pending && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        setChatDialog({
+                          open: true,
+                          studentId: s.id,
+                          studentName: `${s.first_name} ${s.last_name}`.trim() || "Учень",
+                        })
+                      }
+                      title="Написати учню"
+                    >
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
+                  {!s.archived_at && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => setLessonDialog({ open: true, studentId: s.id })}
+                      title="Створити урок"
+                    >
+                      <CalendarPlus className="h-4 w-4 text-primary" />
+                    </Button>
+                  )}
                   {!s.archived_at && (
                     <Button
                       size="sm"
