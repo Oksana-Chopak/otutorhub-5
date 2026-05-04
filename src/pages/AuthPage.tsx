@@ -92,6 +92,21 @@ export default function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Email confirmed redirect handling: ?confirmed=1
+  useEffect(() => {
+    if (!isConfirmed) return;
+    if (authLoading) return;
+    if (user) {
+      // Active session — go to root, role-based routing happens there
+      navigate("/", { replace: true });
+      return;
+    }
+    toast({
+      title: "Email підтверджено! 🎉",
+      description: "Увійдіть, щоб продовжити.",
+    });
+  }, [isConfirmed, authLoading, user, navigate]);
+
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     const parsed = signInSchema.safeParse(signInData);
