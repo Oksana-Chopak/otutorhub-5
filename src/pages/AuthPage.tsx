@@ -217,9 +217,19 @@ export default function AuthPage() {
       });
       return;
     }
+    let demoName: string | null = null;
+    try {
+      const raw = localStorage.getItem("tutorhub.demo");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        demoName = parsed?.student?.name || parsed?.lesson?.studentName || parsed?.payment?.studentName || null;
+      }
+    } catch { /* ignore */ }
     toast({
       title: t("auth.almostDone"),
-      description: t("auth.almostDoneDesc"),
+      description: demoName
+        ? `Ми вже зберегли ${demoName} — продовжуй з наступного кроку 🎉`
+        : t("auth.almostDoneDesc"),
     });
   };
 

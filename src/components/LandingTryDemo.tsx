@@ -59,10 +59,46 @@ export function LandingTryDemo() {
     }
   };
 
+  const persistDemo = () => {
+    try {
+      const payload = {
+        student: sName.trim()
+          ? {
+              name: sName.trim(),
+              subject: sSubject.trim() || null,
+              price: sPrice.trim() ? Number(sPrice) : null,
+            }
+          : null,
+        lesson: lStudent.trim() && lDate && lTime
+          ? { studentName: lStudent.trim(), date: lDate, time: lTime }
+          : null,
+        payment: pStudent.trim() && (pAmount || pLessons)
+          ? {
+              studentName: pStudent.trim(),
+              amount: pAmount ? Number(pAmount) : null,
+              lessons: pLessons ? Number(pLessons) : null,
+            }
+          : null,
+        savedAt: Date.now(),
+      };
+      if (payload.student || payload.lesson || payload.payment) {
+        localStorage.setItem("tutorhub.demo", JSON.stringify(payload));
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    persistDemo();
     setDone(tab);
   };
+
+  const ctaName = sName.trim() || lStudent.trim() || pStudent.trim();
+  const ctaText = ctaName
+    ? `Зберегти ${ctaName} і продовжити →`
+    : "Зберегти і продовжити →";
 
   const valid =
     (tab === "student" && sName.trim() && sSubject.trim()) ||
@@ -101,8 +137,8 @@ export function LandingTryDemo() {
               <div className="ltd-success">
                 <div className="ltd-success-title">{successText[tab].title}</div>
                 <p className="ltd-success-sub">{successText[tab].sub}</p>
-                <Link to="/auth?signup=1&role=tutor" className="ltd-btn-primary">
-                  Зареєструватись →
+                <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
+                  {ctaText}
                 </Link>
                 <button type="button" className="ltd-link" onClick={() => setDone(null)}>
                   Спробувати ще раз
