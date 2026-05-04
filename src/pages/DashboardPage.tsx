@@ -21,6 +21,7 @@ import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
@@ -104,16 +105,9 @@ export default function DashboardPage() {
   const isStudent = roles.includes("student");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
-  // Auto-redirect: tutor (not manager) who never opened the app — show onboarding
-  // first instead of an empty dashboard. We trigger it only when the workspace
-  // has not been activated AND the tutor has not explicitly skipped (no settings row).
-  useEffect(() => {
-    if (wsLoading) return;
-    if (!isTutor || isManager || isStudent) return;
-    if (settings === null) {
-      navigate("/onboarding", { replace: true });
-    }
-  }, [wsLoading, isTutor, isManager, isStudent, settings, navigate]);
+  // Note: previously we auto-redirected new tutors to /onboarding here.
+  // Removed per UX feedback — instead we show an inline "Add first student"
+  // CTA on the empty dashboard so the tutor isn't bounced to another page.
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -127,6 +121,8 @@ export default function DashboardPage() {
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
+  const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
 
@@ -250,6 +246,16 @@ export default function DashboardPage() {
 
     setProfiles(profileMap);
     setLessons((lessonsData ?? []) as LessonRow[]);
+
+    if (isIndependentTutor) {
+      const { count } = await supabase
+        .from("student_rates")
+        .select("student_id", { count: "exact", head: true })
+        .eq("tutor_id", user.id)
+        .eq("source", "independent");
+      setMyStudentCount(count ?? 0);
+    }
+
     setLoading(false);
   };
 
@@ -619,18 +625,31 @@ export default function DashboardPage() {
               <div className={`space-y-3 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-                    {t("dashboard.noUpcoming")}
-                    {isTutor && !isManager && (
-                      <Button asChild size="sm" className="ml-3">
-                        <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
-                      </Button>
-                    )}
-                    {isStudent && !isTutor && !isManager && (
-                      <span className="ml-3 inline-block">
-                        <FindTutorDialog
-                          trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
-                        />
-                      </span>
+                    {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
+                      <div className="space-y-2">
+                        <p className="font-medium text-foreground">👋 Додай першого учня — це займе 2 хвилини</p>
+                        <p className="text-xs">Введи ім'я і ставку — далі створиш урок одним кліком.</p>
+                        <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
+                          <Plus className="h-4 w-4" />
+                          Додати першого учня
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        {t("dashboard.noUpcoming")}
+                        {isTutor && !isManager && (
+                          <Button asChild size="sm" className="ml-3">
+                            <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
+                          </Button>
+                        )}
+                        {isStudent && !isTutor && !isManager && (
+                          <span className="ml-3 inline-block">
+                            <FindTutorDialog
+                              trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
+                            />
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 ) : (
@@ -985,6 +1004,11 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => loadData()}
+      />
       <LessonDetailsDialog
         lessonId={openLessonId}
         open={!!openLessonId}

@@ -16,6 +16,7 @@ import {
   Wallet,
   ArrowRight,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,6 +46,7 @@ export function PendingPaymentsCard() {
   const [rows, setRows] = useState<UnpaidRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [remindingId, setRemindingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
 
@@ -106,6 +108,25 @@ export function PendingPaymentsCard() {
     }
     setRows((r) => r.filter((x) => !ids.includes(x.id)));
     toast.success(ids.length === 1 ? "Позначено як оплачено" : `Позначено ${ids.length} уроків`);
+  };
+
+  const remindStudent = async (lessonId: string) => {
+    setRemindingId(lessonId);
+    const { data, error } = await supabase.functions.invoke("remind-payment", {
+      body: { lessonId },
+    });
+    setRemindingId(null);
+    if (error) {
+      toast.error("Не вдалося надіслати нагадування");
+      return;
+    }
+    if ((data as any)?.success) {
+      const channels = (data as any).channels as string[];
+      const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
+      toast.success(`Нагадування надіслано: ${labels.join(" + ")}`);
+    } else {
+      toast.error("Учень не має ні Telegram, ні email — додайте контакт");
+    }
   };
 
   if (loading) {
@@ -230,6 +251,21 @@ export function PendingPaymentsCard() {
                                   {r.student_price} ₴
                                 </p>
                               </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 gap-1 px-2 text-xs"
+                                onClick={() => remindStudent(r.id)}
+                                disabled={remindingId === r.id}
+                                title="Надіслати нагадування у Telegram + email"
+                              >
+                                {remindingId === r.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Bell className="h-3 w-3" />
+                                )}
+                                Нагадати
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="ghost"
