@@ -300,7 +300,7 @@ export default function ChatsPage() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId]);
+  }, [selectedId, showArchived]);
 
   // Realtime: refresh thread list metadata when any message arrives so unread badges update
   useEffect(() => {
