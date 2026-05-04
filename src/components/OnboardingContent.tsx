@@ -412,6 +412,14 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         </div>
       </div>
 
+      {demoNotice && (
+        <div className="mb-4 rounded-2xl border-2 border-primary/30 bg-primary/5 p-4">
+          <p className="text-sm text-foreground">
+            Ми вже зберегли <span className="font-bold">{demoNotice}</span> — продовжуй з наступного кроку 🎉
+          </p>
+        </div>
+      )}
+
       {(allDone || completed) && (
         <div className="mb-4 overflow-hidden rounded-2xl border-2 border-success/40 bg-gradient-to-r from-success/10 to-primary/10 p-4 animate-pop">
           <div className="flex items-center gap-3">
