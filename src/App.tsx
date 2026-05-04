@@ -178,6 +178,46 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/student-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/schedule"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentSchedulePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/payments"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentPaymentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/homework"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentHomeworkPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentProfilePage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
