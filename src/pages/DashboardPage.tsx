@@ -246,6 +246,16 @@ export default function DashboardPage() {
 
     setProfiles(profileMap);
     setLessons((lessonsData ?? []) as LessonRow[]);
+
+    if (isIndependentTutor) {
+      const { count } = await supabase
+        .from("student_rates")
+        .select("student_id", { count: "exact", head: true })
+        .eq("tutor_id", user.id)
+        .eq("source", "independent");
+      setMyStudentCount(count ?? 0);
+    }
+
     setLoading(false);
   };
 
