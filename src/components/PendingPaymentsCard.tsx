@@ -50,6 +50,7 @@ export function PendingPaymentsCard() {
   const [remindingId, setRemindingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
 
   const load = async () => {
     if (!user) return;
