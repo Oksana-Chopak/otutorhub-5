@@ -323,6 +323,11 @@ export default function AuthPage() {
               </div>
 
               <TabsContent value="signin">
+                {confirmedNotice && (
+                  <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
+                    Email підтверджено! Увійдіть, щоб продовжити 🎉
+                  </div>
+                )}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
