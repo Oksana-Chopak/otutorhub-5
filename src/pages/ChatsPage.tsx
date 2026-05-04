@@ -762,7 +762,20 @@ export default function ChatsPage() {
                 </div>
 
                 <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:max-h-[55vh] lg:min-h-[300px] lg:p-5">
-
+                  {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground"
+                        onClick={() =>
+                          setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
+                        }
+                      >
+                        Показати всю історію
+                      </Button>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
                   ) : (
