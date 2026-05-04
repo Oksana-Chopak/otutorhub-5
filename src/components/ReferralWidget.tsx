@@ -54,7 +54,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  const toReward = Math.max(0, 3 - monthly);
+  const toBigBonus = Math.max(0, 3 - monthly);
   const progress = Math.min(100, (monthly / 3) * 100);
 
   const handleCopy = async () => {
