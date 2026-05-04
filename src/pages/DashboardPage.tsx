@@ -20,6 +20,7 @@ import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
 import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
+import { WalletDialog } from "@/components/WalletDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
