@@ -125,6 +125,7 @@ export default function DashboardPage() {
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
