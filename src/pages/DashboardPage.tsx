@@ -105,6 +105,14 @@ export default function DashboardPage() {
   const isStudent = roles.includes("student");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
+  // Student-only users belong on /student-dashboard. Redirect them out of
+  // the tutor/manager dashboard immediately to avoid mixed UI.
+  useEffect(() => {
+    if (isStudent && !isManager && !isTutor) {
+      navigate("/student-dashboard", { replace: true });
+    }
+  }, [isStudent, isManager, isTutor, navigate]);
+
   // Note: previously we auto-redirected new tutors to /onboarding here.
   // Removed per UX feedback — instead we show an inline "Add first student"
   // CTA on the empty dashboard so the tutor isn't bounced to another page.

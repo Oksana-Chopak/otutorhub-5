@@ -34,6 +34,11 @@ import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import StudentDashboardPage from "./pages/student/StudentDashboardPage";
+import StudentSchedulePage from "./pages/student/StudentSchedulePage";
+import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
+import StudentHomeworkPage from "./pages/student/StudentHomeworkPage";
+import StudentProfilePage from "./pages/student/StudentProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -170,6 +175,46 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["manager", "tutor"]}>
             <WalletsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student-dashboard"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentDashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/schedule"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentSchedulePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/payments"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentPaymentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/homework"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentHomeworkPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/student/profile"
+        element={
+          <ProtectedRoute allowedRoles={["student"]}>
+            <StudentProfilePage />
           </ProtectedRoute>
         }
       />
