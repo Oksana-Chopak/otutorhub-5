@@ -19,6 +19,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   const { user } = useAuth();
   const [code, setCode] = useState<string | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [savedUah, setSavedUah] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -38,6 +39,9 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
         .from("referrals").select("id, referred_id, signed_up_at, upgraded_to_pro_at")
         .eq("referrer_id", user.id).order("signed_up_at", { ascending: false });
       setReferrals((refs ?? []) as ReferralRow[]);
+
+      const { data: saved } = await supabase.rpc("get_referral_savings_uah", { _tutor_id: user.id });
+      setSavedUah(Number(saved ?? 0));
       setLoading(false);
     })();
   }, [user?.id]);
