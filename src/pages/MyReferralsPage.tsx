@@ -15,7 +15,7 @@ interface LeaderRow {
   total_signups: number;
 }
 
-const RANK_REWARDS = ["🥇 1 рік Pro", "🥈 6 міс Pro", "🥉 6 міс Pro"];
+const RANK_REWARDS = ["🥇 +6 міс Pro", "🥈 +3 міс Pro", "🥉 +3 міс Pro"];
 
 export default function MyReferralsPage() {
   const { user } = useAuth();
@@ -47,7 +47,7 @@ export default function MyReferralsPage() {
               Топ рефереів місяця
             </CardTitle>
             <CardDescription>
-              Призи: 🥇 1 місце — рік Pro · 🥈 2–3 місце — 6 місяців Pro · 🥉 4–10 — 3 місяці Pro
+              Призи топ-рефереру: 🥇 +6 міс · 🥈🥉 +3 міс · 4–10 місце — +1 міс Pro
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -88,7 +88,7 @@ export default function MyReferralsPage() {
                         </Badge>
                       )}
                       {idx >= 3 && idx < 10 && (
-                        <Badge variant="outline" className="shrink-0 text-[10px]">3 міс Pro</Badge>
+                        <Badge variant="outline" className="shrink-0 text-[10px]">+1 міс Pro</Badge>
                       )}
                     </li>
                   );
@@ -100,13 +100,25 @@ export default function MyReferralsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Як працює реферальна програма</CardTitle>
+            <CardTitle>Три простих правила</CardTitle>
+            <CardDescription>Без зірочок і дрібного шрифту</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-foreground">
-            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span>Поділись своїм посиланням з колегою-репетитором</span></div>
-            <div className="flex gap-3"><span className="text-xl">2️⃣</span><span>Він реєструється — обидва отримуєте <strong>+7 днів Pro</strong></span></div>
-            <div className="flex gap-3"><span className="text-xl">3️⃣</span><span>Якщо колега переходить на Pro — ти отримуєш <strong>+1 місяць Pro</strong></span></div>
-            <div className="flex gap-3"><span className="text-xl">🎁</span><span><strong>3 апгрейди за місяць → Pro на рік безкоштовно!</strong></span></div>
+            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span>Друг зареєструвався за твоїм посиланням → він отримує <strong>21 день тріалу</strong> замість 14.</span></div>
+            <div className="flex gap-3"><span className="text-xl">2️⃣</span><span>Друг оплатив перший місяць → ти отримуєш <strong>місяць безкоштовно</strong>.</span></div>
+            <div className="flex gap-3"><span className="text-xl">3️⃣</span><span>Три друзі оплатили за один місяць → ти отримуєш <strong>три місяці безкоштовно</strong>.</span></div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="space-y-2 p-5 text-sm">
+            <p className="font-semibold text-foreground">👯 Хороше ділиться двічі</p>
+            <p className="text-muted-foreground">
+              Знаєш репетитора, який досі веде облік у блокноті? Саме час врятувати людину 😄
+            </p>
+            <p className="text-muted-foreground">
+              Поділись посиланням — твій друг отримає 21 день тріалу, а коли він підпишеться — ти отримаєш місяць безкоштовно. Без умов дрібним шрифтом.
+            </p>
           </CardContent>
         </Card>
       </div>

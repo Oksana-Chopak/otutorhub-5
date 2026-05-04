@@ -19,6 +19,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   const { user } = useAuth();
   const [code, setCode] = useState<string | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [savedUah, setSavedUah] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
 
@@ -38,6 +39,9 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
         .from("referrals").select("id, referred_id, signed_up_at, upgraded_to_pro_at")
         .eq("referrer_id", user.id).order("signed_up_at", { ascending: false });
       setReferrals((refs ?? []) as ReferralRow[]);
+
+      const { data: saved } = await supabase.rpc("get_referral_savings_uah", { _tutor_id: user.id });
+      setSavedUah(Number(saved ?? 0));
       setLoading(false);
     })();
   }, [user?.id]);
@@ -50,7 +54,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
     const now = new Date();
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  const toReward = Math.max(0, 3 - monthly);
+  const toBigBonus = Math.max(0, 3 - monthly);
   const progress = Math.min(100, (monthly / 3) * 100);
 
   const handleCopy = async () => {
@@ -82,10 +86,17 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
             <HandHeart className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">Запроси колегу — отримай Pro</h3>
-            <p className="text-xs text-muted-foreground">+7 днів обом · +1 міс за апгрейд</p>
+            <h3 className="font-bold text-foreground">Запроси колегу — економ на Pro</h3>
+            <p className="text-xs text-muted-foreground">Друг отримує 21 день тріалу · ти — місяць за його оплату</p>
           </div>
         </div>
+
+        {savedUah > 0 && (
+          <div className="mb-3 rounded-xl border border-success/30 bg-success/5 p-3">
+            <p className="text-xs text-muted-foreground">Завдяки твоїм запрошенням ти зекономив</p>
+            <p className="text-2xl font-bold text-success">{savedUah.toLocaleString("uk-UA")} ₴</p>
+          </div>
+        )}
 
         <div className="mb-3 flex gap-2">
           <Input value={link} readOnly className="font-mono text-xs" onClick={(e) => (e.target as HTMLInputElement).select()} />
@@ -101,17 +112,17 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">
-                Цього місяця: <strong className="text-foreground">{monthly} з 3</strong> до Pro на рік 🔥
+                Цього місяця: <strong className="text-foreground">{monthly} з 3</strong> оплат → +3 міс бонус 🔥
               </span>
               <span className="font-semibold text-primary">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
-            {toReward > 0 ? (
+            {toBigBonus > 0 ? (
               <p className="text-[11px] text-muted-foreground">
-                Залишилось ще <strong>{toReward}</strong> {toReward === 1 ? "апгрейд" : "апгрейди"} до Pro на рік
+                Ще <strong>{toBigBonus}</strong> {toBigBonus === 1 ? "оплата" : "оплати"} цього місяця → отримаєш +3 місяці безкоштовно
               </p>
             ) : (
-              <p className="text-[11px] font-semibold text-success">🎉 Ти заробив Pro на рік!</p>
+              <p className="text-[11px] font-semibold text-success">🎉 Ти заробив +3 місяці бонусом!</p>
             )}
           </div>
         )}
