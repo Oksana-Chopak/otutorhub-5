@@ -299,6 +299,12 @@ export function PendingPaymentsCard() {
           </CardContent>
         </CollapsibleContent>
       </Collapsible>
+      <LessonDetailsDialog
+        lessonId={openLessonId}
+        open={!!openLessonId}
+        onOpenChange={(o) => !o && setOpenLessonId(null)}
+        onUpdated={load}
+      />
     </Card>
   );
 }
