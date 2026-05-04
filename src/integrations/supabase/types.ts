@@ -967,6 +967,42 @@ export type Database = {
         }
         Relationships: []
       }
+      student_intake_quiz: {
+        Row: {
+          created_at: string
+          goal: string | null
+          goal_other: string | null
+          id: string
+          level: string | null
+          schedule: string[]
+          student_id: string
+          subjects: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          goal?: string | null
+          goal_other?: string | null
+          id?: string
+          level?: string | null
+          schedule?: string[]
+          student_id: string
+          subjects?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          goal?: string | null
+          goal_other?: string | null
+          id?: string
+          level?: string | null
+          schedule?: string[]
+          student_id?: string
+          subjects?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_rates: {
         Row: {
           archived_at: string | null
