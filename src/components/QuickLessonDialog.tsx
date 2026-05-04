@@ -53,6 +53,7 @@ export function QuickLessonDialog({
   startsAt,
   onCreated,
   onWantFullForm,
+  initialStudentId,
 }: Props) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
