@@ -123,7 +123,7 @@ export function QuickLessonDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, user?.id]);
+  }, [open, user?.id, initialStudentId]);
 
   const selected = useMemo(
     () => students.find((s) => s.student_id === studentId) ?? null,
