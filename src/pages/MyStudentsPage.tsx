@@ -34,10 +34,14 @@ import {
   Banknote,
   Video,
   Wallet,
+  MessageSquare,
+  CalendarPlus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
+import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 
 interface MyStudent {
   id: string;
