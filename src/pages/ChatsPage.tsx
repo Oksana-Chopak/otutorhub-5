@@ -103,6 +103,7 @@ export default function ChatsPage() {
   const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showArchived, setShowArchived] = useState<Record<string, boolean>>({});
   
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
