@@ -366,6 +366,60 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_details: {
+        Row: {
+          created_at: string
+          homework: string | null
+          lesson_id: string
+          student_notes: string | null
+          student_payment_status: string | null
+          student_price: number | null
+          summary: string | null
+          tutor_payout: number | null
+          tutor_payout_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          homework?: string | null
+          lesson_id: string
+          student_notes?: string | null
+          student_payment_status?: string | null
+          student_price?: number | null
+          summary?: string | null
+          tutor_payout?: number | null
+          tutor_payout_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          homework?: string | null
+          lesson_id?: string
+          student_notes?: string | null
+          student_payment_status?: string | null
+          student_price?: number | null
+          summary?: string | null
+          tutor_payout?: number | null
+          tutor_payout_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_feedback: {
         Row: {
           comment: string | null
