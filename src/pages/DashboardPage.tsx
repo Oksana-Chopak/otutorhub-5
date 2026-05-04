@@ -1004,6 +1004,11 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => loadData()}
+      />
       <LessonDetailsDialog
         lessonId={openLessonId}
         open={!!openLessonId}
