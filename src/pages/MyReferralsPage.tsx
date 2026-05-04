@@ -15,7 +15,7 @@ interface LeaderRow {
   total_signups: number;
 }
 
-const RANK_REWARDS = ["🥇 1 рік Pro", "🥈 6 міс Pro", "🥉 6 міс Pro"];
+const RANK_REWARDS = ["🥇 +6 міс Pro", "🥈 +3 міс Pro", "🥉 +3 міс Pro"];
 
 export default function MyReferralsPage() {
   const { user } = useAuth();
