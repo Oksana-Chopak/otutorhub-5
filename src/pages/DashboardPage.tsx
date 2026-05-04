@@ -625,18 +625,31 @@ export default function DashboardPage() {
               <div className={`space-y-3 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-                    {t("dashboard.noUpcoming")}
-                    {isTutor && !isManager && (
-                      <Button asChild size="sm" className="ml-3">
-                        <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
-                      </Button>
-                    )}
-                    {isStudent && !isTutor && !isManager && (
-                      <span className="ml-3 inline-block">
-                        <FindTutorDialog
-                          trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
-                        />
-                      </span>
+                    {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
+                      <div className="space-y-2">
+                        <p className="font-medium text-foreground">👋 Додай першого учня — це займе 2 хвилини</p>
+                        <p className="text-xs">Введи ім'я і ставку — далі створиш урок одним кліком.</p>
+                        <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
+                          <Plus className="h-4 w-4" />
+                          Додати першого учня
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        {t("dashboard.noUpcoming")}
+                        {isTutor && !isManager && (
+                          <Button asChild size="sm" className="ml-3">
+                            <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
+                          </Button>
+                        )}
+                        {isStudent && !isTutor && !isManager && (
+                          <span className="ml-3 inline-block">
+                            <FindTutorDialog
+                              trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
+                            />
+                          </span>
+                        )}
+                      </>
                     )}
                   </div>
                 ) : (
