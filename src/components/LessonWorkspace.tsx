@@ -216,6 +216,16 @@ export function LessonWorkspace({
                 )}
                 {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
               </Button>
+              {canOpenWallet && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setWalletOpen(true)}
+                  title="Гаманець (передоплата / списання)"
+                >
+                  <Wallet className="h-4 w-4 text-primary" />
+                </Button>
+              )}
             </div>
           </div>
         </section>
