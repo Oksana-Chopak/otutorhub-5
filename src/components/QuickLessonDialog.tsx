@@ -113,7 +113,10 @@ export function QuickLessonDialog({
       setStudents(rows);
       const last = localStorage.getItem(LAST_KEY);
       const initial =
-        rows.find((r) => r.student_id === last)?.student_id ?? rows[0]?.student_id ?? "";
+        (initialStudentId && rows.find((r) => r.student_id === initialStudentId)?.student_id) ||
+        rows.find((r) => r.student_id === last)?.student_id ||
+        rows[0]?.student_id ||
+        "";
       setStudentId(initial);
       setLoading(false);
     })();
