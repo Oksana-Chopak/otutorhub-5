@@ -46,6 +46,7 @@ export function PendingPaymentsCard() {
   const [rows, setRows] = useState<UnpaidRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [remindingId, setRemindingId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [expandedStudent, setExpandedStudent] = useState<string | null>(null);
 
