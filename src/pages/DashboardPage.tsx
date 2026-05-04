@@ -105,16 +105,9 @@ export default function DashboardPage() {
   const isStudent = roles.includes("student");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
-  // Auto-redirect: tutor (not manager) who never opened the app — show onboarding
-  // first instead of an empty dashboard. We trigger it only when the workspace
-  // has not been activated AND the tutor has not explicitly skipped (no settings row).
-  useEffect(() => {
-    if (wsLoading) return;
-    if (!isTutor || isManager || isStudent) return;
-    if (settings === null) {
-      navigate("/onboarding", { replace: true });
-    }
-  }, [wsLoading, isTutor, isManager, isStudent, settings, navigate]);
+  // Note: previously we auto-redirected new tutors to /onboarding here.
+  // Removed per UX feedback — instead we show an inline "Add first student"
+  // CTA on the empty dashboard so the tutor isn't bounced to another page.
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -128,6 +121,8 @@ export default function DashboardPage() {
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
+  const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
 
