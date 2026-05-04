@@ -536,6 +536,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
+          {isIndependentTutor && <TrialCountdownBanner />}
           {isManager && (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
