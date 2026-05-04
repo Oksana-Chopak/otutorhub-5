@@ -137,8 +137,8 @@ export function LandingTryDemo() {
               <div className="ltd-success">
                 <div className="ltd-success-title">{successText[tab].title}</div>
                 <p className="ltd-success-sub">{successText[tab].sub}</p>
-                <Link to="/auth?signup=1&role=tutor" className="ltd-btn-primary">
-                  Зареєструватись →
+                <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
+                  {ctaText}
                 </Link>
                 <button type="button" className="ltd-link" onClick={() => setDone(null)}>
                   Спробувати ще раз
