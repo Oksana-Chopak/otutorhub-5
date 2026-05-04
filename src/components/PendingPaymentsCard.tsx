@@ -16,6 +16,7 @@ import {
   Wallet,
   ArrowRight,
   ChevronDown,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 
