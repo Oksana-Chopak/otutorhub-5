@@ -34,6 +34,11 @@ import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
+import StudentDashboardPage from "./pages/student/StudentDashboardPage";
+import StudentSchedulePage from "./pages/student/StudentSchedulePage";
+import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
+import StudentHomeworkPage from "./pages/student/StudentHomeworkPage";
+import StudentProfilePage from "./pages/student/StudentProfilePage";
 
 const queryClient = new QueryClient();
 
