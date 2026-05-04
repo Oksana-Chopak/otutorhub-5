@@ -27,7 +27,10 @@ export function ProtectedRoute({ children, allowedRoles }: Props) {
   if (allowedRoles && allowedRoles.length > 0) {
     const hasAccess = allowedRoles.some((r) => checkRole(r));
     if (!hasAccess) {
-      return <Navigate to="/" replace />;
+      // Student-only users denied a tutor/manager page → send to their cabinet.
+      const isStudentOnly =
+        checkRole("student") && !checkRole("manager") && !checkRole("tutor");
+      return <Navigate to={isStudentOnly ? "/student-dashboard" : "/"} replace />;
     }
   }
 
