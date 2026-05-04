@@ -191,7 +191,7 @@ export default function AuthPage() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpResult, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
@@ -206,6 +206,16 @@ export default function AuthPage() {
       },
     });
     setLoading(false);
+    if (!error && signUpResult?.user && signUpResult.user.identities?.length === 0) {
+      toast({
+        title: "Email вже зареєстровано",
+        description: "Цей email вже зареєстрований. Увійдіть або скиньте пароль.",
+        variant: "destructive",
+      });
+      setSignInData((prev) => ({ ...prev, email: parsed.data.email }));
+      setActiveTab("signin");
+      return;
+    }
     if (error) {
       console.error("Sign-up failed", error);
       toast({
