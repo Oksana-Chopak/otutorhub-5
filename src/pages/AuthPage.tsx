@@ -46,9 +46,11 @@ export default function AuthPage() {
   });
 
   // Invite-link / preselected tab support: ?signup=1&email=...&role=student|tutor
+  const isConfirmed = searchParams.get("confirmed") === "1";
   const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
-  const [activeTab, setActiveTab] = useState<string>(initialTab);
+  const [activeTab, setActiveTab] = useState<string>(isConfirmed ? "signin" : initialTab);
   const [pendingHint, setPendingHint] = useState<string | null>(null);
+  const [confirmedNotice, setConfirmedNotice] = useState<boolean>(isConfirmed);
 
   const [signInData, setSignInData] = useState({
     email: searchParams.get("email") ?? "",
@@ -89,6 +91,21 @@ export default function AuthPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Email confirmed redirect handling: ?confirmed=1
+  useEffect(() => {
+    if (!isConfirmed) return;
+    if (authLoading) return;
+    if (user) {
+      // Active session — go to root, role-based routing happens there
+      navigate("/", { replace: true });
+      return;
+    }
+    toast({
+      title: "Email підтверджено! 🎉",
+      description: "Увійдіть, щоб продовжити.",
+    });
+  }, [isConfirmed, authLoading, user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -195,7 +212,7 @@ export default function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/`,
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}`,
         data: {
           first_name: parsed.data.firstName,
           last_name: parsed.data.lastName,
@@ -306,6 +323,11 @@ export default function AuthPage() {
               </div>
 
               <TabsContent value="signin">
+                {confirmedNotice && (
+                  <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
+                    Email підтверджено! Увійдіть, щоб продовжити 🎉
+                  </div>
+                )}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
