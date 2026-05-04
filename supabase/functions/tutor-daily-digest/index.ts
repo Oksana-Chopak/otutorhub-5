@@ -176,23 +176,22 @@ Deno.serve(async (req) => {
   let sent = 0;
   let skipped = 0;
 
-  for (const tutorId of targets) {
+  // Process one tutor: compose + send + record. Returns 'sent' | 'skipped'.
+  const processTutor = async (tutorId: string): Promise<"sent" | "skipped"> => {
     const chatId = chatByTutor.get(tutorId);
     if (!chatId) {
-      skipped++;
-      continue;
+      return "skipped";
     }
     const lessons = lessonsByTutor.get(tutorId) ?? [];
     const debts = debtsByTutor.get(tutorId) ?? new Map();
 
     // Skip if absolutely nothing to say
     if (lessons.length === 0 && debts.size === 0) {
-      skipped++;
       // Still record so we don't retry repeatedly today
       await supabase
         .from("tutor_daily_digests")
         .insert({ tutor_id: tutorId, digest_date: today, channel: "telegram" });
-      continue;
+      return "skipped";
     }
 
     // Compose message
@@ -235,13 +234,27 @@ Deno.serve(async (req) => {
 
     const ok = await sendTg(TELEGRAM_BOT_TOKEN, chatId, lines.join("\n"));
     if (!ok) {
-      skipped++;
-      continue;
+      return "skipped";
     }
     await supabase
       .from("tutor_daily_digests")
       .insert({ tutor_id: tutorId, digest_date: today, channel: "telegram" });
-    sent++;
+    return "sent";
+  };
+
+  // Batch sends to respect Telegram's ~30 msg/sec global limit.
+  const BATCH_SIZE = 25;
+  const DELAY_MS = 1100; // трохи більше 1 сек
+  for (let i = 0; i < targets.length; i += BATCH_SIZE) {
+    const batch = targets.slice(i, i + BATCH_SIZE);
+    const results = await Promise.all(batch.map((id) => processTutor(id)));
+    for (const r of results) {
+      if (r === "sent") sent++;
+      else skipped++;
+    }
+    if (i + BATCH_SIZE < targets.length) {
+      await new Promise((r) => setTimeout(r, DELAY_MS));
+    }
   }
 
   return new Response(
