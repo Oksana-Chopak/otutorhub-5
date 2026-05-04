@@ -126,6 +126,14 @@ export default function MyStudentsPage() {
     | { open: boolean; tutorId: string; studentId: string; studentName: string; tutorName: string; rate: number }
     | null
   >(null);
+  const [chatDialog, setChatDialog] = useState<
+    | { open: boolean; studentId: string; studentName: string }
+    | null
+  >(null);
+  const [lessonDialog, setLessonDialog] = useState<
+    | { open: boolean; studentId: string }
+    | null
+  >(null);
 
   useEffect(() => {
     if (!wsLoading && user && (!isTutor || !isIndependent)) {
