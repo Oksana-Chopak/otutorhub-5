@@ -254,6 +254,21 @@ export function PendingPaymentsCard() {
                               <Button
                                 size="sm"
                                 variant="ghost"
+                                className="h-7 gap-1 px-2 text-xs"
+                                onClick={() => remindStudent(r.id)}
+                                disabled={remindingId === r.id}
+                                title="Надіслати нагадування у Telegram + email"
+                              >
+                                {remindingId === r.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Bell className="h-3 w-3" />
+                                )}
+                                Нагадати
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
                                 className="h-7 gap-1 text-xs"
                                 onClick={() => markPaid([r.id])}
                                 disabled={oneBusy}
