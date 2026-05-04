@@ -21,6 +21,8 @@ import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
+import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
@@ -123,6 +125,7 @@ export default function DashboardPage() {
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
@@ -533,6 +536,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <>
+          {isIndependentTutor && <TrialCountdownBanner />}
           {isManager && (
             <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
@@ -661,7 +665,11 @@ export default function DashboardPage() {
                           key={lesson.id}
                           className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:p-4"
                         >
-                          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                          <button
+                            type="button"
+                            onClick={() => setOpenLessonId(lesson.id)}
+                            className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
+                          >
                             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
                               <Clock className="h-4 w-4 text-primary" />
                             </div>
@@ -672,13 +680,18 @@ export default function DashboardPage() {
                               </p>
                               <p className="text-xs text-muted-foreground sm:hidden mt-0.5">{timeLabel}</p>
                             </div>
-                          </div>
+                          </button>
                           <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
                             <span className="hidden sm:block text-xs font-medium text-foreground">{timeLabel}</span>
                             <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
                             <div className="flex items-center gap-1.5">
-                              <Button asChild size="sm" variant="outline" className="h-7">
-                                <Link to="/schedule">Відкрити</Link>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7"
+                                onClick={() => setOpenLessonId(lesson.id)}
+                              >
+                                Відкрити
                               </Button>
                               <Button
                                 size="sm"
@@ -972,6 +985,12 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <LessonDetailsDialog
+        lessonId={openLessonId}
+        open={!!openLessonId}
+        onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
+        onUpdated={loadData}
+      />
     </AppLayout>
   );
 }
