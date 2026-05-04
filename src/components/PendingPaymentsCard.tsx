@@ -241,7 +241,12 @@ export function PendingPaymentsCard() {
                               key={r.id}
                               className="flex items-center justify-between gap-2 rounded-md bg-secondary/30 px-2 py-1.5"
                             >
-                              <div className="min-w-0 flex-1">
+                              <button
+                                type="button"
+                                className="min-w-0 flex-1 text-left hover:opacity-80"
+                                onClick={() => setOpenLessonId(r.id)}
+                                title="Відкрити урок"
+                              >
                                 <p className="truncate text-xs text-foreground">
                                   {r.subject} ·{" "}
                                   {d.toLocaleDateString("uk-UA", {
@@ -252,7 +257,7 @@ export function PendingPaymentsCard() {
                                 <p className="text-xs font-medium text-muted-foreground">
                                   {r.student_price} ₴
                                 </p>
-                              </div>
+                              </button>
                               <Button
                                 size="sm"
                                 variant="ghost"
