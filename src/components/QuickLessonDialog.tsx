@@ -28,6 +28,7 @@ interface Props {
   startsAt: Date | null;
   onCreated?: () => void;
   onWantFullForm?: (startsAt: Date) => void;
+  initialStudentId?: string | null;
 }
 
 interface StudentRow {
