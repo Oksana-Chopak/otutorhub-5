@@ -21,6 +21,8 @@ import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
+import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
