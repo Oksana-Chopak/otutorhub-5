@@ -413,6 +413,15 @@ export function LessonWorkspace({
                     </a>
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setChatOpen(true)}
+                  title="Написати учню"
+                >
+                  <MessageSquare className="mr-1 h-4 w-4" />
+                  Написати
+                </Button>
                 <CollapsibleTrigger asChild>
                   <Button size="sm" variant="ghost" className="group">
                     Редагувати
