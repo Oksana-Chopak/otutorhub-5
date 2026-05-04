@@ -936,6 +936,29 @@ export default function MyStudentsPage() {
           canTopUp={true}
         />
       )}
+
+      {chatDialog && user && (
+        <ChatThreadDialog
+          open={chatDialog.open}
+          onOpenChange={(o) => !o && setChatDialog(null)}
+          tutorId={user.id}
+          studentId={chatDialog.studentId}
+          counterpartName={chatDialog.studentName}
+        />
+      )}
+
+      {lessonDialog && (
+        <QuickLessonDialog
+          open={lessonDialog.open}
+          onOpenChange={(o) => !o && setLessonDialog(null)}
+          startsAt={new Date(Date.now() + 60 * 60 * 1000)}
+          initialStudentId={lessonDialog.studentId}
+          onCreated={() => {
+            setLessonDialog(null);
+            load();
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
