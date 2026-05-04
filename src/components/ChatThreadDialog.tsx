@@ -47,6 +47,7 @@ export function ChatThreadDialog({
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -54,6 +55,7 @@ export function ChatThreadDialog({
       setThreadId(null);
       setMessages([]);
       setDraft("");
+      setShowArchived(false);
       return;
     }
     let cancelled = false;
@@ -68,11 +70,12 @@ export function ChatThreadDialog({
         setLoading(false);
         return;
       }
-      const { data: msgs } = await supabase
+      let q = supabase
         .from("chat_messages")
         .select("id, thread_id, sender_id, body, created_at")
-        .eq("thread_id", tid as string)
-        .order("created_at", { ascending: true });
+        .eq("thread_id", tid as string);
+      if (!showArchived) q = q.eq("archived", false);
+      const { data: msgs } = await q.order("created_at", { ascending: true });
       if (cancelled) return;
       setThreadId(tid as string);
       setMessages((msgs ?? []) as Message[]);
@@ -89,7 +92,7 @@ export function ChatThreadDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, tutorId, studentId, myId]);
+  }, [open, tutorId, studentId, myId, showArchived]);
 
   // Realtime
   useEffect(() => {
@@ -150,6 +153,18 @@ export function ChatThreadDialog({
               </p>
             ) : (
               <ul className="space-y-1.5">
+                {!showArchived && messages.length > 0 && (
+                  <li className="flex justify-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 text-xs text-muted-foreground"
+                      onClick={() => setShowArchived(true)}
+                    >
+                      Показати всю історію
+                    </Button>
+                  </li>
+                )}
                 {messages.map((m) => {
                   const mine = m.sender_id === myId;
                   return (

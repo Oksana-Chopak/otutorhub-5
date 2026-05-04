@@ -103,6 +103,7 @@ export default function ChatsPage() {
   const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [showArchived, setShowArchived] = useState<Record<string, boolean>>({});
   
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -245,11 +246,13 @@ export default function ChatsPage() {
     let cancelled = false;
 
     const load = async () => {
-      const { data } = await supabase
+      const includeArchived = showArchived[selectedId] === true;
+      let query = supabase
         .from("chat_messages")
         .select("id, thread_id, sender_id, body, created_at")
-        .eq("thread_id", selectedId)
-        .order("created_at", { ascending: true });
+        .eq("thread_id", selectedId);
+      if (!includeArchived) query = query.eq("archived", false);
+      const { data } = await query.order("created_at", { ascending: true });
       const msgs = (data ?? []) as Message[];
       if (!cancelled) setMessages(msgs);
       // Load attachments for these messages
@@ -297,7 +300,7 @@ export default function ChatsPage() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId]);
+  }, [selectedId, showArchived]);
 
   // Realtime: refresh thread list metadata when any message arrives so unread badges update
   useEffect(() => {
@@ -759,7 +762,20 @@ export default function ChatsPage() {
                 </div>
 
                 <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:max-h-[55vh] lg:min-h-[300px] lg:p-5">
-
+                  {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-xs text-muted-foreground"
+                        onClick={() =>
+                          setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
+                        }
+                      >
+                        Показати всю історію
+                      </Button>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
                   ) : (
