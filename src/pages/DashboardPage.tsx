@@ -985,6 +985,12 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <LessonDetailsDialog
+        lessonId={openLessonId}
+        open={!!openLessonId}
+        onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
+        onUpdated={loadData}
+      />
     </AppLayout>
   );
 }
