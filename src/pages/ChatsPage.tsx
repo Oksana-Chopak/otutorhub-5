@@ -246,11 +246,13 @@ export default function ChatsPage() {
     let cancelled = false;
 
     const load = async () => {
-      const { data } = await supabase
+      const includeArchived = showArchived[selectedId] === true;
+      let query = supabase
         .from("chat_messages")
         .select("id, thread_id, sender_id, body, created_at")
-        .eq("thread_id", selectedId)
-        .order("created_at", { ascending: true });
+        .eq("thread_id", selectedId);
+      if (!includeArchived) query = query.eq("archived", false);
+      const { data } = await query.order("created_at", { ascending: true });
       const msgs = (data ?? []) as Message[];
       if (!cancelled) setMessages(msgs);
       // Load attachments for these messages
