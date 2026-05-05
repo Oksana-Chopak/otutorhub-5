@@ -17,6 +17,8 @@ import {
   ArrowRight,
   Loader2,
   PartyPopper,
+  Clock,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -39,6 +41,8 @@ interface Step {
 export interface StepProgress {
   hasStudent: boolean;
   hasLesson: boolean;
+  hasAvailability: boolean;
+  hasReferral: boolean;
   hasMeetingUrl: boolean;
   hasChat: boolean;
   hasPaidLesson: boolean;
@@ -74,6 +78,33 @@ const steps: Step[] = [
   },
   {
     id: 3,
+    title: "Встанови доступні години",
+    description:
+      "Вкажи коли ти вільний для нових учнів — вони зможуть бронювати уроки самостійно у твої вільні слоти.",
+    cta: "Налаштувати доступність",
+    to: "/availability",
+    icon: Clock,
+    emoji: "🕐",
+    xp: 75,
+    autoKey: "hasAvailability",
+    autoHint: "Доступність налаштовано ✓",
+  },
+  {
+    id: 4,
+    title: "Запроси колегу",
+    description:
+      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
+    cta: "Запросити колегу",
+    to: "/referrals",
+    icon: Gift,
+    emoji: "🎁",
+    xp: 100,
+    badge: "Бонус",
+    autoKey: "hasReferral",
+    autoHint: "Запрошення створено ✓",
+  },
+  {
+    id: 5,
     title: "Підключіть Zoom або Google Meet",
     description:
       "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
@@ -87,7 +118,7 @@ const steps: Step[] = [
     autoHint: "Посилання збережено ✓",
   },
   {
-    id: 4,
+    id: 6,
     title: "Спілкуйтеся в чаті",
     description:
       "З кожним учнем — окремий чат. Надсилайте файли, домашку, нагадування. Все зберігається.",
@@ -100,7 +131,7 @@ const steps: Step[] = [
     autoHint: "Чат відкрито ✓",
   },
   {
-    id: 5,
+    id: 7,
     title: "Відмічайте оплати",
     description:
       "Позначайте оплачені уроки в розділі «Фінанси». Бачите статистику — скільки заробили, хто винен.",
@@ -113,7 +144,7 @@ const steps: Step[] = [
     autoHint: "Оплату відмічено ✓",
   },
   {
-    id: 6,
+    id: 8,
     title: "AI-конспекти лекцій",
     description:
       "Скоро: підключіть Fireflies — і Gemini сам зробить структурований конспект після кожного уроку.",
@@ -142,6 +173,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [progress, setProgress] = useState<StepProgress>({
     hasStudent: false,
     hasLesson: false,
+    hasAvailability: false,
+    hasReferral: false,
     hasMeetingUrl: false,
     hasChat: false,
     hasPaidLesson: false,
@@ -237,6 +270,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         { data: defaults },
         { data: threads },
         { data: paid },
+        { data: availability },
+        { data: referrals },
       ] = await Promise.all([
         supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
         supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
@@ -249,6 +284,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           .eq("source", "independent")
           .eq("student_payment_status", "paid")
           .limit(1),
+        supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
+        supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1),
       ]);
 
       if (cancelled) return;
@@ -262,6 +299,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       setProgress({
         hasStudent: (students?.length ?? 0) > 0,
         hasLesson: lessonsList.length > 0,
+        hasAvailability: (availability?.length ?? 0) > 0,
+        hasReferral: (referrals?.length ?? 0) > 0,
         hasMeetingUrl,
         hasChat: (threads?.length ?? 0) > 0,
         hasPaidLesson: (paid?.length ?? 0) > 0,
