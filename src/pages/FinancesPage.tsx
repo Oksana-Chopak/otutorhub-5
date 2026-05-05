@@ -238,7 +238,10 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? { student_payment_status: next }
         : { tutor_payout_status: next };
-    const { error } = await supabase.from("lessons").update(payload).eq("id", lesson.id);
+    const { error } = await supabase
+      .from("lesson_details")
+      .update(payload)
+      .eq("lesson_id", lesson.id);
     if (error) {
       // Roll back
       setLessons((prev) =>
