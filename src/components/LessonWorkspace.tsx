@@ -155,7 +155,7 @@ export function LessonWorkspace({
     } else {
       const res = await supabase
         .from("lesson_details")
-        .upsert({ lesson_id: lessonId, [field]: cleaned || null }, { onConflict: "lesson_id" });
+        .upsert({ lesson_id: lessonId, [field]: cleaned || null } as any, { onConflict: "lesson_id" });
       error = res.error;
     }
     setSaving(null);
