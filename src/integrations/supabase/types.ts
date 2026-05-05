@@ -413,9 +413,11 @@ export type Database = {
           homework: string | null
           lesson_id: string
           student_notes: string | null
+          student_paid_at: string | null
           student_payment_status: string | null
           student_price: number | null
           summary: string | null
+          tutor_paid_at: string | null
           tutor_payout: number | null
           tutor_payout_status: string | null
           updated_at: string
@@ -425,9 +427,11 @@ export type Database = {
           homework?: string | null
           lesson_id: string
           student_notes?: string | null
+          student_paid_at?: string | null
           student_payment_status?: string | null
           student_price?: number | null
           summary?: string | null
+          tutor_paid_at?: string | null
           tutor_payout?: number | null
           tutor_payout_status?: string | null
           updated_at?: string
@@ -437,9 +441,11 @@ export type Database = {
           homework?: string | null
           lesson_id?: string
           student_notes?: string | null
+          student_paid_at?: string | null
           student_payment_status?: string | null
           student_price?: number | null
           summary?: string | null
+          tutor_paid_at?: string | null
           tutor_payout?: number | null
           tutor_payout_status?: string | null
           updated_at?: string
