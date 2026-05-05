@@ -610,7 +610,6 @@ export type Database = {
           created_by: string
           duration_minutes: number
           group_id: string | null
-          homework: string | null
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
           meeting_url: string | null
@@ -619,17 +618,9 @@ export type Database = {
           starts_at: string
           status: Database["public"]["Enums"]["lesson_status"]
           student_id: string | null
-          student_notes: string | null
-          student_paid_at: string | null
-          student_payment_status: Database["public"]["Enums"]["payment_status"]
-          student_price: number
           subject: string
           subject_id: string | null
-          summary: string | null
           tutor_id: string
-          tutor_paid_at: string | null
-          tutor_payout: number
-          tutor_payout_status: Database["public"]["Enums"]["payment_status"]
           updated_at: string
         }
         Insert: {
@@ -637,7 +628,6 @@ export type Database = {
           created_by: string
           duration_minutes?: number
           group_id?: string | null
-          homework?: string | null
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           meeting_url?: string | null
@@ -646,17 +636,9 @@ export type Database = {
           starts_at: string
           status?: Database["public"]["Enums"]["lesson_status"]
           student_id?: string | null
-          student_notes?: string | null
-          student_paid_at?: string | null
-          student_payment_status?: Database["public"]["Enums"]["payment_status"]
-          student_price?: number
           subject: string
           subject_id?: string | null
-          summary?: string | null
           tutor_id: string
-          tutor_paid_at?: string | null
-          tutor_payout?: number
-          tutor_payout_status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
         Update: {
@@ -664,7 +646,6 @@ export type Database = {
           created_by?: string
           duration_minutes?: number
           group_id?: string | null
-          homework?: string | null
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
           meeting_url?: string | null
@@ -673,17 +654,9 @@ export type Database = {
           starts_at?: string
           status?: Database["public"]["Enums"]["lesson_status"]
           student_id?: string | null
-          student_notes?: string | null
-          student_paid_at?: string | null
-          student_payment_status?: Database["public"]["Enums"]["payment_status"]
-          student_price?: number
           subject?: string
           subject_id?: string | null
-          summary?: string | null
           tutor_id?: string
-          tutor_paid_at?: string | null
-          tutor_payout?: number
-          tutor_payout_status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
         Relationships: [
