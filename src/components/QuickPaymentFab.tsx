@@ -96,12 +96,9 @@ export function QuickPaymentFab() {
   const markPaid = async (id: string) => {
     setBusyId(id);
     const { error } = await supabase
-      .from("lessons")
-      .update({
-        student_payment_status: "paid",
-        student_paid_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+      .from("lesson_details")
+      .update({ student_payment_status: "paid" })
+      .eq("lesson_id", id);
     setBusyId(null);
     if (error) {
       toast.error("Не вдалося оновити");
