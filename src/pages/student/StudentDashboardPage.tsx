@@ -39,7 +39,7 @@ export default function StudentDashboardPage() {
     if (!user) return;
     setLoading(true);
     const nowIso = new Date().toISOString();
-    const [{ data: lessons }, { data: profiles }, { data: details }] = await Promise.all([
+    const [{ data: lessons }, { data: details }] = await Promise.all([
       supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status, student_payment_status")
@@ -48,12 +48,16 @@ export default function StudentDashboardPage() {
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true })
         .limit(3),
-      supabase.from("profiles").select("id, first_name, last_name"),
       supabase
         .from("lesson_details")
         .select("lesson_id, homework, student_payment_status, lessons!inner(student_id)")
         .eq("lessons.student_id", user.id),
     ]);
+
+    const tutorIds = Array.from(new Set((lessons ?? []).map((l: any) => l.tutor_id)));
+    const { data: profiles } = tutorIds.length
+      ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
+      : { data: [] as any[] };
 
     const profileMap: Record<string, string> = {};
     (profiles ?? []).forEach((p: any) => {
