@@ -176,15 +176,14 @@ export default function SchedulePage() {
   });
 
   const openEdit = async (lesson: Lesson) => {
-    // Re-fetch full lesson row to get current homework/summary (list query may not include them)
-    const { data } = await supabase
-      .from("lessons")
-      .select("homework, summary, meeting_url")
-      .eq("id", lesson.id)
-      .maybeSingle();
-    const homework = data?.homework ?? "";
-    const summary = data?.summary ?? "";
-    const meeting_url = data?.meeting_url ?? (lesson as any).meeting_url ?? "";
+    // Re-fetch fresh fields: meeting_url from lessons, homework/summary from lesson_details
+    const [{ data: lessonRow }, { data: detailsRow }] = await Promise.all([
+      supabase.from("lessons").select("meeting_url").eq("id", lesson.id).maybeSingle(),
+      supabase.from("lesson_details").select("homework, summary").eq("lesson_id", lesson.id).maybeSingle(),
+    ]);
+    const homework = detailsRow?.homework ?? "";
+    const summary = detailsRow?.summary ?? "";
+    const meeting_url = lessonRow?.meeting_url ?? (lesson as any).meeting_url ?? "";
 
     setEditingLesson({ ...lesson, homework, summary });
     setEditForm({
