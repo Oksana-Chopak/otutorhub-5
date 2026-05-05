@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { Loader2, Video } from "lucide-react";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
+import { SubjectSelect } from "@/components/SubjectSelect";
 
 interface Props {
   open: boolean;
@@ -186,10 +187,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label>Предмет</Label>
-                <Input
-                  placeholder="Англійська"
+                <SubjectSelect
                   value={form.subject}
-                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  onValueChange={(name) => setForm({ ...form, subject: name })}
                 />
               </div>
               <div className="space-y-1">
