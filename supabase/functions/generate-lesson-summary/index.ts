@@ -94,9 +94,9 @@ Deno.serve(async (req) => {
 **Дата:** ${lessonDate}
 **Тривалість:** ${lesson.duration_minutes} хв
 
-${lesson.summary ? `**Чорновий конспект від репетитора:**\n${lesson.summary}\n` : ""}
-${lesson.homework ? `**Домашнє завдання:**\n${lesson.homework}\n` : ""}
-${lesson.student_notes ? `**Нотатки учня:**\n${lesson.student_notes}\n` : ""}
+${summary ? `**Чорновий конспект від репетитора:**\n${summary}\n` : ""}
+${homework ? `**Домашнє завдання:**\n${homework}\n` : ""}
+${studentNotes ? `**Нотатки учня:**\n${studentNotes}\n` : ""}
 
 Структуруй конспект так:
 ## Тема уроку
