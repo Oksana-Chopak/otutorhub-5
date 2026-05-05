@@ -63,20 +63,25 @@ Deno.serve(async (req) => {
   const toIso = new Date(now.getTime() + 30 * DAY_MS).toISOString();
 
   // 1. Pull candidate lessons (scheduled or completed, unpaid by student)
-  const { data: lessons, error: lessonsErr } = await supabase
+  const { data: lessonsRaw, error: lessonsErr } = await supabase
     .from("lessons")
     .select(
-      "id, tutor_id, student_id, starts_at, status, student_payment_status, student_price, subject, created_at",
+      "id, tutor_id, student_id, starts_at, status, subject, created_at, lesson_details!inner(student_payment_status, student_price)",
     )
     .gte("starts_at", fromIso)
     .lte("starts_at", toIso)
     .in("status", ["scheduled", "completed"])
-    .neq("student_payment_status", "paid");
+    .neq("lesson_details.student_payment_status", "paid");
 
   if (lessonsErr) {
     return new Response(JSON.stringify({ error: lessonsErr.message }), { status: 500 });
   }
-  if (!lessons || lessons.length === 0) {
+  const lessons = (lessonsRaw ?? []).map((l: any) => ({
+    ...l,
+    student_payment_status: l.lesson_details?.student_payment_status,
+    student_price: l.lesson_details?.student_price,
+  }));
+  if (lessons.length === 0) {
     return new Response(JSON.stringify({ ok: true, sent: 0, scanned: 0 }));
   }
 

@@ -43,14 +43,19 @@ Deno.serve(async (req) => {
 
   const admin = createClient(supabaseUrl, supabaseServiceKey);
 
-  const { data: lesson } = await admin
+  const { data: lessonRow } = await admin
     .from("lessons")
     .select(
-      "id, tutor_id, student_id, subject, starts_at, student_price, student_payment_status",
+      "id, tutor_id, student_id, subject, starts_at, lesson_details!inner(student_price, student_payment_status)",
     )
     .eq("id", lessonId)
     .maybeSingle();
-  if (!lesson) return json({ error: "Lesson not found" }, 404);
+  if (!lessonRow) return json({ error: "Lesson not found" }, 404);
+  const lesson: any = {
+    ...lessonRow,
+    student_price: (lessonRow as any).lesson_details?.student_price,
+    student_payment_status: (lessonRow as any).lesson_details?.student_payment_status,
+  };
   if (lesson.student_payment_status === "paid") {
     return json({ error: "already_paid" }, 409);
   }

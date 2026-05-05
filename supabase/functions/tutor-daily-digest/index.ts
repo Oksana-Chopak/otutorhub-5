@@ -116,10 +116,10 @@ Deno.serve(async (req) => {
   }
 
   // 4. Today's lessons + outstanding debts (all in one query each)
-  const [{ data: todaysLessons }, { data: unpaidLessons }] = await Promise.all([
+  const [{ data: todaysLessonsRaw }, { data: unpaidLessonsRaw }] = await Promise.all([
     supabase
       .from("lessons")
-      .select("id, tutor_id, student_id, starts_at, subject, status, student_payment_status, student_price")
+      .select("id, tutor_id, student_id, starts_at, subject, status, lesson_details!inner(student_payment_status, student_price)")
       .in("tutor_id", targets)
       .in("status", ["scheduled", "completed"])
       .gte("starts_at", fromIso)
@@ -127,12 +127,21 @@ Deno.serve(async (req) => {
       .order("starts_at", { ascending: true }),
     supabase
       .from("lessons")
-      .select("id, tutor_id, student_id, student_price")
+      .select("id, tutor_id, student_id, lesson_details!inner(student_price, student_payment_status)")
       .in("tutor_id", targets)
       .eq("status", "completed")
-      .eq("student_payment_status", "unpaid")
-      .gt("student_price", 0),
+      .eq("lesson_details.student_payment_status", "unpaid")
+      .gt("lesson_details.student_price", 0),
   ]);
+  const todaysLessons = (todaysLessonsRaw ?? []).map((l: any) => ({
+    ...l,
+    student_payment_status: l.lesson_details?.student_payment_status,
+    student_price: l.lesson_details?.student_price,
+  }));
+  const unpaidLessons = (unpaidLessonsRaw ?? []).map((l: any) => ({
+    ...l,
+    student_price: l.lesson_details?.student_price,
+  }));
 
   // 5. Resolve student names
   const studentIds = Array.from(
