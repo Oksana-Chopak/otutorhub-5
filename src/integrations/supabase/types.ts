@@ -540,6 +540,7 @@ export type Database = {
           student_payment_status: Database["public"]["Enums"]["payment_status"]
           student_price: number
           subject: string
+          subject_id: string | null
           summary: string | null
           tutor_id: string
           tutor_paid_at: string | null
@@ -564,6 +565,7 @@ export type Database = {
           student_payment_status?: Database["public"]["Enums"]["payment_status"]
           student_price?: number
           subject: string
+          subject_id?: string | null
           summary?: string | null
           tutor_id: string
           tutor_paid_at?: string | null
@@ -588,6 +590,7 @@ export type Database = {
           student_payment_status?: Database["public"]["Enums"]["payment_status"]
           student_price?: number
           subject?: string
+          subject_id?: string | null
           summary?: string | null
           tutor_id?: string
           tutor_paid_at?: string | null
@@ -595,7 +598,15 @@ export type Database = {
           tutor_payout_status?: Database["public"]["Enums"]["payment_status"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "lessons_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       liqpay_payments: {
         Row: {
@@ -1075,6 +1086,27 @@ export type Database = {
           note?: string | null
           student_id?: string
           tutor_id?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          emoji: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
       }
