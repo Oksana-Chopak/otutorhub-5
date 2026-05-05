@@ -45,6 +45,7 @@ function renderRoute(allowedRoles: AppRole[] | undefined, initialPath = "/protec
       <Routes>
         <Route path="/auth" element={<div>AUTH_PAGE</div>} />
         <Route path="/" element={<div>HOME_PAGE</div>} />
+        <Route path="/student-dashboard" element={<div>STUDENT_DASHBOARD</div>} />
         <Route
           path="/protected"
           element={
@@ -144,9 +145,9 @@ describe("Доступ для ролі STUDENT", () => {
     ["/people", ["manager"] as AppRole[]],
     ["/audit", ["manager"] as AppRole[]],
     ["/availability", ["manager", "tutor"] as AppRole[]],
-  ])("НЕ має доступу до %s — редіректить на /", (_label, allowedRoles) => {
+  ])("НЕ має доступу до %s — редіректить на /student-dashboard", (_label, allowedRoles) => {
     renderRoute(allowedRoles);
-    expect(screen.getByText("HOME_PAGE")).toBeInTheDocument();
+    expect(screen.getByText("STUDENT_DASHBOARD")).toBeInTheDocument();
     expect(screen.queryByText("PROTECTED_CONTENT")).not.toBeInTheDocument();
   });
 });
