@@ -49,26 +49,42 @@ export function RatePropagationDialog({
     }
     setBusy(true);
     let q = supabase
-      .from("lessons")
-      .update({ student_price: newPrice })
-      .eq("tutor_id", tutorId)
-      .eq("student_id", studentId)
-      .eq("subject", subject);
+      .from("lesson_details")
+      .select("lesson_id, student_payment_status, lessons!inner(id, tutor_id, student_id, subject, starts_at)")
+      .eq("lessons.tutor_id", tutorId)
+      .eq("lessons.student_id", studentId)
+      .eq("lessons.subject", subject);
 
     if (scope === "future_unpaid") {
-      q = q.eq("student_payment_status", "unpaid").gte("starts_at", new Date().toISOString());
+      q = q.eq("student_payment_status", "unpaid").gte("lessons.starts_at", new Date().toISOString());
     } else if (scope === "all_unpaid") {
       q = q.eq("student_payment_status", "unpaid");
     }
-    // "all" — no extra filter
 
-    const { data, error } = await q.select("id");
+    const { data: rows, error: selErr } = await q;
+    if (selErr) {
+      setBusy(false);
+      toast.error("Не вдалося оновити уроки");
+      return;
+    }
+    const ids = (rows ?? []).map((r: any) => r.lesson_id);
+    if (ids.length === 0) {
+      setBusy(false);
+      toast.success("Оновлено уроків: 0");
+      onOpenChange(false);
+      onDone?.();
+      return;
+    }
+    const { error } = await supabase
+      .from("lesson_details")
+      .update({ student_price: newPrice })
+      .in("lesson_id", ids);
     setBusy(false);
     if (error) {
       toast.error("Не вдалося оновити уроки");
       return;
     }
-    toast.success(`Оновлено уроків: ${data?.length ?? 0}`);
+    toast.success(`Оновлено уроків: ${ids.length}`);
     onOpenChange(false);
     onDone?.();
   };
