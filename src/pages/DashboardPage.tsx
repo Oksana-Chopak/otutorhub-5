@@ -749,9 +749,8 @@ export default function DashboardPage() {
                     const togglePayment = async () => {
                       const next = isPaid ? "unpaid" : "paid";
                       const { error } = await supabase
-                        .from("lessons")
-                        .update({ student_payment_status: next })
-                        .eq("id", lesson.id);
+                        .from("lesson_details")
+                        .upsert({ lesson_id: lesson.id, student_payment_status: next } as any, { onConflict: "lesson_id" });
                       if (error) {
                         // eslint-disable-next-line no-console
                         console.error(error);
