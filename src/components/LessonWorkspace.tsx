@@ -148,8 +148,16 @@ export function LessonWorkspace({
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
     const cleaned = field === "meeting_url" ? normalizeUrl(value) : value;
-    const payload = { [field]: cleaned || null } as never;
-    const { error } = await supabase.from("lessons").update(payload).eq("id", lessonId);
+    let error: { message: string } | null = null;
+    if (field === "meeting_url") {
+      const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
+      error = res.error;
+    } else {
+      const res = await supabase
+        .from("lesson_details")
+        .upsert({ lesson_id: lessonId, [field]: cleaned || null }, { onConflict: "lesson_id" });
+      error = res.error;
+    }
     setSaving(null);
     if (error) {
       toast({ title: "Не вдалося зберегти", description: error.message, variant: "destructive" });
