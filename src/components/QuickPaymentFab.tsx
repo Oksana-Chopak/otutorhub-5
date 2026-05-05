@@ -32,10 +32,10 @@ export function QuickPaymentFab() {
   const refreshCount = async () => {
     if (!user) return;
     const { count } = await supabase
-      .from("lessons")
-      .select("id", { count: "exact", head: true })
-      .eq("tutor_id", user.id)
-      .eq("status", "completed")
+      .from("lesson_details")
+      .select("lesson_id, lessons!inner(tutor_id, status, student_price)", { count: "exact", head: true })
+      .eq("lessons.tutor_id", user.id)
+      .eq("lessons.status", "completed")
       .eq("student_payment_status", "unpaid")
       .gt("student_price", 0);
     setUnpaidCount(count ?? 0);
@@ -49,17 +49,26 @@ export function QuickPaymentFab() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: lessons } = await supabase
-      .from("lessons")
-      .select("id, starts_at, subject, student_id, student_price")
-      .eq("tutor_id", user.id)
-      .eq("status", "completed")
+    const { data: details } = await supabase
+      .from("lesson_details")
+      .select("lesson_id, student_price, lessons!inner(id, starts_at, subject, student_id, tutor_id, status)")
+      .eq("lessons.tutor_id", user.id)
+      .eq("lessons.status", "completed")
       .eq("student_payment_status", "unpaid")
       .gt("student_price", 0)
-      .order("starts_at", { ascending: false })
       .limit(100);
 
-    const ids = Array.from(new Set((lessons ?? []).map((l: any) => l.student_id)));
+    const lessons = (details ?? [])
+      .map((d: any) => ({
+        id: d.lessons.id,
+        starts_at: d.lessons.starts_at,
+        subject: d.lessons.subject,
+        student_id: d.lessons.student_id,
+        student_price: Number(d.student_price ?? 0),
+      }))
+      .sort((a, b) => (a.starts_at < b.starts_at ? 1 : -1));
+
+    const ids = Array.from(new Set(lessons.map((l) => l.student_id)));
     const names: Record<string, string> = {};
     if (ids.length) {
       const { data: profs } = await supabase
@@ -71,12 +80,8 @@ export function QuickPaymentFab() {
       });
     }
     setRows(
-      (lessons ?? []).map((l: any) => ({
-        id: l.id,
-        starts_at: l.starts_at,
-        subject: l.subject,
-        student_id: l.student_id,
-        student_price: Number(l.student_price ?? 0),
+      lessons.map((l) => ({
+        ...l,
         student_name: names[l.student_id] ?? "Учень",
       }))
     );
