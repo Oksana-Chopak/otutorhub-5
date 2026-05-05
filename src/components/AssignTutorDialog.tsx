@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SubjectSelect } from "@/components/SubjectSelect";
 import { Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -256,11 +257,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
           <div>
             <Label className="text-xs">Предмет</Label>
-            <Input
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              placeholder="Англійська, Математика…"
-            />
+            <SubjectSelect value={subject} onValueChange={(name) => setSubject(name)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

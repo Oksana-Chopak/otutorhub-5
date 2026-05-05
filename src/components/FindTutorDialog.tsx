@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { HandHeart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { SubjectSelect } from "@/components/SubjectSelect";
 
 interface Props {
   trigger?: React.ReactNode;
@@ -83,11 +84,10 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         <div className="space-y-3">
           <div className="space-y-1">
             <Label>Бажаний предмет *</Label>
-            <Input
-              placeholder="Наприклад: англійська мова"
+            <SubjectSelect
               value={form.subject}
-              onChange={(e) => setForm({ ...form, subject: e.target.value })}
-              maxLength={120}
+              onValueChange={(name) => setForm({ ...form, subject: name })}
+              placeholder="Оберіть предмет"
             />
           </div>
           <div className="space-y-1">
