@@ -87,16 +87,30 @@ export default function FinancesPage() {
     const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
       await Promise.all([
         supabase
-          .from("lessons_visible")
+          .from("lessons")
           .select(
-            "id, subject, starts_at, status, student_id, tutor_id, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at"
+            "id, subject, starts_at, status, student_id, tutor_id, student_paid_at, tutor_paid_at, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status)"
           )
           .order("starts_at", { ascending: false }),
         supabase.from("profiles").select("id, first_name, last_name"),
       ]);
     if (lErr) toast.error("Помилка завантаження уроків");
     if (pErr) toast.error("Помилка завантаження профілів");
-    setLessons((lessonsData ?? []) as LessonRow[]);
+    const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
+      id: l.id,
+      subject: l.subject,
+      starts_at: l.starts_at,
+      status: l.status,
+      student_id: l.student_id,
+      tutor_id: l.tutor_id,
+      student_price: Number(l.lesson_details?.student_price ?? 0),
+      tutor_payout: Number(l.lesson_details?.tutor_payout ?? 0),
+      student_payment_status: (l.lesson_details?.student_payment_status ?? "unpaid") as PaymentStatus,
+      tutor_payout_status: (l.lesson_details?.tutor_payout_status ?? "unpaid") as PaymentStatus,
+      student_paid_at: l.student_paid_at ?? null,
+      tutor_paid_at: l.tutor_paid_at ?? null,
+    }));
+    setLessons(mapped);
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
