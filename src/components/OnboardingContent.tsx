@@ -285,10 +285,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         supabase.from("tutor_student_defaults").select("default_meeting_url").eq("tutor_id", user.id).limit(20),
         supabase.from("chat_threads").select("id").eq("tutor_id", user.id).limit(1),
         supabase
-          .from("lessons")
-          .select("id")
-          .eq("tutor_id", user.id)
-          .eq("source", "independent")
+          .from("lesson_details")
+          .select("lesson_id, lessons!inner(tutor_id, source)")
+          .eq("lessons.tutor_id", user.id)
+          .eq("lessons.source", "independent")
           .eq("student_payment_status", "paid")
           .limit(1),
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
