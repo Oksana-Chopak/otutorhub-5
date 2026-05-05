@@ -77,9 +77,8 @@ export function LessonWorkspace({
     setPaymentBusy(true);
     const next = paidLocal === "paid" ? "unpaid" : "paid";
     const { error } = await supabase
-      .from("lessons")
-      .update({ student_payment_status: next })
-      .eq("id", lessonId);
+      .from("lesson_details")
+      .upsert({ lesson_id: lessonId, student_payment_status: next }, { onConflict: "lesson_id" });
     setPaymentBusy(false);
     if (error) {
       toast({ title: "Не вдалося оновити оплату", description: error.message, variant: "destructive" });
