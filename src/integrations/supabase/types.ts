@@ -270,6 +270,44 @@ export type Database = {
         }
         Relationships: []
       }
+      group_enrollments: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          joined_at: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          joined_at?: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          joined_at?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_enrollments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_attachments: {
         Row: {
           created_at: string
@@ -456,6 +494,44 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          subject: string | null
+          subject_id: string | null
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          subject?: string | null
+          subject_id?: string | null
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          subject?: string | null
+          subject_id?: string | null
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_groups_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_payment_reminders: {
         Row: {
           channel: string
@@ -527,14 +603,16 @@ export type Database = {
           created_at: string
           created_by: string
           duration_minutes: number
+          group_id: string | null
           homework: string | null
           id: string
+          lesson_type: Database["public"]["Enums"]["lesson_type"]
           meeting_url: string | null
           notes: string | null
           source: string
           starts_at: string
           status: Database["public"]["Enums"]["lesson_status"]
-          student_id: string
+          student_id: string | null
           student_notes: string | null
           student_paid_at: string | null
           student_payment_status: Database["public"]["Enums"]["payment_status"]
@@ -552,14 +630,16 @@ export type Database = {
           created_at?: string
           created_by: string
           duration_minutes?: number
+          group_id?: string | null
           homework?: string | null
           id?: string
+          lesson_type?: Database["public"]["Enums"]["lesson_type"]
           meeting_url?: string | null
           notes?: string | null
           source?: string
           starts_at: string
           status?: Database["public"]["Enums"]["lesson_status"]
-          student_id: string
+          student_id?: string | null
           student_notes?: string | null
           student_paid_at?: string | null
           student_payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -577,14 +657,16 @@ export type Database = {
           created_at?: string
           created_by?: string
           duration_minutes?: number
+          group_id?: string | null
           homework?: string | null
           id?: string
+          lesson_type?: Database["public"]["Enums"]["lesson_type"]
           meeting_url?: string | null
           notes?: string | null
           source?: string
           starts_at?: string
           status?: Database["public"]["Enums"]["lesson_status"]
-          student_id?: string
+          student_id?: string | null
           student_notes?: string | null
           student_paid_at?: string | null
           student_payment_status?: Database["public"]["Enums"]["payment_status"]
@@ -599,6 +681,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lessons_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_groups"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lessons_subject_id_fkey"
             columns: ["subject_id"]
@@ -1888,6 +1977,7 @@ export type Database = {
     Enums: {
       app_role: "manager" | "tutor" | "student"
       lesson_status: "pending" | "scheduled" | "completed" | "cancelled"
+      lesson_type: "individual" | "pair" | "group"
       payment_status: "unpaid" | "paid"
       subscription_request_status:
         | "new"
@@ -2023,6 +2113,7 @@ export const Constants = {
     Enums: {
       app_role: ["manager", "tutor", "student"],
       lesson_status: ["pending", "scheduled", "completed", "cancelled"],
+      lesson_type: ["individual", "pair", "group"],
       payment_status: ["unpaid", "paid"],
       subscription_request_status: [
         "new",
