@@ -77,9 +77,8 @@ export function LessonWorkspace({
     setPaymentBusy(true);
     const next = paidLocal === "paid" ? "unpaid" : "paid";
     const { error } = await supabase
-      .from("lessons")
-      .update({ student_payment_status: next })
-      .eq("id", lessonId);
+      .from("lesson_details")
+      .upsert({ lesson_id: lessonId, student_payment_status: next }, { onConflict: "lesson_id" });
     setPaymentBusy(false);
     if (error) {
       toast({ title: "Не вдалося оновити оплату", description: error.message, variant: "destructive" });
@@ -148,8 +147,16 @@ export function LessonWorkspace({
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
     const cleaned = field === "meeting_url" ? normalizeUrl(value) : value;
-    const payload = { [field]: cleaned || null } as never;
-    const { error } = await supabase.from("lessons").update(payload).eq("id", lessonId);
+    let error: { message: string } | null = null;
+    if (field === "meeting_url") {
+      const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
+      error = res.error;
+    } else {
+      const res = await supabase
+        .from("lesson_details")
+        .upsert({ lesson_id: lessonId, [field]: cleaned || null } as any, { onConflict: "lesson_id" });
+      error = res.error;
+    }
     setSaving(null);
     if (error) {
       toast({ title: "Не вдалося зберегти", description: error.message, variant: "destructive" });

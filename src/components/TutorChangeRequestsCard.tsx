@@ -103,10 +103,20 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       const ids = Array.from(new Set(list.map((r) => r.lesson_id)));
       const { data: lessonRows } = await supabase
         .from("lessons")
-        .select("id, starts_at, subject, duration_minutes, student_price, status")
+        .select("id, starts_at, subject, duration_minutes, status, lesson_details(student_price)")
         .in("id", ids);
       const map: Record<string, LessonInfo> = {};
-      for (const l of lessonRows ?? []) map[l.id] = l as LessonInfo;
+      for (const l of (lessonRows ?? []) as any[]) {
+        const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+        map[l.id] = {
+          id: l.id,
+          starts_at: l.starts_at,
+          subject: l.subject,
+          duration_minutes: l.duration_minutes,
+          status: l.status,
+          student_price: Number(d?.student_price ?? 0),
+        } as LessonInfo;
+      }
       setLessons(map);
     } else {
       setLessons({});
@@ -174,15 +184,21 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
       const { error: lessonErr } = await supabase
         .from("lessons")
-        .update({
-          status: "cancelled",
-          student_price: newPrice,
-        })
+        .update({ status: "cancelled" })
         .eq("id", lesson.id);
 
       if (lessonErr) {
         setSubmitting(false);
         toast.error("Не вдалося оновити урок", { description: lessonErr.message });
+        return;
+      }
+
+      const { error: priceErr } = await supabase
+        .from("lesson_details")
+        .upsert({ lesson_id: lesson.id, student_price: newPrice } as any, { onConflict: "lesson_id" });
+      if (priceErr) {
+        setSubmitting(false);
+        toast.error("Не вдалося оновити ціну", { description: priceErr.message });
         return;
       }
     } else {

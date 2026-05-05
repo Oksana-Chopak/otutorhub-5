@@ -176,15 +176,14 @@ export default function SchedulePage() {
   });
 
   const openEdit = async (lesson: Lesson) => {
-    // Re-fetch full lesson row to get current homework/summary (list query may not include them)
-    const { data } = await supabase
-      .from("lessons")
-      .select("homework, summary, meeting_url")
-      .eq("id", lesson.id)
-      .maybeSingle();
-    const homework = data?.homework ?? "";
-    const summary = data?.summary ?? "";
-    const meeting_url = data?.meeting_url ?? (lesson as any).meeting_url ?? "";
+    // Re-fetch fresh fields: meeting_url from lessons, homework/summary from lesson_details
+    const [{ data: lessonRow }, { data: detailsRow }] = await Promise.all([
+      supabase.from("lessons").select("meeting_url").eq("id", lesson.id).maybeSingle(),
+      supabase.from("lesson_details").select("homework, summary").eq("lesson_id", lesson.id).maybeSingle(),
+    ]);
+    const homework = detailsRow?.homework ?? "";
+    const summary = detailsRow?.summary ?? "";
+    const meeting_url = lessonRow?.meeting_url ?? (lesson as any).meeting_url ?? "";
 
     setEditingLesson({ ...lesson, homework, summary });
     setEditForm({
@@ -208,33 +207,47 @@ export default function SchedulePage() {
     if (!editingLesson) return;
     setEditSubmitting(true);
 
-    const payload: any = {};
+    const lessonsPayload: any = {};
+    const detailsPayload: any = {};
     if (canEditScheduleFields(editingLesson)) {
-      payload.subject = editForm.subject;
-      payload.starts_at = new Date(editForm.starts_at).toISOString();
-      payload.duration_minutes = parseInt(editForm.duration_minutes) || 60;
+      lessonsPayload.subject = editForm.subject;
+      lessonsPayload.starts_at = new Date(editForm.starts_at).toISOString();
+      lessonsPayload.duration_minutes = parseInt(editForm.duration_minutes) || 60;
     }
     if (canEditTeachingFields(editingLesson)) {
-      payload.homework = editForm.homework || null;
-      payload.summary = editForm.summary || null;
-      payload.meeting_url = editForm.meeting_url || null;
+      detailsPayload.homework = editForm.homework || null;
+      detailsPayload.summary = editForm.summary || null;
+      lessonsPayload.meeting_url = editForm.meeting_url || null;
     }
 
-    if (Object.keys(payload).length === 0) {
+    if (Object.keys(lessonsPayload).length === 0 && Object.keys(detailsPayload).length === 0) {
       setEditSubmitting(false);
       setEditingLesson(null);
       return;
     }
 
-    const { error } = await supabase
-      .from("lessons")
-      .update(payload)
-      .eq("id", editingLesson.id);
-    if (error) {
-      setEditSubmitting(false);
-      console.error(error);
-      toast.error("Не вдалося зберегти зміни");
-      return;
+    if (Object.keys(lessonsPayload).length > 0) {
+      const { error } = await supabase
+        .from("lessons")
+        .update(lessonsPayload)
+        .eq("id", editingLesson.id);
+      if (error) {
+        setEditSubmitting(false);
+        console.error(error);
+        toast.error("Не вдалося зберегти зміни");
+        return;
+      }
+    }
+    if (Object.keys(detailsPayload).length > 0) {
+      const { error } = await supabase
+        .from("lesson_details")
+        .upsert({ lesson_id: editingLesson.id, ...detailsPayload }, { onConflict: "lesson_id" });
+      if (error) {
+        setEditSubmitting(false);
+        console.error(error);
+        toast.error("Не вдалося зберегти зміни");
+        return;
+      }
     }
 
     // Detect homework/summary changes and notify the student via Telegram

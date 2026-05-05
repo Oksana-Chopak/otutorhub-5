@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     // 3. Load lesson and verify caller is the tutor
     const { data: lesson, error: lessonErr } = await userClient
       .from("lessons")
-      .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, homework, summary, student_notes")
+      .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, lesson_details(homework, summary, student_notes)")
       .eq("id", body.lessonId)
       .maybeSingle();
 
@@ -66,6 +66,13 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const details = Array.isArray((lesson as any).lesson_details)
+      ? (lesson as any).lesson_details[0]
+      : (lesson as any).lesson_details;
+    const homework: string | null = details?.homework ?? null;
+    const summary: string | null = details?.summary ?? null;
+    const studentNotes: string | null = details?.student_notes ?? null;
 
     if (lesson.tutor_id !== callerId) {
       return new Response(JSON.stringify({ error: "Only the lesson tutor can generate AI summary" }), {
@@ -87,9 +94,9 @@ Deno.serve(async (req) => {
 **Дата:** ${lessonDate}
 **Тривалість:** ${lesson.duration_minutes} хв
 
-${lesson.summary ? `**Чорновий конспект від репетитора:**\n${lesson.summary}\n` : ""}
-${lesson.homework ? `**Домашнє завдання:**\n${lesson.homework}\n` : ""}
-${lesson.student_notes ? `**Нотатки учня:**\n${lesson.student_notes}\n` : ""}
+${summary ? `**Чорновий конспект від репетитора:**\n${summary}\n` : ""}
+${homework ? `**Домашнє завдання:**\n${homework}\n` : ""}
+${studentNotes ? `**Нотатки учня:**\n${studentNotes}\n` : ""}
 
 Структуруй конспект так:
 ## Тема уроку
