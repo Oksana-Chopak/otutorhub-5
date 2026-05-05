@@ -137,7 +137,7 @@ export function QuickLessonDialog({
       return;
     }
     setSubmitting(true);
-    const payload = {
+    const lessonPayload = {
       tutor_id: user.id,
       student_id: selected.student_id,
       subject: selected.subject,
@@ -146,11 +146,21 @@ export function QuickLessonDialog({
       status: "scheduled" as const,
       created_by: user.id,
       source: "independent",
-      student_price: selected.price || 0,
-      tutor_payout: 0,
       meeting_url: selected.default_meeting_url || null,
     };
-    const { error } = await supabase.from("lessons").insert(payload);
+    const { data: created, error } = await supabase
+      .from("lessons")
+      .insert(lessonPayload)
+      .select("id")
+      .single();
+    if (!error && created) {
+      await supabase
+        .from("lesson_details")
+        .upsert(
+          { lesson_id: created.id, student_price: selected.price || 0, tutor_payout: 0 } as any,
+          { onConflict: "lesson_id" }
+        );
+    }
     setSubmitting(false);
     if (error) {
       console.error(error);
