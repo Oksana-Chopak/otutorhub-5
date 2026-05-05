@@ -184,15 +184,21 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
       const { error: lessonErr } = await supabase
         .from("lessons")
-        .update({
-          status: "cancelled",
-          student_price: newPrice,
-        })
+        .update({ status: "cancelled" })
         .eq("id", lesson.id);
 
       if (lessonErr) {
         setSubmitting(false);
         toast.error("Не вдалося оновити урок", { description: lessonErr.message });
+        return;
+      }
+
+      const { error: priceErr } = await supabase
+        .from("lesson_details")
+        .upsert({ lesson_id: lesson.id, student_price: newPrice } as any, { onConflict: "lesson_id" });
+      if (priceErr) {
+        setSubmitting(false);
+        toast.error("Не вдалося оновити ціну", { description: priceErr.message });
         return;
       }
     } else {
