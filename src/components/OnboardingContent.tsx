@@ -228,7 +228,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           if (!isNaN(startsAt.getTime())) {
             const subject = (demo?.student?.subject || "Загальний предмет").toString();
             const price = Number(demo?.student?.price ?? 0) || 0;
-            await supabase.from("lessons").insert({
+            const { data: inserted } = await supabase.from("lessons").insert({
               tutor_id: user.id,
               student_id: studentId,
               subject,
@@ -236,10 +236,17 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               duration_minutes: 60,
               status: "scheduled",
               source: "independent",
-              student_price: price,
-              tutor_payout: 0,
               created_by: user.id,
-            } as any);
+            } as any).select("id").single();
+            if (inserted?.id) {
+              await supabase.from("lesson_details").insert({
+                lesson_id: inserted.id,
+                student_price: price,
+                tutor_payout: 0,
+                student_payment_status: "unpaid",
+                tutor_payout_status: "unpaid",
+              } as any);
+            }
           }
         }
 
