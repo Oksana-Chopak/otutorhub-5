@@ -74,10 +74,18 @@ export default function PremiumAnalyticsPage() {
       setLoading(true);
       const { data } = await supabase
         .from("lessons")
-        .select("id, starts_at, status, student_id, student_price, student_payment_status")
+        .select("id, starts_at, status, student_id, lesson_details(student_price, student_payment_status)")
         .eq("tutor_id", user.id)
         .eq("source", "independent");
-      setLessons((data ?? []) as LessonRow[]);
+      const mapped = ((data ?? []) as any[]).map((l) => ({
+        id: l.id,
+        starts_at: l.starts_at,
+        status: l.status,
+        student_id: l.student_id,
+        student_price: Number(l.lesson_details?.student_price ?? 0),
+        student_payment_status: (l.lesson_details?.student_payment_status ?? "unpaid") as "paid" | "unpaid",
+      }));
+      setLessons(mapped as LessonRow[]);
       setLoading(false);
     })();
   }, [user?.id, isPro]);
