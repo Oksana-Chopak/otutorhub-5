@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -868,7 +869,7 @@ export default function ChatsPage() {
                     e.preventDefault();
                     sendMessage();
                   }}
-                  className="flex items-center gap-2 border-t border-border p-3"
+                  className="flex items-end gap-2 border-t border-border p-3"
                 >
                   <input
                     ref={fileInputRef}
@@ -895,19 +896,30 @@ export default function ChatsPage() {
                     disabled={sending}
                     title="Прикріпити файл"
                     aria-label="Прикріпити файл"
+                    className="shrink-0"
                   >
                     <Paperclip className="h-4 w-4" />
                   </Button>
-                  <Input
+                  <Textarea
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (!sending && (draft.trim().length > 0 || pendingFile)) {
+                          sendMessage();
+                        }
+                      }
+                    }}
                     placeholder={
                       isManager ? "Написати від імені менеджера…" : "Напишіть повідомлення…"
                     }
                     maxLength={4000}
                     disabled={sending}
+                    rows={3}
+                    className="min-h-[80px] resize-none flex-1"
                   />
-                  <Button type="submit" size="icon" disabled={sending || (draft.trim().length === 0 && !pendingFile)}>
+                  <Button type="submit" size="icon" disabled={sending || (draft.trim().length === 0 && !pendingFile)} className="shrink-0">
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   </Button>
                 </form>
