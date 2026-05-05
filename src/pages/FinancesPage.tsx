@@ -288,8 +288,8 @@ export default function FinancesPage() {
     const nowIso = new Date().toISOString();
     const payload =
       field === "student_payment_status"
-        ? { student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }
-        : { tutor_payout_status: "paid" as PaymentStatus, tutor_paid_at: nowIso };
+        ? { student_payment_status: "paid" as PaymentStatus }
+        : { tutor_payout_status: "paid" as PaymentStatus };
     // Optimistic
     const paidAtField =
       field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
@@ -299,7 +299,10 @@ export default function FinancesPage() {
         ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
       )
     );
-    const { error } = await supabase.from("lessons").update(payload).in("id", ids);
+    const { error } = await supabase
+      .from("lesson_details")
+      .update(payload)
+      .in("lesson_id", ids);
     setBulkBusy(false);
     if (error) {
       toast.error("Не вдалося оновити записи");
