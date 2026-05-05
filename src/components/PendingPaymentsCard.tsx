@@ -102,12 +102,9 @@ export function PendingPaymentsCard() {
     if (ids.length === 0) return;
     setBusyId(ids.join(","));
     const { error } = await supabase
-      .from("lessons")
-      .update({
-        student_payment_status: "paid",
-        student_paid_at: new Date().toISOString(),
-      })
-      .in("id", ids);
+      .from("lesson_details")
+      .update({ student_payment_status: "paid" })
+      .in("lesson_id", ids);
     setBusyId(null);
     if (error) {
       toast.error("Не вдалося оновити");
