@@ -89,7 +89,7 @@ export default function FinancesPage() {
         supabase
           .from("lessons")
           .select(
-            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
+            "id, subject, starts_at, status, student_id, tutor_id, student_paid_at, tutor_paid_at, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status)"
           )
           .order("starts_at", { ascending: false }),
         supabase.from("profiles").select("id, first_name, last_name"),
