@@ -270,6 +270,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         { data: defaults },
         { data: threads },
         { data: paid },
+        { data: availability },
+        { data: referrals },
       ] = await Promise.all([
         supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
         supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
@@ -282,6 +284,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           .eq("source", "independent")
           .eq("student_payment_status", "paid")
           .limit(1),
+        supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
+        supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1),
       ]);
 
       if (cancelled) return;
@@ -295,6 +299,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       setProgress({
         hasStudent: (students?.length ?? 0) > 0,
         hasLesson: lessonsList.length > 0,
+        hasAvailability: (availability?.length ?? 0) > 0,
+        hasReferral: (referrals?.length ?? 0) > 0,
         hasMeetingUrl,
         hasChat: (threads?.length ?? 0) > 0,
         hasPaidLesson: (paid?.length ?? 0) > 0,
