@@ -28,7 +28,12 @@ export default function StudentHomeworkPage() {
         .eq("lessons.student_id", user.id)
         .not("homework", "is", null);
 
-      const { data: profiles } = await supabase.from("profiles").select("id, first_name, last_name");
+      const tutorIds = Array.from(
+        new Set(((data ?? []) as any[]).map((d) => d.lessons?.tutor_id).filter(Boolean)),
+      );
+      const { data: profiles } = tutorIds.length
+        ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
+        : { data: [] as any[] };
       const pmap: Record<string, string> = {};
       (profiles ?? []).forEach((p: any) => {
         pmap[p.id] = `${p.first_name} ${p.last_name}`.trim();

@@ -40,14 +40,15 @@ export default function StudentSchedulePage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data }, { data: profiles }] = await Promise.all([
-        supabase
-          .from("lessons")
-          .select("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id")
-          .eq("student_id", user.id)
-          .order("starts_at", { ascending: false }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-      ]);
+      const { data } = await supabase
+        .from("lessons")
+        .select("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id")
+        .eq("student_id", user.id)
+        .order("starts_at", { ascending: false });
+      const tutorIds = Array.from(new Set(((data ?? []) as Lesson[]).map((l) => l.tutor_id)));
+      const { data: profiles } = tutorIds.length
+        ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
+        : { data: [] as any[] };
       const map: Record<string, string> = {};
       (profiles ?? []).forEach((p: any) => {
         map[p.id] = `${p.first_name} ${p.last_name}`.trim();

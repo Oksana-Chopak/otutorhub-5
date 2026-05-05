@@ -23,15 +23,16 @@ export default function StudentPaymentsPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: lessons }, { data: profiles }] = await Promise.all([
-        supabase
-          .from("lessons")
-          .select("id, subject, starts_at, student_price, student_payment_status, tutor_id, status")
-          .eq("student_id", user.id)
-          .neq("status", "cancelled")
-          .order("starts_at", { ascending: false }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-      ]);
+      const { data: lessons } = await supabase
+        .from("lessons")
+        .select("id, subject, starts_at, student_price, student_payment_status, tutor_id, status")
+        .eq("student_id", user.id)
+        .neq("status", "cancelled")
+        .order("starts_at", { ascending: false });
+      const tutorIds = Array.from(new Set(((lessons ?? []) as Row[]).map((l) => l.tutor_id)));
+      const { data: profiles } = tutorIds.length
+        ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
+        : { data: [] as any[] };
       const map: Record<string, string> = {};
       (profiles ?? []).forEach((p: any) => {
         map[p.id] = `${p.first_name} ${p.last_name}`.trim();
