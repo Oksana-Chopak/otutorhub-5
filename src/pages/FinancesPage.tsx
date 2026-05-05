@@ -89,7 +89,7 @@ export default function FinancesPage() {
         supabase
           .from("lessons")
           .select(
-            "id, subject, starts_at, status, student_id, tutor_id, student_paid_at, tutor_paid_at, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status)"
+            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
           )
           .order("starts_at", { ascending: false }),
         supabase.from("profiles").select("id, first_name, last_name"),
@@ -107,8 +107,8 @@ export default function FinancesPage() {
       tutor_payout: Number(l.lesson_details?.tutor_payout ?? 0),
       student_payment_status: (l.lesson_details?.student_payment_status ?? "unpaid") as PaymentStatus,
       tutor_payout_status: (l.lesson_details?.tutor_payout_status ?? "unpaid") as PaymentStatus,
-      student_paid_at: l.student_paid_at ?? null,
-      tutor_paid_at: l.tutor_paid_at ?? null,
+      student_paid_at: l.lesson_details?.student_paid_at ?? null,
+      tutor_paid_at: l.lesson_details?.tutor_paid_at ?? null,
     }));
     setLessons(mapped);
     const map: Record<string, Profile> = {};
