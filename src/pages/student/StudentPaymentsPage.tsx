@@ -25,11 +25,19 @@ export default function StudentPaymentsPage() {
     (async () => {
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id, subject, starts_at, student_price, student_payment_status, tutor_id, status")
+        .select("id, subject, starts_at, tutor_id, status, lesson_details(student_price, student_payment_status)")
         .eq("student_id", user.id)
         .neq("status", "cancelled")
         .order("starts_at", { ascending: false });
-      const tutorIds = Array.from(new Set(((lessons ?? []) as Row[]).map((l) => l.tutor_id)));
+      const list: Row[] = ((lessons ?? []) as any[]).map((l) => ({
+        id: l.id,
+        subject: l.subject,
+        starts_at: l.starts_at,
+        tutor_id: l.tutor_id,
+        student_price: Number(l.lesson_details?.student_price ?? 0),
+        student_payment_status: l.lesson_details?.student_payment_status ?? "unpaid",
+      }));
+      const tutorIds = Array.from(new Set(list.map((l) => l.tutor_id)));
       const { data: profiles } = tutorIds.length
         ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
         : { data: [] as any[] };
@@ -37,7 +45,7 @@ export default function StudentPaymentsPage() {
       (profiles ?? []).forEach((p: any) => {
         map[p.id] = `${p.first_name} ${p.last_name}`.trim();
       });
-      setRows(((lessons ?? []) as Row[]).map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
+      setRows(list.map((l) => ({ ...l, tutor_name: map[l.tutor_id] })));
       setLoading(false);
     })();
   }, [user?.id]);
