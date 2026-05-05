@@ -56,11 +56,22 @@ export function IndependentTutorStats() {
       setLoading(true);
       const { data } = await supabase
         .from("lessons")
-        .select("id, starts_at, status, student_id, student_price, student_payment_status")
+        .select("id, starts_at, status, student_id, lesson_details(student_price, student_payment_status)")
         .eq("tutor_id", user.id)
         .eq("source", "independent");
       if (!cancelled) {
-        setLessons((data ?? []) as LessonRow[]);
+        const mapped = ((data ?? []) as any[]).map((r) => {
+          const d = Array.isArray(r.lesson_details) ? r.lesson_details[0] : r.lesson_details;
+          return {
+            id: r.id,
+            starts_at: r.starts_at,
+            status: r.status,
+            student_id: r.student_id,
+            student_price: Number(d?.student_price ?? 0),
+            student_payment_status: d?.student_payment_status ?? "unpaid",
+          } as LessonRow;
+        });
+        setLessons(mapped);
         setLoading(false);
       }
     })();
