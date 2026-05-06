@@ -684,7 +684,7 @@ export default function MyStudentsPage() {
                     )}
                     {s.default_meeting_url && (
                       <a
-                        href={s.default_meeting_url}
+                        href={safeHref(s.default_meeting_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-primary hover:underline"

@@ -446,7 +446,7 @@ export function LessonWorkspace({
               <div className="flex items-center gap-2">
                 {effectiveMeetingUrl && (
                   <Button asChild size="sm" variant="outline">
-                    <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                    <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Відкрити
                     </a>
@@ -515,7 +515,7 @@ export function LessonWorkspace({
             <div className="flex items-center gap-2">
               {effectiveMeetingUrl ? (
                 <Button asChild size="sm" variant="outline">
-                  <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Приєднатися
                   </a>

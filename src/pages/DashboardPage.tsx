@@ -787,7 +787,7 @@ export default function DashboardPage() {
                           <div className="flex flex-wrap items-center gap-2">
                             {hasMeeting && (
                               <Button asChild size="sm" variant="default">
-                                <a href={meetingHref!} target="_blank" rel="noopener noreferrer">
+                                <a href={safeHref(meetingHref)} target="_blank" rel="noopener noreferrer">
                                   <Video className="mr-2 h-4 w-4" />
                                   Приєднатися
                                 </a>
