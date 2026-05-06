@@ -294,7 +294,16 @@ export default function DashboardPage() {
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
     [lessons, nowMs]
   );
-  const upcomingLessons = showAllUpcoming ? upcomingAll : upcomingAll.slice(0, 5);
+  const todayPlusTomorrowLessons = useMemo(() => {
+    const tmr = new Date();
+    tmr.setDate(tmr.getDate() + 1);
+    const tmrKey = tmr.toISOString().slice(0, 10);
+    return upcomingAll.filter((l) => {
+      const k = l.starts_at.slice(0, 10);
+      return k === todayKey || k === tmrKey;
+    });
+  }, [upcomingAll, todayKey]);
+  const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
 
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
