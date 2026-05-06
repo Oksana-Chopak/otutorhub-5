@@ -352,7 +352,9 @@ export default function SchedulePage() {
     );
     setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "Учень" })));
 
-    const lessonsWithSource = ((lessonsRes.data ?? []) as any[]).map((l) => ({
+    const rawLessons = (lessonsRes.data ?? []) as any[];
+    console.log('[SchedulePage] lessons count:', rawLessons.length, 'unique ids:', new Set(rawLessons.map((l) => l.id)).size);
+    const lessonsWithSource = rawLessons.map((l) => ({
       ...l,
       source: (l.source as LessonSource) ?? "hub",
     }));

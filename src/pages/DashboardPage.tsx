@@ -209,6 +209,8 @@ export default function DashboardPage() {
         .select("tutor_id, student_id, default_meeting_url"),
     ]);
 
+    console.log('[DashboardPage] lessons count:', (lessonsData ?? []).length, 'unique ids:', new Set((lessonsData ?? []).map((l: any) => l.id)).size);
+
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
       profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
