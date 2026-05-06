@@ -119,6 +119,7 @@ export default function SchedulePage() {
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+  const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
   const [view, setView] = useState<"list" | "week">("week");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
@@ -308,7 +309,7 @@ export default function SchedulePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
       // Used by students to discover their assigned tutors (RLS allows student to see own rates).
-      supabase.from("student_rates").select("tutor_id, student_id"),
+      supabase.from("student_rates").select("tutor_id, student_id, currency"),
     ]);
 
     const profiles = profilesRes.data ?? [];
@@ -324,7 +325,12 @@ export default function SchedulePage() {
     });
 
     const roleRows = rolesRes.data ?? [];
-    const rateRows = (ratesRes.data ?? []) as { tutor_id: string; student_id: string }[];
+    const rateRows = (ratesRes.data ?? []) as { tutor_id: string; student_id: string; currency?: string | null }[];
+    const currencyByPair: Record<string, string> = {};
+    rateRows.forEach((r) => {
+      currencyByPair[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
+    });
+    setPairCurrency(currencyByPair);
 
     let tutorIds: string[] = [];
     let studentIds: string[] = [];
