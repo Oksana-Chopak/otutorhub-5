@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Loader2, Video } from "lucide-react";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { SubjectSelect } from "@/components/SubjectSelect";
+import { sanitizeHttpUrl } from "@/lib/safeUrl";
 
 interface Props {
   open: boolean;
