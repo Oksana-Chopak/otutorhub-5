@@ -467,7 +467,12 @@ export default function MyStudentsPage() {
       }
 
       // Default meeting URL — upsert or clear
-      const meetingUrl = form.default_meeting_url.trim();
+      const meetingUrlRaw = form.default_meeting_url.trim();
+      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+      if (meetingUrlRaw && !meetingUrl) {
+        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        return;
+      }
       await supabase.from("tutor_student_defaults").upsert(
         {
           tutor_id: user.id,
