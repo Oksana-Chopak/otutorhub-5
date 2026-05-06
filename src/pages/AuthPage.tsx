@@ -64,7 +64,7 @@ export default function AuthPage() {
     password: "",
     role: ((): SignUpRole => {
       const r = searchParams.get("role");
-      return r === "tutor" ? "tutor" : "student";
+      return r === "student" ? "student" : "tutor";
     })(),
   });
 
@@ -383,20 +383,6 @@ export default function AuthPage() {
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={() => setSignUpData({ ...signUpData, role: "student" })}
-                        className={cn(
-                          "flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-colors",
-                          signUpData.role === "student"
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40"
-                        )}
-                      >
-                        <GraduationCap className="h-5 w-5 text-primary" />
-                        <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
-                        <span className="text-[10px] text-muted-foreground">{t("auth.studentHint")}</span>
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => setSignUpData({ ...signUpData, role: "tutor" })}
                         className={cn(
                           "flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-colors",
@@ -408,6 +394,20 @@ export default function AuthPage() {
                         <BookOpenCheck className="h-5 w-5 text-primary" />
                         <span className="text-sm font-medium">{t("auth.roleTutor")}</span>
                         <span className="text-[10px] text-muted-foreground">{t("auth.tutorHint")}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSignUpData({ ...signUpData, role: "student" })}
+                        className={cn(
+                          "flex flex-col items-center gap-1 rounded-lg border-2 p-3 text-center transition-colors",
+                          signUpData.role === "student"
+                            ? "border-primary bg-primary/5"
+                            : "border-border hover:border-primary/40"
+                        )}
+                      >
+                        <GraduationCap className="h-5 w-5 text-primary" />
+                        <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
+                        <span className="text-[10px] text-muted-foreground">{t("auth.studentHint")}</span>
                       </button>
                     </div>
                   </div>
