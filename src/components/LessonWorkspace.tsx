@@ -187,7 +187,21 @@ export function LessonWorkspace({
   const saveDefaultMeetingUrl = async () => {
     if (!isTutor) return;
     setSaving("default");
-    const cleaned = normalizeUrl(defaultUrl);
+    const trimmed = defaultUrl.trim();
+    let cleaned = "";
+    if (trimmed) {
+      const safe = sanitizeHttpUrl(trimmed);
+      if (!safe) {
+        setSaving(null);
+        toast({
+          title: "Некоректне посилання",
+          description: "Дозволені лише https:// або http:// посилання.",
+          variant: "destructive",
+        });
+        return;
+      }
+      cleaned = safe;
+    }
     const { error } = await supabase
       .from("tutor_student_defaults")
       .upsert(
