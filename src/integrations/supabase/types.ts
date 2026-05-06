@@ -1852,6 +1852,14 @@ export type Database = {
             }
             Returns: boolean
           }
+      is_group_active_student: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_group_tutor: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_independent_tutor: { Args: { _user_id: string }; Returns: boolean }
       is_pending_email: { Args: { _email: string }; Returns: boolean }
       is_pending_profile: { Args: { _user_id: string }; Returns: boolean }
