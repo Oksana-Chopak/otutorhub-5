@@ -179,11 +179,20 @@ export default function ProfilePage() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-2xl">
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Ця сторінка доступна репетиторам.
-            </CardContent>
-          </Card>
+          <div className="mb-6">
+            <h1 className="font-display text-2xl font-bold text-foreground">Профіль</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Керуйте своїм робочим простором.
+            </p>
+          </div>
+          <MoreSection title="Розділи" items={managerMore} />
+          {managerMore.length === 0 && (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                Немає додаткових налаштувань.
+              </CardContent>
+            </Card>
+          )}
         </div>
       </AppLayout>
     );
