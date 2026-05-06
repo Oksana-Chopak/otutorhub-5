@@ -365,7 +365,9 @@ export default function MyStudentsPage() {
         subject,
         price_per_lesson: price,
         source: "independent",
-      });
+        currency: form.currency || "UAH",
+        payment_details: form.payment_details.trim() || null,
+      } as any);
       if (rateErr) {
         console.error(rateErr);
         await supabase.from("user_roles").delete().eq("user_id", newId);
@@ -472,7 +474,12 @@ export default function MyStudentsPage() {
         const oldPrice = Number(existing.price ?? 0);
         await supabase
           .from("student_rates")
-          .update({ subject, price_per_lesson: price })
+          .update({
+            subject,
+            price_per_lesson: price,
+            currency: form.currency || "UAH",
+            payment_details: form.payment_details.trim() || null,
+          } as any)
           .eq("id", existing.rate_id);
         if (oldPrice !== price) {
           priceChanged = {
