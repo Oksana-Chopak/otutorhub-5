@@ -192,6 +192,7 @@ export default function DashboardPage() {
       { data: requestRows },
       { data: ratesData },
       { data: defaultsData },
+      { data: ratesCurrencyData },
     ] = await Promise.all([
       supabase
         .from("lessons_visible")
