@@ -54,23 +54,25 @@ type NavItem = {
   independentOnly?: boolean;
 };
 
+// Single 5-item navigation per role. All other pages live under /profile.
 const allNavItems: NavItem[] = [
-  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager", "tutor", "student"] },
-  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["manager", "tutor", "student"], badgeKey: "availability" },
-  { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
+  // Tutor
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["tutor"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
+  { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
-  { to: "/subscription", labelKey: "nav.subscription", icon: Crown, roles: ["tutor"], independentOnly: true },
-  { to: "/analytics", labelKey: "nav.analytics", icon: BarChart3, roles: ["tutor"], independentOnly: true },
-  { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"], independentOnly: true },
-  { to: "/my-referrals", labelKey: "nav.myReferrals", icon: HandHeart, roles: ["tutor"], independentOnly: true },
-  { to: "/finances", labelKey: "nav.finances", icon: DollarSign, roles: ["manager", "tutor"], independentOnly: true },
-  { to: "/wallets", labelKey: "nav.wallets", icon: Wallet, roles: ["manager", "tutor"], independentOnly: true },
-  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager", "tutor", "student"], badgeKey: "chats" },
-  { to: "/referrals", labelKey: "nav.referrals", icon: HandHeart, roles: ["manager"] },
-  { to: "/subscription-requests", labelKey: "nav.subscriptionRequests", icon: Crown, roles: ["manager"], badgeKey: "subscription" },
+  // Manager
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
   { to: "/people", labelKey: "nav.people", icon: Users, roles: ["manager"] },
-  { to: "/paywall-metrics", labelKey: "nav.paywallMetrics", icon: BarChart3, roles: ["manager"] },
-  { to: "/audit", labelKey: "nav.audit", icon: ShieldAlert, roles: ["manager"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
+  { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
+  // Student
+  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["student"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
+  { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["student"] },
 ];
 
 const roleLabelKey: Record<AppRole, string> = {
