@@ -1598,7 +1598,7 @@ export default function SchedulePage() {
                     return (
                       <LessonCard
                         key={lesson.id}
-                        lesson={lesson}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                         variant="schedule"
                         studentName={studentName}
                         tutorName={tutorName}
@@ -1704,7 +1704,7 @@ export default function SchedulePage() {
                             <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
                               <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
                                 <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  🎓 {lesson.student_price}₴
+                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
                                 </span>
                                 <Select
                                   value={lesson.student_payment_status}
@@ -1721,7 +1721,7 @@ export default function SchedulePage() {
                               </div>
                               <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
                                 <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  💼 {lesson.tutor_payout}₴
+                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
                                 </span>
                                 <Select
                                   value={lesson.tutor_payout_status}
