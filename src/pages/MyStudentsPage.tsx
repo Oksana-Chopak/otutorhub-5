@@ -43,6 +43,15 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { CURRENCY_OPTIONS, formatPrice, currencySymbol } from "@/lib/currency";
 
 interface MyStudent {
   id: string;
@@ -60,6 +69,8 @@ interface MyStudent {
   subject: string;
   default_meeting_url: string | null;
   archived_at: string | null;
+  currency: string;
+  payment_details: string | null;
   // Activity / payment status
   unpaid_count: number;
   unpaid_total: number;
@@ -79,6 +90,8 @@ interface FormData {
   subject: string;
   price: string;
   default_meeting_url: string;
+  currency: string;
+  payment_details: string;
 }
 
 const emptyForm: FormData = {
@@ -92,6 +105,8 @@ const emptyForm: FormData = {
   subject: "",
   price: "",
   default_meeting_url: "",
+  currency: "UAH",
+  payment_details: "",
 };
 
 export default function MyStudentsPage() {
