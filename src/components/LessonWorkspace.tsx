@@ -146,7 +146,25 @@ export function LessonWorkspace({
 
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
-    const cleaned = field === "meeting_url" ? normalizeUrl(value) : value;
+    let cleaned = value;
+    if (field === "meeting_url") {
+      const trimmed = value.trim();
+      if (trimmed) {
+        const safe = sanitizeHttpUrl(trimmed);
+        if (!safe) {
+          setSaving(null);
+          toast({
+            title: "Некоректне посилання",
+            description: "Дозволені лише https:// або http:// посилання.",
+            variant: "destructive",
+          });
+          return;
+        }
+        cleaned = safe;
+      } else {
+        cleaned = "";
+      }
+    }
     let error: { message: string } | null = null;
     if (field === "meeting_url") {
       const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
