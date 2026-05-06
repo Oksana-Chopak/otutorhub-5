@@ -358,7 +358,9 @@ export default function SchedulePage() {
       ...l,
       source: (l.source as LessonSource) ?? "hub",
     }));
-    setLessons(lessonsWithSource as Lesson[]);
+    setLessons(Array.from(
+      new Map(lessonsWithSource.map((l: any) => [l.id, l])).values()
+    ) as Lesson[]);
     setLoading(false);
   };
 
