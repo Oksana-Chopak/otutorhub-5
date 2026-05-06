@@ -255,7 +255,10 @@ export default function DashboardPage() {
     }
 
     setProfiles(profileMap);
-    setLessons((lessonsData ?? []) as LessonRow[]);
+    const uniqueLessons = Array.from(
+      new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
+    );
+    setLessons(uniqueLessons);
 
     if (isIndependentTutor) {
       const { count } = await supabase
