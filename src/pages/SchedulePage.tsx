@@ -300,13 +300,12 @@ export default function SchedulePage() {
     if (!user) return;
     setLoading(true);
 
-    const [lessonsRes, profilesRes, rolesRes, tutorRes, sourcesRes, ratesRes] = await Promise.all([
+    const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
       supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
       supabase.from("profiles").select("id, first_name, last_name"),
       // RLS: non-managers only see their own row here. Used by managers/tutors for filters.
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
-      supabase.from("lessons").select("id, source"),
       // Used by students to discover their assigned tutors (RLS allows student to see own rates).
       supabase.from("student_rates").select("tutor_id, student_id"),
     ]);
