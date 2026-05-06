@@ -43,6 +43,15 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { CURRENCY_OPTIONS, formatPrice, currencySymbol } from "@/lib/currency";
 
 interface MyStudent {
   id: string;
@@ -60,6 +69,8 @@ interface MyStudent {
   subject: string;
   default_meeting_url: string | null;
   archived_at: string | null;
+  currency: string;
+  payment_details: string | null;
   // Activity / payment status
   unpaid_count: number;
   unpaid_total: number;
@@ -79,6 +90,8 @@ interface FormData {
   subject: string;
   price: string;
   default_meeting_url: string;
+  currency: string;
+  payment_details: string;
 }
 
 const emptyForm: FormData = {
@@ -92,6 +105,8 @@ const emptyForm: FormData = {
   subject: "",
   price: "",
   default_meeting_url: "",
+  currency: "UAH",
+  payment_details: "",
 };
 
 export default function MyStudentsPage() {
@@ -147,7 +162,7 @@ export default function MyStudentsPage() {
     setLoading(true);
     const { data: rates } = await supabase
       .from("student_rates")
-      .select("id, student_id, subject, price_per_lesson, archived_at")
+      .select("id, student_id, subject, price_per_lesson, archived_at, currency, payment_details")
       .eq("tutor_id", user.id)
       .eq("source", "independent");
 
@@ -234,6 +249,8 @@ export default function MyStudentsPage() {
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
         archived_at: (r as any)?.archived_at ?? null,
+        currency: (r as any)?.currency ?? "UAH",
+        payment_details: (r as any)?.payment_details ?? null,
         unpaid_count: stats.unpaid_count,
         unpaid_total: stats.unpaid_total,
         last_lesson_at: stats.last_lesson_at,
@@ -281,6 +298,8 @@ export default function MyStudentsPage() {
       subject: s.subject ?? "",
       price: String(s.price ?? ""),
       default_meeting_url: s.default_meeting_url ?? "",
+      currency: s.currency || "UAH",
+      payment_details: s.payment_details ?? "",
     });
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
@@ -346,7 +365,9 @@ export default function MyStudentsPage() {
         subject,
         price_per_lesson: price,
         source: "independent",
-      });
+        currency: form.currency || "UAH",
+        payment_details: form.payment_details.trim() || null,
+      } as any);
       if (rateErr) {
         console.error(rateErr);
         await supabase.from("user_roles").delete().eq("user_id", newId);
@@ -453,7 +474,12 @@ export default function MyStudentsPage() {
         const oldPrice = Number(existing.price ?? 0);
         await supabase
           .from("student_rates")
-          .update({ subject, price_per_lesson: price })
+          .update({
+            subject,
+            price_per_lesson: price,
+            currency: form.currency || "UAH",
+            payment_details: form.payment_details.trim() || null,
+          } as any)
           .eq("id", existing.rate_id);
         if (oldPrice !== price) {
           priceChanged = {
@@ -651,7 +677,7 @@ export default function MyStudentsPage() {
                     <span>{s.subject}</span>
                     <span className="inline-flex items-center gap-1">
                       <Banknote className="h-3 w-3" />
-                      {s.price} ₴/урок
+                      {formatPrice(s.price, s.currency)}/урок
                     </span>
                     {s.phone && (
                       <span className="inline-flex items-center gap-1">
@@ -869,7 +895,7 @@ export default function MyStudentsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Ціна за урок (₴)</Label>
+                <Label>Ціна за урок ({currencySymbol(form.currency)})</Label>
                 <Input
                   type="number"
                   min={0}
@@ -877,6 +903,38 @@ export default function MyStudentsPage() {
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label>Валюта оплати</Label>
+                <Select
+                  value={form.currency}
+                  onValueChange={(v) => setForm({ ...form, currency: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Реквізити</Label>
+              <Textarea
+                placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
+                value={form.payment_details}
+                onChange={(e) => setForm({ ...form, payment_details: e.target.value })}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Як учню переказати гроші. Видно учню на сторінці оплат.
+              </p>
             </div>
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5">

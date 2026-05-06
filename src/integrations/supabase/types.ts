@@ -1086,7 +1086,9 @@ export type Database = {
         Row: {
           archived_at: string | null
           created_at: string
+          currency: string
           id: string
+          payment_details: string | null
           price_per_lesson: number
           source: string
           student_id: string
@@ -1097,7 +1099,9 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           created_at?: string
+          currency?: string
           id?: string
+          payment_details?: string | null
           price_per_lesson?: number
           source?: string
           student_id: string
@@ -1108,7 +1112,9 @@ export type Database = {
         Update: {
           archived_at?: string | null
           created_at?: string
+          currency?: string
           id?: string
+          payment_details?: string | null
           price_per_lesson?: number
           source?: string
           student_id?: string

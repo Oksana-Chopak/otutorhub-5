@@ -135,6 +135,7 @@ export default function DashboardPage() {
   const [addStudentOpen, setAddStudentOpen] = useState(false);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
+  const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
   // Gamification: badge unlock toasts + referral nudge counters
   const { badges, loading: gamificationLoading } = useTutorGamification();
@@ -191,6 +192,7 @@ export default function DashboardPage() {
       { data: requestRows },
       { data: ratesData },
       { data: defaultsData },
+      { data: ratesCurrencyData },
     ] = await Promise.all([
       supabase
         .from("lessons_visible")
@@ -209,7 +211,16 @@ export default function DashboardPage() {
       supabase
         .from("tutor_student_defaults")
         .select("tutor_id, student_id, default_meeting_url"),
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, currency"),
     ]);
+
+    const currencyMap: Record<string, string> = {};
+    ((ratesCurrencyData ?? []) as Array<{ tutor_id: string; student_id: string; currency: string | null }>).forEach((r) => {
+      currencyMap[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
+    });
+    setPairCurrency(currencyMap);
 
     console.log('[DashboardPage] lessons count:', (lessonsData ?? []).length, 'unique ids:', new Set((lessonsData ?? []).map((l: any) => l.id)).size);
 
@@ -687,7 +698,7 @@ export default function DashboardPage() {
                       return (
                         <LessonCard
                           key={lesson.id}
-                          lesson={lesson}
+                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           variant="dashboard"
                           studentName={studentName}
                           tutorName={tutorName}
@@ -749,7 +760,7 @@ export default function DashboardPage() {
                     return (
                       <Collapsible key={lesson.id}>
                         <LessonCard
-                          lesson={lesson}
+                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           variant="dashboard"
                           studentName={studentName}
                           tutorName={tutorName}

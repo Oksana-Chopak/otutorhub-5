@@ -4,6 +4,7 @@ import { MessageCircle, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
+import { formatPrice } from "@/lib/currency";
 
 export type LessonCardVariant = "dashboard" | "schedule" | "compact";
 
@@ -16,6 +17,8 @@ export interface LessonCardData {
   student_price?: number | string | null;
   student_payment_status?: "paid" | "unpaid";
   status?: "pending" | "scheduled" | "completed" | "cancelled";
+  /** ISO 4217 code (UAH default). */
+  currency?: string | null;
 }
 
 interface LessonCardProps {
@@ -168,7 +171,7 @@ export function LessonCard({
                 )}
                 title={isPaid ? "Натисніть, щоб скасувати оплату" : "Натисніть, щоб позначити як отримано"}
               >
-                {isPaid ? "Оплачено ✓" : `✓ Отримав ${price > 0 ? `${price} ₴` : ""}`.trim()}
+                {isPaid ? "Оплачено ✓" : `✓ Отримав ${price > 0 ? formatPrice(price, lesson.currency) : ""}`.trim()}
               </button>
             ) : isPaid ? (
               <span className="inline-flex min-h-[28px] items-center rounded-full bg-success/15 px-2.5 py-1 text-xs font-semibold text-success">

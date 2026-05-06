@@ -46,6 +46,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,7 @@ export default function SchedulePage() {
   const [tutors, setTutors] = useState<PersonOption[]>([]);
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
+  const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
   const [view, setView] = useState<"list" | "week">("week");
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
@@ -308,7 +310,7 @@ export default function SchedulePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),
       // Used by students to discover their assigned tutors (RLS allows student to see own rates).
-      supabase.from("student_rates").select("tutor_id, student_id"),
+      supabase.from("student_rates").select("tutor_id, student_id, currency"),
     ]);
 
     const profiles = profilesRes.data ?? [];
@@ -324,7 +326,12 @@ export default function SchedulePage() {
     });
 
     const roleRows = rolesRes.data ?? [];
-    const rateRows = (ratesRes.data ?? []) as { tutor_id: string; student_id: string }[];
+    const rateRows = (ratesRes.data ?? []) as { tutor_id: string; student_id: string; currency?: string | null }[];
+    const currencyByPair: Record<string, string> = {};
+    rateRows.forEach((r) => {
+      currencyByPair[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
+    });
+    setPairCurrency(currencyByPair);
 
     let tutorIds: string[] = [];
     let studentIds: string[] = [];
@@ -1592,7 +1599,7 @@ export default function SchedulePage() {
                     return (
                       <LessonCard
                         key={lesson.id}
-                        lesson={lesson}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                         variant="schedule"
                         studentName={studentName}
                         tutorName={tutorName}
@@ -1698,7 +1705,7 @@ export default function SchedulePage() {
                             <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
                               <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
                                 <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  🎓 {lesson.student_price}₴
+                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
                                 </span>
                                 <Select
                                   value={lesson.student_payment_status}
@@ -1715,7 +1722,7 @@ export default function SchedulePage() {
                               </div>
                               <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
                                 <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  💼 {lesson.tutor_payout}₴
+                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
                                 </span>
                                 <Select
                                   value={lesson.tutor_payout_status}
