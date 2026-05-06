@@ -28,6 +28,7 @@ import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { safeHref } from "@/lib/safeUrl";
+import { LessonCard } from "@/components/LessonCard";
 import {
   CalendarDays,
   Users,
@@ -294,7 +295,16 @@ export default function DashboardPage() {
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
     [lessons, nowMs]
   );
-  const upcomingLessons = showAllUpcoming ? upcomingAll : upcomingAll.slice(0, 5);
+  const todayPlusTomorrowLessons = useMemo(() => {
+    const tmr = new Date();
+    tmr.setDate(tmr.getDate() + 1);
+    const tmrKey = tmr.toISOString().slice(0, 10);
+    return upcomingAll.filter((l) => {
+      const k = l.starts_at.slice(0, 10);
+      return k === todayKey || k === tmrKey;
+    });
+  }, [upcomingAll, todayKey]);
+  const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
 
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
@@ -626,7 +636,7 @@ export default function DashboardPage() {
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
-                {upcomingAll.length > 5 && (
+                {upcomingAll.length > todayPlusTomorrowLessons.length && (
                   <Button
                     size="sm"
                     variant="ghost"
@@ -668,60 +678,28 @@ export default function DashboardPage() {
                   </div>
                 ) : (
                   upcomingLessons.map((lesson) => {
-                    const lessonDate = new Date(lesson.starts_at);
-                    const lessonDayKey = lesson.starts_at.slice(0, 10);
-                    const isToday = lessonDayKey === todayKey;
-                    const tomorrow = new Date();
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    const dayAfter = new Date();
-                    dayAfter.setDate(dayAfter.getDate() + 2);
-                    const tomorrowKey = tomorrow.toISOString().slice(0, 10);
-                    const dayAfterKey = dayAfter.toISOString().slice(0, 10);
-                    const weekday = lessonDate.toLocaleDateString("uk-UA", { weekday: "long" });
-                    const weekdayCap = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-                    const timeStr = lessonDate.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-                    let dayPart: string;
-                    if (isToday) dayPart = "Сьогодні";
-                    else if (lessonDayKey === tomorrowKey) dayPart = `Завтра · ${weekdayCap}`;
-                    else if (lessonDayKey === dayAfterKey) dayPart = `Післязавтра · ${weekdayCap}`;
-                    else
-                      dayPart = `${weekdayCap}, ${lessonDate.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}`;
-                    const timeLabel = `${dayPart} · ${timeStr}`;
-
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
                     const meetingHref = effectiveMeetingUrl(lesson);
-                    const hasMeeting = !!meetingHref;
+                    const tutorName = profiles[lesson.tutor_id] ?? "—";
+                    const studentName = profiles[lesson.student_id] ?? "—";
 
                     if (isManager && !isParticipant) {
                       return (
-                        <div
+                        <LessonCard
                           key={lesson.id}
-                          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:border-primary/40 sm:flex-row sm:items-center sm:justify-between sm:p-4"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => setOpenLessonId(lesson.id)}
-                            className="flex min-w-0 flex-1 items-center gap-3 text-left sm:gap-4"
-                          >
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                              <Clock className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
-                              </p>
-                              <p className="text-xs text-muted-foreground sm:hidden mt-0.5">{timeLabel}</p>
-                            </div>
-                          </button>
-                          <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
-                            <span className="hidden sm:block text-xs font-medium text-foreground">{timeLabel}</span>
-                            <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
-                            <div className="flex items-center gap-1.5">
+                          lesson={lesson}
+                          variant="dashboard"
+                          studentName={studentName}
+                          tutorName={tutorName}
+                          showTutor
+                          meetingUrl={meetingHref}
+                          onContentClick={() => setOpenLessonId(lesson.id)}
+                          extraActions={
+                            <>
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7"
+                                className="min-h-[44px]"
                                 onClick={() => setOpenLessonId(lesson.id)}
                               >
                                 Відкрити
@@ -729,22 +707,22 @@ export default function DashboardPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7 gap-1"
+                                className="min-h-[44px] gap-1"
                                 onClick={() =>
                                   setWalletPair({
                                     tutor_id: lesson.tutor_id,
                                     student_id: lesson.student_id,
-                                    tutor_name: profiles[lesson.tutor_id] ?? "—",
-                                    student_name: profiles[lesson.student_id] ?? "—",
+                                    tutor_name: tutorName,
+                                    student_name: studentName,
                                   })
                                 }
                               >
-                                <Wallet className="h-3 w-3" />
+                                <Wallet className="h-4 w-4" />
                                 Оплати
                               </Button>
-                            </div>
-                          </div>
-                        </div>
+                            </>
+                          }
+                        />
                       );
                     }
 
@@ -765,83 +743,47 @@ export default function DashboardPage() {
                       loadData();
                     };
 
+                    const partnerId =
+                      user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id;
+
                     return (
-                      <Collapsible key={lesson.id} className="rounded-xl border border-border bg-card">
-                        <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
-                          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                              <Clock className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">{lesson.subject}</p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {profiles[lesson.tutor_id] ?? "—"} → {profiles[lesson.student_id] ?? "—"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex w-full items-center justify-between gap-2 border-t border-border pt-2 sm:w-auto sm:shrink-0 sm:flex-col sm:items-end sm:border-0 sm:pt-0">
-                            <span className="min-w-0 text-xs font-medium leading-snug text-foreground sm:text-sm">{timeLabel}</span>
-                            <Badge className={statusClass[lesson.status]}>{statusLabel[lesson.status]}</Badge>
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {hasMeeting && (
-                              <Button asChild size="sm" variant="default">
-                                <a href={safeHref(meetingHref)} target="_blank" rel="noopener noreferrer">
-                                  <Video className="mr-2 h-4 w-4" />
-                                  Приєднатися
-                                </a>
+                      <Collapsible key={lesson.id}>
+                        <LessonCard
+                          lesson={lesson}
+                          variant="dashboard"
+                          studentName={studentName}
+                          tutorName={tutorName}
+                          showTutor={isManager}
+                          meetingUrl={meetingHref}
+                          chatPartnerId={partnerId}
+                          onTogglePayment={canTogglePayment ? togglePayment : undefined}
+                          extraActions={
+                            <CollapsibleTrigger asChild>
+                              <Button size="sm" variant="ghost" className="group min-h-[44px]">
+                                Деталі
+                                <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
                               </Button>
-                            )}
-                            {canTogglePayment ? (
-                              <button
-                                type="button"
-                                onClick={togglePayment}
-                                className={
-                                  isPaid
-                                    ? "rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success transition-colors hover:bg-success/20"
-                                    : "rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning transition-colors hover:bg-warning/20"
-                                }
-                                title="Натисніть, щоб змінити статус оплати"
-                              >
-                                {isPaid ? "✓ Оплачено" : "Очікує оплати"}
-                              </button>
-                            ) : (
-                              <span
-                                className={
-                                  isPaid
-                                    ? "rounded-full bg-success/10 px-2.5 py-1 text-xs font-medium text-success"
-                                    : "rounded-full bg-warning/10 px-2.5 py-1 text-xs font-medium text-warning"
-                                }
-                              >
-                                {isPaid ? "✓ Оплачено" : "Очікує оплати"}
-                              </span>
-                            )}
-                          </div>
-                          <CollapsibleTrigger asChild>
-                            <Button size="sm" variant="ghost" className="group">
-                              Деталі
-                              <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                            </Button>
-                          </CollapsibleTrigger>
-                        </div>
-                        <CollapsibleContent className="border-t border-border p-4">
-                          <LessonWorkspace
-                            lessonId={lesson.id}
-                            tutorId={lesson.tutor_id}
-                            studentId={lesson.student_id}
-                            meetingUrl={lesson.meeting_url}
-                            homework={lesson.homework}
-                            summary={lesson.summary}
-                            studentNotes={lesson.student_notes}
-                            source={lesson.source}
-                            studentPrice={lesson.student_price}
-                            studentPaymentStatus={lesson.student_payment_status}
-                            lessonStatus={lesson.status}
-                            onUpdated={loadData}
-                          />
-                        </CollapsibleContent>
+                            </CollapsibleTrigger>
+                          }
+                          footer={
+                            <CollapsibleContent className="rounded-b-xl border-x border-b border-border bg-card p-4 -mt-px">
+                              <LessonWorkspace
+                                lessonId={lesson.id}
+                                tutorId={lesson.tutor_id}
+                                studentId={lesson.student_id}
+                                meetingUrl={lesson.meeting_url}
+                                homework={lesson.homework}
+                                summary={lesson.summary}
+                                studentNotes={lesson.student_notes}
+                                source={lesson.source}
+                                studentPrice={lesson.student_price}
+                                studentPaymentStatus={lesson.student_payment_status}
+                                lessonStatus={lesson.status}
+                                onUpdated={loadData}
+                              />
+                            </CollapsibleContent>
+                          }
+                        />
                       </Collapsible>
                     );
                   })

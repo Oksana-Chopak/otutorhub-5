@@ -45,6 +45,7 @@ import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
+import { LessonCard } from "@/components/LessonCard";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
@@ -1589,185 +1590,150 @@ export default function SchedulePage() {
                       isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
-                      <div
+                      <LessonCard
                         key={lesson.id}
-                        className={`flex flex-col gap-3 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4 ${
-                          isToday ? "border-primary/20 bg-primary/5" : "border-border bg-card"
-                        } ${lessonSourceTint(lesson.source)}`}
-                      >
-                        <div className="flex items-center gap-3 min-w-0 flex-1 sm:gap-4">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                            <Clock className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate flex items-center gap-2">
-                              <span className="truncate">{lesson.subject} — {formatDateGroup(lesson.starts_at)}, {formatTime(lesson.starts_at)}</span>
-                              {lesson.source && hasMixedSources && (
-                                <SourceBadge source={lesson.source} showIcon={false} />
-                              )}
-                            </p>
-                            <p className="text-xs text-muted-foreground truncate">
-                              {tutorName} → {studentName} · {lesson.duration_minutes} хв
-                            </p>
-                            {isManager && (
-                              <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2 sm:grid-cols-2">
-                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                    🎓 {lesson.student_price}₴
-                                  </span>
-                                  <Select
-                                    value={lesson.student_payment_status}
-                                    onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                  >
-                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                      <SelectItem value="paid">✓ Оплачено</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                  <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                    💼 {lesson.tutor_payout}₴
-                                  </span>
-                                  <Select
-                                    value={lesson.tutor_payout_status}
-                                    onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                  >
-                                    <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                      <SelectItem value="paid">✓ Виплачено</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                              </div>
+                        lesson={lesson}
+                        variant="schedule"
+                        studentName={studentName}
+                        tutorName={tutorName}
+                        showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}
+                        meetingUrl={lesson.meeting_url}
+                        chatPartnerId={
+                          user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id
+                        }
+                        onTogglePayment={
+                          (isManager || (isTutor && lesson.tutor_id === user?.id))
+                            ? () =>
+                                updatePayment(
+                                  lesson.id,
+                                  "student_payment_status",
+                                  (lesson.student_payment_status === "paid" ? "unpaid" : "paid") as PaymentStatus,
+                                )
+                            : undefined
+                        }
+                        className={lessonSourceTint(lesson.source)}
+                        extraActions={
+                          <>
+                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-11 w-11 text-muted-foreground hover:text-primary"
+                                onClick={() => openEdit(lesson)}
+                                title="Редагувати урок"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
                             )}
-                            {/* Price + payment select for independent tutor on their own lessons */}
-                            {!isManager && isTutor && lesson.tutor_id === user?.id && lesson.source === "independent" && (
-                              <div className="mt-1 flex flex-wrap items-center gap-2 text-xs">
-                                {Number(lesson.student_price) > 0 ? (
-                                  <span className="font-medium text-foreground">
-                                    🎓 {Number(lesson.student_price)} ₴
-                                  </span>
-                                ) : (
-                                  <span className="rounded-md bg-warning/10 px-1.5 py-0.5 text-warning">
-                                    ⚠ Без ціни
-                                  </span>
-                                )}
+                            {canEditStatus ? (
+                              <Select
+                                value={lesson.status}
+                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                              >
+                                <SelectTrigger className="h-11 w-[140px] text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(isManager
+                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
+                                  ).map((s) => (
+                                    <SelectItem key={s} value={s}>
+                                      {statusLabel[s]}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <Badge className={statusBadgeClass[lesson.status]}>
+                                {statusLabel[lesson.status]}
+                              </Badge>
+                            )}
+                            {isPureStudent && lesson.student_id === user?.id && (
+                              <StudentLessonActions
+                                lessonId={lesson.id}
+                                tutorId={lesson.tutor_id}
+                                startsAt={lesson.starts_at}
+                                status={lesson.status}
+                              />
+                            )}
+                            {canCopy && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-11 w-11 text-muted-foreground hover:text-primary"
+                                onClick={() => openCopy(lesson)}
+                                title="Копіювати урок"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground hover:text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Цю дію не можна скасувати.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
+                                      Видалити
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </>
+                        }
+                        footer={
+                          isManager ? (
+                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                  🎓 {lesson.student_price}₴
+                                </span>
                                 <Select
                                   value={lesson.student_payment_status}
                                   onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
                                 >
-                                  <SelectTrigger
-                                    className={`h-7 w-auto min-w-[7.5rem] gap-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}
-                                  >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує оплати</SelectItem>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
                                     <SelectItem value="paid">✓ Оплачено</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
-                            )}
-                            {/* Price visible to student on their own lessons */}
-                            {!isManager && isPureStudent && lesson.student_id === user?.id && Number(lesson.student_price) > 0 && (
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                <span className="font-medium text-foreground">{Number(lesson.student_price)} ₴</span>
-                                {" · "}
-                                <span className={lesson.student_payment_status === "paid" ? "text-success" : "text-warning"}>
-                                  {lesson.student_payment_status === "paid" ? "Оплачено" : "Очікує оплати"}
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                  💼 {lesson.tutor_payout}₴
                                 </span>
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2 shrink-0 border-t border-border/60 pt-2 sm:border-0 sm:pt-0">
-                          {/* Edit button (tutor or manager) */}
-                          {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => openEdit(lesson)}
-                              title="Редагувати урок"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {canEditStatus ? (
-                            <Select
-                              value={lesson.status}
-                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                            >
-                              <SelectTrigger className="h-8 w-[140px] text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {(isManager
-                                  ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                ).map((s) => (
-                                  <SelectItem key={s} value={s}>
-                                    {statusLabel[s]}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : (
-                            <Badge className={statusBadgeClass[lesson.status]}>
-                              {statusLabel[lesson.status]}
-                            </Badge>
-                          )}
-                          {isPureStudent && lesson.student_id === user?.id && (
-                            <StudentLessonActions
-                              lessonId={lesson.id}
-                              tutorId={lesson.tutor_id}
-                              startsAt={lesson.starts_at}
-                              status={lesson.status}
-                            />
-                          )}
-                          {canCopy && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-primary"
-                              onClick={() => openCopy(lesson)}
-                              title="Копіювати урок"
-                            >
-                              <Copy className="h-4 w-4" />
-                            </Button>
-                          )}
-                          {canDelete && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Цю дію не можна скасувати.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Скасувати</AlertDialogCancel>
-                                  <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
-                                    Видалити
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          )}
-                        </div>
-                      </div>
+                                <Select
+                                  value={lesson.tutor_payout_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          ) : null
+                        }
+                      />
                     );
                   })}
                 </div>
