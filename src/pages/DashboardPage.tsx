@@ -698,7 +698,7 @@ export default function DashboardPage() {
                       return (
                         <LessonCard
                           key={lesson.id}
-                          lesson={lesson}
+                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           variant="dashboard"
                           studentName={studentName}
                           tutorName={tutorName}
@@ -760,7 +760,7 @@ export default function DashboardPage() {
                     return (
                       <Collapsible key={lesson.id}>
                         <LessonCard
-                          lesson={lesson}
+                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                           variant="dashboard"
                           studentName={studentName}
                           tutorName={tutorName}
