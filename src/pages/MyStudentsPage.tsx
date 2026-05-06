@@ -895,7 +895,7 @@ export default function MyStudentsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Ціна за урок (₴)</Label>
+                <Label>Ціна за урок ({currencySymbol(form.currency)})</Label>
                 <Input
                   type="number"
                   min={0}
@@ -903,6 +903,38 @@ export default function MyStudentsPage() {
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label>Валюта оплати</Label>
+                <Select
+                  value={form.currency}
+                  onValueChange={(v) => setForm({ ...form, currency: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Реквізити</Label>
+              <Textarea
+                placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
+                value={form.payment_details}
+                onChange={(e) => setForm({ ...form, payment_details: e.target.value })}
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">
+                Як учню переказати гроші. Видно учню на сторінці оплат.
+              </p>
             </div>
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5">
