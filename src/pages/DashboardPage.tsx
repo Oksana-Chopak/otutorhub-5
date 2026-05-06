@@ -635,7 +635,7 @@ export default function DashboardPage() {
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
-                {upcomingAll.length > 5 && (
+                {upcomingAll.length > todayPlusTomorrowLessons.length && (
                   <Button
                     size="sm"
                     variant="ghost"
