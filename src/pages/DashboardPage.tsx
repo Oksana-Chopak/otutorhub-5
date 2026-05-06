@@ -27,6 +27,7 @@ import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
+import { safeHref } from "@/lib/safeUrl";
 import {
   CalendarDays,
   Users,

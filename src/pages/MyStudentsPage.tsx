@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { safeHref } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 
 interface MyStudent {
