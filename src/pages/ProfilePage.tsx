@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +10,40 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, X } from "lucide-react";
+import {
+  Loader2, Plus, X, Crown, DollarSign, Wallet, BarChart3, Trophy, HandHeart,
+  CalendarClock, ShieldAlert, ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+
+type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
+
+function MoreSection({ title, items }: { title: string; items: SectionItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {items.map((it) => (
+          <Link
+            key={it.to}
+            to={it.to}
+            className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <it.icon className="h-5 w-5" />
+            </span>
+            <span className="flex-1 text-sm font-medium text-foreground">{it.label}</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ProfilePage() {
   const { user, roles } = useAuth();
