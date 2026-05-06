@@ -216,7 +216,10 @@ export default function DashboardPage() {
     ]);
 
     const currencyMap: Record<string, string> = {};
-    ((arguments[0] as any) /* placeholder */);
+    ((ratesCurrencyData ?? []) as Array<{ tutor_id: string; student_id: string; currency: string | null }>).forEach((r) => {
+      currencyMap[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
+    });
+    setPairCurrency(currencyMap);
 
     console.log('[DashboardPage] lessons count:', (lessonsData ?? []).length, 'unique ids:', new Set((lessonsData ?? []).map((l: any) => l.id)).size);
 
