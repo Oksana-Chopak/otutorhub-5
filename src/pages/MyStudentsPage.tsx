@@ -383,7 +383,12 @@ export default function MyStudentsPage() {
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
 
       // 6. Default meeting URL (Zoom/Meet) — optional
-      const meetingUrl = form.default_meeting_url.trim();
+      const meetingUrlRaw = form.default_meeting_url.trim();
+      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+      if (meetingUrlRaw && !meetingUrl) {
+        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        return;
+      }
       if (meetingUrl) {
         await supabase.from("tutor_student_defaults").upsert(
           {
