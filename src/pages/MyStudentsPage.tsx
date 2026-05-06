@@ -162,7 +162,7 @@ export default function MyStudentsPage() {
     setLoading(true);
     const { data: rates } = await supabase
       .from("student_rates")
-      .select("id, student_id, subject, price_per_lesson, archived_at")
+      .select("id, student_id, subject, price_per_lesson, archived_at, currency, payment_details")
       .eq("tutor_id", user.id)
       .eq("source", "independent");
 
@@ -249,6 +249,8 @@ export default function MyStudentsPage() {
         subject: r?.subject ?? "",
         default_meeting_url: (defaultsMap.get(id) as string | null) ?? null,
         archived_at: (r as any)?.archived_at ?? null,
+        currency: (r as any)?.currency ?? "UAH",
+        payment_details: (r as any)?.payment_details ?? null,
         unpaid_count: stats.unpaid_count,
         unpaid_total: stats.unpaid_total,
         last_lesson_at: stats.last_lesson_at,
@@ -296,6 +298,8 @@ export default function MyStudentsPage() {
       subject: s.subject ?? "",
       price: String(s.price ?? ""),
       default_meeting_url: s.default_meeting_url ?? "",
+      currency: s.currency || "UAH",
+      payment_details: s.payment_details ?? "",
     });
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
