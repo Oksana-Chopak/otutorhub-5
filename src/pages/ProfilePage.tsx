@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +10,74 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, X } from "lucide-react";
+import {
+  Loader2, Plus, X, Crown, DollarSign, Wallet, BarChart3, Trophy, HandHeart,
+  CalendarClock, ShieldAlert, ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+
+type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
+
+function MoreSection({ title, items }: { title: string; items: SectionItem[] }) {
+  if (items.length === 0) return null;
+  return (
+    <Card className="mt-6">
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        {items.map((it) => (
+          <Link
+            key={it.to}
+            to={it.to}
+            className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <it.icon className="h-5 w-5" />
+            </span>
+            <span className="flex-1 text-sm font-medium text-foreground">{it.label}</span>
+            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+          </Link>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
 
 export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
+  const isManager = roles.includes("manager");
+  const { isIndependent } = useWorkspaceSettings();
+
+  const tutorMore: SectionItem[] = isTutor
+    ? [
+        { to: "/subscription", label: "Підписка", icon: Crown },
+        { to: "/finances", label: "Фінанси", icon: DollarSign },
+        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/analytics", label: "Аналітика", icon: BarChart3 },
+        { to: "/achievements", label: "Досягнення", icon: Trophy },
+        { to: "/my-referrals", label: "Реферали", icon: HandHeart },
+        { to: "/availability", label: "Доступність", icon: CalendarClock },
+      ].filter((it) => {
+        // Hide independent-only items for tutors who are part of a school workspace
+        if (!isIndependent && ["/subscription", "/finances", "/wallets", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
+        return true;
+      })
+    : [];
+
+  const managerMore: SectionItem[] = isManager
+    ? [
+        { to: "/finances", label: "Фінанси", icon: DollarSign },
+        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/availability", label: "Доступність", icon: CalendarClock },
+        { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
+        { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },
+        { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3 },
+        { to: "/audit", label: "Аудит", icon: ShieldAlert },
+      ]
+    : [];
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -116,11 +179,20 @@ export default function ProfilePage() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-2xl">
-          <Card>
-            <CardContent className="py-8 text-center text-sm text-muted-foreground">
-              Ця сторінка доступна репетиторам.
-            </CardContent>
-          </Card>
+          <div className="mb-6">
+            <h1 className="font-display text-2xl font-bold text-foreground">Профіль</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Керуйте своїм робочим простором.
+            </p>
+          </div>
+          <MoreSection title="Розділи" items={managerMore} />
+          {managerMore.length === 0 && (
+            <Card>
+              <CardContent className="py-8 text-center text-sm text-muted-foreground">
+                Немає додаткових налаштувань.
+              </CardContent>
+            </Card>
+          )}
         </div>
       </AppLayout>
     );
@@ -233,6 +305,8 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
+
+        <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>
   );
