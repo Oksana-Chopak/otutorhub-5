@@ -46,6 +46,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
