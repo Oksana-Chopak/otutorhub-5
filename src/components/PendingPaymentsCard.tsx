@@ -167,7 +167,8 @@ export function PendingPaymentsCard() {
       student_id: r.student_id,
       student_name: r.student_name,
       total: 0,
-      lessons: [],
+      currency: r.currency,
+      lessons: [] as UnpaidRow[],
     };
     g.total += r.student_price;
     g.lessons.push(r);
@@ -175,6 +176,11 @@ export function PendingPaymentsCard() {
   }
   const groups = Array.from(groupMap.values()).sort((a, b) => b.total - a.total);
   const totalSum = rows.reduce((s, r) => s + r.student_price, 0);
+  // If all unpaid lessons share one currency, show it in summary; otherwise omit symbol.
+  const summaryCurrency = (() => {
+    const set = new Set(groups.map((g) => g.currency));
+    return set.size === 1 ? Array.from(set)[0] : null;
+  })();
 
   return (
     <Card className="border-warning/40 bg-gradient-to-br from-warning/5 to-card">
@@ -186,7 +192,7 @@ export function PendingPaymentsCard() {
               Очікують оплати
             </CardTitle>
             <Badge variant="outline" className="ml-1 text-[10px]">
-              {groups.length} {groups.length === 1 ? "учень" : "учнів"} · {totalSum} ₴
+              {groups.length} {groups.length === 1 ? "учень" : "учнів"} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
             </Badge>
             <ChevronDown
               className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${
@@ -230,7 +236,7 @@ export function PendingPaymentsCard() {
                           · {g.lessons.length} {g.lessons.length === 1 ? "урок" : "ур."}
                         </span>
                         <span className="ml-auto text-sm font-semibold text-foreground">
-                          {g.total} ₴
+                          {formatPrice(g.total, g.currency)}
                         </span>
                       </button>
                       <Button
@@ -272,7 +278,7 @@ export function PendingPaymentsCard() {
                                   })}
                                 </p>
                                 <p className="text-xs font-medium text-muted-foreground">
-                                  {r.student_price} ₴
+                                  {formatPrice(r.student_price, r.currency)}
                                 </p>
                               </button>
                               <Button
