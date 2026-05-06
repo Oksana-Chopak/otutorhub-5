@@ -677,7 +677,7 @@ export default function MyStudentsPage() {
                     <span>{s.subject}</span>
                     <span className="inline-flex items-center gap-1">
                       <Banknote className="h-3 w-3" />
-                      {s.price} ₴/урок
+                      {formatPrice(s.price, s.currency)}/урок
                     </span>
                     {s.phone && (
                       <span className="inline-flex items-center gap-1">
