@@ -305,6 +305,8 @@ export default function ProfilePage() {
             )}
           </CardContent>
         </Card>
+
+        <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>
   );
