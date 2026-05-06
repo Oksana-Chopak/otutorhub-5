@@ -352,13 +352,9 @@ export default function SchedulePage() {
     );
     setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "Учень" })));
 
-    const sourceMap: Record<string, LessonSource> = {};
-    (sourcesRes.data ?? []).forEach((r: any) => {
-      sourceMap[r.id] = (r.source as LessonSource) ?? "hub";
-    });
     const lessonsWithSource = ((lessonsRes.data ?? []) as any[]).map((l) => ({
       ...l,
-      source: sourceMap[l.id] ?? "hub",
+      source: (l.source as LessonSource) ?? "hub",
     }));
     setLessons(lessonsWithSource as Lesson[]);
     setLoading(false);
