@@ -135,6 +135,7 @@ export default function DashboardPage() {
   const [addStudentOpen, setAddStudentOpen] = useState(false);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
+  const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
   // Gamification: badge unlock toasts + referral nudge counters
   const { badges, loading: gamificationLoading } = useTutorGamification();
@@ -209,7 +210,13 @@ export default function DashboardPage() {
       supabase
         .from("tutor_student_defaults")
         .select("tutor_id, student_id, default_meeting_url"),
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, currency"),
     ]);
+
+    const currencyMap: Record<string, string> = {};
+    ((arguments[0] as any) /* placeholder */);
 
     console.log('[DashboardPage] lessons count:', (lessonsData ?? []).length, 'unique ids:', new Set((lessonsData ?? []).map((l: any) => l.id)).size);
 
