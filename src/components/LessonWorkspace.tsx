@@ -31,11 +31,11 @@ interface LessonWorkspaceProps {
   onUpdated?: () => void;
 }
 
+import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
+
 function normalizeUrl(value: string): string {
-  const v = value.trim();
-  if (!v) return "";
-  if (/^https?:\/\//i.test(v)) return v;
-  return `https://${v}`;
+  // Returns an empty string if the URL is not a safe http(s) URL.
+  return sanitizeHttpUrl(value) ?? "";
 }
 
 export function LessonWorkspace({
