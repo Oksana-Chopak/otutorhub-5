@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 
 interface MyStudent {
@@ -382,7 +383,12 @@ export default function MyStudentsPage() {
       await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
 
       // 6. Default meeting URL (Zoom/Meet) — optional
-      const meetingUrl = form.default_meeting_url.trim();
+      const meetingUrlRaw = form.default_meeting_url.trim();
+      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+      if (meetingUrlRaw && !meetingUrl) {
+        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        return;
+      }
       if (meetingUrl) {
         await supabase.from("tutor_student_defaults").upsert(
           {
@@ -461,7 +467,12 @@ export default function MyStudentsPage() {
       }
 
       // Default meeting URL — upsert or clear
-      const meetingUrl = form.default_meeting_url.trim();
+      const meetingUrlRaw = form.default_meeting_url.trim();
+      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+      if (meetingUrlRaw && !meetingUrl) {
+        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        return;
+      }
       await supabase.from("tutor_student_defaults").upsert(
         {
           tutor_id: user.id,
@@ -684,7 +695,7 @@ export default function MyStudentsPage() {
                     )}
                     {s.default_meeting_url && (
                       <a
-                        href={s.default_meeting_url}
+                        href={safeHref(s.default_meeting_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 text-primary hover:underline"

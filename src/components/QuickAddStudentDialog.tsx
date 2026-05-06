@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { Loader2, Video } from "lucide-react";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { SubjectSelect } from "@/components/SubjectSelect";
+import { sanitizeHttpUrl } from "@/lib/safeUrl";
 
 interface Props {
   open: boolean;
@@ -114,7 +115,12 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       );
     }
     await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
-    const meetingUrl = form.default_meeting_url.trim();
+    const meetingUrlRaw = form.default_meeting_url.trim();
+    const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+    if (meetingUrlRaw && !meetingUrl) {
+      setSubmitting(false);
+      return toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+    }
     if (meetingUrl) {
       await supabase.from("tutor_student_defaults").upsert(
         { tutor_id: user.id, student_id: newId, default_meeting_url: meetingUrl },

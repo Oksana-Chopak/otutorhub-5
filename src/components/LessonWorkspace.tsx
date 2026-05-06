@@ -31,11 +31,11 @@ interface LessonWorkspaceProps {
   onUpdated?: () => void;
 }
 
+import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
+
 function normalizeUrl(value: string): string {
-  const v = value.trim();
-  if (!v) return "";
-  if (/^https?:\/\//i.test(v)) return v;
-  return `https://${v}`;
+  // Returns an empty string if the URL is not a safe http(s) URL.
+  return sanitizeHttpUrl(value) ?? "";
 }
 
 export function LessonWorkspace({
@@ -146,7 +146,25 @@ export function LessonWorkspace({
 
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
-    const cleaned = field === "meeting_url" ? normalizeUrl(value) : value;
+    let cleaned = value;
+    if (field === "meeting_url") {
+      const trimmed = value.trim();
+      if (trimmed) {
+        const safe = sanitizeHttpUrl(trimmed);
+        if (!safe) {
+          setSaving(null);
+          toast({
+            title: "Некоректне посилання",
+            description: "Дозволені лише https:// або http:// посилання.",
+            variant: "destructive",
+          });
+          return;
+        }
+        cleaned = safe;
+      } else {
+        cleaned = "";
+      }
+    }
     let error: { message: string } | null = null;
     if (field === "meeting_url") {
       const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
@@ -169,7 +187,21 @@ export function LessonWorkspace({
   const saveDefaultMeetingUrl = async () => {
     if (!isTutor) return;
     setSaving("default");
-    const cleaned = normalizeUrl(defaultUrl);
+    const trimmed = defaultUrl.trim();
+    let cleaned = "";
+    if (trimmed) {
+      const safe = sanitizeHttpUrl(trimmed);
+      if (!safe) {
+        setSaving(null);
+        toast({
+          title: "Некоректне посилання",
+          description: "Дозволені лише https:// або http:// посилання.",
+          variant: "destructive",
+        });
+        return;
+      }
+      cleaned = safe;
+    }
     const { error } = await supabase
       .from("tutor_student_defaults")
       .upsert(
@@ -414,7 +446,7 @@ export function LessonWorkspace({
               <div className="flex items-center gap-2">
                 {effectiveMeetingUrl && (
                   <Button asChild size="sm" variant="outline">
-                    <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                    <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Відкрити
                     </a>
@@ -483,7 +515,7 @@ export function LessonWorkspace({
             <div className="flex items-center gap-2">
               {effectiveMeetingUrl ? (
                 <Button asChild size="sm" variant="outline">
-                  <a href={effectiveMeetingUrl} target="_blank" rel="noopener noreferrer">
+                  <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Приєднатися
                   </a>
