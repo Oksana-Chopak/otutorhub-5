@@ -48,6 +48,36 @@ function MoreSection({ title, items }: { title: string; items: SectionItem[] }) 
 export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
+  const isManager = roles.includes("manager");
+  const { isIndependent } = useWorkspaceSettings();
+
+  const tutorMore: SectionItem[] = isTutor
+    ? [
+        { to: "/subscription", label: "Підписка", icon: Crown },
+        { to: "/finances", label: "Фінанси", icon: DollarSign },
+        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/analytics", label: "Аналітика", icon: BarChart3 },
+        { to: "/achievements", label: "Досягнення", icon: Trophy },
+        { to: "/my-referrals", label: "Реферали", icon: HandHeart },
+        { to: "/availability", label: "Доступність", icon: CalendarClock },
+      ].filter((it) => {
+        // Hide independent-only items for tutors who are part of a school workspace
+        if (!isIndependent && ["/subscription", "/finances", "/wallets", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
+        return true;
+      })
+    : [];
+
+  const managerMore: SectionItem[] = isManager
+    ? [
+        { to: "/finances", label: "Фінанси", icon: DollarSign },
+        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/availability", label: "Доступність", icon: CalendarClock },
+        { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
+        { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },
+        { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3 },
+        { to: "/audit", label: "Аудит", icon: ShieldAlert },
+      ]
+    : [];
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
