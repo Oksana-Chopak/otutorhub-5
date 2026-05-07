@@ -85,6 +85,11 @@ interface UserRow {
   unpaid_count?: number;
   unpaid_total?: number;
   last_lesson_at?: string | null;
+  // Tutor onboarding (manager view)
+  created_at?: string;
+  has_student?: boolean;
+  has_lesson?: boolean;
+  has_paid_lesson?: boolean;
 }
 
 const roleLabel: Record<AppRole, string> = {
