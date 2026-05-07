@@ -190,7 +190,7 @@ export default function PeoplePage() {
     const isManager = roles.includes("manager");
     
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at"),
+      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at, created_at"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
