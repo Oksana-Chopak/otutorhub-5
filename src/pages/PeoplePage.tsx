@@ -972,6 +972,44 @@ export default function PeoplePage() {
         </Select>
       </div>
 
+      {isManager && u.role === "tutor" && !u.archived_at && (() => {
+        const steps = [
+          { ok: !!u.has_student, label: "Додав учня" },
+          { ok: !!u.has_lesson, label: "Створив урок" },
+          { ok: !!u.has_paid_lesson, label: "Відмітив оплату" },
+        ];
+        const done = steps.every((s) => s.ok);
+        const fmt = (d?: string | null) =>
+          d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
+        return (
+          <div className={`mt-3 pt-3 border-t border-border ${done ? "" : "bg-warning/5 -mx-5 px-5 pb-3 -mb-3 rounded-b-xl"}`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Онбординг {done && "✓"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Реєстр.: {fmt(u.created_at)}
+                {u.last_interaction_at && ` · Активн.: ${fmt(u.last_interaction_at)}`}
+              </p>
+            </div>
+            <div className="space-y-1">
+              {steps.map((s) => (
+                <div key={s.label} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
+                      s.ok ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {s.ok ? "✓" : "○"}
+                  </span>
+                  <span className={s.ok ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {u.role === "tutor" && (
         <Button
           variant="outline"
