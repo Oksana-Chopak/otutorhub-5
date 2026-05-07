@@ -236,7 +236,15 @@ export default function PeoplePage() {
       studentStatsMap.set(sid, s);
     });
 
-    // Fetch financial contacts separately (only for managers)
+    // Tutor onboarding maps (from already-fetched data)
+    const tutorHasLesson = new Set<string>();
+    const tutorHasPaid = new Set<string>();
+    (recentLessons ?? []).forEach((l: any) => {
+      if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
+      if (l.tutor_id && l.student_payment_status === "paid") tutorHasPaid.add(l.tutor_id);
+    });
+    const tutorHasStudent = new Set<string>(((ratesRes.data ?? []) as any[]).map((r) => r.tutor_id));
+
     let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
     if (isManager) {
       const { data: financialRes } = await supabase
