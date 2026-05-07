@@ -313,6 +313,10 @@ export default function PeoplePage() {
         unpaid_count: studentStatsMap.get(p.id)?.unpaid_count ?? 0,
         unpaid_total: studentStatsMap.get(p.id)?.unpaid_total ?? 0,
         last_lesson_at: studentStatsMap.get(p.id)?.last_lesson_at ?? null,
+        created_at: p.created_at,
+        has_student: tutorHasStudent.has(p.id),
+        has_lesson: tutorHasLesson.has(p.id),
+        has_paid_lesson: tutorHasPaid.has(p.id),
       };
     });
     setUsers(merged);
