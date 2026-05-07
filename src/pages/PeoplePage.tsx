@@ -708,6 +708,11 @@ export default function PeoplePage() {
       const isArchived = !!u.archived_at;
       if (statusFilter === "archived") {
         if (!isArchived) return false;
+      } else if (statusFilter === "onboarding") {
+        if (isArchived) return false;
+        if (u.role !== "tutor") return false;
+        const done = !!(u.has_student && u.has_lesson && u.has_paid_lesson);
+        if (done) return false;
       } else {
         if (isArchived) return false;
         if (statusFilter === "active" && u.is_pending) return false;
