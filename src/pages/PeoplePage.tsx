@@ -1243,6 +1243,7 @@ export default function PeoplePage() {
                 <SelectContent>
                   <SelectItem value="active">Активні</SelectItem>
                   <SelectItem value="pending">Очікують реєстрації</SelectItem>
+                  <SelectItem value="onboarding">Нові (не завершили онбординг)</SelectItem>
                   <SelectItem value="archived">В архіві</SelectItem>
                   <SelectItem value="all">Усі (крім архіву)</SelectItem>
                 </SelectContent>
