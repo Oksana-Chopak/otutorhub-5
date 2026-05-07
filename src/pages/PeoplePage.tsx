@@ -58,6 +58,7 @@ interface Profile {
   is_pending: boolean;
   avatar_url: string | null;
   archived_at: string | null;
+  created_at: string;
 }
 
 interface UserRow {
@@ -84,6 +85,11 @@ interface UserRow {
   unpaid_count?: number;
   unpaid_total?: number;
   last_lesson_at?: string | null;
+  // Tutor onboarding (manager view)
+  created_at?: string;
+  has_student?: boolean;
+  has_lesson?: boolean;
+  has_paid_lesson?: boolean;
 }
 
 const roleLabel: Record<AppRole, string> = {
@@ -177,14 +183,14 @@ export default function PeoplePage() {
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding">("all");
 
   const loadData = async () => {
     setLoading(true);
     const isManager = roles.includes("manager");
     
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
-      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at"),
+      supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at, created_at"),
       supabase
         .from("profile_contacts")
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
@@ -230,7 +236,15 @@ export default function PeoplePage() {
       studentStatsMap.set(sid, s);
     });
 
-    // Fetch financial contacts separately (only for managers)
+    // Tutor onboarding maps (from already-fetched data)
+    const tutorHasLesson = new Set<string>();
+    const tutorHasPaid = new Set<string>();
+    (recentLessons ?? []).forEach((l: any) => {
+      if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
+      if (l.tutor_id && l.student_payment_status === "paid") tutorHasPaid.add(l.tutor_id);
+    });
+    const tutorHasStudent = new Set<string>(((ratesRes.data ?? []) as any[]).map((r) => r.tutor_id));
+
     let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
     if (isManager) {
       const { data: financialRes } = await supabase
@@ -299,6 +313,10 @@ export default function PeoplePage() {
         unpaid_count: studentStatsMap.get(p.id)?.unpaid_count ?? 0,
         unpaid_total: studentStatsMap.get(p.id)?.unpaid_total ?? 0,
         last_lesson_at: studentStatsMap.get(p.id)?.last_lesson_at ?? null,
+        created_at: p.created_at,
+        has_student: tutorHasStudent.has(p.id),
+        has_lesson: tutorHasLesson.has(p.id),
+        has_paid_lesson: tutorHasPaid.has(p.id),
       };
     });
     setUsers(merged);
@@ -690,6 +708,11 @@ export default function PeoplePage() {
       const isArchived = !!u.archived_at;
       if (statusFilter === "archived") {
         if (!isArchived) return false;
+      } else if (statusFilter === "onboarding") {
+        if (isArchived) return false;
+        if (u.role !== "tutor") return false;
+        const done = !!(u.has_student && u.has_lesson && u.has_paid_lesson);
+        if (done) return false;
       } else {
         if (isArchived) return false;
         if (statusFilter === "active" && u.is_pending) return false;
@@ -948,6 +971,44 @@ export default function PeoplePage() {
           </SelectContent>
         </Select>
       </div>
+
+      {isManager && u.role === "tutor" && !u.archived_at && (() => {
+        const steps = [
+          { ok: !!u.has_student, label: "Додав учня" },
+          { ok: !!u.has_lesson, label: "Створив урок" },
+          { ok: !!u.has_paid_lesson, label: "Відмітив оплату" },
+        ];
+        const done = steps.every((s) => s.ok);
+        const fmt = (d?: string | null) =>
+          d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
+        return (
+          <div className={`mt-3 pt-3 border-t border-border ${done ? "" : "bg-warning/5 -mx-5 px-5 pb-3 -mb-3 rounded-b-xl"}`}>
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                Онбординг {done && "✓"}
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Реєстр.: {fmt(u.created_at)}
+                {u.last_interaction_at && ` · Активн.: ${fmt(u.last_interaction_at)}`}
+              </p>
+            </div>
+            <div className="space-y-1">
+              {steps.map((s) => (
+                <div key={s.label} className="flex items-center gap-2 text-xs">
+                  <span
+                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
+                      s.ok ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {s.ok ? "✓" : "○"}
+                  </span>
+                  <span className={s.ok ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {u.role === "tutor" && (
         <Button
@@ -1220,6 +1281,7 @@ export default function PeoplePage() {
                 <SelectContent>
                   <SelectItem value="active">Активні</SelectItem>
                   <SelectItem value="pending">Очікують реєстрації</SelectItem>
+                  <SelectItem value="onboarding">Нові (не завершили онбординг)</SelectItem>
                   <SelectItem value="archived">В архіві</SelectItem>
                   <SelectItem value="all">Усі (крім архіву)</SelectItem>
                 </SelectContent>
