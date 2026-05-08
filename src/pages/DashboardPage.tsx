@@ -29,6 +29,8 @@ import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
+import { TutorNotesCard } from "@/components/TutorNotesCard";
+import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import {
   CalendarDays,
   Users,
