@@ -29,6 +29,8 @@ import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
+import { TutorNotesCard } from "@/components/TutorNotesCard";
+import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import {
   CalendarDays,
   Users,
@@ -643,6 +645,16 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {isTutor && !isManager && user && (
+            <NeedsMarkingCard
+              lessons={lessons.filter(
+                (l) => l.tutor_id === user.id && l.status === "scheduled"
+              )}
+              studentNames={profiles}
+              onChanged={loadData}
+            />
+          )}
+
           <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
@@ -917,22 +929,7 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
-                  {isTutor && (
-                    <div className="rounded-xl border border-border bg-card p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <StickyNote className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">Внести нотатку про урок</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            Відкрийте найближчий урок і додайте конспект чи домашнє завдання.
-                          </p>
-                          <Button asChild size="sm" className="mt-3"><Link to="/schedule">До уроків</Link></Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {isTutor && <TutorNotesCard />}
                   {(isTutor || isManager) && (
                     <div className="rounded-xl border border-border bg-card p-4">
                       <div className="flex items-start gap-3">

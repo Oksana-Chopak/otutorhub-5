@@ -1406,6 +1406,27 @@ export type Database = {
         }
         Relationships: []
       }
+      tutor_notes: {
+        Row: {
+          created_at: string
+          id: string
+          text: string
+          tutor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          text: string
+          tutor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          text?: string
+          tutor_id?: string
+        }
+        Relationships: []
+      }
       tutor_referral_requests: {
         Row: {
           budget_note: string | null
