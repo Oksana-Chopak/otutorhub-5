@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Video } from "lucide-react";
+import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
@@ -19,6 +19,8 @@ export interface LessonCardData {
   status?: "pending" | "scheduled" | "completed" | "cancelled";
   /** ISO 4217 code (UAH default). */
   currency?: string | null;
+  lesson_type?: "individual" | "pair" | "group" | null;
+  group_id?: string | null;
 }
 
 interface LessonCardProps {
@@ -26,6 +28,10 @@ interface LessonCardProps {
   variant?: LessonCardVariant;
   studentName?: string;
   tutorName?: string;
+  /** Group label (e.g. "Англійська · 9-Б") shown when lesson_type is pair/group. */
+  groupName?: string;
+  /** Number of participants in the group. */
+  groupSize?: number;
   /** Show tutor name (typically for managers). */
   showTutor?: boolean;
   /** Effective meeting URL (already resolved with fallback). */
