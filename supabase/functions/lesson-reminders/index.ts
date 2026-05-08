@@ -98,6 +98,35 @@ Deno.serve(async (req) => {
     (existing ?? []).map((r: any) => `${r.lesson_id}:${r.recipient_id}:${r.reminder_kind}`),
   );
 
+  // ─── Auto-complete lessons for tutors who opted in ───
+  // Mark lessons "completed" 60 min after their end time.
+  const tutorIds = Array.from(new Set(lessons.map((l: any) => l.tutor_id)));
+  const { data: settingsRows } = await supabase
+    .from("tutor_workspace_settings")
+    .select("tutor_id, auto_complete_lessons")
+    .in("tutor_id", tutorIds);
+  const autoSet = new Set(
+    (settingsRows ?? [])
+      .filter((s: any) => s.auto_complete_lessons === true)
+      .map((s: any) => s.tutor_id as string),
+  );
+  let autoCompleted = 0;
+  for (const lesson of lessons) {
+    if (lesson.status !== "scheduled") continue;
+    if (!autoSet.has(lesson.tutor_id)) continue;
+    const endMs = new Date(lesson.starts_at).getTime() + (lesson.duration_minutes ?? 60) * MIN_MS;
+    if (now - endMs < 60 * MIN_MS) continue;
+    const { error: updErr } = await supabase
+      .from("lessons")
+      .update({ status: "completed" })
+      .eq("id", lesson.id)
+      .eq("status", "scheduled");
+    if (!updErr) {
+      lesson.status = "completed";
+      autoCompleted++;
+    }
+  }
+
   let sent = 0;
   let skipped = 0;
 
@@ -254,7 +283,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped }),
+    JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped, autoCompleted }),
     { headers: { "Content-Type": "application/json" } },
   );
 });

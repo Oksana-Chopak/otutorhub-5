@@ -31,6 +31,7 @@ import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
+import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
 import {
   CalendarDays,
   Users,
@@ -645,11 +646,14 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {isTutor && !isManager && user && (
+          {/* "До уваги" — past scheduled lessons not yet marked. Manager: across all tutors. Tutor: own only. */}
+          {(isManager || (isTutor && !isManager)) && user && (
             <NeedsMarkingCard
-              lessons={lessons.filter(
-                (l) => l.tutor_id === user.id && l.status === "scheduled"
-              )}
+              lessons={lessons.filter((l) => {
+                if (l.status !== "scheduled") return false;
+                if (!isManager && l.tutor_id !== user.id) return false;
+                return true;
+              })}
               studentNames={profiles}
               onChanged={loadData}
             />
@@ -978,6 +982,7 @@ export default function DashboardPage() {
         onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
         onUpdated={loadData}
       />
+      <AutoCompletePromptDialog enabled={isIndependentTutor} />
     </AppLayout>
   );
 }

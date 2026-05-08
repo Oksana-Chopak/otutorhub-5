@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 
@@ -306,6 +307,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {isIndependent && <AutoCompleteLessonsCard />}
         <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>

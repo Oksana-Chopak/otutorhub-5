@@ -4,7 +4,6 @@ import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
-import { formatPrice } from "@/lib/currency";
 
 export type LessonCardVariant = "dashboard" | "schedule" | "compact";
 
@@ -28,24 +27,19 @@ interface LessonCardProps {
   variant?: LessonCardVariant;
   studentName?: string;
   tutorName?: string;
-  /** Group label (e.g. "Англійська · 9-Б") shown when lesson_type is pair/group. */
   groupName?: string;
-  /** Number of participants in the group. */
   groupSize?: number;
-  /** Show tutor name (typically for managers). */
   showTutor?: boolean;
-  /** Effective meeting URL (already resolved with fallback). */
   meetingUrl?: string | null;
-  /** When provided, renders a payment toggle pill instead of a static badge. */
+  /** Toggle handler — kept for API compat; renders the same static badge either way (no big "Отримав" pill). */
   onTogglePayment?: () => void;
-  /** Chat target: pass a participant id to deep-link to /chats. If omitted, chat icon hides. */
   chatPartnerId?: string | null;
-  /** Extra action buttons appended on the right (status select, edit, copy, delete, etc.) */
+  /** Extra actions (status select, etc.) rendered in the right action row. */
   extraActions?: ReactNode;
-  /** Renders below the card body (e.g. collapsible footer with workspace). */
+  /** Compact icon actions (edit/copy/delete) pinned to the top-right corner. */
+  topRightActions?: ReactNode;
   footer?: ReactNode;
   className?: string;
-  /** Optional click handler for the central content area. */
   onContentClick?: () => void;
 }
 
@@ -64,6 +58,7 @@ export function LessonCard({
   onTogglePayment,
   chatPartnerId,
   extraActions,
+  topRightActions,
   footer,
   className,
   onContentClick,
@@ -78,38 +73,53 @@ export function LessonCard({
 
   const isNow = nowMs >= startMs && nowMs < endMs && lesson.status !== "cancelled";
   const isPast = endMs < nowMs;
+  const isCancelled = lesson.status === "cancelled";
+  const isPaid = lesson.student_payment_status === "paid";
   const isUnpaid =
     lesson.student_payment_status === "unpaid" &&
     lesson.status !== "cancelled" &&
     lesson.status !== "pending";
 
   const href = useMemo(() => (meetingUrl ? safeHref(meetingUrl) : null), [meetingUrl]);
-  const isPaid = lesson.student_payment_status === "paid";
-  const price = Number(lesson.student_price ?? 0);
 
-  // Left accent strip color
-  const accent = isNow
-    ? "before:bg-success"
+  // Single left accent — implemented via border-left color (no second :before strip).
+  const borderLeft = isCancelled
+    ? "border-l-muted-foreground/40"
+    : isNow
+    ? "border-l-success"
+    : isPaid
+    ? "border-l-success"
     : isUnpaid
-    ? "before:bg-warning"
-    : "before:bg-transparent";
+    ? "border-l-warning"
+    : "border-l-border";
 
   const compact = variant === "compact";
+
+  const togglePayment = (e: React.MouseEvent) => {
+    if (!onTogglePayment) return;
+    e.stopPropagation();
+    onTogglePayment();
+  };
 
   return (
     <div className={cn("space-y-0", className)}>
       <div
         className={cn(
-          "relative flex flex-col gap-3 rounded-xl border bg-card transition-colors",
-          "before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full",
-          accent,
-          isNow && "border-success/40 bg-success/5",
-          !isNow && "border-border hover:border-primary/30",
-          isPast && !isNow && "opacity-70",
+          "relative flex flex-col gap-3 rounded-xl border border-l-4 bg-card transition-colors",
+          borderLeft,
+          isNow && "bg-success/5 border-success/40 border-l-success",
+          isPast && !isNow && "opacity-80",
           compact ? "p-2.5 sm:p-3" : "p-3 sm:p-4",
           "sm:flex-row sm:items-stretch",
         )}
       >
+        {/* TOP-RIGHT compact icon actions */}
+        {topRightActions && (
+          <div className="absolute right-2 top-2 flex items-center gap-0.5 sm:right-3 sm:top-3">
+            {topRightActions}
+          </div>
+        )}
+
         {/* LEFT: time block */}
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:justify-center sm:pr-4">
           <div className="min-w-[64px]">
@@ -132,6 +142,7 @@ export function LessonCard({
           disabled={!onContentClick}
           className={cn(
             "min-w-0 flex-1 text-left sm:px-4",
+            topRightActions ? "pr-16" : "",
             onContentClick ? "cursor-pointer" : "cursor-default",
           )}
         >
@@ -154,14 +165,10 @@ export function LessonCard({
           )}
         </button>
 
-        {/* RIGHT: actions */}
+        {/* RIGHT: actions row */}
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border pt-3 sm:border-0 sm:pt-0">
           {href && (
-            <Button
-              asChild
-              size="sm"
-              className="min-h-[44px] min-w-[44px] gap-1.5"
-            >
+            <Button asChild size="sm" className="min-h-[44px] min-w-[44px] gap-1.5">
               <a href={href} target="_blank" rel="noopener noreferrer" aria-label="Zoom">
                 <Video className="h-4 w-4" />
                 <span className="font-semibold">Zoom</span>
@@ -169,41 +176,38 @@ export function LessonCard({
             </Button>
           )}
 
+          {/* Static payment badge (no big toggle pill). Click toggles if handler provided. */}
           {lesson.student_payment_status &&
             lesson.status !== "cancelled" &&
-            lesson.status !== "pending" &&
-            (onTogglePayment ? (
-              <button
-                type="button"
-                onClick={onTogglePayment}
+            lesson.status !== "pending" && (
+              <span
+                onClick={onTogglePayment ? togglePayment : undefined}
                 className={cn(
-                  "inline-flex min-h-[44px] items-center gap-1 rounded-full px-3 text-xs font-semibold transition-colors",
+                  "inline-flex min-h-[28px] items-center rounded-full px-2.5 py-1 text-xs font-semibold",
                   isPaid
-                    ? "bg-success/15 text-success hover:bg-success/25"
-                    : "bg-success text-success-foreground hover:bg-success/90",
+                    ? "bg-success/15 text-success"
+                    : "bg-warning/15 text-warning",
+                  onTogglePayment && "cursor-pointer hover:opacity-80",
                 )}
-                title={isPaid ? "Натисніть, щоб скасувати оплату" : "Натисніть, щоб позначити як отримано"}
+                title={
+                  onTogglePayment
+                    ? isPaid
+                      ? "Натисніть, щоб скасувати оплату"
+                      : "Натисніть, щоб позначити як отримано"
+                    : undefined
+                }
               >
-                {isPaid ? "Оплачено ✓" : `✓ Отримав ${price > 0 ? formatPrice(price, lesson.currency) : ""}`.trim()}
-              </button>
-            ) : isPaid ? (
-              <span className="inline-flex min-h-[28px] items-center rounded-full bg-success/15 px-2.5 py-1 text-xs font-semibold text-success">
-                Оплачено ✓
+                {isPaid ? "Оплачено ✓" : "⏳ Очікує"}
               </span>
-            ) : (
-              <span className="inline-flex min-h-[28px] items-center rounded-full bg-warning/15 px-2.5 py-1 text-xs font-semibold text-warning">
-                Очікує оплати
-              </span>
-            ))}
+            )}
 
           {extraActions}
 
           {chatPartnerId && (
             <Button
               asChild
-              variant="ghost"
               size="icon"
-              className="h-11 w-11 text-muted-foreground hover:text-primary"
+              className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
               aria-label="Чат"
               title="Чат"
             >

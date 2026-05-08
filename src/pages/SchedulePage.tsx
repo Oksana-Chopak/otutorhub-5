@@ -1619,19 +1619,57 @@ export default function SchedulePage() {
                             : undefined
                         }
                         className={lessonSourceTint(lesson.source)}
-                        extraActions={
+                        topRightActions={
                           <>
                             {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-11 w-11 text-muted-foreground hover:text-primary"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 onClick={() => openEdit(lesson)}
                                 title="Редагувати урок"
                               >
-                                <Pencil className="h-4 w-4" />
+                                <Pencil className="h-3.5 w-3.5" />
                               </Button>
                             )}
+                            {canCopy && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => openCopy(lesson)}
+                                title="Копіювати урок"
+                              >
+                                <Copy className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
+                            {canDelete && (
+                              <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      Цю дію не можна скасувати.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
+                                      Видалити
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            )}
+                          </>
+                        }
+                        extraActions={
+                          <>
                             {canEditStatus ? (
                               <Select
                                 value={lesson.status}
@@ -1663,40 +1701,6 @@ export default function SchedulePage() {
                                 startsAt={lesson.starts_at}
                                 status={lesson.status}
                               />
-                            )}
-                            {canCopy && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-11 w-11 text-muted-foreground hover:text-primary"
-                                onClick={() => openCopy(lesson)}
-                                title="Копіювати урок"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {canDelete && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Цю дію не можна скасувати.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
-                                      Видалити
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
                             )}
                           </>
                         }

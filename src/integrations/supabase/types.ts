@@ -1637,6 +1637,8 @@ export type Database = {
       }
       tutor_workspace_settings: {
         Row: {
+          auto_complete_lessons: boolean
+          auto_complete_prompted: boolean
           cancel_free_hours: number
           created_at: string
           current_plan: string | null
@@ -1656,6 +1658,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_complete_lessons?: boolean
+          auto_complete_prompted?: boolean
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
@@ -1675,6 +1679,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_complete_lessons?: boolean
+          auto_complete_prompted?: boolean
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
