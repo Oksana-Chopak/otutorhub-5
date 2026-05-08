@@ -57,6 +57,8 @@ export function LessonCard({
   variant = "schedule",
   studentName,
   tutorName,
+  groupName,
+  groupSize,
   showTutor = false,
   meetingUrl,
   onTogglePayment,
@@ -66,6 +68,10 @@ export function LessonCard({
   className,
   onContentClick,
 }: LessonCardProps) {
+  const isGroup = lesson.lesson_type === "pair" || lesson.lesson_type === "group";
+  const titleLabel = isGroup
+    ? groupName ?? (groupSize ? `Група · ${groupSize} учнів` : "Група")
+    : studentName ?? "—";
   const startMs = new Date(lesson.starts_at).getTime();
   const endMs = startMs + (lesson.duration_minutes ?? 0) * 60_000;
   const nowMs = Date.now();
