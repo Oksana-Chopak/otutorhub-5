@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, User, Users2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -39,7 +40,18 @@ interface StudentRow {
   default_meeting_url?: string | null;
 }
 
+interface GroupRow {
+  id: string;
+  name: string;
+  subject: string | null;
+  participants: { student_id: string }[];
+}
+
 const LAST_KEY = "tutorhub.lastQuickStudentId";
+const LAST_MODE_KEY = "tutorhub.lastQuickMode";
+const LAST_GROUP_KEY = "tutorhub.lastQuickGroupId";
+
+type Mode = "individual" | "group";
 
 /**
  * Compact "click-to-create" dialog for independent tutors. Pre-fills student,
@@ -61,56 +73,89 @@ export function QuickLessonDialog({
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [studentId, setStudentId] = useState<string>("");
   const [duration, setDuration] = useState<string>("60");
+  const [mode, setMode] = useState<Mode>(
+    (localStorage.getItem(LAST_MODE_KEY) as Mode) || "individual"
+  );
+  const [groups, setGroups] = useState<GroupRow[]>([]);
+  const [groupId, setGroupId] = useState<string>("");
 
   useEffect(() => {
     if (!open || !user) return;
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data: rates } = await supabase
-        .from("student_rates")
-        .select("student_id, subject, price_per_lesson, archived_at")
-        .eq("tutor_id", user.id)
-        .eq("source", "independent");
+      const [{ data: rates }, { data: gs }] = await Promise.all([
+        supabase
+          .from("student_rates")
+          .select("student_id, subject, price_per_lesson, archived_at")
+          .eq("tutor_id", user.id)
+          .eq("source", "independent"),
+        supabase
+          .from("lesson_groups")
+          .select("id, name, subject")
+          .eq("tutor_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
       const active = (rates ?? []).filter((r: any) => !r.archived_at);
       const ids = Array.from(new Set(active.map((r: any) => r.student_id)));
-      if (!ids.length) {
-        setStudents([]);
-        setLoading(false);
-        return;
+      let rows: StudentRow[] = [];
+      if (ids.length) {
+        const [{ data: profs }, { data: defaults }] = await Promise.all([
+          supabase.from("profiles").select("id, first_name, last_name").in("id", ids),
+          supabase
+            .from("tutor_student_defaults")
+            .select("student_id, default_meeting_url")
+            .eq("tutor_id", user.id)
+            .in("student_id", ids),
+        ]);
+        const nameOf = new Map(
+          (profs ?? []).map((p: any) => [
+            p.id,
+            `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
+          ])
+        );
+        const meetOf = new Map(
+          (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
+        );
+        const byStudent = new Map<string, any>();
+        active.forEach((r: any) => {
+          if (!byStudent.has(r.student_id)) byStudent.set(r.student_id, r);
+        });
+        rows = Array.from(byStudent.values()).map((r: any) => ({
+          student_id: r.student_id,
+          subject: r.subject || "",
+          price: Number(r.price_per_lesson ?? 0),
+          name: nameOf.get(r.student_id) ?? "Учень",
+          default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
+        }));
+        rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
       }
-      const [{ data: profs }, { data: defaults }] = await Promise.all([
-        supabase.from("profiles").select("id, first_name, last_name").in("id", ids),
-        supabase
-          .from("tutor_student_defaults")
-          .select("student_id, default_meeting_url")
-          .eq("tutor_id", user.id)
-          .in("student_id", ids),
-      ]);
-      const nameOf = new Map(
-        (profs ?? []).map((p: any) => [
-          p.id,
-          `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
-        ])
-      );
-      const meetOf = new Map(
-        (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
-      );
-      // Keep latest rate per student
-      const byStudent = new Map<string, any>();
-      active.forEach((r: any) => {
-        if (!byStudent.has(r.student_id)) byStudent.set(r.student_id, r);
-      });
-      const rows: StudentRow[] = Array.from(byStudent.values()).map((r: any) => ({
-        student_id: r.student_id,
-        subject: r.subject || "",
-        price: Number(r.price_per_lesson ?? 0),
-        name: nameOf.get(r.student_id) ?? "Учень",
-        default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
+
+      // Load enrollments for groups
+      const groupIds = (gs ?? []).map((g: any) => g.id);
+      let participantsByGroup = new Map<string, { student_id: string }[]>();
+      if (groupIds.length) {
+        const { data: ens } = await supabase
+          .from("group_enrollments")
+          .select("group_id, student_id, status")
+          .in("group_id", groupIds)
+          .eq("status", "active");
+        (ens ?? []).forEach((e: any) => {
+          const list = participantsByGroup.get(e.group_id) ?? [];
+          list.push({ student_id: e.student_id });
+          participantsByGroup.set(e.group_id, list);
+        });
+      }
+      const groupRows: GroupRow[] = (gs ?? []).map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        subject: g.subject,
+        participants: participantsByGroup.get(g.id) ?? [],
       }));
-      rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
+
       if (cancelled) return;
       setStudents(rows);
+      setGroups(groupRows);
       const last = localStorage.getItem(LAST_KEY);
       const initial =
         (initialStudentId && rows.find((r) => r.student_id === initialStudentId)?.student_id) ||
@@ -118,6 +163,10 @@ export function QuickLessonDialog({
         rows[0]?.student_id ||
         "";
       setStudentId(initial);
+      const lastGroup = localStorage.getItem(LAST_GROUP_KEY);
+      const initialGroup =
+        groupRows.find((g) => g.id === lastGroup)?.id || groupRows[0]?.id || "";
+      setGroupId(initialGroup);
       setLoading(false);
     })();
     return () => {
@@ -125,13 +174,68 @@ export function QuickLessonDialog({
     };
   }, [open, user?.id, initialStudentId]);
 
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.id === groupId) ?? null,
+    [groups, groupId]
+  );
+
   const selected = useMemo(
     () => students.find((s) => s.student_id === studentId) ?? null,
     [students, studentId]
   );
 
   const submit = async () => {
-    if (!user || !startsAt || !selected) return;
+    if (!user || !startsAt) return;
+
+    if (mode === "group") {
+      if (!selectedGroup) {
+        toast.error("Виберіть групу");
+        return;
+      }
+      setSubmitting(true);
+      const lessonType: "pair" | "group" =
+        selectedGroup.participants.length === 2 ? "pair" : "group";
+      const subj = selectedGroup.subject || "Урок";
+      const { data: created, error } = await supabase
+        .from("lessons")
+        .insert({
+          tutor_id: user.id,
+          student_id: null,
+          group_id: selectedGroup.id,
+          lesson_type: lessonType,
+          subject: subj,
+          starts_at: startsAt.toISOString(),
+          duration_minutes: parseInt(duration) || 60,
+          status: "scheduled" as const,
+          created_by: user.id,
+          source: "independent",
+        } as any)
+        .select("id")
+        .single();
+      if (error || !created) {
+        setSubmitting(false);
+        toast.error(error?.message || "Не вдалося створити урок");
+        return;
+      }
+      // Auto-create participants
+      if (selectedGroup.participants.length) {
+        await supabase.from("lesson_participants").insert(
+          selectedGroup.participants.map((p) => ({
+            lesson_id: created.id,
+            student_id: p.student_id,
+          })) as any
+        );
+      }
+      setSubmitting(false);
+      localStorage.setItem(LAST_MODE_KEY, "group");
+      localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
+      toast.success(`Груповий урок створено · ${selectedGroup.name}`);
+      onOpenChange(false);
+      onCreated?.();
+      return;
+    }
+
+    if (!selected) return;
     if (!selected.subject) {
       toast.error("У учня не вказаний предмет — відкрийте повну форму");
       return;
@@ -168,6 +272,7 @@ export function QuickLessonDialog({
       return;
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
+    localStorage.setItem(LAST_MODE_KEY, "individual");
     toast.success(
       `Урок створено · ${selected.name} · ${startsAt.toLocaleTimeString("uk-UA", {
         hour: "2-digit",
@@ -188,6 +293,9 @@ export function QuickLessonDialog({
       })
     : "";
 
+  const canSubmit =
+    !submitting && (mode === "individual" ? !!selected : !!selectedGroup);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
@@ -199,27 +307,76 @@ export function QuickLessonDialog({
           <div className="flex items-center justify-center py-6">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
-        ) : students.length === 0 ? (
+        ) : students.length === 0 && groups.length === 0 ? (
           <p className="py-4 text-sm text-muted-foreground">
-            Спершу додайте учня в розділі «Мої учні».
+            Спершу додайте учня в розділі «Мої учні» або створіть групу.
           </p>
         ) : (
           <div className="space-y-3">
-            <div className="space-y-1">
-              <Label>Учень</Label>
-              <Select value={studentId} onValueChange={setStudentId}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {students.map((s) => (
-                    <SelectItem key={s.student_id} value={s.student_id}>
-                      {s.name} {s.subject ? `· ${s.subject}` : ""}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            {/* Type toggle */}
+            <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
+              <button
+                type="button"
+                onClick={() => setMode("individual")}
+                className={cn(
+                  "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
+                  mode === "individual"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground"
+                )}
+              >
+                <User className="h-3.5 w-3.5" />
+                Індивідуальний
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("group")}
+                disabled={groups.length === 0}
+                className={cn(
+                  "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
+                  mode === "group"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground"
+                )}
+              >
+                <Users2 className="h-3.5 w-3.5" />
+                Груповий
+              </button>
             </div>
+
+            {mode === "individual" ? (
+              <div className="space-y-1">
+                <Label>Учень</Label>
+                <Select value={studentId} onValueChange={setStudentId}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {students.map((s) => (
+                      <SelectItem key={s.student_id} value={s.student_id}>
+                        {s.name} {s.subject ? `· ${s.subject}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <Label>Група</Label>
+                <Select value={groupId} onValueChange={setGroupId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Виберіть групу" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groups.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>
+                        {g.name} · {g.participants.length} учнів
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-1">
               <Label>Тривалість, хв</Label>
               <Input
@@ -230,16 +387,21 @@ export function QuickLessonDialog({
                 onChange={(e) => setDuration(e.target.value)}
               />
             </div>
-            {selected && (
+            {mode === "individual" && selected && (
               <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
                 {selected.subject || "Без предмета"} · {selected.price || 0} ₴
                 {selected.default_meeting_url ? " · Zoom/Meet ✓" : ""}
               </p>
             )}
+            {mode === "group" && selectedGroup && (
+              <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
+                {selectedGroup.subject || "Без предмета"} · {selectedGroup.participants.length} учасників
+              </p>
+            )}
           </div>
         )}
         <DialogFooter className="gap-2 sm:gap-0">
-          {startsAt && onWantFullForm && (
+          {startsAt && onWantFullForm && mode === "individual" && (
             <Button
               variant="ghost"
               size="sm"
@@ -252,7 +414,7 @@ export function QuickLessonDialog({
               Деталі
             </Button>
           )}
-          <Button onClick={submit} disabled={submitting || !selected}>
+          <Button onClick={submit} disabled={!canSubmit}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Створити
           </Button>

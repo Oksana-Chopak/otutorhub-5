@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Video } from "lucide-react";
+import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
@@ -19,6 +19,8 @@ export interface LessonCardData {
   status?: "pending" | "scheduled" | "completed" | "cancelled";
   /** ISO 4217 code (UAH default). */
   currency?: string | null;
+  lesson_type?: "individual" | "pair" | "group" | null;
+  group_id?: string | null;
 }
 
 interface LessonCardProps {
@@ -26,6 +28,10 @@ interface LessonCardProps {
   variant?: LessonCardVariant;
   studentName?: string;
   tutorName?: string;
+  /** Group label (e.g. "Англійська · 9-Б") shown when lesson_type is pair/group. */
+  groupName?: string;
+  /** Number of participants in the group. */
+  groupSize?: number;
   /** Show tutor name (typically for managers). */
   showTutor?: boolean;
   /** Effective meeting URL (already resolved with fallback). */
@@ -51,6 +57,8 @@ export function LessonCard({
   variant = "schedule",
   studentName,
   tutorName,
+  groupName,
+  groupSize,
   showTutor = false,
   meetingUrl,
   onTogglePayment,
@@ -60,6 +68,10 @@ export function LessonCard({
   className,
   onContentClick,
 }: LessonCardProps) {
+  const isGroup = lesson.lesson_type === "pair" || lesson.lesson_type === "group";
+  const titleLabel = isGroup
+    ? groupName ?? (groupSize ? `Група · ${groupSize} учнів` : "Група")
+    : studentName ?? "—";
   const startMs = new Date(lesson.starts_at).getTime();
   const endMs = startMs + (lesson.duration_minutes ?? 0) * 60_000;
   const nowMs = Date.now();
@@ -123,8 +135,9 @@ export function LessonCard({
             onContentClick ? "cursor-pointer" : "cursor-default",
           )}
         >
-          <div className="truncate text-base font-semibold text-foreground">
-            {studentName ?? "—"}
+          <div className="flex items-center gap-1.5 truncate text-base font-semibold text-foreground">
+            {isGroup && <Users2 className="h-4 w-4 shrink-0 text-muted-foreground" />}
+            <span className="truncate">{titleLabel}</span>
           </div>
           <div className="mt-0.5 truncate text-sm text-muted-foreground">
             {lesson.subject}
