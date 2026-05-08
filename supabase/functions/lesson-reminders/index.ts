@@ -283,7 +283,7 @@ Deno.serve(async (req) => {
   }
 
   return new Response(
-    JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped }),
+    JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped, autoCompleted }),
     { headers: { "Content-Type": "application/json" } },
   );
 });
