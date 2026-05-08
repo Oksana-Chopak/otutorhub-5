@@ -126,15 +126,11 @@ export default function GroupsPage() {
           </div>
         ) : groups.length === 0 ? (
           <EmptyState
-            icon={<Users2 className="h-12 w-12" />}
+            icon={Users2}
             title="Поки немає груп"
             description="Створіть першу групу щоб планувати парні або групові уроки"
-            action={
-              <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Створити групу
-              </Button>
-            }
+            actionLabel="Створити групу"
+            onAction={() => setCreateOpen(true)}
           />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
