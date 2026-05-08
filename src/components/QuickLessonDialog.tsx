@@ -83,50 +83,78 @@ export function QuickLessonDialog({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data: rates } = await supabase
-        .from("student_rates")
-        .select("student_id, subject, price_per_lesson, archived_at")
-        .eq("tutor_id", user.id)
-        .eq("source", "independent");
+      const [{ data: rates }, { data: gs }] = await Promise.all([
+        supabase
+          .from("student_rates")
+          .select("student_id, subject, price_per_lesson, archived_at")
+          .eq("tutor_id", user.id)
+          .eq("source", "independent"),
+        supabase
+          .from("lesson_groups")
+          .select("id, name, subject")
+          .eq("tutor_id", user.id)
+          .order("created_at", { ascending: false }),
+      ]);
       const active = (rates ?? []).filter((r: any) => !r.archived_at);
       const ids = Array.from(new Set(active.map((r: any) => r.student_id)));
-      if (!ids.length) {
-        setStudents([]);
-        setLoading(false);
-        return;
+      let rows: StudentRow[] = [];
+      if (ids.length) {
+        const [{ data: profs }, { data: defaults }] = await Promise.all([
+          supabase.from("profiles").select("id, first_name, last_name").in("id", ids),
+          supabase
+            .from("tutor_student_defaults")
+            .select("student_id, default_meeting_url")
+            .eq("tutor_id", user.id)
+            .in("student_id", ids),
+        ]);
+        const nameOf = new Map(
+          (profs ?? []).map((p: any) => [
+            p.id,
+            `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
+          ])
+        );
+        const meetOf = new Map(
+          (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
+        );
+        const byStudent = new Map<string, any>();
+        active.forEach((r: any) => {
+          if (!byStudent.has(r.student_id)) byStudent.set(r.student_id, r);
+        });
+        rows = Array.from(byStudent.values()).map((r: any) => ({
+          student_id: r.student_id,
+          subject: r.subject || "",
+          price: Number(r.price_per_lesson ?? 0),
+          name: nameOf.get(r.student_id) ?? "Учень",
+          default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
+        }));
+        rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
       }
-      const [{ data: profs }, { data: defaults }] = await Promise.all([
-        supabase.from("profiles").select("id, first_name, last_name").in("id", ids),
-        supabase
-          .from("tutor_student_defaults")
-          .select("student_id, default_meeting_url")
-          .eq("tutor_id", user.id)
-          .in("student_id", ids),
-      ]);
-      const nameOf = new Map(
-        (profs ?? []).map((p: any) => [
-          p.id,
-          `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
-        ])
-      );
-      const meetOf = new Map(
-        (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
-      );
-      // Keep latest rate per student
-      const byStudent = new Map<string, any>();
-      active.forEach((r: any) => {
-        if (!byStudent.has(r.student_id)) byStudent.set(r.student_id, r);
-      });
-      const rows: StudentRow[] = Array.from(byStudent.values()).map((r: any) => ({
-        student_id: r.student_id,
-        subject: r.subject || "",
-        price: Number(r.price_per_lesson ?? 0),
-        name: nameOf.get(r.student_id) ?? "Учень",
-        default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
+
+      // Load enrollments for groups
+      const groupIds = (gs ?? []).map((g: any) => g.id);
+      let participantsByGroup = new Map<string, { student_id: string }[]>();
+      if (groupIds.length) {
+        const { data: ens } = await supabase
+          .from("group_enrollments")
+          .select("group_id, student_id, status")
+          .in("group_id", groupIds)
+          .eq("status", "active");
+        (ens ?? []).forEach((e: any) => {
+          const list = participantsByGroup.get(e.group_id) ?? [];
+          list.push({ student_id: e.student_id });
+          participantsByGroup.set(e.group_id, list);
+        });
+      }
+      const groupRows: GroupRow[] = (gs ?? []).map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        subject: g.subject,
+        participants: participantsByGroup.get(g.id) ?? [],
       }));
-      rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
+
       if (cancelled) return;
       setStudents(rows);
+      setGroups(groupRows);
       const last = localStorage.getItem(LAST_KEY);
       const initial =
         (initialStudentId && rows.find((r) => r.student_id === initialStudentId)?.student_id) ||
@@ -134,12 +162,21 @@ export function QuickLessonDialog({
         rows[0]?.student_id ||
         "";
       setStudentId(initial);
+      const lastGroup = localStorage.getItem(LAST_GROUP_KEY);
+      const initialGroup =
+        groupRows.find((g) => g.id === lastGroup)?.id || groupRows[0]?.id || "";
+      setGroupId(initialGroup);
       setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
   }, [open, user?.id, initialStudentId]);
+
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.id === groupId) ?? null,
+    [groups, groupId]
+  );
 
   const selected = useMemo(
     () => students.find((s) => s.student_id === studentId) ?? null,
