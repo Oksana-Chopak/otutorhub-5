@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, User, Users2 } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -39,7 +39,18 @@ interface StudentRow {
   default_meeting_url?: string | null;
 }
 
+interface GroupRow {
+  id: string;
+  name: string;
+  subject: string | null;
+  participants: { student_id: string }[];
+}
+
 const LAST_KEY = "tutorhub.lastQuickStudentId";
+const LAST_MODE_KEY = "tutorhub.lastQuickMode";
+const LAST_GROUP_KEY = "tutorhub.lastQuickGroupId";
+
+type Mode = "individual" | "group";
 
 /**
  * Compact "click-to-create" dialog for independent tutors. Pre-fills student,
@@ -61,6 +72,11 @@ export function QuickLessonDialog({
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [studentId, setStudentId] = useState<string>("");
   const [duration, setDuration] = useState<string>("60");
+  const [mode, setMode] = useState<Mode>(
+    (localStorage.getItem(LAST_MODE_KEY) as Mode) || "individual"
+  );
+  const [groups, setGroups] = useState<GroupRow[]>([]);
+  const [groupId, setGroupId] = useState<string>("");
 
   useEffect(() => {
     if (!open || !user) return;
