@@ -1478,14 +1478,19 @@ export type Database = {
           budget_note: string | null
           created_at: string
           id: string
+          lead_email: string | null
+          lead_name: string | null
+          lead_phone: string | null
           manager_response: string | null
           message: string | null
           preferred_days: string | null
           preferred_level: string | null
           preferred_times: string | null
+          quiz_data: Json | null
           resolved_at: string | null
+          source: string
           status: string
-          student_id: string
+          student_id: string | null
           subject: string | null
           updated_at: string
         }
@@ -1493,14 +1498,19 @@ export type Database = {
           budget_note?: string | null
           created_at?: string
           id?: string
+          lead_email?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
           manager_response?: string | null
           message?: string | null
           preferred_days?: string | null
           preferred_level?: string | null
           preferred_times?: string | null
+          quiz_data?: Json | null
           resolved_at?: string | null
+          source?: string
           status?: string
-          student_id: string
+          student_id?: string | null
           subject?: string | null
           updated_at?: string
         }
@@ -1508,14 +1518,19 @@ export type Database = {
           budget_note?: string | null
           created_at?: string
           id?: string
+          lead_email?: string | null
+          lead_name?: string | null
+          lead_phone?: string | null
           manager_response?: string | null
           message?: string | null
           preferred_days?: string | null
           preferred_level?: string | null
           preferred_times?: string | null
+          quiz_data?: Json | null
           resolved_at?: string | null
+          source?: string
           status?: string
-          student_id?: string
+          student_id?: string | null
           subject?: string | null
           updated_at?: string
         }
