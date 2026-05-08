@@ -645,6 +645,16 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {isTutor && !isManager && user && (
+            <NeedsMarkingCard
+              lessons={lessons.filter(
+                (l) => l.tutor_id === user.id && l.status === "scheduled"
+              )}
+              studentNames={profiles}
+              onChanged={loadData}
+            />
+          )}
+
           <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
