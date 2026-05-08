@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
 
 type Tab = "student" | "lesson" | "payment";
 
