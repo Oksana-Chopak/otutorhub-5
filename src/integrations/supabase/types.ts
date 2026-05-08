@@ -538,6 +538,52 @@ export type Database = {
           },
         ]
       }
+      lesson_participants: {
+        Row: {
+          attendance_status: string
+          created_at: string
+          id: string
+          lesson_id: string
+          student_id: string
+        }
+        Insert: {
+          attendance_status?: string
+          created_at?: string
+          id?: string
+          lesson_id: string
+          student_id: string
+        }
+        Update: {
+          attendance_status?: string
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_payment_reminders: {
         Row: {
           channel: string
