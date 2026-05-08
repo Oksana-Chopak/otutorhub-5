@@ -52,6 +52,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               });
             }, 500);
           }
+
+          // Persist landing-page quiz answers to student_intake_quiz on first sign-in.
+          const leadRaw = localStorage.getItem("otutorhub_lead_quiz");
+          if (leadRaw) {
+            setTimeout(async () => {
+              try {
+                const lead = JSON.parse(leadRaw);
+                const { error } = await supabase.from("student_intake_quiz").insert({
+                  student_id: newSession.user.id,
+                  subjects: lead.subjects ?? [],
+                  level: lead.level ?? null,
+                  schedule: lead.schedule ?? [],
+                  goal: lead.goal ?? null,
+                  goal_other: lead.goal_other ?? null,
+                });
+                if (!error) localStorage.removeItem("otutorhub_lead_quiz");
+              } catch (_) { /* ignore */ }
+            }, 800);
+          }
         }
       } else {
         setRoles([]);
