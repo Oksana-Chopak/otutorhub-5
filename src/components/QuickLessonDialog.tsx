@@ -21,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Pencil, User, Users2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;
