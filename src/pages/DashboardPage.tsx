@@ -31,6 +31,7 @@ import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
+import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
 import {
   CalendarDays,
   Users,
