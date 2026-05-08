@@ -28,6 +28,7 @@ const successText: Record<Tab, { title: string; sub: string }> = {
 export function LandingTryDemo() {
   const [tab, setTab] = useState<Tab>("student");
   const [done, setDone] = useState<Tab | null>(null);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   // student form
   const [sName, setSName] = useState("");
