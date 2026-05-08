@@ -19,6 +19,7 @@ import AuthPage from "./pages/AuthPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import MyStudentsPage from "./pages/MyStudentsPage";
+import GroupsPage from "./pages/GroupsPage";
 import ReferralsPage from "./pages/ReferralsPage";
 import MyReferralsPage from "./pages/MyReferralsPage";
 import AchievementsPage from "./pages/AchievementsPage";
@@ -103,6 +104,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute allowedRoles={["tutor"]}>
             <MyStudentsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/groups"
+        element={
+          <ProtectedRoute allowedRoles={["tutor", "manager"]}>
+            <GroupsPage />
           </ProtectedRoute>
         }
       />
