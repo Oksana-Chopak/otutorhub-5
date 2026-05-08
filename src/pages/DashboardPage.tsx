@@ -982,6 +982,7 @@ export default function DashboardPage() {
         onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
         onUpdated={loadData}
       />
+      <AutoCompletePromptDialog enabled={isIndependentTutor} />
     </AppLayout>
   );
 }
