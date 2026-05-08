@@ -129,8 +129,9 @@ export function LessonCard({
             onContentClick ? "cursor-pointer" : "cursor-default",
           )}
         >
-          <div className="truncate text-base font-semibold text-foreground">
-            {studentName ?? "—"}
+          <div className="flex items-center gap-1.5 truncate text-base font-semibold text-foreground">
+            {isGroup && <Users2 className="h-4 w-4 shrink-0 text-muted-foreground" />}
+            <span className="truncate">{titleLabel}</span>
           </div>
           <div className="mt-0.5 truncate text-sm text-muted-foreground">
             {lesson.subject}
