@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
 
 type Tab = "student" | "lesson" | "payment";
 
@@ -27,6 +28,7 @@ const successText: Record<Tab, { title: string; sub: string }> = {
 export function LandingTryDemo() {
   const [tab, setTab] = useState<Tab>("student");
   const [done, setDone] = useState<Tab | null>(null);
+  const [quizOpen, setQuizOpen] = useState(false);
 
   // student form
   const [sName, setSName] = useState("");
@@ -234,11 +236,16 @@ export function LandingTryDemo() {
             <strong>Ви учень і шукаєте репетитора?</strong>
             <span>Створіть запит — підберемо репетитора під ваші предмет, час і бюджет.</span>
           </div>
-          <Link to="/auth?signup=1&role=student" className="ltd-btn-ghost">
+          <button
+            type="button"
+            onClick={() => setQuizOpen(true)}
+            className="ltd-btn-ghost"
+          >
             Знайти репетитора →
-          </Link>
+          </button>
         </div>
       </div>
+      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
     </section>
   );
 }
