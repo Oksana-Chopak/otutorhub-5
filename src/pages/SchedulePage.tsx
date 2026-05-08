@@ -1702,40 +1702,6 @@ export default function SchedulePage() {
                                 status={lesson.status}
                               />
                             )}
-                            {canCopy && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-11 w-11 text-muted-foreground hover:text-primary"
-                                onClick={() => openCopy(lesson)}
-                                title="Копіювати урок"
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {canDelete && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-11 w-11 text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      Цю дію не можна скасувати.
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
-                                      Видалити
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
                           </>
                         }
                         footer={
