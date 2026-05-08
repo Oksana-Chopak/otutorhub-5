@@ -236,11 +236,16 @@ export function LandingTryDemo() {
             <strong>Ви учень і шукаєте репетитора?</strong>
             <span>Створіть запит — підберемо репетитора під ваші предмет, час і бюджет.</span>
           </div>
-          <Link to="/auth?signup=1&role=student" className="ltd-btn-ghost">
+          <button
+            type="button"
+            onClick={() => setQuizOpen(true)}
+            className="ltd-btn-ghost"
+          >
             Знайти репетитора →
-          </Link>
+          </button>
         </div>
       </div>
+      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
     </section>
   );
 }
