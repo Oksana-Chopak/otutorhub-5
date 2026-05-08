@@ -307,6 +307,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {isIndependent && <AutoCompleteLessonsCard />}
         <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>
