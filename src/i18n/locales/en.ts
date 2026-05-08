@@ -50,6 +50,7 @@ export const en: Translations = {
     chats: "Chats",
     people: "People",
     myStudents: "My students",
+    groups: "Groups",
     availability: "Availability",
     audit: "Audit log",
     referrals: "Tutor requests",

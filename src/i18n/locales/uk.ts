@@ -50,6 +50,7 @@ export const uk = {
     chats: "Чати",
     people: "Люди",
     myStudents: "Мої учні",
+    groups: "Групи",
     availability: "Доступні години",
     audit: "Аудит",
     referrals: "Запити на репетиторів",
