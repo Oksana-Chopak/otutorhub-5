@@ -471,7 +471,6 @@ export default function LandingPage() {
 
   const stopPersonaRotation = useCallback(() => {
     setIsPaused(true);
-    setIsAnimating(false);
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
       animationTimeoutRef.current = null;
