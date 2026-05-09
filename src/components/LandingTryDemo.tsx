@@ -135,14 +135,31 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
           <div className={cn("ltd-body", isAnimating && "ltd-fade")}>
             {done === tab ? (
               <div className="ltd-success">
-                <div className="ltd-success-title">{successByTab[tab].title}</div>
-                <p className="ltd-success-sub">{successByTab[tab].sub}</p>
-                <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
-                  {ctaText}
-                </Link>
-                <button type="button" className="ltd-link" onClick={() => setDone(null)}>
-                  {t("landing.tryDemo.retry")}
-                </button>
+                {tab === "client" ? (
+                  <>
+                    <div className="ltd-success-title">✅ {personaVars.clientNom} додано!</div>
+                    <p className="ltd-success-sub">
+                      Тепер заплануйте наступну зустріч з вашого віртуального кабінету. Для його створення зареєструйтесь — це безкоштовно і займає 1 хвилину.
+                    </p>
+                    <Link to="/auth?signup=1&role=tutor" className="ltd-btn-primary">
+                      Створити кабінет безкоштовно →
+                    </Link>
+                    <Link to="/auth" className="ltd-link" style={{ marginTop: 12, fontSize: 12 }}>
+                      Вже є акаунт? Увійти
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <div className="ltd-success-title">{successByTab[tab].title}</div>
+                    <p className="ltd-success-sub">{successByTab[tab].sub}</p>
+                    <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
+                      {ctaText}
+                    </Link>
+                    <button type="button" className="ltd-link" onClick={() => setDone(null)}>
+                      {t("landing.tryDemo.retry")}
+                    </button>
+                  </>
+                )}
               </div>
             ) : (
               <form onSubmit={submit} className="ltd-form">
