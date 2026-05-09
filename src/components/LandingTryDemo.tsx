@@ -135,31 +135,37 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
           <div className={cn("ltd-body", isAnimating && "ltd-fade")}>
             {done === tab ? (
               <div className="ltd-success">
-                {tab === "client" ? (
-                  <>
-                    <div className="ltd-success-title">✅ {personaVars.clientNom} додано!</div>
-                    <p className="ltd-success-sub">
-                      Тепер заплануйте наступну зустріч з вашого віртуального кабінету. Для його створення зареєструйтесь — це безкоштовно і займає 1 хвилину.
-                    </p>
-                    <Link to="/auth?signup=1&role=tutor" className="ltd-btn-primary">
-                      Створити кабінет безкоштовно →
-                    </Link>
-                    <Link to="/auth" className="ltd-link" style={{ marginTop: 12, fontSize: 12 }}>
-                      Вже є акаунт? Увійти
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <div className="ltd-success-title">{successByTab[tab].title}</div>
-                    <p className="ltd-success-sub">{successByTab[tab].sub}</p>
-                    <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
-                      {ctaText}
-                    </Link>
-                    <button type="button" className="ltd-link" onClick={() => setDone(null)}>
-                      {t("landing.tryDemo.retry")}
-                    </button>
-                  </>
-                )}
+                {(() => {
+                  const successContent = {
+                    client: {
+                      title: `✅ ${personaVars.clientNom} додано!`,
+                      sub: "Тепер заплануйте наступну зустріч з вашого віртуального кабінету. Для його створення зареєструйтесь — це безкоштовно і займає 1 хвилину.",
+                    },
+                    session: {
+                      title: "✅ Зустріч заплановано!",
+                      sub: `${lStudent.trim() || personaVars.clientNom} отримає нагадування. Створіть кабінет, щоб керувати розкладом, надсилати нагадування та бачити аналітику — це безкоштовно і займає 1 хвилину.`,
+                    },
+                    payment: {
+                      title: "✅ Оплату записано!",
+                      sub: `${pStudent.trim() || personaVars.clientNom} побачить баланс у своєму кабінеті. Створіть свій кабінет, щоб вести облік оплат і автоматичні нагадування — безкоштовно, 1 хвилина.`,
+                    },
+                  }[tab];
+                  return (
+                    <>
+                      <div className="ltd-success-title">{successContent.title}</div>
+                      <p className="ltd-success-sub">{successContent.sub}</p>
+                      <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
+                        Створити кабінет безкоштовно →
+                      </Link>
+                      <Link to="/auth" className="ltd-link" style={{ marginTop: 12, fontSize: 12 }}>
+                        Вже є акаунт? Увійти
+                      </Link>
+                      <button type="button" className="ltd-link" onClick={() => setDone(null)} style={{ marginTop: 8 }}>
+                        {t("landing.tryDemo.retry")}
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <form onSubmit={submit} className="ltd-form">
