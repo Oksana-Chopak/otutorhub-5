@@ -423,6 +423,8 @@ const landingStyles = `
   color: var(--ink); line-height: 1.3;
   transition: opacity 0.3s ease;
 }
+.landing-root .pain-question { min-height: calc(1.3em * 3); display: flex; align-items: center; justify-content: center; }
+.landing-root .pain-answer { min-height: calc(1.5em * 3); display: flex; align-items: center; justify-content: center; }
 .landing-root .persona-fade { transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; }
 .landing-root .persona-fade.swap { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
 .landing-root .chat-bubble {
