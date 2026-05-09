@@ -465,9 +465,25 @@ export default function LandingPage() {
     };
   }, [personaId, t]);
 
-  const painShort = t(`landing.personas.${personaId}.painShort`);
-  const painFull = t(`landing.personas.${personaId}.painFull`);
-  const tp = (key: string) => t(key, personaVars);
+  // Deferred persona vars: text content updates only after the swap-out animation
+  // finishes, so changes happen while the element is invisible (no jarring flicker).
+  const [displayedPersonaId, setDisplayedPersonaId] = useState(personaId);
+  const [displayedPersonaVars, setDisplayedPersonaVars] = useState(personaVars);
+  useEffect(() => {
+    if (isAnimating) {
+      const timer = setTimeout(() => {
+        setDisplayedPersonaId(personaId);
+        setDisplayedPersonaVars(personaVars);
+      }, 175);
+      return () => clearTimeout(timer);
+    }
+    setDisplayedPersonaId(personaId);
+    setDisplayedPersonaVars(personaVars);
+  }, [personaId, personaVars, isAnimating]);
+
+  const painShort = t(`landing.personas.${displayedPersonaId}.painShort`);
+  const painFull = t(`landing.personas.${displayedPersonaId}.painFull`);
+  const tp = (key: string) => t(key, displayedPersonaVars);
 
   const stopPersonaRotation = useCallback(() => {
     setIsPaused(true);
