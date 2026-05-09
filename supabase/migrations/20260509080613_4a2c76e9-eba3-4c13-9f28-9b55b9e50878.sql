@@ -1,0 +1,1 @@
+ALTER TABLE public.user_telegram_links ADD COLUMN IF NOT EXISTS is_active boolean NOT NULL DEFAULT true;
