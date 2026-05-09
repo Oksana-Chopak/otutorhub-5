@@ -1,11 +1,112 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+import { cn } from "@/lib/utils";
 
 const SPOTS_LEFT = 17; // soft scarcity counter
+
+type Persona = {
+  id: string;
+  label: string;
+  emoji: string;
+  client: string;
+  clients: string;
+  session: string;
+  sessions: string;
+  homework: string;
+  painShort: string;
+  painFull: string;
+};
+
+const PERSONAS: Persona[] = [
+  {
+    id: "tutor",
+    label: "репетитора",
+    emoji: "📚",
+    client: "Учня",
+    clients: "Учні",
+    session: "Урок",
+    sessions: "Уроки",
+    homework: "Домашнє завдання",
+    painShort: "Скільки разів написали «нагадую про оплату»? 😅",
+    painFull: "Скільки разів цього місяця написали «нагадую про оплату»?",
+  },
+  {
+    id: "consultant",
+    label: "консультанта",
+    emoji: "💼",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Консультація",
+    sessions: "Консультації",
+    homework: "Завдання",
+    painShort: "Де мій звіт по клієнтах? 😅",
+    painFull: "Скільки часу витрачаєте на адміністрування замість роботи з клієнтами?",
+  },
+  {
+    id: "psychologist",
+    label: "психолога",
+    emoji: "🧠",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Сесія",
+    sessions: "Сесії",
+    homework: "Вправи",
+    painShort: "Хто на якій сесії і що було минулого разу? 😅",
+    painFull: "Важко тримати в голові де кожен клієнт і що було на останній сесії?",
+  },
+  {
+    id: "nutritionist",
+    label: "нутриціолога",
+    emoji: "🥗",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Прийом",
+    sessions: "Прийоми",
+    homework: "План харчування",
+    painShort: "Хто дотримується плану а хто ні? 😅",
+    painFull: "Стомились відстежувати хто виконує план а хто ні?",
+  },
+  {
+    id: "trainer",
+    label: "онлайн тренера",
+    emoji: "💪",
+    client: "Підопічного",
+    clients: "Підопічні",
+    session: "Тренування",
+    sessions: "Тренування",
+    homework: "Програма",
+    painShort: "Хто оплатив абонемент цього місяця? 😅",
+    painFull: "Втомились вручну відстежувати оплати абонементів?",
+  },
+];
+
+function personalize(text: string, p: Persona): string {
+  if (p.id === "tutor") return text;
+  return text
+    .replace(/учнями/gi, p.clients)
+    .replace(/учнів/gi, p.clients)
+    .replace(/учням/gi, p.clients)
+    .replace(/учні/gi, p.clients)
+    .replace(/учня/gi, p.client)
+    .replace(/учнем/gi, p.client)
+    .replace(/учень/gi, p.client)
+    .replace(/уроків/gi, p.sessions)
+    .replace(/уроки/gi, p.sessions)
+    .replace(/уроку/gi, p.session)
+    .replace(/уроком/gi, p.session)
+    .replace(/урок/gi, p.session)
+    .replace(/домашка/gi, p.homework.toLowerCase())
+    .replace(/домашню/gi, p.homework.toLowerCase())
+    .replace(/домашнє завдання/gi, p.homework.toLowerCase())
+    .replace(/репетиторстві/gi, "роботі")
+    .replace(/репетитора/gi, p.label)
+    .replace(/репетитор/gi, p.label);
+}
+
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
