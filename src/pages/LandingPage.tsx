@@ -21,10 +21,14 @@ export type PersonaId = typeof PERSONA_IDS[number];
 export type PersonaVars = {
   label: string;
   labelNom: string;
+  labelAcc: string;
   client: string;
   clientNom: string;
+  clientDative: string;
   ClientNom: string;
   clients: string;
+  clientsNom: string;
+  clientsAcc: string;
   session: string;
   sessions: string;
 };
@@ -442,8 +446,9 @@ export default function LandingPage() {
 
   const personaVars: PersonaVars = useMemo(() => {
     const base = t(`landing.personas.${personaId}`, { returnObjects: true }) as {
-      label: string; labelNom: string;
-      client: string; clientNom: string; clients: string;
+      label: string; labelNom: string; labelAcc: string;
+      client: string; clientNom: string; clientDative: string;
+      clients: string; clientsNom: string; clientsAcc: string;
       session: string; sessions: string;
     };
     return {
