@@ -207,7 +207,7 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
         </div>
 
         <div className={cn("ltd-aside", isAnimating && "ltd-fade")}>
-          <div className="ltd-aside-icon">🎓</div>
+          <div className="ltd-aside-icon">{ASIDE_ICON[personaId] ?? "🎓"}</div>
           <div className="ltd-aside-text">
             <strong>{tp("landing.tryDemo.asideTitle")}</strong>
             <span>{tp("landing.tryDemo.asideText")}</span>
