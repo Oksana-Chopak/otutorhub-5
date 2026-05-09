@@ -449,6 +449,7 @@ export default function LandingPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
 
   const personaVars: PersonaVars = useMemo(() => {
@@ -470,7 +471,6 @@ export default function LandingPage() {
 
   const stopPersonaRotation = useCallback(() => {
     setIsPaused(true);
-    setIsAnimating(false);
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
       animationTimeoutRef.current = null;
@@ -530,13 +530,25 @@ export default function LandingPage() {
     };
   }, [isPaused]);
 
+  // Safety net: never let the swap animation linger as a blank screen.
+  useEffect(() => {
+    if (!isAnimating) return;
+    const t = setTimeout(() => setIsAnimating(false), 800);
+    return () => clearTimeout(t);
+  }, [isAnimating]);
+
+  useEffect(() => () => {
+    if (pickTimeoutRef.current) clearTimeout(pickTimeoutRef.current);
+  }, []);
+
   const pickPersona = (i: number) => {
     stopPersonaRotation();
+    if (pickTimeoutRef.current) clearTimeout(pickTimeoutRef.current);
     setIsAnimating(true);
-    animationTimeoutRef.current = setTimeout(() => {
+    pickTimeoutRef.current = setTimeout(() => {
       setActiveIndex(i);
       setIsAnimating(false);
-      animationTimeoutRef.current = null;
+      pickTimeoutRef.current = null;
     }, 200);
   };
 
