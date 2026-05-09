@@ -323,28 +323,37 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
             <h3 className="text-lg font-bold">Коли зручно займатись?</h3>
             <p className="text-sm text-muted-foreground">Можна вибрати декілька</p>
             <div className="grid grid-cols-2 gap-3">
-              {SCHEDULE_SLOTS.map((s) => {
-                const active = schedule.includes(s.value);
-                return (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() =>
-                      setSchedule((p) =>
-                        p.includes(s.value) ? p.filter((x) => x !== s.value) : [...p, s.value],
-                      )
-                    }
-                    className={cn(
-                      "rounded-xl border-2 p-3 text-sm font-medium transition-all hover:scale-105 active:scale-95",
-                      active
-                        ? "border-primary bg-primary/5 text-foreground shadow-md"
-                        : "border-border text-muted-foreground hover:border-primary/40",
-                    )}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
+              {(["weekday", "weekend"] as const).map((group) => (
+                <div key={group} className="space-y-2">
+                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {group === "weekday" ? "Будні" : "Вихідні"}
+                  </div>
+                  <div className="space-y-2">
+                    {SCHEDULE_SLOTS.filter((s) => s.value.startsWith(group)).map((s) => {
+                      const active = schedule.includes(s.value);
+                      return (
+                        <button
+                          key={s.value}
+                          type="button"
+                          onClick={() =>
+                            setSchedule((p) =>
+                              p.includes(s.value) ? p.filter((x) => x !== s.value) : [...p, s.value],
+                            )
+                          }
+                          className={cn(
+                            "w-full rounded-xl border-2 p-3 text-sm font-medium transition-all hover:scale-[1.02] active:scale-95",
+                            active
+                              ? "border-primary bg-primary/5 text-foreground shadow-md"
+                              : "border-border text-muted-foreground hover:border-primary/40",
+                          )}
+                        >
+                          {s.label.replace(/^(Будні|Вихідні)\s+/, "")}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
             <Button
               className="w-full"
