@@ -569,7 +569,7 @@ export default function LandingPage() {
   ]), [personaId, t]);
 
   return (
-    <div className="landing-root">
+    <div className="landing-root" onClick={stopPersonaRotation}>
       <style>{landingStyles}</style>
 
       {/* NAV */}
@@ -592,7 +592,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }} onClick={stopPersonaRotation}>
+      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
         <div className="hero">
           <div className="spots-badge">
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
@@ -648,7 +648,7 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="features">
         <div className="section-inner">
           <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{tp("landing.assistant.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.assistant.title"))}</h2>
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
           <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
             {assistantItems.map((it, i) => (
@@ -668,7 +668,7 @@ export default function LandingPage() {
       <section className="l-section section-alt" id="glance">
         <div className="section-inner">
           <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{tp("landing.glance.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.glance.title"))}</h2>
           <p className="section-sub">{tp("landing.glance.sub")}</p>
           <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
@@ -683,7 +683,7 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="how">
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{tp("landing.steps.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.steps.title"))}</h2>
           <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
