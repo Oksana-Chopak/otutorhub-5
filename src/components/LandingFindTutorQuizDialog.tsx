@@ -451,6 +451,17 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                 maxLength={40}
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="lead-wishes">Додаткові побажання (необов'язково)</Label>
+              <Textarea
+                id="lead-wishes"
+                value={wishes}
+                onChange={(e) => setWishes(e.target.value)}
+                placeholder="Наприклад: потрібен репетитор з досвідом підготовки до ЗНО, зручний час — після 18:00..."
+                rows={3}
+                maxLength={1000}
+              />
+            </div>
             <Button className="w-full" onClick={submit}>
               Знайти репетитора
             </Button>
