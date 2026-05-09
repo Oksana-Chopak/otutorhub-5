@@ -29,8 +29,10 @@ export type PersonaVars = {
   clients: string;
   clientsNom: string;
   clientsAcc: string;
+  clientsGen: string;
   session: string;
   sessions: string;
+  sessionsGen: string;
 };
 
 function capFirst(s: string): string {
