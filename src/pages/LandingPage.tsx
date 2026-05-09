@@ -675,7 +675,7 @@ export default function LandingPage() {
       {/* WhatsApp floating bubble */}
       <a
         href="https://wa.me/46700266274"
-        target="_blank"
+        target="_top"
         rel="noopener noreferrer"
         aria-label="WhatsApp"
         className="fixed bottom-20 right-6 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb855] text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105"
@@ -690,7 +690,7 @@ export default function LandingPage() {
       {/* Telegram floating bubble */}
       <a
         href="https://t.me/oksana_chopak"
-        target="_blank"
+        target="_top"
         rel="noopener noreferrer"
         aria-label="Telegram"
         className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#229ED9] hover:bg-[#1a8abf] text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105"
