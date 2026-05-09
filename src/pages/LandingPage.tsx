@@ -1,4 +1,4 @@
-import { type MouseEvent, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -379,12 +379,13 @@ const landingStyles = `
 }
 
 .landing-root .persona-word {
-  color: var(--l-accent);
+  color: #0ABAB5 !important;
   cursor: pointer;
-  border-bottom: 2px dotted var(--l-accent);
+  border-bottom: 2px dotted #0ABAB5;
   transition: opacity 0.3s ease, transform 0.3s ease;
   display: inline-block;
 }
+.landing-root h1 .persona-word { color: #0ABAB5 !important; }
 .landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
 .landing-root .persona-pills {
   display: flex; flex-wrap: wrap; gap: 8px;
