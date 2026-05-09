@@ -419,8 +419,8 @@ const landingStyles = `
   color: var(--ink); line-height: 1.3;
   transition: opacity 0.3s ease;
 }
-.landing-root .persona-fade { transition: opacity 0.3s ease; }
-.landing-root .persona-fade.swap { opacity: 0.4; }
+.landing-root .persona-fade { transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; }
+.landing-root .persona-fade.swap { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
 .landing-root .chat-bubble {
   position: fixed; right: 1.5rem; z-index: 50;
   display: flex; align-items: center; gap: 0.5rem;

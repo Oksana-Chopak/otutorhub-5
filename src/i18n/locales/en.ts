@@ -182,7 +182,7 @@ export const en: Translations = {
     },
     assistant: {
       label: "Assistant",
-      title: "What the assistant does for you",
+      title: "What the assistant does for {{label}}",
       sub: "While you run {{sessions}} — it handles the rest.",
       i1Title: "Daily morning briefing in Telegram",
       i1Text: "Today's list, who owes you, your to-do list. Wake up, read it — then pour your coffee in peace.",
