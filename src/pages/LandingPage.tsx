@@ -1,8 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
+import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+
+const SPOTS_LEFT = 17; // soft scarcity counter
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
@@ -32,7 +35,6 @@ const landingStyles = `
   --radius-sm: 10px;
   --shadow: 0 2px 24px rgba(10,186,181,0.08);
   --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.06);
-
   font-family: 'Golos Text', sans-serif;
   background: var(--bg);
   color: var(--ink);
@@ -65,10 +67,7 @@ const landingStyles = `
   width: 8px; height: 8px; border-radius: 50%;
   background: var(--l-accent); display: inline-block;
 }
-.landing-root .nav-links {
-  display: flex; align-items: center; gap: 2rem;
-  list-style: none;
-}
+.landing-root .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
 .landing-root .nav-links a {
   font-size: 14px; font-weight: 500;
   color: var(--l-muted); text-decoration: none;
@@ -89,46 +88,45 @@ const landingStyles = `
 .landing-root .hero {
   max-width: 1100px; margin: 0 auto;
   padding: 80px 2rem 60px;
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 64px; align-items: center;
+  text-align: center;
 }
-.landing-root .hero-badge {
+.landing-root .spots-badge {
   display: inline-flex; align-items: center; gap: 8px;
-  background: var(--accent-light); color: var(--l-accent);
-  font-size: 13px; font-weight: 600;
-  padding: 6px 14px; border-radius: 100px;
-  margin-bottom: 24px;
-  border: 1px solid rgba(10,186,181,0.2);
-}
-.landing-root .hero-badge-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--l-accent); animation: l-pulse 2s infinite;
-}
-@keyframes l-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.8); }
+  background: #fff5e6; color: #c47a15;
+  font-size: 13px; font-weight: 700;
+  padding: 8px 16px; border-radius: 100px;
+  margin-bottom: 28px;
+  border: 1px solid rgba(196,122,21,0.2);
 }
 .landing-root h1 {
   font-family: 'Unbounded', sans-serif;
-  font-size: clamp(32px, 4vw, 52px);
-  font-weight: 900; line-height: 1.1;
+  font-size: clamp(34px, 5vw, 60px);
+  font-weight: 900; line-height: 1.05;
   color: var(--ink); margin-bottom: 24px;
   letter-spacing: -0.02em;
+  max-width: 880px; margin-left: auto; margin-right: auto;
 }
 .landing-root h1 .accent { color: var(--l-accent); }
 .landing-root .hero-sub {
-  font-size: 18px; color: var(--l-muted);
+  font-size: clamp(18px, 2vw, 22px);
+  color: var(--ink2);
+  line-height: 1.5; margin-bottom: 18px;
+  font-weight: 500;
+  max-width: 720px; margin-left: auto; margin-right: auto;
+}
+.landing-root .hero-desc {
+  font-size: 16px; color: var(--l-muted);
   line-height: 1.7; margin-bottom: 36px;
-  font-weight: 400;
+  max-width: 640px; margin-left: auto; margin-right: auto;
 }
 .landing-root .hero-cta {
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: center;
 }
 .landing-root .btn-primary {
   background: var(--l-accent); color: #fff;
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 16px;
-  padding: 14px 32px; border-radius: 100px;
+  padding: 16px 32px; border-radius: 100px;
   text-decoration: none; border: none; cursor: pointer;
   transition: all 0.2s; display: inline-block;
   box-shadow: 0 4px 20px rgba(10,186,181,0.35);
@@ -142,7 +140,7 @@ const landingStyles = `
   background: transparent; color: var(--ink);
   font-family: 'Golos Text', sans-serif;
   font-weight: 500; font-size: 16px;
-  padding: 14px 24px; border-radius: 100px;
+  padding: 16px 28px; border-radius: 100px;
   text-decoration: none; border: 1.5px solid var(--l-border);
   cursor: pointer; transition: all 0.2s; display: inline-block;
 }
@@ -150,118 +148,6 @@ const landingStyles = `
   border-color: var(--l-accent); color: var(--l-accent);
   background: var(--accent-light);
 }
-.landing-root .hero-note {
-  margin-top: 20px; font-size: 13px; color: var(--muted2);
-  display: flex; align-items: center; gap: 6px;
-}
-.landing-root .hero-note::before {
-  content: ''; display: inline-block;
-  width: 14px; height: 14px;
-  background: var(--l-success);
-  border-radius: 50%;
-  flex-shrink: 0;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
-}
-
-.landing-root .hero-visual { position: relative; }
-.landing-root .app-frame {
-  background: var(--white);
-  border-radius: 20px;
-  border: 1px solid var(--l-border);
-  box-shadow: var(--shadow-card), 0 24px 80px rgba(0,0,0,0.1);
-  overflow: hidden;
-}
-.landing-root .app-topbar {
-  background: var(--white);
-  border-bottom: 1px solid var(--border2);
-  padding: 14px 20px;
-  display: flex; align-items: center; gap: 8px;
-}
-.landing-root .dot { width: 10px; height: 10px; border-radius: 50%; }
-.landing-root .dot-r { background: #ff6059; }
-.landing-root .dot-y { background: #ffbd2e; }
-.landing-root .dot-g { background: #28c840; }
-.landing-root .app-content { padding: 20px; }
-.landing-root .app-title {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 13px; font-weight: 600;
-  color: var(--ink); margin-bottom: 16px;
-}
-.landing-root .stat-row {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 10px; margin-bottom: 16px;
-}
-.landing-root .stat-card-l {
-  background: var(--bg); border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  border: 1px solid var(--border2);
-}
-.landing-root .stat-label-l { font-size: 11px; color: var(--l-muted); font-weight: 500; margin-bottom: 4px; }
-.landing-root .stat-val { font-size: 22px; font-weight: 700; color: var(--ink); font-family: 'Unbounded', sans-serif; }
-.landing-root .stat-val.green { color: var(--l-success); }
-.landing-root .stat-val.purple { color: var(--l-accent); }
-.landing-root .lesson-item {
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin-bottom: 8px;
-  display: flex; justify-content: space-between; align-items: center;
-  border: 1px solid var(--border2);
-}
-.landing-root .lesson-name { font-size: 13px; font-weight: 600; color: var(--ink); }
-.landing-root .lesson-sub { font-size: 11px; color: var(--l-muted); margin-top: 2px; }
-.landing-root .pill {
-  font-size: 11px; font-weight: 600; padding: 4px 10px;
-  border-radius: 100px;
-}
-.landing-root .pill-green { background: var(--success-light); color: var(--l-success); }
-.landing-root .pill-warning { background: var(--warning-light); color: var(--l-warning); }
-.landing-root .pill-purple { background: var(--accent-light); color: var(--l-accent); }
-.landing-root .float-badge {
-  position: absolute; right: -20px; top: 40px;
-  background: var(--white);
-  border-radius: 14px; padding: 12px 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  border: 1px solid var(--l-border);
-  font-size: 12px; font-weight: 500; color: var(--ink);
-  white-space: nowrap;
-  animation: l-float 3s ease-in-out infinite;
-}
-.landing-root .float-badge2 {
-  position: absolute; left: -20px; bottom: 60px;
-  background: var(--white);
-  border-radius: 14px; padding: 12px 16px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
-  border: 1px solid var(--l-border);
-  font-size: 12px; font-weight: 500; color: var(--ink);
-  white-space: nowrap;
-  animation: l-float 3s ease-in-out infinite 1.5s;
-}
-@keyframes l-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-.landing-root .badge-icon { margin-right: 6px; }
-
-.landing-root .social-strip {
-  background: var(--ink);
-  padding: 20px 2rem;
-  overflow: hidden;
-}
-.landing-root .social-inner {
-  max-width: 1100px; margin: 0 auto;
-  display: flex; align-items: center; gap: 48px;
-  justify-content: center; flex-wrap: wrap;
-}
-.landing-root .social-stat { text-align: center; color: white; }
-.landing-root .social-stat-num {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 28px; font-weight: 700;
-  display: block;
-}
-.landing-root .social-stat-label { font-size: 13px; color: rgba(255,255,255,0.5); }
-.landing-root .social-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.1); }
 
 .landing-root .l-section { padding: 80px 2rem; }
 .landing-root .section-inner { max-width: 1100px; margin: 0 auto; }
@@ -272,202 +158,109 @@ const landingStyles = `
 }
 .landing-root h2 {
   font-family: 'Unbounded', sans-serif;
-  font-size: clamp(24px, 3vw, 38px);
+  font-size: clamp(26px, 3vw, 40px);
   font-weight: 800; line-height: 1.15;
   color: var(--ink); margin-bottom: 16px;
   letter-spacing: -0.02em;
 }
 .landing-root .section-sub {
   font-size: 17px; color: var(--l-muted);
-  max-width: 560px; line-height: 1.7;
+  max-width: 640px; line-height: 1.6;
 }
-.landing-root .pain-grid {
-  display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 20px; margin-top: 48px;
-}
-.landing-root .pain-card {
-  background: var(--white);
-  border-radius: var(--l-radius);
-  padding: 28px 24px;
-  border: 1px solid var(--border2);
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.landing-root .pain-card:hover {
-  box-shadow: var(--shadow);
-  transform: translateY(-3px);
-}
-.landing-root .pain-icon {
-  width: 48px; height: 48px;
-  border-radius: 14px;
-  background: var(--accent-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 26px; margin-bottom: 16px;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.landing-root .pain-card:hover .pain-icon {
-  transform: rotate(-8deg) scale(1.1);
-}
-.landing-root .pain-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
-.landing-root .pain-text { font-size: 14px; color: var(--l-muted); line-height: 1.6; }
-
+.landing-root .section-alt { background: var(--bg); }
 .landing-root .features-bg { background: var(--white); }
-.landing-root .features-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 80px; align-items: center;
-  margin-top: 48px;
-}
-.landing-root .feature-list { display: flex; flex-direction: column; gap: 28px; }
-.landing-root .feature-item { display: flex; gap: 16px; align-items: flex-start; }
-.landing-root .feature-ico {
-  width: 40px; height: 40px; flex-shrink: 0;
-  border-radius: 10px;
-  background: var(--accent-light);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-}
-.landing-root .feature-title { font-size: 16px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
-.landing-root .feature-text { font-size: 14px; color: var(--l-muted); line-height: 1.6; }
-.landing-root .feature-tag {
-  display: inline-block;
-  font-size: 11px; font-weight: 700;
-  padding: 3px 8px; border-radius: 6px;
-  background: var(--accent-light); color: var(--l-accent);
-  margin-left: 8px; vertical-align: middle;
-}
-.landing-root .phone-wrap { position: relative; display: flex; justify-content: center; }
-.landing-root .phone-frame {
-  width: 260px;
-  background: var(--white);
-  border-radius: 32px;
-  border: 1px solid var(--l-border);
-  box-shadow: var(--shadow-card), 0 32px 80px rgba(0,0,0,0.1);
-  overflow: hidden;
-  position: relative;
-}
-.landing-root .phone-notch {
-  height: 28px;
-  background: var(--ink);
-  display: flex; align-items: flex-end; justify-content: center;
-  padding-bottom: 6px;
-}
-.landing-root .phone-notch-bar {
-  width: 60px; height: 4px;
-  background: rgba(255,255,255,0.3);
-  border-radius: 100px;
-}
-.landing-root .phone-screen { padding: 16px; }
-.landing-root .phone-header {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 12px; font-weight: 700;
-  color: var(--ink); margin-bottom: 12px;
-}
-.landing-root .chat-bubble {
-  border-radius: 14px 14px 14px 4px;
-  padding: 10px 14px;
-  font-size: 12px; line-height: 1.5;
-  margin-bottom: 8px;
-  max-width: 90%;
-}
-.landing-root .chat-in {
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  color: var(--ink);
-}
-.landing-root .chat-out {
-  background: var(--l-accent);
-  color: white;
-  border-radius: 14px 14px 4px 14px;
-  margin-left: auto;
-}
-.landing-root .chat-label { font-size: 10px; color: var(--muted2); margin-bottom: 3px; }
 
-.landing-root .pricing-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 24px; margin-top: 48px; max-width: 780px; margin-left: auto; margin-right: auto;
+/* Assistant grid */
+.landing-root .assistant-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 16px; margin-top: 40px;
 }
-.landing-root .price-card {
+.landing-root .assistant-card {
   background: var(--white);
   border-radius: var(--l-radius);
-  padding: 32px 28px;
-  border: 1px solid var(--l-border);
-  position: relative;
+  padding: 22px;
+  border: 1px solid var(--border2);
+  display: flex; gap: 14px; align-items: flex-start;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.landing-root .assistant-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+.landing-root .assistant-emoji {
+  font-size: 26px; line-height: 1;
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  background: var(--accent-light);
+  display: flex; align-items: center; justify-content: center;
+}
+.landing-root .assistant-title {
+  font-size: 15px; font-weight: 700;
+  color: var(--ink); margin-bottom: 4px;
+  line-height: 1.3;
+}
+.landing-root .assistant-text {
+  font-size: 14px; color: var(--l-muted);
+  line-height: 1.55;
+}
+
+/* Glance section */
+.landing-root .glance-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-top: 40px;
+}
+.landing-root .glance-card {
+  background: var(--white);
+  border-radius: var(--l-radius);
+  padding: 24px 20px;
+  border: 1px solid var(--border2);
   text-align: left;
 }
-.landing-root .price-card.featured {
-  border: 2px solid var(--l-accent);
-  box-shadow: 0 0 0 6px rgba(10,186,181,0.06);
-}
-.landing-root .price-badge {
-  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-  background: var(--l-accent); color: white;
-  font-size: 12px; font-weight: 700;
-  padding: 4px 16px; border-radius: 100px;
-  white-space: nowrap;
-}
-.landing-root .price-plan { font-size: 13px; font-weight: 600; color: var(--l-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
-.landing-root .price-amount {
+.landing-root .glance-num {
   font-family: 'Unbounded', sans-serif;
-  font-size: 42px; font-weight: 900;
-  color: var(--ink); line-height: 1;
-  margin-bottom: 4px;
+  font-size: 36px; font-weight: 900;
+  color: var(--l-accent); line-height: 1;
+  margin-bottom: 12px;
 }
-.landing-root .price-period { font-size: 14px; color: var(--l-muted); margin-bottom: 24px; }
-.landing-root .price-list { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 28px; }
-.landing-root .price-list li {
-  font-size: 14px; color: var(--ink);
-  display: flex; align-items: flex-start; gap: 10px; line-height: 1.4;
+.landing-root .glance-text {
+  font-size: 15px; font-weight: 600;
+  color: var(--ink); line-height: 1.4;
 }
-.landing-root .check { color: var(--l-success); font-weight: 700; flex-shrink: 0; }
-.landing-root .cross { color: var(--muted2); flex-shrink: 0; }
-.landing-root .price-note { font-size: 12px; color: var(--muted2); text-align: center; margin-top: 12px; }
 
-.landing-root .compare-wrap { margin-top: 48px; overflow-x: auto; }
-.landing-root .compare-table {
-  width: 100%; max-width: 700px; margin: 0 auto;
-  border-collapse: collapse;
-}
-.landing-root .compare-table th {
-  font-family: 'Unbounded', sans-serif;
-  font-size: 13px; font-weight: 700;
-  padding: 14px 12px;
-  text-align: left; color: var(--l-muted);
-}
-.landing-root .compare-table th.ours { color: var(--l-accent); }
-.landing-root .compare-table td {
-  padding: 12px; font-size: 13px; color: var(--ink);
-  border-top: 1px solid var(--border2);
-  word-break: break-word;
-}
-@media (min-width: 640px) {
-  .landing-root .compare-table th { padding: 16px 20px; font-size: 13px; }
-  .landing-root .compare-table td { padding: 14px 20px; font-size: 14px; }
-}
-.landing-root .compare-table tr:hover td { background: var(--bg); }
-.landing-root .yes { color: var(--l-success); font-weight: 600; }
-.landing-root .no { color: var(--muted2); }
-
-.landing-root .testi-grid {
+/* Steps */
+.landing-root .steps-grid {
   display: grid; grid-template-columns: repeat(3, 1fr);
-  gap: 20px; margin-top: 48px;
+  gap: 24px; margin-top: 48px;
 }
-.landing-root .testi-card {
+.landing-root .step-card {
   background: var(--white);
   border-radius: var(--l-radius);
-  padding: 24px;
+  padding: 32px 24px;
   border: 1px solid var(--border2);
+  position: relative;
 }
-.landing-root .testi-stars { color: #f59e0b; margin-bottom: 12px; font-size: 14px; }
-.landing-root .testi-text { font-size: 14px; color: var(--ink); line-height: 1.7; margin-bottom: 16px; font-style: italic; }
-.landing-root .testi-author { display: flex; align-items: center; gap: 10px; }
-.landing-root .testi-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  font-size: 14px; font-weight: 700;
+.landing-root .step-num {
+  position: absolute; top: -18px; left: 24px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--l-accent); color: #fff;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 18px; font-weight: 900;
   display: flex; align-items: center; justify-content: center;
-  background: var(--accent-light); color: var(--l-accent);
+  box-shadow: 0 4px 14px rgba(10,186,181,0.35);
 }
-.landing-root .testi-name { font-size: 13px; font-weight: 600; color: var(--ink); }
-.landing-root .testi-role { font-size: 12px; color: var(--l-muted); }
+.landing-root .step-title {
+  font-size: 17px; font-weight: 700;
+  color: var(--ink); margin: 12px 0 8px;
+  line-height: 1.3;
+}
+.landing-root .step-text {
+  font-size: 14px; color: var(--l-muted);
+  line-height: 1.6;
+}
 
+/* Final CTA */
 .landing-root .cta-section {
   background: var(--ink);
   padding: 80px 2rem;
@@ -481,20 +274,34 @@ const landingStyles = `
               radial-gradient(circle at 70% 50%, rgba(45,212,207,0.2) 0%, transparent 60%);
   pointer-events: none;
 }
-.landing-root .cta-inner { max-width: 680px; margin: 0 auto; position: relative; }
+.landing-root .cta-inner { max-width: 720px; margin: 0 auto; position: relative; }
+.landing-root .cta-section .spots-badge {
+  background: rgba(255,255,255,0.1); color: #fff;
+  border-color: rgba(255,255,255,0.15);
+}
 .landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); }
-.landing-root .cta-section p { color: rgba(255,255,255,0.6); font-size: 17px; margin: 16px 0 36px; }
+.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; }
 .landing-root .btn-white {
   background: white; color: var(--l-accent);
   font-family: 'Golos Text', sans-serif;
   font-weight: 700; font-size: 16px;
-  padding: 16px 36px; border-radius: 100px;
+  padding: 16px 32px; border-radius: 100px;
   text-decoration: none; border: none; cursor: pointer;
   transition: all 0.2s; display: inline-block;
   box-shadow: 0 4px 20px rgba(0,0,0,0.2);
 }
 .landing-root .btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
-.landing-root .cta-footnote { color: rgba(255,255,255,0.35); font-size: 13px; margin-top: 16px; }
+.landing-root .btn-outline-white {
+  background: transparent; color: #fff;
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 600; font-size: 16px;
+  padding: 16px 28px; border-radius: 100px;
+  text-decoration: none; border: 1.5px solid rgba(255,255,255,0.3);
+  cursor: pointer; transition: all 0.2s; display: inline-block;
+}
+.landing-root .btn-outline-white:hover { border-color: #fff; background: rgba(255,255,255,0.05); }
+.landing-root .cta-buttons { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.landing-root .cta-footnote { color: rgba(255,255,255,0.4); font-size: 13px; margin-top: 20px; }
 
 .landing-root footer {
   background: var(--ink2);
@@ -515,42 +322,36 @@ const landingStyles = `
 .landing-root footer a { color: rgba(255,255,255,0.5); text-decoration: none; }
 .landing-root footer a:hover { color: white; }
 
-.landing-root .section-alt { background: var(--bg); }
-
-.landing-root .fade-up {
-  opacity: 0; transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-}
+.landing-root .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .landing-root .fade-up.visible { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 900px) {
-  .landing-root .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 48px; }
-  .landing-root .float-badge, .landing-root .float-badge2 { display: none; }
-  .landing-root .pain-grid { grid-template-columns: 1fr 1fr; }
-  .landing-root .features-grid { grid-template-columns: 1fr; }
-  .landing-root .pricing-grid { grid-template-columns: 1fr; max-width: 400px; }
-  .landing-root .testi-grid { grid-template-columns: 1fr; }
+  .landing-root .assistant-grid { grid-template-columns: 1fr; }
+  .landing-root .glance-grid { grid-template-columns: repeat(2, 1fr); }
+  .landing-root .steps-grid { grid-template-columns: 1fr; gap: 32px; }
   .landing-root .nav-links { display: none; }
-  .landing-root .compare-wrap { font-size: 13px; }
 }
 @media (max-width: 600px) {
   .landing-root nav { padding: 0 1rem; }
   .landing-root .nav-inner { height: 56px; gap: 8px; }
   .landing-root .logo { font-size: 15px; gap: 6px; }
   .landing-root .btn-nav { padding: 8px 14px; font-size: 13px; }
-  .landing-root .pain-grid { grid-template-columns: 1fr; }
-  .landing-root .stat-row { grid-template-columns: 1fr 1fr; }
+  .landing-root .glance-grid { grid-template-columns: 1fr; }
   .landing-root .hero { padding: 32px 1rem 40px; }
-  .landing-root .hero-cta { flex-direction: column; align-items: stretch; gap: 10px; }
+  .landing-root .hero-cta, .landing-root .cta-buttons { flex-direction: column; align-items: stretch; gap: 10px; }
   .landing-root .hero-cta .btn-primary,
-  .landing-root .hero-cta .btn-ghost { width: 100%; justify-content: center; text-align: center; }
+  .landing-root .hero-cta .btn-ghost,
+  .landing-root .cta-buttons .btn-white,
+  .landing-root .cta-buttons .btn-outline-white { width: 100%; text-align: center; }
 }
 `;
 
 export default function LandingPage() {
   const { t } = useTranslation();
+  const [quizOpen, setQuizOpen] = useState(false);
+
   useEffect(() => {
-    document.title = "oTutorHub — Порядок у репетиторстві";
+    document.title = "oTutorHub — Розумний помічник для репетитора";
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -566,8 +367,20 @@ export default function LandingPage() {
     return () => obs.disconnect();
   }, []);
 
-  // CTAs lead to /auth with role pre-selected for tutor signup
   const signupHref = "/auth?signup=1&role=tutor";
+
+  const assistantItems = [
+    { emoji: "☀️", title: t("landing.assistant.i1Title"), text: t("landing.assistant.i1Text") },
+    { emoji: "🔔", title: t("landing.assistant.i2Title"), text: t("landing.assistant.i2Text") },
+    { emoji: "⏰", title: t("landing.assistant.i3Title"), text: t("landing.assistant.i3Text") },
+    { emoji: "📝", title: t("landing.assistant.i4Title"), text: t("landing.assistant.i4Text") },
+    { emoji: "📅", title: t("landing.assistant.i5Title"), text: t("landing.assistant.i5Text") },
+    { emoji: "💸", title: t("landing.assistant.i6Title"), text: t("landing.assistant.i6Text") },
+    { emoji: "💬", title: t("landing.assistant.i7Title"), text: t("landing.assistant.i7Text") },
+    { emoji: "👥", title: t("landing.assistant.i8Title"), text: t("landing.assistant.i8Text") },
+    { emoji: "🗓️", title: t("landing.assistant.i9Title"), text: t("landing.assistant.i9Text") },
+    { emoji: "♾️", title: t("landing.assistant.i10Title"), text: t("landing.assistant.i10Text") },
+  ];
 
   return (
     <div className="landing-root">
@@ -582,8 +395,8 @@ export default function LandingPage() {
           </a>
           <ul className="nav-links">
             <li><a href="#features">{t("landing.nav.features")}</a></li>
-            <li><a href="#pricing">{t("landing.nav.pricing")}</a></li>
-            <li><a href="#compare">{t("landing.nav.compare")}</a></li>
+            <li><a href="#how">{t("landing.nav.howItWorks")}</a></li>
+            <li><a href="#glance">{t("landing.nav.dashboard")}</a></li>
           </ul>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <LanguageSwitcher variant="ghost" size="sm" />
@@ -595,70 +408,78 @@ export default function LandingPage() {
       {/* HERO */}
       <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
         <div className="hero">
-          <div>
-            <div className="hero-badge">
-              <span className="hero-badge-dot"></span>
-              {t("landing.hero.badge")}
-            </div>
-            <h1>{t("landing.hero.titleLine1")}<br /><span className="accent">{t("landing.hero.titleLine2")}</span><br />{t("landing.hero.titleLine3")}</h1>
-            <p className="hero-sub">{t("landing.hero.sub")}</p>
-            <div className="hero-cta">
-              <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
-              <a href="#features" className="btn-ghost">{t("landing.hero.ctaSecondary")}</a>
-            </div>
-            <p className="hero-note">{t("landing.hero.note")}</p>
+          <div className="spots-badge">
+            {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
           </div>
+          <h1>
+            {t("landing.hero.title")}
+          </h1>
+          <p className="hero-sub">{t("landing.hero.sub")}</p>
+          <p className="hero-desc">{t("landing.hero.description")}</p>
+          <div className="hero-cta">
+            <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
+            <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
+              {t("landing.hero.ctaSecondary")}
+            </button>
+          </div>
+        </div>
+      </section>
 
-          <div className="hero-visual">
-            <div className="float-badge">
-              <span className="badge-icon">🔔</span>{t("landing.hero.reminderBadge")}
-            </div>
-            <div className="app-frame">
-              <div className="app-topbar">
-                <div className="dot dot-r"></div>
-                <div className="dot dot-y"></div>
-                <div className="dot dot-g"></div>
-              </div>
-              <div className="app-content">
-                <div className="app-title">{t("landing.hero.dashboard")}</div>
-                <div className="stat-row">
-                  <div className="stat-card-l">
-                    <div className="stat-label-l">{t("landing.hero.students")}</div>
-                    <div className="stat-val purple">12</div>
-                  </div>
-                  <div className="stat-card-l">
-                    <div className="stat-label-l">{t("landing.hero.revenuePerMonth")}</div>
-                    <div className="stat-val green">18 400 ₴</div>
-                  </div>
-                </div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--l-muted)", marginBottom: 10 }}>
-                  {t("landing.hero.upcomingLessons")}
-                </div>
-                <div className="lesson-item">
-                  <div>
-                    <div className="lesson-name">{t("landing.hero.lesson1")}</div>
-                    <div className="lesson-sub">{t("landing.hero.lesson1Time")}</div>
-                  </div>
-                  <span className="pill pill-purple">{t("landing.hero.lesson1Status")}</span>
-                </div>
-                <div className="lesson-item">
-                  <div>
-                    <div className="lesson-name">{t("landing.hero.lesson2")}</div>
-                    <div className="lesson-sub">{t("landing.hero.lesson2Time")}</div>
-                  </div>
-                  <span className="pill pill-warning">{t("landing.hero.lesson2Status")}</span>
-                </div>
-                <div className="lesson-item">
-                  <div>
-                    <div className="lesson-name">{t("landing.hero.lesson3")}</div>
-                    <div className="lesson-sub">{t("landing.hero.lesson3Time")}</div>
-                  </div>
-                  <span className="pill pill-green">{t("landing.hero.lesson3Status")}</span>
+      {/* ASSISTANT — what it does */}
+      <section className="l-section features-bg" id="features">
+        <div className="section-inner">
+          <div className="section-label">{t("landing.assistant.label")}</div>
+          <h2>{t("landing.assistant.title")}</h2>
+          <p className="section-sub">{t("landing.assistant.sub")}</p>
+          <div className="assistant-grid fade-up">
+            {assistantItems.map((it, i) => (
+              <div key={i} className="assistant-card">
+                <div className="assistant-emoji">{it.emoji}</div>
+                <div>
+                  <div className="assistant-title">{it.title}</div>
+                  <p className="assistant-text">{it.text}</p>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* GLANCE */}
+      <section className="l-section section-alt" id="glance">
+        <div className="section-inner">
+          <div className="section-label">{t("landing.glance.label")}</div>
+          <h2>{t("landing.glance.title")}</h2>
+          <p className="section-sub">{t("landing.glance.sub")}</p>
+          <div className="glance-grid fade-up">
+            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{t("landing.glance.i1")}</div></div>
+            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{t("landing.glance.i2")}</div></div>
+            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{t("landing.glance.i3")}</div></div>
+            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{t("landing.glance.i4")}</div></div>
+          </div>
+        </div>
+      </section>
+
+      {/* STEPS */}
+      <section className="l-section features-bg" id="how">
+        <div className="section-inner">
+          <div className="section-label">{t("landing.steps.label")}</div>
+          <h2>{t("landing.steps.title")}</h2>
+          <div className="steps-grid fade-up">
+            <div className="step-card">
+              <div className="step-num">{t("landing.steps.s1Num")}</div>
+              <div className="step-title">{t("landing.steps.s1Title")}</div>
+              <p className="step-text">{t("landing.steps.s1Text")}</p>
             </div>
-            <div className="float-badge2">
-              <span className="badge-icon">✅</span>{t("landing.hero.paidBadge")}
+            <div className="step-card">
+              <div className="step-num">{t("landing.steps.s2Num")}</div>
+              <div className="step-title">{t("landing.steps.s2Title")}</div>
+              <p className="step-text">{t("landing.steps.s2Text")}</p>
+            </div>
+            <div className="step-card">
+              <div className="step-num">{t("landing.steps.s3Num")}</div>
+              <div className="step-title">{t("landing.steps.s3Title")}</div>
+              <p className="step-text">{t("landing.steps.s3Text")}</p>
             </div>
           </div>
         </div>
@@ -667,285 +488,20 @@ export default function LandingPage() {
       {/* TRY DEMO */}
       <LandingTryDemo />
 
-      {/* SOCIAL STRIP */}
-      <div className="social-strip">
-        <div className="social-inner">
-          <div className="social-stat">
-            <span className="social-stat-num">∞</span>
-            <span className="social-stat-label">{t("landing.social.students")}</span>
-          </div>
-          <div className="social-divider"></div>
-          <div className="social-stat">
-            <span className="social-stat-num">2 хв</span>
-            <span className="social-stat-label">{t("landing.social.toStart")}</span>
-          </div>
-          <div className="social-divider"></div>
-          <div className="social-stat">
-            <span className="social-stat-num">14</span>
-            <span className="social-stat-label">{t("landing.social.proFree")}</span>
-          </div>
-          <div className="social-divider"></div>
-          <div className="social-stat">
-            <span className="social-stat-num">Telegram</span>
-            <span className="social-stat-label">{t("landing.social.telegramReminders")}</span>
-          </div>
-        </div>
-        <div style={{ maxWidth: 1100, margin: "16px auto 0", textAlign: "center", color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
-          {t("landing.social.trustedBy")}
-        </div>
-      </div>
-
-      {/* PAIN */}
-      <section className="l-section section-alt" id="features">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.pain.label")}</div>
-          <h2>{t("landing.pain.title1")}<br />{t("landing.pain.title2")}</h2>
-          <p className="section-sub">{t("landing.pain.sub")}</p>
-
-          <div className="pain-grid fade-up">
-            <div className="pain-card">
-              <div className="pain-icon">📱</div>
-              <div className="pain-title">{t("landing.pain.card1Title")}</div>
-              <p className="pain-text">{t("landing.pain.card1Text")}</p>
-            </div>
-            <div className="pain-card">
-              <div className="pain-icon">📅</div>
-              <div className="pain-title">{t("landing.pain.card2Title")}</div>
-              <p className="pain-text">{t("landing.pain.card2Text")}</p>
-            </div>
-            <div className="pain-card">
-              <div className="pain-icon">💸</div>
-              <div className="pain-title">{t("landing.pain.card3Title")}</div>
-              <p className="pain-text">{t("landing.pain.card3Text")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section className="l-section features-bg">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.features.label")}</div>
-          <h2>{t("landing.features.title1")}<br />{t("landing.features.title2")}</h2>
-
-          <div className="features-grid">
-            <div className="feature-list fade-up">
-              <div className="feature-item">
-                <div className="feature-ico">📋</div>
-                <div>
-                  <div className="feature-title">{t("landing.features.f1Title")}</div>
-                  <p className="feature-text">{t("landing.features.f1Text")}</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <div className="feature-ico">💰</div>
-                <div>
-                  <div className="feature-title">{t("landing.features.f2Title")}</div>
-                  <p className="feature-text">{t("landing.features.f2Text")}</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <div className="feature-ico">💬</div>
-                <div>
-                  <div className="feature-title">{t("landing.features.f3Title")}</div>
-                  <p className="feature-text">{t("landing.features.f3Text")}</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <div className="feature-ico">🔔</div>
-                <div>
-                  <div className="feature-title">
-                    {t("landing.features.f4Title")}
-                    <span className="feature-tag">{t("landing.features.proTag")}</span>
-                  </div>
-                  <p className="feature-text">{t("landing.features.f4Text")}</p>
-                </div>
-              </div>
-              <div className="feature-item">
-                <div className="feature-ico">📊</div>
-                <div>
-                  <div className="feature-title">
-                    {t("landing.features.f5Title")}
-                    <span className="feature-tag">{t("landing.features.proTag")}</span>
-                  </div>
-                  <p className="feature-text">{t("landing.features.f5Text")}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="phone-wrap fade-up">
-              <div className="phone-frame">
-                <div className="phone-notch"><div className="phone-notch-bar"></div></div>
-                <div className="phone-screen">
-                  <div className="phone-header">{t("landing.features.phoneHeader")}</div>
-
-                  <div style={{ marginBottom: 6 }}>
-                    <div className="chat-label">{t("landing.features.botName")}</div>
-                    <div className="chat-bubble chat-in">
-                      <strong>{t("landing.features.botMsgTitle")}</strong><br />
-                      {t("landing.features.botMsg")}
-                    </div>
-                  </div>
-
-                  <div style={{ margin: "12px 0 6px", borderTop: "1px solid var(--border2)", paddingTop: 12 }}>
-                    <div className="chat-label">{t("landing.features.chatStudent")}</div>
-                    <div className="chat-bubble chat-in">{t("landing.features.chatIn")}</div>
-                    <div className="chat-bubble chat-out">{t("landing.features.chatOut")}</div>
-                  </div>
-
-                  <div style={{ margin: "12px 0 6px", borderTop: "1px solid var(--border2)", paddingTop: 12 }}>
-                    <div className="chat-label" style={{ color: "var(--l-success)" }}>{t("landing.features.chatPaidLabel")}</div>
-                    <div
-                      className="chat-bubble"
-                      style={{
-                        background: "var(--success-light)",
-                        border: "1px solid rgba(26,158,117,0.15)",
-                        color: "var(--l-success)",
-                        fontSize: 12,
-                        borderRadius: 10,
-                        padding: "8px 12px",
-                      }}
-                    >
-                      {t("landing.features.chatPaidText")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* COMPARE */}
-      <section className="l-section section-alt" id="compare">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.compare.label")}</div>
-          <h2>{t("landing.compare.title1")}<br />{t("landing.compare.title2")}</h2>
-          <p className="section-sub">{t("landing.compare.sub")}</p>
-
-          <div className="compare-wrap fade-up">
-            <table className="compare-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "40%" }}>{t("landing.compare.colFeature")}</th>
-                  <th className="ours">oTutorHub</th>
-                  <th>{t("landing.compare.colCompetitors")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr><td>{t("landing.compare.r1")}</td><td className="yes">{t("landing.compare.r1Ours")}</td><td className="no">{t("landing.compare.r1Them")}</td></tr>
-                <tr><td>{t("landing.compare.r2")}</td><td className="yes">{t("landing.compare.r2Ours")}</td><td className="no">{t("landing.compare.r2Them")}</td></tr>
-                <tr><td>{t("landing.compare.r3")}</td><td className="yes">{t("landing.compare.r3Ours")}</td><td className="no">{t("landing.compare.r3Them")}</td></tr>
-                <tr><td>{t("landing.compare.r4")}</td><td className="yes">{t("landing.compare.r4Ours")}</td><td className="no">{t("landing.compare.r4Them")}</td></tr>
-                <tr><td>{t("landing.compare.r5")}</td><td className="yes">{t("landing.compare.r5Ours")}</td><td className="no">{t("landing.compare.r5Them")}</td></tr>
-                <tr><td>{t("landing.compare.r6")}</td><td className="yes">{t("landing.compare.r6Ours")}</td><td className="no">{t("landing.compare.r6Them")}</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section className="l-section features-bg" id="pricing">
-        <div className="section-inner" style={{ textAlign: "center" }}>
-          <div className="section-label">{t("landing.pricing.label")}</div>
-          <h2>{t("landing.pricing.title")}</h2>
-          <p className="section-sub" style={{ margin: "0 auto" }}>{t("landing.pricing.sub")}</p>
-
-          <div className="pricing-grid fade-up">
-            {/* FREE */}
-            <div className="price-card">
-              <div className="price-plan">{t("landing.pricing.freePlan")}</div>
-              <div className="price-amount">{t("landing.pricing.freePrice")}</div>
-              <div className="price-period">{t("landing.pricing.freePeriod")}</div>
-              <ul className="price-list">
-                <li><span className="check">✓</span> {t("landing.pricing.free1")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.free2")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.free3")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.free4")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.free5")}</li>
-                <li><span className="cross">–</span> {t("landing.pricing.free6")}</li>
-                <li><span className="cross">–</span> {t("landing.pricing.free7")}</li>
-              </ul>
-              <Link to={signupHref} className="btn-ghost" style={{ width: "100%", textAlign: "center" }}>
-                {t("landing.pricing.freeCta")}
-              </Link>
-            </div>
-
-            {/* PRO */}
-            <div className="price-card featured">
-              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
-              <div className="price-plan">{t("landing.pricing.proPlan")}</div>
-              <div className="price-amount">{t("landing.pricing.proPrice")}</div>
-              <div className="price-period">{t("landing.pricing.proPeriod")}</div>
-              <ul className="price-list">
-                <li><span className="check">✓</span> {t("landing.pricing.pro1")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro2")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro3")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro4")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro5")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro6")}</li>
-                <li><span className="check">✓</span> {t("landing.pricing.pro7")}</li>
-              </ul>
-              <Link to={signupHref} className="btn-primary" style={{ width: "100%", textAlign: "center", boxSizing: "border-box" }}>
-                {t("landing.pricing.proCta")}
-              </Link>
-              <p className="price-note">{t("landing.pricing.proNote")}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section className="l-section section-alt">
-        <div className="section-inner">
-          <div className="section-label">{t("landing.testimonials.label")}</div>
-          <h2>{t("landing.testimonials.title")}</h2>
-
-          <div className="testi-grid fade-up">
-            <div className="testi-card">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">{t("landing.testimonials.t1Text")}</p>
-              <div className="testi-author">
-                <div className="testi-avatar">ОМ</div>
-                <div>
-                  <div className="testi-name">{t("landing.testimonials.t1Name")}</div>
-                  <div className="testi-role">{t("landing.testimonials.t1Role")}</div>
-                </div>
-              </div>
-            </div>
-            <div className="testi-card">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">{t("landing.testimonials.t2Text")}</p>
-              <div className="testi-author">
-                <div className="testi-avatar">ВД</div>
-                <div>
-                  <div className="testi-name">{t("landing.testimonials.t2Name")}</div>
-                  <div className="testi-role">{t("landing.testimonials.t2Role")}</div>
-                </div>
-              </div>
-            </div>
-            <div className="testi-card">
-              <div className="testi-stars">★★★★★</div>
-              <p className="testi-text">{t("landing.testimonials.t3Text")}</p>
-              <div className="testi-author">
-                <div className="testi-avatar">ІК</div>
-                <div>
-                  <div className="testi-name">{t("landing.testimonials.t3Name")}</div>
-                  <div className="testi-role">{t("landing.testimonials.t3Role")}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
-          <h2>{t("landing.finalCta.title")}</h2>
+          <div className="spots-badge">
+            {t("landing.finalCta.spots", { count: SPOTS_LEFT })}
+          </div>
+          <h2 style={{ marginTop: 16 }}>{t("landing.finalCta.title")}</h2>
           <p>{t("landing.finalCta.sub")}</p>
-          <Link to={signupHref} className="btn-white">{t("landing.finalCta.cta")}</Link>
+          <div className="cta-buttons">
+            <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
+            <button type="button" className="btn-outline-white" onClick={() => setQuizOpen(true)}>
+              {t("landing.finalCta.ctaSecondary")}
+            </button>
+          </div>
           <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
         </div>
       </section>
@@ -963,6 +519,8 @@ export default function LandingPage() {
           <div>{t("landing.footer.copyright")}</div>
         </div>
       </footer>
+
+      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
     </div>
   );
 }
