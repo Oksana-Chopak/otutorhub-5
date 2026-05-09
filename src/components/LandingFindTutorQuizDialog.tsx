@@ -482,8 +482,14 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
         )}
 
         {step === "submitting" && (
-          <div className="flex min-h-[260px] items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="flex min-h-[260px] flex-col items-center justify-center gap-4 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="space-y-1">
+              <p className="text-base font-semibold">Надсилаємо ваш запит…</p>
+              <p className="text-sm text-muted-foreground">
+                Створюємо особистий кабінет і передаємо дані менеджеру. Це займе кілька секунд.
+              </p>
+            </div>
           </div>
         )}
 
