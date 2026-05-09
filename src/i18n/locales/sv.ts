@@ -103,7 +103,7 @@ export const sv: Partial<Translations> = {
     },
     assistant: {
       label: "Assistenten",
-      title: "Vad assistenten gör åt dig",
+      title: "Vad assistenten gör åt {{label}}",
       sub: "Medan du håller {{sessions}} — sköter den resten.",
       i1Title: "Daglig morgonbriefing i Telegram",
       i1Text: "Dagens lista, vem som är skyldig dig pengar, din to-do. Vakna, läs — och drick kaffet i lugn och ro.",
