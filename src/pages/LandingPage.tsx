@@ -532,11 +532,12 @@ export default function LandingPage() {
 
   const pickPersona = (i: number) => {
     stopPersonaRotation();
+    if (pickTimeoutRef.current) clearTimeout(pickTimeoutRef.current);
     setIsAnimating(true);
-    animationTimeoutRef.current = setTimeout(() => {
+    pickTimeoutRef.current = setTimeout(() => {
       setActiveIndex(i);
       setIsAnimating(false);
-      animationTimeoutRef.current = null;
+      pickTimeoutRef.current = null;
     }, 200);
   };
 
