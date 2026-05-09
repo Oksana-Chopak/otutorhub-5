@@ -246,7 +246,7 @@ export const uk = {
       tabAddSession: "Додати зустріч",
       tabAddPayment: "Додати оплату",
       successClientTitle: "✅ Збережено!",
-      successClientSub: "Збережіть всіх своїх {{clientsNom}} — це займе 20 секунд.",
+      successClientSub: "Збережіть всіх своїх {{clientsAcc}} — це займе 20 секунд.",
       successSessionTitle: "✅ Зустріч створена!",
       successSessionSub: "Збережіть свій розклад — це займе 20 секунд.",
       successPaymentTitle: "✅ Оплату записано!",
