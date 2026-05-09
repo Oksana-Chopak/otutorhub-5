@@ -425,11 +425,26 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const persona = PERSONAS[activeIndex];
-  const px = (s: string) => personalize(s, persona);
+  const personaId = PERSONA_IDS[activeIndex];
+
+  const personaVars: PersonaVars = useMemo(() => {
+    const base = t(`landing.personas.${personaId}`, { returnObjects: true }) as {
+      label: string; labelNom: string;
+      client: string; clientNom: string; clients: string;
+      session: string; sessions: string;
+    };
+    return {
+      ...base,
+      ClientNom: capFirst(base.clientNom),
+    };
+  }, [personaId, t]);
+
+  const painShort = t(`landing.personas.${personaId}.painShort`);
+  const painFull = t(`landing.personas.${personaId}.painFull`);
+  const tp = (key: string) => t(key, personaVars);
 
   useEffect(() => {
-    document.title = `oTutorHub — Розумний помічник для ${persona.label}`;
+    document.title = `oTutorHub — ${tp("landing.hero.titlePrefix")} ${personaVars.label}`;
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -443,7 +458,8 @@ export default function LandingPage() {
     );
     document.querySelectorAll(".landing-root .fade-up").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [persona.label]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [personaId]);
 
   // Auto-rotate persona every 2.5s until user pauses
   useEffect(() => {
@@ -451,7 +467,7 @@ export default function LandingPage() {
     const timer = setInterval(() => {
       setIsAnimating(true);
       setTimeout(() => {
-        setActiveIndex((i) => (i + 1) % PERSONAS.length);
+        setActiveIndex((i) => (i + 1) % PERSONA_IDS.length);
         setIsAnimating(false);
       }, 300);
     }, 2500);
@@ -470,18 +486,18 @@ export default function LandingPage() {
   const signupHref = "/auth?signup=1&role=tutor";
 
   const assistantItems = useMemo(() => ([
-    { emoji: "☀️", title: px(t("landing.assistant.i1Title")), text: px(t("landing.assistant.i1Text")) },
-    { emoji: "🔔", title: px(t("landing.assistant.i2Title")), text: px(t("landing.assistant.i2Text")) },
-    { emoji: "⏰", title: px(t("landing.assistant.i3Title")), text: px(t("landing.assistant.i3Text")) },
-    { emoji: "📝", title: px(t("landing.assistant.i4Title")), text: px(t("landing.assistant.i4Text")) },
-    { emoji: "📅", title: px(t("landing.assistant.i5Title")), text: px(t("landing.assistant.i5Text")) },
-    { emoji: "💸", title: px(t("landing.assistant.i6Title")), text: px(t("landing.assistant.i6Text")) },
-    { emoji: "💬", title: px(t("landing.assistant.i7Title")), text: px(t("landing.assistant.i7Text")) },
-    { emoji: "👥", title: px(t("landing.assistant.i8Title")), text: px(t("landing.assistant.i8Text")) },
-    { emoji: "🗓️", title: px(t("landing.assistant.i9Title")), text: px(t("landing.assistant.i9Text")) },
-    { emoji: "♾️", title: px(t("landing.assistant.i10Title")), text: px(t("landing.assistant.i10Text")) },
+    { emoji: "☀️", title: tp("landing.assistant.i1Title"), text: tp("landing.assistant.i1Text") },
+    { emoji: "🔔", title: tp("landing.assistant.i2Title"), text: tp("landing.assistant.i2Text") },
+    { emoji: "⏰", title: tp("landing.assistant.i3Title"), text: tp("landing.assistant.i3Text") },
+    { emoji: "📝", title: tp("landing.assistant.i4Title"), text: tp("landing.assistant.i4Text") },
+    { emoji: "📅", title: tp("landing.assistant.i5Title"), text: tp("landing.assistant.i5Text") },
+    { emoji: "💸", title: tp("landing.assistant.i6Title"), text: tp("landing.assistant.i6Text") },
+    { emoji: "💬", title: tp("landing.assistant.i7Title"), text: tp("landing.assistant.i7Text") },
+    { emoji: "👥", title: tp("landing.assistant.i8Title"), text: tp("landing.assistant.i8Text") },
+    { emoji: "🗓️", title: tp("landing.assistant.i9Title"), text: tp("landing.assistant.i9Text") },
+    { emoji: "♾️", title: tp("landing.assistant.i10Title"), text: tp("landing.assistant.i10Text") },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ]), [persona.id, t]);
+  ]), [personaId, t]);
 
   return (
     <div className="landing-root">
@@ -513,33 +529,33 @@ export default function LandingPage() {
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
           </div>
           <h1>
-            Розумний помічник для{" "}
+            {t("landing.hero.titlePrefix")}{" "}
             <span
               className={cn("persona-word", isAnimating && "swap")}
               onClick={() => setIsPaused(true)}
-              title="Натисніть, щоб зафіксувати"
+              title={t("landing.hero.fixHint")}
             >
-              {persona.label}
+              {personaVars.label}
             </span>
           </h1>
           <div className="persona-pills">
-            {PERSONAS.map((p, i) => (
+            {PERSONA_IDS.map((pid, i) => (
               <button
-                key={p.id}
+                key={pid}
                 type="button"
                 onClick={() => pickPersona(i)}
                 className={cn("persona-pill", activeIndex === i && "active")}
               >
-                {p.emoji} {p.label}
+                {PERSONA_EMOJI[pid]} {t(`landing.personas.${pid}.label`)}
               </button>
             ))}
           </div>
-          <p className={cn("hero-sub persona-fade", isAnimating && "swap")}>{px(t("landing.hero.sub"))}</p>
-          <p className={cn("hero-desc persona-fade", isAnimating && "swap")}>{px(t("landing.hero.description"))}</p>
+          <p className={cn("hero-sub persona-fade", isAnimating && "swap")}>{tp("landing.hero.sub")}</p>
+          <p className={cn("hero-desc persona-fade", isAnimating && "swap")}>{tp("landing.hero.description")}</p>
           <div className="hero-cta">
             <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
             <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
-              Шукаю {persona.client} →
+              {tp("landing.hero.ctaSecondaryDyn")}
             </button>
           </div>
         </div>
@@ -548,13 +564,13 @@ export default function LandingPage() {
       {/* PAIN — "Знайомо?" */}
       <section className="pain-section">
         <div className="pain-inner">
-          <div className="pain-label">Знайомо?</div>
+          <div className="pain-label">{t("landing.pain.label")}</div>
           <h2 className={cn("pain-title persona-fade", isAnimating && "swap")}>
-            {persona.painFull}
+            {painFull}
           </h2>
           <p className={cn("pain-title persona-fade", isAnimating && "swap")}
              style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
-            {persona.painShort}
+            {painShort}
           </p>
         </div>
       </section>
@@ -563,11 +579,11 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="features">
         <div className="section-inner">
           <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{px(t("landing.assistant.title"))}</h2>
-          <p className="section-sub">{px(t("landing.assistant.sub"))}</p>
+          <h2>{tp("landing.assistant.title")}</h2>
+          <p className="section-sub">{tp("landing.assistant.sub")}</p>
           <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
             {assistantItems.map((it, i) => (
-              <div key={`${persona.id}-${i}`} className="assistant-card">
+              <div key={`${personaId}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
                 <div>
                   <div className="assistant-title">{it.title}</div>
@@ -583,13 +599,13 @@ export default function LandingPage() {
       <section className="l-section section-alt" id="glance">
         <div className="section-inner">
           <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{px(t("landing.glance.title"))}</h2>
-          <p className="section-sub">{px(t("landing.glance.sub"))}</p>
+          <h2>{tp("landing.glance.title")}</h2>
+          <p className="section-sub">{tp("landing.glance.sub")}</p>
           <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
-            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{px(t("landing.glance.i1"))}</div></div>
-            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{px(t("landing.glance.i2"))}</div></div>
-            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{px(t("landing.glance.i3"))}</div></div>
-            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{px(t("landing.glance.i4"))}</div></div>
+            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
+            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{tp("landing.glance.i2")}</div></div>
+            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{tp("landing.glance.i3")}</div></div>
+            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{tp("landing.glance.i4")}</div></div>
           </div>
         </div>
       </section>
@@ -598,29 +614,29 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="how">
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{px(t("landing.steps.title"))}</h2>
+          <h2>{tp("landing.steps.title")}</h2>
           <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
-              <div className="step-title">{px(t("landing.steps.s1Title"))}</div>
-              <p className="step-text">{px(t("landing.steps.s1Text"))}</p>
+              <div className="step-title">{tp("landing.steps.s1Title")}</div>
+              <p className="step-text">{tp("landing.steps.s1Text")}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s2Num")}</div>
-              <div className="step-title">{px(t("landing.steps.s2Title"))}</div>
-              <p className="step-text">{px(t("landing.steps.s2Text"))}</p>
+              <div className="step-title">{tp("landing.steps.s2Title")}</div>
+              <p className="step-text">{tp("landing.steps.s2Text")}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s3Num")}</div>
-              <div className="step-title">{px(t("landing.steps.s3Title"))}</div>
-              <p className="step-text">{px(t("landing.steps.s3Text"))}</p>
+              <div className="step-title">{tp("landing.steps.s3Title")}</div>
+              <p className="step-text">{tp("landing.steps.s3Text")}</p>
             </div>
           </div>
         </div>
       </section>
 
       {/* TRY DEMO */}
-      <LandingTryDemo />
+      <LandingTryDemo personaVars={personaVars} isAnimating={isAnimating} />
 
       {/* FINAL CTA */}
       <section className="cta-section">
@@ -628,15 +644,15 @@ export default function LandingPage() {
           <div className="spots-badge">
             {t("landing.finalCta.spots", { count: SPOTS_LEFT })}
           </div>
-          <h2 style={{ marginTop: 16 }}>{px(t("landing.finalCta.title"))}</h2>
-          <p>{px(t("landing.finalCta.sub"))}</p>
+          <h2 style={{ marginTop: 16 }}>{tp("landing.finalCta.title")}</h2>
+          <p>{tp("landing.finalCta.sub")}</p>
           <div className="cta-buttons">
             <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
             <button type="button" className="btn-outline-white" onClick={() => setQuizOpen(true)}>
-              Шукаю {persona.client} →
+              {tp("landing.finalCta.ctaSecondaryDyn")}
             </button>
           </div>
-          <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
+          <p className="cta-footnote">{tp("landing.finalCta.footnote")}</p>
         </div>
       </section>
 
