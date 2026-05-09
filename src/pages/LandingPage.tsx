@@ -587,16 +587,49 @@ export default function LandingPage() {
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
           </div>
           <h1>
-            {t("landing.hero.title")}
+            Розумний помічник для{" "}
+            <span
+              className={cn("persona-word", isAnimating && "swap")}
+              onClick={() => setIsPaused(true)}
+              title="Натисніть, щоб зафіксувати"
+            >
+              {persona.label}
+            </span>
           </h1>
-          <p className="hero-sub">{t("landing.hero.sub")}</p>
-          <p className="hero-desc">{t("landing.hero.description")}</p>
+          <div className="persona-pills">
+            {PERSONAS.map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => pickPersona(i)}
+                className={cn("persona-pill", activeIndex === i && "active")}
+              >
+                {p.emoji} {p.label}
+              </button>
+            ))}
+          </div>
+          <p className={cn("hero-sub persona-fade", isAnimating && "swap")}>{px(t("landing.hero.sub"))}</p>
+          <p className={cn("hero-desc persona-fade", isAnimating && "swap")}>{px(t("landing.hero.description"))}</p>
           <div className="hero-cta">
             <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
             <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
-              {t("landing.hero.ctaSecondary")}
+              Шукаю {persona.client} →
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* PAIN — "Знайомо?" */}
+      <section className="pain-section">
+        <div className="pain-inner">
+          <div className="pain-label">Знайомо?</div>
+          <h2 className={cn("pain-title persona-fade", isAnimating && "swap")}>
+            {persona.painFull}
+          </h2>
+          <p className={cn("pain-title persona-fade", isAnimating && "swap")}
+             style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
+            {persona.painShort}
+          </p>
         </div>
       </section>
 
@@ -604,11 +637,11 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="features">
         <div className="section-inner">
           <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{t("landing.assistant.title")}</h2>
-          <p className="section-sub">{t("landing.assistant.sub")}</p>
-          <div className="assistant-grid fade-up">
+          <h2>{px(t("landing.assistant.title"))}</h2>
+          <p className="section-sub">{px(t("landing.assistant.sub"))}</p>
+          <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
             {assistantItems.map((it, i) => (
-              <div key={i} className="assistant-card">
+              <div key={`${persona.id}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
                 <div>
                   <div className="assistant-title">{it.title}</div>
@@ -624,13 +657,13 @@ export default function LandingPage() {
       <section className="l-section section-alt" id="glance">
         <div className="section-inner">
           <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{t("landing.glance.title")}</h2>
-          <p className="section-sub">{t("landing.glance.sub")}</p>
-          <div className="glance-grid fade-up">
-            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{t("landing.glance.i1")}</div></div>
-            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{t("landing.glance.i2")}</div></div>
-            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{t("landing.glance.i3")}</div></div>
-            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{t("landing.glance.i4")}</div></div>
+          <h2>{px(t("landing.glance.title"))}</h2>
+          <p className="section-sub">{px(t("landing.glance.sub"))}</p>
+          <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
+            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{px(t("landing.glance.i1"))}</div></div>
+            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{px(t("landing.glance.i2"))}</div></div>
+            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{px(t("landing.glance.i3"))}</div></div>
+            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{px(t("landing.glance.i4"))}</div></div>
           </div>
         </div>
       </section>
@@ -639,22 +672,22 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="how">
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{t("landing.steps.title")}</h2>
-          <div className="steps-grid fade-up">
+          <h2>{px(t("landing.steps.title"))}</h2>
+          <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
-              <div className="step-title">{t("landing.steps.s1Title")}</div>
-              <p className="step-text">{t("landing.steps.s1Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s1Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s1Text"))}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s2Num")}</div>
-              <div className="step-title">{t("landing.steps.s2Title")}</div>
-              <p className="step-text">{t("landing.steps.s2Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s2Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s2Text"))}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s3Num")}</div>
-              <div className="step-title">{t("landing.steps.s3Title")}</div>
-              <p className="step-text">{t("landing.steps.s3Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s3Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s3Text"))}</p>
             </div>
           </div>
         </div>
@@ -669,12 +702,12 @@ export default function LandingPage() {
           <div className="spots-badge">
             {t("landing.finalCta.spots", { count: SPOTS_LEFT })}
           </div>
-          <h2 style={{ marginTop: 16 }}>{t("landing.finalCta.title")}</h2>
-          <p>{t("landing.finalCta.sub")}</p>
+          <h2 style={{ marginTop: 16 }}>{px(t("landing.finalCta.title"))}</h2>
+          <p>{px(t("landing.finalCta.sub"))}</p>
           <div className="cta-buttons">
             <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
             <button type="button" className="btn-outline-white" onClick={() => setQuizOpen(true)}>
-              {t("landing.finalCta.ctaSecondary")}
+              Шукаю {persona.client} →
             </button>
           </div>
           <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
