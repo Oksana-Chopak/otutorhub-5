@@ -312,8 +312,8 @@ const landingStyles = `
   background: rgba(255,255,255,0.1); color: #fff;
   border-color: rgba(255,255,255,0.15);
 }
-.landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); }
-.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; }
+.landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.2; min-height: calc(2.4em); }
+.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; line-height: 1.5; min-height: calc(3em); }
 .landing-root .btn-white {
   background: white; color: var(--l-accent);
   font-family: 'Golos Text', sans-serif;
@@ -465,9 +465,25 @@ export default function LandingPage() {
     };
   }, [personaId, t]);
 
-  const painShort = t(`landing.personas.${personaId}.painShort`);
-  const painFull = t(`landing.personas.${personaId}.painFull`);
-  const tp = (key: string) => t(key, personaVars);
+  // Deferred persona vars: text content updates only after the swap-out animation
+  // finishes, so changes happen while the element is invisible (no jarring flicker).
+  const [displayedPersonaId, setDisplayedPersonaId] = useState(personaId);
+  const [displayedPersonaVars, setDisplayedPersonaVars] = useState(personaVars);
+  useEffect(() => {
+    if (isAnimating) {
+      const timer = setTimeout(() => {
+        setDisplayedPersonaId(personaId);
+        setDisplayedPersonaVars(personaVars);
+      }, 175);
+      return () => clearTimeout(timer);
+    }
+    setDisplayedPersonaId(personaId);
+    setDisplayedPersonaVars(personaVars);
+  }, [personaId, personaVars, isAnimating]);
+
+  const painShort = t(`landing.personas.${displayedPersonaId}.painShort`);
+  const painFull = t(`landing.personas.${displayedPersonaId}.painFull`);
+  const tp = (key: string) => t(key, displayedPersonaVars);
 
   const stopPersonaRotation = useCallback(() => {
     setIsPaused(true);
@@ -478,7 +494,7 @@ export default function LandingPage() {
   }, []);
 
   const withPersonaAccent = (text: string) => {
-    const label = personaVars.label;
+    const label = displayedPersonaVars.label;
     const normalizedLabel = label.trim();
     const start = text.toLocaleLowerCase().indexOf(normalizedLabel.toLocaleLowerCase());
     if (start === -1) return text;
@@ -586,7 +602,7 @@ export default function LandingPage() {
     { emoji: "🗓️", title: tp("landing.assistant.i9Title"), text: tp("landing.assistant.i9Text") },
     { emoji: "♾️", title: tp("landing.assistant.i10Title"), text: tp("landing.assistant.i10Text") },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ]), [personaId, t]);
+  ]), [displayedPersonaId, t]);
 
   return (
     <div className="landing-root" onClickCapture={stopPersonaRotation}>
@@ -672,7 +688,7 @@ export default function LandingPage() {
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
           <div className="assistant-grid fade-up">
             {assistantItems.map((it, i) => (
-              <div key={`${personaId}-${i}`} className="assistant-card">
+              <div key={`${displayedPersonaId}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
                 <div>
                   <div className="assistant-title">{it.title}</div>
@@ -725,7 +741,7 @@ export default function LandingPage() {
       </section>
 
       {/* TRY DEMO */}
-      <LandingTryDemo personaVars={personaVars} personaId={personaId} isAnimating={isAnimating} />
+      <LandingTryDemo personaVars={displayedPersonaVars} personaId={displayedPersonaId} isAnimating={isAnimating} />
 
       {/* FINAL CTA */}
       <section className="cta-section">
