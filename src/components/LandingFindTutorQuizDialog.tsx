@@ -251,10 +251,33 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                   </button>
                 );
               })}
+              <button
+                key="__other__"
+                type="button"
+                onClick={() => setOtherSubjectActive((v) => !v)}
+                className={cn(
+                  "flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all hover:scale-105 active:scale-95",
+                  otherSubjectActive
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <span className="text-2xl">✏️</span>
+                <span className="text-xs font-medium leading-tight">Інше</span>
+              </button>
             </div>
+            {otherSubjectActive && (
+              <Input
+                value={otherSubject}
+                onChange={(e) => setOtherSubject(e.target.value)}
+                placeholder="Введіть свій предмет"
+                maxLength={80}
+                className="animate-fade-in"
+              />
+            )}
             <Button
               className="w-full"
-              disabled={subjects.length === 0}
+              disabled={!canProceedSubjects}
               onClick={() => setStep(2)}
             >
               Далі <ArrowRight className="ml-2 h-4 w-4" />
