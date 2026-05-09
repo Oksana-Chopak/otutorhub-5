@@ -91,6 +91,10 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
     }
     setStep("submitting");
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim() || null;
+
     const quiz = {
       subjects,
       level,
@@ -99,27 +103,86 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
       goal_other: goal === "other" ? goalOther.trim() || null : null,
     };
 
+    // Save quiz to localStorage so we can populate student_intake_quiz after first sign-in.
     try {
       localStorage.setItem(
         "otutorhub_lead_quiz",
-        JSON.stringify({ ...quiz, savedAt: new Date().toISOString() }),
+        JSON.stringify({ ...quiz, name: cleanName, email: cleanEmail, phone: cleanPhone, savedAt: new Date().toISOString() }),
       );
     } catch (_) { /* ignore */ }
 
-    const { error } = await supabase.functions.invoke("landing-find-tutor-quiz", {
-      body: {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        phone: phone.trim() || null,
-        quiz,
+    // 1) Auto sign-up — creates auth user, profile, student role (via handle_new_user trigger).
+    let userId: string | null = null;
+    let alreadyExisted = false;
+    const randomPassword = `${crypto.randomUUID()}${crypto.randomUUID()}`;
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password: randomPassword,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          first_name: cleanName,
+          role: "student",
+          phone: cleanPhone ?? undefined,
+        },
       },
     });
 
-    if (error) {
-      console.error(error);
-      toast.error("Не вдалося надіслати запит. Спробуйте ще раз.");
-      setStep(5);
-      return;
+    if (signUpError) {
+      const msg = (signUpError.message || "").toLowerCase();
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+        alreadyExisted = true;
+      } else {
+        console.error("[find-tutor] signUp error", signUpError);
+        // Fall through — we still try to save the lead via the edge function below.
+      }
+    } else {
+      userId = signUpData.user?.id ?? null;
+    }
+
+    // 2) Save the request. Try direct insert first (works only if we have a session).
+    //    If that fails (anon / RLS), fall back to the edge function which uses the
+    //    service role key and can insert without an authenticated session.
+    let saved = false;
+    if (userId) {
+      const { error: insertErr } = await supabase.from("tutor_referral_requests").insert({
+        student_id: userId,
+        subject: quiz.subjects[0] ?? null,
+        preferred_level: quiz.level,
+        message: [
+          quiz.subjects.length ? `Предмети: ${quiz.subjects.join(", ")}` : null,
+          quiz.level ? `Рівень: ${quiz.level}` : null,
+          quiz.schedule.length ? `Зручний час: ${quiz.schedule.join(", ")}` : null,
+          quiz.goal ? `Ціль: ${quiz.goal}${quiz.goal === "other" && quiz.goal_other ? ` — ${quiz.goal_other}` : ""}` : null,
+          cleanPhone ? `Телефон: ${cleanPhone}` : null,
+        ].filter(Boolean).join("\n") || null,
+        source: "landing_quiz",
+        lead_name: cleanName,
+        lead_email: cleanEmail,
+        lead_phone: cleanPhone,
+        quiz_data: quiz,
+        status: "open",
+      });
+      if (!insertErr) saved = true;
+      else console.warn("[find-tutor] direct insert failed, falling back to edge function", insertErr);
+    }
+
+    if (!saved) {
+      const { error: fnError } = await supabase.functions.invoke("landing-find-tutor-quiz", {
+        body: { name: cleanName, email: cleanEmail, phone: cleanPhone, quiz },
+      });
+      if (fnError) {
+        console.error("[find-tutor] edge function fallback failed", fnError);
+        toast.error("Не вдалося надіслати запит. Спробуйте ще раз.");
+        setStep(5);
+        return;
+      }
+    }
+
+    // 3) Sign out the freshly-created session so the landing visitor stays anonymous
+    //    until they click the email confirmation link.
+    if (userId && !alreadyExisted) {
+      try { await supabase.auth.signOut(); } catch (_) { /* ignore */ }
     }
 
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
