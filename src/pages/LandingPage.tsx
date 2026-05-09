@@ -569,7 +569,7 @@ export default function LandingPage() {
   ]), [personaId, t]);
 
   return (
-    <div className="landing-root" onClick={stopPersonaRotation}>
+    <div className="landing-root" onClickCapture={stopPersonaRotation}>
       <style>{landingStyles}</style>
 
       {/* NAV */}
