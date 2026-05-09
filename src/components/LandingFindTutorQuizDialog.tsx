@@ -424,12 +424,12 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
           <div className="animate-scale-in space-y-5 py-4 text-center">
             <div className="text-6xl">🎉</div>
             <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-4 py-2 text-sm font-semibold text-success">
-              <Check className="h-4 w-4" /> Акаунт створено
+              <Check className="h-4 w-4" /> Готово!
             </div>
-            <h3 className="text-xl font-bold">Дякуємо!</h3>
+            <h3 className="text-xl font-bold">Ми отримали ваш запит</h3>
             <p className="text-muted-foreground">
               Менеджер підбере репетитора протягом 24 годин.<br />
-              Перевірте email — ми надіслали посилання для входу.
+              Перевірте <span className="font-semibold text-foreground">{email.trim().toLowerCase()}</span> — ми надіслали посилання для входу в особистий кабінет.
             </p>
             <Button className="w-full" onClick={() => handleOpenChange(false)}>
               Закрити
