@@ -63,6 +63,9 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
   const [schedule, setSchedule] = useState<string[]>([]);
   const [goal, setGoal] = useState<string | null>(null);
   const [goalOther, setGoalOther] = useState("");
+  const [otherSubject, setOtherSubject] = useState("");
+  const [otherSubjectActive, setOtherSubjectActive] = useState(false);
+  const [wishes, setWishes] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -74,10 +77,19 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
     setSchedule([]);
     setGoal(null);
     setGoalOther("");
+    setOtherSubject("");
+    setOtherSubjectActive(false);
+    setWishes("");
     setName("");
     setEmail("");
     setPhone("");
   };
+
+  const finalSubjects = () => {
+    const extra = otherSubjectActive && otherSubject.trim() ? [otherSubject.trim()] : [];
+    return [...subjects, ...extra];
+  };
+  const canProceedSubjects = subjects.length > 0 || (otherSubjectActive && otherSubject.trim().length > 0);
 
   const handleOpenChange = (v: boolean) => {
     onOpenChange(v);
