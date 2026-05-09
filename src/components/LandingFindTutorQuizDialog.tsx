@@ -167,6 +167,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
           quiz.level ? `Рівень: ${quiz.level}` : null,
           quiz.schedule.length ? `Зручний час: ${quiz.schedule.join(", ")}` : null,
           quiz.goal ? `Ціль: ${quiz.goal}${quiz.goal === "other" && quiz.goal_other ? ` — ${quiz.goal_other}` : ""}` : null,
+          quiz.wishes ? `Побажання: ${quiz.wishes}` : null,
           cleanPhone ? `Телефон: ${cleanPhone}` : null,
         ].filter(Boolean).join("\n") || null,
         source: "landing_quiz",
