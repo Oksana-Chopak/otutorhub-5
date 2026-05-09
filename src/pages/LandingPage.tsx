@@ -537,6 +537,11 @@ export default function LandingPage() {
     }, 200);
   };
 
+  const handlePersonaPick = (i: number) => (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    pickPersona(i);
+  };
+
   const signupHref = "/auth?signup=1&role=tutor";
   const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
   const telegramUrl = "https://t.me/oksana_chopak";
@@ -612,7 +617,7 @@ export default function LandingPage() {
               <button
                 key={pid}
                 type="button"
-                onClick={() => pickPersona(i)}
+                onClick={handlePersonaPick(i)}
                 className={cn("persona-pill", activeIndex === i && "active")}
               >
                 {PERSONA_EMOJI[pid]} {t(`landing.personas.${pid}.label`)}
