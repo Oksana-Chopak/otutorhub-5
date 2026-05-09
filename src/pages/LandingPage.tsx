@@ -394,14 +394,14 @@ const landingStyles = `
 }
 .landing-root .persona-pill {
   background: var(--white);
-  color: var(--l-accent);
+  color: var(--l-text);
   border: 1px solid var(--l-border);
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 13px;
   padding: 8px 16px; border-radius: 100px;
   cursor: pointer; transition: all 0.2s;
 }
-.landing-root .persona-pill:hover { color: var(--l-accent2); border-color: var(--l-accent); }
+.landing-root .persona-pill:hover { border-color: var(--l-accent); }
 .landing-root .persona-pill.active {
   background: var(--l-accent); color: #fff;
   border-color: var(--l-accent);
