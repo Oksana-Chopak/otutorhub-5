@@ -359,10 +359,18 @@ const landingStyles = `
 .landing-root .fade-up.visible { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 900px) {
-  .landing-root .assistant-grid { grid-template-columns: 1fr; }
+  .landing-root .assistant-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .landing-root .assistant-card { padding: 14px; gap: 10px; }
+  .landing-root .assistant-emoji { font-size: 20px; width: 32px; height: 32px; }
+  .landing-root .assistant-title { font-size: 13px; }
+  .landing-root .assistant-text { font-size: 12px; line-height: 1.5; }
   .landing-root .glance-grid { grid-template-columns: repeat(2, 1fr); }
   .landing-root .steps-grid { grid-template-columns: 1fr; gap: 32px; }
   .landing-root .nav-links { display: none; }
+}
+@media (max-width: 400px) {
+  .landing-root .assistant-grid { grid-template-columns: 1fr; gap: 8px; }
+  .landing-root .assistant-card { padding: 12px; }
 }
 @media (max-width: 600px) {
   .landing-root nav { padding: 0 1rem; }
