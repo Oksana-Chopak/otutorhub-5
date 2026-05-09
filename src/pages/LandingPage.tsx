@@ -312,8 +312,8 @@ const landingStyles = `
   background: rgba(255,255,255,0.1); color: #fff;
   border-color: rgba(255,255,255,0.15);
 }
-.landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); }
-.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; }
+.landing-root .cta-section h2 { color: white; font-size: clamp(28px, 3.5vw, 44px); line-height: 1.2; min-height: calc(2.4em); }
+.landing-root .cta-section p { color: rgba(255,255,255,0.7); font-size: 17px; margin: 16px 0 36px; line-height: 1.5; min-height: calc(3em); }
 .landing-root .btn-white {
   background: white; color: var(--l-accent);
   font-family: 'Golos Text', sans-serif;
