@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Loader2, MessageCircle, Check, Copy, X } from "lucide-react";
+import { Loader2, MessageCircle, Check, Copy, X, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 // Bot username is fetched from the edge function (telegram-bot-info)
@@ -13,6 +13,7 @@ type LinkRow = {
   link_code: string | null;
   link_code_expires_at: string | null;
   linked_at: string | null;
+  is_active: boolean | null;
 };
 
 export function TelegramLinkCard() {
