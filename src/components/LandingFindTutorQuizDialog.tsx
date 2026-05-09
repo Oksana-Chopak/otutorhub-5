@@ -102,6 +102,16 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
       return;
     }
     setStep("submitting");
+    try {
+      await submitInner();
+    } catch (e) {
+      console.error("[find-tutor] unexpected error", e);
+      toast.error("Не вдалося надіслати запит. Спробуйте ще раз.");
+      setStep(5);
+    }
+  };
+
+  const submitInner = async () => {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim();
