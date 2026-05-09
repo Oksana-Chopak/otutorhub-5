@@ -133,7 +133,7 @@ export const sv: Partial<Translations> = {
       i8Text: "Ett möte, flera deltagare. Närvaro och betalningar spåras separat för var och en.",
       i9Title: "Synkronisering med Google Calendar",
       i9Text: "Allt dyker upp i din kalender automatiskt. Två system — en källa till sanning.",
-      i10Title: "Obegränsat antal {{clients}} och {{sessions}}",
+      i10Title: "Obegränsat antal {{clientsGen}} och {{sessionsGen}}",
       i10Text: "Inga gränser. Du jobbar med 3 eller 30 — lika enkelt.",
     },
     glance: {
