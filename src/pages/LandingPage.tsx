@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -417,6 +417,19 @@ const landingStyles = `
 }
 .landing-root .persona-fade { transition: opacity 0.3s ease; }
 .landing-root .persona-fade.swap { opacity: 0.4; }
+.landing-root .chat-bubble {
+  position: fixed; right: 1.5rem; z-index: 50;
+  display: flex; align-items: center; gap: 0.5rem;
+  color: #fff; padding: 0.75rem 1rem; border-radius: 999px;
+  box-shadow: 0 10px 28px rgba(26,26,46,0.18);
+  transition: transform 0.2s ease, filter 0.2s ease;
+  text-decoration: none; font-weight: 700;
+}
+.landing-root .chat-bubble:hover { transform: scale(1.05); filter: brightness(0.94); }
+.landing-root .chat-bubble svg { width: 1.25rem; height: 1.25rem; fill: currentColor; flex-shrink: 0; }
+.landing-root .chat-bubble-whatsapp { bottom: 5rem; background: #25D366; }
+.landing-root .chat-bubble-telegram { bottom: 1.5rem; background: #229ED9; }
+@media (max-width: 639px) { .landing-root .chat-bubble span { display: none; } }
 `;
 
 export default function LandingPage() {
@@ -484,6 +497,21 @@ export default function LandingPage() {
   };
 
   const signupHref = "/auth?signup=1&role=tutor";
+  const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
+  const telegramUrl = "https://t.me/oksana_chopak";
+
+  const openChatLink = (url: string) => (event: MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+
+    try {
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      if (opened) return;
+    } catch {
+      // Fallback below handles iframe/browser restrictions.
+    }
+
+    window.location.assign(url);
+  };
 
   const assistantItems = useMemo(() => ([
     { emoji: "☀️", title: tp("landing.assistant.i1Title"), text: tp("landing.assistant.i1Text") },
