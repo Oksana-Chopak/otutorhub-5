@@ -445,6 +445,7 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
 
   const personaVars: PersonaVars = useMemo(() => {
@@ -463,6 +464,15 @@ export default function LandingPage() {
   const painShort = t(`landing.personas.${personaId}.painShort`);
   const painFull = t(`landing.personas.${personaId}.painFull`);
   const tp = (key: string) => t(key, personaVars);
+
+  const stopPersonaRotation = useCallback(() => {
+    setIsPaused(true);
+    setIsAnimating(false);
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     document.title = `oTutorHub — ${tp("landing.hero.titlePrefix")} ${personaVars.label}`;
@@ -487,21 +497,29 @@ export default function LandingPage() {
     if (isPaused) return;
     const timer = setInterval(() => {
       setIsAnimating(true);
-      setTimeout(() => {
+      animationTimeoutRef.current = setTimeout(() => {
         setActiveIndex((i) => (i + 1) % PERSONA_IDS.length);
         setIsAnimating(false);
+        animationTimeoutRef.current = null;
       }, 300);
     }, 2500);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
+    };
   }, [isPaused]);
 
   const pickPersona = (i: number) => {
+    stopPersonaRotation();
     setIsAnimating(true);
-    setTimeout(() => {
+    animationTimeoutRef.current = setTimeout(() => {
       setActiveIndex(i);
       setIsAnimating(false);
+      animationTimeoutRef.current = null;
     }, 200);
-    setIsPaused(true);
   };
 
   const signupHref = "/auth?signup=1&role=tutor";
