@@ -494,7 +494,7 @@ export default function LandingPage() {
   }, []);
 
   const withPersonaAccent = (text: string) => {
-    const label = personaVars.label;
+    const label = displayedPersonaVars.label;
     const normalizedLabel = label.trim();
     const start = text.toLocaleLowerCase().indexOf(normalizedLabel.toLocaleLowerCase());
     if (start === -1) return text;
