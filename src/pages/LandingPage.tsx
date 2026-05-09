@@ -496,9 +496,14 @@ const landingStyles = `
 export default function LandingPage() {
   const { t } = useTranslation();
   const [quizOpen, setQuizOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const persona = PERSONAS[activeIndex];
+  const px = (s: string) => personalize(s, persona);
 
   useEffect(() => {
-    document.title = "oTutorHub — Розумний помічник для репетитора";
+    document.title = `oTutorHub — Розумний помічник для ${persona.label}`;
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -512,22 +517,45 @@ export default function LandingPage() {
     );
     document.querySelectorAll(".landing-root .fade-up").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [persona.label]);
+
+  // Auto-rotate persona every 2.5s until user pauses
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setActiveIndex((i) => (i + 1) % PERSONAS.length);
+        setIsAnimating(false);
+      }, 300);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
+  const pickPersona = (i: number) => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setActiveIndex(i);
+      setIsAnimating(false);
+    }, 200);
+    setIsPaused(true);
+  };
 
   const signupHref = "/auth?signup=1&role=tutor";
 
-  const assistantItems = [
-    { emoji: "☀️", title: t("landing.assistant.i1Title"), text: t("landing.assistant.i1Text") },
-    { emoji: "🔔", title: t("landing.assistant.i2Title"), text: t("landing.assistant.i2Text") },
-    { emoji: "⏰", title: t("landing.assistant.i3Title"), text: t("landing.assistant.i3Text") },
-    { emoji: "📝", title: t("landing.assistant.i4Title"), text: t("landing.assistant.i4Text") },
-    { emoji: "📅", title: t("landing.assistant.i5Title"), text: t("landing.assistant.i5Text") },
-    { emoji: "💸", title: t("landing.assistant.i6Title"), text: t("landing.assistant.i6Text") },
-    { emoji: "💬", title: t("landing.assistant.i7Title"), text: t("landing.assistant.i7Text") },
-    { emoji: "👥", title: t("landing.assistant.i8Title"), text: t("landing.assistant.i8Text") },
-    { emoji: "🗓️", title: t("landing.assistant.i9Title"), text: t("landing.assistant.i9Text") },
-    { emoji: "♾️", title: t("landing.assistant.i10Title"), text: t("landing.assistant.i10Text") },
-  ];
+  const assistantItems = useMemo(() => ([
+    { emoji: "☀️", title: px(t("landing.assistant.i1Title")), text: px(t("landing.assistant.i1Text")) },
+    { emoji: "🔔", title: px(t("landing.assistant.i2Title")), text: px(t("landing.assistant.i2Text")) },
+    { emoji: "⏰", title: px(t("landing.assistant.i3Title")), text: px(t("landing.assistant.i3Text")) },
+    { emoji: "📝", title: px(t("landing.assistant.i4Title")), text: px(t("landing.assistant.i4Text")) },
+    { emoji: "📅", title: px(t("landing.assistant.i5Title")), text: px(t("landing.assistant.i5Text")) },
+    { emoji: "💸", title: px(t("landing.assistant.i6Title")), text: px(t("landing.assistant.i6Text")) },
+    { emoji: "💬", title: px(t("landing.assistant.i7Title")), text: px(t("landing.assistant.i7Text")) },
+    { emoji: "👥", title: px(t("landing.assistant.i8Title")), text: px(t("landing.assistant.i8Text")) },
+    { emoji: "🗓️", title: px(t("landing.assistant.i9Title")), text: px(t("landing.assistant.i9Text")) },
+    { emoji: "♾️", title: px(t("landing.assistant.i10Title")), text: px(t("landing.assistant.i10Text")) },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]), [persona.id, t]);
 
   return (
     <div className="landing-root">
