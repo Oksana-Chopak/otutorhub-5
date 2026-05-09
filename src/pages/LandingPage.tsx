@@ -29,8 +29,10 @@ export type PersonaVars = {
   clients: string;
   clientsNom: string;
   clientsAcc: string;
+  clientsGen: string;
   session: string;
   sessions: string;
+  sessionsGen: string;
 };
 
 function capFirst(s: string): string {
@@ -448,8 +450,8 @@ export default function LandingPage() {
     const base = t(`landing.personas.${personaId}`, { returnObjects: true }) as {
       label: string; labelNom: string; labelAcc: string;
       client: string; clientNom: string; clientDative: string;
-      clients: string; clientsNom: string; clientsAcc: string;
-      session: string; sessions: string;
+      clients: string; clientsNom: string; clientsAcc: string; clientsGen: string;
+      session: string; sessions: string; sessionsGen: string;
     };
     return {
       ...base,
