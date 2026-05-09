@@ -690,7 +690,7 @@ export default function LandingPage() {
           <div className="section-label">{t("landing.glance.label")}</div>
           <h2>{withPersonaAccent(tp("landing.glance.title"))}</h2>
           <p className="section-sub">{tp("landing.glance.sub")}</p>
-          <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="glance-grid fade-up">
             <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
             <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{tp("landing.glance.i2")}</div></div>
             <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{tp("landing.glance.i3")}</div></div>
