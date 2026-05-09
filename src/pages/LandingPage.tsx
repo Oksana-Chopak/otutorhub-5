@@ -670,7 +670,7 @@ export default function LandingPage() {
           <div className="section-label">{t("landing.assistant.label")}</div>
           <h2>{withPersonaAccent(tp("landing.assistant.title"))}</h2>
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
-          <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="assistant-grid fade-up">
             {assistantItems.map((it, i) => (
               <div key={`${personaId}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
