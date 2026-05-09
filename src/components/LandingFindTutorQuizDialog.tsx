@@ -63,6 +63,9 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
   const [schedule, setSchedule] = useState<string[]>([]);
   const [goal, setGoal] = useState<string | null>(null);
   const [goalOther, setGoalOther] = useState("");
+  const [otherSubject, setOtherSubject] = useState("");
+  const [otherSubjectActive, setOtherSubjectActive] = useState(false);
+  const [wishes, setWishes] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -74,10 +77,19 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
     setSchedule([]);
     setGoal(null);
     setGoalOther("");
+    setOtherSubject("");
+    setOtherSubjectActive(false);
+    setWishes("");
     setName("");
     setEmail("");
     setPhone("");
   };
+
+  const finalSubjects = () => {
+    const extra = otherSubjectActive && otherSubject.trim() ? [otherSubject.trim()] : [];
+    return [...subjects, ...extra];
+  };
+  const canProceedSubjects = subjects.length > 0 || (otherSubjectActive && otherSubject.trim().length > 0);
 
   const handleOpenChange = (v: boolean) => {
     onOpenChange(v);
@@ -96,11 +108,12 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
     const cleanPhone = phone.trim() || null;
 
     const quiz = {
-      subjects,
+      subjects: finalSubjects(),
       level,
       schedule,
       goal,
       goal_other: goal === "other" ? goalOther.trim() || null : null,
+      wishes: wishes.trim() || null,
     };
 
     // Save quiz to localStorage so we can populate student_intake_quiz after first sign-in.
@@ -154,6 +167,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
           quiz.level ? `Рівень: ${quiz.level}` : null,
           quiz.schedule.length ? `Зручний час: ${quiz.schedule.join(", ")}` : null,
           quiz.goal ? `Ціль: ${quiz.goal}${quiz.goal === "other" && quiz.goal_other ? ` — ${quiz.goal_other}` : ""}` : null,
+          quiz.wishes ? `Побажання: ${quiz.wishes}` : null,
           cleanPhone ? `Телефон: ${cleanPhone}` : null,
         ].filter(Boolean).join("\n") || null,
         source: "landing_quiz",
@@ -237,10 +251,33 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                   </button>
                 );
               })}
+              <button
+                key="__other__"
+                type="button"
+                onClick={() => setOtherSubjectActive((v) => !v)}
+                className={cn(
+                  "flex flex-col items-center gap-2 rounded-xl border-2 p-3 text-center transition-all hover:scale-105 active:scale-95",
+                  otherSubjectActive
+                    ? "border-primary bg-primary/5 shadow-md"
+                    : "border-border hover:border-primary/40",
+                )}
+              >
+                <span className="text-2xl">✏️</span>
+                <span className="text-xs font-medium leading-tight">Інше</span>
+              </button>
             </div>
+            {otherSubjectActive && (
+              <Input
+                value={otherSubject}
+                onChange={(e) => setOtherSubject(e.target.value)}
+                placeholder="Введіть свій предмет"
+                maxLength={80}
+                className="animate-fade-in"
+              />
+            )}
             <Button
               className="w-full"
-              disabled={subjects.length === 0}
+              disabled={!canProceedSubjects}
               onClick={() => setStep(2)}
             >
               Далі <ArrowRight className="ml-2 h-4 w-4" />
@@ -286,28 +323,37 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
             <h3 className="text-lg font-bold">Коли зручно займатись?</h3>
             <p className="text-sm text-muted-foreground">Можна вибрати декілька</p>
             <div className="grid grid-cols-2 gap-3">
-              {SCHEDULE_SLOTS.map((s) => {
-                const active = schedule.includes(s.value);
-                return (
-                  <button
-                    key={s.value}
-                    type="button"
-                    onClick={() =>
-                      setSchedule((p) =>
-                        p.includes(s.value) ? p.filter((x) => x !== s.value) : [...p, s.value],
-                      )
-                    }
-                    className={cn(
-                      "rounded-xl border-2 p-3 text-sm font-medium transition-all hover:scale-105 active:scale-95",
-                      active
-                        ? "border-primary bg-primary/5 text-foreground shadow-md"
-                        : "border-border text-muted-foreground hover:border-primary/40",
-                    )}
-                  >
-                    {s.label}
-                  </button>
-                );
-              })}
+              {(["weekday", "weekend"] as const).map((group) => (
+                <div key={group} className="space-y-2">
+                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                    {group === "weekday" ? "Будні" : "Вихідні"}
+                  </div>
+                  <div className="space-y-2">
+                    {SCHEDULE_SLOTS.filter((s) => s.value.startsWith(group)).map((s) => {
+                      const active = schedule.includes(s.value);
+                      return (
+                        <button
+                          key={s.value}
+                          type="button"
+                          onClick={() =>
+                            setSchedule((p) =>
+                              p.includes(s.value) ? p.filter((x) => x !== s.value) : [...p, s.value],
+                            )
+                          }
+                          className={cn(
+                            "w-full rounded-xl border-2 p-3 text-sm font-medium transition-all hover:scale-[1.02] active:scale-95",
+                            active
+                              ? "border-primary bg-primary/5 text-foreground shadow-md"
+                              : "border-border text-muted-foreground hover:border-primary/40",
+                          )}
+                        >
+                          {s.label.replace(/^(Будні|Вихідні)\s+/, "")}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
             <Button
               className="w-full"
@@ -403,6 +449,17 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="+380…"
                 maxLength={40}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lead-wishes">Додаткові побажання (необов'язково)</Label>
+              <Textarea
+                id="lead-wishes"
+                value={wishes}
+                onChange={(e) => setWishes(e.target.value)}
+                placeholder="Наприклад: потрібен репетитор з досвідом підготовки до ЗНО, зручний час — після 18:00..."
+                rows={3}
+                maxLength={1000}
               />
             </div>
             <Button className="w-full" onClick={submit}>
