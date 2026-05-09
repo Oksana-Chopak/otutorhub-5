@@ -42,11 +42,11 @@ export function TelegramLinkCard() {
     (async () => {
       const { data } = await supabase
         .from("user_telegram_links")
-        .select("chat_id, link_code, link_code_expires_at, linked_at")
+        .select("chat_id, link_code, link_code_expires_at, linked_at, is_active")
         .eq("user_id", user.id)
         .maybeSingle();
       if (active) {
-        setLink(data ?? null);
+        setLink((data as LinkRow | null) ?? null);
         setLoading(false);
       }
     })();
@@ -63,8 +63,19 @@ export function TelegramLinkCard() {
       )
       .subscribe();
 
+    // Poll active status every 60s in case backend marks the link as inactive
+    const poll = setInterval(async () => {
+      const { data } = await supabase
+        .from("user_telegram_links")
+        .select("chat_id, link_code, link_code_expires_at, linked_at, is_active")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (active) setLink((data as LinkRow | null) ?? null);
+    }, 60_000);
+
     return () => {
       active = false;
+      clearInterval(poll);
       supabase.removeChannel(ch);
     };
   }, [user?.id]);
