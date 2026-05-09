@@ -449,6 +449,7 @@ export default function LandingPage() {
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
 
   const personaVars: PersonaVars = useMemo(() => {
