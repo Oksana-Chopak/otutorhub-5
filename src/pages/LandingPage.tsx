@@ -577,7 +577,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }} onClick={() => setIsPaused(true)}>
+      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }} onClick={stopPersonaRotation}>
         <div className="hero">
           <div className="spots-badge">
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
@@ -586,7 +586,7 @@ export default function LandingPage() {
             {t("landing.hero.titlePrefix")}{" "}
             <span
               className={cn("persona-word", isAnimating && "swap")}
-              onClick={() => setIsPaused(true)}
+              onClick={stopPersonaRotation}
               title={t("landing.hero.fixHint")}
             >
               {personaVars.label}
