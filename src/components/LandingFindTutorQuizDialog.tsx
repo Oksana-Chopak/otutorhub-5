@@ -108,11 +108,12 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
     const cleanPhone = phone.trim() || null;
 
     const quiz = {
-      subjects,
+      subjects: finalSubjects(),
       level,
       schedule,
       goal,
       goal_other: goal === "other" ? goalOther.trim() || null : null,
+      wishes: wishes.trim() || null,
     };
 
     // Save quiz to localStorage so we can populate student_intake_quiz after first sign-in.
