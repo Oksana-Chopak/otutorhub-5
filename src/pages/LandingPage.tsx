@@ -394,14 +394,14 @@ const landingStyles = `
 }
 .landing-root .persona-pill {
   background: var(--white);
-  color: var(--l-accent);
+  color: var(--l-text);
   border: 1px solid var(--l-border);
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 13px;
   padding: 8px 16px; border-radius: 100px;
   cursor: pointer; transition: all 0.2s;
 }
-.landing-root .persona-pill:hover { color: var(--l-accent2); border-color: var(--l-accent); }
+.landing-root .persona-pill:hover { border-color: var(--l-accent); }
 .landing-root .persona-pill.active {
   background: var(--l-accent); color: #fff;
   border-color: var(--l-accent);
@@ -423,6 +423,8 @@ const landingStyles = `
   color: var(--ink); line-height: 1.3;
   transition: opacity 0.3s ease;
 }
+.landing-root .pain-question { min-height: calc(1.3em * 3); display: flex; align-items: center; justify-content: center; }
+.landing-root .pain-answer { min-height: calc(1.5em * 3); display: flex; align-items: center; justify-content: center; }
 .landing-root .persona-fade { transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease; }
 .landing-root .persona-fade.swap { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
 .landing-root .chat-bubble {
@@ -640,10 +642,10 @@ export default function LandingPage() {
       <section className="pain-section">
         <div className="pain-inner">
           <div className="pain-label">{t("landing.pain.label")}</div>
-          <h2 className={cn("pain-title persona-fade", isAnimating && "swap")}>
+          <h2 className={cn("pain-title pain-question persona-fade", isAnimating && "swap")}>
             {painFull}
           </h2>
-          <p className={cn("pain-title persona-fade", isAnimating && "swap")}
+          <p className={cn("pain-title pain-answer persona-fade", isAnimating && "swap")}
              style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
             {painShort}
           </p>
