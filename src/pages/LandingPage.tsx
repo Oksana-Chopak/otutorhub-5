@@ -1,4 +1,4 @@
-import { type MouseEvent, useEffect, useMemo, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -379,12 +379,14 @@ const landingStyles = `
 }
 
 .landing-root .persona-word {
-  color: var(--l-accent);
+  color: var(--l-accent) !important;
   cursor: pointer;
   border-bottom: 2px dotted var(--l-accent);
   transition: opacity 0.3s ease, transform 0.3s ease;
   display: inline-block;
 }
+.landing-root h1 .persona-word { color: var(--l-accent) !important; }
+.landing-root .persona-accent { color: var(--l-accent) !important; }
 .landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
 .landing-root .persona-pills {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -444,6 +446,7 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
+  const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
 
   const personaVars: PersonaVars = useMemo(() => {
@@ -462,6 +465,30 @@ export default function LandingPage() {
   const painShort = t(`landing.personas.${personaId}.painShort`);
   const painFull = t(`landing.personas.${personaId}.painFull`);
   const tp = (key: string) => t(key, personaVars);
+
+  const stopPersonaRotation = useCallback(() => {
+    setIsPaused(true);
+    setIsAnimating(false);
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+      animationTimeoutRef.current = null;
+    }
+  }, []);
+
+  const withPersonaAccent = (text: string) => {
+    const label = personaVars.label;
+    const normalizedLabel = label.trim();
+    const start = text.toLocaleLowerCase().indexOf(normalizedLabel.toLocaleLowerCase());
+    if (start === -1) return text;
+
+    return (
+      <>
+        {text.slice(0, start)}
+        <span className="persona-accent">{text.slice(start, start + normalizedLabel.length)}</span>
+        {text.slice(start + normalizedLabel.length)}
+      </>
+    );
+  };
 
   useEffect(() => {
     document.title = `oTutorHub — ${tp("landing.hero.titlePrefix")} ${personaVars.label}`;
@@ -486,21 +513,34 @@ export default function LandingPage() {
     if (isPaused) return;
     const timer = setInterval(() => {
       setIsAnimating(true);
-      setTimeout(() => {
+      animationTimeoutRef.current = setTimeout(() => {
         setActiveIndex((i) => (i + 1) % PERSONA_IDS.length);
         setIsAnimating(false);
+        animationTimeoutRef.current = null;
       }, 300);
     }, 2500);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+        animationTimeoutRef.current = null;
+      }
+    };
   }, [isPaused]);
 
   const pickPersona = (i: number) => {
+    stopPersonaRotation();
     setIsAnimating(true);
-    setTimeout(() => {
+    animationTimeoutRef.current = setTimeout(() => {
       setActiveIndex(i);
       setIsAnimating(false);
+      animationTimeoutRef.current = null;
     }, 200);
-    setIsPaused(true);
+  };
+
+  const handlePersonaPick = (i: number) => (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    pickPersona(i);
   };
 
   const signupHref = "/auth?signup=1&role=tutor";
@@ -535,7 +575,7 @@ export default function LandingPage() {
   ]), [personaId, t]);
 
   return (
-    <div className="landing-root">
+    <div className="landing-root" onClickCapture={stopPersonaRotation}>
       <style>{landingStyles}</style>
 
       {/* NAV */}
@@ -558,7 +598,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }} onClick={() => setIsPaused(true)}>
+      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
         <div className="hero">
           <div className="spots-badge">
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
@@ -567,7 +607,7 @@ export default function LandingPage() {
             {t("landing.hero.titlePrefix")}{" "}
             <span
               className={cn("persona-word", isAnimating && "swap")}
-              onClick={() => setIsPaused(true)}
+              onClick={stopPersonaRotation}
               title={t("landing.hero.fixHint")}
             >
               {personaVars.label}
@@ -578,7 +618,7 @@ export default function LandingPage() {
               <button
                 key={pid}
                 type="button"
-                onClick={() => pickPersona(i)}
+                onClick={handlePersonaPick(i)}
                 className={cn("persona-pill", activeIndex === i && "active")}
               >
                 {PERSONA_EMOJI[pid]} {t(`landing.personas.${pid}.label`)}
@@ -614,7 +654,7 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="features">
         <div className="section-inner">
           <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{tp("landing.assistant.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.assistant.title"))}</h2>
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
           <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
             {assistantItems.map((it, i) => (
@@ -634,7 +674,7 @@ export default function LandingPage() {
       <section className="l-section section-alt" id="glance">
         <div className="section-inner">
           <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{tp("landing.glance.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.glance.title"))}</h2>
           <p className="section-sub">{tp("landing.glance.sub")}</p>
           <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
@@ -649,7 +689,7 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="how">
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{tp("landing.steps.title")}</h2>
+          <h2>{withPersonaAccent(tp("landing.steps.title"))}</h2>
           <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
