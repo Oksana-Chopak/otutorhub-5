@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import { uk } from "./locales/uk";
 import { en } from "./locales/en";
+import { sv } from "./locales/sv";
 
 void i18n
   .use(LanguageDetector)
@@ -11,9 +12,10 @@ void i18n
     resources: {
       uk: { translation: uk },
       en: { translation: en },
+      sv: { translation: sv },
     },
     fallbackLng: "uk",
-    supportedLngs: ["uk", "en"],
+    supportedLngs: ["uk", "en", "sv"],
     interpolation: { escapeValue: false },
     detection: {
       order: ["localStorage", "navigator"],
