@@ -602,7 +602,7 @@ export default function LandingPage() {
     { emoji: "🗓️", title: tp("landing.assistant.i9Title"), text: tp("landing.assistant.i9Text") },
     { emoji: "♾️", title: tp("landing.assistant.i10Title"), text: tp("landing.assistant.i10Text") },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  ]), [personaId, t]);
+  ]), [displayedPersonaId, t]);
 
   return (
     <div className="landing-root" onClickCapture={stopPersonaRotation}>
