@@ -1750,6 +1750,7 @@ export type Database = {
           chat_id: number | null
           created_at: string
           id: string
+          is_active: boolean
           link_code: string | null
           link_code_expires_at: string | null
           linked_at: string | null
@@ -1760,6 +1761,7 @@ export type Database = {
           chat_id?: number | null
           created_at?: string
           id?: string
+          is_active?: boolean
           link_code?: string | null
           link_code_expires_at?: string | null
           linked_at?: string | null
@@ -1770,6 +1772,7 @@ export type Database = {
           chat_id?: number | null
           created_at?: string
           id?: string
+          is_active?: boolean
           link_code?: string | null
           link_code_expires_at?: string | null
           linked_at?: string | null
