@@ -2,17 +2,26 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
-import type { PersonaVars } from "@/pages/LandingPage";
+import type { PersonaVars, PersonaId } from "@/pages/LandingPage";
 import { cn } from "@/lib/utils";
 
 type Tab = "client" | "session" | "payment";
 
+const ASIDE_ICON: Record<PersonaId, string> = {
+  tutor: "🎒",
+  consultant: "📈",
+  psychologist: "🛋️",
+  nutritionist: "🍎",
+  trainer: "🏋️",
+};
+
 type Props = {
   personaVars: PersonaVars;
+  personaId: PersonaId;
   isAnimating?: boolean;
 };
 
-export function LandingTryDemo({ personaVars, isAnimating }: Props) {
+export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
   const { t } = useTranslation();
   const tp = (key: string) => t(key, personaVars);
 
