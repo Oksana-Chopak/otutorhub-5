@@ -688,7 +688,7 @@ export default function LandingPage() {
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
           <div className="assistant-grid fade-up">
             {assistantItems.map((it, i) => (
-              <div key={`${personaId}-${i}`} className="assistant-card">
+              <div key={`${displayedPersonaId}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
                 <div>
                   <div className="assistant-title">{it.title}</div>
