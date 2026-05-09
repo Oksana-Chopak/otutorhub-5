@@ -1,11 +1,112 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+import { cn } from "@/lib/utils";
 
 const SPOTS_LEFT = 17; // soft scarcity counter
+
+type Persona = {
+  id: string;
+  label: string;
+  emoji: string;
+  client: string;
+  clients: string;
+  session: string;
+  sessions: string;
+  homework: string;
+  painShort: string;
+  painFull: string;
+};
+
+const PERSONAS: Persona[] = [
+  {
+    id: "tutor",
+    label: "репетитора",
+    emoji: "📚",
+    client: "Учня",
+    clients: "Учні",
+    session: "Урок",
+    sessions: "Уроки",
+    homework: "Домашнє завдання",
+    painShort: "Скільки разів написали «нагадую про оплату»? 😅",
+    painFull: "Скільки разів цього місяця написали «нагадую про оплату»?",
+  },
+  {
+    id: "consultant",
+    label: "консультанта",
+    emoji: "💼",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Консультація",
+    sessions: "Консультації",
+    homework: "Завдання",
+    painShort: "Де мій звіт по клієнтах? 😅",
+    painFull: "Скільки часу витрачаєте на адміністрування замість роботи з клієнтами?",
+  },
+  {
+    id: "psychologist",
+    label: "психолога",
+    emoji: "🧠",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Сесія",
+    sessions: "Сесії",
+    homework: "Вправи",
+    painShort: "Хто на якій сесії і що було минулого разу? 😅",
+    painFull: "Важко тримати в голові де кожен клієнт і що було на останній сесії?",
+  },
+  {
+    id: "nutritionist",
+    label: "нутриціолога",
+    emoji: "🥗",
+    client: "Клієнта",
+    clients: "Клієнти",
+    session: "Прийом",
+    sessions: "Прийоми",
+    homework: "План харчування",
+    painShort: "Хто дотримується плану а хто ні? 😅",
+    painFull: "Стомились відстежувати хто виконує план а хто ні?",
+  },
+  {
+    id: "trainer",
+    label: "онлайн тренера",
+    emoji: "💪",
+    client: "Підопічного",
+    clients: "Підопічні",
+    session: "Тренування",
+    sessions: "Тренування",
+    homework: "Програма",
+    painShort: "Хто оплатив абонемент цього місяця? 😅",
+    painFull: "Втомились вручну відстежувати оплати абонементів?",
+  },
+];
+
+function personalize(text: string, p: Persona): string {
+  if (p.id === "tutor") return text;
+  return text
+    .replace(/учнями/gi, p.clients)
+    .replace(/учнів/gi, p.clients)
+    .replace(/учням/gi, p.clients)
+    .replace(/учні/gi, p.clients)
+    .replace(/учня/gi, p.client)
+    .replace(/учнем/gi, p.client)
+    .replace(/учень/gi, p.client)
+    .replace(/уроків/gi, p.sessions)
+    .replace(/уроки/gi, p.sessions)
+    .replace(/уроку/gi, p.session)
+    .replace(/уроком/gi, p.session)
+    .replace(/урок/gi, p.session)
+    .replace(/домашка/gi, p.homework.toLowerCase())
+    .replace(/домашню/gi, p.homework.toLowerCase())
+    .replace(/домашнє завдання/gi, p.homework.toLowerCase())
+    .replace(/репетиторстві/gi, "роботі")
+    .replace(/репетитора/gi, p.label)
+    .replace(/репетитор/gi, p.label);
+}
+
 
 const landingStyles = `
 .landing-root, .landing-root *, .landing-root *::before, .landing-root *::after {
@@ -344,14 +445,65 @@ const landingStyles = `
   .landing-root .cta-buttons .btn-white,
   .landing-root .cta-buttons .btn-outline-white { width: 100%; text-align: center; }
 }
+
+.landing-root .persona-word {
+  color: var(--l-accent);
+  cursor: pointer;
+  border-bottom: 2px dotted var(--l-accent);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+.landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
+.landing-root .persona-pills {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin: 18px 0 28px;
+}
+.landing-root .persona-pill {
+  background: var(--white);
+  color: var(--l-muted);
+  border: 1px solid var(--l-border);
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 600; font-size: 13px;
+  padding: 8px 16px; border-radius: 100px;
+  cursor: pointer; transition: all 0.2s;
+}
+.landing-root .persona-pill:hover { color: var(--ink); border-color: var(--l-accent); }
+.landing-root .persona-pill.active {
+  background: var(--l-accent); color: #fff;
+  border-color: var(--l-accent);
+  box-shadow: 0 4px 14px rgba(10,186,181,0.3);
+}
+.landing-root .pain-section {
+  background: var(--bg2); padding: 56px 2rem;
+}
+.landing-root .pain-inner {
+  max-width: 720px; margin: 0 auto; text-align: center;
+}
+.landing-root .pain-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--l-warning); margin-bottom: 12px;
+}
+.landing-root .pain-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(22px, 2.6vw, 32px); font-weight: 800;
+  color: var(--ink); line-height: 1.3;
+  transition: opacity 0.3s ease;
+}
+.landing-root .persona-fade { transition: opacity 0.3s ease; }
+.landing-root .persona-fade.swap { opacity: 0.4; }
 `;
 
 export default function LandingPage() {
   const { t } = useTranslation();
   const [quizOpen, setQuizOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const persona = PERSONAS[activeIndex];
+  const px = (s: string) => personalize(s, persona);
 
   useEffect(() => {
-    document.title = "oTutorHub — Розумний помічник для репетитора";
+    document.title = `oTutorHub — Розумний помічник для ${persona.label}`;
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
@@ -365,22 +517,45 @@ export default function LandingPage() {
     );
     document.querySelectorAll(".landing-root .fade-up").forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [persona.label]);
+
+  // Auto-rotate persona every 2.5s until user pauses
+  useEffect(() => {
+    if (isPaused) return;
+    const timer = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setActiveIndex((i) => (i + 1) % PERSONAS.length);
+        setIsAnimating(false);
+      }, 300);
+    }, 2500);
+    return () => clearInterval(timer);
+  }, [isPaused]);
+
+  const pickPersona = (i: number) => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setActiveIndex(i);
+      setIsAnimating(false);
+    }, 200);
+    setIsPaused(true);
+  };
 
   const signupHref = "/auth?signup=1&role=tutor";
 
-  const assistantItems = [
-    { emoji: "☀️", title: t("landing.assistant.i1Title"), text: t("landing.assistant.i1Text") },
-    { emoji: "🔔", title: t("landing.assistant.i2Title"), text: t("landing.assistant.i2Text") },
-    { emoji: "⏰", title: t("landing.assistant.i3Title"), text: t("landing.assistant.i3Text") },
-    { emoji: "📝", title: t("landing.assistant.i4Title"), text: t("landing.assistant.i4Text") },
-    { emoji: "📅", title: t("landing.assistant.i5Title"), text: t("landing.assistant.i5Text") },
-    { emoji: "💸", title: t("landing.assistant.i6Title"), text: t("landing.assistant.i6Text") },
-    { emoji: "💬", title: t("landing.assistant.i7Title"), text: t("landing.assistant.i7Text") },
-    { emoji: "👥", title: t("landing.assistant.i8Title"), text: t("landing.assistant.i8Text") },
-    { emoji: "🗓️", title: t("landing.assistant.i9Title"), text: t("landing.assistant.i9Text") },
-    { emoji: "♾️", title: t("landing.assistant.i10Title"), text: t("landing.assistant.i10Text") },
-  ];
+  const assistantItems = useMemo(() => ([
+    { emoji: "☀️", title: px(t("landing.assistant.i1Title")), text: px(t("landing.assistant.i1Text")) },
+    { emoji: "🔔", title: px(t("landing.assistant.i2Title")), text: px(t("landing.assistant.i2Text")) },
+    { emoji: "⏰", title: px(t("landing.assistant.i3Title")), text: px(t("landing.assistant.i3Text")) },
+    { emoji: "📝", title: px(t("landing.assistant.i4Title")), text: px(t("landing.assistant.i4Text")) },
+    { emoji: "📅", title: px(t("landing.assistant.i5Title")), text: px(t("landing.assistant.i5Text")) },
+    { emoji: "💸", title: px(t("landing.assistant.i6Title")), text: px(t("landing.assistant.i6Text")) },
+    { emoji: "💬", title: px(t("landing.assistant.i7Title")), text: px(t("landing.assistant.i7Text")) },
+    { emoji: "👥", title: px(t("landing.assistant.i8Title")), text: px(t("landing.assistant.i8Text")) },
+    { emoji: "🗓️", title: px(t("landing.assistant.i9Title")), text: px(t("landing.assistant.i9Text")) },
+    { emoji: "♾️", title: px(t("landing.assistant.i10Title")), text: px(t("landing.assistant.i10Text")) },
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]), [persona.id, t]);
 
   return (
     <div className="landing-root">
@@ -412,16 +587,49 @@ export default function LandingPage() {
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
           </div>
           <h1>
-            {t("landing.hero.title")}
+            Розумний помічник для{" "}
+            <span
+              className={cn("persona-word", isAnimating && "swap")}
+              onClick={() => setIsPaused(true)}
+              title="Натисніть, щоб зафіксувати"
+            >
+              {persona.label}
+            </span>
           </h1>
-          <p className="hero-sub">{t("landing.hero.sub")}</p>
-          <p className="hero-desc">{t("landing.hero.description")}</p>
+          <div className="persona-pills">
+            {PERSONAS.map((p, i) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => pickPersona(i)}
+                className={cn("persona-pill", activeIndex === i && "active")}
+              >
+                {p.emoji} {p.label}
+              </button>
+            ))}
+          </div>
+          <p className={cn("hero-sub persona-fade", isAnimating && "swap")}>{px(t("landing.hero.sub"))}</p>
+          <p className={cn("hero-desc persona-fade", isAnimating && "swap")}>{px(t("landing.hero.description"))}</p>
           <div className="hero-cta">
             <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
             <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
-              {t("landing.hero.ctaSecondary")}
+              Шукаю {persona.client} →
             </button>
           </div>
+        </div>
+      </section>
+
+      {/* PAIN — "Знайомо?" */}
+      <section className="pain-section">
+        <div className="pain-inner">
+          <div className="pain-label">Знайомо?</div>
+          <h2 className={cn("pain-title persona-fade", isAnimating && "swap")}>
+            {persona.painFull}
+          </h2>
+          <p className={cn("pain-title persona-fade", isAnimating && "swap")}
+             style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
+            {persona.painShort}
+          </p>
         </div>
       </section>
 
@@ -429,11 +637,11 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="features">
         <div className="section-inner">
           <div className="section-label">{t("landing.assistant.label")}</div>
-          <h2>{t("landing.assistant.title")}</h2>
-          <p className="section-sub">{t("landing.assistant.sub")}</p>
-          <div className="assistant-grid fade-up">
+          <h2>{px(t("landing.assistant.title"))}</h2>
+          <p className="section-sub">{px(t("landing.assistant.sub"))}</p>
+          <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
             {assistantItems.map((it, i) => (
-              <div key={i} className="assistant-card">
+              <div key={`${persona.id}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
                 <div>
                   <div className="assistant-title">{it.title}</div>
@@ -449,13 +657,13 @@ export default function LandingPage() {
       <section className="l-section section-alt" id="glance">
         <div className="section-inner">
           <div className="section-label">{t("landing.glance.label")}</div>
-          <h2>{t("landing.glance.title")}</h2>
-          <p className="section-sub">{t("landing.glance.sub")}</p>
-          <div className="glance-grid fade-up">
-            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{t("landing.glance.i1")}</div></div>
-            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{t("landing.glance.i2")}</div></div>
-            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{t("landing.glance.i3")}</div></div>
-            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{t("landing.glance.i4")}</div></div>
+          <h2>{px(t("landing.glance.title"))}</h2>
+          <p className="section-sub">{px(t("landing.glance.sub"))}</p>
+          <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
+            <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{px(t("landing.glance.i1"))}</div></div>
+            <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{px(t("landing.glance.i2"))}</div></div>
+            <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{px(t("landing.glance.i3"))}</div></div>
+            <div className="glance-card"><div className="glance-num">📝</div><div className="glance-text">{px(t("landing.glance.i4"))}</div></div>
           </div>
         </div>
       </section>
@@ -464,22 +672,22 @@ export default function LandingPage() {
       <section className="l-section features-bg" id="how">
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
-          <h2>{t("landing.steps.title")}</h2>
-          <div className="steps-grid fade-up">
+          <h2>{px(t("landing.steps.title"))}</h2>
+          <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
-              <div className="step-title">{t("landing.steps.s1Title")}</div>
-              <p className="step-text">{t("landing.steps.s1Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s1Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s1Text"))}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s2Num")}</div>
-              <div className="step-title">{t("landing.steps.s2Title")}</div>
-              <p className="step-text">{t("landing.steps.s2Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s2Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s2Text"))}</p>
             </div>
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s3Num")}</div>
-              <div className="step-title">{t("landing.steps.s3Title")}</div>
-              <p className="step-text">{t("landing.steps.s3Text")}</p>
+              <div className="step-title">{px(t("landing.steps.s3Title"))}</div>
+              <p className="step-text">{px(t("landing.steps.s3Text"))}</p>
             </div>
           </div>
         </div>
@@ -494,12 +702,12 @@ export default function LandingPage() {
           <div className="spots-badge">
             {t("landing.finalCta.spots", { count: SPOTS_LEFT })}
           </div>
-          <h2 style={{ marginTop: 16 }}>{t("landing.finalCta.title")}</h2>
-          <p>{t("landing.finalCta.sub")}</p>
+          <h2 style={{ marginTop: 16 }}>{px(t("landing.finalCta.title"))}</h2>
+          <p>{px(t("landing.finalCta.sub"))}</p>
           <div className="cta-buttons">
             <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
             <button type="button" className="btn-outline-white" onClick={() => setQuizOpen(true)}>
-              {t("landing.finalCta.ctaSecondary")}
+              Шукаю {persona.client} →
             </button>
           </div>
           <p className="cta-footnote">{t("landing.finalCta.footnote")}</p>
