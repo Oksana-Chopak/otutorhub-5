@@ -390,14 +390,14 @@ const landingStyles = `
 }
 .landing-root .persona-pill {
   background: var(--white);
-  color: var(--l-muted);
+  color: var(--l-accent);
   border: 1px solid var(--l-border);
   font-family: 'Golos Text', sans-serif;
   font-weight: 600; font-size: 13px;
   padding: 8px 16px; border-radius: 100px;
   cursor: pointer; transition: all 0.2s;
 }
-.landing-root .persona-pill:hover { color: var(--ink); border-color: var(--l-accent); }
+.landing-root .persona-pill:hover { color: var(--l-accent2); border-color: var(--l-accent); }
 .landing-root .persona-pill.active {
   background: var(--l-accent); color: #fff;
   border-color: var(--l-accent);
@@ -556,7 +556,7 @@ export default function LandingPage() {
       </nav>
 
       {/* HERO */}
-      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
+      <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }} onClick={() => setIsPaused(true)}>
         <div className="hero">
           <div className="spots-badge">
             {t("landing.hero.spotsBadge", { count: SPOTS_LEFT })}
