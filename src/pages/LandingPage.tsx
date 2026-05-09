@@ -445,8 +445,9 @@ export default function LandingPage() {
 
   const personaVars: PersonaVars = useMemo(() => {
     const base = t(`landing.personas.${personaId}`, { returnObjects: true }) as {
-      label: string; labelNom: string;
-      client: string; clientNom: string; clients: string;
+      label: string; labelNom: string; labelAcc: string;
+      client: string; clientNom: string; clientDative: string;
+      clients: string; clientsNom: string;
       session: string; sessions: string;
     };
     return {
