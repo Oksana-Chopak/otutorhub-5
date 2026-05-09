@@ -386,6 +386,7 @@ const landingStyles = `
   display: inline-block;
 }
 .landing-root h1 .persona-word { color: #0ABAB5 !important; }
+.landing-root .persona-accent { color: #0ABAB5 !important; }
 .landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
 .landing-root .persona-pills {
   display: flex; flex-wrap: wrap; gap: 8px;
@@ -473,6 +474,20 @@ export default function LandingPage() {
       animationTimeoutRef.current = null;
     }
   }, []);
+
+  const withPersonaAccent = (text: string) => {
+    const label = personaVars.label;
+    const start = text.indexOf(label);
+    if (start === -1) return text;
+
+    return (
+      <>
+        {text.slice(0, start)}
+        <span className="persona-accent">{label}</span>
+        {text.slice(start + label.length)}
+      </>
+    );
+  };
 
   useEffect(() => {
     document.title = `oTutorHub — ${tp("landing.hero.titlePrefix")} ${personaVars.label}`;
