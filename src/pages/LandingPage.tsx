@@ -379,14 +379,14 @@ const landingStyles = `
 }
 
 .landing-root .persona-word {
-  color: #0ABAB5 !important;
+  color: var(--l-accent) !important;
   cursor: pointer;
-  border-bottom: 2px dotted #0ABAB5;
+  border-bottom: 2px dotted var(--l-accent);
   transition: opacity 0.3s ease, transform 0.3s ease;
   display: inline-block;
 }
-.landing-root h1 .persona-word { color: #0ABAB5 !important; }
-.landing-root .persona-accent { color: #0ABAB5 !important; }
+.landing-root h1 .persona-word { color: var(--l-accent) !important; }
+.landing-root .persona-accent { color: var(--l-accent) !important; }
 .landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
 .landing-root .persona-pills {
   display: flex; flex-wrap: wrap; gap: 8px;
