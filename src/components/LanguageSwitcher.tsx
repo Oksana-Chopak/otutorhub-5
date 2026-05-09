@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Languages } from "lucide-react";
+import { Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -18,6 +18,7 @@ interface LanguageSwitcherProps {
 const LANGS = [
   { code: "uk", label: "Українська", short: "UA" },
   { code: "en", label: "English", short: "EN" },
+  { code: "sv", label: "Svenska", short: "SV" },
 ] as const;
 
 export function LanguageSwitcher({
@@ -27,7 +28,8 @@ export function LanguageSwitcher({
   className,
 }: LanguageSwitcherProps) {
   const { i18n } = useTranslation();
-  const current = i18n.resolvedLanguage?.startsWith("en") ? "en" : "uk";
+  const resolved = i18n.resolvedLanguage ?? "uk";
+  const current = resolved.startsWith("en") ? "en" : resolved.startsWith("sv") ? "sv" : "uk";
   const currentShort = LANGS.find((l) => l.code === current)?.short ?? "UA";
 
   const change = (code: string) => {
@@ -38,7 +40,7 @@ export function LanguageSwitcher({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant={variant} size={size} className={className}>
-          <Languages className="h-4 w-4" />
+          <Globe className="h-4 w-4" />
           {showLabel && <span className="ml-1.5 text-xs font-semibold">{currentShort}</span>}
         </Button>
       </DropdownMenuTrigger>
