@@ -427,8 +427,8 @@ const landingStyles = `
 }
 .landing-root .chat-bubble:hover { transform: scale(1.05); filter: brightness(0.94); }
 .landing-root .chat-bubble svg { width: 1.25rem; height: 1.25rem; fill: currentColor; flex-shrink: 0; }
-.landing-root .chat-bubble-whatsapp { bottom: 5rem; background: #25D366; }
-.landing-root .chat-bubble-telegram { bottom: 1.5rem; background: #229ED9; }
+.landing-root .chat-bubble-whatsapp { bottom: 5rem; background: hsl(142 70% 49%); }
+.landing-root .chat-bubble-telegram { bottom: 1.5rem; background: hsl(200 73% 49%); }
 @media (max-width: 639px) { .landing-root .chat-bubble span { display: none; } }
 `;
 
