@@ -654,10 +654,10 @@ export default function LandingPage() {
       <section className="pain-section">
         <div className="pain-inner">
           <div className="pain-label">{t("landing.pain.label")}</div>
-          <h2 className={cn("pain-title pain-question persona-fade", isAnimating && "swap")}>
+          <h2 className="pain-title pain-question">
             {painFull}
           </h2>
-          <p className={cn("pain-title pain-answer persona-fade", isAnimating && "swap")}
+          <p className="pain-title pain-answer"
              style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
             {painShort}
           </p>
@@ -670,7 +670,7 @@ export default function LandingPage() {
           <div className="section-label">{t("landing.assistant.label")}</div>
           <h2>{withPersonaAccent(tp("landing.assistant.title"))}</h2>
           <p className="section-sub">{tp("landing.assistant.sub")}</p>
-          <div className={cn("assistant-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="assistant-grid fade-up">
             {assistantItems.map((it, i) => (
               <div key={`${personaId}-${i}`} className="assistant-card">
                 <div className="assistant-emoji">{it.emoji}</div>
@@ -690,7 +690,7 @@ export default function LandingPage() {
           <div className="section-label">{t("landing.glance.label")}</div>
           <h2>{withPersonaAccent(tp("landing.glance.title"))}</h2>
           <p className="section-sub">{tp("landing.glance.sub")}</p>
-          <div className={cn("glance-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="glance-grid fade-up">
             <div className="glance-card"><div className="glance-num">💰</div><div className="glance-text">{tp("landing.glance.i1")}</div></div>
             <div className="glance-card"><div className="glance-num">✓</div><div className="glance-text">{tp("landing.glance.i2")}</div></div>
             <div className="glance-card"><div className="glance-num">📅</div><div className="glance-text">{tp("landing.glance.i3")}</div></div>
@@ -704,7 +704,7 @@ export default function LandingPage() {
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
           <h2>{withPersonaAccent(tp("landing.steps.title"))}</h2>
-          <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="steps-grid fade-up">
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
               <div className="step-title">{tp("landing.steps.s1Title")}</div>
