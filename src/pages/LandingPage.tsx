@@ -445,6 +445,52 @@ const landingStyles = `
   .landing-root .cta-buttons .btn-white,
   .landing-root .cta-buttons .btn-outline-white { width: 100%; text-align: center; }
 }
+
+.landing-root .persona-word {
+  color: var(--l-accent);
+  cursor: pointer;
+  border-bottom: 2px dotted var(--l-accent);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  display: inline-block;
+}
+.landing-root .persona-word.swap { opacity: 0; transform: translateY(-6px); }
+.landing-root .persona-pills {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin: 18px 0 28px;
+}
+.landing-root .persona-pill {
+  background: var(--white);
+  color: var(--l-muted);
+  border: 1px solid var(--l-border);
+  font-family: 'Golos Text', sans-serif;
+  font-weight: 600; font-size: 13px;
+  padding: 8px 16px; border-radius: 100px;
+  cursor: pointer; transition: all 0.2s;
+}
+.landing-root .persona-pill:hover { color: var(--ink); border-color: var(--l-accent); }
+.landing-root .persona-pill.active {
+  background: var(--l-accent); color: #fff;
+  border-color: var(--l-accent);
+  box-shadow: 0 4px 14px rgba(10,186,181,0.3);
+}
+.landing-root .pain-section {
+  background: var(--bg2); padding: 56px 2rem;
+}
+.landing-root .pain-inner {
+  max-width: 720px; margin: 0 auto; text-align: center;
+}
+.landing-root .pain-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--l-warning); margin-bottom: 12px;
+}
+.landing-root .pain-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(22px, 2.6vw, 32px); font-weight: 800;
+  color: var(--ink); line-height: 1.3;
+  transition: opacity 0.3s ease;
+}
+.landing-root .persona-fade { transition: opacity 0.3s ease; }
+.landing-root .persona-fade.swap { opacity: 0.4; }
 `;
 
 export default function LandingPage() {
