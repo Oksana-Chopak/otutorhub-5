@@ -704,7 +704,7 @@ export default function LandingPage() {
         <div className="section-inner">
           <div className="section-label">{t("landing.steps.label")}</div>
           <h2>{withPersonaAccent(tp("landing.steps.title"))}</h2>
-          <div className={cn("steps-grid fade-up persona-fade", isAnimating && "swap")}>
+          <div className="steps-grid fade-up">
             <div className="step-card">
               <div className="step-num">{t("landing.steps.s1Num")}</div>
               <div className="step-title">{tp("landing.steps.s1Title")}</div>
