@@ -654,10 +654,10 @@ export default function LandingPage() {
       <section className="pain-section">
         <div className="pain-inner">
           <div className="pain-label">{t("landing.pain.label")}</div>
-          <h2 className={cn("pain-title pain-question persona-fade", isAnimating && "swap")}>
+          <h2 className="pain-title pain-question">
             {painFull}
           </h2>
-          <p className={cn("pain-title pain-answer persona-fade", isAnimating && "swap")}
+          <p className="pain-title pain-answer"
              style={{ fontSize: 16, fontFamily: "'Golos Text', sans-serif", fontWeight: 500, color: "var(--l-muted)", marginTop: 16 }}>
             {painShort}
           </p>
