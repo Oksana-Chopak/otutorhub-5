@@ -636,7 +636,7 @@ export default function LandingPage() {
       </section>
 
       {/* TRY DEMO */}
-      <LandingTryDemo personaVars={personaVars} isAnimating={isAnimating} />
+      <LandingTryDemo personaVars={personaVars} personaId={personaId} isAnimating={isAnimating} />
 
       {/* FINAL CTA */}
       <section className="cta-section">
