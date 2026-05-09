@@ -118,18 +118,39 @@ export function TelegramLinkCard() {
         </div>
         <div className="min-w-0 flex-1">
           {isLinked ? (
-            <>
-              <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                <Check className="h-4 w-4 text-success" /> Telegram підʼєднано
-              </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Ви отримуватимете сповіщення про нові повідомлення в чатах.
-              </p>
-              <Button size="sm" variant="ghost" className="mt-2" onClick={unlink}>
-                <X className="h-3.5 w-3.5 mr-1" />
-                Відʼєднати
-              </Button>
-            </>
+            link?.is_active === false ? (
+              <>
+                <p className="text-sm font-medium text-warning flex items-center gap-1.5">
+                  <AlertTriangle className="h-4 w-4" /> З'єднання перервано
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Бот більше не може надсилати вам повідомлення. Ймовірно, ви заблокували його або видалили чат.
+                </p>
+                <div className="mt-2 flex gap-2">
+                  <Button size="sm" onClick={generate} disabled={generating}>
+                    {generating ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
+                    Відновити
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={unlink}>
+                    <X className="h-3.5 w-3.5 mr-1" />
+                    Відʼєднати
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="text-sm font-medium text-success flex items-center gap-1.5">
+                  <Check className="h-4 w-4" /> Telegram підключено
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Ви отримуватимете сповіщення про нові повідомлення в чатах.
+                </p>
+                <Button size="sm" variant="ghost" className="mt-2" onClick={unlink}>
+                  <X className="h-3.5 w-3.5 mr-1" />
+                  Відʼєднати
+                </Button>
+              </>
+            )
           ) : link?.link_code ? (
             <>
               <p className="text-sm font-medium text-foreground">Завершіть підключення</p>
