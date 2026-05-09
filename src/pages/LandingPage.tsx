@@ -477,14 +477,15 @@ export default function LandingPage() {
 
   const withPersonaAccent = (text: string) => {
     const label = personaVars.label;
-    const start = text.indexOf(label);
+    const normalizedLabel = label.trim();
+    const start = text.toLocaleLowerCase().indexOf(normalizedLabel.toLocaleLowerCase());
     if (start === -1) return text;
 
     return (
       <>
         {text.slice(0, start)}
-        <span className="persona-accent">{label}</span>
-        {text.slice(start + label.length)}
+        <span className="persona-accent">{text.slice(start, start + normalizedLabel.length)}</span>
+        {text.slice(start + normalizedLabel.length)}
       </>
     );
   };
