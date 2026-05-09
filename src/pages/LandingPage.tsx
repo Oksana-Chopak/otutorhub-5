@@ -28,6 +28,7 @@ export type PersonaVars = {
   ClientNom: string;
   clients: string;
   clientsNom: string;
+  clientsAcc: string;
   session: string;
   sessions: string;
 };
