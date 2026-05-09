@@ -702,13 +702,14 @@ export default function LandingPage() {
 
       {/* WhatsApp floating bubble */}
       <a
-        href="https://wa.me/46700266274"
-        target="_top"
+        href={whatsappUrl}
+        onClick={openChatLink(whatsappUrl)}
+        target="_blank"
         rel="noopener noreferrer"
         aria-label="WhatsApp"
-        className="fixed bottom-20 right-6 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#1fb855] text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105"
+        className="chat-bubble chat-bubble-whatsapp"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white flex-shrink-0">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
           <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.528 5.855L0 24l6.335-1.507A11.945 11.945 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.727.977.995-3.636-.235-.374A9.818 9.818 0 1112 21.818z" />
         </svg>
@@ -717,13 +718,14 @@ export default function LandingPage() {
 
       {/* Telegram floating bubble */}
       <a
-        href="https://t.me/oksana_chopak"
-        target="_top"
+        href={telegramUrl}
+        onClick={openChatLink(telegramUrl)}
+        target="_blank"
         rel="noopener noreferrer"
         aria-label="Telegram"
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#229ED9] hover:bg-[#1a8abf] text-white px-4 py-3 rounded-full shadow-lg transition-all hover:scale-105"
+        className="chat-bubble chat-bubble-telegram"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5 fill-white flex-shrink-0">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.48 14.013l-2.95-.924c-.64-.203-.652-.64.136-.953l11.57-4.461c.537-.194 1.006.131.326.573z" />
         </svg>
         <span className="hidden sm:inline">Telegram</span>
