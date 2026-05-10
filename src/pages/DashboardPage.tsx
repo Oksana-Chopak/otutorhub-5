@@ -622,6 +622,11 @@ export default function DashboardPage() {
           )}
 
           {isIndependentTutor && <TutorWelcomeBanner />}
+          {(isTutor || isManager) && (
+            <div className="mt-4">
+              <QuickActionsCard onChanged={loadData} />
+            </div>
+          )}
           {isIndependentTutor && (
             <ReferralNudgeBanner
               completedLessons={myCompletedLessonsCount}
