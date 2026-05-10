@@ -29,6 +29,8 @@ import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { lessonSourceTint } from "@/components/SourceBadge";
+import { formatPrice } from "@/lib/currency";
 import {
   CalendarDays,
   Users,
@@ -279,6 +281,24 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
+  const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
+    const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
+    if (error) return;
+    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+  };
+
+  const updatePayment = async (
+    lessonId: string,
+    field: "student_payment_status" | "tutor_payout_status",
+    value: PaymentStatus,
+  ) => {
+    const { error } = await supabase
+      .from("lesson_details")
+      .upsert({ lesson_id: lessonId, [field]: value } as any, { onConflict: "lesson_id" });
+    if (error) return;
+    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
+  };
+
   useEffect(() => {
     setLoading(true);
     loadData();
@@ -410,6 +430,13 @@ export default function DashboardPage() {
     all: "за весь час",
     month: "за цей місяць",
     week: "за цей тиждень",
+  };
+
+  const statusLabel: Record<LessonStatus, string> = {
+    pending: "Запит",
+    scheduled: "Заплановано",
+    completed: "Проведено",
+    cancelled: "Скасовано",
   };
 
   const firstName = useMemo(() => {
