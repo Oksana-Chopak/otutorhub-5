@@ -50,6 +50,7 @@ import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
+import { safeHref } from "@/lib/safeUrl";
 
 interface Profile {
   id: string;
@@ -914,7 +915,7 @@ export default function PeoplePage() {
           )}
           {u.messenger_url && (
             <a
-              href={u.messenger_url}
+              href={safeHref(u.messenger_url)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
@@ -925,7 +926,7 @@ export default function PeoplePage() {
           )}
           {u.facebook_url && (
             <a
-              href={u.facebook_url}
+              href={safeHref(u.facebook_url)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
@@ -936,7 +937,7 @@ export default function PeoplePage() {
           )}
           {u.instagram_url && (
             <a
-              href={u.instagram_url}
+              href={safeHref(u.instagram_url)}
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
