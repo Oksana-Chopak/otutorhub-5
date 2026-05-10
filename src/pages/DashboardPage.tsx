@@ -650,7 +650,9 @@ export default function DashboardPage() {
             <>
               <Button asChild variant="outline"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
               <Button asChild variant="outline"><Link to="/schedule">{t("dashboard.btnLessons")}</Link></Button>
-              <Button asChild><Link to="/finances">{t("dashboard.btnPayments")}</Link></Button>
+              <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
+                <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
+              </Button>
             </>
           )}
           {(isTutor || isStudent) && !isManager && (
