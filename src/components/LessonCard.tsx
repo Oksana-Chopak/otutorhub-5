@@ -208,30 +208,7 @@ export function LessonCard({
             </Button>
           )}
 
-          {/* Static payment badge (no big toggle pill). Click toggles if handler provided. */}
-          {lesson.student_payment_status &&
-            lesson.status !== "cancelled" &&
-            lesson.status !== "pending" && (
-              <span
-                onClick={onTogglePayment ? togglePayment : undefined}
-                className={cn(
-                  "inline-flex min-h-[28px] items-center rounded-full px-2.5 py-1 text-xs font-semibold",
-                  isPaid
-                    ? "bg-success/15 text-success"
-                    : "bg-warning/15 text-warning",
-                  onTogglePayment && "cursor-pointer hover:opacity-80",
-                )}
-                title={
-                  onTogglePayment
-                    ? isPaid
-                      ? "Натисніть, щоб скасувати оплату"
-                      : "Натисніть, щоб позначити як отримано"
-                    : undefined
-                }
-              >
-                {isPaid ? "Оплачено ✓" : "⏳ Очікує"}
-              </span>
-            )}
+          {/* Payment badge removed — duplicates the hourglass row in the footer/expanded section. */}
 
           {extraActions}
 
