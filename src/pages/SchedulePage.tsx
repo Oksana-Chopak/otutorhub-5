@@ -1689,11 +1689,7 @@ export default function SchedulePage() {
                                   ))}
                                 </SelectContent>
                               </Select>
-                            ) : (
-                              <Badge className={statusBadgeClass[lesson.status]}>
-                                {statusLabel[lesson.status]}
-                              </Badge>
-                            )}
+                            ) : null}
                             {isPureStudent && lesson.student_id === user?.id && (
                               <StudentLessonActions
                                 lessonId={lesson.id}

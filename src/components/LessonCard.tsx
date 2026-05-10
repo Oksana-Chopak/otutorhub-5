@@ -46,6 +46,33 @@ interface LessonCardProps {
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
 
+const fmtDateTime = (iso: string) => {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const isToday = d.toDateString() === today.toDateString();
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+  const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Сьогодні · ${time}`;
+  if (isTomorrow) return `Завтра · ${time}`;
+  return d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + ` · ${time}`;
+};
+
+const STATUS_LABEL: Record<NonNullable<LessonCardData["status"]>, string> = {
+  pending: "Запит",
+  scheduled: "Заплановано",
+  completed: "Проведено",
+  cancelled: "Скасовано",
+};
+
+const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
+  pending: "text-warning",
+  scheduled: "text-primary",
+  completed: "text-success",
+  cancelled: "text-muted-foreground line-through",
+};
+
 export function LessonCard({
   lesson,
   variant = "schedule",
@@ -127,8 +154,13 @@ export function LessonCard({
               {fmtTime(lesson.starts_at)}
             </div>
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-              {lesson.duration_minutes} хв
+              {fmtDateTime(lesson.starts_at).split(" · ")[0]} · {lesson.duration_minutes} хв
             </div>
+            {lesson.status && (
+              <div className={cn("mt-1 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
+                {STATUS_LABEL[lesson.status]}
+              </div>
+            )}
           </div>
         </div>
 
@@ -176,30 +208,7 @@ export function LessonCard({
             </Button>
           )}
 
-          {/* Static payment badge (no big toggle pill). Click toggles if handler provided. */}
-          {lesson.student_payment_status &&
-            lesson.status !== "cancelled" &&
-            lesson.status !== "pending" && (
-              <span
-                onClick={onTogglePayment ? togglePayment : undefined}
-                className={cn(
-                  "inline-flex min-h-[28px] items-center rounded-full px-2.5 py-1 text-xs font-semibold",
-                  isPaid
-                    ? "bg-success/15 text-success"
-                    : "bg-warning/15 text-warning",
-                  onTogglePayment && "cursor-pointer hover:opacity-80",
-                )}
-                title={
-                  onTogglePayment
-                    ? isPaid
-                      ? "Натисніть, щоб скасувати оплату"
-                      : "Натисніть, щоб позначити як отримано"
-                    : undefined
-                }
-              >
-                {isPaid ? "Оплачено ✓" : "⏳ Очікує"}
-              </span>
-            )}
+          {/* Payment badge removed — duplicates the hourglass row in the footer/expanded section. */}
 
           {extraActions}
 
