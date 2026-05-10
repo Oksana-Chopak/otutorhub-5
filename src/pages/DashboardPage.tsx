@@ -3,10 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +24,6 @@ import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
-import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
@@ -37,9 +33,7 @@ import {
   CalendarDays,
   Users,
   TrendingUp,
-  Clock,
   Loader2,
-  ChevronDown,
   Video,
   AlertTriangle,
   UserX,
@@ -98,6 +92,16 @@ const statusClass: Record<LessonStatus, string> = {
   completed: "bg-success/10 text-success border-0",
   cancelled: "bg-destructive/10 text-destructive border-0",
 };
+
+const dayPhrases = [
+  "Спокійний план на день сильніший за десять відкритих вкладок.",
+  "Один чіткий наступний крок знімає половину хаосу.",
+  "Найкращий урок дня — той, після якого всім зрозуміло, що далі.",
+  "Менше ручної рутини — більше уваги людям.",
+  "Сьогодні достатньо зробити головне, а не все одразу.",
+  "Добрий темп починається з ясного розкладу.",
+  "Коли оплати й уроки на місці, голова вільна для навчання.",
+];
 
 type ProfitPeriod = "all" | "month" | "week";
 
