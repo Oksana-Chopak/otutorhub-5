@@ -292,9 +292,7 @@ export default function DashboardPage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus,
   ) => {
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert({ lesson_id: lessonId, [field]: value } as any, { onConflict: "lesson_id" });
+    const { error } = await supabase.from("lessons").update({ [field]: value } as any).eq("id", lessonId);
     if (error) return;
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
   };
