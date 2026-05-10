@@ -79,20 +79,6 @@ interface ProfileRow {
   last_name: string;
 }
 
-const statusLabel: Record<LessonStatus, string> = {
-  pending: "Запит",
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-};
-
-const statusClass: Record<LessonStatus, string> = {
-  pending: "bg-warning/10 text-warning border-0",
-  scheduled: "bg-primary/10 text-primary border-0",
-  completed: "bg-success/10 text-success border-0",
-  cancelled: "bg-destructive/10 text-destructive border-0",
-};
-
 const dayPhrases = [
   "Спокійний план на день сильніший за десять відкритих вкладок.",
   "Один чіткий наступний крок знімає половину хаосу.",
@@ -425,6 +411,24 @@ export default function DashboardPage() {
     month: "за цей місяць",
     week: "за цей тиждень",
   };
+
+  const firstName = useMemo(() => {
+    const fromProfile = user?.id ? profiles[user.id]?.split(" ")[0] : "";
+    return fromProfile || user?.email?.split("@")[0] || "";
+  }, [profiles, user?.email, user?.id]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Доброго ранку";
+    if (hour < 18) return "Доброго дня";
+    return "Доброго вечора";
+  }, []);
+
+  const phraseOfDay = useMemo(() => {
+    const start = new Date(new Date().getFullYear(), 0, 0).getTime();
+    const day = Math.floor((Date.now() - start) / 86_400_000);
+    return dayPhrases[day % dayPhrases.length];
+  }, []);
 
   // Smart tasks list (manager-only)
   const smartTasks = useMemo(() => {
