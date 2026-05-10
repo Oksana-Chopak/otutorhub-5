@@ -674,8 +674,8 @@ export default function LandingPage() {
               </button>
             ))}
           </div>
-          <p className={cn("hero-sub persona-fade", isAnimating && "swap")}>{tp("landing.hero.sub")}</p>
-          <p className={cn("hero-desc persona-fade", isAnimating && "swap")}>{tp("landing.hero.description")}</p>
+          <p className="hero-sub">{tp("landing.hero.sub")}</p>
+          <p className="hero-desc">{tp("landing.hero.description")}</p>
           <div className="hero-cta">
             <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
             <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
