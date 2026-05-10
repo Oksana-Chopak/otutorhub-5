@@ -154,8 +154,13 @@ export function LessonCard({
               {fmtTime(lesson.starts_at)}
             </div>
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-              {lesson.duration_minutes} хв
+              {fmtDateTime(lesson.starts_at).split(" · ")[0]} · {lesson.duration_minutes} хв
             </div>
+            {lesson.status && (
+              <div className={cn("mt-1 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
+                {STATUS_LABEL[lesson.status]}
+              </div>
+            )}
           </div>
         </div>
 
