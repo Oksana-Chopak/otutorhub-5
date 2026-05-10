@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, Video } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { safeHref } from "@/lib/safeUrl";
 
 interface Lesson {
   id: string;
@@ -85,7 +86,7 @@ export default function StudentSchedulePage() {
                 </div>
                 {l.meeting_url && l.status === "scheduled" && (
                   <Button asChild size="sm">
-                    <a href={l.meeting_url} target="_blank" rel="noreferrer">
+                    <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer">
                       <Video className="mr-1 h-3.5 w-3.5" /> Zoom
                     </a>
                   </Button>
