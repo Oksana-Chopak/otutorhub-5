@@ -128,6 +128,7 @@ export function LessonCard({
           isNow && "bg-success/5 border-success/40 border-l-success",
           isPast && !isNow && "opacity-80",
           compact ? "p-2.5 sm:p-3" : "p-3 sm:p-4",
+          lesson.status && (compact ? "pt-7 sm:pt-7" : "pt-8 sm:pt-8"),
           "sm:flex-row sm:items-stretch",
         )}
       >
