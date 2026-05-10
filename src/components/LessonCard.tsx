@@ -46,6 +46,33 @@ interface LessonCardProps {
 const fmtTime = (iso: string) =>
   new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
 
+const fmtDateTime = (iso: string) => {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const isToday = d.toDateString() === today.toDateString();
+  const isTomorrow = d.toDateString() === tomorrow.toDateString();
+  const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  if (isToday) return `Сьогодні · ${time}`;
+  if (isTomorrow) return `Завтра · ${time}`;
+  return d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + ` · ${time}`;
+};
+
+const STATUS_LABEL: Record<NonNullable<LessonCardData["status"]>, string> = {
+  pending: "Запит",
+  scheduled: "Заплановано",
+  completed: "Проведено",
+  cancelled: "Скасовано",
+};
+
+const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
+  pending: "text-warning",
+  scheduled: "text-primary",
+  completed: "text-success",
+  cancelled: "text-muted-foreground line-through",
+};
+
 export function LessonCard({
   lesson,
   variant = "schedule",
