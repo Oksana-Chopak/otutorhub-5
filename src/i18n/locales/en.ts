@@ -43,7 +43,7 @@ export const en: Translations = {
   },
 
   nav: {
-    dashboard: "Dashboard",
+    dashboard: "My day",
     schedule: "Schedule",
     finances: "Finances",
     wallets: "Wallets",
@@ -351,7 +351,7 @@ export const en: Translations = {
   },
 
   dashboard: {
-    title: "Dashboard",
+    title: "My day",
     subManager: "Manage lessons, people and payments",
     subOther: "Overview of your lessons",
     welcome: "Welcome",

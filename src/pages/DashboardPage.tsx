@@ -732,7 +732,7 @@ export default function DashboardPage() {
                         <LessonCard
                           key={lesson.id}
                           lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                          variant="dashboard"
+                          variant="schedule"
                           studentName={studentName}
                           tutorName={tutorName}
                           showTutor

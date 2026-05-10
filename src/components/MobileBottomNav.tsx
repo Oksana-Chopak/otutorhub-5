@@ -23,19 +23,19 @@ type Item = {
 // Single 5-item navigation per role — must match AppSidebar.
 const items: Item[] = [
   // Tutor
-  { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["tutor"] },
+  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["tutor"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
   { to: "/my-students", label: "Учні", icon: GraduationCap, roles: ["tutor"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
   { to: "/profile", label: "Профіль", icon: UserCircle, roles: ["tutor"] },
   // Manager
-  { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["manager"] },
+  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["manager"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
   { to: "/profile", label: "Профіль", icon: UserCircle, roles: ["manager"] },
   // Student
-  { to: "/", label: "Дашборд", icon: LayoutDashboard, roles: ["student"] },
+  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["student"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
   { to: "/profile", label: "Профіль", icon: UserCircle, roles: ["student"] },
