@@ -7,8 +7,6 @@ const corsHeaders = {
 };
 
 const TOTAL_FREE_SPOTS = 20;
-const FALLBACK_USED_SPOTS = 3;
-
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), {
     status,
@@ -24,7 +22,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceKey) {
-    return json(200, { spotsLeft: TOTAL_FREE_SPOTS - FALLBACK_USED_SPOTS, total: TOTAL_FREE_SPOTS });
+    return json(200, { spotsLeft: TOTAL_FREE_SPOTS, total: TOTAL_FREE_SPOTS });
   }
 
   const admin = createClient(supabaseUrl, serviceKey, {
@@ -40,7 +38,7 @@ Deno.serve(async (req) => {
     .eq("source", "landing_quiz")
     .gte("created_at", since.toISOString());
 
-  const used = error ? FALLBACK_USED_SPOTS : count ?? 0;
+  const used = error ? 0 : count ?? 0;
   const spotsLeft = Math.max(0, TOTAL_FREE_SPOTS - used);
 
   return json(200, { spotsLeft, total: TOTAL_FREE_SPOTS });

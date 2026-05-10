@@ -8,7 +8,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 const FREE_SPOTS_TOTAL = 20;
-const FALLBACK_SPOTS_LEFT = 17;
 
 const PERSONA_IDS = ["tutor", "consultant", "psychologist", "nutritionist", "trainer"] as const;
 const PERSONA_EMOJI: Record<string, string> = {
@@ -450,7 +449,7 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [spotsLeft, setSpotsLeft] = useState(FALLBACK_SPOTS_LEFT);
+  const [spotsLeft, setSpotsLeft] = useState(FREE_SPOTS_TOTAL);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
