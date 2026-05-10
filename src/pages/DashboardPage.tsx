@@ -531,7 +531,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("dashboard.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            {isManager ? t("dashboard.subManager") : t("dashboard.subOther")}
+            {greeting}{firstName ? `, ${firstName}` : ""} 👋
+          </p>
+          <p className="mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">
+            {phraseOfDay}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -767,65 +770,21 @@ export default function DashboardPage() {
                       );
                     }
 
-                    const canTogglePayment =
-                      isManager || (user?.id === lesson.tutor_id && lesson.source === "independent");
-                    const isPaid = lesson.student_payment_status === "paid";
-
-                    const togglePayment = async () => {
-                      const next = isPaid ? "unpaid" : "paid";
-                      const { error } = await supabase
-                        .from("lesson_details")
-                        .upsert({ lesson_id: lesson.id, student_payment_status: next } as any, { onConflict: "lesson_id" });
-                      if (error) {
-                        // eslint-disable-next-line no-console
-                        console.error(error);
-                        return;
-                      }
-                      loadData();
-                    };
-
                     const partnerId =
                       user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id;
 
                     return (
-                      <Collapsible key={lesson.id}>
-                        <LessonCard
-                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                          variant="dashboard"
-                          studentName={studentName}
-                          tutorName={tutorName}
-                          showTutor={isManager}
-                          meetingUrl={meetingHref}
-                          chatPartnerId={partnerId}
-                          onTogglePayment={canTogglePayment ? togglePayment : undefined}
-                          extraActions={
-                            <CollapsibleTrigger asChild>
-                              <Button size="sm" variant="ghost" className="group min-h-[44px]">
-                                Деталі
-                                <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                              </Button>
-                            </CollapsibleTrigger>
-                          }
-                          footer={
-                            <CollapsibleContent className="rounded-b-xl border-x border-b border-border bg-card p-4 -mt-px">
-                              <LessonWorkspace
-                                lessonId={lesson.id}
-                                tutorId={lesson.tutor_id}
-                                studentId={lesson.student_id}
-                                meetingUrl={lesson.meeting_url}
-                                homework={lesson.homework}
-                                summary={lesson.summary}
-                                studentNotes={lesson.student_notes}
-                                source={lesson.source}
-                                studentPrice={lesson.student_price}
-                                studentPaymentStatus={lesson.student_payment_status}
-                                lessonStatus={lesson.status}
-                                onUpdated={loadData}
-                              />
-                            </CollapsibleContent>
-                          }
-                        />
-                      </Collapsible>
+                      <LessonCard
+                        key={lesson.id}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                        variant="schedule"
+                        studentName={studentName}
+                        tutorName={tutorName}
+                        showTutor={isManager}
+                        meetingUrl={meetingHref}
+                        chatPartnerId={partnerId}
+                        onContentClick={() => setOpenLessonId(lesson.id)}
+                      />
                     );
                   })
                 )}
