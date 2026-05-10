@@ -119,12 +119,6 @@ export function LessonCard({
 
   const compact = variant === "compact";
 
-  const togglePayment = (e: React.MouseEvent) => {
-    if (!onTogglePayment) return;
-    e.stopPropagation();
-    onTogglePayment();
-  };
-
   return (
     <div className={cn("space-y-0", className)}>
       <div
@@ -144,6 +138,12 @@ export function LessonCard({
           </div>
         )}
 
+        {lesson.status && (
+          <div className={cn("absolute left-3 top-3 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
+            {STATUS_LABEL[lesson.status]}
+          </div>
+        )}
+
         {/* LEFT: time block */}
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:justify-center sm:pr-4">
           <div className="min-w-[112px]">
@@ -153,11 +153,6 @@ export function LessonCard({
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               {lesson.duration_minutes} хв
             </div>
-            {lesson.status && (
-              <div className={cn("mt-1 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
-                {STATUS_LABEL[lesson.status]}
-              </div>
-            )}
           </div>
         </div>
 
