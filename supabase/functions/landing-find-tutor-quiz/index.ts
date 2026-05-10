@@ -126,5 +126,5 @@ Deno.serve(async (req) => {
     return json(500, { error: "insert_failed" });
   }
 
-  return json(200, { ok: true, alreadyExisted });
+  return json(200, { ok: true });
 });
