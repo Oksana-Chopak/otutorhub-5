@@ -93,7 +93,7 @@ export const en: Translations = {
       spotsBadge: "🔥 {{count}} of 20 free spots left",
       titlePrefix: "A smart assistant for",
       title: "A smart assistant for tutors",
-      sub: "While you teach — it counts, reminds and organises. Like a personal secretary, only always online.",
+      sub: "While you work — it counts, reminds and organises. Like a personal secretary, only always online.",
       description: "Forget spreadsheets and notepads. Your assistant keeps the books, nudges {{clients}} about overdue payments and sends a daily briefing straight to your Telegram every morning.",
       ctaPrimary: "I want an assistant →",
       ctaSecondary: "Looking for a tutor →",
