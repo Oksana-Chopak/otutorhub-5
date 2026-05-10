@@ -5,6 +5,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.landing-find-tutor-quiz]
     verify_jwt = false
+  [functions.landing-spots-left]
+    verify_jwt = false
   [functions.handle-email-suppression]
     verify_jwt = false
   [functions.handle-email-unsubscribe]

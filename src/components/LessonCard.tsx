@@ -119,12 +119,6 @@ export function LessonCard({
 
   const compact = variant === "compact";
 
-  const togglePayment = (e: React.MouseEvent) => {
-    if (!onTogglePayment) return;
-    e.stopPropagation();
-    onTogglePayment();
-  };
-
   return (
     <div className={cn("space-y-0", className)}>
       <div
@@ -134,6 +128,7 @@ export function LessonCard({
           isNow && "bg-success/5 border-success/40 border-l-success",
           isPast && !isNow && "opacity-80",
           compact ? "p-2.5 sm:p-3" : "p-3 sm:p-4",
+          lesson.status && (compact ? "pt-7 sm:pt-7" : "pt-8 sm:pt-8"),
           "sm:flex-row sm:items-stretch",
         )}
       >
@@ -141,6 +136,12 @@ export function LessonCard({
         {topRightActions && (
           <div className="absolute right-2 top-2 flex items-center gap-0.5 sm:right-3 sm:top-3">
             {topRightActions}
+          </div>
+        )}
+
+        {lesson.status && (
+          <div className={cn("absolute left-3 top-3 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
+            {STATUS_LABEL[lesson.status]}
           </div>
         )}
 
@@ -153,11 +154,6 @@ export function LessonCard({
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
               {lesson.duration_minutes} хв
             </div>
-            {lesson.status && (
-              <div className={cn("mt-1 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
-                {STATUS_LABEL[lesson.status]}
-              </div>
-            )}
           </div>
         </div>
 
