@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
+import { safeHref } from "@/lib/safeUrl";
 
 interface UpcomingLesson {
   id: string;
@@ -147,7 +148,7 @@ export default function StudentDashboardPage() {
                   </div>
                   {l.meeting_url ? (
                     <Button asChild size="sm" variant="default">
-                      <a href={l.meeting_url} target="_blank" rel="noreferrer">
+                      <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer">
                         <Video className="mr-1 h-3.5 w-3.5" /> Zoom
                       </a>
                     </Button>
