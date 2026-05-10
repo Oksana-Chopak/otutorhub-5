@@ -43,7 +43,7 @@ export const uk = {
 
   // Sidebar / nav
   nav: {
-    dashboard: "Дашборд",
+    dashboard: "Мій день",
     schedule: "Розклад",
     finances: "Фінанси",
     wallets: "Гаманці",
@@ -354,7 +354,7 @@ export const uk = {
 
   // Dashboard
   dashboard: {
-    title: "Дашборд",
+    title: "Мій день",
     subManager: "Керуйте уроками, людьми та оплатами",
     subOther: "Огляд ваших занять",
     welcome: "Вітаємо",
