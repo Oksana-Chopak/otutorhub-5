@@ -3,10 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +24,6 @@ import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
 import { Wallet } from "lucide-react";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
-import { safeHref } from "@/lib/safeUrl";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
@@ -37,9 +33,7 @@ import {
   CalendarDays,
   Users,
   TrendingUp,
-  Clock,
   Loader2,
-  ChevronDown,
   Video,
   AlertTriangle,
   UserX,
@@ -85,19 +79,15 @@ interface ProfileRow {
   last_name: string;
 }
 
-const statusLabel: Record<LessonStatus, string> = {
-  pending: "Запит",
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-};
-
-const statusClass: Record<LessonStatus, string> = {
-  pending: "bg-warning/10 text-warning border-0",
-  scheduled: "bg-primary/10 text-primary border-0",
-  completed: "bg-success/10 text-success border-0",
-  cancelled: "bg-destructive/10 text-destructive border-0",
-};
+const dayPhrases = [
+  "Спокійний план на день сильніший за десять відкритих вкладок.",
+  "Один чіткий наступний крок знімає половину хаосу.",
+  "Найкращий урок дня — той, після якого всім зрозуміло, що далі.",
+  "Менше ручної рутини — більше уваги людям.",
+  "Сьогодні достатньо зробити головне, а не все одразу.",
+  "Добрий темп починається з ясного розкладу.",
+  "Коли оплати й уроки на місці, голова вільна для навчання.",
+];
 
 type ProfitPeriod = "all" | "month" | "week";
 
@@ -422,6 +412,24 @@ export default function DashboardPage() {
     week: "за цей тиждень",
   };
 
+  const firstName = useMemo(() => {
+    const fromProfile = user?.id ? profiles[user.id]?.split(" ")[0] : "";
+    return fromProfile || user?.email?.split("@")[0] || "";
+  }, [profiles, user?.email, user?.id]);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Доброго ранку";
+    if (hour < 18) return "Доброго дня";
+    return "Доброго вечора";
+  }, []);
+
+  const phraseOfDay = useMemo(() => {
+    const start = new Date(new Date().getFullYear(), 0, 0).getTime();
+    const day = Math.floor((Date.now() - start) / 86_400_000);
+    return dayPhrases[day % dayPhrases.length];
+  }, []);
+
   // Smart tasks list (manager-only)
   const smartTasks = useMemo(() => {
     if (!isManager) return [] as Array<{
@@ -523,7 +531,10 @@ export default function DashboardPage() {
         <div>
           <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("dashboard.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            {isManager ? t("dashboard.subManager") : t("dashboard.subOther")}
+            {greeting}{firstName ? `, ${firstName}` : ""} 👋
+          </p>
+          <p className="mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">
+            {phraseOfDay}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -721,7 +732,7 @@ export default function DashboardPage() {
                         <LessonCard
                           key={lesson.id}
                           lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                          variant="dashboard"
+                          variant="schedule"
                           studentName={studentName}
                           tutorName={tutorName}
                           showTutor
@@ -759,65 +770,21 @@ export default function DashboardPage() {
                       );
                     }
 
-                    const canTogglePayment =
-                      isManager || (user?.id === lesson.tutor_id && lesson.source === "independent");
-                    const isPaid = lesson.student_payment_status === "paid";
-
-                    const togglePayment = async () => {
-                      const next = isPaid ? "unpaid" : "paid";
-                      const { error } = await supabase
-                        .from("lesson_details")
-                        .upsert({ lesson_id: lesson.id, student_payment_status: next } as any, { onConflict: "lesson_id" });
-                      if (error) {
-                        // eslint-disable-next-line no-console
-                        console.error(error);
-                        return;
-                      }
-                      loadData();
-                    };
-
                     const partnerId =
                       user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id;
 
                     return (
-                      <Collapsible key={lesson.id}>
-                        <LessonCard
-                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                          variant="dashboard"
-                          studentName={studentName}
-                          tutorName={tutorName}
-                          showTutor={isManager}
-                          meetingUrl={meetingHref}
-                          chatPartnerId={partnerId}
-                          onTogglePayment={canTogglePayment ? togglePayment : undefined}
-                          extraActions={
-                            <CollapsibleTrigger asChild>
-                              <Button size="sm" variant="ghost" className="group min-h-[44px]">
-                                Деталі
-                                <ChevronDown className="ml-1 h-4 w-4 transition-transform group-data-[state=open]:rotate-180" />
-                              </Button>
-                            </CollapsibleTrigger>
-                          }
-                          footer={
-                            <CollapsibleContent className="rounded-b-xl border-x border-b border-border bg-card p-4 -mt-px">
-                              <LessonWorkspace
-                                lessonId={lesson.id}
-                                tutorId={lesson.tutor_id}
-                                studentId={lesson.student_id}
-                                meetingUrl={lesson.meeting_url}
-                                homework={lesson.homework}
-                                summary={lesson.summary}
-                                studentNotes={lesson.student_notes}
-                                source={lesson.source}
-                                studentPrice={lesson.student_price}
-                                studentPaymentStatus={lesson.student_payment_status}
-                                lessonStatus={lesson.status}
-                                onUpdated={loadData}
-                              />
-                            </CollapsibleContent>
-                          }
-                        />
-                      </Collapsible>
+                      <LessonCard
+                        key={lesson.id}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                        variant="schedule"
+                        studentName={studentName}
+                        tutorName={tutorName}
+                        showTutor={isManager}
+                        meetingUrl={meetingHref}
+                        chatPartnerId={partnerId}
+                        onContentClick={() => setOpenLessonId(lesson.id)}
+                      />
                     );
                   })
                 )}
