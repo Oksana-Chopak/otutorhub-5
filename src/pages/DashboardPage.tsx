@@ -732,9 +732,10 @@ export default function DashboardPage() {
                                 Відкрити
                               </Button>
                               <Button
-                                size="sm"
-                                variant="outline"
-                                className="min-h-[44px] gap-1"
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                title="Поповнити гаманець"
                                 onClick={() =>
                                   setWalletPair({
                                     tutor_id: lesson.tutor_id,
@@ -745,7 +746,6 @@ export default function DashboardPage() {
                                 }
                               >
                                 <Wallet className="h-4 w-4" />
-                                Оплати
                               </Button>
                             </>
                           }
