@@ -52,7 +52,6 @@ Deno.serve(async (req) => {
   });
 
   let userId: string | null = null;
-  let alreadyExisted = false;
 
   // Try to create the user; if it already exists, look it up.
   const password = crypto.randomUUID() + crypto.randomUUID();
@@ -70,7 +69,6 @@ Deno.serve(async (req) => {
     const existing = list?.users?.find((u) => u.email?.toLowerCase() === email);
     if (existing) {
       userId = existing.id;
-      alreadyExisted = true;
     }
   } else {
     userId = created.user?.id ?? null;
@@ -126,5 +124,5 @@ Deno.serve(async (req) => {
     return json(500, { error: "insert_failed" });
   }
 
-  return json(200, { ok: true, alreadyExisted });
+  return json(200, { ok: true });
 });

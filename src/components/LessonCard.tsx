@@ -43,9 +43,6 @@ interface LessonCardProps {
   onContentClick?: () => void;
 }
 
-const fmtTime = (iso: string) =>
-  new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-
 const fmtDateTime = (iso: string) => {
   const d = new Date(iso);
   const today = new Date();
@@ -149,12 +146,12 @@ export function LessonCard({
 
         {/* LEFT: time block */}
         <div className="flex shrink-0 items-center gap-3 sm:flex-col sm:items-start sm:justify-center sm:pr-4">
-          <div className="min-w-[64px]">
-            <div className="font-display text-2xl font-bold leading-none tracking-tight text-foreground sm:text-3xl">
-              {fmtTime(lesson.starts_at)}
+          <div className="min-w-[112px]">
+            <div className="font-display text-xl font-bold leading-tight tracking-tight text-foreground sm:text-2xl">
+              {fmtDateTime(lesson.starts_at)}
             </div>
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-              {fmtDateTime(lesson.starts_at).split(" · ")[0]} · {lesson.duration_minutes} хв
+              {lesson.duration_minutes} хв
             </div>
             {lesson.status && (
               <div className={cn("mt-1 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>

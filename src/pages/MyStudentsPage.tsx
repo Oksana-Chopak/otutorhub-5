@@ -699,7 +699,7 @@ export default function MyStudentsPage() {
                     )}
                     {s.facebook_url && (
                       <a
-                        href={s.facebook_url}
+                        href={safeHref(s.facebook_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hover:text-foreground"
@@ -710,7 +710,7 @@ export default function MyStudentsPage() {
                     )}
                     {s.instagram_url && (
                       <a
-                        href={s.instagram_url}
+                        href={safeHref(s.instagram_url)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hover:text-foreground"

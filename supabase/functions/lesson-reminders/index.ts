@@ -30,6 +30,14 @@ async function sendTg(botToken: string, chatId: number, text: string): Promise<b
   return resp.ok;
 }
 
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -235,7 +243,7 @@ Deno.serve(async (req) => {
       const studentName = nameById.get(lesson.student_id) ?? "учень";
       const tutorName = nameById.get(lesson.tutor_id) ?? "репетитор";
       const link = lesson.meeting_url
-        ? `\n\n🔗 <a href="${lesson.meeting_url}">Посилання на урок</a>`
+        ? `\n\n🔗 <a href="${escapeHtmlAttr(String(lesson.meeting_url))}">Посилання на урок</a>`
         : "\n\n⚠️ Посилання на урок ще не додано.";
 
       // Send to tutor

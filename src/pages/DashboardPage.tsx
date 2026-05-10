@@ -29,6 +29,8 @@ import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { lessonSourceTint } from "@/components/SourceBadge";
+import { formatPrice } from "@/lib/currency";
 import {
   CalendarDays,
   Users,
@@ -279,6 +281,22 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
+  const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
+    const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
+    if (error) return;
+    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+  };
+
+  const updatePayment = async (
+    lessonId: string,
+    field: "student_payment_status" | "tutor_payout_status",
+    value: PaymentStatus,
+  ) => {
+    const { error } = await supabase.from("lessons").update({ [field]: value } as any).eq("id", lessonId);
+    if (error) return;
+    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
+  };
+
   useEffect(() => {
     setLoading(true);
     loadData();
@@ -410,6 +428,13 @@ export default function DashboardPage() {
     all: "за весь час",
     month: "за цей місяць",
     week: "за цей тиждень",
+  };
+
+  const statusLabel: Record<LessonStatus, string> = {
+    pending: "Запит",
+    scheduled: "Заплановано",
+    completed: "Проведено",
+    cancelled: "Скасовано",
   };
 
   const firstName = useMemo(() => {
@@ -728,6 +753,7 @@ export default function DashboardPage() {
                     const studentName = profiles[lesson.student_id] ?? "—";
 
                     if (isManager && !isParticipant) {
+                      const canEditStatus = true;
                       return (
                         <LessonCard
                           key={lesson.id}
@@ -738,6 +764,7 @@ export default function DashboardPage() {
                           showTutor
                           meetingUrl={meetingHref}
                           onContentClick={() => setOpenLessonId(lesson.id)}
+                          className={lessonSourceTint(lesson.source)}
                           extraActions={
                             <>
                               <Button
@@ -764,7 +791,60 @@ export default function DashboardPage() {
                               >
                                 <Wallet className="h-4 w-4" />
                               </Button>
+                              {canEditStatus ? (
+                                <Select
+                                  value={lesson.status}
+                                  onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                                >
+                                  <SelectTrigger className="h-11 w-[140px] text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {(["pending", "scheduled", "completed", "cancelled"] as LessonStatus[]).map((s) => (
+                                      <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : null}
                             </>
+                          }
+                          footer={
+                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
+                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                                </span>
+                                <Select
+                                  value={lesson.student_payment_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                    <SelectItem value="paid">✓ Оплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
+                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                                </span>
+                                <Select
+                                  value={lesson.tutor_payout_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
                           }
                         />
                       );
@@ -772,6 +852,7 @@ export default function DashboardPage() {
 
                     const partnerId =
                       user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id;
+                    const canEditStatus = isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
                       <LessonCard
@@ -784,6 +865,67 @@ export default function DashboardPage() {
                         meetingUrl={meetingHref}
                         chatPartnerId={partnerId}
                         onContentClick={() => setOpenLessonId(lesson.id)}
+                        className={lessonSourceTint(lesson.source)}
+                        extraActions={
+                          canEditStatus ? (
+                            <Select
+                              value={lesson.status}
+                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                            >
+                              <SelectTrigger className="h-11 w-[140px] text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(isManager
+                                  ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                                  : (["scheduled", "completed", "cancelled"] as LessonStatus[])
+                                ).map((s) => (
+                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : null
+                        }
+                        footer={
+                          isManager ? (
+                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
+                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                                </span>
+                                <Select
+                                  value={lesson.student_payment_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                    <SelectItem value="paid">✓ Оплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
+                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                                </span>
+                                <Select
+                                  value={lesson.tutor_payout_status}
+                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                                >
+                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          ) : null
+                        }
                       />
                     );
                   })
