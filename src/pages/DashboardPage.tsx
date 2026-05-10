@@ -28,6 +28,7 @@ import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
+import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { formatPrice } from "@/lib/currency";
