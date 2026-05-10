@@ -744,6 +744,7 @@ export default function DashboardPage() {
           )}
 
           {isIndependentTutor && <TutorWelcomeBanner />}
+          {isIndependentTutor && <AutoCompleteLessonsCard />}
           {(isTutor || isManager) && (
             <div className="mt-4">
               <QuickActionsCard onChanged={loadData} />
