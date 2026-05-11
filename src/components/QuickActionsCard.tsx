@@ -556,6 +556,9 @@ function AddLessonForm({
           <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9" />
         </div>
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        {formatUkrainianDateTimeFromParts(date, time)}
+      </p>
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
@@ -672,10 +675,17 @@ function AddPaymentForm({
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {students.map((s) => (
-                <SelectItem key={s.rate_key} value={s.rate_key}>{s.name} · {s.tutor_name}</SelectItem>
+                <SelectItem key={s.rate_key} value={s.rate_key}>
+                  {s.name} · {s.subject || "предмет"} · {formatPrice(s.price, s.currency)} · {s.tutor_name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {selected && (
+            <p className="text-[11px] text-muted-foreground">
+              Валюта й ціна: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
+            </p>
+          )}
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Дія</Label>
@@ -699,7 +709,7 @@ function AddPaymentForm({
                 const d = new Date(u.starts_at);
                 return (
                   <SelectItem key={u.id} value={u.id}>
-                    {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} · {u.subject}
+                    {formatUkrainianDateTime(u.starts_at)} · {u.subject}
                     {selected ? ` · ${formatPrice(selected.price, selected.currency)}` : ""}
                   </SelectItem>
                 );
