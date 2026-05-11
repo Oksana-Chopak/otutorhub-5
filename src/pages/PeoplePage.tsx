@@ -1085,19 +1085,19 @@ export default function PeoplePage() {
               )
             ) : (
               <div className="space-y-2">
-                {linkedTutors.map((t) => {
+              {linkedTutors.map((t) => {
                   const tSubjects = t.subjects ?? [];
                   if (tSubjects.length === 0) return null;
                   return (
                     <div key={t.id} className="space-y-1">
-                      <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
+                      <p className="text-xs font-medium text-foreground lg:text-sm">{fullName(t)}</p>
                       {tSubjects.map((subj) => {
                         const rate = studentRates.find(
                           (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
                         );
                         return (
                           <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
-                            <span className="min-w-0 flex-1 truncate text-muted-foreground">{subj}</span>
+                            <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
                                 {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
@@ -1134,7 +1134,7 @@ export default function PeoplePage() {
         );
       })()}
 
-      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
+          {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
     </div>
     );
   };
@@ -1316,7 +1316,7 @@ export default function PeoplePage() {
                 <UsersIcon className="h-5 w-5 text-warning" />
                 Без ролі ({noRole.length})
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
                 {noRole.map((u) => renderUserCard(u))}
               </div>
             </section>
@@ -1328,7 +1328,7 @@ export default function PeoplePage() {
               <UsersIcon className="h-5 w-5 text-primary" />
               Менеджери ({managers.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {managers.map((u) => renderUserCard(u, "primary"))}
             </div>
           </section>
@@ -1340,7 +1340,7 @@ export default function PeoplePage() {
               <GraduationCap className="h-5 w-5 text-primary" />
               Репетитори ({tutors.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {tutors.map((u) => renderUserCard(u, "primary"))}
             </div>
           </section>
@@ -1352,7 +1352,7 @@ export default function PeoplePage() {
               <BookOpen className="h-5 w-5 text-primary" />
               Учні ({students.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {students.map((u) => renderUserCard(u))}
             </div>
           </section>
