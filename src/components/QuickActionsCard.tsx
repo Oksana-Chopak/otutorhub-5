@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { ChevronDown, Loader2, UserPlus, CalendarPlus, BadgeDollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
 
 type PaymentType = "wallet" | "lesson";
 type PaymentUnit = "lessons" | "amount";
@@ -196,7 +197,7 @@ export function QuickActionsCard({ onChanged }: Props) {
         </p>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0 lg:items-start">
         <ActionTab
           icon={<UserPlus className="h-4 w-4" />}
           title="Учень"
@@ -292,6 +293,7 @@ function AddStudentForm({
   const [tutorId, setTutorId] = useState("");
   const [subject, setSubject] = useState("");
   const [price, setPrice] = useState("");
+  const [currency, setCurrency] = useState<string>("UAH");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -328,6 +330,7 @@ function AddStudentForm({
       student_id: newId,
       subject,
       price_per_lesson: p,
+      currency,
       source: isManager ? "hub" : "independent",
     });
     setBusy(false);
@@ -345,7 +348,7 @@ function AddStudentForm({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">Ім'я</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} className="h-9" />
@@ -367,15 +370,28 @@ function AddStudentForm({
           <Label className="text-xs">Предмет</Label>
           <SubjectSelect value={subject} onValueChange={setSubject} />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Ціна (₴)</Label>
-          <Input
-            type="number"
-            min={0}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="h-9"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Ціна ({currencySymbol(currency)})</Label>
+            <Input
+              type="number"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Валюта</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCY_OPTIONS.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="flex justify-end">
@@ -449,7 +465,7 @@ function AddLessonForm({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">Учень</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
@@ -462,6 +478,11 @@ function AddLessonForm({
               ))}
             </SelectContent>
           </Select>
+          {selected && (
+            <p className="text-[11px] text-muted-foreground">
+              Ціна за урок: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
+            </p>
+          )}
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Тривалість, хв</Label>
@@ -594,7 +615,7 @@ function AddPaymentForm({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">Учень</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
@@ -629,6 +650,7 @@ function AddPaymentForm({
                 return (
                   <SelectItem key={u.id} value={u.id}>
                     {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} · {u.subject}
+                    {selected ? ` · ${formatPrice(selected.price, selected.currency)}` : ""}
                   </SelectItem>
                 );
               })}
@@ -637,7 +659,7 @@ function AddPaymentForm({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Формат</Label>
               <Select value={paymentUnit} onValueChange={(v) => setPaymentUnit(v as PaymentUnit)}>
@@ -649,7 +671,7 @@ function AddPaymentForm({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{paymentUnit === "lessons" ? "Кількість" : "Сума"}</Label>
+              <Label className="text-xs">{paymentUnit === "lessons" ? "Кількість" : `Сума (${currencySymbol(selected?.currency)})`}</Label>
               <Input
                 type="number"
                 min={paymentUnit === "lessons" ? 1 : 0}
