@@ -708,8 +708,17 @@ export default function SchedulePage() {
   ) => {
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
-    const update: any = { [field]: value };
-    const { error } = await supabase.from("lessons").update(update).eq("id", lessonId);
+    const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    const { error } = await supabase
+      .from("lesson_details")
+      .upsert(
+        {
+          lesson_id: lessonId,
+          [field]: value,
+          [paidAtField]: value === "paid" ? new Date().toISOString() : null,
+        } as any,
+        { onConflict: "lesson_id" },
+      );
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
