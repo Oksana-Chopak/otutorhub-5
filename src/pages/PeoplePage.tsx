@@ -974,7 +974,7 @@ export default function PeoplePage() {
         </Select>
       </div>
 
-      {isManager && u.role === "tutor" && !u.archived_at && (() => {
+      {isManager && u.role === "tutor" && !u.archived_at && statusFilter === "onboarding" && (() => {
         const steps = [
           { ok: !!u.has_student, label: "Додав учня" },
           { ok: !!u.has_lesson, label: "Створив урок" },
@@ -1055,7 +1055,7 @@ export default function PeoplePage() {
         const hasAnyTutor = allTutors.some((t) => (t.subjects ?? []).length > 0);
         return (
           <div className="mt-3 pt-3 border-t border-border">
-            <div className="flex items-center justify-between mb-2 gap-2">
+            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
                 {linkedTutors.length === 0
                   ? "Ще не призначено жодного репетитора."
@@ -1065,7 +1065,7 @@ export default function PeoplePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="h-7 w-full px-2 text-xs sm:w-auto"
                   onClick={openAddTutor}
                 >
                   <UserPlus className="h-3.5 w-3.5 mr-1" />
@@ -1092,8 +1092,8 @@ export default function PeoplePage() {
                           (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
                         );
                         return (
-                          <div key={subj} className="flex items-center justify-between text-xs pl-2">
-                            <span className="text-muted-foreground truncate flex-1">{subj}</span>
+                          <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
+                            <span className="min-w-0 flex-1 truncate text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
                                 {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
