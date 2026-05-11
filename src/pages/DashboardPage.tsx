@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
@@ -271,7 +272,7 @@ export default function DashboardPage() {
     if (!user) return;
 
     const [
-      { data: lessonsData },
+      { data: lessonsData, error: lessonsError },
       { data: profilesData },
       { data: rolesData },
       { data: requestRows },
@@ -300,6 +301,12 @@ export default function DashboardPage() {
         .from("student_rates")
         .select("tutor_id, student_id, currency"),
     ]);
+
+    if (lessonsError) {
+      toast.error("Не вдалося завантажити дані. Перевірте з'єднання.");
+      setLoading(false);
+      return;
+    }
 
     const currencyMap: Record<string, string> = {};
     ((ratesCurrencyData ?? []) as Array<{ tutor_id: string; student_id: string; currency: string | null }>).forEach((r) => {
@@ -387,7 +394,10 @@ export default function DashboardPage() {
 
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
-    if (error) return;
+    if (error) {
+      toast.error("Не вдалося змінити статус уроку. Спробуйте ще раз.");
+      return;
+    }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
   };
 
@@ -407,7 +417,10 @@ export default function DashboardPage() {
         } as any,
         { onConflict: "lesson_id" },
       );
-    if (error) return;
+    if (error) {
+      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      return;
+    }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
   };
 
