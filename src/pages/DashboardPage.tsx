@@ -589,6 +589,73 @@ export default function DashboardPage() {
       cta: string;
     }>;
     const tasks = [];
+    // 1. Pending payments — top priority for everyone, but smartTasks is manager-only here
+    if (pendingPayments.length > 0) {
+      tasks.push({
+        key: "pending-payments",
+        icon: TrendingUp,
+        tone: "warning" as const,
+        title: `Очікують оплати: ${pendingPayments.length}`,
+        description: "Завершені уроки без повної оплати або виплати.",
+        to: "/finances",
+        cta: "Перейти до фінансів",
+      });
+    }
+    // 2. Tutor referral requests (students looking for a tutor)
+    if (tutorReferralRequestCount > 0) {
+      tasks.push({
+        key: "tutor-referral-requests",
+        icon: HandHeart,
+        tone: "destructive" as const,
+        title: `${tutorReferralRequestCount} запит${
+          tutorReferralRequestCount === 1 ? "" : tutorReferralRequestCount < 5 ? "и" : "ів"
+        } на репетитора`,
+        description: "Учні залишили заявку — підберіть фахівця.",
+        to: "/referrals",
+        cta: "Переглянути заявки",
+      });
+    }
+    // 3. Support / subscription requests
+    if (supportRequestCount > 0) {
+      tasks.push({
+        key: "support-requests",
+        icon: AlertTriangle,
+        tone: "warning" as const,
+        title: `${supportRequestCount} звернен${
+          supportRequestCount === 1 ? "ня" : supportRequestCount < 5 ? "ня" : "ь"
+        } у службу підтримки`,
+        description: "Репетитори надіслали запитання — дайте відповідь.",
+        to: "/subscription-requests",
+        cta: "Відкрити звернення",
+      });
+    }
+    // 4. Students without a tutor
+    if (studentsWithoutTutor > 0) {
+      tasks.push({
+        key: "students-no-tutor",
+        icon: UserX,
+        tone: "destructive" as const,
+        title: `${studentsWithoutTutor} учн${
+          studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
+        } без репетитора`,
+        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
+        to: "/people",
+        cta: "Відкрити людей",
+      });
+    }
+    // 5. Lessons without meeting link
+    if (lessonsWithoutMeeting > 0) {
+      tasks.push({
+        key: "no-meeting",
+        icon: Video,
+        tone: "primary" as const,
+        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
+        description: "Репетитори не вказали лінк на зустріч.",
+        to: "/schedule",
+        cta: "Відкрити розклад",
+      });
+    }
+    // Lower-priority items (kept for completeness)
     if (pendingLessonRequests > 0) {
       tasks.push({
         key: "pending-lessons",
@@ -615,19 +682,6 @@ export default function DashboardPage() {
         cta: "Перейти до годин",
       });
     }
-    if (studentsWithoutTutor > 0) {
-      tasks.push({
-        key: "students-no-tutor",
-        icon: UserX,
-        tone: "destructive" as const,
-        title: `${studentsWithoutTutor} учн${
-          studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
-        } без репетитора`,
-        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
-        to: "/people",
-        cta: "Відкрити людей",
-      });
-    }
     if (lessonsWithoutPrice > 0) {
       tasks.push({
         key: "no-price",
@@ -639,33 +693,13 @@ export default function DashboardPage() {
         cta: "Відкрити уроки",
       });
     }
-    if (lessonsWithoutMeeting > 0) {
-      tasks.push({
-        key: "no-meeting",
-        icon: Video,
-        tone: "primary" as const,
-        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
-        description: "Репетитори не вказали лінк на зустріч.",
-        to: "/schedule",
-        cta: "Відкрити розклад",
-      });
-    }
-    if (pendingPayments.length > 0) {
-      tasks.push({
-        key: "pending-payments",
-        icon: TrendingUp,
-        tone: "warning" as const,
-        title: `Очікують оплати: ${pendingPayments.length}`,
-        description: "Завершені уроки без повної оплати або виплати.",
-        to: "/finances",
-        cta: "Перейти до фінансів",
-      });
-    }
     return tasks;
   }, [
     isManager,
     pendingLessonRequests,
     pendingRequestCount,
+    tutorReferralRequestCount,
+    supportRequestCount,
     studentsWithoutTutor,
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
