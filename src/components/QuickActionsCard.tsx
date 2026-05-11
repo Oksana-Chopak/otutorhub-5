@@ -330,6 +330,7 @@ function AddStudentForm({
       student_id: newId,
       subject,
       price_per_lesson: p,
+      currency,
       source: isManager ? "hub" : "independent",
     });
     setBusy(false);
