@@ -769,8 +769,9 @@ export default function DashboardPage() {
           {isIndependentTutor && <TutorWelcomeBanner />}
           {isIndependentTutor && <AutoCompleteLessonsCard />}
           {(isTutor || isManager) && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-4">
               <QuickActionsCard onChanged={loadData} />
+              {isTutor && <TutorNotesCard />}
             </div>
           )}
           {isIndependentTutor && (
