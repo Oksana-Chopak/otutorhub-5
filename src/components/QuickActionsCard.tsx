@@ -500,6 +500,7 @@ function AddLessonForm({
     if (!user) return;
     if (!selected) return toast.error("Виберіть учня");
     if (!selected.subject) return toast.error("У учня не вказаний предмет");
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return toast.error("Вкажіть час у форматі 18:00");
     setBusy(true);
     const startsAt = new Date(`${date}T${time}:00`);
     const { data: created, error } = await supabase
