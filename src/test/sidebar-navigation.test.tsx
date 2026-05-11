@@ -58,22 +58,22 @@ function renderNav() {
 }
 
 describe("MobileBottomNav — пункти за ролями", () => {
-  it("MANAGER бачить 'Люди' та 'Профіль' (Фінанси переїхали в /profile)", () => {
+  it("MANAGER бачить 'Люди', 'Фінанси' та 'Профіль'", () => {
     setRoles(["manager"]);
     renderNav();
     expect(screen.queryByText(/Люди/i)).toBeTruthy();
+    expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
     expect(screen.queryByText(/Профіль/i)).toBeTruthy();
-    expect(screen.queryByText(/Фінанси/i)).toBeNull();
   });
 
-  it("TUTOR бачить 'Учні' та 'Профіль', не бачить 'Люди' / 'Аудит' / 'Фінанси'", () => {
+  it("TUTOR бачить 'Учні', 'Фінанси' та 'Профіль', не бачить 'Люди' / 'Аудит'", () => {
     setRoles(["tutor"]);
     renderNav();
     expect(screen.queryByText(/Учні/i)).toBeTruthy();
+    expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
     expect(screen.queryByText(/Профіль/i)).toBeTruthy();
     expect(screen.queryByText(/Люди/i)).toBeNull();
     expect(screen.queryByText(/Аудит/i)).toBeNull();
-    expect(screen.queryByText(/Фінанси/i)).toBeNull();
   });
 
   it("STUDENT не бачить 'Фінанси' / 'Люди' / 'Аудит' / 'Доступність' / 'Учні'", () => {
