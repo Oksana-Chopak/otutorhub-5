@@ -1999,6 +1999,13 @@ export type Database = {
           read_ct: number
         }[]
       }
+      resolve_referral_code: {
+        Args: { _code: string }
+        Returns: {
+          first_name: string
+          last_name: string
+        }[]
+      }
       wallet_adjust: {
         Args: {
           _amount_delta: number
