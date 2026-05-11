@@ -774,14 +774,14 @@ export default function PeoplePage() {
     });
   }, [users, searchQuery, subjectFilter, statusFilter, studentRates]);
 
-  const sortByRecency = (a: UserRow, b: UserRow) => {
-    const aT = a.last_interaction_at ? new Date(a.last_interaction_at).getTime() : 0;
-    const bT = b.last_interaction_at ? new Date(b.last_interaction_at).getTime() : 0;
+  const sortByRegistration = (a: UserRow, b: UserRow) => {
+    const aT = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bT = b.created_at ? new Date(b.created_at).getTime() : 0;
     if (aT !== bT) return bT - aT;
     return fullName(a).localeCompare(fullName(b), "uk");
   };
-  const tutors = filteredUsers.filter((u) => u.role === "tutor").sort(sortByRecency);
-  const students = filteredUsers.filter((u) => u.role === "student").sort(sortByRecency);
+  const tutors = filteredUsers.filter((u) => u.role === "tutor").sort(sortByRegistration);
+  const students = filteredUsers.filter((u) => u.role === "student").sort(sortByRegistration);
   const managers = filteredUsers.filter((u) => u.role === "manager");
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows
