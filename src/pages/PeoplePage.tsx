@@ -1130,26 +1130,26 @@ export default function PeoplePage() {
         );
       })()}
 
-      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
+      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
     </div>
     );
   };
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Люди</h1>
-          <p className="text-sm text-muted-foreground">
-            Керування користувачами, ролями та ставками. Можна додати людину до її реєстрації — після створення акаунту дані зв'яжуться автоматично.
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">Люди</h1>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+            Користувачі, ролі, контакти й ставки.
           </p>
         </div>
         {isManager && (
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Додати людину
+              <Button size="sm" className="shrink-0">
+                <UserPlus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Додати людину</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
