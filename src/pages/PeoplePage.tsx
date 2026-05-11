@@ -1302,6 +1302,10 @@ export default function PeoplePage() {
         </div>
       ) : (
         <>
+          {visiblePeopleCount === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">Нічого не знайдено</p>
+          )}
+
           {noRole.length > 0 && (
             <section className="mb-8">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
@@ -1314,47 +1318,41 @@ export default function PeoplePage() {
             </section>
           )}
 
+          {managers.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <UsersIcon className="h-5 w-5 text-primary" />
               Менеджери ({managers.length})
             </h2>
-            {managers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає менеджерів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {managers.map((u) => renderUserCard(u, "primary"))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {managers.map((u) => renderUserCard(u, "primary"))}
+            </div>
           </section>
+          )}
 
+          {tutors.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-primary" />
               Репетитори ({tutors.length})
             </h2>
-            {tutors.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає репетиторів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {tutors.map((u) => renderUserCard(u, "primary"))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {tutors.map((u) => renderUserCard(u, "primary"))}
+            </div>
           </section>
+          )}
 
+          {students.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
               Учні ({students.length})
             </h2>
-            {students.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає учнів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {students.map((u) => renderUserCard(u))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {students.map((u) => renderUserCard(u))}
+            </div>
           </section>
+          )}
         </>
       )}
 
