@@ -302,6 +302,12 @@ export default function DashboardPage() {
         .select("tutor_id, student_id, currency"),
     ]);
 
+    if (lessonsError) {
+      toast.error("Не вдалося завантажити дані. Перевірте з'єднання.");
+      setLoading(false);
+      return;
+    }
+
     const currencyMap: Record<string, string> = {};
     ((ratesCurrencyData ?? []) as Array<{ tutor_id: string; student_id: string; currency: string | null }>).forEach((r) => {
       currencyMap[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
