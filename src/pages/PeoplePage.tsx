@@ -770,10 +770,23 @@ export default function PeoplePage() {
             last_lesson_at: u.last_lesson_at ?? null,
           })
         : null;
+    const tutorProgress = isManager && u.role === "tutor" && !u.archived_at
+      ? (() => {
+          const steps = [
+            { ok: !!u.has_student, label: "Учні" },
+            { ok: !!u.has_lesson, label: "Уроки" },
+            { ok: !!u.has_paid_lesson, label: "Оплати" },
+          ];
+          const doneCount = steps.filter((s) => s.ok).length;
+          const fmt = (d?: string | null) =>
+            d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
+          return { steps, doneCount, fmt };
+        })()
+      : null;
     return (
     <div
       key={u.id}
-      className={`rounded-lg border bg-card p-3 sm:p-4 lg:p-5 ${
+      className={`rounded-lg border bg-card p-3 sm:p-4 ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -781,8 +794,8 @@ export default function PeoplePage() {
             : "border-border"
       }`}
     >
-      <div className="mb-2.5 flex items-start justify-between gap-2 sm:mb-3 sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+      <div className="mb-3 flex items-start justify-between gap-3 lg:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-4">
           <div className="relative shrink-0">
             {u.is_pending ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
@@ -793,7 +806,7 @@ export default function PeoplePage() {
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-9 w-9 sm:h-10 sm:w-10 ${
+                className={`h-10 w-10 lg:h-12 lg:w-12 ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
@@ -807,7 +820,9 @@ export default function PeoplePage() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
+              <p className="max-w-full overflow-visible text-sm font-medium text-foreground lg:text-base lg:whitespace-normal lg:text-clip">
+                {fullName(u)}
+              </p>
               {u.is_pending && (
                 <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
                   Очікує реєстрації
@@ -832,7 +847,7 @@ export default function PeoplePage() {
               )}
             </div>
             {(u.email || u.phone) && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="break-words text-xs text-muted-foreground lg:text-sm">
                 {[u.email, u.phone].filter(Boolean).join(" · ")}
               </p>
             )}
@@ -841,7 +856,7 @@ export default function PeoplePage() {
                 {u.subjects.map((s) => {
                   const r = tutorSubjectRates[u.id]?.[s];
                   return (
-                    <p key={s} className="text-xs text-muted-foreground truncate">
+                    <p key={s} className="break-words text-xs text-muted-foreground">
                       <span className="text-foreground">{s}</span>
                       {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
                     </p>
