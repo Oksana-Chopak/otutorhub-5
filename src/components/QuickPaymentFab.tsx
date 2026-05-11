@@ -72,19 +72,28 @@ export function QuickPaymentFab() {
 
     const ids = Array.from(new Set(lessons.map((l) => l.student_id)));
     const names: Record<string, string> = {};
+    const currencies: Record<string, string> = {};
     if (ids.length) {
-      const { data: profs } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name")
-        .in("id", ids);
+      const [{ data: profs }, { data: rates }] = await Promise.all([
+        supabase.from("profiles").select("id, first_name, last_name").in("id", ids),
+        supabase
+          .from("student_rates")
+          .select("student_id, currency")
+          .eq("tutor_id", user.id)
+          .in("student_id", ids),
+      ]);
       (profs ?? []).forEach((p: any) => {
         names[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень";
+      });
+      (rates ?? []).forEach((r: any) => {
+        currencies[r.student_id] = r.currency ?? "UAH";
       });
     }
     setRows(
       lessons.map((l) => ({
         ...l,
         student_name: names[l.student_id] ?? "Учень",
+        currency: currencies[l.student_id] ?? "UAH",
       }))
     );
     setLoading(false);
