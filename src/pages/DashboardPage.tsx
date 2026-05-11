@@ -863,7 +863,7 @@ export default function DashboardPage() {
             />
           )}
 
-          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
+          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:gap-6 xl:grid-cols-2`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
