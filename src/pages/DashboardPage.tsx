@@ -215,6 +215,7 @@ export default function DashboardPage() {
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [quickLessonOpen, setQuickLessonOpen] = useState(false);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
