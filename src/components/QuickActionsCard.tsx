@@ -348,7 +348,7 @@ function AddStudentForm({
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
           <Label className="text-xs">Ім'я</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} className="h-9" />
@@ -370,15 +370,28 @@ function AddStudentForm({
           <Label className="text-xs">Предмет</Label>
           <SubjectSelect value={subject} onValueChange={setSubject} />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Ціна (₴)</Label>
-          <Input
-            type="number"
-            min={0}
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="h-9"
-          />
+        <div className="grid grid-cols-2 gap-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Ціна ({currencySymbol(currency)})</Label>
+            <Input
+              type="number"
+              min={0}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Валюта</Label>
+            <Select value={currency} onValueChange={setCurrency}>
+              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCY_OPTIONS.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
       <div className="flex justify-end">
