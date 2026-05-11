@@ -207,6 +207,8 @@ export default function DashboardPage() {
   const [tutorCount, setTutorCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [tutorReferralRequestCount, setTutorReferralRequestCount] = useState(0);
+  const [supportRequestCount, setSupportRequestCount] = useState(0);
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
@@ -330,6 +332,21 @@ export default function DashboardPage() {
     setTutorCount(tutorIds.length);
     setStudentCount(studentIds.length);
     setPendingRequestCount((requestRows ?? []).length);
+
+    if (isManager) {
+      const [{ count: trCount }, { count: srCount }] = await Promise.all([
+        supabase
+          .from("tutor_referral_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["open", "in_progress"]),
+        supabase
+          .from("subscription_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["new", "in_progress"]),
+      ]);
+      setTutorReferralRequestCount(trCount ?? 0);
+      setSupportRequestCount(srCount ?? 0);
+    }
 
     if (isManager) {
       const linkedStudentIds = new Set<string>();
@@ -572,6 +589,73 @@ export default function DashboardPage() {
       cta: string;
     }>;
     const tasks = [];
+    // 1. Pending payments — top priority for everyone, but smartTasks is manager-only here
+    if (pendingPayments.length > 0) {
+      tasks.push({
+        key: "pending-payments",
+        icon: TrendingUp,
+        tone: "warning" as const,
+        title: `Очікують оплати: ${pendingPayments.length}`,
+        description: "Завершені уроки без повної оплати або виплати.",
+        to: "/finances",
+        cta: "Перейти до фінансів",
+      });
+    }
+    // 2. Tutor referral requests (students looking for a tutor)
+    if (tutorReferralRequestCount > 0) {
+      tasks.push({
+        key: "tutor-referral-requests",
+        icon: HandHeart,
+        tone: "destructive" as const,
+        title: `${tutorReferralRequestCount} запит${
+          tutorReferralRequestCount === 1 ? "" : tutorReferralRequestCount < 5 ? "и" : "ів"
+        } на репетитора`,
+        description: "Учні залишили заявку — підберіть фахівця.",
+        to: "/referrals",
+        cta: "Переглянути заявки",
+      });
+    }
+    // 3. Support / subscription requests
+    if (supportRequestCount > 0) {
+      tasks.push({
+        key: "support-requests",
+        icon: AlertTriangle,
+        tone: "warning" as const,
+        title: `${supportRequestCount} звернен${
+          supportRequestCount === 1 ? "ня" : supportRequestCount < 5 ? "ня" : "ь"
+        } у службу підтримки`,
+        description: "Репетитори надіслали запитання — дайте відповідь.",
+        to: "/subscription-requests",
+        cta: "Відкрити звернення",
+      });
+    }
+    // 4. Students without a tutor
+    if (studentsWithoutTutor > 0) {
+      tasks.push({
+        key: "students-no-tutor",
+        icon: UserX,
+        tone: "destructive" as const,
+        title: `${studentsWithoutTutor} учн${
+          studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
+        } без репетитора`,
+        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
+        to: "/people",
+        cta: "Відкрити людей",
+      });
+    }
+    // 5. Lessons without meeting link
+    if (lessonsWithoutMeeting > 0) {
+      tasks.push({
+        key: "no-meeting",
+        icon: Video,
+        tone: "primary" as const,
+        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
+        description: "Репетитори не вказали лінк на зустріч.",
+        to: "/schedule",
+        cta: "Відкрити розклад",
+      });
+    }
+    // Lower-priority items (kept for completeness)
     if (pendingLessonRequests > 0) {
       tasks.push({
         key: "pending-lessons",
@@ -598,19 +682,6 @@ export default function DashboardPage() {
         cta: "Перейти до годин",
       });
     }
-    if (studentsWithoutTutor > 0) {
-      tasks.push({
-        key: "students-no-tutor",
-        icon: UserX,
-        tone: "destructive" as const,
-        title: `${studentsWithoutTutor} учн${
-          studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
-        } без репетитора`,
-        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
-        to: "/people",
-        cta: "Відкрити людей",
-      });
-    }
     if (lessonsWithoutPrice > 0) {
       tasks.push({
         key: "no-price",
@@ -622,33 +693,13 @@ export default function DashboardPage() {
         cta: "Відкрити уроки",
       });
     }
-    if (lessonsWithoutMeeting > 0) {
-      tasks.push({
-        key: "no-meeting",
-        icon: Video,
-        tone: "primary" as const,
-        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
-        description: "Репетитори не вказали лінк на зустріч.",
-        to: "/schedule",
-        cta: "Відкрити розклад",
-      });
-    }
-    if (pendingPayments.length > 0) {
-      tasks.push({
-        key: "pending-payments",
-        icon: TrendingUp,
-        tone: "warning" as const,
-        title: `Очікують оплати: ${pendingPayments.length}`,
-        description: "Завершені уроки без повної оплати або виплати.",
-        to: "/finances",
-        cta: "Перейти до фінансів",
-      });
-    }
     return tasks;
   }, [
     isManager,
     pendingLessonRequests,
     pendingRequestCount,
+    tutorReferralRequestCount,
+    supportRequestCount,
     studentsWithoutTutor,
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
@@ -812,7 +863,7 @@ export default function DashboardPage() {
             />
           )}
 
-          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:grid-cols-[1.2fr,0.8fr]`}>
+          <div className={`${isManager || isIndependentTutor ? "mt-8 " : ""}grid gap-4 lg:gap-6 xl:grid-cols-2`}>
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
@@ -1048,7 +1099,6 @@ export default function DashboardPage() {
               <h2 className="mb-4 font-display text-lg font-semibold text-foreground">{t("dashboard.nextSteps")}</h2>
               {isManager ? (
                 <div className="space-y-3">
-                  <TelegramLinkCard />
                   {smartTasks.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
@@ -1093,10 +1143,10 @@ export default function DashboardPage() {
                       );
                     })
                   )}
+                  <TelegramLinkCard />
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <TelegramLinkCard />
                   {isStudent && (
                     <>
                       {studentTutorCount > 0 ? (
@@ -1177,6 +1227,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
+                  <TelegramLinkCard />
                 </div>
               )}
             </section>
