@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -17,6 +24,7 @@ import { Loader2, Video } from "lucide-react";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { sanitizeHttpUrl } from "@/lib/safeUrl";
+import { CURRENCY_OPTIONS, currencySymbol } from "@/lib/currency";
 
 interface Props {
   open: boolean;
@@ -32,6 +40,7 @@ const empty = {
   telegram: "",
   subject: "",
   price: "",
+  currency: "UAH",
   default_meeting_url: "",
 };
 
@@ -60,6 +69,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     const phone = form.phone.trim() || null;
     const subject = form.subject.trim();
     const price = Number(form.price);
+    const currency = form.currency || "UAH";
 
     if (!fn) return toast.error("Вкажіть ім'я учня");
     if (!email && !phone) return toast.error("Потрібен email або телефон");
@@ -89,6 +99,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       student_id: newId,
       subject,
       price_per_lesson: price,
+      currency,
       source: "independent",
     });
     if (rateErr) {
