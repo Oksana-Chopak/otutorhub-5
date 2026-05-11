@@ -759,6 +759,7 @@ export default function PeoplePage() {
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows
   const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
+  const visiblePeopleCount = noRole.length + managers.length + tutors.length + students.length;
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => {
     const studentSt =
@@ -772,7 +773,7 @@ export default function PeoplePage() {
     return (
     <div
       key={u.id}
-      className={`rounded-xl border bg-card p-5 ${
+      className={`rounded-lg border bg-card p-3 sm:p-4 lg:p-5 ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -780,8 +781,8 @@ export default function PeoplePage() {
             : "border-border"
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="mb-2.5 flex items-start justify-between gap-2 sm:mb-3 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
           <div className="relative shrink-0">
             {u.is_pending ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
@@ -792,7 +793,7 @@ export default function PeoplePage() {
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-10 w-10 ${
+                className={`h-9 w-9 sm:h-10 sm:w-10 ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
@@ -959,10 +960,10 @@ export default function PeoplePage() {
           )}
         </div>
       )}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-2 flex min-w-0 items-center gap-2">
         <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 min-w-0 text-xs">
             <SelectValue placeholder="Без ролі" />
           </SelectTrigger>
           <SelectContent>
@@ -973,7 +974,7 @@ export default function PeoplePage() {
         </Select>
       </div>
 
-      {isManager && u.role === "tutor" && !u.archived_at && (() => {
+      {isManager && u.role === "tutor" && !u.archived_at && statusFilter === "onboarding" && (() => {
         const steps = [
           { ok: !!u.has_student, label: "Додав учня" },
           { ok: !!u.has_lesson, label: "Створив урок" },
@@ -1054,7 +1055,7 @@ export default function PeoplePage() {
         const hasAnyTutor = allTutors.some((t) => (t.subjects ?? []).length > 0);
         return (
           <div className="mt-3 pt-3 border-t border-border">
-            <div className="flex items-center justify-between mb-2 gap-2">
+            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
                 {linkedTutors.length === 0
                   ? "Ще не призначено жодного репетитора."
@@ -1064,7 +1065,7 @@ export default function PeoplePage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="h-7 w-full px-2 text-xs sm:w-auto"
                   onClick={openAddTutor}
                 >
                   <UserPlus className="h-3.5 w-3.5 mr-1" />
@@ -1091,8 +1092,8 @@ export default function PeoplePage() {
                           (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
                         );
                         return (
-                          <div key={subj} className="flex items-center justify-between text-xs pl-2">
-                            <span className="text-muted-foreground truncate flex-1">{subj}</span>
+                          <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
+                            <span className="min-w-0 flex-1 truncate text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
                                 {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
@@ -1129,26 +1130,26 @@ export default function PeoplePage() {
         );
       })()}
 
-      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} />}
+      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
     </div>
     );
   };
 
   return (
     <AppLayout>
-      <div className="mb-6 flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Люди</h1>
-          <p className="text-sm text-muted-foreground">
-            Керування користувачами, ролями та ставками. Можна додати людину до її реєстрації — після створення акаунту дані зв'яжуться автоматично.
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">Люди</h1>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+            Користувачі, ролі, контакти й ставки.
           </p>
         </div>
         {isManager && (
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <UserPlus className="h-4 w-4 mr-2" />
-                Додати людину
+              <Button size="sm" className="shrink-0">
+                <UserPlus className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Додати людину</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
@@ -1247,19 +1248,22 @@ export default function PeoplePage() {
 
       {/* Search + filters (filters collapse on mobile) */}
       {!loading && (
-        <div className="mb-6 space-y-3">
+        <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           <Input
             placeholder="Пошук за іменем, email, телефоном..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9"
+            className="h-9 min-w-0 flex-1"
           />
           <MobileFilters
+            compact
+            align="right"
+            className="shrink-0"
             activeCount={
               (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
             }
           >
-            <div className="w-full sm:w-48">
+            <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Предмет" />
@@ -1274,7 +1278,7 @@ export default function PeoplePage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full sm:w-44">
+            <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Статус" />
@@ -1298,59 +1302,57 @@ export default function PeoplePage() {
         </div>
       ) : (
         <>
+          {visiblePeopleCount === 0 && (
+            <p className="py-8 text-center text-sm text-muted-foreground">Нічого не знайдено</p>
+          )}
+
           {noRole.length > 0 && (
             <section className="mb-8">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <UsersIcon className="h-5 w-5 text-warning" />
                 Без ролі ({noRole.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
                 {noRole.map((u) => renderUserCard(u))}
               </div>
             </section>
           )}
 
+          {managers.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <UsersIcon className="h-5 w-5 text-primary" />
               Менеджери ({managers.length})
             </h2>
-            {managers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає менеджерів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {managers.map((u) => renderUserCard(u, "primary"))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {managers.map((u) => renderUserCard(u, "primary"))}
+            </div>
           </section>
+          )}
 
+          {tutors.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-primary" />
               Репетитори ({tutors.length})
             </h2>
-            {tutors.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає репетиторів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {tutors.map((u) => renderUserCard(u, "primary"))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {tutors.map((u) => renderUserCard(u, "primary"))}
+            </div>
           </section>
+          )}
 
+          {students.length > 0 && (
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
               Учні ({students.length})
             </h2>
-            {students.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Немає учнів</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {students.map((u) => renderUserCard(u))}
-              </div>
-            )}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              {students.map((u) => renderUserCard(u))}
+            </div>
           </section>
+          )}
         </>
       )}
 

@@ -15,9 +15,10 @@ interface ManagerNote {
 interface ManagerNotesProps {
   subjectUserId: string;
   currentUserId: string;
+  compact?: boolean;
 }
 
-export function ManagerNotes({ subjectUserId, currentUserId }: ManagerNotesProps) {
+export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: ManagerNotesProps) {
   const [notes, setNotes] = useState<ManagerNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -80,11 +81,11 @@ export function ManagerNotes({ subjectUserId, currentUserId }: ManagerNotesProps
   };
 
   return (
-    <div className="mt-3 pt-3 border-t border-border">
+    <div className={compact ? "mt-2 border-t border-border pt-2" : "mt-3 border-t border-border pt-3"}>
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+        className="flex w-full items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <StickyNote className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && `(${notes.length})`}</span>
@@ -92,13 +93,13 @@ export function ManagerNotes({ subjectUserId, currentUserId }: ManagerNotesProps
       </button>
 
       {expanded && (
-        <div className="mt-3 space-y-3">
+        <div className={compact ? "mt-2 space-y-2" : "mt-3 space-y-3"}>
           <div className="flex gap-2">
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Напр.: хоче ще вивчати французьку; має 2-3 вільні години..."
-              className="text-xs min-h-[60px] resize-none"
+              className={compact ? "min-h-[52px] resize-none text-xs" : "min-h-[60px] resize-none text-xs"}
             />
           </div>
           <Button
