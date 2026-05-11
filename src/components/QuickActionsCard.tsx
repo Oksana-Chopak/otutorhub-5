@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ChevronDown, Loader2, UserPlus, CalendarPlus, BadgeDollarSign } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
 
@@ -270,6 +270,39 @@ export function QuickActionsCard({ onChanged }: Props) {
   const hasStudents = students.length > 0;
   const hasLessons = lessonsCount > 0;
 
+  const initialTab: keyof OpenState = !hasStudents
+    ? "student"
+    : !hasLessons
+      ? "lesson"
+      : "student";
+  const [activeTab, setActiveTab] = useState<keyof OpenState>(initialTab);
+
+  const tabs: { id: keyof OpenState; emoji: string; label: string; highlight?: boolean }[] = [
+    { id: "student", emoji: "➕", label: "Учень", highlight: !hasStudents },
+    { id: "lesson", emoji: "📅", label: "Урок", highlight: hasStudents && !hasLessons },
+    { id: "payment", emoji: "💰", label: "Отримана оплата" },
+  ];
+
+  const renderPanel = (id: keyof OpenState) => {
+    if (id === "student")
+      return (
+        <AddStudentForm
+          tutors={tutors}
+          isManager={isManager}
+          onCreated={() => { refresh(); onChanged?.(); }}
+        />
+      );
+    if (id === "lesson")
+      return <AddLessonForm students={students} onCreated={() => { refresh(); onChanged?.(); }} />;
+    return (
+      <AddPaymentForm
+        students={students}
+        unpaid={unpaid}
+        onSaved={() => { refresh(); onChanged?.(); }}
+      />
+    );
+  };
+
   return (
     <Card className="p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -282,57 +315,65 @@ export function QuickActionsCard({ onChanged }: Props) {
         </p>
       )}
 
-      <div className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0 lg:items-start">
-        <ActionTab
-          icon={<UserPlus className="h-4 w-4" />}
-          title="Учень"
-          highlight={!hasStudents}
-          isOpen={open.student}
-          onToggle={() => setOpen((o) => ({ ...o, student: !o.student }))}
-        >
-          <AddStudentForm
-            tutors={tutors}
-            isManager={isManager}
-            onCreated={() => { refresh(); onChanged?.(); }}
-          />
-        </ActionTab>
+      {/* Mobile: accordion with emoji icons */}
+      <div className="space-y-2 lg:hidden">
+        {tabs.map((tb) => (
+          <ActionTab
+            key={tb.id}
+            emoji={tb.emoji}
+            title={tb.label}
+            highlight={tb.highlight}
+            isOpen={open[tb.id]}
+            onToggle={() => setOpen((o) => ({ ...o, [tb.id]: !o[tb.id] }))}
+          >
+            {renderPanel(tb.id)}
+          </ActionTab>
+        ))}
+      </div>
 
-        <ActionTab
-          icon={<CalendarPlus className="h-4 w-4" />}
-          title="Урок"
-          highlight={hasStudents && !hasLessons}
-          isOpen={open.lesson}
-          onToggle={() => setOpen((o) => ({ ...o, lesson: !o.lesson }))}
-        >
-          <AddLessonForm students={students} onCreated={() => { refresh(); onChanged?.(); }} />
-        </ActionTab>
-
-        <ActionTab
-          icon={<BadgeDollarSign className="h-4 w-4" />}
-          title="Отримана оплата"
-          isOpen={open.payment}
-          onToggle={() => setOpen((o) => ({ ...o, payment: !o.payment }))}
-        >
-          <AddPaymentForm
-            students={students}
-            unpaid={unpaid}
-            onSaved={() => { refresh(); onChanged?.(); }}
-          />
-        </ActionTab>
+      {/* Desktop: single window with tab switcher */}
+      <div className="hidden lg:block">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="grid grid-cols-3 border-b border-border bg-muted/40" role="tablist">
+            {tabs.map((tb) => {
+              const isActive = activeTab === tb.id;
+              return (
+                <button
+                  key={tb.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveTab(tb.id)}
+                  className={cn(
+                    "flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-medium transition-colors border-b-2",
+                    isActive
+                      ? "bg-card text-foreground border-primary"
+                      : "text-muted-foreground hover:text-foreground border-transparent",
+                    tb.highlight && !isActive && "text-primary",
+                  )}
+                >
+                  <span className="text-lg leading-none">{tb.emoji}</span>
+                  <span>{tb.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="bg-card px-4 py-4">{renderPanel(activeTab)}</div>
+        </div>
       </div>
     </Card>
   );
 }
 
 function ActionTab({
-  icon,
+  emoji,
   title,
   highlight,
   isOpen,
   onToggle,
   children,
 }: {
-  icon: React.ReactNode;
+  emoji: string;
   title: string;
   highlight?: boolean;
   isOpen: boolean;
@@ -352,8 +393,8 @@ function ActionTab({
         className="flex w-full items-center justify-between gap-2 px-3 py-2 text-left"
       >
         <span className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <span className="text-primary">{icon}</span>
-          <span>＋ {title}</span>
+          <span className="text-lg leading-none">{emoji}</span>
+          <span>{title}</span>
         </span>
         <ChevronDown
           className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-180")}
