@@ -770,10 +770,23 @@ export default function PeoplePage() {
             last_lesson_at: u.last_lesson_at ?? null,
           })
         : null;
+    const tutorProgress = isManager && u.role === "tutor" && !u.archived_at
+      ? (() => {
+          const steps = [
+            { ok: !!u.has_student, label: "Учні" },
+            { ok: !!u.has_lesson, label: "Уроки" },
+            { ok: !!u.has_paid_lesson, label: "Оплати" },
+          ];
+          const doneCount = steps.filter((s) => s.ok).length;
+          const fmt = (d?: string | null) =>
+            d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
+          return { steps, doneCount, fmt };
+        })()
+      : null;
     return (
     <div
       key={u.id}
-      className={`rounded-lg border bg-card p-3 sm:p-4 lg:p-5 ${
+      className={`rounded-lg border bg-card p-3 sm:p-4 ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -781,8 +794,8 @@ export default function PeoplePage() {
             : "border-border"
       }`}
     >
-      <div className="mb-2.5 flex items-start justify-between gap-2 sm:mb-3 sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+      <div className="mb-3 flex items-start justify-between gap-3 lg:items-center">
+        <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-4">
           <div className="relative shrink-0">
             {u.is_pending ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
@@ -793,7 +806,7 @@ export default function PeoplePage() {
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-9 w-9 sm:h-10 sm:w-10 ${
+                className={`h-10 w-10 lg:h-12 lg:w-12 ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
@@ -807,7 +820,9 @@ export default function PeoplePage() {
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm font-medium text-foreground truncate">{fullName(u)}</p>
+              <p className="max-w-full overflow-visible text-sm font-medium text-foreground lg:text-base lg:whitespace-normal lg:text-clip">
+                {fullName(u)}
+              </p>
               {u.is_pending && (
                 <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
                   Очікує реєстрації
@@ -832,7 +847,7 @@ export default function PeoplePage() {
               )}
             </div>
             {(u.email || u.phone) && (
-              <p className="text-xs text-muted-foreground truncate">
+              <p className="break-words text-xs text-muted-foreground lg:text-sm">
                 {[u.email, u.phone].filter(Boolean).join(" · ")}
               </p>
             )}
@@ -841,7 +856,7 @@ export default function PeoplePage() {
                 {u.subjects.map((s) => {
                   const r = tutorSubjectRates[u.id]?.[s];
                   return (
-                    <p key={s} className="text-xs text-muted-foreground truncate">
+                    <p key={s} className="break-words text-xs text-muted-foreground">
                       <span className="text-foreground">{s}</span>
                       {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
                     </p>
@@ -960,7 +975,7 @@ export default function PeoplePage() {
           )}
         </div>
       )}
-      <div className="mb-2 flex min-w-0 items-center gap-2">
+      <div className="mb-2 flex min-w-0 items-center gap-2 lg:max-w-md">
         <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
           <SelectTrigger className="h-8 min-w-0 text-xs">
@@ -974,43 +989,32 @@ export default function PeoplePage() {
         </Select>
       </div>
 
-      {isManager && u.role === "tutor" && !u.archived_at && statusFilter === "onboarding" && (() => {
-        const steps = [
-          { ok: !!u.has_student, label: "Додав учня" },
-          { ok: !!u.has_lesson, label: "Створив урок" },
-          { ok: !!u.has_paid_lesson, label: "Відмітив оплату" },
-        ];
-        const done = steps.every((s) => s.ok);
-        const fmt = (d?: string | null) =>
-          d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
-        return (
-          <div className={`mt-3 pt-3 border-t border-border ${done ? "" : "bg-warning/5 -mx-5 px-5 pb-3 -mb-3 rounded-b-xl"}`}>
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Онбординг {done && "✓"}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Реєстр.: {fmt(u.created_at)}
-                {u.last_interaction_at && ` · Активн.: ${fmt(u.last_interaction_at)}`}
-              </p>
-            </div>
-            <div className="space-y-1">
-              {steps.map((s) => (
-                <div key={s.label} className="flex items-center gap-2 text-xs">
-                  <span
-                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
-                      s.ok ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s.ok ? "✓" : "○"}
-                  </span>
-                  <span className={s.ok ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
-                </div>
-              ))}
-            </div>
+      {tutorProgress && (
+        <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Прогрес репетитора · {tutorProgress.doneCount}/3
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Реєстр.: {tutorProgress.fmt(u.created_at)}
+              {u.last_interaction_at && ` · Активн.: ${tutorProgress.fmt(u.last_interaction_at)}`}
+            </p>
           </div>
-        );
-      })()}
+          <div className="grid grid-cols-3 gap-2">
+            {tutorProgress.steps.map((s) => (
+              <div
+                key={s.label}
+                className={`flex min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs ${
+                  s.ok ? "bg-success/10 text-success" : "bg-background text-muted-foreground"
+                }`}
+              >
+                <span className="shrink-0 text-[11px]">{s.ok ? "✓" : "○"}</span>
+                <span className="truncate">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {u.role === "tutor" && (
         <Button
@@ -1081,19 +1085,19 @@ export default function PeoplePage() {
               )
             ) : (
               <div className="space-y-2">
-                {linkedTutors.map((t) => {
+              {linkedTutors.map((t) => {
                   const tSubjects = t.subjects ?? [];
                   if (tSubjects.length === 0) return null;
                   return (
                     <div key={t.id} className="space-y-1">
-                      <p className="text-xs font-medium text-foreground truncate">{fullName(t)}</p>
+                      <p className="text-xs font-medium text-foreground lg:text-sm">{fullName(t)}</p>
                       {tSubjects.map((subj) => {
                         const rate = studentRates.find(
                           (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
                         );
                         return (
                           <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
-                            <span className="min-w-0 flex-1 truncate text-muted-foreground">{subj}</span>
+                            <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
                                 {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
@@ -1130,7 +1134,7 @@ export default function PeoplePage() {
         );
       })()}
 
-      {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
+          {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
     </div>
     );
   };
@@ -1312,7 +1316,7 @@ export default function PeoplePage() {
                 <UsersIcon className="h-5 w-5 text-warning" />
                 Без ролі ({noRole.length})
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
                 {noRole.map((u) => renderUserCard(u))}
               </div>
             </section>
@@ -1324,7 +1328,7 @@ export default function PeoplePage() {
               <UsersIcon className="h-5 w-5 text-primary" />
               Менеджери ({managers.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {managers.map((u) => renderUserCard(u, "primary"))}
             </div>
           </section>
@@ -1336,7 +1340,7 @@ export default function PeoplePage() {
               <GraduationCap className="h-5 w-5 text-primary" />
               Репетитори ({tutors.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {tutors.map((u) => renderUserCard(u, "primary"))}
             </div>
           </section>
@@ -1348,7 +1352,7 @@ export default function PeoplePage() {
               <BookOpen className="h-5 w-5 text-primary" />
               Учні ({students.length})
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {students.map((u) => renderUserCard(u))}
             </div>
           </section>
