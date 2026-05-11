@@ -35,6 +35,11 @@ interface Group {
   created_at: string;
 }
 
+interface TutorOption {
+  id: string;
+  name: string;
+}
+
 interface Enrollment {
   id: string;
   group_id: string;
@@ -188,20 +193,52 @@ function CreateGroupDialog({
   onOpenChange: (v: boolean) => void;
   onCreated: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isManager = roles.includes("manager");
   const [name, setName] = useState("");
   const [subject, setSubject] = useState("");
   const [subjectId, setSubjectId] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
+  const [tutorId, setTutorId] = useState<string>("");
+  const [tutors, setTutors] = useState<TutorOption[]>([]);
+
+  useEffect(() => {
+    if (!isManager || !open) return;
+    (async () => {
+      const { data: roleRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "tutor");
+      const ids = Array.from(new Set((roleRows ?? []).map((r: any) => r.user_id)));
+      if (!ids.length) {
+        setTutors([]);
+        return;
+      }
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", ids);
+      setTutors(
+        (profs ?? []).map((p: any) => ({
+          id: p.id,
+          name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Репетитор",
+        }))
+      );
+    })();
+  }, [isManager, open]);
 
   const submit = async () => {
     if (!user || !name.trim()) {
       toast.error("Вкажіть назву групи");
       return;
     }
+    if (isManager && !tutorId) {
+      toast.error("Виберіть репетитора");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("lesson_groups").insert({
-      tutor_id: user.id,
+      tutor_id: isManager ? tutorId : user.id,
       name: name.trim(),
       subject: subject || null,
       subject_id: subjectId || null,
@@ -214,6 +251,7 @@ function CreateGroupDialog({
     setName("");
     setSubject("");
     setSubjectId(undefined);
+    setTutorId("");
     toast.success("Групу створено");
     onCreated();
   };
@@ -226,6 +264,23 @@ function CreateGroupDialog({
           <DialogDescription>Створіть групу учнів для парних або групових уроків</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
+          {isManager && (
+            <div className="space-y-1">
+              <Label>Репетитор</Label>
+              <Select value={tutorId} onValueChange={setTutorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={tutors.length ? "Виберіть репетитора" : "Немає репетиторів"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tutors.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-1">
             <Label>Назва</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Англійська · 9-Б" />
@@ -284,12 +339,13 @@ function GroupDetailsDialog({
     setGroup(g as Group);
     setEnrollments((ens ?? []) as Enrollment[]);
 
+    const groupTutorId = (g as any)?.tutor_id ?? user.id;
     // available = tutor's students not already enrolled (active)
     const enrolledIds = new Set((ens ?? []).filter((e: any) => e.status === "active").map((e: any) => e.student_id));
     const { data: rates } = await supabase
       .from("student_rates")
       .select("student_id, archived_at")
-      .eq("tutor_id", user.id);
+      .eq("tutor_id", groupTutorId);
     const ids = Array.from(
       new Set(
         (rates ?? [])
