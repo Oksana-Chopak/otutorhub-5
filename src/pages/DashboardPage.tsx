@@ -1227,6 +1227,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
+                  <TelegramLinkCard />
                 </div>
               )}
             </section>
