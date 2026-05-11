@@ -1088,8 +1088,9 @@ export default function PeoplePage() {
             tutorId: "",
             subject: "",
             price: "",
+            currency: "UAH",
           });
-        const hasAnyTutor = allTutors.some((t) => (t.subjects ?? []).length > 0);
+        const hasAnyTutor = allTutors.length > 0;
         return (
           <div className="mt-3 pt-3 border-t border-border">
             <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1119,7 +1120,14 @@ export default function PeoplePage() {
             ) : (
               <div className="space-y-2">
               {linkedTutors.map((t) => {
-                  const tSubjects = t.subjects ?? [];
+                  const tSubjects = Array.from(
+                    new Set([
+                      ...(t.subjects ?? []),
+                      ...studentRates
+                        .filter((r) => r.tutor_id === t.id && r.student_id === u.id)
+                        .map((r) => r.subject),
+                    ].filter(Boolean)),
+                  );
                   if (tSubjects.length === 0) return null;
                   return (
                     <div key={t.id} className="space-y-1">
@@ -1133,7 +1141,7 @@ export default function PeoplePage() {
                             <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
-                                {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
+                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">не задано</span>}
                               </span>
                               <Button
                                 variant="ghost"
@@ -1148,6 +1156,7 @@ export default function PeoplePage() {
                                     tutorName: fullName(t),
                                     subject: subj,
                                     price: rate ? String(rate.price_per_lesson) : "",
+                                    currency: rate?.currency ?? "UAH",
                                     existingId: rate?.id ?? null,
                                   })
                                 }
