@@ -517,6 +517,7 @@ export default function PeoplePage() {
         : null;
     setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", currency: "UAH", existingId: null });
     if (propPayload) setPropagate(propPayload);
+    await ensureTutorSubject(studentDialog.tutorId, studentDialog.subject);
     loadData();
   };
 
@@ -1588,7 +1589,8 @@ export default function PeoplePage() {
             </div>
             {addTutorToStudent.tutorId && (() => {
               const tutor = allTutors.find((t) => t.id === addTutorToStudent.tutorId);
-              const tSubjects = tutor?.subjects ?? [];
+              const tutorSubjects = tutor?.subjects ?? [];
+              const tSubjects = tutorSubjects.length > 0 ? tutorSubjects : allSubjects;
               const takenSubjects = new Set(
                 studentRates
                   .filter(
@@ -1647,18 +1649,33 @@ export default function PeoplePage() {
                     return null;
                   })()}
                   <div>
-                    <Label htmlFor="add-tutor-price">Ціна за один урок (₴) для учня</Label>
-                    <Input
-                      id="add-tutor-price"
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={addTutorToStudent.price}
-                      onChange={(e) =>
-                        setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
-                      }
-                      placeholder="напр. 550"
-                    />
+                    <Label htmlFor="add-tutor-price">Ціна за один урок ({currencySymbol(addTutorToStudent.currency)}) для учня</Label>
+                    <div className="grid grid-cols-[1fr_8rem] gap-2">
+                      <Input
+                        id="add-tutor-price"
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={addTutorToStudent.price}
+                        onChange={(e) =>
+                          setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
+                        }
+                        placeholder="напр. 550"
+                      />
+                      <Select
+                        value={addTutorToStudent.currency}
+                        onValueChange={(v) => setAddTutorToStudent((s) => ({ ...s, currency: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CURRENCY_OPTIONS.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </>
               );
