@@ -444,7 +444,13 @@ const landingStyles = `
 `;
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const pricing = useMemo(() => {
+    const lang = i18n.language || "uk";
+    if (lang.startsWith("en")) return { free: "Free", pro: "$12", period: "/month" };
+    if (lang.startsWith("sv")) return { free: "Gratis", pro: "120 kr", period: "/månad" };
+    return { free: "0 ₴", pro: "129 ₴", period: "/місяць" };
+  }, [i18n.language]);
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
