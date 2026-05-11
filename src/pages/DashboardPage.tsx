@@ -657,66 +657,68 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3 sm:mb-6 sm:gap-4">
-        <div>
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("dashboard.title")}</h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            {greeting}{firstName ? `, ${firstName}` : ""} 👋
-          </p>
-          <p className="mt-1 max-w-xl text-xs text-muted-foreground sm:text-sm">
-            {phraseOfDay}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {isManager && (
-            <>
-              <Button asChild variant="outline"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
-              <Button asChild variant="outline"><Link to="/schedule">{t("dashboard.btnLessons")}</Link></Button>
-              <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
-                <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
+      <div className="relative mb-4 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 sm:mb-6 sm:p-6">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-primary/5" />
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
+              {greeting}{firstName ? `, ${firstName}` : ""}! <span className="ml-1">{timeEmoji}</span>
+            </h1>
+            <p className="mt-2 max-w-lg text-sm italic text-muted-foreground">
+              <span className="not-italic font-medium text-primary/80">Афірмація дня: </span>
+              {phraseOfDay}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 rounded-lg bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                Сьогодні {todayLessons.length}{" "}
+                {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"}
+              </div>
+              {pendingPayments.length > 0 && (
+                <div className="flex items-center gap-1.5 rounded-lg bg-warning/10 px-3 py-1.5 text-xs text-warning">
+                  <Clock className="h-3.5 w-3.5" />
+                  {pendingPayments.length} очікують оплати
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {isManager && (
+              <>
+                <Button asChild variant="outline" size="sm"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
+                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
+                  <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
+                </Button>
+              </>
+            )}
+            {isTutor && !isManager && (
+              <Button size="sm" onClick={() => setQuickLessonOpen(true)}>
+                <Plus className="h-4 w-4" />
+                {t("dashboard.btnCreateLesson")}
               </Button>
-            </>
-          )}
-          {(isTutor || isStudent) && !isManager && (
-            <>
-              {isTutor && (
-                <Button asChild>
-                  <Link to="/schedule">
-                    <Plus className="h-4 w-4" />
-                    {t("dashboard.btnCreateLesson")}
-                  </Link>
-                </Button>
-              )}
-              {isStudent && !isTutor && (
-                <FindTutorDialog
-                  trigger={
-                    <Button>
-                      <HandHeart className="h-4 w-4" />
-                      {t("dashboard.btnRequestTutor")}
-                    </Button>
-                  }
-                />
-              )}
-              {isTutor && (
-                <Button asChild variant="outline">
-                  <Link to="/availability">
-                    <CalendarPlus className="h-4 w-4" />
-                    {t("dashboard.btnUpdateHours")}
-                  </Link>
-                </Button>
-              )}
-              {isIndependentTutor && (
-                <Button asChild variant="outline">
-                  <Link to="/finances">
-                    <TrendingUp className="h-4 w-4" />
-                    {t("dashboard.btnFinances")}
-                  </Link>
-                </Button>
-              )}
-            </>
-          )}
+            )}
+            {isStudent && !isTutor && !isManager && (
+              <FindTutorDialog
+                trigger={
+                  <Button size="sm">
+                    <HandHeart className="h-4 w-4" />
+                    {t("dashboard.btnRequestTutor")}
+                  </Button>
+                }
+              />
+            )}
+          </div>
         </div>
       </div>
+
+      <QuickLessonDialog
+        open={quickLessonOpen}
+        onOpenChange={setQuickLessonOpen}
+        startsAt={quickLessonOpen ? new Date() : null}
+        onCreated={loadData}
+        onWantFullForm={() => { setQuickLessonOpen(false); navigate("/schedule"); }}
+      />
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
