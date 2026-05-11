@@ -41,6 +41,6 @@ export function SourceBadge({ source, className, showIcon = true }: Props) {
 /** CSS classes to tint a lesson row/card based on source. */
 export function lessonSourceTint(source: LessonSource | null | undefined) {
   return source === "hub"
-    ? "border-l-4 border-l-warning/60 bg-warning/5"
+    ? "bg-warning/5"
     : "";
 }
