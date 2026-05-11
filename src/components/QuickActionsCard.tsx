@@ -135,7 +135,7 @@ export function QuickActionsCard({ onChanged }: Props) {
 
     const ratesQuery = supabase
       .from("student_rates")
-      .select("tutor_id, student_id, subject, price_per_lesson, archived_at, source, currency");
+      .select("id, tutor_id, student_id, subject, price_per_lesson, archived_at, source, currency");
     const lessonsCountQuery = supabase.from("lessons").select("id", { count: "exact", head: true });
     const unpaidQuery = supabase
       .from("lesson_details")
@@ -189,12 +189,13 @@ export function QuickActionsCard({ onChanged }: Props) {
 
     const byPair = new Map<string, any>();
     active.forEach((r: any) => {
-      const key = `${r.tutor_id}:${r.student_id}`;
+      const key = `${r.tutor_id}:${r.student_id}:${r.subject || ""}`;
       if (!byPair.has(key)) byPair.set(key, r);
     });
 
     const rows: StudentRow[] = Array.from(byPair.values()).map((r: any) => ({
-      rate_key: `${r.tutor_id}:${r.student_id}`,
+      rate_id: r.id,
+      rate_key: r.id || `${r.tutor_id}:${r.student_id}:${r.subject || ""}`,
       tutor_id: r.tutor_id,
       tutor_name: nameOf.get(r.tutor_id) ?? "Репетитор",
       student_id: r.student_id,
@@ -354,6 +355,7 @@ function AddStudentForm({
     if (!fn) return toast.error("Вкажіть ім'я учня");
     if (isManager && !ownerTutorId) return toast.error("Виберіть репетитора");
     if (!subject) return toast.error("Виберіть предмет");
+    const normalizedSubject = subject.trim();
     const p = Number(price);
     if (isNaN(p) || p < 0) return toast.error("Введіть коректну ціну");
 
@@ -375,7 +377,7 @@ function AddStudentForm({
     const { error: rateErr } = await supabase.from("student_rates").insert({
       tutor_id: ownerTutorId,
       student_id: newId,
-      subject,
+      subject: normalizedSubject,
       price_per_lesson: p,
       currency,
       source: isManager ? "hub" : "independent",
@@ -386,6 +388,7 @@ function AddStudentForm({
       await supabase.from("profiles").delete().eq("id", newId);
       return toast.error("Не вдалося зберегти");
     }
+    await ensureTutorHasSubject(ownerTutorId, normalizedSubject);
     toast.success(`${fn} додано 🎉`);
     setName("");
     setSubject("");
