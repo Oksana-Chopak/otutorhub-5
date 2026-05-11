@@ -1139,7 +1139,7 @@ export default function PeoplePage() {
     <AppLayout>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">Люди</h1>
+          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">Люди</h1>
           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
             Користувачі, ролі, контакти й ставки.
           </p>
@@ -1312,7 +1312,7 @@ export default function PeoplePage() {
                 <UsersIcon className="h-5 w-5 text-warning" />
                 Без ролі ({noRole.length})
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 lg:gap-4">
                 {noRole.map((u) => renderUserCard(u))}
               </div>
             </section>
