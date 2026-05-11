@@ -272,7 +272,7 @@ export default function DashboardPage() {
     if (!user) return;
 
     const [
-      { data: lessonsData },
+      { data: lessonsData, error: lessonsError },
       { data: profilesData },
       { data: rolesData },
       { data: requestRows },
