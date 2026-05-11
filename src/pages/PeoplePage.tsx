@@ -51,6 +51,8 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 import { safeHref } from "@/lib/safeUrl";
+import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { SUBJECT_OPTIONS } from "@/lib/subjects";
 
 interface Profile {
   id: string;
@@ -105,7 +107,7 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [studentRates, setStudentRates] = useState<
-    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number }>
+    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number; currency: string }>
   >([]);
   // tutor_id -> { subject -> rate }
   const [tutorSubjectRates, setTutorSubjectRates] = useState<Record<string, Record<string, number>>>({});
@@ -132,8 +134,9 @@ export default function PeoplePage() {
     tutorName: string;
     subject: string;
     price: string;
+    currency: string;
     existingId: string | null;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", currency: "UAH", existingId: null });
 
   // Add tutor to student dialog (manager picks tutor + subject + price)
   const [addTutorToStudent, setAddTutorToStudent] = useState<{
@@ -143,7 +146,8 @@ export default function PeoplePage() {
     tutorId: string;
     subject: string;
     price: string;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+    currency: string;
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
