@@ -975,7 +975,7 @@ export default function PeoplePage() {
           )}
         </div>
       )}
-      <div className="mb-2 flex min-w-0 items-center gap-2">
+      <div className="mb-2 flex min-w-0 items-center gap-2 lg:max-w-md">
         <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
           <SelectTrigger className="h-8 min-w-0 text-xs">
@@ -989,43 +989,32 @@ export default function PeoplePage() {
         </Select>
       </div>
 
-      {isManager && u.role === "tutor" && !u.archived_at && statusFilter === "onboarding" && (() => {
-        const steps = [
-          { ok: !!u.has_student, label: "Додав учня" },
-          { ok: !!u.has_lesson, label: "Створив урок" },
-          { ok: !!u.has_paid_lesson, label: "Відмітив оплату" },
-        ];
-        const done = steps.every((s) => s.ok);
-        const fmt = (d?: string | null) =>
-          d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
-        return (
-          <div className={`mt-3 pt-3 border-t border-border ${done ? "" : "bg-warning/5 -mx-5 px-5 pb-3 -mb-3 rounded-b-xl"}`}>
-            <div className="flex items-center justify-between mb-1.5">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                Онбординг {done && "✓"}
-              </p>
-              <p className="text-[11px] text-muted-foreground">
-                Реєстр.: {fmt(u.created_at)}
-                {u.last_interaction_at && ` · Активн.: ${fmt(u.last_interaction_at)}`}
-              </p>
-            </div>
-            <div className="space-y-1">
-              {steps.map((s) => (
-                <div key={s.label} className="flex items-center gap-2 text-xs">
-                  <span
-                    className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] ${
-                      s.ok ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {s.ok ? "✓" : "○"}
-                  </span>
-                  <span className={s.ok ? "text-foreground" : "text-muted-foreground"}>{s.label}</span>
-                </div>
-              ))}
-            </div>
+      {tutorProgress && (
+        <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Прогрес репетитора · {tutorProgress.doneCount}/3
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Реєстр.: {tutorProgress.fmt(u.created_at)}
+              {u.last_interaction_at && ` · Активн.: ${tutorProgress.fmt(u.last_interaction_at)}`}
+            </p>
           </div>
-        );
-      })()}
+          <div className="grid grid-cols-3 gap-2">
+            {tutorProgress.steps.map((s) => (
+              <div
+                key={s.label}
+                className={`flex min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs ${
+                  s.ok ? "bg-success/10 text-success" : "bg-background text-muted-foreground"
+                }`}
+              >
+                <span className="shrink-0 text-[11px]">{s.ok ? "✓" : "○"}</span>
+                <span className="truncate">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {u.role === "tutor" && (
         <Button
