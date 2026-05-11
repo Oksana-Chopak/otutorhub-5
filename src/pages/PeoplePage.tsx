@@ -201,7 +201,7 @@ export default function PeoplePage() {
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
-      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson"),
+      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
@@ -480,7 +480,7 @@ export default function PeoplePage() {
       oldPrice = Number(existing?.price_per_lesson ?? 0);
       const { error } = await supabase
         .from("student_rates")
-        .update({ price_per_lesson: price })
+        .update({ price_per_lesson: price, currency: studentDialog.currency || "UAH" })
         .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
@@ -493,6 +493,7 @@ export default function PeoplePage() {
         student_id: studentDialog.studentId,
         subject: studentDialog.subject,
         price_per_lesson: price,
+        currency: studentDialog.currency || "UAH",
       });
       if (error) {
         console.error("Failed to insert student rate", error);
@@ -512,7 +513,7 @@ export default function PeoplePage() {
             oldPrice,
           }
         : null;
-    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", currency: "UAH", existingId: null });
     if (propPayload) setPropagate(propPayload);
     loadData();
   };
@@ -537,6 +538,7 @@ export default function PeoplePage() {
         student_id: addTutorToStudent.studentId,
         subject: addTutorToStudent.subject,
         price_per_lesson: price,
+        currency: addTutorToStudent.currency || "UAH",
       },
       { onConflict: "tutor_id,student_id,subject" },
     );
@@ -546,7 +548,7 @@ export default function PeoplePage() {
       return;
     }
     toast.success("Репетитора додано до учня");
-    setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+    setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
   };
 
