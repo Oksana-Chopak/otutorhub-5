@@ -25,6 +25,7 @@ import {
   Trophy,
   Wallet,
   Users2,
+  CreditCard,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -63,6 +64,7 @@ const allNavItems: NavItem[] = [
   { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"] },
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["tutor"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
+  { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["tutor"] },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
   // Manager
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager"] },
@@ -70,6 +72,7 @@ const allNavItems: NavItem[] = [
   { to: "/people", labelKey: "nav.people", icon: Users, roles: ["manager"] },
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["manager"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
+  { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
   // Student
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },

@@ -6,6 +6,7 @@ import {
   Users,
   GraduationCap,
   UserCircle,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -27,12 +28,14 @@ const items: Item[] = [
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
   { to: "/my-students", label: "Учні", icon: GraduationCap, roles: ["tutor"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
+  { to: "/finances", label: "Фінанси", icon: CreditCard, roles: ["tutor"] },
   { to: "/profile", label: "Профіль", icon: UserCircle, roles: ["tutor"] },
   // Manager
   { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["manager"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
+  { to: "/finances", label: "Фінанси", icon: CreditCard, roles: ["manager"] },
   { to: "/profile", label: "Профіль", icon: UserCircle, roles: ["manager"] },
   // Student
   { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["student"] },
