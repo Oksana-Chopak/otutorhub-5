@@ -659,7 +659,7 @@ function AddPaymentForm({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2">
             <div className="space-y-1">
               <Label className="text-xs">Формат</Label>
               <Select value={paymentUnit} onValueChange={(v) => setPaymentUnit(v as PaymentUnit)}>
