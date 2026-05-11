@@ -757,7 +757,12 @@ export default function LandingPage() {
       </section>
 
       {/* TRY DEMO */}
-      <LandingTryDemo personaVars={displayedPersonaVars} personaId={displayedPersonaId} isAnimating={isAnimating} />
+      <LandingTryDemo
+        personaVars={displayedPersonaVars}
+        personaId={displayedPersonaId}
+        isAnimating={isAnimating}
+        onFindClick={() => setQuizOpen(true)}
+      />
 
       {/* FINAL CTA */}
       <section className="cta-section">
@@ -769,9 +774,6 @@ export default function LandingPage() {
           <p>{tp("landing.finalCta.sub")}</p>
           <div className="cta-buttons">
             <Link to={signupHref} className="btn-white">{t("landing.finalCta.ctaPrimary")}</Link>
-            <button type="button" className="btn-outline-white" onClick={() => setQuizOpen(true)}>
-              {tp("landing.finalCta.ctaSecondaryDyn")}
-            </button>
           </div>
           <p className="cta-footnote">{tp("landing.finalCta.footnote")}</p>
         </div>

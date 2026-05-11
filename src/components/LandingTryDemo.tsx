@@ -18,9 +18,10 @@ type Props = {
   personaVars: PersonaVars;
   personaId: PersonaId;
   isAnimating?: boolean;
+  onFindClick?: () => void;
 };
 
-export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
+export function LandingTryDemo({ personaVars, personaId, isAnimating, onFindClick }: Props) {
   const { t } = useTranslation();
   const tp = (key: string) => t(key, personaVars);
 
@@ -233,6 +234,11 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
             <strong>{tp("landing.tryDemo.asideTitle")}</strong>
             <span>{tp("landing.tryDemo.asideText")}</span>
           </div>
+          {onFindClick && (
+            <button type="button" className="ltd-btn-ghost" onClick={onFindClick}>
+              {tp("landing.tryDemo.asideCta")}
+            </button>
+          )}
         </div>
       </div>
     </section>
