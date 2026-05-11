@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSubjects } from "@/hooks/useSubjects";
+import { SUBJECT_OPTIONS } from "@/lib/subjects";
 
 interface Props {
   value: string;
@@ -30,10 +31,12 @@ export function SubjectSelect({
 }: Props) {
   const { subjects, loading } = useSubjects();
 
-  const known = new Set(subjects.map((s) => s.name));
-  const extras = extraOptions.filter((s) => s && !known.has(s));
+  const subjectNames = new Set(subjects.map((s) => s.name));
+  const fallbackSubjects = SUBJECT_OPTIONS.filter((name) => !subjectNames.has(name));
+  const allKnown = new Set([...subjects.map((s) => s.name), ...fallbackSubjects]);
+  const extras = extraOptions.filter((s) => s && !allKnown.has(s));
   // Include current value if it's not in canonical list (legacy data)
-  if (value && !known.has(value) && !extras.includes(value)) extras.push(value);
+  if (value && !allKnown.has(value) && !extras.includes(value)) extras.push(value);
 
   return (
     <Select
@@ -52,6 +55,11 @@ export function SubjectSelect({
           <SelectItem key={s.id} value={s.name}>
             {s.emoji ? `${s.emoji} ` : ""}
             {s.name}
+          </SelectItem>
+        ))}
+        {fallbackSubjects.map((name) => (
+          <SelectItem key={`fallback-${name}`} value={name}>
+            {name}
           </SelectItem>
         ))}
         {extras.map((name) => (
