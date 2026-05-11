@@ -17,22 +17,15 @@ export default function JoinPage() {
   useEffect(() => {
     if (!code) return;
     (async () => {
-      const { data } = await supabase
-        .from("referral_codes")
-        .select("tutor_id")
-        .ilike("code", code)
+      const { data, error } = await supabase
+        .rpc("resolve_referral_code", { _code: code })
         .maybeSingle();
-      if (!data) {
+      if (error || !data) {
         setInvalid(true);
         setLoading(false);
         return;
       }
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("first_name, last_name")
-        .eq("id", data.tutor_id)
-        .maybeSingle();
-      setReferrer(profile as any);
+      setReferrer(data as any);
       // Persist code so AuthPage can claim it after signup
       localStorage.setItem(REFERRAL_KEY, code.toUpperCase());
       setLoading(false);
