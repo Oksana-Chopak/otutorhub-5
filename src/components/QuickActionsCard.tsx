@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -64,7 +65,9 @@ export function QuickActionsCard({ onChanged }: Props) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return { student: true, lesson: true, payment: true, ...JSON.parse(raw) };
-    } catch {}
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     return { student: true, lesson: true, payment: true };
   });
 
