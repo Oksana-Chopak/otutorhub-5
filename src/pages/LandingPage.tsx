@@ -678,9 +678,6 @@ export default function LandingPage() {
           <p className="hero-desc">{tp("landing.hero.description")}</p>
           <div className="hero-cta">
             <Link to={signupHref} className="btn-primary">{t("landing.hero.ctaPrimary")}</Link>
-            <button type="button" className="btn-ghost" onClick={() => setQuizOpen(true)}>
-              {tp("landing.hero.ctaSecondaryDyn")}
-            </button>
           </div>
         </div>
       </section>
