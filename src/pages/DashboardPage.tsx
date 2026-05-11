@@ -546,6 +546,14 @@ export default function DashboardPage() {
     return "Доброго вечора";
   }, []);
 
+  const timeEmoji = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 12) return "☀️";
+    if (h < 18) return "👋";
+    if (h < 22) return "🌙";
+    return "🌟";
+  }, []);
+
   const phraseOfDay = useMemo(() => {
     const start = new Date(new Date().getFullYear(), 0, 0).getTime();
     const day = Math.floor((Date.now() - start) / 86_400_000);
