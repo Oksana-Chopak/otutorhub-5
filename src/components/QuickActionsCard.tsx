@@ -505,7 +505,8 @@ function AddLessonForm({
   const [time, setTime] = useState("18:00");
   const [duration, setDuration] = useState("60");
   const [busy, setBusy] = useState(false);
-  const { year, month, day } = datePartsFromIso(date);
+  const [dateInput, setDateInput] = useState(ddmmyyyyFromIso(date));
+  useEffect(() => { setDateInput(ddmmyyyyFromIso(date)); }, [date]);
 
   useEffect(() => {
     if (!rateKey && students[0]) setRateKey(students[0].rate_key);
