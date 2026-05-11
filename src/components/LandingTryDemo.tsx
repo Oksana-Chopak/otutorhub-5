@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
 import type { PersonaVars, PersonaId } from "@/pages/LandingPage";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +26,6 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
 
   const [tab, setTab] = useState<Tab>("client");
   const [done, setDone] = useState<Tab | null>(null);
-  const [quizOpen, setQuizOpen] = useState(false);
 
   const [sName, setSName] = useState("");
   const [sSubject, setSSubject] = useState("");
@@ -235,12 +233,8 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating }: Props) {
             <strong>{tp("landing.tryDemo.asideTitle")}</strong>
             <span>{tp("landing.tryDemo.asideText")}</span>
           </div>
-          <button type="button" onClick={() => setQuizOpen(true)} className="ltd-btn-ghost">
-            {tp("landing.tryDemo.asideCta")}
-          </button>
         </div>
       </div>
-      <LandingFindTutorQuizDialog open={quizOpen} onOpenChange={setQuizOpen} />
     </section>
   );
 }
