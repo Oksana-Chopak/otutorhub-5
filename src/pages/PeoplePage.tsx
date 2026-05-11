@@ -203,30 +203,64 @@ export default function PeoplePage() {
 
     // Last interaction: most-recent lesson per participant
     // Also compute student payment-status aggregates (unpaid completed + last lesson date)
-    const { data: recentLessons } = await supabase
+    const { data: recentLessons, error: recentLessonsErr } = await supabase
       .from("lessons")
-      .select("tutor_id, student_id, starts_at, status, student_payment_status, student_price")
+      .select("id, tutor_id, student_id, starts_at, status")
       .order("starts_at", { ascending: false })
       .limit(2000);
+    if (recentLessonsErr) {
+      console.error("Failed to load recent lessons", recentLessonsErr);
+    }
+    const lessonIds = (recentLessons ?? []).map((l: any) => l.id);
+    const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null }>();
+    if (lessonIds.length > 0) {
+      // Chunk to avoid overly long IN clauses
+      const chunkSize = 500;
+      for (let i = 0; i < lessonIds.length; i += chunkSize) {
+        const chunk = lessonIds.slice(i, i + chunkSize);
+        const { data: detailsData } = await supabase
+          .from("lesson_details")
+          .select("lesson_id, student_payment_status, student_price")
+          .in("lesson_id", chunk);
+        (detailsData ?? []).forEach((d: any) => {
+          detailsByLesson.set(d.lesson_id, {
+            student_payment_status: d.student_payment_status,
+            student_price: d.student_price,
+          });
+        });
+      }
+    }
+
     const lastInteractionMap = new Map<string, string>();
     const studentStatsMap = new Map<
       string,
       { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
     >();
+    const tutorHasLesson = new Set<string>();
+    const tutorHasPaid = new Set<string>();
     (recentLessons ?? []).forEach((l: any) => {
       for (const uid of [l.tutor_id, l.student_id]) {
-        const cur = lastInteractionMap.get(uid);
-        if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
+        if (uid) {
+          const cur = lastInteractionMap.get(uid);
+          if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
+        }
       }
+      if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
+      const det = detailsByLesson.get(l.id);
+      const payStatus = det?.student_payment_status ?? null;
+      const price = det?.student_price ?? null;
+      if (l.tutor_id && payStatus === "paid") tutorHasPaid.add(l.tutor_id);
+
       const sid = l.student_id;
+      if (!sid) return;
       const s = studentStatsMap.get(sid) ?? {
         unpaid_count: 0,
         unpaid_total: 0,
         last_lesson_at: null as string | null,
       };
-      if (l.status === "completed" && l.student_payment_status === "unpaid") {
+      if (l.status === "completed" && payStatus === "unpaid") {
         s.unpaid_count += 1;
-        s.unpaid_total += Number(l.student_price ?? 0);
+        s.unpaid_total += Number(price ?? 0);
       }
       if (
         (l.status === "completed" || l.status === "scheduled") &&
@@ -237,13 +271,6 @@ export default function PeoplePage() {
       studentStatsMap.set(sid, s);
     });
 
-    // Tutor onboarding maps (from already-fetched data)
-    const tutorHasLesson = new Set<string>();
-    const tutorHasPaid = new Set<string>();
-    (recentLessons ?? []).forEach((l: any) => {
-      if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
-      if (l.tutor_id && l.student_payment_status === "paid") tutorHasPaid.add(l.tutor_id);
-    });
     const tutorHasStudent = new Set<string>(((ratesRes.data ?? []) as any[]).map((r) => r.tutor_id));
 
     let financialData: Array<{ user_id: string; bank_card_last4: string | null; bank_name: string | null }> = [];
