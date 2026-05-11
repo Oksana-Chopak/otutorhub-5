@@ -98,23 +98,14 @@ export function LessonCard({
   const isNow = nowMs >= startMs && nowMs < endMs && lesson.status !== "cancelled";
   const isPast = endMs < nowMs;
   const isCancelled = lesson.status === "cancelled";
-  const isPaid = lesson.student_payment_status === "paid";
-  const isUnpaid =
-    lesson.student_payment_status === "unpaid" &&
-    lesson.status !== "cancelled" &&
-    lesson.status !== "pending";
-
   const href = useMemo(() => (meetingUrl ? safeHref(meetingUrl) : null), [meetingUrl]);
 
-  // Single left accent — implemented via border-left color (no second :before strip).
+  // Single structural left border only. Payment/source state is shown in explicit labels,
+  // not as an unexplained orange vertical stripe.
   const borderLeft = isCancelled
     ? "border-l-muted-foreground/40"
     : isNow
     ? "border-l-success"
-    : isPaid
-    ? "border-l-success"
-    : isUnpaid
-    ? "border-l-warning"
     : "border-l-border";
 
   const compact = variant === "compact";
