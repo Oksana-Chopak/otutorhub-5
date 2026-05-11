@@ -1248,19 +1248,22 @@ export default function PeoplePage() {
 
       {/* Search + filters (filters collapse on mobile) */}
       {!loading && (
-        <div className="mb-6 space-y-3">
+        <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           <Input
             placeholder="Пошук за іменем, email, телефоном..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9"
+            className="h-9 min-w-0 flex-1"
           />
           <MobileFilters
+            compact
+            align="right"
+            className="shrink-0"
             activeCount={
               (subjectFilter !== "all" ? 1 : 0) + (statusFilter !== "all" ? 1 : 0)
             }
           >
-            <div className="w-full sm:w-48">
+            <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Предмет" />
@@ -1275,7 +1278,7 @@ export default function PeoplePage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full sm:w-44">
+            <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Статус" />
