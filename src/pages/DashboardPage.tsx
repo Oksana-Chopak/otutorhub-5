@@ -207,6 +207,8 @@ export default function DashboardPage() {
   const [tutorCount, setTutorCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const [tutorReferralRequestCount, setTutorReferralRequestCount] = useState(0);
+  const [supportRequestCount, setSupportRequestCount] = useState(0);
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
