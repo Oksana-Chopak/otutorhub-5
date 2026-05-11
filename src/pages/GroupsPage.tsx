@@ -35,6 +35,11 @@ interface Group {
   created_at: string;
 }
 
+interface TutorOption {
+  id: string;
+  name: string;
+}
+
 interface Enrollment {
   id: string;
   group_id: string;
