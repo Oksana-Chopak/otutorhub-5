@@ -731,9 +731,11 @@ export default function PeoplePage() {
   // Build subject options from all tutors
   const allSubjects = useMemo(() => {
     const set = new Set<string>();
+    SUBJECT_OPTIONS.forEach((s) => set.add(s));
     users.forEach((u) => (u.subjects ?? []).forEach((s) => set.add(s)));
+    studentRates.forEach((r) => r.subject && set.add(r.subject));
     return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
-  }, [users]);
+  }, [users, studentRates]);
 
   // Apply filters once for all sections
   const filteredUsers = useMemo(() => {
@@ -1497,16 +1499,31 @@ export default function PeoplePage() {
               })()}
             </div>
             <div>
-              <Label htmlFor="price">Ціна за один урок (₴)</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="any"
-                value={studentDialog.price}
-                onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
-                placeholder="напр. 500"
-              />
+              <Label htmlFor="price">Ціна за один урок ({currencySymbol(studentDialog.currency)})</Label>
+              <div className="grid grid-cols-[1fr_8rem] gap-2">
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={studentDialog.price}
+                  onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
+                  placeholder="напр. 500"
+                />
+                <Select
+                  value={studentDialog.currency}
+                  onValueChange={(v) => setStudentDialog((s) => ({ ...s, currency: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
