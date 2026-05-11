@@ -359,6 +359,74 @@ const landingStyles = `
 .landing-root .fade-up { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
 .landing-root .fade-up.visible { opacity: 1; transform: translateY(0); }
 
+/* Pricing */
+.landing-root .price-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 24px; margin-top: 40px;
+}
+.landing-root .price-card {
+  background: var(--white);
+  border-radius: var(--l-radius);
+  padding: 32px 28px;
+  border: 1px solid var(--border2);
+  display: flex; flex-direction: column; gap: 10px;
+  position: relative;
+}
+.landing-root .price-card.featured {
+  border: 2px solid var(--l-accent);
+  box-shadow: 0 8px 32px rgba(10,186,181,0.12);
+}
+.landing-root .price-plan {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--l-muted);
+}
+.landing-root .price-badge {
+  display: inline-block; align-self: flex-start;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 100px;
+  background: var(--warning-light); color: var(--l-warning);
+}
+.landing-root .price-card.featured .price-badge {
+  background: var(--accent-light); color: var(--l-accent);
+}
+.landing-root .price-amount {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 44px; font-weight: 900;
+  color: var(--ink); line-height: 1; margin-top: 8px;
+}
+.landing-root .price-period {
+  font-size: 14px; color: var(--l-muted); margin-bottom: 8px;
+}
+.landing-root .price-features {
+  list-style: none; display: flex; flex-direction: column; gap: 8px;
+  margin: 12px 0 16px;
+}
+.landing-root .price-features li {
+  font-size: 14px; color: var(--ink2); line-height: 1.5;
+}
+.landing-root .price-cta {
+  display: inline-block; text-align: center;
+  background: var(--l-accent); color: #fff;
+  font-weight: 600; font-size: 15px;
+  padding: 14px 24px; border-radius: 100px;
+  text-decoration: none; transition: all 0.2s;
+}
+.landing-root .price-cta:hover { background: var(--l-accent2); transform: translateY(-1px); }
+.landing-root .price-cta.secondary {
+  background: transparent; color: var(--ink);
+  border: 1.5px solid var(--l-border);
+}
+.landing-root .price-cta.secondary:hover { border-color: var(--l-accent); color: var(--l-accent); }
+.landing-root .price-note {
+  font-size: 12px; color: var(--muted2); text-align: center; margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .landing-root .price-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 900px) {
   .landing-root .assistant-grid { grid-template-columns: 1fr; }
   .landing-root .glance-grid { grid-template-columns: repeat(2, 1fr); }
@@ -444,7 +512,13 @@ const landingStyles = `
 `;
 
 export default function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const pricing = useMemo(() => {
+    const lang = i18n.language || "uk";
+    if (lang.startsWith("en")) return { free: "Free", pro: "$12", period: "/month" };
+    if (lang.startsWith("sv")) return { free: "Gratis", pro: "120 kr", period: "/månad" };
+    return { free: "0 ₴", pro: "129 ₴", period: "/місяць" };
+  }, [i18n.language]);
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -763,6 +837,47 @@ export default function LandingPage() {
         isAnimating={isAnimating}
         onFindClick={() => setQuizOpen(true)}
       />
+
+      {/* PRICING */}
+      <section className="l-section section-alt" id="pricing">
+        <div className="section-inner" style={{ textAlign: "center" }}>
+          <div className="section-label">{t("landing.pricing.label")}</div>
+          <h2>{t("landing.pricing.title")}</h2>
+          <div className="price-grid">
+            <div className="price-card featured">
+              <div className="price-plan">{t("landing.pricing.earlyPlan")}</div>
+              <div className="price-badge">🔥 {spotsLeft} {t("landing.pricing.spotsOf20")}</div>
+              <div className="price-amount">{pricing.free}</div>
+              <div className="price-period">{t("landing.pricing.earlyPeriod")}</div>
+              <ul className="price-features">
+                <li>✓ {t("landing.pricing.early1")}</li>
+                <li>✓ {t("landing.pricing.early2")}</li>
+                <li>✓ {t("landing.pricing.early3")}</li>
+              </ul>
+              <Link to={signupHref} className="price-cta">{t("landing.pricing.earlyCta")}</Link>
+              <div className="price-note">{t("landing.pricing.earlyNote")}{spotsLeft}</div>
+            </div>
+
+            <div className="price-card">
+              <div className="price-plan">{t("landing.pricing.proPlan")}</div>
+              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
+              <div className="price-amount">{pricing.pro}</div>
+              <div className="price-period">{pricing.period}</div>
+              <ul className="price-features">
+                <li>✓ {t("landing.pricing.pro1")}</li>
+                <li>✓ {t("landing.pricing.pro2")}</li>
+                <li>✓ {t("landing.pricing.pro3")}</li>
+                <li>✓ {t("landing.pricing.pro4")}</li>
+                <li>✓ {t("landing.pricing.pro5")}</li>
+                <li>✓ {t("landing.pricing.pro6")}</li>
+                <li>✓ {t("landing.pricing.pro7")}</li>
+              </ul>
+              <Link to={signupHref} className="price-cta secondary">{t("landing.pricing.proCta")}</Link>
+              <div className="price-note">{t("landing.pricing.proNote")}</div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* FINAL CTA */}
       <section className="cta-section">
