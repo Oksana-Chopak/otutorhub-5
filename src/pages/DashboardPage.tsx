@@ -417,7 +417,10 @@ export default function DashboardPage() {
         } as any,
         { onConflict: "lesson_id" },
       );
-    if (error) return;
+    if (error) {
+      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      return;
+    }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
   };
 
