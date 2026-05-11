@@ -61,18 +61,35 @@ function formatUkrainianDateTimeFromParts(date: string, time: string) {
   const { year, month, day } = datePartsFromIso(date);
   const [hour, minute] = time.split(":");
   if (!year || !month || !day) return "";
-  return `${day} ${UKRAINIAN_MONTHS[month - 1]} ${year}, ${String(hour || "00").padStart(2, "0")}:${String(minute || "00").padStart(2, "0")}`;
+  return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}, ${String(hour || "00").padStart(2, "0")}:${String(minute || "00").padStart(2, "0")}`;
+}
+
+function ddmmyyyyFromIso(date: string) {
+  const { year, month, day } = datePartsFromIso(date);
+  if (!year || !month || !day) return "";
+  return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
+}
+
+function isoFromDdmmyyyy(value: string): string | null {
+  const m = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+  if (!m) return null;
+  const day = Number(m[1]);
+  const month = Number(m[2]);
+  const year = Number(m[3]);
+  if (month < 1 || month > 12) return null;
+  const maxDay = new Date(year, month, 0).getDate();
+  if (day < 1 || day > maxDay) return null;
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function formatUkrainianDateTime(iso: string) {
-  return new Date(iso).toLocaleString("uk-UA", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hour = String(d.getHours()).padStart(2, "0");
+  const minute = String(d.getMinutes()).padStart(2, "0");
+  return `${day}.${month}.${year}, ${hour}:${minute}`;
 }
 
 async function ensureTutorHasSubject(tutorId: string, subject: string) {
