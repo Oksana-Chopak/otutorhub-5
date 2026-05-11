@@ -40,7 +40,7 @@ export function SubjectSelect({
 
   return (
     <Select
-      value={value || undefined}
+      value={value}
       onValueChange={(name) => {
         const found = subjects.find((s) => s.name === name);
         onValueChange(name, found?.id);
