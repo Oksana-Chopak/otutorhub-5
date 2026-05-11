@@ -366,6 +366,8 @@ export default function PeoplePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "student_rates" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tutor_details" }, () => loadData())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -518,6 +520,18 @@ export default function PeoplePage() {
     loadData();
   };
 
+  const ensureTutorSubject = async (tutorId: string, subject: string) => {
+    const normalized = subject.trim();
+    if (!tutorId || !normalized) return;
+    const tutor = users.find((u) => u.id === tutorId && u.role === "tutor");
+    const current = tutor?.subjects ?? [];
+    if (current.includes(normalized)) return;
+    const { error } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: tutorId, subjects: [...current, normalized] }, { onConflict: "user_id" });
+    if (error) console.warn("Failed to sync tutor subject", error);
+  };
+
   const saveAddTutorToStudent = async () => {
     if (!addTutorToStudent.tutorId) {
       toast.error("Оберіть репетитора");
@@ -547,6 +561,7 @@ export default function PeoplePage() {
       toast.error("Не вдалося додати репетитора. Спробуйте ще раз.");
       return;
     }
+    await ensureTutorSubject(addTutorToStudent.tutorId, addTutorToStudent.subject);
     toast.success("Репетитора додано до учня");
     setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
