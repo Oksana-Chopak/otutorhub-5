@@ -30,18 +30,38 @@ interface OpenState {
 
 const STORAGE_KEY = "otutorhub_quick_actions";
 
-function formatUkrainianDateTimeFromParts(date: string, time: string) {
+const UKRAINIAN_MONTHS = [
+  "січня",
+  "лютого",
+  "березня",
+  "квітня",
+  "травня",
+  "червня",
+  "липня",
+  "серпня",
+  "вересня",
+  "жовтня",
+  "листопада",
+  "грудня",
+];
+
+function datePartsFromIso(date: string) {
   const [year, month, day] = date.split("-").map(Number);
-  const [hour, minute] = time.split(":").map(Number);
+  return { year, month, day };
+}
+
+function isoFromDateParts(year: number, month: number, day: number) {
+  const safeMonth = Math.min(12, Math.max(1, month || 1));
+  const maxDay = new Date(year || new Date().getFullYear(), safeMonth, 0).getDate();
+  const safeDay = Math.min(maxDay, Math.max(1, day || 1));
+  return `${String(year || new Date().getFullYear()).padStart(4, "0")}-${String(safeMonth).padStart(2, "0")}-${String(safeDay).padStart(2, "0")}`;
+}
+
+function formatUkrainianDateTimeFromParts(date: string, time: string) {
+  const { year, month, day } = datePartsFromIso(date);
+  const [hour, minute] = time.split(":");
   if (!year || !month || !day) return "";
-  return new Date(year, month - 1, day, hour || 0, minute || 0).toLocaleString("uk-UA", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  return `${day} ${UKRAINIAN_MONTHS[month - 1]} ${year}, ${String(hour || "00").padStart(2, "0")}:${String(minute || "00").padStart(2, "0")}`;
 }
 
 function formatUkrainianDateTime(iso: string) {
