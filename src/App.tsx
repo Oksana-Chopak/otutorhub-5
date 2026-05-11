@@ -40,6 +40,7 @@ import StudentSchedulePage from "./pages/student/StudentSchedulePage";
 import StudentPaymentsPage from "./pages/student/StudentPaymentsPage";
 import StudentHomeworkPage from "./pages/student/StudentHomeworkPage";
 import StudentProfilePage from "./pages/student/StudentProfilePage";
+import { ClarityIdentify } from "./components/ClarityIdentify";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +48,8 @@ function AppRoutes() {
   // Subscribe to global new-message toasts (no UI)
   useGlobalChatToasts();
   return (
+    <>
+      <ClarityIdentify />
     <Routes>
       <Route path="/auth" element={<AuthPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -229,6 +232,7 @@ function AppRoutes() {
       />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   );
 }
 
