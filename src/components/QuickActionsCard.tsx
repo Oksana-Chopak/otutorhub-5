@@ -650,6 +650,7 @@ function AddPaymentForm({
                 return (
                   <SelectItem key={u.id} value={u.id}>
                     {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} · {u.subject}
+                    {selected ? ` · ${formatPrice(selected.price, selected.currency)}` : ""}
                   </SelectItem>
                 );
               })}
