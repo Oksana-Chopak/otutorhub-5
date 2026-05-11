@@ -671,7 +671,7 @@ function AddPaymentForm({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{paymentUnit === "lessons" ? "Кількість" : "Сума"}</Label>
+              <Label className="text-xs">{paymentUnit === "lessons" ? "Кількість" : `Сума (${currencySymbol(selected?.currency)})`}</Label>
               <Input
                 type="number"
                 min={paymentUnit === "lessons" ? 1 : 0}
