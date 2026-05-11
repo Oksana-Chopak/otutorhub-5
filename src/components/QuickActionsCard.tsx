@@ -197,7 +197,7 @@ export function QuickActionsCard({ onChanged }: Props) {
         </p>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0 lg:items-start">
         <ActionTab
           icon={<UserPlus className="h-4 w-4" />}
           title="Учень"
