@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Wallet, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { formatPrice } from "@/lib/currency";
 
 interface UnpaidRow {
   id: string;
@@ -13,6 +14,7 @@ interface UnpaidRow {
   student_id: string;
   student_price: number;
   student_name: string;
+  currency: string;
 }
 
 /**
