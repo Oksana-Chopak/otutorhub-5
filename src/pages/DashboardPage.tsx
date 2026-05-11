@@ -334,6 +334,21 @@ export default function DashboardPage() {
     setPendingRequestCount((requestRows ?? []).length);
 
     if (isManager) {
+      const [{ count: trCount }, { count: srCount }] = await Promise.all([
+        supabase
+          .from("tutor_referral_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["open", "in_progress"]),
+        supabase
+          .from("subscription_requests")
+          .select("id", { count: "exact", head: true })
+          .in("status", ["new", "in_progress"]),
+      ]);
+      setTutorReferralRequestCount(trCount ?? 0);
+      setSupportRequestCount(srCount ?? 0);
+    }
+
+    if (isManager) {
       const linkedStudentIds = new Set<string>();
       ((ratesData ?? []) as Array<{ student_id: string }>).forEach((r) =>
         linkedStudentIds.add(r.student_id)
