@@ -339,12 +339,13 @@ function GroupDetailsDialog({
     setGroup(g as Group);
     setEnrollments((ens ?? []) as Enrollment[]);
 
+    const groupTutorId = (g as any)?.tutor_id ?? user.id;
     // available = tutor's students not already enrolled (active)
     const enrolledIds = new Set((ens ?? []).filter((e: any) => e.status === "active").map((e: any) => e.student_id));
     const { data: rates } = await supabase
       .from("student_rates")
       .select("student_id, archived_at")
-      .eq("tutor_id", user.id);
+      .eq("tutor_id", groupTutorId);
     const ids = Array.from(
       new Set(
         (rates ?? [])
