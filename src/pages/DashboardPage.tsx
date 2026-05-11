@@ -808,7 +808,7 @@ export default function DashboardPage() {
                           profit >= 0 ? "text-success" : "text-destructive"
                         }`}
                       >
-                        {profit} ₴
+                        {formatPrice(profit, "UAH")}
                       </p>
                     </Link>
                   </div>
