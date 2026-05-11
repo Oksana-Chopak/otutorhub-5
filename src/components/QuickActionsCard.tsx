@@ -30,12 +30,59 @@ interface OpenState {
 
 const STORAGE_KEY = "otutorhub_quick_actions";
 
+function formatUkrainianDateTimeFromParts(date: string, time: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  if (!year || !month || !day) return "";
+  return new Date(year, month - 1, day, hour || 0, minute || 0).toLocaleString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function formatUkrainianDateTime(iso: string) {
+  return new Date(iso).toLocaleString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+async function ensureTutorHasSubject(tutorId: string, subject: string) {
+  const normalized = subject.trim();
+  if (!tutorId || !normalized) return;
+  try {
+    const { data, error } = await supabase
+      .from("tutor_details")
+      .select("subjects")
+      .eq("user_id", tutorId)
+      .maybeSingle();
+    if (error) throw error;
+    const current = Array.isArray((data as any)?.subjects) ? ((data as any).subjects as string[]) : [];
+    if (current.includes(normalized)) return;
+    const { error: upsertError } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: tutorId, subjects: [...current, normalized] }, { onConflict: "user_id" });
+    if (upsertError) throw upsertError;
+  } catch (error) {
+    console.warn("Failed to sync tutor subject from quick actions", error);
+  }
+}
+
 interface TutorOption {
   id: string;
   name: string;
 }
 
 interface StudentRow {
+  rate_id: string;
   rate_key: string;
   tutor_id: string;
   tutor_name: string;
