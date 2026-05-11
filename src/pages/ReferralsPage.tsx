@@ -246,6 +246,45 @@ export default function ReferralsPage() {
                   </div>
                 )}
 
+                {(r.studentEmail || r.studentPhone || r.studentTelegram) && (
+                  <div className="flex flex-wrap gap-2 rounded-md border border-border bg-muted/30 p-2 text-xs">
+                    <span className="text-muted-foreground">Контакти учня:</span>
+                    {r.studentEmail && (
+                      <a
+                        href={`mailto:${r.studentEmail}`}
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Mail className="h-3 w-3" />
+                        {r.studentEmail}
+                      </a>
+                    )}
+                    {r.studentPhone && (
+                      <a
+                        href={`tel:${r.studentPhone}`}
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Phone className="h-3 w-3" />
+                        {r.studentPhone}
+                      </a>
+                    )}
+                    {r.studentTelegram && (
+                      <a
+                        href={`https://t.me/${r.studentTelegram.replace(/^@/, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-primary hover:underline"
+                      >
+                        <Send className="h-3 w-3" />@{r.studentTelegram.replace(/^@/, "")}
+                      </a>
+                    )}
+                  </div>
+                )}
+                {!(r.studentEmail || r.studentPhone || r.studentTelegram) && (
+                  <p className="text-xs text-muted-foreground">
+                    Учень не вказав контактів у профілі. Напишіть йому через чат.
+                  </p>
+                )}
+
                 {r.status !== "fulfilled" && r.status !== "closed" && (
                   <div className="space-y-2">
                     <Textarea
