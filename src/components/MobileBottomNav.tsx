@@ -21,7 +21,7 @@ type Item = {
   badgeKey?: "chats" | "availability";
 };
 
-// Single 5-item navigation per role — must match AppSidebar.
+// Single 6-item navigation per role — must match AppSidebar.
 const items: Item[] = [
   // Tutor
   { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["tutor"] },
@@ -59,7 +59,7 @@ export function MobileBottomNav() {
     : undefined;
 
   if (!primary) return null;
-  const visible = items.filter((i) => i.roles.includes(primary)).slice(0, 5);
+  const visible = items.filter((i) => i.roles.includes(primary)).slice(0, 6);
   if (visible.length === 0) return null;
 
   return (
