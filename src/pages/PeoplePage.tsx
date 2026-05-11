@@ -1578,7 +1578,6 @@ export default function PeoplePage() {
                 </SelectTrigger>
                 <SelectContent>
                   {allTutors
-                    .filter((t) => (t.subjects ?? []).length > 0)
                     .map((t) => (
                       <SelectItem key={t.id} value={t.id}>
                         {fullName(t)}
