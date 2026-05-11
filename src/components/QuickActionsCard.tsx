@@ -706,7 +706,6 @@ function AddPaymentForm({
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {lessonOptions.map((u) => {
-                const d = new Date(u.starts_at);
                 return (
                   <SelectItem key={u.id} value={u.id}>
                     {formatUkrainianDateTime(u.starts_at)} · {u.subject}
