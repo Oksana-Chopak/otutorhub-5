@@ -394,7 +394,10 @@ export default function DashboardPage() {
 
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
-    if (error) return;
+    if (error) {
+      toast.error("Не вдалося змінити статус уроку. Спробуйте ще раз.");
+      return;
+    }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
   };
 
