@@ -61,18 +61,35 @@ function formatUkrainianDateTimeFromParts(date: string, time: string) {
   const { year, month, day } = datePartsFromIso(date);
   const [hour, minute] = time.split(":");
   if (!year || !month || !day) return "";
-  return `${day} ${UKRAINIAN_MONTHS[month - 1]} ${year}, ${String(hour || "00").padStart(2, "0")}:${String(minute || "00").padStart(2, "0")}`;
+  return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}, ${String(hour || "00").padStart(2, "0")}:${String(minute || "00").padStart(2, "0")}`;
+}
+
+function ddmmyyyyFromIso(date: string) {
+  const { year, month, day } = datePartsFromIso(date);
+  if (!year || !month || !day) return "";
+  return `${String(day).padStart(2, "0")}.${String(month).padStart(2, "0")}.${year}`;
+}
+
+function isoFromDdmmyyyy(value: string): string | null {
+  const m = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+  if (!m) return null;
+  const day = Number(m[1]);
+  const month = Number(m[2]);
+  const year = Number(m[3]);
+  if (month < 1 || month > 12) return null;
+  const maxDay = new Date(year, month, 0).getDate();
+  if (day < 1 || day > maxDay) return null;
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 function formatUkrainianDateTime(iso: string) {
-  return new Date(iso).toLocaleString("uk-UA", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const d = new Date(iso);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const year = d.getFullYear();
+  const hour = String(d.getHours()).padStart(2, "0");
+  const minute = String(d.getMinutes()).padStart(2, "0");
+  return `${day}.${month}.${year}, ${hour}:${minute}`;
 }
 
 async function ensureTutorHasSubject(tutorId: string, subject: string) {
@@ -488,7 +505,8 @@ function AddLessonForm({
   const [time, setTime] = useState("18:00");
   const [duration, setDuration] = useState("60");
   const [busy, setBusy] = useState(false);
-  const { year, month, day } = datePartsFromIso(date);
+  const [dateInput, setDateInput] = useState(ddmmyyyyFromIso(date));
+  useEffect(() => { setDateInput(ddmmyyyyFromIso(date)); }, [date]);
 
   useEffect(() => {
     if (!rateKey && students[0]) setRateKey(students[0].rate_key);
@@ -570,37 +588,17 @@ function AddLessonForm({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Число</Label>
+          <Label className="text-xs">Дата (ДД.ММ.РРРР)</Label>
           <Input
-            type="number"
-            min={1}
-            max={31}
-            value={day || ""}
-            onChange={(e) => setDate(isoFromDateParts(year, month, Number(e.target.value)))}
-            className="h-9"
-          />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs">Місяць</Label>
-          <Select value={String(month || 1)} onValueChange={(v) => setDate(isoFromDateParts(year, Number(v), day))}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {UKRAINIAN_MONTHS.map((name, index) => (
-                <SelectItem key={name} value={String(index + 1)}>{name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="space-y-1">
-          <Label className="text-xs">Рік</Label>
-          <Input
-            type="number"
-            min={2024}
-            max={2100}
-            value={year || ""}
-            onChange={(e) => setDate(isoFromDateParts(Number(e.target.value), month, day))}
+            type="text"
+            inputMode="numeric"
+            value={dateInput}
+            onChange={(e) => {
+              setDateInput(e.target.value);
+              const iso = isoFromDdmmyyyy(e.target.value);
+              if (iso) setDate(iso);
+            }}
+            placeholder="11.05.2026"
             className="h-9"
           />
         </div>
