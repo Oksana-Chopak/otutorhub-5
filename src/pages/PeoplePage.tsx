@@ -51,6 +51,8 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 import { safeHref } from "@/lib/safeUrl";
+import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { SUBJECT_OPTIONS } from "@/lib/subjects";
 
 interface Profile {
   id: string;
@@ -105,7 +107,7 @@ export default function PeoplePage() {
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [studentRates, setStudentRates] = useState<
-    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number }>
+    Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number; currency: string }>
   >([]);
   // tutor_id -> { subject -> rate }
   const [tutorSubjectRates, setTutorSubjectRates] = useState<Record<string, Record<string, number>>>({});
@@ -132,8 +134,9 @@ export default function PeoplePage() {
     tutorName: string;
     subject: string;
     price: string;
+    currency: string;
     existingId: string | null;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", currency: "UAH", existingId: null });
 
   // Add tutor to student dialog (manager picks tutor + subject + price)
   const [addTutorToStudent, setAddTutorToStudent] = useState<{
@@ -143,7 +146,8 @@ export default function PeoplePage() {
     tutorId: string;
     subject: string;
     price: string;
-  }>({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+    currency: string;
+  }>({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
@@ -197,7 +201,7 @@ export default function PeoplePage() {
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
-      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson"),
+      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
@@ -362,6 +366,8 @@ export default function PeoplePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "student_rates" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tutor_details" }, () => loadData())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -476,7 +482,7 @@ export default function PeoplePage() {
       oldPrice = Number(existing?.price_per_lesson ?? 0);
       const { error } = await supabase
         .from("student_rates")
-        .update({ price_per_lesson: price })
+        .update({ price_per_lesson: price, currency: studentDialog.currency || "UAH" })
         .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
@@ -489,6 +495,7 @@ export default function PeoplePage() {
         student_id: studentDialog.studentId,
         subject: studentDialog.subject,
         price_per_lesson: price,
+        currency: studentDialog.currency || "UAH",
       });
       if (error) {
         console.error("Failed to insert student rate", error);
@@ -508,9 +515,22 @@ export default function PeoplePage() {
             oldPrice,
           }
         : null;
-    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", existingId: null });
+    setStudentDialog({ open: false, studentId: "", studentName: "", tutorId: "", tutorName: "", subject: "", price: "", currency: "UAH", existingId: null });
     if (propPayload) setPropagate(propPayload);
+    await ensureTutorSubject(studentDialog.tutorId, studentDialog.subject);
     loadData();
+  };
+
+  const ensureTutorSubject = async (tutorId: string, subject: string) => {
+    const normalized = subject.trim();
+    if (!tutorId || !normalized) return;
+    const tutor = users.find((u) => u.id === tutorId && u.role === "tutor");
+    const current = tutor?.subjects ?? [];
+    if (current.includes(normalized)) return;
+    const { error } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: tutorId, subjects: [...current, normalized] }, { onConflict: "user_id" });
+    if (error) console.warn("Failed to sync tutor subject", error);
   };
 
   const saveAddTutorToStudent = async () => {
@@ -533,6 +553,7 @@ export default function PeoplePage() {
         student_id: addTutorToStudent.studentId,
         subject: addTutorToStudent.subject,
         price_per_lesson: price,
+        currency: addTutorToStudent.currency || "UAH",
       },
       { onConflict: "tutor_id,student_id,subject" },
     );
@@ -541,8 +562,9 @@ export default function PeoplePage() {
       toast.error("Не вдалося додати репетитора. Спробуйте ще раз.");
       return;
     }
+    await ensureTutorSubject(addTutorToStudent.tutorId, addTutorToStudent.subject);
     toast.success("Репетитора додано до учня");
-    setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "" });
+    setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
   };
 
@@ -725,9 +747,11 @@ export default function PeoplePage() {
   // Build subject options from all tutors
   const allSubjects = useMemo(() => {
     const set = new Set<string>();
+    SUBJECT_OPTIONS.forEach((s) => set.add(s));
     users.forEach((u) => (u.subjects ?? []).forEach((s) => set.add(s)));
+    studentRates.forEach((r) => r.subject && set.add(r.subject));
     return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
-  }, [users]);
+  }, [users, studentRates]);
 
   // Apply filters once for all sections
   const filteredUsers = useMemo(() => {
@@ -1082,8 +1106,9 @@ export default function PeoplePage() {
             tutorId: "",
             subject: "",
             price: "",
+            currency: "UAH",
           });
-        const hasAnyTutor = allTutors.some((t) => (t.subjects ?? []).length > 0);
+        const hasAnyTutor = allTutors.length > 0;
         return (
           <div className="mt-3 pt-3 border-t border-border">
             <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1113,7 +1138,14 @@ export default function PeoplePage() {
             ) : (
               <div className="space-y-2">
               {linkedTutors.map((t) => {
-                  const tSubjects = t.subjects ?? [];
+                  const tSubjects = Array.from(
+                    new Set([
+                      ...(t.subjects ?? []),
+                      ...studentRates
+                        .filter((r) => r.tutor_id === t.id && r.student_id === u.id)
+                        .map((r) => r.subject),
+                    ].filter(Boolean)),
+                  );
                   if (tSubjects.length === 0) return null;
                   return (
                     <div key={t.id} className="space-y-1">
@@ -1127,7 +1159,7 @@ export default function PeoplePage() {
                             <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
-                                {rate ? `${rate.price_per_lesson} ₴` : <span className="text-muted-foreground italic">не задано</span>}
+                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">не задано</span>}
                               </span>
                               <Button
                                 variant="ghost"
@@ -1142,6 +1174,7 @@ export default function PeoplePage() {
                                     tutorName: fullName(t),
                                     subject: subj,
                                     price: rate ? String(rate.price_per_lesson) : "",
+                                    currency: rate?.currency ?? "UAH",
                                     existingId: rate?.id ?? null,
                                   })
                                 }
@@ -1482,16 +1515,31 @@ export default function PeoplePage() {
               })()}
             </div>
             <div>
-              <Label htmlFor="price">Ціна за один урок (₴)</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="any"
-                value={studentDialog.price}
-                onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
-                placeholder="напр. 500"
-              />
+              <Label htmlFor="price">Ціна за один урок ({currencySymbol(studentDialog.currency)})</Label>
+              <div className="grid grid-cols-[1fr_8rem] gap-2">
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="any"
+                  value={studentDialog.price}
+                  onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
+                  placeholder="напр. 500"
+                />
+                <Select
+                  value={studentDialog.currency}
+                  onValueChange={(v) => setStudentDialog((s) => ({ ...s, currency: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CURRENCY_OPTIONS.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -1530,7 +1578,6 @@ export default function PeoplePage() {
                 </SelectTrigger>
                 <SelectContent>
                   {allTutors
-                    .filter((t) => (t.subjects ?? []).length > 0)
                     .map((t) => (
                       <SelectItem key={t.id} value={t.id}>
                         {fullName(t)}
@@ -1541,7 +1588,8 @@ export default function PeoplePage() {
             </div>
             {addTutorToStudent.tutorId && (() => {
               const tutor = allTutors.find((t) => t.id === addTutorToStudent.tutorId);
-              const tSubjects = tutor?.subjects ?? [];
+              const tutorSubjects = tutor?.subjects ?? [];
+              const tSubjects = tutorSubjects.length > 0 ? tutorSubjects : allSubjects;
               const takenSubjects = new Set(
                 studentRates
                   .filter(
@@ -1600,18 +1648,33 @@ export default function PeoplePage() {
                     return null;
                   })()}
                   <div>
-                    <Label htmlFor="add-tutor-price">Ціна за один урок (₴) для учня</Label>
-                    <Input
-                      id="add-tutor-price"
-                      type="number"
-                      min="0"
-                      step="any"
-                      value={addTutorToStudent.price}
-                      onChange={(e) =>
-                        setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
-                      }
-                      placeholder="напр. 550"
-                    />
+                    <Label htmlFor="add-tutor-price">Ціна за один урок ({currencySymbol(addTutorToStudent.currency)}) для учня</Label>
+                    <div className="grid grid-cols-[1fr_8rem] gap-2">
+                      <Input
+                        id="add-tutor-price"
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={addTutorToStudent.price}
+                        onChange={(e) =>
+                          setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
+                        }
+                        placeholder="напр. 550"
+                      />
+                      <Select
+                        value={addTutorToStudent.currency}
+                        onValueChange={(v) => setAddTutorToStudent((s) => ({ ...s, currency: v }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CURRENCY_OPTIONS.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </>
               );

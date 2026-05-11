@@ -30,12 +30,59 @@ interface OpenState {
 
 const STORAGE_KEY = "otutorhub_quick_actions";
 
+function formatUkrainianDateTimeFromParts(date: string, time: string) {
+  const [year, month, day] = date.split("-").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  if (!year || !month || !day) return "";
+  return new Date(year, month - 1, day, hour || 0, minute || 0).toLocaleString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function formatUkrainianDateTime(iso: string) {
+  return new Date(iso).toLocaleString("uk-UA", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+async function ensureTutorHasSubject(tutorId: string, subject: string) {
+  const normalized = subject.trim();
+  if (!tutorId || !normalized) return;
+  try {
+    const { data, error } = await supabase
+      .from("tutor_details")
+      .select("subjects")
+      .eq("user_id", tutorId)
+      .maybeSingle();
+    if (error) throw error;
+    const current = Array.isArray((data as any)?.subjects) ? ((data as any).subjects as string[]) : [];
+    if (current.includes(normalized)) return;
+    const { error: upsertError } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: tutorId, subjects: [...current, normalized] }, { onConflict: "user_id" });
+    if (upsertError) throw upsertError;
+  } catch (error) {
+    console.warn("Failed to sync tutor subject from quick actions", error);
+  }
+}
+
 interface TutorOption {
   id: string;
   name: string;
 }
 
 interface StudentRow {
+  rate_id: string;
   rate_key: string;
   tutor_id: string;
   tutor_name: string;
@@ -88,7 +135,7 @@ export function QuickActionsCard({ onChanged }: Props) {
 
     const ratesQuery = supabase
       .from("student_rates")
-      .select("tutor_id, student_id, subject, price_per_lesson, archived_at, source, currency");
+      .select("id, tutor_id, student_id, subject, price_per_lesson, archived_at, source, currency");
     const lessonsCountQuery = supabase.from("lessons").select("id", { count: "exact", head: true });
     const unpaidQuery = supabase
       .from("lesson_details")
@@ -142,12 +189,13 @@ export function QuickActionsCard({ onChanged }: Props) {
 
     const byPair = new Map<string, any>();
     active.forEach((r: any) => {
-      const key = `${r.tutor_id}:${r.student_id}`;
+      const key = `${r.tutor_id}:${r.student_id}:${r.subject || ""}`;
       if (!byPair.has(key)) byPair.set(key, r);
     });
 
     const rows: StudentRow[] = Array.from(byPair.values()).map((r: any) => ({
-      rate_key: `${r.tutor_id}:${r.student_id}`,
+      rate_id: r.id,
+      rate_key: r.id || `${r.tutor_id}:${r.student_id}:${r.subject || ""}`,
       tutor_id: r.tutor_id,
       tutor_name: nameOf.get(r.tutor_id) ?? "Репетитор",
       student_id: r.student_id,
@@ -307,6 +355,7 @@ function AddStudentForm({
     if (!fn) return toast.error("Вкажіть ім'я учня");
     if (isManager && !ownerTutorId) return toast.error("Виберіть репетитора");
     if (!subject) return toast.error("Виберіть предмет");
+    const normalizedSubject = subject.trim();
     const p = Number(price);
     if (isNaN(p) || p < 0) return toast.error("Введіть коректну ціну");
 
@@ -328,7 +377,7 @@ function AddStudentForm({
     const { error: rateErr } = await supabase.from("student_rates").insert({
       tutor_id: ownerTutorId,
       student_id: newId,
-      subject,
+      subject: normalizedSubject,
       price_per_lesson: p,
       currency,
       source: isManager ? "hub" : "independent",
@@ -339,6 +388,7 @@ function AddStudentForm({
       await supabase.from("profiles").delete().eq("id", newId);
       return toast.error("Не вдалося зберегти");
     }
+    await ensureTutorHasSubject(ownerTutorId, normalizedSubject);
     toast.success(`${fn} додано 🎉`);
     setName("");
     setSubject("");
@@ -506,6 +556,9 @@ function AddLessonForm({
           <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9" />
         </div>
       </div>
+      <p className="text-[11px] text-muted-foreground">
+        {formatUkrainianDateTimeFromParts(date, time)}
+      </p>
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
@@ -622,10 +675,17 @@ function AddPaymentForm({
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {students.map((s) => (
-                <SelectItem key={s.rate_key} value={s.rate_key}>{s.name} · {s.tutor_name}</SelectItem>
+                <SelectItem key={s.rate_key} value={s.rate_key}>
+                  {s.name} · {s.subject || "предмет"} · {formatPrice(s.price, s.currency)} · {s.tutor_name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {selected && (
+            <p className="text-[11px] text-muted-foreground">
+              Валюта й ціна: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
+            </p>
+          )}
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Дія</Label>
@@ -646,10 +706,9 @@ function AddPaymentForm({
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {lessonOptions.map((u) => {
-                const d = new Date(u.starts_at);
                 return (
                   <SelectItem key={u.id} value={u.id}>
-                    {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} · {u.subject}
+                    {formatUkrainianDateTime(u.starts_at)} · {u.subject}
                     {selected ? ` · ${formatPrice(selected.price, selected.currency)}` : ""}
                   </SelectItem>
                 );
