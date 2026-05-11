@@ -488,6 +488,7 @@ function AddLessonForm({
   const [time, setTime] = useState("18:00");
   const [duration, setDuration] = useState("60");
   const [busy, setBusy] = useState(false);
+  const { year, month, day } = datePartsFromIso(date);
 
   useEffect(() => {
     if (!rateKey && students[0]) setRateKey(students[0].rate_key);
@@ -568,12 +569,51 @@ function AddLessonForm({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Дата</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9" />
+          <Label className="text-xs">Число</Label>
+          <Input
+            type="number"
+            min={1}
+            max={31}
+            value={day || ""}
+            onChange={(e) => setDate(isoFromDateParts(year, month, Number(e.target.value)))}
+            className="h-9"
+          />
+        </div>
+        <div className="space-y-1">
+          <Label className="text-xs">Місяць</Label>
+          <Select value={String(month || 1)} onValueChange={(v) => setDate(isoFromDateParts(year, Number(v), day))}>
+            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {UKRAINIAN_MONTHS.map((name, index) => (
+                <SelectItem key={name} value={String(index + 1)}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-1">
+          <Label className="text-xs">Рік</Label>
+          <Input
+            type="number"
+            min={2024}
+            max={2100}
+            value={year || ""}
+            onChange={(e) => setDate(isoFromDateParts(Number(e.target.value), month, day))}
+            className="h-9"
+          />
         </div>
         <div className="space-y-1">
           <Label className="text-xs">Час, 24 год</Label>
-          <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9" />
+          <Input
+            type="text"
+            inputMode="numeric"
+            pattern="[0-2][0-9]:[0-5][0-9]"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            placeholder="18:00"
+            className="h-9"
+          />
         </div>
       </div>
       <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
