@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { ChevronDown, Loader2, UserPlus, CalendarPlus, BadgeDollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
 
 type PaymentType = "wallet" | "lesson";
 type PaymentUnit = "lessons" | "amount";
