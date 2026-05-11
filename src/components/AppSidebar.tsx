@@ -75,7 +75,7 @@ const allNavItems: NavItem[] = [
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },
   { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["student"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
-  { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["student"] },
+  { to: "/student/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["student"] },
 ];
 
 const roleLabelKey: Record<AppRole, string> = {
