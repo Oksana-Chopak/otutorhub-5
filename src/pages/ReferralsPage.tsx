@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { UserAvatar } from "@/components/UserAvatar";
-import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck } from "lucide-react";
+import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck, Mail, Phone, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AssignTutorDialog } from "@/components/AssignTutorDialog";
 
@@ -33,6 +33,9 @@ interface ReferralRow {
   created_at: string;
   studentName?: string;
   studentAvatar?: string | null;
+  studentEmail?: string | null;
+  studentPhone?: string | null;
+  studentTelegram?: string | null;
 }
 
 const statusLabel: Record<ReferralRow["status"], string> = {
@@ -66,15 +69,23 @@ export default function ReferralsPage() {
 
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.student_id)));
     let profileMap = new Map<string, { name: string; avatar: string | null }>();
+    let contactMap = new Map<string, { email: string | null; phone: string | null; telegram: string | null }>();
     if (ids.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, avatar_url")
-        .in("id", ids);
-      (profiles ?? []).forEach((p: any) => {
+      const [profilesRes, contactsRes] = await Promise.all([
+        supabase.from("profiles").select("id, first_name, last_name, avatar_url").in("id", ids),
+        supabase.from("profile_contacts").select("user_id, email, phone, telegram").in("user_id", ids),
+      ]);
+      (profilesRes.data ?? []).forEach((p: any) => {
         profileMap.set(p.id, {
           name: `${p.first_name} ${p.last_name}`.trim() || "Без імені",
           avatar: p.avatar_url,
+        });
+      });
+      (contactsRes.data ?? []).forEach((c: any) => {
+        contactMap.set(c.user_id, {
+          email: c.email ?? null,
+          phone: c.phone ?? null,
+          telegram: c.telegram ?? null,
         });
       });
     }
@@ -83,6 +94,9 @@ export default function ReferralsPage() {
       ...r,
       studentName: profileMap.get(r.student_id)?.name ?? "Учень",
       studentAvatar: profileMap.get(r.student_id)?.avatar ?? null,
+      studentEmail: contactMap.get(r.student_id)?.email ?? null,
+      studentPhone: contactMap.get(r.student_id)?.phone ?? null,
+      studentTelegram: contactMap.get(r.student_id)?.telegram ?? null,
     }));
     setRequests(enriched);
     setLoading(false);
