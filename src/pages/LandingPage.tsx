@@ -838,6 +838,47 @@ export default function LandingPage() {
         onFindClick={() => setQuizOpen(true)}
       />
 
+      {/* PRICING */}
+      <section className="l-section section-alt" id="pricing">
+        <div className="section-inner" style={{ textAlign: "center" }}>
+          <div className="section-label">{t("landing.pricing.label")}</div>
+          <h2>{t("landing.pricing.title")}</h2>
+          <div className="price-grid">
+            <div className="price-card featured">
+              <div className="price-plan">{t("landing.pricing.earlyPlan")}</div>
+              <div className="price-badge">🔥 {spotsLeft} {t("landing.pricing.spotsOf20")}</div>
+              <div className="price-amount">{pricing.free}</div>
+              <div className="price-period">{t("landing.pricing.earlyPeriod")}</div>
+              <ul className="price-features">
+                <li>✓ {t("landing.pricing.early1")}</li>
+                <li>✓ {t("landing.pricing.early2")}</li>
+                <li>✓ {t("landing.pricing.early3")}</li>
+              </ul>
+              <Link to={signupHref} className="price-cta">{t("landing.pricing.earlyCta")}</Link>
+              <div className="price-note">{t("landing.pricing.earlyNote")}{spotsLeft}</div>
+            </div>
+
+            <div className="price-card">
+              <div className="price-plan">{t("landing.pricing.proPlan")}</div>
+              <div className="price-badge">{t("landing.pricing.proBadge")}</div>
+              <div className="price-amount">{pricing.pro}</div>
+              <div className="price-period">{pricing.period}</div>
+              <ul className="price-features">
+                <li>✓ {t("landing.pricing.pro1")}</li>
+                <li>✓ {t("landing.pricing.pro2")}</li>
+                <li>✓ {t("landing.pricing.pro3")}</li>
+                <li>✓ {t("landing.pricing.pro4")}</li>
+                <li>✓ {t("landing.pricing.pro5")}</li>
+                <li>✓ {t("landing.pricing.pro6")}</li>
+                <li>✓ {t("landing.pricing.pro7")}</li>
+              </ul>
+              <Link to={signupHref} className="price-cta secondary">{t("landing.pricing.proCta")}</Link>
+              <div className="price-note">{t("landing.pricing.proNote")}</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
