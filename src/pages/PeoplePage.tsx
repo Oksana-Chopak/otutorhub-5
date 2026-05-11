@@ -759,6 +759,7 @@ export default function PeoplePage() {
   const noRole = filteredUsers.filter((u) => !u.role);
   // Unfiltered tutors list for student-card pricing rows
   const allTutors = useMemo(() => users.filter((u) => u.role === "tutor"), [users]);
+  const visiblePeopleCount = noRole.length + managers.length + tutors.length + students.length;
 
   const renderUserCard = (u: UserRow, accent?: "primary" | "secondary") => {
     const studentSt =
@@ -772,7 +773,7 @@ export default function PeoplePage() {
     return (
     <div
       key={u.id}
-      className={`rounded-xl border bg-card p-5 ${
+      className={`rounded-lg border bg-card p-3 sm:p-4 lg:p-5 ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -780,8 +781,8 @@ export default function PeoplePage() {
             : "border-border"
       }`}
     >
-      <div className="flex items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+      <div className="mb-2.5 flex items-start justify-between gap-2 sm:mb-3 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
           <div className="relative shrink-0">
             {u.is_pending ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
@@ -792,7 +793,7 @@ export default function PeoplePage() {
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-10 w-10 ${
+                className={`h-9 w-9 sm:h-10 sm:w-10 ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
@@ -959,10 +960,10 @@ export default function PeoplePage() {
           )}
         </div>
       )}
-      <div className="flex items-center gap-2 mb-2">
+      <div className="mb-2 flex min-w-0 items-center gap-2">
         <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
-          <SelectTrigger className="h-8 text-xs">
+          <SelectTrigger className="h-8 min-w-0 text-xs">
             <SelectValue placeholder="Без ролі" />
           </SelectTrigger>
           <SelectContent>
