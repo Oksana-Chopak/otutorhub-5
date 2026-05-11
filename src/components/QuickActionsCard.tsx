@@ -293,6 +293,7 @@ function AddStudentForm({
   const [tutorId, setTutorId] = useState("");
   const [subject, setSubject] = useState("");
   const [price, setPrice] = useState("");
+  const [currency, setCurrency] = useState<string>("UAH");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
