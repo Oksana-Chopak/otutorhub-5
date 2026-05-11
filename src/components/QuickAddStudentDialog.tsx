@@ -210,7 +210,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 />
               </div>
               <div className="space-y-1">
-                <Label>Ціна за урок (₴)</Label>
+                <Label>Ціна за урок ({currencySymbol(form.currency)})</Label>
                 <Input
                   type="number"
                   min={0}
@@ -218,6 +218,19 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                 />
               </div>
+            </div>
+            <div className="space-y-1">
+              <Label>Валюта</Label>
+              <Select value={form.currency} onValueChange={(currency) => setForm({ ...form, currency })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CURRENCY_OPTIONS.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5">
