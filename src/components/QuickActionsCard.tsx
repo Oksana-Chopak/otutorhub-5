@@ -552,13 +552,14 @@ function AddLessonForm({
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-9" />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Час</Label>
+          <Label className="text-xs">Час, 24 год</Label>
           <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="h-9" />
         </div>
       </div>
-      <p className="text-[11px] text-muted-foreground">
-        {formatUkrainianDateTimeFromParts(date, time)}
-      </p>
+      <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
+        <p className="text-[11px] font-medium uppercase text-muted-foreground">Дата і час уроку</p>
+        <p className="text-sm font-semibold text-foreground">{formatUkrainianDateTimeFromParts(date, time)}</p>
+      </div>
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
@@ -580,7 +581,7 @@ function AddPaymentForm({
 }) {
   const [rateKey, setRateKey] = useState(students[0]?.rate_key ?? "");
   const [paymentType, setPaymentType] = useState<PaymentType>("wallet");
-  const [paymentUnit, setPaymentUnit] = useState<PaymentUnit>("lessons");
+  const [paymentUnit, setPaymentUnit] = useState<PaymentUnit>("amount");
   const [lessonId, setLessonId] = useState("");
   const [lessonsCount, setLessonsCount] = useState("");
   const [amount, setAmount] = useState("");
@@ -595,6 +596,8 @@ function AddPaymentForm({
     () => students.find((s) => s.rate_key === rateKey) ?? null,
     [students, rateKey],
   );
+  const selectedCurrency = selected?.currency ?? "UAH";
+  const selectedCurrencySymbol = currencySymbol(selectedCurrency);
 
   const lessonOptions = useMemo(
     () => selected ? unpaid.filter((u) => u.student_id === selected.student_id && u.tutor_id === selected.tutor_id) : [],
@@ -682,9 +685,16 @@ function AddPaymentForm({
             </SelectContent>
           </Select>
           {selected && (
-            <p className="text-[11px] text-muted-foreground">
-              Валюта й ціна: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
-            </p>
+            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-muted-foreground">Валюта оплати</span>
+                <span className="font-semibold text-foreground">{selectedCurrency} · {selectedCurrencySymbol}</span>
+              </div>
+              <div className="mt-1 flex items-center justify-between gap-2">
+                <span className="text-muted-foreground">Ціна уроку</span>
+                <span className="font-semibold text-foreground">{formatPrice(selected.price, selectedCurrency)}</span>
+              </div>
+            </div>
           )}
         </div>
         <div className="space-y-1">
@@ -724,19 +734,22 @@ function AddPaymentForm({
               <Select value={paymentUnit} onValueChange={(v) => setPaymentUnit(v as PaymentUnit)}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="amount">Сума ({selectedCurrencySymbol})</SelectItem>
                   <SelectItem value="lessons">Кількість уроків</SelectItem>
-                  <SelectItem value="amount">Сума</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">{paymentUnit === "lessons" ? "Кількість" : `Сума (${currencySymbol(selected?.currency)})`}</Label>
+              <Label className="text-xs">
+                {paymentUnit === "lessons" ? `Кількість уроків · ${formatPrice(selected?.price ?? 0, selectedCurrency)} за урок` : `Сума оплати (${selectedCurrencySymbol})`}
+              </Label>
               <Input
                 type="number"
                 min={paymentUnit === "lessons" ? 1 : 0}
                 step={paymentUnit === "lessons" ? 1 : 0.01}
                 value={paymentUnit === "lessons" ? lessonsCount : amount}
                 onChange={(e) => paymentUnit === "lessons" ? setLessonsCount(e.target.value) : setAmount(e.target.value)}
+                placeholder={paymentUnit === "lessons" ? "напр. 4" : `напр. 500 ${selectedCurrencySymbol}`}
                 className="h-9"
               />
             </div>
