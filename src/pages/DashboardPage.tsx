@@ -1159,7 +1159,6 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
-                  {isTutor && <TutorNotesCard />}
                   {(isTutor || isManager) && (
                     <div className="rounded-xl border border-border bg-card p-4">
                       <div className="flex items-start gap-3">
