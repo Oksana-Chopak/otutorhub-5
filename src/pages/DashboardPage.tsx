@@ -771,7 +771,7 @@ export default function DashboardPage() {
           {(isTutor || isManager) && (
             <div className="mt-4 space-y-4">
               <QuickActionsCard onChanged={loadData} />
-              {isTutor && <TutorNotesCard />}
+              <TutorNotesCard />
             </div>
           )}
           {isIndependentTutor && (
