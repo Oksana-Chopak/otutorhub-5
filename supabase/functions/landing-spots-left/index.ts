@@ -29,17 +29,20 @@ Deno.serve(async (req) => {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  // Count real tutor signups + landing quiz leads (whichever route they used).
-  const [{ count: tutorCount, error: tutorErr }, { count: leadCount, error: leadErr }] =
+  // Only independent tutors occupy free spots (school tutors & managers excluded).
+  const [{ count: indepCount, error: indepErr }, { count: leadCount, error: leadErr }] =
     await Promise.all([
-      admin.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "tutor"),
+      admin
+        .from("tutor_workspace_settings")
+        .select("tutor_id", { count: "exact", head: true })
+        .eq("independent_workspace", true),
       admin
         .from("tutor_referral_requests")
         .select("id", { count: "exact", head: true })
         .eq("source", "landing_quiz"),
     ]);
 
-  const used = (tutorErr ? 0 : tutorCount ?? 0) + (leadErr ? 0 : leadCount ?? 0);
+  const used = (indepErr ? 0 : indepCount ?? 0) + (leadErr ? 0 : leadCount ?? 0);
   const spotsLeft = Math.max(0, TOTAL_FREE_SPOTS - used);
 
   return json(200, { spotsLeft, total: TOTAL_FREE_SPOTS, used });
