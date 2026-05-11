@@ -165,7 +165,7 @@ export function QuickPaymentFab() {
                         day: "numeric",
                         month: "short",
                       })}{" "}
-                      · <span className="font-medium text-foreground">{r.student_price} ₴</span>
+                      · <span className="font-medium text-foreground">{formatPrice(r.student_price, r.currency ?? "UAH")}</span>
                     </p>
                   </div>
                   <Button
