@@ -3,6 +3,12 @@ project_id = "kficbcjqcbhqhjimxfed"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.lesson-reminders]
+    verify_jwt = false
+  [functions.payment-reminders]
+    verify_jwt = false
+  [functions.tutor-daily-digest]
+    verify_jwt = false
   [functions.landing-find-tutor-quiz]
     verify_jwt = false
   [functions.landing-spots-left]
