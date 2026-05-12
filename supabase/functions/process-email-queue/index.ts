@@ -99,19 +99,24 @@ Deno.serve(async (req) => {
     )
   }
 
-  // Defense in depth: verify_jwt=true already requires a valid JWT at the
-  // gateway layer. This adds an explicit role check so only service-role
-  // callers can trigger queue processing.
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+
+  // Authorize: accept either a valid service_role JWT (legacy) OR the shared
+  // cron secret stored in vault. This decouples cron from service-role-key
+  // rotations during publish.
   const token = authHeader.slice('Bearer '.length).trim()
   const claims = parseJwtClaims(token)
-  if (claims?.role !== 'service_role') {
+  let authorized = claims?.role === 'service_role'
+  if (!authorized) {
+    const { data: expected } = await supabase.rpc('get_cron_shared_secret')
+    if (expected && token === expected) authorized = true
+  }
+  if (!authorized) {
     return new Response(
       JSON.stringify({ error: 'Forbidden' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
     )
   }
-
-  const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
   // 1. Check rate-limit cooldown and read queue config
   const { data: state } = await supabase

@@ -3,6 +3,12 @@ project_id = "kficbcjqcbhqhjimxfed"
 [functions]
   [functions.auth-email-hook]
     verify_jwt = false
+  [functions.lesson-reminders]
+    verify_jwt = false
+  [functions.payment-reminders]
+    verify_jwt = false
+  [functions.tutor-daily-digest]
+    verify_jwt = false
   [functions.landing-find-tutor-quiz]
     verify_jwt = false
   [functions.landing-spots-left]
@@ -18,7 +24,7 @@ project_id = "kficbcjqcbhqhjimxfed"
   [functions.preview-transactional-email]
     verify_jwt = false
   [functions.process-email-queue]
-    verify_jwt = true
+    verify_jwt = false
   [functions.send-student-invite]
     verify_jwt = true
   [functions.send-transactional-email]

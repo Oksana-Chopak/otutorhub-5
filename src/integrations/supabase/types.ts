@@ -1885,6 +1885,7 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      get_cron_shared_secret: { Args: never; Returns: string }
       get_lesson_financials: {
         Args: { _lesson_id: string }
         Returns: {

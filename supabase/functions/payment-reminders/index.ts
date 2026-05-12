@@ -51,11 +51,11 @@ Deno.serve(async (req) => {
   }
   const auth = req.headers.get("authorization") || req.headers.get("Authorization");
   const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
-  if (!provided || provided !== serviceKey) {
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const { data: expected } = await supabase.rpc("get_cron_shared_secret");
+  if (!provided || !expected || provided !== expected) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
-
-  const supabase = createClient(supabaseUrl, serviceKey);
   const now = new Date();
 
   // Look at lessons in a [-7 days .. +30 days] window — covers all reasonable rules.
