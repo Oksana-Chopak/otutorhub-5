@@ -48,10 +48,11 @@ Deno.serve(async (req) => {
   // Require shared-secret auth (service role key) — only trusted cron/internal callers.
   const auth = req.headers.get("authorization") || req.headers.get("Authorization");
   const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
-  if (!provided || provided !== serviceKey) {
+  const supabase = createClient(supabaseUrl, serviceKey);
+  const { data: expected } = await supabase.rpc("get_cron_shared_secret");
+  if (!provided || !expected || provided !== expected) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
-  const supabase = createClient(supabaseUrl, serviceKey);
   const now = Date.now();
 
   // Window: lessons that started up to 48h ago (for "mark status" nudge)
