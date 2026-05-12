@@ -55,7 +55,14 @@ Deno.serve(async (req) => {
 
   // Try to create the user; if it already exists, look it up.
   const password = crypto.randomUUID() + crypto.randomUUID();
-  const origin = req.headers.get("origin") ?? undefined;
+  const ALLOWED_ORIGINS = new Set([
+    "https://otutorhub.com",
+    "https://www.otutorhub.com",
+    "https://otutorhub.lovable.app",
+    "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app",
+  ]);
+  const rawOrigin = req.headers.get("origin") ?? undefined;
+  const origin = rawOrigin && ALLOWED_ORIGINS.has(rawOrigin) ? rawOrigin : undefined;
   const { data: created, error: createErr } = await admin.auth.admin.createUser({
     email,
     password,
