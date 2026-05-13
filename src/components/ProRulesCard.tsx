@@ -12,11 +12,14 @@ import { cn } from "@/lib/utils";
 
 type PaymentMode = "prepaid" | "before_lesson" | "after_lesson";
 
+type FeePercent = 0 | 10 | 25 | 50 | 100;
+
 interface RulesState {
   payment_reminder_enabled: boolean;
   payment_due_mode: PaymentMode;
   payment_due_days: number;
   cancel_free_hours: number;
+  cancel_fee_percent: FeePercent;
 }
 
 export function ProRulesCard() {
@@ -31,6 +34,7 @@ export function ProRulesCard() {
       payment_due_mode: ((settings as any).payment_due_mode ?? "before_lesson") as PaymentMode,
       payment_due_days: (settings as any).payment_due_days ?? 1,
       cancel_free_hours: (settings as any).cancel_free_hours ?? 24,
+      cancel_fee_percent: ((settings as any).cancel_fee_percent ?? 0) as FeePercent,
     });
   }, [settings]);
 
@@ -55,6 +59,7 @@ export function ProRulesCard() {
       payment_due_mode: state.payment_due_mode,
       payment_due_days: days,
       cancel_free_hours: hours,
+      cancel_fee_percent: state.cancel_fee_percent,
     } as any);
     setSaving(false);
     if (error) {
@@ -204,6 +209,39 @@ export function ProRulesCard() {
               className="w-24"
             />
             <span className="text-sm text-muted-foreground">годин до уроку</span>
+          </div>
+        </div>
+
+        {/* Cancel fee percent */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            Авто-стягнення за пізнє скасування
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Якщо учень скасує урок пізніше ніж за {state.cancel_free_hours} год —
+            автоматично нараховується {state.cancel_fee_percent}% від вартості уроку.
+            {state.cancel_fee_percent === 0 && " (вимкнено)"}
+          </p>
+          <div className="grid grid-cols-5 gap-2">
+            {([0, 10, 25, 50, 100] as FeePercent[]).map((p) => (
+              <button
+                type="button"
+                key={p}
+                disabled={disabled}
+                onClick={() =>
+                  setState((s) => s && { ...s, cancel_fee_percent: p })
+                }
+                className={cn(
+                  "rounded-md border px-2 py-2 text-sm font-medium transition",
+                  state.cancel_fee_percent === p
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:border-primary/40",
+                  disabled && "cursor-not-allowed opacity-60"
+                )}
+              >
+                {p === 0 ? "Off" : `${p}%`}
+              </button>
+            ))}
           </div>
         </div>
 
