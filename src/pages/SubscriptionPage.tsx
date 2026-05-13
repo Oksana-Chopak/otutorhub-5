@@ -588,22 +588,12 @@ export default function SubscriptionPage() {
                   );
                 }
                 return (
-                  <div className="space-y-2">
-                    <LiqPayPayButton
-                      plan={billing}
-                      recurring
-                      className="w-full"
-                      label="Перейти до оплати"
-                    />
-                    <Button
-                      onClick={handleUpgrade}
-                      variant="outline"
-                      className="w-full"
-                      disabled={!!hasPending}
-                    >
-                      {hasPending ? "Запит уже надіслано" : "Через менеджера"}
-                    </Button>
-                  </div>
+                  <LiqPayPayButton
+                    plan={billing}
+                    recurring
+                    className="w-full"
+                    label="Перейти до оплати"
+                  />
                 );
               })()}
               <p className="text-center text-xs text-muted-foreground">
