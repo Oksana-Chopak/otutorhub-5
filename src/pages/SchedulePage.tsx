@@ -51,6 +51,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
 import { MobileFilters } from "@/components/MobileFilters";
+import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -659,13 +660,17 @@ export default function SchedulePage() {
       payloads.push(payload);
     }
 
-    const { error } = await supabase.from("lessons").insert(payloads);
+    const { data: insertedLessons, error } = await supabase
+      .from("lessons")
+      .insert(payloads)
+      .select("id");
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
       toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
+    (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1
         ? `Створено ${repeats} уроків`
@@ -699,6 +704,7 @@ export default function SchedulePage() {
       return;
     }
     toast.success("Статус оновлено");
+    void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 
   const updatePayment = async (
