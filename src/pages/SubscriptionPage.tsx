@@ -437,24 +437,50 @@ export default function SubscriptionPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Поточний план</p>
-                  <p className="font-display text-lg font-semibold text-foreground">
-                    {isActive
-                      ? "Pro"
-                      : isTrial
-                      ? "Pro (тріал)"
-                      : "Безкоштовний"}
-                  </p>
+                  {(() => {
+                    const recurring = (settings as any)?.liqpay_recurring_active === true;
+                    const isEarlyBird = isActive && !recurring && !!subscriptionUntil;
+                    let title = "Pro";
+                    let badgeLabel = "Активна";
+                    let badgeVariant: "default" | "secondary" | "destructive" = "default";
+                    if (isTrial && trialUntil) {
+                      title = `Pro тріал · залишилось ${trialDaysLeft} ${
+                        trialDaysLeft === 1
+                          ? "день"
+                          : trialDaysLeft >= 2 && trialDaysLeft <= 4
+                          ? "дні"
+                          : "днів"
+                      }`;
+                      badgeLabel = "Тріал";
+                      badgeVariant = "secondary";
+                    } else if (isEarlyBird) {
+                      title = `Pro · безкоштовно до ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
+                      badgeLabel = "Early bird";
+                    } else if (isActive) {
+                      title = "Pro · активний";
+                      badgeLabel = "Активна";
+                    } else if (status === "past_due") {
+                      title = "Підписка прострочена · поновіть Pro";
+                      badgeLabel = "Прострочена";
+                      badgeVariant = "destructive";
+                    } else {
+                      title = "Тріал завершено · підключіть Pro";
+                      badgeLabel = "Тріал завершено";
+                      badgeVariant = "secondary";
+                    }
+                    return (
+                      <>
+                        <p className="font-display text-lg font-semibold text-foreground">
+                          {title}
+                        </p>
+                        <div className="mt-1">
+                          <Badge variant={badgeVariant}>{badgeLabel}</Badge>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-              <Badge variant={isPro ? "default" : "secondary"}>
-                {isActive
-                  ? "Активна"
-                  : isTrial
-                  ? "Тріал"
-                  : status === "past_due"
-                  ? "Прострочена"
-                  : "Free"}
-              </Badge>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
               Учнів зараз: <span className="font-semibold text-foreground">{studentCount}</span>{" "}
