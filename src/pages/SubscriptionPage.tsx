@@ -681,7 +681,9 @@ export default function SubscriptionPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Тріал не вимагає картки. Після його завершення ви автоматично переходите на безкоштовний план — нічого не списується.
+          Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.
+          <br />
+          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на рік.
         </p>
       </div>
       <SubscriptionRequestDialog
