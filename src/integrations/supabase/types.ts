@@ -1654,6 +1654,7 @@ export type Database = {
         Row: {
           auto_complete_lessons: boolean
           auto_complete_prompted: boolean
+          cancel_fee_percent: number
           cancel_free_hours: number
           created_at: string
           current_plan: string | null
@@ -1675,6 +1676,7 @@ export type Database = {
         Insert: {
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
+          cancel_fee_percent?: number
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
@@ -1696,6 +1698,7 @@ export type Database = {
         Update: {
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
+          cancel_fee_percent?: number
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
