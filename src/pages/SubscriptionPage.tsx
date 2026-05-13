@@ -292,7 +292,7 @@ export default function SubscriptionPage() {
         )}
 
         {/* Early-bird акція */}
-        {!isActive && (() => {
+        {eligibleForTrial && (() => {
           const taken = earlyBirdCount ?? 0;
           const left = Math.max(0, EARLY_BIRD_LIMIT - taken);
           const progress = Math.min(100, (taken / EARLY_BIRD_LIMIT) * 100);
