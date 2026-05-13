@@ -31,3 +31,5 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.send-transactional-email]
     verify_jwt = true
+  [functions.notify-cancellation-fee]
+    verify_jwt = false
