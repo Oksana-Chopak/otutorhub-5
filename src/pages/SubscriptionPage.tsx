@@ -492,68 +492,7 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
 
-        {/* Latest subscription request status */}
-        {!requestLoading && latestRequest && !isActive && (() => {
-          const meta = statusMeta[latestRequest.status];
-          const StatusIcon = meta.icon;
-          return (
-            <Card className="mb-6 border-primary/30 bg-primary/[0.03]">
-              <CardContent className="space-y-3 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <StatusIcon
-                        className={cn(
-                          "h-4 w-4",
-                          latestRequest.status === "in_progress" && "animate-spin"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Ваш запит на Pro
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Надіслано{" "}
-                        {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {
-                          locale: uk,
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={meta.tone}>{meta.label}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{meta.description}</p>
-                {latestRequest.message && (
-                  <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                    <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MessageCircle className="h-3.5 w-3.5" /> Ваше повідомлення
-                    </div>
-                    <p className="text-foreground">{latestRequest.message}</p>
-                  </div>
-                )}
-                {latestRequest.manager_response && (
-                  <div className="rounded-lg border border-border p-3 text-sm">
-                    <div className="mb-1 text-xs text-muted-foreground">
-                      Відповідь менеджера
-                    </div>
-                    <p className="text-foreground">{latestRequest.manager_response}</p>
-                  </div>
-                )}
-                {(latestRequest.status === "completed" ||
-                  latestRequest.status === "rejected") && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setRequestOpen(true)}
-                  >
-                    Надіслати новий запит
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })()}
+        {/* Latest subscription request status — moved below pricing */}
 
         {/* Billing toggle */}
         <div className="mb-4 flex justify-center">
