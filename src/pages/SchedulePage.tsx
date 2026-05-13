@@ -745,6 +745,7 @@ export default function SchedulePage() {
       return;
     }
     toast.success("Урок видалено");
+    void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
   // Apply filters
