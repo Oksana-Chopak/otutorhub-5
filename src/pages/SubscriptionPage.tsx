@@ -128,8 +128,16 @@ export default function SubscriptionPage() {
     isPro,
     isTrial,
     trialUntil,
+    settings,
+    loading,
+    isIndependent,
+    studentCount,
+    isPro,
+    isTrial,
+    trialUntil,
     trialDaysLeft,
   } = useWorkspaceSettings();
+  const subscriptionUntil = settings?.subscription_until ? new Date(settings.subscription_until) : null;
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
