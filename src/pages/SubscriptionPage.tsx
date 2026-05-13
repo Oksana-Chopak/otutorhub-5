@@ -270,9 +270,25 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Безкоштовний план — без обмежень. Pro-план додає автонагадування учням про оплати, керування скасуванням або перенесенням уроків, преміум-аналітику і можливість набирати додаткових учнів з хабу.
+            14 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
+            <br />
+            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на рік.
           </p>
         </div>
+
+        {/* Early-bird спотлайт-банер */}
+        {!isActive && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
+          <Card className="mb-4 border-primary/50 bg-gradient-to-r from-primary/[0.10] to-primary/[0.04]">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <p className="text-sm font-semibold text-foreground">
+                🔥 Залишилось {EARLY_BIRD_LIMIT - earlyBirdCount} безкоштовних місць з {EARLY_BIRD_LIMIT} — займи своє!
+              </p>
+              <Badge variant="default" className="gap-1">
+                <Sparkles className="h-3 w-3" /> Early bird
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Early-bird акція */}
         {!isActive && (() => {
