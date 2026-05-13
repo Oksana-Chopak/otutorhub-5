@@ -21,6 +21,7 @@ import {
   Gift,
   BellRing,
   CheckSquare,
+  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -50,6 +51,7 @@ export interface StepProgress {
   hasPaidLesson: boolean;
   hasPaymentRules: boolean;
   hasAutoCompleteChoice: boolean;
+  hasGoogleCalendar: boolean;
 }
 
 const steps: Step[] = [
@@ -176,6 +178,19 @@ const steps: Step[] = [
   },
   {
     id: 10,
+    title: "Підключіть Google Calendar",
+    description:
+      "Уроки автоматично синхронізуються у ваш Google Календар — і для вас, і для учнів, які підключать свій акаунт.",
+    cta: "Підключити Google Calendar",
+    to: "/profile",
+    icon: CalendarCheck,
+    emoji: "📆",
+    xp: 75,
+    autoKey: "hasGoogleCalendar",
+    autoHint: "Calendar підключено ✓",
+  },
+  {
+    id: 11,
     title: "AI-конспекти лекцій",
     description:
       "Скоро: підключіть Fireflies — і Gemini сам зробить структурований конспект після кожного уроку.",
@@ -211,6 +226,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     hasPaidLesson: false,
     hasPaymentRules: false,
     hasAutoCompleteChoice: false,
+    hasGoogleCalendar: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
