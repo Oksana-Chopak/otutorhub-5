@@ -1245,7 +1245,7 @@ export default function DashboardPage() {
               )}
             </section>
           </div>
-        </>
+        </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
       {walletPair && (
