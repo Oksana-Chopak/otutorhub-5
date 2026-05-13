@@ -48,6 +48,8 @@ export interface StepProgress {
   hasMeetingUrl: boolean;
   hasChat: boolean;
   hasPaidLesson: boolean;
+  hasPaymentRules: boolean;
+  hasAutoCompleteChoice: boolean;
 }
 
 const steps: Step[] = [
