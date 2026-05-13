@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
+import { ProRulesCard } from "@/components/ProRulesCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 
