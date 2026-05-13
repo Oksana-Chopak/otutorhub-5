@@ -352,7 +352,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     return () => {
       cancelled = true;
     };
-  }, [user?.id, isIndependent, progressReloadKey]);
+  }, [user?.id, isIndependent, progressReloadKey, (settings as any)?.payment_rules_configured, (settings as any)?.auto_complete_prompted]);
 
   const autoCompletedIds = useMemo(() => {
     const ids = new Set<number>();
