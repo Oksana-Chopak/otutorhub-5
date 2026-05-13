@@ -270,6 +270,36 @@ export type Database = {
         }
         Relationships: []
       }
+      google_calendar_tokens: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string | null
+          google_email: string | null
+          refresh_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string | null
+          google_email?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string | null
+          google_email?: string | null
+          refresh_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_enrollments: {
         Row: {
           created_at: string
@@ -655,6 +685,7 @@ export type Database = {
           created_at: string
           created_by: string
           duration_minutes: number
+          google_event_id: string | null
           group_id: string | null
           id: string
           lesson_type: Database["public"]["Enums"]["lesson_type"]
@@ -673,6 +704,7 @@ export type Database = {
           created_at?: string
           created_by: string
           duration_minutes?: number
+          google_event_id?: string | null
           group_id?: string | null
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]
@@ -691,6 +723,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           duration_minutes?: number
+          google_event_id?: string | null
           group_id?: string | null
           id?: string
           lesson_type?: Database["public"]["Enums"]["lesson_type"]

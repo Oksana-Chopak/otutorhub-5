@@ -21,6 +21,7 @@ import {
   Gift,
   BellRing,
   CheckSquare,
+  CalendarCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -50,6 +51,7 @@ export interface StepProgress {
   hasPaidLesson: boolean;
   hasPaymentRules: boolean;
   hasAutoCompleteChoice: boolean;
+  hasGoogleCalendar: boolean;
 }
 
 const steps: Step[] = [
@@ -176,6 +178,19 @@ const steps: Step[] = [
   },
   {
     id: 10,
+    title: "Підключіть Google Calendar",
+    description:
+      "Уроки автоматично синхронізуються у ваш Google Календар — і для вас, і для учнів, які підключать свій акаунт.",
+    cta: "Підключити Google Calendar",
+    to: "/profile",
+    icon: CalendarCheck,
+    emoji: "📆",
+    xp: 75,
+    autoKey: "hasGoogleCalendar",
+    autoHint: "Calendar підключено ✓",
+  },
+  {
+    id: 11,
     title: "AI-конспекти лекцій",
     description:
       "Скоро: підключіть Fireflies — і Gemini сам зробить структурований конспект після кожного уроку.",
@@ -211,6 +226,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     hasPaidLesson: false,
     hasPaymentRules: false,
     hasAutoCompleteChoice: false,
+    hasGoogleCalendar: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
@@ -312,6 +328,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         { data: paid },
         { data: availability },
         { data: referrals },
+        { data: gcal },
       ] = await Promise.all([
         supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
         supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
@@ -326,7 +343,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           .limit(1),
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
         supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1),
-      ]);
+        supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1),
+      ]) as any;
 
       if (cancelled) return;
 
@@ -346,6 +364,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         hasPaidLesson: (paid?.length ?? 0) > 0,
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
         hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
+        hasGoogleCalendar: (gcal?.length ?? 0) > 0,
       });
       setProgressLoading(false);
     })();

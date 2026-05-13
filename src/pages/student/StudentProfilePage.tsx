@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
+import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -84,6 +85,7 @@ export default function StudentProfilePage() {
         )}
 
         <TelegramLinkCard />
+        <GoogleCalendarCard />
 
         <Button variant="outline" onClick={signOut} className="w-full sm:w-auto">
           Вийти

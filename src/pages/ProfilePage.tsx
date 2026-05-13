@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
+import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 
@@ -187,6 +188,7 @@ export default function ProfilePage() {
               Керуйте своїм робочим простором.
             </p>
           </div>
+          <GoogleCalendarCard />
           <MoreSection title="Розділи" items={managerMore} />
           {managerMore.length === 0 && (
             <Card>
@@ -314,6 +316,7 @@ export default function ProfilePage() {
           </div>
         )}
         {isIndependent && <AutoCompleteLessonsCard />}
+        <GoogleCalendarCard />
         <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>
