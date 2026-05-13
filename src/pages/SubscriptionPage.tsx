@@ -278,7 +278,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Early-bird спотлайт-банер */}
-        {!isActive && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
+        {eligibleForTrial && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
           <Card className="mb-4 border-primary/50 bg-gradient-to-r from-primary/[0.10] to-primary/[0.04]">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
               <p className="text-sm font-semibold text-foreground">
