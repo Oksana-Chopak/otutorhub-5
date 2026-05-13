@@ -1109,9 +1109,9 @@ export default function DashboardPage() {
             </section>
 
             <section>
-              <h2 className="mb-4 font-display text-lg font-semibold text-foreground">{t("dashboard.nextSteps")}</h2>
+              <h2 className="mb-5 font-display text-lg font-semibold text-foreground">{t("dashboard.nextSteps")}</h2>
               {isManager ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {smartTasks.length === 0 ? (
                     <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
