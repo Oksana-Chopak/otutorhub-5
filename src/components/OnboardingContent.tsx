@@ -342,7 +342,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           .limit(1),
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
         supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1),
-      ]);
+        supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1),
+      ]) as any;
 
       if (cancelled) return;
 
