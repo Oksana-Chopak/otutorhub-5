@@ -15,11 +15,12 @@ Deno.serve(async (req) => {
   }
   const auth = req.headers.get('authorization') || req.headers.get('Authorization');
   const provided = auth?.replace(/^Bearer\s+/i, '') || req.headers.get('x-cron-secret');
-  if (!provided || provided !== supabaseServiceKey) {
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const { data: expected } = await supabase.rpc('get_cron_shared_secret');
+  if (!provided || !expected || provided !== expected) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
   }
 
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
   const TG_BASE = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
   const { data: state, error: stateErr } = await supabase
