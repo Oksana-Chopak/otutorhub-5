@@ -344,6 +344,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         hasMeetingUrl,
         hasChat: (threads?.length ?? 0) > 0,
         hasPaidLesson: (paid?.length ?? 0) > 0,
+        hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
+        hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
       });
       setProgressLoading(false);
     })();
