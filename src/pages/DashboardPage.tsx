@@ -789,7 +789,7 @@ export default function DashboardPage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <>
+        <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
           {isManager && (
             <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
