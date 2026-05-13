@@ -256,6 +256,8 @@ export default function SubscriptionPage() {
 
   const status = settings?.subscription_status ?? "free";
   const isActive = status === "active";
+  // Тріальні/early-bird банери показуємо лише новим репетиторам, які ще не починали тріал
+  const eligibleForTrial = !settings?.trial_until && status === "free" && !isActive;
 
   const handleUpgrade = () => {
     setRequestOpen(true);
@@ -276,7 +278,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* Early-bird спотлайт-банер */}
-        {!isActive && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
+        {eligibleForTrial && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
           <Card className="mb-4 border-primary/50 bg-gradient-to-r from-primary/[0.10] to-primary/[0.04]">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
               <p className="text-sm font-semibold text-foreground">
@@ -290,7 +292,7 @@ export default function SubscriptionPage() {
         )}
 
         {/* Early-bird акція */}
-        {!isActive && (() => {
+        {eligibleForTrial && (() => {
           const taken = earlyBirdCount ?? 0;
           const left = Math.max(0, EARLY_BIRD_LIMIT - taken);
           const progress = Math.min(100, (taken / EARLY_BIRD_LIMIT) * 100);
@@ -490,68 +492,7 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
 
-        {/* Latest subscription request status */}
-        {!requestLoading && latestRequest && !isActive && (() => {
-          const meta = statusMeta[latestRequest.status];
-          const StatusIcon = meta.icon;
-          return (
-            <Card className="mb-6 border-primary/30 bg-primary/[0.03]">
-              <CardContent className="space-y-3 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                      <StatusIcon
-                        className={cn(
-                          "h-4 w-4",
-                          latestRequest.status === "in_progress" && "animate-spin"
-                        )}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">
-                        Ваш запит на Pro
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Надіслано{" "}
-                        {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {
-                          locale: uk,
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant={meta.tone}>{meta.label}</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground">{meta.description}</p>
-                {latestRequest.message && (
-                  <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                    <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MessageCircle className="h-3.5 w-3.5" /> Ваше повідомлення
-                    </div>
-                    <p className="text-foreground">{latestRequest.message}</p>
-                  </div>
-                )}
-                {latestRequest.manager_response && (
-                  <div className="rounded-lg border border-border p-3 text-sm">
-                    <div className="mb-1 text-xs text-muted-foreground">
-                      Відповідь менеджера
-                    </div>
-                    <p className="text-foreground">{latestRequest.manager_response}</p>
-                  </div>
-                )}
-                {(latestRequest.status === "completed" ||
-                  latestRequest.status === "rejected") && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setRequestOpen(true)}
-                  >
-                    Надіслати новий запит
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })()}
+        {/* Latest subscription request status — moved below pricing */}
 
         {/* Billing toggle */}
         <div className="mb-4 flex justify-center">
@@ -647,22 +588,12 @@ export default function SubscriptionPage() {
                   );
                 }
                 return (
-                  <div className="space-y-2">
-                    <LiqPayPayButton
-                      plan={billing}
-                      recurring
-                      className="w-full"
-                      label="Перейти до оплати"
-                    />
-                    <Button
-                      onClick={handleUpgrade}
-                      variant="outline"
-                      className="w-full"
-                      disabled={!!hasPending}
-                    >
-                      {hasPending ? "Запит уже надіслано" : "Через менеджера"}
-                    </Button>
-                  </div>
+                  <LiqPayPayButton
+                    plan={billing}
+                    recurring
+                    className="w-full"
+                    label="Перейти до оплати"
+                  />
                 );
               })()}
               <p className="text-center text-xs text-muted-foreground">
@@ -678,6 +609,86 @@ export default function SubscriptionPage() {
         <div className="mt-6">
           <ProRulesCard />
         </div>
+
+        {/* Alternative payment via manager — placed below pricing as a fallback */}
+        {!isActive && (() => {
+          const hasPending =
+            latestRequest &&
+            (latestRequest.status === "new" || latestRequest.status === "in_progress");
+          const meta = latestRequest ? statusMeta[latestRequest.status] : null;
+          const StatusIcon = meta?.icon;
+          return (
+            <Card className="mt-6 border-dashed">
+              <CardHeader>
+                <CardTitle className="text-base">LiqPay не підходить?</CardTitle>
+                <CardDescription>
+                  Залиште запит — менеджер зв'яжеться і допоможе оплатити іншим зручним способом
+                  (банк, переказ, рахунок-фактура тощо).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  onClick={handleUpgrade}
+                  variant="outline"
+                  className="w-full"
+                  disabled={!!hasPending}
+                >
+                  {hasPending ? "Запит уже надіслано" : "Написати менеджеру"}
+                </Button>
+
+                {!requestLoading && latestRequest && meta && StatusIcon && (
+                  <div className="rounded-lg border border-primary/30 bg-primary/[0.03] p-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                          <StatusIcon
+                            className={cn(
+                              "h-4 w-4",
+                              latestRequest.status === "in_progress" && "animate-spin"
+                            )}
+                          />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">Ваш запит на Pro</p>
+                          <p className="text-xs text-muted-foreground">
+                            Надіслано{" "}
+                            {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {
+                              locale: uk,
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <Badge variant={meta.tone}>{meta.label}</Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{meta.description}</p>
+                    {latestRequest.message && (
+                      <div className="rounded-lg bg-muted/40 p-3 text-sm">
+                        <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <MessageCircle className="h-3.5 w-3.5" /> Ваше повідомлення
+                        </div>
+                        <p className="text-foreground">{latestRequest.message}</p>
+                      </div>
+                    )}
+                    {latestRequest.manager_response && (
+                      <div className="rounded-lg border border-border p-3 text-sm">
+                        <div className="mb-1 text-xs text-muted-foreground">
+                          Відповідь менеджера
+                        </div>
+                        <p className="text-foreground">{latestRequest.manager_response}</p>
+                      </div>
+                    )}
+                    {(latestRequest.status === "completed" ||
+                      latestRequest.status === "rejected") && (
+                      <Button size="sm" variant="outline" onClick={() => setRequestOpen(true)}>
+                        Надіслати новий запит
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.

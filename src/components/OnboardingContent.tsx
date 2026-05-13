@@ -19,6 +19,8 @@ import {
   PartyPopper,
   Clock,
   Gift,
+  BellRing,
+  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -46,6 +48,8 @@ export interface StepProgress {
   hasMeetingUrl: boolean;
   hasChat: boolean;
   hasPaidLesson: boolean;
+  hasPaymentRules: boolean;
+  hasAutoCompleteChoice: boolean;
 }
 
 const steps: Step[] = [
@@ -105,6 +109,33 @@ const steps: Step[] = [
   },
   {
     id: 5,
+    title: "Налаштуйте нагадування про оплату (Pro)",
+    description:
+      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
+    cta: "Перейти до правил Pro",
+    to: "/profile",
+    icon: BellRing,
+    emoji: "🔔",
+    xp: 75,
+    badge: "Pro",
+    autoKey: "hasPaymentRules",
+    autoHint: "Правила збережено ✓",
+  },
+  {
+    id: 6,
+    title: "Як відмічати уроки проведеними",
+    description:
+      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
+    cta: "Налаштувати у профілі",
+    to: "/profile",
+    icon: CheckSquare,
+    emoji: "✅",
+    xp: 50,
+    autoKey: "hasAutoCompleteChoice",
+    autoHint: "Режим обрано ✓",
+  },
+  {
+    id: 7,
     title: "Підключіть Zoom або Google Meet",
     description:
       "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
@@ -118,7 +149,7 @@ const steps: Step[] = [
     autoHint: "Посилання збережено ✓",
   },
   {
-    id: 6,
+    id: 8,
     title: "Спілкуйтеся в чаті",
     description:
       "З кожним учнем — окремий чат. Надсилайте файли, домашку, нагадування. Все зберігається.",
@@ -131,7 +162,7 @@ const steps: Step[] = [
     autoHint: "Чат відкрито ✓",
   },
   {
-    id: 7,
+    id: 9,
     title: "Відмічайте оплати",
     description:
       "Позначайте оплачені уроки в розділі «Фінанси». Бачите статистику — скільки заробили, хто винен.",
@@ -144,7 +175,7 @@ const steps: Step[] = [
     autoHint: "Оплату відмічено ✓",
   },
   {
-    id: 8,
+    id: 10,
     title: "AI-конспекти лекцій",
     description:
       "Скоро: підключіть Fireflies — і Gemini сам зробить структурований конспект після кожного уроку.",
@@ -178,6 +209,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     hasMeetingUrl: false,
     hasChat: false,
     hasPaidLesson: false,
+    hasPaymentRules: false,
+    hasAutoCompleteChoice: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
@@ -311,13 +344,15 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         hasMeetingUrl,
         hasChat: (threads?.length ?? 0) > 0,
         hasPaidLesson: (paid?.length ?? 0) > 0,
+        hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
+        hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
       });
       setProgressLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [user?.id, isIndependent, progressReloadKey]);
+  }, [user?.id, isIndependent, progressReloadKey, (settings as any)?.payment_rules_configured, (settings as any)?.auto_complete_prompted]);
 
   const autoCompletedIds = useMemo(() => {
     const ids = new Set<number>();

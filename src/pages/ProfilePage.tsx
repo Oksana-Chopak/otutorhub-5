@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
+import { ProRulesCard } from "@/components/ProRulesCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 
@@ -307,6 +308,11 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {isIndependent && (
+          <div className="mt-6">
+            <ProRulesCard />
+          </div>
+        )}
         {isIndependent && <AutoCompleteLessonsCard />}
         <MoreSection title="Більше" items={tutorMore} />
       </div>
