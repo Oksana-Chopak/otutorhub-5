@@ -308,6 +308,11 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
+        {isIndependent && (
+          <div className="mt-6">
+            <ProRulesCard />
+          </div>
+        )}
         {isIndependent && <AutoCompleteLessonsCard />}
         <MoreSection title="Більше" items={tutorMore} />
       </div>
