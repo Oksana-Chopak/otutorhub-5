@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Check,
   Crown,
   Loader2,
   Sparkles,
@@ -37,14 +36,6 @@ import { uk } from "date-fns/locale";
 const PRO_PRICE_MONTHLY = 129;
 const PRO_PRICE_YEARLY_PER_MONTH = 99;
 const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
-
-const freePerks = [
-  "Необмежена кількість учнів",
-  "Розклад, чат з учнями, домашка",
-  "Облік оплат і прибутку",
-  "Постійні Zoom/Meet-посилання",
-  "Базова статистика по доходах",
-];
 
 const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
   {
@@ -138,13 +129,14 @@ export default function SubscriptionPage() {
     trialUntil,
     trialDaysLeft,
   } = useWorkspaceSettings();
+  const subscriptionUntil = settings?.subscription_until ? new Date(settings.subscription_until) : null;
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
-  const REGULAR_PRICE_MONTHLY = 499;
+  const REGULAR_PRICE_MONTHLY = 129;
   // Дедлайн акції — 14 днів від моменту першого відкриття. Зберігаємо в localStorage,
   // щоб у одного користувача таймер не «скакав» між заходами.
   const EARLY_BIRD_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
@@ -277,9 +269,25 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Безкоштовний план — без обмежень. Pro-план додає автонагадування учням про оплати, керування скасуванням або перенесенням уроків, преміум-аналітику і можливість набирати додаткових учнів з хабу.
+            14 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
+            <br />
+            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на рік.
           </p>
         </div>
+
+        {/* Early-bird спотлайт-банер */}
+        {!isActive && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
+          <Card className="mb-4 border-primary/50 bg-gradient-to-r from-primary/[0.10] to-primary/[0.04]">
+            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+              <p className="text-sm font-semibold text-foreground">
+                🔥 Залишилось {EARLY_BIRD_LIMIT - earlyBirdCount} безкоштовних місць з {EARLY_BIRD_LIMIT} — займи своє!
+              </p>
+              <Badge variant="default" className="gap-1">
+                <Sparkles className="h-3 w-3" /> Early bird
+              </Badge>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Early-bird акція */}
         {!isActive && (() => {
@@ -428,24 +436,50 @@ export default function SubscriptionPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Поточний план</p>
-                  <p className="font-display text-lg font-semibold text-foreground">
-                    {isActive
-                      ? "Pro"
-                      : isTrial
-                      ? "Pro (тріал)"
-                      : "Безкоштовний"}
-                  </p>
+                  {(() => {
+                    const recurring = (settings as any)?.liqpay_recurring_active === true;
+                    const isEarlyBird = isActive && !recurring && !!subscriptionUntil;
+                    let title = "Pro";
+                    let badgeLabel = "Активна";
+                    let badgeVariant: "default" | "secondary" | "destructive" = "default";
+                    if (isTrial && trialUntil) {
+                      title = `Pro тріал · залишилось ${trialDaysLeft} ${
+                        trialDaysLeft === 1
+                          ? "день"
+                          : trialDaysLeft >= 2 && trialDaysLeft <= 4
+                          ? "дні"
+                          : "днів"
+                      }`;
+                      badgeLabel = "Тріал";
+                      badgeVariant = "secondary";
+                    } else if (isEarlyBird) {
+                      title = `Pro · безкоштовно до ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
+                      badgeLabel = "Early bird";
+                    } else if (isActive) {
+                      title = "Pro · активний";
+                      badgeLabel = "Активна";
+                    } else if (status === "past_due") {
+                      title = "Підписка прострочена · поновіть Pro";
+                      badgeLabel = "Прострочена";
+                      badgeVariant = "destructive";
+                    } else {
+                      title = "Тріал завершено · підключіть Pro";
+                      badgeLabel = "Тріал завершено";
+                      badgeVariant = "secondary";
+                    }
+                    return (
+                      <>
+                        <p className="font-display text-lg font-semibold text-foreground">
+                          {title}
+                        </p>
+                        <div className="mt-1">
+                          <Badge variant={badgeVariant}>{badgeLabel}</Badge>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
-              <Badge variant={isPro ? "default" : "secondary"}>
-                {isActive
-                  ? "Активна"
-                  : isTrial
-                  ? "Тріал"
-                  : status === "past_due"
-                  ? "Прострочена"
-                  : "Free"}
-              </Badge>
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
               Учнів зараз: <span className="font-semibold text-foreground">{studentCount}</span>{" "}
@@ -552,32 +586,8 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {/* Plans */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {/* Free */}
-          <Card className={cn(!isPro && "border-primary/40")}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Безкоштовний</CardTitle>
-                {!isPro && <Badge variant="secondary">Поточний</Badge>}
-              </div>
-              <CardDescription>Назавжди. Без картки. Без обмежень за учнями.</CardDescription>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">
-                0 ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm">
-                {freePerks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    <span className="text-foreground">{perk}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
+        {/* Plan */}
+        <div className="mx-auto max-w-2xl">
           {/* Pro */}
           <Card className={cn("relative", isPro ? "border-primary" : "border-primary/40")}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -670,7 +680,9 @@ export default function SubscriptionPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          Тріал не вимагає картки. Після його завершення ви автоматично переходите на безкоштовний план — нічого не списується.
+          Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.
+          <br />
+          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на рік.
         </p>
       </div>
       <SubscriptionRequestDialog
