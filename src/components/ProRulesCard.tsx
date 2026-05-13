@@ -12,11 +12,14 @@ import { cn } from "@/lib/utils";
 
 type PaymentMode = "prepaid" | "before_lesson" | "after_lesson";
 
+type FeePercent = 0 | 10 | 25 | 50 | 100;
+
 interface RulesState {
   payment_reminder_enabled: boolean;
   payment_due_mode: PaymentMode;
   payment_due_days: number;
   cancel_free_hours: number;
+  cancel_fee_percent: FeePercent;
 }
 
 export function ProRulesCard() {
@@ -31,6 +34,7 @@ export function ProRulesCard() {
       payment_due_mode: ((settings as any).payment_due_mode ?? "before_lesson") as PaymentMode,
       payment_due_days: (settings as any).payment_due_days ?? 1,
       cancel_free_hours: (settings as any).cancel_free_hours ?? 24,
+      cancel_fee_percent: ((settings as any).cancel_fee_percent ?? 0) as FeePercent,
     });
   }, [settings]);
 
@@ -55,6 +59,7 @@ export function ProRulesCard() {
       payment_due_mode: state.payment_due_mode,
       payment_due_days: days,
       cancel_free_hours: hours,
+      cancel_fee_percent: state.cancel_fee_percent,
     } as any);
     setSaving(false);
     if (error) {
