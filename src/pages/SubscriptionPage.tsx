@@ -256,6 +256,8 @@ export default function SubscriptionPage() {
 
   const status = settings?.subscription_status ?? "free";
   const isActive = status === "active";
+  // Тріальні/early-bird банери показуємо лише новим репетиторам, які ще не починали тріал
+  const eligibleForTrial = !settings?.trial_until && status === "free" && !isActive;
 
   const handleUpgrade = () => {
     setRequestOpen(true);
