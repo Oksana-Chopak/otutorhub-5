@@ -85,6 +85,7 @@ export default function StudentProfilePage() {
         )}
 
         <TelegramLinkCard />
+        <GoogleCalendarCard />
 
         <Button variant="outline" onClick={signOut} className="w-full sm:w-auto">
           Вийти
