@@ -1140,15 +1140,15 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={task.key}
-                          className={`flex items-start gap-3 rounded-xl border p-4 ${toneClass}`}
+                          className={`flex items-start gap-3 rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_hsl(var(--foreground)/0.12)] ${toneClass}`}
                         >
                           <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}>
                             <Icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-sm font-medium text-foreground">{task.title}</p>
-                            <p className="mt-0.5 text-xs text-muted-foreground">{task.description}</p>
-                            <Button asChild size="sm" variant="outline" className="mt-3">
+                            <p className="mt-1 text-xs text-muted-foreground">{task.description}</p>
+                            <Button asChild size="sm" className="mt-3">
                               <Link to={task.to}>{task.cta}</Link>
                             </Button>
                           </div>
