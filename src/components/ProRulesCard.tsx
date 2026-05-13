@@ -60,6 +60,7 @@ export function ProRulesCard() {
       payment_due_days: days,
       cancel_free_hours: hours,
       cancel_fee_percent: state.cancel_fee_percent,
+      payment_rules_configured: true,
     } as any);
     setSaving(false);
     if (error) {
