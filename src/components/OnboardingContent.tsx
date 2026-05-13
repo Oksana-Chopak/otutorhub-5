@@ -209,6 +209,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     hasMeetingUrl: false,
     hasChat: false,
     hasPaidLesson: false,
+    hasPaymentRules: false,
+    hasAutoCompleteChoice: false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
