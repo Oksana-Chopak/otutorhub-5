@@ -212,6 +212,39 @@ export function ProRulesCard() {
           </div>
         </div>
 
+        {/* Cancel fee percent */}
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">
+            Авто-стягнення за пізнє скасування
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Якщо учень скасує урок пізніше ніж за {state.cancel_free_hours} год —
+            автоматично нараховується {state.cancel_fee_percent}% від вартості уроку.
+            {state.cancel_fee_percent === 0 && " (вимкнено)"}
+          </p>
+          <div className="grid grid-cols-5 gap-2">
+            {([0, 10, 25, 50, 100] as FeePercent[]).map((p) => (
+              <button
+                type="button"
+                key={p}
+                disabled={disabled}
+                onClick={() =>
+                  setState((s) => s && { ...s, cancel_fee_percent: p })
+                }
+                className={cn(
+                  "rounded-md border px-2 py-2 text-sm font-medium transition",
+                  state.cancel_fee_percent === p
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border hover:border-primary/40",
+                  disabled && "cursor-not-allowed opacity-60"
+                )}
+              >
+                {p === 0 ? "Off" : `${p}%`}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <Button onClick={save} disabled={disabled || saving} className="w-full">
           {saving ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
