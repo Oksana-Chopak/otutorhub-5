@@ -1159,7 +1159,7 @@ export default function DashboardPage() {
                   <TelegramLinkCard />
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {isStudent && (
                     <>
                       {studentTutorCount > 0 ? (
