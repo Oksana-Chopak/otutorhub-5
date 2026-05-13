@@ -188,6 +188,7 @@ export default function ProfilePage() {
               Керуйте своїм робочим простором.
             </p>
           </div>
+          <GoogleCalendarCard />
           <MoreSection title="Розділи" items={managerMore} />
           {managerMore.length === 0 && (
             <Card>
@@ -315,6 +316,7 @@ export default function ProfilePage() {
           </div>
         )}
         {isIndependent && <AutoCompleteLessonsCard />}
+        <GoogleCalendarCard />
         <MoreSection title="Більше" items={tutorMore} />
       </div>
     </AppLayout>
