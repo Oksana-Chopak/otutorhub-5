@@ -328,6 +328,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         { data: paid },
         { data: availability },
         { data: referrals },
+        { data: gcal },
       ] = await Promise.all([
         supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
         supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
@@ -363,6 +364,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         hasPaidLesson: (paid?.length ?? 0) > 0,
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
         hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
+        hasGoogleCalendar: (gcal?.length ?? 0) > 0,
       });
       setProgressLoading(false);
     })();
