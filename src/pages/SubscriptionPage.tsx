@@ -587,32 +587,8 @@ export default function SubscriptionPage() {
           </div>
         </div>
 
-        {/* Plans */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          {/* Free */}
-          <Card className={cn(!isPro && "border-primary/40")}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Безкоштовний</CardTitle>
-                {!isPro && <Badge variant="secondary">Поточний</Badge>}
-              </div>
-              <CardDescription>Назавжди. Без картки. Без обмежень за учнями.</CardDescription>
-              <p className="mt-2 font-display text-3xl font-bold text-foreground">
-                0 ₴ <span className="text-sm font-normal text-muted-foreground">/міс</span>
-              </p>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm">
-                {freePerks.map((perk) => (
-                  <li key={perk} className="flex items-start gap-2">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    <span className="text-foreground">{perk}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
+        {/* Plan */}
+        <div className="mx-auto max-w-2xl">
           {/* Pro */}
           <Card className={cn("relative", isPro ? "border-primary" : "border-primary/40")}>
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
