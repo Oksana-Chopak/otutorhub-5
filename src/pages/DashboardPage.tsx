@@ -721,15 +721,15 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="relative mb-4 overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5 sm:mb-6 sm:p-6">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/5" />
-        <div className="pointer-events-none absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-primary/5" />
+      <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 p-6 shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.25)] sm:mb-8 sm:p-8">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/10" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-primary/10" />
         <div className="relative flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
               {greeting}{firstName ? `, ${firstName}` : ""}! <span className="ml-1">{timeEmoji}</span>
             </h1>
-            <p className="mt-2 max-w-lg text-sm italic text-muted-foreground">
+            <p className="mt-3 max-w-lg text-sm italic text-muted-foreground">
               <span className="not-italic font-medium text-primary/80">Афірмація дня: </span>
               {phraseOfDay}
             </p>
