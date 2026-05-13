@@ -137,7 +137,7 @@ export default function SubscriptionPage() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
-  const REGULAR_PRICE_MONTHLY = 499;
+  const REGULAR_PRICE_MONTHLY = 129;
   // Дедлайн акції — 14 днів від моменту першого відкриття. Зберігаємо в localStorage,
   // щоб у одного користувача таймер не «скакав» між заходами.
   const EARLY_BIRD_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
