@@ -38,14 +38,6 @@ const PRO_PRICE_MONTHLY = 129;
 const PRO_PRICE_YEARLY_PER_MONTH = 99;
 const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
 
-const freePerks = [
-  "Необмежена кількість учнів",
-  "Розклад, чат з учнями, домашка",
-  "Облік оплат і прибутку",
-  "Постійні Zoom/Meet-посилання",
-  "Базова статистика по доходах",
-];
-
 const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
   {
     icon: BellRing,
