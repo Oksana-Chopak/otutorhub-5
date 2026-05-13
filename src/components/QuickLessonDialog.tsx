@@ -22,6 +22,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Pencil, User, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 
 interface Props {
   open: boolean;
@@ -230,6 +231,7 @@ export function QuickLessonDialog({
       localStorage.setItem(LAST_MODE_KEY, "group");
       localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
       toast.success(`Груповий урок створено · ${selectedGroup.name}`);
+      void syncLessonToGoogleCalendar(created.id, "upsert");
       onOpenChange(false);
       onCreated?.();
       return;
@@ -272,6 +274,7 @@ export function QuickLessonDialog({
       return;
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
+    if (created) void syncLessonToGoogleCalendar(created.id, "upsert");
     localStorage.setItem(LAST_MODE_KEY, "individual");
     toast.success(
       `Урок створено · ${selected.name} · ${startsAt.toLocaleTimeString("uk-UA", {
