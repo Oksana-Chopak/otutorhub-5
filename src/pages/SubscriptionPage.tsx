@@ -128,13 +128,6 @@ export default function SubscriptionPage() {
     isPro,
     isTrial,
     trialUntil,
-    settings,
-    loading,
-    isIndependent,
-    studentCount,
-    isPro,
-    isTrial,
-    trialUntil,
     trialDaysLeft,
   } = useWorkspaceSettings();
   const subscriptionUntil = settings?.subscription_until ? new Date(settings.subscription_until) : null;
