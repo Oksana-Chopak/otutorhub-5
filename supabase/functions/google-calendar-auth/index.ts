@@ -5,7 +5,31 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const REDIRECT_URI =
   "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-callback";
-const SCOPE = "https://www.googleapis.com/auth/calendar.events email";
+const SCOPE = [
+  "openid",
+  "https://www.googleapis.com/auth/userinfo.email",
+  "https://www.googleapis.com/auth/calendar.events",
+].join(" ");
+
+const DEFAULT_RETURN_TO = "https://otutorhub.com/profile";
+
+function safeReturnTo(value: string | null) {
+  if (!value) return DEFAULT_RETURN_TO;
+  try {
+    const url = new URL(value);
+    const isAllowedHost =
+      url.hostname === "otutorhub.com" ||
+      url.hostname === "www.otutorhub.com" ||
+      url.hostname.endsWith(".lovable.app");
+    return url.protocol === "https:" && isAllowedHost ? url.toString() : DEFAULT_RETURN_TO;
+  } catch (_) {
+    return DEFAULT_RETURN_TO;
+  }
+}
+
+function encodeState(payload: Record<string, string>) {
+  return btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 Deno.serve((req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -34,7 +58,7 @@ Deno.serve((req) => {
     scope: SCOPE,
     access_type: "offline",
     prompt: "consent",
-    state: userId,
+    state: encodeState({ user_id: userId, return_to: safeReturnTo(url.searchParams.get("return_to")) }),
     include_granted_scopes: "true",
   });
 

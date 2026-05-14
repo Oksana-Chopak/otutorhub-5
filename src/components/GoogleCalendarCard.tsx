@@ -49,8 +49,13 @@ export function GoogleCalendarCard() {
 
   const connect = () => {
     if (!user) return;
-    const url = `https://${PROJECT_REF}.supabase.co/functions/v1/google-calendar-auth?user_id=${user.id}`;
-    window.location.href = url;
+    const params = new URLSearchParams({
+      user_id: user.id,
+      return_to: `${window.location.origin}${window.location.pathname}`,
+    });
+    const url = `https://${PROJECT_REF}.supabase.co/functions/v1/google-calendar-auth?${params.toString()}`;
+    const popup = window.open(url, "_blank");
+    if (!popup) window.location.href = url;
   };
 
   const disconnect = async () => {

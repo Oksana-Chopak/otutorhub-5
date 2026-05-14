@@ -9,16 +9,47 @@ const REDIRECT_URI =
 const APP_RETURN_URL = "https://otutorhub.com/profile?calendar=connected";
 const APP_ERROR_URL = "https://otutorhub.com/profile?calendar=error";
 
+function withCalendarParam(returnTo: string, calendar: "connected" | "error", reason?: string) {
+  try {
+    const url = new URL(returnTo);
+    const isAllowedHost =
+      url.hostname === "otutorhub.com" ||
+      url.hostname === "www.otutorhub.com" ||
+      url.hostname.endsWith(".lovable.app");
+    if (url.protocol !== "https:" || !isAllowedHost) throw new Error("unsafe_return_to");
+    url.searchParams.set("calendar", calendar);
+    if (reason) url.searchParams.set("reason", reason);
+    return url.toString();
+  } catch (_) {
+    return calendar === "connected" ? APP_RETURN_URL : `${APP_ERROR_URL}${reason ? `&reason=${reason}` : ""}`;
+  }
+}
+
+function parseState(value: string | null) {
+  if (!value) return { userId: null, returnTo: "https://otutorhub.com/profile" };
+  try {
+    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const parsed = JSON.parse(atob(padded));
+    return {
+      userId: typeof parsed.user_id === "string" ? parsed.user_id : null,
+      returnTo: typeof parsed.return_to === "string" ? parsed.return_to : "https://otutorhub.com/profile",
+    };
+  } catch (_) {
+    return { userId: value, returnTo: "https://otutorhub.com/profile" };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const userId = url.searchParams.get("state");
+  const { userId, returnTo } = parseState(url.searchParams.get("state"));
   const errorParam = url.searchParams.get("error");
 
   if (errorParam || !code || !userId) {
-    return Response.redirect(`${APP_ERROR_URL}&reason=${errorParam ?? "missing_params"}`, 302);
+    return Response.redirect(withCalendarParam(returnTo, "error", errorParam ?? "missing_params"), 302);
   }
 
   const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
@@ -26,7 +57,7 @@ Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!clientId || !clientSecret || !supabaseUrl || !serviceKey) {
-    return Response.redirect(`${APP_ERROR_URL}&reason=server_misconfigured`, 302);
+    return Response.redirect(withCalendarParam(returnTo, "error", "server_misconfigured"), 302);
   }
 
   try {
@@ -45,7 +76,7 @@ Deno.serve(async (req) => {
     const tokens = await tokenRes.json();
     if (!tokenRes.ok || !tokens.access_token) {
       console.error("Token exchange failed", tokens);
-      return Response.redirect(`${APP_ERROR_URL}&reason=token_exchange`, 302);
+      return Response.redirect(withCalendarParam(returnTo, "error", "token_exchange"), 302);
     }
 
     // Get user email (best-effort)
@@ -74,12 +105,12 @@ Deno.serve(async (req) => {
 
     if (error) {
       console.error("Failed to save tokens", error);
-      return Response.redirect(`${APP_ERROR_URL}&reason=db_save`, 302);
+      return Response.redirect(withCalendarParam(returnTo, "error", "db_save"), 302);
     }
 
-    return Response.redirect(APP_RETURN_URL, 302);
+    return Response.redirect(withCalendarParam(returnTo, "connected"), 302);
   } catch (e) {
     console.error("Callback error", e);
-    return Response.redirect(`${APP_ERROR_URL}&reason=exception`, 302);
+    return Response.redirect(withCalendarParam(returnTo, "error", "exception"), 302);
   }
 });
