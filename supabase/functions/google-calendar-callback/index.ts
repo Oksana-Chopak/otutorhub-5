@@ -29,7 +29,8 @@ function parseState(value: string | null) {
   if (!value) return { userId: null, returnTo: "https://otutorhub.com/profile" };
   try {
     const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-    const parsed = JSON.parse(atob(normalized));
+    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+    const parsed = JSON.parse(atob(padded));
     return {
       userId: typeof parsed.user_id === "string" ? parsed.user_id : null,
       returnTo: typeof parsed.return_to === "string" ? parsed.return_to : "https://otutorhub.com/profile",
