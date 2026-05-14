@@ -54,7 +54,8 @@ export function GoogleCalendarCard() {
       return_to: `${window.location.origin}${window.location.pathname}`,
     });
     const url = `https://${PROJECT_REF}.supabase.co/functions/v1/google-calendar-auth?${params.toString()}`;
-    window.location.href = url;
+    const popup = window.open(url, "_blank", "noopener,noreferrer");
+    if (!popup) window.location.href = url;
   };
 
   const disconnect = async () => {
