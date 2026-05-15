@@ -44,7 +44,7 @@ export function TutorNotesCard() {
       .insert({ tutor_id: user.id, text: text.trim() } as any);
     setSaving(false);
     if (error) {
-      toast.error("Не вдалося зберегти нотатку");
+      toast.error("ÐÐµ Ð²Ð´Ð°Ð»Ð¾ÑÑ Ð·Ð±ÐµÑÐµÐ³ÑÐ¸ Ð½Ð¾ÑÐ°ÑÐºÑ");
       return;
     }
     setText("");
@@ -57,7 +57,7 @@ export function TutorNotesCard() {
     const { error } = await supabase.from("tutor_notes" as any).delete().eq("id", id);
     if (error) {
       setNotes(prev);
-      toast.error("Не вдалося видалити");
+      toast.error("ÐÐµ Ð²Ð´Ð°Ð»Ð¾ÑÑ Ð²Ð¸Ð´Ð°Ð»Ð¸ÑÐ¸");
     }
   };
 
@@ -67,15 +67,16 @@ export function TutorNotesCard() {
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
           <StickyNote className="h-4 w-4 text-primary" />
         </div>
-        <p className="text-sm font-medium text-foreground">Мої нотатки</p>
+        <p className="text-sm font-medium text-foreground">ÐÐ¾Ñ Ð½Ð¾ÑÐ°ÑÐºÐ¸</p>
       </div>
       <div className="space-y-2">
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Що не забути..."
+          placeholder="Ð©Ð¾ Ð½Ðµ Ð·Ð°Ð±ÑÑÐ¸..."
           className="min-h-[60px] text-sm"
           maxLength={500}
+          onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add(); } }}
         />
         <Button
           size="sm"
@@ -84,7 +85,7 @@ export function TutorNotesCard() {
           className="w-full sm:w-auto"
         >
           {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-          Додати
+          ÐÐ¾Ð´Ð°ÑÐ¸
         </Button>
       </div>
       <div className="mt-3 space-y-1.5">
@@ -93,7 +94,7 @@ export function TutorNotesCard() {
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
         ) : notes.length === 0 ? (
-          <p className="py-2 text-xs text-muted-foreground">Ще немає нотаток.</p>
+          <p className="py-2 text-xs text-muted-foreground">Ð©Ðµ Ð½ÐµÐ¼Ð°Ñ Ð½Ð¾ÑÐ°ÑÐ¾Ðº.</p>
         ) : (
           notes.map((n) => (
             <div
@@ -105,7 +106,7 @@ export function TutorNotesCard() {
                 type="button"
                 onClick={() => remove(n.id)}
                 className="opacity-50 transition-opacity hover:opacity-100"
-                aria-label="Видалити"
+                aria-label="ÐÐ¸Ð´Ð°Ð»Ð¸ÑÐ¸"
               >
                 <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>
