@@ -46,6 +46,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
@@ -167,6 +168,7 @@ export default function SchedulePage() {
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
@@ -1767,11 +1769,7 @@ export default function SchedulePage() {
                             : undefined
                         }
                         className={lessonSourceTint(lesson.source)}
-                        onContentClick={
-                          (isManager || (isTutor && lesson.tutor_id === user?.id))
-                            ? () => openEdit(lesson)
-                            : undefined
-                        }
+                        onContentClick={() => setOpenLessonId(lesson.id)}
                         topRightActions={
                           <>
 
@@ -1917,6 +1915,12 @@ export default function SchedulePage() {
           setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
           setCreateOpen(true);
         }}
+      />
+      <LessonDetailsDialog
+        lessonId={openLessonId}
+        open={!!openLessonId}
+        onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
+        onUpdated={() => loadAll()}
       />
     </AppLayout>
   );
