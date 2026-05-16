@@ -300,6 +300,7 @@ export default function SchedulePage() {
       tutor_payout_status: "unpaid",
     });
     setNotesOpen(Boolean(lesson.notes));
+    setStep(1);
     setCreateOpen(true);
   };
 
