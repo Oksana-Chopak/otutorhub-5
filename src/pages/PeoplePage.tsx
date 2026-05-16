@@ -43,6 +43,8 @@ import {
   CreditCard,
   Pencil,
   Copy,
+  ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
