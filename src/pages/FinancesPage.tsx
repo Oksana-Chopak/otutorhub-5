@@ -801,6 +801,7 @@ export default function FinancesPage() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-foreground">
                                 {nameOf(l.student_id)}
+                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
                               </p>
                               {l.student_paid_at && (
                                 <p className="truncate text-[11px] text-muted-foreground">
