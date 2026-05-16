@@ -1070,6 +1070,14 @@ export default function DashboardPage() {
                         chatPartnerId={partnerId}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
+                        topRightActions={
+                          canEditStatus ? (
+                            <LessonQuickActionsMenu
+                              onReschedule={() => setOpenLessonId(lesson.id)}
+                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
+                            />
+                          ) : undefined
+                        }
                         extraActions={
                           canEditStatus ? (
                             <Select
