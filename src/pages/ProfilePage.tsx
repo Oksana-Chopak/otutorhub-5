@@ -216,8 +216,8 @@ export default function ProfilePage() {
             </p>
           </div>
           <GoogleCalendarCard />
-          <MoreSection title="Розділи" items={managerMore} />
-          {managerMore.length === 0 && (
+          <MoreSection title="Розділи" groups={managerGroups} />
+          {managerGroups.every((g) => g.items.length === 0) && (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
                 Немає додаткових налаштувань.
@@ -344,7 +344,7 @@ export default function ProfilePage() {
         )}
         {isIndependent && <AutoCompleteLessonsCard />}
         <GoogleCalendarCard />
-        <MoreSection title="Більше" items={tutorMore} />
+        <MoreSection title="Більше" groups={tutorGroups} />
       </div>
     </AppLayout>
   );
