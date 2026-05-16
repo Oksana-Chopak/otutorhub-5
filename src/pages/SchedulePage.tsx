@@ -1916,6 +1916,12 @@ export default function SchedulePage() {
           setCreateOpen(true);
         }}
       />
+      <LessonDetailsDialog
+        lessonId={openLessonId}
+        open={!!openLessonId}
+        onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
+        onUpdated={() => loadAll()}
+      />
     </AppLayout>
   );
 }
