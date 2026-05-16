@@ -1,5 +1,7 @@
 // Handles Google OAuth callback, stores tokens, redirects user back to app.
-// GET /functions/v1/google-calendar-callback?code=...&state=user_id
+// GET /functions/v1/google-calendar-callback?code=...&state=<signed>
+// State MUST be HMAC-signed by google-calendar-auth. Unsigned / invalid state
+// is rejected to prevent token-slot hijacking.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -8,6 +10,7 @@ const REDIRECT_URI =
   "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-callback";
 const APP_RETURN_URL = "https://otutorhub.com/profile?calendar=connected";
 const APP_ERROR_URL = "https://otutorhub.com/profile?calendar=error";
+const STATE_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes
 
 function withCalendarParam(returnTo: string, calendar: "connected" | "error", reason?: string) {
   try {
@@ -25,18 +28,62 @@ function withCalendarParam(returnTo: string, calendar: "connected" | "error", re
   }
 }
 
-function parseState(value: string | null) {
-  if (!value) return { userId: null, returnTo: "https://otutorhub.com/profile" };
+function b64urlDecodeToString(b64: string): string {
+  const normalized = b64.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
+  return atob(padded);
+}
+
+function b64urlEncode(bytes: Uint8Array) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+async function hmacSign(secret: string, data: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
+  return b64urlEncode(new Uint8Array(sig));
+}
+
+function timingSafeEqual(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
+async function verifyState(value: string | null, secret: string): Promise<
+  { userId: string; returnTo: string } | null
+> {
+  if (!value) return null;
+  const parts = value.split(".");
+  if (parts.length !== 2) return null;
+  const [body, sig] = parts;
+  let expected: string;
   try {
-    const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-    const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "=");
-    const parsed = JSON.parse(atob(padded));
-    return {
-      userId: typeof parsed.user_id === "string" ? parsed.user_id : null,
-      returnTo: typeof parsed.return_to === "string" ? parsed.return_to : "https://otutorhub.com/profile",
-    };
-  } catch (_) {
-    return { userId: value, returnTo: "https://otutorhub.com/profile" };
+    expected = await hmacSign(secret, body);
+  } catch {
+    return null;
+  }
+  if (!timingSafeEqual(expected, sig)) return null;
+  try {
+    const parsed = JSON.parse(b64urlDecodeToString(body));
+    const userId = typeof parsed.user_id === "string" ? parsed.user_id : null;
+    const returnTo =
+      typeof parsed.return_to === "string" ? parsed.return_to : "https://otutorhub.com/profile";
+    const ts = typeof parsed.ts === "number" ? parsed.ts : 0;
+    if (!userId) return null;
+    if (!ts || Date.now() - ts > STATE_MAX_AGE_MS) return null;
+    return { userId, returnTo };
+  } catch {
+    return null;
   }
 }
 
@@ -45,23 +92,30 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
-  const { userId, returnTo } = parseState(url.searchParams.get("state"));
   const errorParam = url.searchParams.get("error");
 
-  if (errorParam || !code || !userId) {
-    return Response.redirect(withCalendarParam(returnTo, "error", errorParam ?? "missing_params"), 302);
-  }
-
+  const stateSecret =
+    Deno.env.get("OAUTH_STATE_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
   const clientSecret = Deno.env.get("GOOGLE_CLIENT_SECRET");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!clientId || !clientSecret || !supabaseUrl || !serviceKey) {
-    return Response.redirect(withCalendarParam(returnTo, "error", "server_misconfigured"), 302);
+
+  if (!clientId || !clientSecret || !supabaseUrl || !serviceKey || !stateSecret) {
+    return Response.redirect(withCalendarParam(APP_RETURN_URL, "error", "server_misconfigured"), 302);
+  }
+
+  const verified = await verifyState(url.searchParams.get("state"), stateSecret);
+  if (!verified) {
+    return Response.redirect(withCalendarParam(APP_RETURN_URL, "error", "invalid_state"), 302);
+  }
+  const { userId, returnTo } = verified;
+
+  if (errorParam || !code) {
+    return Response.redirect(withCalendarParam(returnTo, "error", errorParam ?? "missing_params"), 302);
   }
 
   try {
-    // Exchange code for tokens
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -79,7 +133,6 @@ Deno.serve(async (req) => {
       return Response.redirect(withCalendarParam(returnTo, "error", "token_exchange"), 302);
     }
 
-    // Get user email (best-effort)
     let googleEmail: string | null = null;
     try {
       const userInfo = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
