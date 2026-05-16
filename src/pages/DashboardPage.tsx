@@ -28,7 +28,7 @@ import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
-import { LessonQuickActionsMenu } from "@/components/LessonQuickActionsMenu";
+
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
