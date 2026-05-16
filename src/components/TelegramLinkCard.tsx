@@ -110,7 +110,7 @@ export function TelegramLinkCard() {
 
   const isLinked = !!link?.chat_id;
 
-  if (active) {
+  if (isLinked && link?.is_active !== false) {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
         <Check className="h-4 w-4 shrink-0 text-green-600" />
