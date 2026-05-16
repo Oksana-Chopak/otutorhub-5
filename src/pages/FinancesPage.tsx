@@ -748,21 +748,21 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Середня націнка хабу
+                      Маржа
                     </p>
                     <p
                       className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                        hubMarkup === null
+                        hubMargin === null
                           ? "text-muted-foreground"
-                          : hubMarkup >= 0
+                          : hubMargin >= 0
                           ? "text-success"
                           : "text-destructive"
                       }`}
                     >
-                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
+                      {hubMargin === null ? "—" : `${hubMargin.toFixed(1)}%`}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      (надходження − виплати) / виплати
+                      Прибуток як % від надходжень
                     </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
