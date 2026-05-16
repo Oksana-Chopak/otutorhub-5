@@ -36,6 +36,8 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
 import { RecordPaymentSheet, PairOption } from "@/components/RecordPaymentSheet";
 import { WalletDialog } from "@/components/WalletDialog";
+import { ProfitSparkline } from "@/components/ProfitSparkline";
+import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
