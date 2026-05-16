@@ -1657,7 +1657,7 @@ export default function SchedulePage() {
           }}
           onLessonClick={(l) => {
             const full = lessons.find((x) => x.id === l.id);
-            if (full) openEdit(full);
+            if (full) setOpenLessonId(full.id);
           }}
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
