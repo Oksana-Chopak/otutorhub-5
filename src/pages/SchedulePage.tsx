@@ -704,6 +704,7 @@ export default function SchedulePage() {
 
     const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
     const payloads: any[] = [];
+    const detailsPerIndex: Array<Record<string, any> | null> = [];
     for (let i = 0; i < repeats; i++) {
       const dt = new Date(baseStart);
       dt.setDate(dt.getDate() + i * 7);
@@ -718,32 +719,48 @@ export default function SchedulePage() {
         created_by: user.id,
         source: isIndependentTutor ? "independent" : "hub",
       };
+      const details: Record<string, any> = {};
       if (isManager) {
-        payload.student_price = Number(form.student_price) || 0;
-        payload.tutor_payout = Number(form.tutor_payout) || 0;
-        payload.student_payment_status = form.student_payment_status;
-        payload.tutor_payout_status = form.tutor_payout_status;
+        details.student_price = Number(form.student_price) || 0;
+        details.tutor_payout = Number(form.tutor_payout) || 0;
+        details.student_payment_status = form.student_payment_status;
+        details.tutor_payout_status = form.tutor_payout_status;
       } else if (isIndependentTutor) {
-        // Pass the price explicitly so even if the trigger fallback misses (e.g.
-        // the rate upsert failed), the lesson still has the right price.
         const priceFromForm = Number(form.student_price);
         if (priceFromForm > 0) {
-          payload.student_price = priceFromForm;
+          details.student_price = priceFromForm;
         }
       }
       payloads.push(payload);
+      detailsPerIndex.push(Object.keys(details).length ? details : null);
     }
 
     const { data: insertedLessons, error } = await supabase
       .from("lessons")
       .insert(payloads)
       .select("id");
-    setSubmitting(false);
     if (error) {
+      setSubmitting(false);
       console.error("Failed to create lesson", error);
       toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
+    const detailsRows = (insertedLessons ?? [])
+      .map((l, idx) => {
+        const d = detailsPerIndex[idx];
+        if (!d) return null;
+        return { lesson_id: l.id, ...d };
+      })
+      .filter(Boolean) as Array<Record<string, any>>;
+    if (detailsRows.length) {
+      const { error: detailsErr } = await supabase
+        .from("lesson_details")
+        .upsert(detailsRows as any, { onConflict: "lesson_id" });
+      if (detailsErr) {
+        console.warn("Failed to save lesson details", detailsErr);
+      }
+    }
+    setSubmitting(false);
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1
@@ -1434,7 +1451,7 @@ export default function SchedulePage() {
                         setStep(2);
                       }}
                     >
-                      Деталі →
+                      Більше опцій (оплата, повтор)
                     </Button>
                   )}
                   <Button onClick={handleCreate} disabled={submitting}>
