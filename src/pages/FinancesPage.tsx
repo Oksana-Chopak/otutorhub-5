@@ -334,23 +334,24 @@ export default function FinancesPage() {
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
 
-  // Markup % ("маржа" як націнка): (income - payout) / payout * 100
+  // Маржа = (надходження − виплати) / надходження * 100.
+  // Інтуїтивніша метрика: «скільки % з кожної отриманої гривні залишається хабу».
   // Рахуємо тільки по уроках, де відомі обидві суми (price > 0 і payout > 0),
-  // інакше націнка не визначена.
-  const computeMarkup = (rows: LessonRow[]): number | null => {
+  // інакше маржа не визначена.
+  const computeMargin = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
     );
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
     const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (payout === 0) return null;
-    return ((income - payout) / payout) * 100;
+    if (income === 0) return null;
+    return ((income - payout) / income) * 100;
   };
 
-  const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
+  const hubMargin = useMemo(() => computeMargin(billable), [billable]);
 
-  const markupByTutor = useMemo(() => {
+  const marginByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
     billable.forEach((l) => {
       if (!groups[l.tutor_id]) groups[l.tutor_id] = [];
@@ -360,11 +361,58 @@ export default function FinancesPage() {
       .map(([tutorId, rows]) => ({
         tutorId,
         name: nameOf(tutorId),
-        markup: computeMarkup(rows),
+        margin: computeMargin(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.markup !== null)
-      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
+      .filter((r) => r.margin !== null)
+      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable, profiles]);
+
+  // Last-4-weeks profit sparkline series
+  const profitSparkline = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayIdx = (today.getDay() + 6) % 7; // 0 = Mon
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - dayIdx);
+    const buckets: { key: string; start: Date; profit: number }[] = [];
+    for (let i = 3; i >= 0; i--) {
+      const s = new Date(thisWeekStart);
+      s.setDate(thisWeekStart.getDate() - i * 7);
+      buckets.push({ key: s.toISOString().slice(0, 10), start: s, profit: 0 });
+    }
+    const firstStart = buckets[0].start.getTime();
+    billable.forEach((l) => {
+      const t = new Date(l.starts_at).getTime();
+      if (t < firstStart) return;
+      const idx = Math.floor((t - firstStart) / (7 * 24 * 3600 * 1000));
+      if (idx < 0 || idx >= buckets.length) return;
+      const income = l.student_payment_status === "paid" ? Number(l.student_price) : 0;
+      const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
+      buckets[idx].profit += income - expense;
+    });
+    return buckets.map((b) => ({ week: b.key, profit: b.profit }));
+  }, [billable]);
+
+  // Income contribution per student (paid lessons only) — for pie chart
+  const incomeByStudent = useMemo(() => {
+    const map = new Map<string, number>();
+    billable
+      .filter((l) => l.student_payment_status === "paid" && Number(l.student_price) > 0)
+      .forEach((l) => {
+        map.set(l.student_id, (map.get(l.student_id) ?? 0) + Number(l.student_price));
+      });
+    const rows = Array.from(map.entries())
+      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
+      .sort((a, b) => b.amount - a.amount);
+    // Collapse long tail into "Інші" (keep top 6)
+    const TOP = 6;
+    if (rows.length <= TOP) return rows;
+    const head = rows.slice(0, TOP);
+    const tail = rows.slice(TOP);
+    const other = tail.reduce((s, r) => s + r.amount, 0);
+    return [...head, { student_id: "__other__", name: `Інші (${tail.length})`, amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
