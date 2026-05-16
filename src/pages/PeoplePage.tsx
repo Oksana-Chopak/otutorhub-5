@@ -843,6 +843,10 @@ export default function PeoplePage() {
           return { steps, doneCount, fmt };
         })()
       : null;
+    const isExpanded = !!expandedCards[u.id];
+    const canChat = !!currentUser && u.id !== currentUser.id && !u.is_pending && !u.archived_at;
+    const toggleExpanded = () =>
+      setExpandedCards((prev) => ({ ...prev, [u.id]: !prev[u.id] }));
     return (
     <div
       key={u.id}
