@@ -712,34 +712,6 @@ export default function FinancesPage() {
         </div>
           </div>
 
-          {/* === Mini-trends row: profit sparkline + income contribution pie === */}
-          {!isIndependentTutor && (
-            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Тренд прибутку (4 тижні)
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
-                  </span>
-                </div>
-                <ProfitSparkline data={profitSparkline} />
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Надходження за учнями
-                  </h2>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    Лише оплачені
-                  </span>
-                </div>
-                <IncomeByStudentPie data={incomeByStudent} />
-              </div>
-            </div>
-          )}
-
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-muted-foreground">
