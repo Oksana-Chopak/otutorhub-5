@@ -242,6 +242,74 @@ export default function ChatsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myId, isManager]);
 
+  // Handle ?with={userId} query param — open or create thread with that user
+  useEffect(() => {
+    if (!myId || loading) return;
+    const params = new URLSearchParams(window.location.search);
+    const withId = params.get("with");
+    if (!withId || withId === myId) return;
+
+    const openWith = async () => {
+      if (isManager) {
+        // Manager: pick first existing thread involving this user
+        const match = threads.find(
+          (t) => t.tutor_id === withId || t.student_id === withId
+        );
+        if (match) {
+          setSelectedId(match.id);
+        } else {
+          toast({
+            title: "Немає чату з цією людиною",
+            description: "Створіть новий чат через кнопку +",
+          });
+        }
+      } else {
+        // Determine tutor/student roles for the pair
+        const { data: otherRoles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", withId);
+        const otherIsTutor = (otherRoles ?? []).some((r: any) => r.role === "tutor");
+        const otherIsStudent = (otherRoles ?? []).some((r: any) => r.role === "student");
+        const myIsTutor = roles.includes("tutor");
+        let tutorId: string | null = null;
+        let studentId: string | null = null;
+        if (myIsTutor && otherIsStudent) {
+          tutorId = myId;
+          studentId = withId;
+        } else if (!myIsTutor && otherIsTutor) {
+          tutorId = withId;
+          studentId = myId;
+        }
+        if (!tutorId || !studentId) {
+          // Maybe thread already exists
+          const match = threads.find(
+            (t) =>
+              (t.tutor_id === myId && t.student_id === withId) ||
+              (t.student_id === myId && t.tutor_id === withId)
+          );
+          if (match) setSelectedId(match.id);
+          return;
+        }
+        const { data: threadId } = await supabase.rpc("get_or_create_chat_thread", {
+          _tutor_id: tutorId,
+          _student_id: studentId,
+        });
+        if (threadId) {
+          await loadThreads();
+          setSelectedId(threadId as string);
+        }
+      }
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("with");
+      window.history.replaceState({}, "", url.toString());
+    };
+
+    openWith();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myId, loading, isManager]);
+
   // Load messages for selected thread + subscribe to realtime
   useEffect(() => {
     if (!selectedId) {
