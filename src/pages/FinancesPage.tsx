@@ -117,16 +117,32 @@ export default function FinancesPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
-      await Promise.all([
-        supabase
-          .from("lessons")
-          .select(
-            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
-          )
-          .order("starts_at", { ascending: false }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-      ]);
+    const [
+      { data: lessonsData, error: lErr },
+      { data: profilesData, error: pErr },
+      { data: txData },
+      { data: balData },
+      { data: ratesData },
+    ] = await Promise.all([
+      supabase
+        .from("lessons")
+        .select(
+          "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
+        )
+        .order("starts_at", { ascending: false }),
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase
+        .from("student_wallet_transactions" as any)
+        .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("student_wallet_balances" as any)
+        .select("tutor_id, student_id, lessons_balance, amount_balance"),
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .is("archived_at", null),
+    ]);
     if (lErr) toast.error("Помилка завантаження уроків");
     if (pErr) toast.error("Помилка завантаження профілів");
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
@@ -147,6 +163,24 @@ export default function FinancesPage() {
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
+    setWalletTxs(((txData ?? []) as any[]) as WalletTx[]);
+    const balMap: Record<string, WalletBalance> = {};
+    ((balData ?? []) as any[]).forEach((b) => {
+      balMap[`${b.tutor_id}:${b.student_id}`] = {
+        tutor_id: b.tutor_id,
+        student_id: b.student_id,
+        lessons_balance: Number(b.lessons_balance ?? 0),
+        amount_balance: Number(b.amount_balance ?? 0),
+      };
+    });
+    setBalances(balMap);
+    const rateMap: Record<string, number> = {};
+    ((ratesData ?? []) as any[]).forEach((r) => {
+      const key = `${r.tutor_id}:${r.student_id}`;
+      const v = Number(r.price_per_lesson) || 0;
+      if (v > (rateMap[key] ?? 0)) rateMap[key] = v;
+    });
+    setPairRates(rateMap);
     setSelected(new Set());
     setLoading(false);
   };
