@@ -981,14 +981,6 @@ export default function DashboardPage() {
                                 <span className="hidden sm:inline">Перенести</span>
                               </Button>
                               <Button
-                                size="sm"
-                                variant="outline"
-                                className="min-h-[44px]"
-                                onClick={() => setOpenLessonId(lesson.id)}
-                              >
-                                Відкрити
-                              </Button>
-                              <Button
                                 size="icon"
                                 variant="ghost"
                                 className="h-8 w-8"
