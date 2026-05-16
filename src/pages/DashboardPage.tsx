@@ -1297,7 +1297,7 @@ export default function DashboardPage() {
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
-      {(isTutor || isManager) && <QuickActionsFab onChanged={loadData} />}
+      
       {walletPair && (
         <WalletDialog
           open={!!walletPair}
