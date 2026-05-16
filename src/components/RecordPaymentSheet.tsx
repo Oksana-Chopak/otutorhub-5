@@ -167,7 +167,7 @@ export function RecordPaymentSheet({
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
-        writtenTx = data as { id: string } | null;
+        writtenTx = data as unknown as { id: string } | null;
       }
 
       if (!writtenTx) {
