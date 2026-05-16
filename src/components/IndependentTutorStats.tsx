@@ -80,22 +80,34 @@ export function IndependentTutorStats() {
     };
   }, [user?.id]);
 
-  const periodStart = useMemo(() => {
+  const { periodStart, priorStart } = useMemo(() => {
     const d = new Date();
-    if (period === "month") return new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+    if (period === "month") {
+      const s = new Date(d.getFullYear(), d.getMonth(), 1).getTime();
+      const p = new Date(d.getFullYear(), d.getMonth() - 1, 1).getTime();
+      return { periodStart: s, priorStart: p };
+    }
     if (period === "week") {
       const day = (d.getDay() + 6) % 7;
       const ws = new Date(d);
       ws.setDate(d.getDate() - day);
       ws.setHours(0, 0, 0, 0);
-      return ws.getTime();
+      return { periodStart: ws.getTime(), priorStart: ws.getTime() - 7 * 86400_000 };
     }
-    return 0;
+    return { periodStart: 0, priorStart: 0 };
   }, [period]);
 
-  const billable = lessons.filter(
-    (l) => l.status === "completed" && new Date(l.starts_at).getTime() >= periodStart
-  );
+  const inRange = (l: LessonRow, from: number, to: number) =>
+    l.status === "completed" &&
+    new Date(l.starts_at).getTime() >= from &&
+    new Date(l.starts_at).getTime() < to;
+
+  const now = Date.now();
+  const billable = lessons.filter((l) => inRange(l, periodStart, now));
+  const priorBillable =
+    period === "all"
+      ? []
+      : lessons.filter((l) => inRange(l, priorStart, periodStart));
 
   const totalIncome = billable
     .filter((l) => l.student_payment_status === "paid")
@@ -104,6 +116,14 @@ export function IndependentTutorStats() {
     .filter((l) => l.student_payment_status === "unpaid")
     .reduce((s, l) => s + Number(l.student_price), 0);
   const completedCount = billable.length;
+
+  const priorIncome = priorBillable
+    .filter((l) => l.student_payment_status === "paid")
+    .reduce((s, l) => s + Number(l.student_price), 0);
+  const priorCompleted = priorBillable.length;
+
+  const incomeDelta = period === "all" ? undefined : totalIncome - priorIncome;
+  const completedDelta = period === "all" ? undefined : completedCount - priorCompleted;
 
   return (
     <div className="space-y-3">
