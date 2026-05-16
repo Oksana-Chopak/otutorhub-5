@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
