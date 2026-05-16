@@ -897,7 +897,44 @@ export default function FinancesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((l) => {
+                      {unifiedRows.map((row) => {
+                        if (row.type === "prepay") {
+                          const tx = row.tx;
+                          return (
+                            <tr
+                              key={`p-${tx.id}`}
+                              className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                            >
+                              <td className="px-3 py-3" />
+                              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                                {formatDate(tx.created_at)}
+                              </td>
+                              <td className="px-3 py-3" colSpan={desktopColCount - 3}>
+                                <div className="flex items-center gap-2 text-primary">
+                                  <Package className="h-4 w-4 shrink-0" />
+                                  <span className="font-medium">Передоплата</span>
+                                  <span className="text-muted-foreground">·</span>
+                                  <span className="text-foreground truncate">
+                                    {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                                  </span>
+                                  {tx.note && (
+                                    <span className="truncate text-xs text-muted-foreground">
+                                      — {tx.note}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
+                                {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                                {Number(tx.amount_delta) > 0 && (
+                                  <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const l = row.l;
                         const profit = Number(l.student_price) - Number(l.tutor_payout);
                         const isSelected = selected.has(l.id);
                         return (
@@ -919,7 +956,10 @@ export default function FinancesPage() {
                             </td>
                             <td className="px-3 py-3 text-foreground">{l.subject}</td>
                             <td className="px-3 py-3">
-                              <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
+                              <div className="font-medium text-foreground">
+                                {nameOf(l.student_id)}
+                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
+                              </div>
                               {l.student_paid_at && (
                                 <div className="text-xs text-muted-foreground">
                                   опл.: {formatDate(l.student_paid_at)}
