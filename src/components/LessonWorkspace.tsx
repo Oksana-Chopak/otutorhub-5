@@ -244,7 +244,50 @@ export function LessonWorkspace({
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* 1. Payment status — top priority */}
+      {/* 0. Primary CTA — mark lesson as completed */}
+      {canMarkCompleted && statusLocal === "scheduled" && (
+        <section className="rounded-lg border border-primary/30 bg-primary/5 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-foreground">
+              <div className="font-medium">Урок ще не позначений як проведений</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                Один тап — і урок піде в історію та у фінанси.
+              </div>
+            </div>
+            <Button size="lg" onClick={markCompleted} disabled={completeBusy}>
+              {completeBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+              Урок відбувся
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* 0b. Post-completion nudge to record payment */}
+      {canMarkCompleted && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && (
+        <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-foreground">
+              <div className="font-medium">Учень оплатив цей урок?</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {studentPrice ? `${studentPrice} ₴ — ` : ""}зафіксуйте оплату, щоб не загубилась.
+              </div>
+            </div>
+            <Button size="lg" variant="default" onClick={togglePayment} disabled={paymentBusy}>
+              {paymentBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Banknote className="mr-2 h-4 w-4" />}
+              Позначити оплату
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* 0c. Hub tutor info — payment is handled by manager */}
+      {isTutor && source === "hub" && statusLocal === "completed" && (
+        <section className="rounded-lg border border-border bg-muted/30 p-3 md:col-span-2 text-xs text-muted-foreground">
+          Оплату за проведені уроки невдовзі проведе менеджер.
+        </section>
+      )}
+
+
       {canTogglePayment && (
         <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
