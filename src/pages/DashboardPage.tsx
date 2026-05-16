@@ -456,9 +456,10 @@ export default function DashboardPage() {
   }, [upcomingAll, todayKey]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
 
-          const needsMarkLessons = lessonRows.filter(
-            (l) => l.status === 'scheduled' && new Date(l.starts_at) < new Date()
-          );
+  const needsMarkLessons = useMemo(
+    () => lessons.filter((l) => l.status === 'scheduled' && new Date(l.starts_at) < new Date()),
+    [lessons, nowMs]
+  );
 
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
