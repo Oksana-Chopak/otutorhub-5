@@ -19,17 +19,17 @@ import { cn } from "@/lib/utils";
 const REMEMBER_KEY = "tutorhub.rememberMe";
 
 const signUpSchema = z.object({
-  firstName: z.string().trim().min(1, "ÐÐ²ÐµÐ´ÑÑÑ ÑÐ¼'Ñ").max(50),
-  lastName: z.string().trim().min(1, "ÐÐ²ÐµÐ´ÑÑÑ Ð¿ÑÑÐ·Ð²Ð¸ÑÐµ").max(50),
+  firstName: z.string().trim().min(1, "Введіть ім'я").max(50),
+  lastName: z.string().trim().min(1, "Введіть прізвище").max(50),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
-  email: z.string().trim().email("ÐÐµÐºÐ¾ÑÐµÐºÑÐ½Ð¸Ð¹ email").max(255),
-  password: z.string().min(8, "ÐÑÐ½ÑÐ¼ÑÐ¼ 8 ÑÐ¸Ð¼Ð²Ð¾Ð»ÑÐ²").max(128),
+  email: z.string().trim().email("Некоректний email").max(255),
+  password: z.string().min(8, "Мінімум 8 символів").max(128),
   role: z.enum(["student", "tutor"]),
 });
 
 const signInSchema = z.object({
-  email: z.string().trim().email("ÐÐµÐºÐ¾ÑÐµÐºÑÐ½Ð¸Ð¹ email").max(255),
-  password: z.string().min(1, "ÐÐ²ÐµÐ´ÑÑÑ Ð¿Ð°ÑÐ¾Ð»Ñ").max(128),
+  email: z.string().trim().email("Некоректний email").max(255),
+  password: z.string().min(1, "Введіть пароль").max(128),
 }).required();
 
 type SignUpRole = "student" | "tutor";
@@ -98,13 +98,13 @@ export default function AuthPage() {
     if (!isConfirmed) return;
     if (authLoading) return;
     if (user) {
-      // Active session â go to root, role-based routing happens there
+      // Active session — go to root, role-based routing happens there
       navigate("/", { replace: true });
       return;
     }
     toast({
-      title: "Email Ð¿ÑÐ´ÑÐ²ÐµÑÐ´Ð¶ÐµÐ½Ð¾! ð",
-      description: "Ð£Ð²ÑÐ¹Ð´ÑÑÑ, ÑÐ¾Ð± Ð¿ÑÐ¾Ð´Ð¾Ð²Ð¶Ð¸ÑÐ¸.",
+      title: "Email підтверджено! 🎉",
+      description: "Увійдіть, щоб продовжити.",
     });
   }, [isConfirmed, authLoading, user, navigate]);
 
@@ -205,7 +205,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpData);
     if (!parsed.success) {
-      toast({ title: "ÐÐ¾Ð¼Ð¸Ð»ÐºÐ°", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -226,8 +226,8 @@ export default function AuthPage() {
     setLoading(false);
     if (!error && signUpResult?.user && signUpResult.user.identities?.length === 0) {
       toast({
-        title: "Email Ð²Ð¶Ðµ Ð·Ð°ÑÐµÑÑÑÑÐ¾Ð²Ð°Ð½Ð¾",
-        description: "Ð¦ÐµÐ¹ email Ð²Ð¶Ðµ Ð·Ð°ÑÐµÑÑÑÑÐ¾Ð²Ð°Ð½Ð¸Ð¹. Ð£Ð²ÑÐ¹Ð´ÑÑÑ Ð°Ð±Ð¾ ÑÐºÐ¸Ð½ÑÑÐµ Ð¿Ð°ÑÐ¾Ð»Ñ.",
+        title: "Email вже зареєстровано",
+        description: "Цей email вже зареєстрований. Увійдіть або скиньте пароль.",
         variant: "destructive",
       });
       setSignInData((prev) => ({ ...prev, email: parsed.data.email }));
@@ -237,10 +237,10 @@ export default function AuthPage() {
     if (error) {
       console.error("Sign-up failed", error);
       toast({
-        title: "ÐÐµ Ð²Ð´Ð°Ð»Ð¾ÑÑ Ð·Ð°ÑÐµÑÑÑÑÑÐ²Ð°ÑÐ¸ÑÑ",
+        title: "Не вдалося зареєструватися",
         description: error.message === "User already registered"
-          ? "ÐÐ¾ÑÐ¸ÑÑÑÐ²Ð°Ñ Ð· ÑÐ°ÐºÐ¸Ð¼ email Ð²Ð¶Ðµ ÑÑÐ½ÑÑ"
-          : "ÐÐµ Ð²Ð´Ð°Ð»Ð¾ÑÑ Ð·Ð°ÑÐµÑÑÑÑÑÐ²Ð°ÑÐ¸ÑÑ. Ð¡Ð¿ÑÐ¾Ð±ÑÐ¹ÑÐµ ÑÐµ ÑÐ°Ð·.",
+          ? "Користувач з таким email вже існує"
+          : "Не вдалося зареєструватися. Спробуйте ще раз.",
         variant: "destructive",
       });
       return;
@@ -256,7 +256,7 @@ export default function AuthPage() {
     toast({
       title: t("auth.almostDone"),
       description: demoName
-        ? `ÐÐ¸ Ð²Ð¶Ðµ Ð·Ð±ÐµÑÐµÐ³Ð»Ð¸ ${demoName} â Ð¿ÑÐ¾Ð´Ð¾Ð²Ð¶ÑÐ¹ Ð· Ð½Ð°ÑÑÑÐ¿Ð½Ð¾Ð³Ð¾ ÐºÑÐ¾ÐºÑ ð`
+        ? `Ми вже зберегли ${demoName} — продовжуй з наступного кроку 🎉`
         : t("auth.almostDoneDesc"),
     });
   };
@@ -326,7 +326,7 @@ export default function AuthPage() {
               <TabsContent value="signin">
                 {confirmedNotice && (
                   <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
-                    Email Ð¿ÑÐ´ÑÐ²ÐµÑÐ´Ð¶ÐµÐ½Ð¾! Ð£Ð²ÑÐ¹Ð´ÑÑÑ, ÑÐ¾Ð± Ð¿ÑÐ¾Ð´Ð¾Ð²Ð¶Ð¸ÑÐ¸ ð
+                    Email підтверджено! Увійдіть, щоб продовжити 🎉
                   </div>
                 )}
                 <form onSubmit={handleSignIn} className="space-y-4">

@@ -86,10 +86,10 @@ export function TelegramLinkCard() {
     const { data, error } = await supabase.rpc("generate_telegram_link_code", { _user_id: user.id });
     setGenerating(false);
     if (error) {
-      toast.error("ÐÐµ Ð²Ð´Ð°Ð»Ð¾ÑÑ ÑÑÐ²Ð¾ÑÐ¸ÑÐ¸ ÐºÐ¾Ð´. Ð¡Ð¿ÑÐ¾Ð±ÑÐ¹ÑÐµ ÑÐµ ÑÐ°Ð·.");
+      toast.error("Не вдалося створити код. Спробуйте ще раз.");
       return;
     }
-    toast.success("ÐÐ¾Ð´ ÑÑÐ²Ð¾ÑÐµÐ½Ð¾. ÐÐ°Ð´ÑÑÐ»ÑÑÑ Ð¹Ð¾Ð³Ð¾ Ð±Ð¾ÑÑ.");
+    toast.success("Код створено. Надішліть його боту.");
     // realtime subscription will refresh the row
   };
 
@@ -97,13 +97,13 @@ export function TelegramLinkCard() {
     if (!user) return;
     await supabase.from("user_telegram_links").delete().eq("user_id", user.id);
     setLink(null);
-    toast.success("Telegram Ð²ÑÐ´Ê¼ÑÐ´Ð½Ð°Ð½Ð¾");
+    toast.success("Telegram відʼєднано");
   };
 
   if (loading) {
     return (
       <Card className="p-4 flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> ÐÐµÑÐµÐ²ÑÑÐºÐ° ÑÑÐ°ÑÑÑÑ Telegram...
+        <Loader2 className="h-4 w-4 animate-spin" /> Перевірка статусу Telegram...
       </Card>
     );
   }
@@ -130,41 +130,41 @@ export function TelegramLinkCard() {
             link?.is_active === false ? (
               <>
                 <p className="text-sm font-medium text-warning flex items-center gap-1.5">
-                  <AlertTriangle className="h-4 w-4" /> Ð'ÑÐ´Ð½Ð°Ð½Ð½Ñ Ð¿ÐµÑÐµÑÐ²Ð°Ð½Ð¾
+                  <AlertTriangle className="h-4 w-4" /> З'єднання перервано
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  ÐÐ¾Ñ Ð±ÑÐ»ÑÑÐµ Ð½Ðµ Ð¼Ð¾Ð¶Ðµ Ð½Ð°Ð´ÑÐ¸Ð»Ð°ÑÐ¸ Ð²Ð°Ð¼ Ð¿Ð¾Ð²ÑÐ´Ð¾Ð¼Ð»ÐµÐ½Ð½Ñ. ÐÐ¼Ð¾Ð²ÑÑÐ½Ð¾, Ð²Ð¸ Ð·Ð°Ð±Ð»Ð¾ÐºÑÐ²Ð°Ð»Ð¸ Ð¹Ð¾Ð³Ð¾ Ð°Ð±Ð¾ Ð²Ð¸Ð´Ð°Ð»Ð¸Ð»Ð¸ ÑÐ°Ñ.
+                  Бот більше не може надсилати вам повідомлення. Ймовірно, ви заблокували його або видалили чат.
                 </p>
                 <div className="mt-2 flex gap-2">
                   <Button size="sm" onClick={generate} disabled={generating}>
                     {generating ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
-                    ÐÑÐ´Ð½Ð¾Ð²Ð¸ÑÐ¸
+                    Відновити
                   </Button>
                   <Button size="sm" variant="ghost" onClick={unlink}>
                     <X className="h-3.5 w-3.5 mr-1" />
-                    ÐÑÐ´Ê¼ÑÐ´Ð½Ð°ÑÐ¸
+                    Відʼєднати
                   </Button>
                 </div>
               </>
             ) : (
               <>
                 <p className="text-sm font-medium text-success flex items-center gap-1.5">
-                  <Check className="h-4 w-4" /> Telegram Ð¿ÑÐ´ÐºÐ»ÑÑÐµÐ½Ð¾
+                  <Check className="h-4 w-4" /> Telegram підключено
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  ÐÐ¸ Ð¾ÑÑÐ¸Ð¼ÑÐ²Ð°ÑÐ¸Ð¼ÐµÑÐµ ÑÐ¿Ð¾Ð²ÑÑÐµÐ½Ð½Ñ Ð¿ÑÐ¾ Ð½Ð¾Ð²Ñ Ð¿Ð¾Ð²ÑÐ´Ð¾Ð¼Ð»ÐµÐ½Ð½Ñ Ð² ÑÐ°ÑÐ°Ñ.
+                  Ви отримуватимете сповіщення про нові повідомлення в чатах.
                 </p>
                 <Button size="sm" variant="ghost" className="mt-2" onClick={unlink}>
                   <X className="h-3.5 w-3.5 mr-1" />
-                  ÐÑÐ´Ê¼ÑÐ´Ð½Ð°ÑÐ¸
+                  Відʼєднати
                 </Button>
               </>
             )
           ) : link?.link_code ? (
             <>
-              <p className="text-sm font-medium text-foreground">ÐÐ°Ð²ÐµÑÑÑÑÑ Ð¿ÑÐ´ÐºÐ»ÑÑÐµÐ½Ð½Ñ</p>
+              <p className="text-sm font-medium text-foreground">Завершіть підключення</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                1. ÐÑÐ´ÐºÑÐ¸Ð¹ÑÐµ Ð±Ð¾ÑÐ°{" "}
+                1. Відкрийте бота{" "}
                 {botUsername ? (
                   <a
                     href={`https://t.me/${botUsername}?start=${link.link_code}`}
@@ -175,10 +175,10 @@ export function TelegramLinkCard() {
                     @{botUsername}
                   </a>
                 ) : (
-                  <span className="text-muted-foreground">(Ð·Ð°Ð²Ð°Ð½ÑÐ°Ð¶ÐµÐ½Ð½Ñ...)</span>
+                  <span className="text-muted-foreground">(завантаження...)</span>
                 )}
                 <br />
-                2. ÐÐ°ÑÐ¸ÑÐ½ÑÑÑ Â«StartÂ» (Ð°Ð±Ð¾ Ð½Ð°Ð´ÑÑÐ»ÑÑÑ ÐºÐ¾Ð¼Ð°Ð½Ð´Ñ Ð½Ð¸Ð¶ÑÐµ):
+                2. Натисніть «Start» (або надішліть команду нижче):
               </p>
               <div className="mt-2 flex items-center gap-2 rounded-md border border-border bg-muted px-3 py-2 font-mono text-sm">
                 <span className="flex-1 truncate">/start {link.link_code}</span>
@@ -188,29 +188,29 @@ export function TelegramLinkCard() {
                   className="h-6 w-6"
                   onClick={() => {
                     navigator.clipboard.writeText(`/start ${link.link_code}`);
-                    toast.success("Ð¡ÐºÐ¾Ð¿ÑÐ¹Ð¾Ð²Ð°Ð½Ð¾");
+                    toast.success("Скопійовано");
                   }}
                 >
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                ÐÐ¾Ð´ Ð´ÑÑ 30 ÑÐ²Ð¸Ð»Ð¸Ð½. Ð¯ÐºÑÐ¾ Ð¿ÑÐ¾ÑÐµÑÐ¼ÑÐ½ÑÐ²Ð°Ð²ÑÑ â Ð·Ð³ÐµÐ½ÐµÑÑÐ¹ÑÐµ Ð½Ð¾Ð²Ð¸Ð¹.
+                Код діє 30 хвилин. Якщо протермінувався — згенеруйте новий.
               </p>
               <Button size="sm" variant="outline" className="mt-2" onClick={generate} disabled={generating}>
                 {generating && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}
-                ÐÐ¾Ð²Ð¸Ð¹ ÐºÐ¾Ð´
+                Новий код
               </Button>
             </>
           ) : (
             <>
-              <p className="text-sm font-medium text-foreground">Ð¡Ð¿Ð¾Ð²ÑÑÐµÐ½Ð½Ñ Ð² Telegram</p>
+              <p className="text-sm font-medium text-foreground">Сповіщення в Telegram</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                ÐÑÐ´Ê¼ÑÐ´Ð½Ð°Ð¹ÑÐµ Telegram, ÑÐ¾Ð± Ð¾ÑÑÐ¸Ð¼ÑÐ²Ð°ÑÐ¸ ÑÐ¿Ð¾Ð²ÑÑÐµÐ½Ð½Ñ Ð¿ÑÐ¾ Ð½Ð¾Ð²Ñ Ð¿Ð¾Ð²ÑÐ´Ð¾Ð¼Ð»ÐµÐ½Ð½Ñ Ð² ÑÐ°ÑÐ°Ñ, Ð½Ð°Ð²ÑÑÑ ÐºÐ¾Ð»Ð¸ Ð·Ð°ÑÑÐ¾ÑÑÐ½Ð¾Ðº Ð·Ð°ÐºÑÐ¸ÑÐ¸Ð¹.
+                Підʼєднайте Telegram, щоб отримувати сповіщення про нові повідомлення в чатах, навіть коли застосунок закритий.
               </p>
               <Button size="sm" className="mt-3" onClick={generate} disabled={generating}>
                 {generating && <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />}
-                ÐÑÐ´Ê¼ÑÐ´Ð½Ð°ÑÐ¸ Telegram
+                Підʼєднати Telegram
               </Button>
             </>
           )}
