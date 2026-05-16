@@ -528,6 +528,44 @@ export default function FinancesPage() {
   const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
   const someSelected = selected.size > 0 && !allSelected;
 
+  // Inline wallet balance pill for a (tutor, student) pair
+  const renderWalletBadge = (tutor_id: string, student_id: string) => {
+    const b = balances[`${tutor_id}:${student_id}`];
+    if (!b) return null;
+    const lessons = Number(b.lessons_balance ?? 0);
+    const amount = Number(b.amount_balance ?? 0);
+    const isNegative = lessons < 0 || amount < 0;
+    const hasPositive = lessons > 0 || amount > 0;
+    if (!isNegative && !hasPositive) return null;
+    const label = isNegative
+      ? `${lessons < 0 ? `${lessons} ур.` : ""}${lessons < 0 && amount < 0 ? " / " : ""}${amount < 0 ? `${amount.toFixed(0)} ₴` : ""}`
+      : `${lessons > 0 ? `${lessons} ур.` : ""}${lessons > 0 && amount > 0 ? " / " : ""}${amount > 0 ? `${amount.toFixed(0)} ₴` : ""}`;
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          openWalletForPair(tutor_id, student_id);
+        }}
+        title={isNegative ? "Від'ємний баланс — потрібна передоплата" : "Баланс передоплати"}
+        className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
+          isNegative
+            ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+        }`}
+      >
+        {isNegative ? (
+          <AlertTriangle className="h-2.5 w-2.5" />
+        ) : (
+          <Wallet className="h-2.5 w-2.5" />
+        )}
+        {label}
+      </button>
+    );
+  };
+
+  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
+
   return (
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
