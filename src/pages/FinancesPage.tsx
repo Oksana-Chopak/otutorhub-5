@@ -36,6 +36,8 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
 import { RecordPaymentSheet, PairOption } from "@/components/RecordPaymentSheet";
 import { WalletDialog } from "@/components/WalletDialog";
+import { ProfitSparkline } from "@/components/ProfitSparkline";
+import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -334,23 +336,24 @@ export default function FinancesPage() {
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
 
-  // Markup % ("маржа" як націнка): (income - payout) / payout * 100
+  // Маржа = (надходження − виплати) / надходження * 100.
+  // Інтуїтивніша метрика: «скільки % з кожної отриманої гривні залишається хабу».
   // Рахуємо тільки по уроках, де відомі обидві суми (price > 0 і payout > 0),
-  // інакше націнка не визначена.
-  const computeMarkup = (rows: LessonRow[]): number | null => {
+  // інакше маржа не визначена.
+  const computeMargin = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
     );
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
     const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (payout === 0) return null;
-    return ((income - payout) / payout) * 100;
+    if (income === 0) return null;
+    return ((income - payout) / income) * 100;
   };
 
-  const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
+  const hubMargin = useMemo(() => computeMargin(billable), [billable]);
 
-  const markupByTutor = useMemo(() => {
+  const marginByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
     billable.forEach((l) => {
       if (!groups[l.tutor_id]) groups[l.tutor_id] = [];
@@ -360,11 +363,58 @@ export default function FinancesPage() {
       .map(([tutorId, rows]) => ({
         tutorId,
         name: nameOf(tutorId),
-        markup: computeMarkup(rows),
+        margin: computeMargin(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.markup !== null)
-      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
+      .filter((r) => r.margin !== null)
+      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable, profiles]);
+
+  // Last-4-weeks profit sparkline series
+  const profitSparkline = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayIdx = (today.getDay() + 6) % 7; // 0 = Mon
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - dayIdx);
+    const buckets: { key: string; start: Date; profit: number }[] = [];
+    for (let i = 3; i >= 0; i--) {
+      const s = new Date(thisWeekStart);
+      s.setDate(thisWeekStart.getDate() - i * 7);
+      buckets.push({ key: s.toISOString().slice(0, 10), start: s, profit: 0 });
+    }
+    const firstStart = buckets[0].start.getTime();
+    billable.forEach((l) => {
+      const t = new Date(l.starts_at).getTime();
+      if (t < firstStart) return;
+      const idx = Math.floor((t - firstStart) / (7 * 24 * 3600 * 1000));
+      if (idx < 0 || idx >= buckets.length) return;
+      const income = l.student_payment_status === "paid" ? Number(l.student_price) : 0;
+      const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
+      buckets[idx].profit += income - expense;
+    });
+    return buckets.map((b) => ({ week: b.key, profit: b.profit }));
+  }, [billable]);
+
+  // Income contribution per student (paid lessons only) — for pie chart
+  const incomeByStudent = useMemo(() => {
+    const map = new Map<string, number>();
+    billable
+      .filter((l) => l.student_payment_status === "paid" && Number(l.student_price) > 0)
+      .forEach((l) => {
+        map.set(l.student_id, (map.get(l.student_id) ?? 0) + Number(l.student_price));
+      });
+    const rows = Array.from(map.entries())
+      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
+      .sort((a, b) => b.amount - a.amount);
+    // Collapse long tail into "Інші" (keep top 6)
+    const TOP = 6;
+    if (rows.length <= TOP) return rows;
+    const head = rows.slice(0, TOP);
+    const tail = rows.slice(TOP);
+    const other = tail.reduce((s, r) => s + r.amount, 0);
+    return [...head, { student_id: "__other__", name: `Інші (${tail.length})`, amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -662,7 +712,7 @@ export default function FinancesPage() {
             )}
           </MobileFilters>
         </div>
-      </div>
+          </div>
 
 
       {loading ? (
@@ -700,21 +750,21 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Середня націнка хабу
+                      Маржа
                     </p>
                     <p
                       className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                        hubMarkup === null
+                        hubMargin === null
                           ? "text-muted-foreground"
-                          : hubMarkup >= 0
+                          : hubMargin >= 0
                           ? "text-success"
                           : "text-destructive"
                       }`}
                     >
-                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
+                      {hubMargin === null ? "—" : `${hubMargin.toFixed(1)}%`}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      (надходження − виплати) / виплати
+                      Прибуток як % від надходжень
                     </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -724,6 +774,34 @@ export default function FinancesPage() {
               </div>
             )}
           </div>
+
+          {/* === Mini-trends row: profit sparkline + income contribution pie === */}
+          {!isIndependentTutor && (
+            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Тренд прибутку (4 тижні)
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
+                  </span>
+                </div>
+                <ProfitSparkline data={profitSparkline} />
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    Надходження за учнями
+                  </h2>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
+                    Лише оплачені
+                  </span>
+                </div>
+                <IncomeByStudentPie data={incomeByStudent} />
+              </div>
+            </div>
+          )}
 
           {/* === Main: Payments table (priority for daily use) === */}
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
@@ -1071,18 +1149,18 @@ export default function FinancesPage() {
             </div>
           </details>
 
-          {/* === Markup table — analytics, secondary === */}
+          {/* === Margin table — analytics, secondary === */}
           {!isIndependentTutor && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Середня націнка по репетиторах
+                  Маржа по репетиторах
                 </h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                  (ціна учня − виплата) / виплата
+                  (ціна учня − виплата) / ціна учня
                 </span>
               </div>
-              {markupByTutor.length === 0 ? (
+              {marginByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
                 </p>
@@ -1093,11 +1171,11 @@ export default function FinancesPage() {
                       <tr className="border-b border-border text-xs text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">Репетитор</th>
                         <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                        <th className="px-2 py-2 text-right font-medium">Маржа</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {markupByTutor.map((row) => (
+                      {marginByTutor.map((row) => (
                         <tr key={row.tutorId} className="border-b border-border last:border-0">
                           <td className="px-2 py-2 text-foreground">{row.name}</td>
                           <td className="px-2 py-2 text-right text-muted-foreground">
@@ -1105,10 +1183,10 @@ export default function FinancesPage() {
                           </td>
                           <td
                             className={`px-2 py-2 text-right font-semibold ${
-                              (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
+                              (row.margin ?? 0) >= 0 ? "text-success" : "text-destructive"
                             }`}
                           >
-                            {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
+                            {row.margin === null ? "—" : `${row.margin.toFixed(1)}%`}
                           </td>
                         </tr>
                       ))}
