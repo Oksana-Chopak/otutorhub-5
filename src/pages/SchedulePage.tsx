@@ -1402,15 +1402,46 @@ export default function SchedulePage() {
                     />
                   )}
                 </div>
+                </>)}
               </div>
-              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Скасувати
-                </Button>
-                <Button onClick={handleCreate} disabled={submitting}>
-                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Зберегти
-                </Button>
+              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
+                {step === 1 ? (
+                  <Button variant="ghost" onClick={() => setCreateOpen(false)}>
+                    Скасувати
+                  </Button>
+                ) : (
+                  <Button variant="ghost" onClick={() => setStep(1)}>
+                    ← Назад
+                  </Button>
+                )}
+                <div className="flex gap-2">
+                  {step === 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // Lightweight validation before jumping to step 2
+                        const errs: typeof formErrors = {};
+                        if (!form.tutor_id) errs.tutor_id = true;
+                        if (!form.student_id) errs.student_id = true;
+                        if (!form.subject || !form.subject.trim()) errs.subject = true;
+                        if (!form.starts_at) errs.starts_at = true;
+                        if (Object.keys(errs).length) {
+                          setFormErrors(errs);
+                          toast.error("Заповніть обов'язкові поля");
+                          return;
+                        }
+                        setFormErrors({});
+                        setStep(2);
+                      }}
+                    >
+                      Деталі →
+                    </Button>
+                  )}
+                  <Button onClick={handleCreate} disabled={submitting}>
+                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Зберегти
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
