@@ -168,6 +168,7 @@ export default function SchedulePage() {
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
+  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
