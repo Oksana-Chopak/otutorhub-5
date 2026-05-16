@@ -155,6 +155,7 @@ export function IndependentTutorStats() {
           value={loading ? "…" : completedCount}
           icon={Clock4}
           to="/schedule"
+          trendDelta={loading ? undefined : completedDelta}
         />
         <StatCard
           label="Отримано"
@@ -162,6 +163,7 @@ export function IndependentTutorStats() {
           icon={ArrowDownLeft}
           variant="success"
           to={isPro ? "/analytics" : undefined}
+          trendDelta={loading ? undefined : incomeDelta}
         />
         <StatCard
           label="Очікує оплати"
