@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface StatCardProps {
@@ -7,6 +7,8 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   trend?: string;
+  /** Numeric delta vs previous period. Renders ▲/▼ chip when provided. */
+  trendDelta?: number;
   variant?: "default" | "success" | "warning";
   to?: string;
   /**
@@ -22,6 +24,7 @@ export function StatCard({
   value,
   icon: Icon,
   trend,
+  trendDelta,
   variant = "default",
   to,
   compact = true,
