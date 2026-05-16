@@ -963,6 +963,12 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
+                          topRightActions={
+                            <LessonQuickActionsMenu
+                              onReschedule={() => setOpenLessonId(lesson.id)}
+                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
+                            />
+                          }
                           extraActions={
                             <>
                               <Button
