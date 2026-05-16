@@ -753,8 +753,9 @@ export default function DashboardPage() {
           <div className="flex shrink-0 flex-wrap gap-2">
             {isManager && (
               <>
-                <Button asChild variant="outline" size="sm"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
-                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
+                <QuickActionsFab onChanged={loadData} />
+                <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
+                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")} className="hidden lg:inline-flex">
                   <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
                 </Button>
               </>
@@ -1296,7 +1297,7 @@ export default function DashboardPage() {
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
-      {(isTutor || isManager) && <QuickActionsFab onChanged={loadData} />}
+      
       {walletPair && (
         <WalletDialog
           open={!!walletPair}
