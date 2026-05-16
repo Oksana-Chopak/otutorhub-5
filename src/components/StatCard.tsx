@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, ChevronRight, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface StatCardProps {
@@ -7,6 +7,8 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   trend?: string;
+  /** Numeric delta vs previous period. Renders ▲/▼ chip when provided. */
+  trendDelta?: number;
   variant?: "default" | "success" | "warning";
   to?: string;
   /**
@@ -22,6 +24,7 @@ export function StatCard({
   value,
   icon: Icon,
   trend,
+  trendDelta,
   variant = "default",
   to,
   compact = true,
@@ -53,14 +56,36 @@ export function StatCard({
         </p>
         {iconBox}
       </div>
-      <p
-        className={cn(
-          "mt-1 truncate font-display font-bold text-foreground",
-          compact ? "text-lg sm:text-xl" : "mt-2 text-2xl",
+      <div className="mt-1 flex items-center gap-1.5">
+        <p
+          className={cn(
+            "truncate font-display font-bold text-foreground",
+            compact ? "text-lg sm:text-xl" : "mt-1 text-2xl",
+          )}
+        >
+          {value}
+        </p>
+        {typeof trendDelta === "number" && trendDelta !== 0 && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+              trendDelta > 0
+                ? "bg-success/10 text-success"
+                : "bg-destructive/10 text-destructive",
+            )}
+          >
+            {trendDelta > 0 ? (
+              <TrendingUp className="h-3 w-3" />
+            ) : (
+              <TrendingDown className="h-3 w-3" />
+            )}
+            {Math.abs(trendDelta)}
+          </span>
         )}
-      >
-        {value}
-      </p>
+        {to && (
+          <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+        )}
+      </div>
       {trend && (
         <p className={cn("mt-1 text-muted-foreground", compact ? "text-[11px]" : "text-xs")}>
           {trend}
