@@ -866,8 +866,6 @@ export default function SchedulePage() {
     });
   }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
 
-  console.log("[SchedulePage] filteredLessons:", filteredLessons.length, "view:", view, "filters:", { filterStatus, filterTutor, filterStudent, filterSource, filterPeriod });
-
   // Pure student in list view: split into upcoming vs archive (past) and sort accordingly.
   // Upcoming → ascending (closest first). Past → descending (most recent first).
   const isPureStudentForList = isStudent && !isManager && !isTutor;
