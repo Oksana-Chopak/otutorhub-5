@@ -16,6 +16,7 @@ import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
 import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
 import { QuickPaymentFab } from "@/components/QuickPaymentFab";
+import { QuickActionsFab } from "@/components/QuickActionsFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
@@ -1269,7 +1270,7 @@ export default function DashboardPage() {
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
-      {(isTutor || isManager) && <QuickActionsFab onChanged={loadData} />
+      {(isTutor || isManager) && <QuickActionsFab onChanged={loadData} />}
       {walletPair && (
         <WalletDialog
           open={!!walletPair}
