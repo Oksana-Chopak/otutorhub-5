@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,10 @@ import {
   Loader2,
   Download,
   CheckCheck,
+  Plus,
+  Wallet,
+  ArrowRight,
+  Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +33,8 @@ import { Percent } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
+import { RecordPaymentSheet, PairOption } from "@/components/RecordPaymentSheet";
+import { WalletDialog } from "@/components/WalletDialog";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
