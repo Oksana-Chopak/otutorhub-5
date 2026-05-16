@@ -17,7 +17,7 @@ export function QuickActionsFab({ onChanged }: { onChanged?: () => void }) {
       <SheetTrigger asChild>
         <Button
           size="lg"
-          className="fixed bottom-20 right-4 z-40 h-14 gap-2 rounded-full shadow-lg lg:hidden"
+          className="fixed bottom-36 right-4 z-40 h-14 gap-2 rounded-full shadow-lg lg:hidden"
           aria-label="Швидкі дії"
         >
           <Plus className="h-5 w-5" />
