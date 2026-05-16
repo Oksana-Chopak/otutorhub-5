@@ -416,7 +416,23 @@ export default function FinancesPage() {
     toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
   };
 
-  const toggleRow = (id: string) => {
+  // Used by RecordPaymentSheet: only marks as paid (no toggle).
+  const markLessonPaidById = async (lessonId: string) => {
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson) return;
+    if (lesson.student_payment_status === "paid") return;
+    await togglePayment(lesson, "student_payment_status");
+  };
+
+  const openWalletForPair = (tutor_id: string, student_id: string) => {
+    setWalletPair({
+      tutor_id,
+      student_id,
+      tutor_name: nameOf(tutor_id),
+      student_name: nameOf(student_id),
+      rate: pairRates[`${tutor_id}:${student_id}`],
+    });
+  };
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
