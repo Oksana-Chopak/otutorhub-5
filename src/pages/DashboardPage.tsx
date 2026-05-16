@@ -965,6 +965,7 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
+                          chatPartnerId={lesson.student_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
                           extraActions={
