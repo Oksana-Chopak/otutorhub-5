@@ -688,12 +688,12 @@ export default function FinancesPage() {
 
           {/* === Main: Payments table (priority for daily use) === */}
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-            {visibleRows.length === 0 ? (
+            {unifiedRows.length === 0 ? (
               <div className="p-6">
                 <EmptyState
                   icon={DollarSign}
                   title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
+                  description="Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу."
                 />
               </div>
             ) : (
