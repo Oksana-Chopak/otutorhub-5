@@ -734,11 +734,14 @@ export default function DashboardPage() {
             {greeting}{firstName ? `, ${firstName}` : ""} <span className="ml-0.5">{timeEmoji}</span>
           </h1>
           <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
+            <Link
+              to="/schedule"
+              className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
+            >
               <CalendarDays className="h-3 w-3 text-primary" />
               {todayLessons.length}{" "}
               {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"} сьогодні
-            </span>
+            </Link>
             {pendingPayments.length > 0 && (
               <span className="inline-flex items-center gap-1 text-warning">
                 <Clock className="h-3 w-3" />
@@ -795,40 +798,45 @@ export default function DashboardPage() {
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
           {isManager && (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-              <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
-              <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
-              <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
-              <div className="rounded-2xl border border-border bg-card p-2.5 transition-colors hover:border-success/40">
-                <div className="flex items-start justify-between gap-1.5">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-medium leading-tight text-muted-foreground">
+            <div className="space-y-2 sm:space-y-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
+                <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
+                <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
+              </div>
+              <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-success/5 p-4 transition-colors hover:border-primary/50 sm:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium leading-tight text-muted-foreground sm:text-sm">
                       {t("dashboard.cardProfit")}
                     </p>
                     <Link to="/finances" className="block">
                       <p
-                        className={`mt-0.5 truncate font-display text-base font-bold sm:text-lg ${
-                          profit >= 0 ? "text-success" : "text-destructive"
+                        className={`mt-1 truncate font-display font-bold leading-none ${
+                          profit >= 0 ? "text-primary" : "text-destructive"
                         }`}
+                        style={{ fontSize: "28px" }}
                       >
                         {formatPrice(profit, "UAH")}
                       </p>
                     </Link>
                   </div>
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-success/10">
-                    <TrendingUp className="h-3.5 w-3.5 text-success" />
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
+                      <SelectTrigger className="h-7 w-[110px] text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
+                        <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
+                        <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
-                  <SelectTrigger className="mt-1.5 h-6 w-full text-[10px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
-                    <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
-                    <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           )}
@@ -1198,7 +1206,6 @@ export default function DashboardPage() {
                       );
                     })
                   )}
-                  <TelegramLinkCard />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1282,7 +1289,6 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
-                  <TelegramLinkCard />
                 </div>
               )}
             </section>

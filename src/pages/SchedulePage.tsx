@@ -972,13 +972,6 @@ export default function SchedulePage() {
             <span>📅</span>
             <span className="truncate">Розклад занять</span>
           </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            {isManager
-              ? "Усі уроки школи"
-              : isTutor
-              ? "Ваші уроки та робочий графік"
-              : "Ваші уроки та запити"}
-          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <MobileFilters
@@ -1821,6 +1814,18 @@ export default function SchedulePage() {
                               >
                                 <CalendarClock className="h-4 w-4" />
                                 <span className="hidden sm:inline">Перенести</span>
+                              </Button>
+                            )}
+                            {canEditStatus && lesson.status === "scheduled" && (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-11 gap-1.5"
+                                onClick={() => updateStatus(lesson.id, "completed")}
+                                title="Позначити як проведений"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span className="hidden sm:inline">Урок відбувся</span>
                               </Button>
                             )}
                             {canEditStatus ? (

@@ -64,10 +64,10 @@ const STATUS_LABEL: Record<NonNullable<LessonCardData["status"]>, string> = {
 };
 
 const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
-  pending: "text-warning",
-  scheduled: "text-primary",
-  completed: "text-success",
-  cancelled: "text-muted-foreground line-through",
+  pending: "bg-warning/15 text-warning ring-1 ring-warning/30",
+  scheduled: "bg-primary/15 text-primary ring-1 ring-primary/30",
+  completed: "bg-success/15 text-success ring-1 ring-success/30",
+  cancelled: "bg-destructive/15 text-destructive ring-1 ring-destructive/30 line-through",
 };
 
 export function LessonCard({
@@ -131,7 +131,7 @@ export function LessonCard({
         )}
 
         {lesson.status && (
-          <div className={cn("absolute left-3 top-3 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
+          <div className={cn("absolute left-3 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
             {STATUS_LABEL[lesson.status]}
           </div>
         )}
