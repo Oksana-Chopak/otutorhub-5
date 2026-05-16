@@ -25,19 +25,19 @@ type Item = {
 // Single 6-item navigation per role — must match AppSidebar.
 const items: Item[] = [
   // Tutor
-  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["tutor"] },
+  { to: "/", label: "Мій день", icon: Home, roles: ["tutor"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
   { to: "/my-students", label: "Учні", icon: GraduationCap, roles: ["tutor"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
-  { to: "/finances", label: "Фінанси", icon: CreditCard, roles: ["tutor"] },
+  { to: "/finances", label: "Фінанси", icon: Coins, roles: ["tutor"] },
   // Manager
-  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["manager"] },
+  { to: "/", label: "Мій день", icon: Home, roles: ["manager"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
   { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
-  { to: "/finances", label: "Фінанси", icon: CreditCard, roles: ["manager"] },
+  { to: "/finances", label: "Фінанси", icon: Coins, roles: ["manager"] },
   // Student
-  { to: "/", label: "Мій день", icon: LayoutDashboard, roles: ["student"] },
+  { to: "/", label: "Мій день", icon: Home, roles: ["student"] },
   { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["student"] },
   { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
 ];
