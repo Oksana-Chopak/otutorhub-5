@@ -221,6 +221,7 @@ export function WeekCalendar({
           {days.map((d, dayIdx) => {
             const isToday = d.toDateString() === todayKey;
             const dayLessons = lessonsByDay.get(d.toDateString()) ?? [];
+            if (dayLessons.length > 0) console.log("[WeekCalendar render] day:", d.toDateString(), "lessons:", dayLessons.length);
             return (
               <div
                 key={dayIdx}
