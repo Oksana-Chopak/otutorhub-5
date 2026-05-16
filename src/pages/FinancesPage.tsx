@@ -1069,6 +1069,48 @@ export default function FinancesPage() {
           )}
         </>
       )}
+
+      {canManagePrepay && (
+        <div className="mt-4 flex justify-end">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/wallets">
+              <Wallet className="mr-1 h-4 w-4" />
+              Усі передоплати
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {canManagePrepay && (
+        <RecordPaymentSheet
+          open={recordOpen}
+          onOpenChange={setRecordOpen}
+          pairs={pairsList}
+          unpaidLessons={unpaidLessonsForSheet}
+          onMarkLessonPaid={markLessonPaidById}
+          onWalletTopUp={fetchData}
+        />
+      )}
+
+      {walletPair && (
+        <WalletDialog
+          open={!!walletPair}
+          onOpenChange={(o) => {
+            if (!o) {
+              setWalletPair(null);
+              fetchData();
+            }
+          }}
+          tutorId={walletPair.tutor_id}
+          studentId={walletPair.student_id}
+          tutorName={walletPair.tutor_name}
+          studentName={walletPair.student_name}
+          ratePerLesson={walletPair.rate}
+          canTopUp={canManagePrepay}
+          canDelete={isManager}
+        />
+      )}
     </AppLayout>
   );
 }
