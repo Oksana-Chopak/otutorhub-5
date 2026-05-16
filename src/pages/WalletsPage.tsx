@@ -141,7 +141,7 @@ export default function WalletsPage() {
         <header className="space-y-2">
           <div className="flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Гаманці учнів</h1>
+            <h1 className="text-2xl font-bold text-foreground">Передоплати</h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Передоплати учнів за майбутні уроки. Списання відбувається автоматично, як тільки створюється новий урок.

@@ -58,7 +58,7 @@ export default function ProfilePage() {
     ? [
         { to: "/subscription", label: "Підписка", icon: Crown },
         { to: "/finances", label: "Фінанси", icon: DollarSign },
-        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/wallets", label: "Передоплати", icon: Wallet },
         { to: "/analytics", label: "Аналітика", icon: BarChart3 },
         { to: "/achievements", label: "Досягнення", icon: Trophy },
         { to: "/my-referrals", label: "Реферали", icon: HandHeart },
@@ -73,7 +73,7 @@ export default function ProfilePage() {
   const managerMore: SectionItem[] = isManager
     ? [
         { to: "/finances", label: "Фінанси", icon: DollarSign },
-        { to: "/wallets", label: "Гаманці", icon: Wallet },
+        { to: "/wallets", label: "Передоплати", icon: Wallet },
         { to: "/availability", label: "Доступність", icon: CalendarClock },
         { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
         { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },

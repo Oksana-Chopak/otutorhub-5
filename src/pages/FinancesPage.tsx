@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,10 @@ import {
   Loader2,
   Download,
   CheckCheck,
+  Plus,
+  Wallet,
+  ArrowRight,
+  Package,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +33,8 @@ import { Percent } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
+import { RecordPaymentSheet, PairOption } from "@/components/RecordPaymentSheet";
+import { WalletDialog } from "@/components/WalletDialog";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -53,6 +60,25 @@ interface Profile {
   last_name: string;
 }
 
+interface WalletTx {
+  id: string;
+  tutor_id: string;
+  student_id: string;
+  kind: "topup" | "lesson_charge" | "refund" | "adjustment";
+  lessons_delta: number;
+  amount_delta: number;
+  lesson_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface WalletBalance {
+  tutor_id: string;
+  student_id: string;
+  lessons_balance: number;
+  amount_balance: number;
+}
+
 const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
@@ -72,28 +98,51 @@ export default function FinancesPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  const canManagePrepay = isManager || isIndependentTutor;
 
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
+  const [balances, setBalances] = useState<Record<string, WalletBalance>>({});
+  const [pairRates, setPairRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [tutorFilter, setTutorFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all"); // all|need_pay|need_payout|done
+  const [kindFilter, setKindFilter] = useState<string>("all"); // all|lessons|prepay
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [walletPair, setWalletPair] = useState<PairOption | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
-      await Promise.all([
-        supabase
-          .from("lessons")
-          .select(
-            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
-          )
-          .order("starts_at", { ascending: false }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-      ]);
+    const [
+      { data: lessonsData, error: lErr },
+      { data: profilesData, error: pErr },
+      { data: txData },
+      { data: balData },
+      { data: ratesData },
+    ] = await Promise.all([
+      supabase
+        .from("lessons")
+        .select(
+          "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
+        )
+        .order("starts_at", { ascending: false }),
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase
+        .from("student_wallet_transactions" as any)
+        .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("student_wallet_balances" as any)
+        .select("tutor_id, student_id, lessons_balance, amount_balance"),
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .is("archived_at", null),
+    ]);
     if (lErr) toast.error("Помилка завантаження уроків");
     if (pErr) toast.error("Помилка завантаження профілів");
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
@@ -114,6 +163,24 @@ export default function FinancesPage() {
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
+    setWalletTxs(((txData ?? []) as any[]) as WalletTx[]);
+    const balMap: Record<string, WalletBalance> = {};
+    ((balData ?? []) as any[]).forEach((b) => {
+      balMap[`${b.tutor_id}:${b.student_id}`] = {
+        tutor_id: b.tutor_id,
+        student_id: b.student_id,
+        lessons_balance: Number(b.lessons_balance ?? 0),
+        amount_balance: Number(b.amount_balance ?? 0),
+      };
+    });
+    setBalances(balMap);
+    const rateMap: Record<string, number> = {};
+    ((ratesData ?? []) as any[]).forEach((r) => {
+      const key = `${r.tutor_id}:${r.student_id}`;
+      const v = Number(r.price_per_lesson) || 0;
+      if (v > (rateMap[key] ?? 0)) rateMap[key] = v;
+    });
+    setPairRates(rateMap);
     setSelected(new Set());
     setLoading(false);
   };
@@ -141,6 +208,49 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, profiles]);
 
+  // Pairs collected from lessons + wallet transactions (for RecordPaymentSheet picker)
+  const pairsList = useMemo<PairOption[]>(() => {
+    const map = new Map<string, PairOption>();
+    const add = (tutor_id: string, student_id: string | null) => {
+      if (!student_id) return;
+      const key = `${tutor_id}:${student_id}`;
+      if (map.has(key)) return;
+      map.set(key, {
+        tutor_id,
+        student_id,
+        tutor_name: nameOf(tutor_id),
+        student_name: nameOf(student_id),
+        rate: pairRates[key],
+      });
+    };
+    lessons.forEach((l) => add(l.tutor_id, l.student_id));
+    walletTxs.forEach((t) => add(t.tutor_id, t.student_id));
+    return Array.from(map.values()).sort((a, b) =>
+      a.student_name.localeCompare(b.student_name, "uk"),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, walletTxs, profiles, pairRates]);
+
+  const unpaidLessonsForSheet = useMemo(
+    () =>
+      lessons
+        .filter(
+          (l) =>
+            l.status !== "cancelled" &&
+            l.student_payment_status === "unpaid" &&
+            l.student_id,
+        )
+        .map((l) => ({
+          id: l.id,
+          subject: l.subject,
+          starts_at: l.starts_at,
+          student_price: l.student_price,
+          student_id: l.student_id,
+          tutor_id: l.tutor_id,
+        })),
+    [lessons],
+  );
+
   const filtered = useMemo(
     () =>
       lessons.filter(
@@ -152,9 +262,6 @@ export default function FinancesPage() {
   );
 
   // Billable = lesson actually counts toward money flow.
-  // Includes: completed lessons, past lessons (date already passed), or any lesson
-  // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
-  // Excludes: cancelled, and pending requests that never happened.
   const nowMs = Date.now();
   const billable = filtered.filter((l) => {
     if (l.status === "cancelled" || l.status === "pending") return false;
@@ -165,7 +272,7 @@ export default function FinancesPage() {
     return isPast || hasPayment;
   });
 
-  const visibleRows = useMemo(() => {
+  const visibleLessons = useMemo(() => {
     switch (statusFilter) {
       case "need_pay":
         return billable.filter((l) => l.student_payment_status === "unpaid");
@@ -180,6 +287,37 @@ export default function FinancesPage() {
         return billable;
     }
   }, [billable, statusFilter]);
+
+  // Wallet top-ups visible in the finance feed (apply same tutor/month filters; status filter doesn't apply)
+  const visiblePrepays = useMemo(() => {
+    return walletTxs
+      .filter((t) => t.kind === "topup")
+      .filter((t) => tutorFilter === "all" || t.tutor_id === tutorFilter)
+      .filter((t) => monthFilter === "all" || monthKey(t.created_at) === monthFilter);
+  }, [walletTxs, tutorFilter, monthFilter]);
+
+  // Unified chronological feed
+  type UnifiedRow =
+    | { type: "lesson"; sort: number; l: LessonRow }
+    | { type: "prepay"; sort: number; tx: WalletTx };
+
+  const unifiedRows = useMemo<UnifiedRow[]>(() => {
+    const rows: UnifiedRow[] = [];
+    if (kindFilter !== "prepay") {
+      visibleLessons.forEach((l) =>
+        rows.push({ type: "lesson", sort: new Date(l.starts_at).getTime(), l }),
+      );
+    }
+    if (kindFilter !== "lessons" && canManagePrepay) {
+      visiblePrepays.forEach((tx) =>
+        rows.push({ type: "prepay", sort: new Date(tx.created_at).getTime(), tx }),
+      );
+    }
+    return rows.sort((a, b) => b.sort - a.sort);
+  }, [visibleLessons, visiblePrepays, kindFilter, canManagePrepay]);
+
+  // Keep visibleRows alias for backwards compatibility with existing code (lessons-only for bulk/CSV)
+  const visibleRows = visibleLessons;
 
   const totalIncome = billable
     .filter((l) => l.student_payment_status === "paid")
@@ -276,6 +414,24 @@ export default function FinancesPage() {
       return;
     }
     toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
+  };
+
+  // Used by RecordPaymentSheet: only marks as paid (no toggle).
+  const markLessonPaidById = async (lessonId: string) => {
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson) return;
+    if (lesson.student_payment_status === "paid") return;
+    await togglePayment(lesson, "student_payment_status");
+  };
+
+  const openWalletForPair = (tutor_id: string, student_id: string) => {
+    setWalletPair({
+      tutor_id,
+      student_id,
+      tutor_name: nameOf(tutor_id),
+      student_name: nameOf(student_id),
+      rate: pairRates[`${tutor_id}:${student_id}`],
+    });
   };
 
   const toggleRow = (id: string) => {
@@ -382,65 +538,93 @@ export default function FinancesPage() {
               : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
-        <MobileFilters
-          activeCount={
-            (monthFilter !== "all" ? 1 : 0) +
-            (tutorFilter !== "all" ? 1 : 0) +
-            (statusFilter !== "all" ? 1 : 0)
-          }
-          className="w-full sm:w-auto"
-        >
-          {!isIndependentTutor && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {canManagePrepay && (
+            <Button
+              size="sm"
+              onClick={() => setRecordOpen(true)}
+              className="h-9 w-full sm:w-auto"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Зафіксувати оплату
+            </Button>
+          )}
+          <MobileFilters
+            activeCount={
+              (monthFilter !== "all" ? 1 : 0) +
+              (tutorFilter !== "all" ? 1 : 0) +
+              (statusFilter !== "all" ? 1 : 0) +
+              (kindFilter !== "all" ? 1 : 0)
+            }
+            className="w-full sm:w-auto"
+          >
+            {!isIndependentTutor && (
+              <div className="w-full sm:w-44">
+                <Select value={tutorFilter} onValueChange={setTutorFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Репетитор" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Всі репетитори</SelectItem>
+                    {tutorOptions.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="w-full sm:w-44">
-              <Select value={tutorFilter} onValueChange={setTutorFilter}>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Репетитор" />
+                  <SelectValue placeholder="Період" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі репетитори</SelectItem>
-                  {tutorOptions.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                  <SelectItem value="all">Всі періоди</SelectItem>
+                  {months.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {formatMonth(m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
-          <div className="w-full sm:w-44">
-            <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Період" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі періоди</SelectItem>
-                {months.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {formatMonth(m)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-44">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі статуси</SelectItem>
-                <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                {!isIndependentTutor && (
-                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
-                )}
-                {!isIndependentTutor && (
-                  <SelectItem value="done">Все закрито</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-        </MobileFilters>
+            <div className="w-full sm:w-44">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Статус" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі статуси</SelectItem>
+                  <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
+                  {!isIndependentTutor && (
+                    <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                  )}
+                  {!isIndependentTutor && (
+                    <SelectItem value="done">Все закрито</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            {canManagePrepay && (
+              <div className="w-full sm:w-44">
+                <Select value={kindFilter} onValueChange={setKindFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Тип" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Уроки + передоплати</SelectItem>
+                    <SelectItem value="lessons">Лише уроки</SelectItem>
+                    <SelectItem value="prepay">Лише передоплати</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </MobileFilters>
+        </div>
       </div>
+
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-muted-foreground">
@@ -504,19 +688,49 @@ export default function FinancesPage() {
 
           {/* === Main: Payments table (priority for daily use) === */}
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-            {visibleRows.length === 0 ? (
+            {unifiedRows.length === 0 ? (
               <div className="p-6">
                 <EmptyState
                   icon={DollarSign}
                   title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
+                  description="Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу."
                 />
               </div>
             ) : (
               <>
                 {/* Mobile cards (< lg) */}
                 <div className="divide-y divide-border lg:hidden">
-                  {visibleRows.map((l) => {
+                  {unifiedRows.map((row) => {
+                    if (row.type === "prepay") {
+                      const tx = row.tx;
+                      return (
+                        <button
+                          key={`p-${tx.id}`}
+                          type="button"
+                          onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                          className="block w-full p-3 text-left hover:bg-primary/5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
+                                <Package className="h-3.5 w-3.5" /> Передоплата
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                              </p>
+                              {tx.note && (
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
+                              )}
+                            </div>
+                            <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
+                              {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                              {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    }
+                    const l = row.l;
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
                     return (
                       <div
@@ -854,6 +1068,48 @@ export default function FinancesPage() {
             </div>
           )}
         </>
+      )}
+
+      {canManagePrepay && (
+        <div className="mt-4 flex justify-end">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/wallets">
+              <Wallet className="mr-1 h-4 w-4" />
+              Усі передоплати
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {canManagePrepay && (
+        <RecordPaymentSheet
+          open={recordOpen}
+          onOpenChange={setRecordOpen}
+          pairs={pairsList}
+          unpaidLessons={unpaidLessonsForSheet}
+          onMarkLessonPaid={markLessonPaidById}
+          onWalletTopUp={fetchData}
+        />
+      )}
+
+      {walletPair && (
+        <WalletDialog
+          open={!!walletPair}
+          onOpenChange={(o) => {
+            if (!o) {
+              setWalletPair(null);
+              fetchData();
+            }
+          }}
+          tutorId={walletPair.tutor_id}
+          studentId={walletPair.student_id}
+          tutorName={walletPair.tutor_name}
+          studentName={walletPair.student_name}
+          ratePerLesson={walletPair.rate}
+          canTopUp={canManagePrepay}
+          canDelete={isManager}
+        />
       )}
     </AppLayout>
   );
