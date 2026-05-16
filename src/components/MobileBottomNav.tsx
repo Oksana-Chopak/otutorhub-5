@@ -6,7 +6,8 @@ import {
   Users,
   GraduationCap,
   UserCircle,
-  CreditCard,
+  Coins,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth, AppRole } from "@/hooks/useAuth";
