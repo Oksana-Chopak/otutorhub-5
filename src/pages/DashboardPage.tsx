@@ -23,7 +23,7 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { Wallet } from "lucide-react";
+import { Wallet, CalendarClock } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
