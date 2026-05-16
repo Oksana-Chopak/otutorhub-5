@@ -1635,19 +1635,14 @@ export default function SchedulePage() {
                             : undefined
                         }
                         className={lessonSourceTint(lesson.source)}
+                        onContentClick={
+                          (isManager || (isTutor && lesson.tutor_id === user?.id))
+                            ? () => openEdit(lesson)
+                            : undefined
+                        }
                         topRightActions={
                           <>
-                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => openEdit(lesson)}
-                                title="Редагувати урок"
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
+
                             {canCopy && (
                               <Button
                                 variant="ghost"
