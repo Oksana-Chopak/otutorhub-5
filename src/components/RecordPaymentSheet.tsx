@@ -48,7 +48,7 @@ interface Props {
   /** Викликається коли треба позначити урок оплаченим (оптимістично оновлює список у батьку). */
   onMarkLessonPaid: (lessonId: string) => Promise<void>;
   /** Викликається після успішного поповнення гаманця для рефрешу. */
-  onWalletTopUp: () => void;
+  onWalletTopUp: () => Promise<void> | void;
 }
 
 const formatDate = (iso: string) =>
@@ -142,6 +142,7 @@ export function RecordPaymentSheet({
       amountDelta = a;
     }
     setBusy(true);
+    const submittedAt = new Date().toISOString();
     const { error } = await supabase.rpc("wallet_topup" as any, {
       _tutor_id: pickedPair.tutor_id,
       _student_id: pickedPair.student_id,
@@ -149,13 +150,31 @@ export function RecordPaymentSheet({
       _amount_delta: amountDelta,
       _note: note || null,
     });
-    setBusy(false);
+
     if (error) {
-      toast.error("Не вдалося поповнити", { description: error.message });
-      return;
+      const { data: writtenTx } = await supabase
+        .from("student_wallet_transactions" as any)
+        .select("id")
+        .eq("tutor_id", pickedPair.tutor_id)
+        .eq("student_id", pickedPair.student_id)
+        .eq("kind", "topup")
+        .eq("lessons_delta", lessonsDelta)
+        .eq("amount_delta", amountDelta)
+        .gte("created_at", submittedAt)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!writtenTx) {
+        setBusy(false);
+        toast.error("Не вдалося поповнити", { description: error.message });
+        return;
+      }
     }
+
     toast.success("Передоплату збережено");
-    onWalletTopUp();
+    await onWalletTopUp();
+    setBusy(false);
     close();
   };
 
