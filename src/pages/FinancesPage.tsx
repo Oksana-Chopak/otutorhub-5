@@ -538,65 +538,93 @@ export default function FinancesPage() {
               : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
-        <MobileFilters
-          activeCount={
-            (monthFilter !== "all" ? 1 : 0) +
-            (tutorFilter !== "all" ? 1 : 0) +
-            (statusFilter !== "all" ? 1 : 0)
-          }
-          className="w-full sm:w-auto"
-        >
-          {!isIndependentTutor && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {canManagePrepay && (
+            <Button
+              size="sm"
+              onClick={() => setRecordOpen(true)}
+              className="h-9 w-full sm:w-auto"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              Зафіксувати оплату
+            </Button>
+          )}
+          <MobileFilters
+            activeCount={
+              (monthFilter !== "all" ? 1 : 0) +
+              (tutorFilter !== "all" ? 1 : 0) +
+              (statusFilter !== "all" ? 1 : 0) +
+              (kindFilter !== "all" ? 1 : 0)
+            }
+            className="w-full sm:w-auto"
+          >
+            {!isIndependentTutor && (
+              <div className="w-full sm:w-44">
+                <Select value={tutorFilter} onValueChange={setTutorFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Репетитор" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Всі репетитори</SelectItem>
+                    {tutorOptions.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="w-full sm:w-44">
-              <Select value={tutorFilter} onValueChange={setTutorFilter}>
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Репетитор" />
+                  <SelectValue placeholder="Період" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі репетитори</SelectItem>
-                  {tutorOptions.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                  <SelectItem value="all">Всі періоди</SelectItem>
+                  {months.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {formatMonth(m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
-          <div className="w-full sm:w-44">
-            <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Період" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі періоди</SelectItem>
-                {months.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {formatMonth(m)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-44">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі статуси</SelectItem>
-                <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                {!isIndependentTutor && (
-                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
-                )}
-                {!isIndependentTutor && (
-                  <SelectItem value="done">Все закрито</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-        </MobileFilters>
+            <div className="w-full sm:w-44">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Статус" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі статуси</SelectItem>
+                  <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
+                  {!isIndependentTutor && (
+                    <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                  )}
+                  {!isIndependentTutor && (
+                    <SelectItem value="done">Все закрито</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            {canManagePrepay && (
+              <div className="w-full sm:w-44">
+                <Select value={kindFilter} onValueChange={setKindFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Тип" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Уроки + передоплати</SelectItem>
+                    <SelectItem value="lessons">Лише уроки</SelectItem>
+                    <SelectItem value="prepay">Лише передоплати</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </MobileFilters>
+        </div>
       </div>
+
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-muted-foreground">
