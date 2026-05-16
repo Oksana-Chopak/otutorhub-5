@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -42,6 +43,8 @@ import {
   CreditCard,
   Pencil,
   Copy,
+  ChevronDown,
+  MessageSquare,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
@@ -189,6 +192,12 @@ export default function PeoplePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding">("all");
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
+
+  const openChatWith = (userId: string) => {
+    navigate(`/chats?with=${userId}`);
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -834,6 +843,10 @@ export default function PeoplePage() {
           return { steps, doneCount, fmt };
         })()
       : null;
+    const isExpanded = !!expandedCards[u.id];
+    const canChat = !!currentUser && u.id !== currentUser.id && !u.is_pending && !u.archived_at;
+    const toggleExpanded = () =>
+      setExpandedCards((prev) => ({ ...prev, [u.id]: !prev[u.id] }));
     return (
     <div
       key={u.id}
@@ -845,8 +858,14 @@ export default function PeoplePage() {
             : "border-border"
       }`}
     >
-      <div className="mb-3 flex items-start justify-between gap-3 lg:items-center">
-        <div className="flex min-w-0 flex-1 items-center gap-3 lg:gap-4">
+      <div className={`flex items-start justify-between gap-2 lg:items-center ${isExpanded ? "mb-3" : ""}`}>
+        <button
+          type="button"
+          onClick={toggleExpanded}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left lg:gap-4"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? "Згорнути картку" : "Розгорнути картку"}
+        >
           <div className="relative shrink-0">
             {u.is_pending ? (
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
@@ -902,7 +921,7 @@ export default function PeoplePage() {
                 {[u.email, u.phone].filter(Boolean).join(" · ")}
               </p>
             )}
-            {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
+            {isExpanded && u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
               <div className="mt-1 space-y-0.5">
                 {u.subjects.map((s) => {
                   const r = tutorSubjectRates[u.id]?.[s];
@@ -916,27 +935,48 @@ export default function PeoplePage() {
               </div>
             )}
           </div>
-        </div>
+        </button>
         <div className="flex items-center gap-1 shrink-0">
-          {isManager && (
+          {canChat && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-primary"
+              onClick={(e) => {
+                e.stopPropagation();
+                openChatWith(u.id);
+              }}
+              title="Написати"
+              aria-label="Написати"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </Button>
+          )}
+          {isExpanded && isManager && (
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-muted-foreground hover:text-foreground"
-              onClick={() => setContactDialog({ open: true, user: u })}
+              onClick={(e) => {
+                e.stopPropagation();
+                setContactDialog({ open: true, user: u });
+              }}
               title="Редагувати контакти"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
           )}
-          {isManager && u.id !== currentUser?.id && (
+          {isExpanded && isManager && u.id !== currentUser?.id && (
             <>
               {u.archived_at ? (
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 text-muted-foreground hover:text-primary"
-                  onClick={() => unarchivePerson(u)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    unarchivePerson(u);
+                  }}
                   title="Повернути з архіву"
                 >
                   <ArchiveRestore className="h-3.5 w-3.5" />
@@ -946,7 +986,10 @@ export default function PeoplePage() {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                  onClick={() => archivePerson(u)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    archivePerson(u);
+                  }}
                   title="В архів (історію збережено)"
                 >
                   <Archive className="h-3.5 w-3.5" />
@@ -956,15 +999,28 @@ export default function PeoplePage() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                onClick={() => purgePerson(u)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  purgePerson(u);
+                }}
                 title="Повне видалення (з усіма даними)"
               >
                 <FlameKindling className="h-3.5 w-3.5" />
               </Button>
             </>
           )}
+          <button
+            type="button"
+            onClick={toggleExpanded}
+            className="ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label={isExpanded ? "Згорнути" : "Розгорнути"}
+          >
+            <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+          </button>
         </div>
       </div>
+
+      {isExpanded && (<div>
 
       {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card_last4) && (
         <div className="flex flex-wrap items-center gap-2 mb-3 text-muted-foreground">
@@ -1195,6 +1251,7 @@ export default function PeoplePage() {
       })()}
 
           {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
+      </div>)}
     </div>
     );
   };
