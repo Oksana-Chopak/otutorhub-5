@@ -2,6 +2,7 @@
 // GET /functions/v1/google-calendar-auth?access_token={supabase_jwt}
 // The caller MUST pass a valid Supabase access token; user_id is derived from
 // the verified JWT — never from a client-supplied parameter.
+// State is HMAC-signed to prevent forgery / token-slot hijacking.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
@@ -30,8 +31,32 @@ function safeReturnTo(value: string | null) {
   }
 }
 
-function encodeState(payload: Record<string, string>) {
-  return btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+function b64urlEncode(bytes: Uint8Array) {
+  let s = "";
+  for (const b of bytes) s += String.fromCharCode(b);
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function b64urlEncodeString(str: string) {
+  return b64urlEncode(new TextEncoder().encode(str));
+}
+
+async function hmacSign(secret: string, data: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data));
+  return b64urlEncode(new Uint8Array(sig));
+}
+
+async function buildSignedState(payload: Record<string, string>, secret: string) {
+  const body = b64urlEncodeString(JSON.stringify({ ...payload, ts: Date.now() }));
+  const sig = await hmacSign(secret, body);
+  return `${body}.${sig}`;
 }
 
 Deno.serve(async (req) => {
@@ -39,9 +64,6 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // Derive caller identity from a verified Supabase JWT. Accept either the
-  // Authorization header (programmatic callers) or an `access_token` query
-  // param (popup/redirect flows where headers can't be set).
   const authHeader = req.headers.get("Authorization") ?? "";
   const headerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const token = headerToken || url.searchParams.get("access_token") || "";
@@ -55,7 +77,9 @@ Deno.serve(async (req) => {
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !anonKey) {
+  const stateSecret =
+    Deno.env.get("OAUTH_STATE_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !anonKey || !stateSecret) {
     return new Response(JSON.stringify({ error: "server misconfigured" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -80,6 +104,11 @@ Deno.serve(async (req) => {
     });
   }
 
+  const state = await buildSignedState(
+    { user_id: userId, return_to: safeReturnTo(url.searchParams.get("return_to")) },
+    stateSecret,
+  );
+
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: REDIRECT_URI,
@@ -87,7 +116,7 @@ Deno.serve(async (req) => {
     scope: SCOPE,
     access_type: "offline",
     prompt: "consent",
-    state: encodeState({ user_id: userId, return_to: safeReturnTo(url.searchParams.get("return_to")) }),
+    state,
     include_granted_scopes: "true",
   });
 
