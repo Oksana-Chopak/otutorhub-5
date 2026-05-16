@@ -161,6 +161,9 @@ export default function SchedulePage() {
   }>({});
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
+  // Two-step form: step 1 = хто+коли, step 2 = деталі (оплата, тривалість, повторення).
+  // Більшість користувачів зберігають одразу на кроці 1 з автозаповненими дефолтами.
+  const [step, setStep] = useState<1 | 2>(1);
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
