@@ -121,6 +121,7 @@ export function WeekCalendar({
       const k = new Date(l.starts_at).toDateString();
       if (map.has(k)) map.get(k)!.push(l);
     });
+    console.log("[WeekCalendar] lessons:", lessons.length, "dayKeys:", Array.from(map.keys()), "lessonKeys:", lessons.slice(0,5).map(l => new Date(l.starts_at).toDateString()), "sample lesson:", lessons[0]);
     return map;
   }, [lessons, days]);
 
