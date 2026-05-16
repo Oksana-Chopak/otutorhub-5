@@ -555,6 +555,76 @@ export default function SchedulePage() {
     };
   }, [isManager, isIndependentTutor, form.tutor_id, form.student_id]);
 
+  // Smart prefill #1: якщо обрано тільки тутора, а в нього лише один учень — підставляємо.
+  // І навпаки: якщо обрано тільки учня, а в нього лише один тутор — підставляємо.
+  // Для менеджера джерело — student_rates (хто з ким працює).
+  useEffect(() => {
+    if (!createOpen) return;
+    if (!isManager) return;
+    let cancelled = false;
+    (async () => {
+      if (form.tutor_id && !form.student_id) {
+        const { data } = await supabase
+          .from("student_rates")
+          .select("student_id")
+          .eq("tutor_id", form.tutor_id);
+        if (cancelled) return;
+        const ids = Array.from(new Set((data ?? []).map((r: any) => r.student_id)));
+        if (ids.length === 1) {
+          setForm((f) => (f.student_id ? f : { ...f, student_id: ids[0] }));
+        }
+      } else if (!form.tutor_id && form.student_id) {
+        const { data } = await supabase
+          .from("student_rates")
+          .select("tutor_id")
+          .eq("student_id", form.student_id);
+        if (cancelled) return;
+        const ids = Array.from(new Set((data ?? []).map((r: any) => r.tutor_id)));
+        if (ids.length === 1) {
+          setForm((f) => (f.tutor_id ? f : { ...f, tutor_id: ids[0] }));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [createOpen, isManager, form.tutor_id, form.student_id]);
+
+  // Smart prefill #2: для тутора з одним учнем — авто-підстановка.
+  useEffect(() => {
+    if (!createOpen) return;
+    if (isManager || !isTutor) return;
+    if (form.student_id) return;
+    if (students.length === 1) {
+      setForm((f) => ({ ...f, student_id: students[0].id }));
+    }
+  }, [createOpen, isManager, isTutor, students, form.student_id]);
+
+  // Smart prefill #3: успадковуємо тривалість з останнього уроку пари (tutor, student).
+  useEffect(() => {
+    if (!createOpen) return;
+    if (!form.tutor_id || !form.student_id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("lessons")
+        .select("duration_minutes")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id)
+        .order("starts_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const d = data?.[0]?.duration_minutes;
+      if (d && d > 0) {
+        // Лише якщо користувач ще не змінював дефолт "60"
+        setForm((f) => (f.duration_minutes && f.duration_minutes !== "60" ? f : { ...f, duration_minutes: String(d) }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [createOpen, form.tutor_id, form.student_id]);
+
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
     if (!form.tutor_id || !form.starts_at) return null;
