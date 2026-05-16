@@ -1119,18 +1119,18 @@ export default function FinancesPage() {
             </div>
           </details>
 
-          {/* === Markup table — analytics, secondary === */}
+          {/* === Margin table — analytics, secondary === */}
           {!isIndependentTutor && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Середня націнка по репетиторах
+                  Маржа по репетиторах
                 </h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                  (ціна учня − виплата) / виплата
+                  (ціна учня − виплата) / ціна учня
                 </span>
               </div>
-              {markupByTutor.length === 0 ? (
+              {marginByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
                 </p>
@@ -1141,11 +1141,11 @@ export default function FinancesPage() {
                       <tr className="border-b border-border text-xs text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">Репетитор</th>
                         <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                        <th className="px-2 py-2 text-right font-medium">Маржа</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {markupByTutor.map((row) => (
+                      {marginByTutor.map((row) => (
                         <tr key={row.tutorId} className="border-b border-border last:border-0">
                           <td className="px-2 py-2 text-foreground">{row.name}</td>
                           <td className="px-2 py-2 text-right text-muted-foreground">
@@ -1153,10 +1153,10 @@ export default function FinancesPage() {
                           </td>
                           <td
                             className={`px-2 py-2 text-right font-semibold ${
-                              (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
+                              (row.margin ?? 0) >= 0 ? "text-success" : "text-destructive"
                             }`}
                           >
-                            {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
+                            {row.margin === null ? "—" : `${row.margin.toFixed(1)}%`}
                           </td>
                         </tr>
                       ))}
