@@ -215,7 +215,11 @@ export default function ChatsPage() {
     setProfiles(profileMap);
     setManagerIds(mIds);
     setReadMap(reads);
-    setSelectedId((prev) => prev ?? list[0]?.id ?? null);
+    // Auto-select first thread only on desktop. On mobile we want the
+    // user to see the list first (Telegram/WhatsApp pattern).
+    const isDesktop =
+      typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
+    setSelectedId((prev) => prev ?? (isDesktop ? list[0]?.id ?? null : null));
     setLoading(false);
   };
 
@@ -830,23 +834,30 @@ export default function ChatsPage() {
                 </div>
 
                 {isManager && (
-                  <div className="flex gap-1.5 overflow-x-auto border-t border-border px-3 pt-2 lg:flex-wrap lg:overflow-visible">
-                    {[
-                      "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
-                      "Дякуємо за оплату — підтверджуємо отримання.",
-                      "Нагадуємо про урок сьогодні. До зустрічі!",
-                      "Будь ласка, надішліть скрін оплати для підтвердження.",
-                    ].map((tpl) => (
-                      <button
-                        key={tpl}
-                        type="button"
-                        onClick={() => setDraft(tpl)}
-                        className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                        title="Вставити шаблон"
-                      >
-                        {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
-                      </button>
-                    ))}
+                  <div className="relative border-t border-border">
+                    <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1 lg:flex-wrap lg:overflow-visible lg:pb-2">
+                      {[
+                        "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
+                        "Дякуємо за оплату — підтверджуємо отримання.",
+                        "Нагадуємо про урок сьогодні. До зустрічі!",
+                        "Будь ласка, надішліть скрін оплати для підтвердження.",
+                      ].map((tpl) => (
+                        <button
+                          key={tpl}
+                          type="button"
+                          onClick={() => setDraft(tpl)}
+                          className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                          title="Вставити шаблон"
+                        >
+                          {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
+                        </button>
+                      ))}
+                    </div>
+                    {/* Fade-out hint that the row is horizontally scrollable on mobile */}
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-card to-transparent lg:hidden"
+                    />
                   </div>
                 )}
                 {pendingFile && (
