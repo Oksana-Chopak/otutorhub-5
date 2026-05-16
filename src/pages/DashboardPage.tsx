@@ -1074,32 +1074,36 @@ export default function DashboardPage() {
                         chatPartnerId={partnerId}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
-                        topRightActions={
-                          canEditStatus ? (
-                            <LessonQuickActionsMenu
-                              onReschedule={() => setOpenLessonId(lesson.id)}
-                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
-                            />
-                          ) : undefined
-                        }
                         extraActions={
                           canEditStatus ? (
-                            <Select
-                              value={lesson.status}
-                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                            >
-                              <SelectTrigger className="h-11 w-[140px] text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {(isManager
-                                  ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                ).map((s) => (
-                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => setOpenLessonId(lesson.id)}
+                                title="Перенести урок"
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">Перенести</span>
+                              </Button>
+                              <Select
+                                value={lesson.status}
+                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                              >
+                                <SelectTrigger className="h-11 w-[140px] text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(isManager
+                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
+                                  ).map((s) => (
+                                    <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </>
                           ) : null
                         }
                         footer={
