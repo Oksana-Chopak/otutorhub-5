@@ -63,15 +63,21 @@ export function LessonWorkspace({
   // а в самостійному режимі — лише Pro/Trial
   const aiAllowed = !isIndependent || isPro;
   const canTogglePayment = (isTutor && source === "independent") || isManager;
+  const canMarkCompleted = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+  const [statusLocal, setStatusLocal] = useState<string>(lessonStatus ?? "scheduled");
+  const [completeBusy, setCompleteBusy] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const canOpenWallet = (isTutor && source === "independent") || isManager;
 
   useEffect(() => {
     setPaidLocal(studentPaymentStatus ?? "unpaid");
-  }, [studentPaymentStatus, lessonId]);
+    setStatusLocal(lessonStatus ?? "scheduled");
+    setJustCompleted(false);
+  }, [studentPaymentStatus, lessonStatus, lessonId]);
 
   const togglePayment = async () => {
     setPaymentBusy(true);
@@ -86,6 +92,23 @@ export function LessonWorkspace({
     }
     setPaidLocal(next);
     toast({ title: next === "paid" ? "Позначено як оплачено" : "Позначено як неоплачено" });
+    onUpdated?.();
+  };
+
+  const markCompleted = async () => {
+    setCompleteBusy(true);
+    const { error } = await supabase
+      .from("lessons")
+      .update({ status: "completed" })
+      .eq("id", lessonId);
+    setCompleteBusy(false);
+    if (error) {
+      toast({ title: "Не вдалося оновити статус", description: error.message, variant: "destructive" });
+      return;
+    }
+    setStatusLocal("completed");
+    setJustCompleted(true);
+    toast({ title: "Урок позначено як проведений ✓" });
     onUpdated?.();
   };
 
