@@ -260,7 +260,7 @@ export function WeekCalendar({
                         onLessonClick?.(l);
                       }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}
