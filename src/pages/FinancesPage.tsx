@@ -700,7 +700,37 @@ export default function FinancesPage() {
               <>
                 {/* Mobile cards (< lg) */}
                 <div className="divide-y divide-border lg:hidden">
-                  {visibleRows.map((l) => {
+                  {unifiedRows.map((row) => {
+                    if (row.type === "prepay") {
+                      const tx = row.tx;
+                      return (
+                        <button
+                          key={`p-${tx.id}`}
+                          type="button"
+                          onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                          className="block w-full p-3 text-left hover:bg-primary/5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
+                                <Package className="h-3.5 w-3.5" /> Передоплата
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                              </p>
+                              {tx.note && (
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
+                              )}
+                            </div>
+                            <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
+                              {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                              {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    }
+                    const l = row.l;
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
                     return (
                       <div
