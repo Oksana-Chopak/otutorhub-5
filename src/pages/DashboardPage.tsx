@@ -456,9 +456,10 @@ export default function DashboardPage() {
   }, [upcomingAll, todayKey]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
 
-          const needsMarkLessons = lessonRows.filter(
-            (l) => l.status === 'scheduled' && new Date(l.starts_at) < new Date()
-          );
+  const needsMarkLessons = useMemo(
+    () => lessons.filter((l) => l.status === 'scheduled' && new Date(l.starts_at) < new Date()),
+    [lessons, nowMs]
+  );
 
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
@@ -888,7 +889,16 @@ export default function DashboardPage() {
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{needsMarkLessons.length}</span>
               </div>
               <div className="space-y-2">
-                {needsMarkLessons.map((lesson) => { const sp = profiles.find((p) => p.id === lesson.student_id); const sName = sp ? `${sp.first_name ?? ''} ${sp.last_name ?? ''}`.trim() : '—'; return (<LessonCard key={lesson.id} lesson={{...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`]??'UAH'}} variant="schedule" studentName={sName} onContentClick={() => setOpenLessonId(lesson.id)} className={lessonSourceTint(lesson.source)} />); })}
+                {needsMarkLessons.map((lesson) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
+                    variant="schedule"
+                    studentName={profiles[lesson.student_id] ?? '—'}
+                    onContentClick={() => setOpenLessonId(lesson.id)}
+                    className={lessonSourceTint(lesson.source)}
+                  />
+                ))}
               </div>
             </section>
           )}
