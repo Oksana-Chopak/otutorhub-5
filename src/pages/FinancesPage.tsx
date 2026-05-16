@@ -15,6 +15,7 @@ import {
   Wallet,
   ArrowRight,
   Package,
+  AlertTriangle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -527,6 +528,44 @@ export default function FinancesPage() {
   const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
   const someSelected = selected.size > 0 && !allSelected;
 
+  // Inline wallet balance pill for a (tutor, student) pair
+  const renderWalletBadge = (tutor_id: string, student_id: string) => {
+    const b = balances[`${tutor_id}:${student_id}`];
+    if (!b) return null;
+    const lessons = Number(b.lessons_balance ?? 0);
+    const amount = Number(b.amount_balance ?? 0);
+    const isNegative = lessons < 0 || amount < 0;
+    const hasPositive = lessons > 0 || amount > 0;
+    if (!isNegative && !hasPositive) return null;
+    const label = isNegative
+      ? `${lessons < 0 ? `${lessons} ур.` : ""}${lessons < 0 && amount < 0 ? " / " : ""}${amount < 0 ? `${amount.toFixed(0)} ₴` : ""}`
+      : `${lessons > 0 ? `${lessons} ур.` : ""}${lessons > 0 && amount > 0 ? " / " : ""}${amount > 0 ? `${amount.toFixed(0)} ₴` : ""}`;
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          openWalletForPair(tutor_id, student_id);
+        }}
+        title={isNegative ? "Від'ємний баланс — потрібна передоплата" : "Баланс передоплати"}
+        className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
+          isNegative
+            ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+        }`}
+      >
+        {isNegative ? (
+          <AlertTriangle className="h-2.5 w-2.5" />
+        ) : (
+          <Wallet className="h-2.5 w-2.5" />
+        )}
+        {label}
+      </button>
+    );
+  };
+
+  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
+
   return (
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
@@ -762,6 +801,7 @@ export default function FinancesPage() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-foreground">
                                 {nameOf(l.student_id)}
+                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
                               </p>
                               {l.student_paid_at && (
                                 <p className="truncate text-[11px] text-muted-foreground">
@@ -857,7 +897,44 @@ export default function FinancesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((l) => {
+                      {unifiedRows.map((row) => {
+                        if (row.type === "prepay") {
+                          const tx = row.tx;
+                          return (
+                            <tr
+                              key={`p-${tx.id}`}
+                              className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                            >
+                              <td className="px-3 py-3" />
+                              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                                {formatDate(tx.created_at)}
+                              </td>
+                              <td className="px-3 py-3" colSpan={desktopColCount - 3}>
+                                <div className="flex items-center gap-2 text-primary">
+                                  <Package className="h-4 w-4 shrink-0" />
+                                  <span className="font-medium">Передоплата</span>
+                                  <span className="text-muted-foreground">·</span>
+                                  <span className="text-foreground truncate">
+                                    {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                                  </span>
+                                  {tx.note && (
+                                    <span className="truncate text-xs text-muted-foreground">
+                                      — {tx.note}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
+                                {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                                {Number(tx.amount_delta) > 0 && (
+                                  <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const l = row.l;
                         const profit = Number(l.student_price) - Number(l.tutor_payout);
                         const isSelected = selected.has(l.id);
                         return (
@@ -879,7 +956,10 @@ export default function FinancesPage() {
                             </td>
                             <td className="px-3 py-3 text-foreground">{l.subject}</td>
                             <td className="px-3 py-3">
-                              <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
+                              <div className="font-medium text-foreground">
+                                {nameOf(l.student_id)}
+                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
+                              </div>
                               {l.student_paid_at && (
                                 <div className="text-xs text-muted-foreground">
                                   опл.: {formatDate(l.student_paid_at)}
