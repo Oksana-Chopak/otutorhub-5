@@ -1203,41 +1203,41 @@ export default function SchedulePage() {
                     <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
-                      Дата і час <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="starts_at"
-                      type="datetime-local"
-                      value={form.starts_at}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, starts_at: e.target.value }));
-                        if (formErrors.starts_at && e.target.value) {
-                          setFormErrors((er) => ({ ...er, starts_at: false }));
-                        }
-                      }}
-                      className={cn(
-                        formErrors.starts_at &&
-                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {formErrors.starts_at && (
-                      <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                <div>
+                  <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                    Дата і час <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="starts_at"
+                    type="datetime-local"
+                    value={form.starts_at}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, starts_at: e.target.value }));
+                      if (formErrors.starts_at && e.target.value) {
+                        setFormErrors((er) => ({ ...er, starts_at: false }));
+                      }
+                    }}
+                    className={cn(
+                      formErrors.starts_at &&
+                        "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
                     )}
-                  </div>
-                  <div>
-                    <Label htmlFor="duration">Тривалість (хв)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="15"
-                      step="15"
-                      value={form.duration_minutes}
-                      onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                    />
-                  </div>
+                  />
+                  {formErrors.starts_at && (
+                    <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                  )}
+                </div>
+                </>)}
+                {step === 2 && (<>
+                <div>
+                  <Label htmlFor="duration">Тривалість (хв)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="15"
+                    step="15"
+                    value={form.duration_minutes}
+                    onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                  />
                 </div>
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
