@@ -1451,7 +1451,7 @@ export default function SchedulePage() {
                         setStep(2);
                       }}
                     >
-                      Деталі →
+                      Більше опцій (оплата, повтор)
                     </Button>
                   )}
                   <Button onClick={handleCreate} disabled={submitting}>
