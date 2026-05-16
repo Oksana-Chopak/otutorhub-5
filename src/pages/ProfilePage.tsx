@@ -21,27 +21,38 @@ import { ProRulesCard } from "@/components/ProRulesCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
+type SectionGroup = { title: string; items: SectionItem[] };
 
-function MoreSection({ title, items }: { title: string; items: SectionItem[] }) {
-  if (items.length === 0) return null;
+function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] }) {
+  const nonEmpty = groups.filter((g) => g.items.length > 0);
+  if (nonEmpty.length === 0) return null;
   return (
     <Card className="mt-6">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {items.map((it) => (
-          <Link
-            key={it.to}
-            to={it.to}
-            className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary"
-          >
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <it.icon className="h-5 w-5" />
-            </span>
-            <span className="flex-1 text-sm font-medium text-foreground">{it.label}</span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-          </Link>
+      <CardContent className="space-y-5">
+        {nonEmpty.map((group) => (
+          <div key={group.title}>
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {group.title}
+            </p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {group.items.map((it) => (
+                <Link
+                  key={it.to}
+                  to={it.to}
+                  className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <it.icon className="h-5 w-5" />
+                  </span>
+                  <span className="flex-1 text-sm font-medium text-foreground">{it.label}</span>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              ))}
+            </div>
+          </div>
         ))}
       </CardContent>
     </Card>
@@ -54,31 +65,47 @@ export default function ProfilePage() {
   const isManager = roles.includes("manager");
   const { isIndependent } = useWorkspaceSettings();
 
-  const tutorMore: SectionItem[] = isTutor
+  const tutorGroups: SectionGroup[] = isTutor
     ? [
-        { to: "/subscription", label: "Підписка", icon: Crown },
-        { to: "/finances", label: "Фінанси", icon: DollarSign },
-        { to: "/wallets", label: "Передоплати", icon: Wallet },
-        { to: "/analytics", label: "Аналітика", icon: BarChart3 },
-        { to: "/achievements", label: "Досягнення", icon: Trophy },
-        { to: "/my-referrals", label: "Реферали", icon: HandHeart },
-        { to: "/availability", label: "Доступність", icon: CalendarClock },
-      ].filter((it) => {
-        // Hide independent-only items for tutors who are part of a school workspace
-        if (!isIndependent && ["/subscription", "/finances", "/wallets", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
-        return true;
-      })
+        {
+          title: "📅 Розклад і доступність",
+          items: [{ to: "/availability", label: "Доступність", icon: CalendarClock }],
+        },
+        {
+          title: "💼 Аккаунт",
+          items: [
+            { to: "/subscription", label: "Підписка", icon: Crown },
+            { to: "/achievements", label: "Досягнення", icon: Trophy },
+            { to: "/my-referrals", label: "Реферали", icon: HandHeart },
+            { to: "/analytics", label: "Аналітика", icon: BarChart3 },
+          ].filter((it) => {
+            if (!isIndependent && ["/subscription", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
+            return true;
+          }),
+        },
+      ]
     : [];
 
-  const managerMore: SectionItem[] = isManager
+  const managerGroups: SectionGroup[] = isManager
     ? [
-        { to: "/finances", label: "Фінанси", icon: DollarSign },
-        { to: "/wallets", label: "Передоплати", icon: Wallet },
-        { to: "/availability", label: "Доступність", icon: CalendarClock },
-        { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
-        { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },
-        { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3 },
-        { to: "/audit", label: "Аудит", icon: ShieldAlert },
+        {
+          title: "📅 Розклад і доступність",
+          items: [{ to: "/availability", label: "Доступність", icon: CalendarClock }],
+        },
+        {
+          title: "👥 Учні і запити",
+          items: [
+            { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
+            { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },
+          ],
+        },
+        {
+          title: "📊 Аналітика",
+          items: [
+            { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3 },
+            { to: "/audit", label: "Аудит", icon: ShieldAlert },
+          ],
+        },
       ]
     : [];
 
@@ -189,8 +216,8 @@ export default function ProfilePage() {
             </p>
           </div>
           <GoogleCalendarCard />
-          <MoreSection title="Розділи" items={managerMore} />
-          {managerMore.length === 0 && (
+          <MoreSection title="Розділи" groups={managerGroups} />
+          {managerGroups.every((g) => g.items.length === 0) && (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
                 Немає додаткових налаштувань.
@@ -317,7 +344,7 @@ export default function ProfilePage() {
         )}
         {isIndependent && <AutoCompleteLessonsCard />}
         <GoogleCalendarCard />
-        <MoreSection title="Більше" items={tutorMore} />
+        <MoreSection title="Більше" groups={tutorGroups} />
       </div>
     </AppLayout>
   );

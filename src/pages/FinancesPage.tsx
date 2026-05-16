@@ -464,7 +464,32 @@ export default function FinancesPage() {
       toast.error("Не вдалося оновити статус");
       return;
     }
-    toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
+    if (next === "paid") {
+      const revert = async () => {
+        // Restore prior state in DB + UI
+        setLessons((prev) =>
+          prev.map((l) =>
+            l.id === lesson.id
+              ? { ...l, [field]: lesson[field], [paidAtField]: field === "student_payment_status" ? lesson.student_paid_at : lesson.tutor_paid_at } as LessonRow
+              : l
+          )
+        );
+        const revertPayload =
+          field === "student_payment_status"
+            ? { student_payment_status: lesson.student_payment_status }
+            : { tutor_payout_status: lesson.tutor_payout_status };
+        await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
+      };
+      toast.success(
+        field === "student_payment_status" ? "✓ Позначено як оплачено" : "✓ Позначено як виплачено",
+        {
+          duration: 5000,
+          action: { label: "Скасувати", onClick: () => { void revert(); } },
+        },
+      );
+    } else {
+      toast.success("Скинуто на неоплачено");
+    }
   };
 
   // Used by RecordPaymentSheet: only marks as paid (no toggle).
