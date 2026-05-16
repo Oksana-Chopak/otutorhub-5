@@ -152,18 +152,23 @@ export function RecordPaymentSheet({
     });
 
     if (error) {
-      const { data: writtenTx } = await supabase
-        .from("student_wallet_transactions" as any)
-        .select("id")
-        .eq("tutor_id", pickedPair.tutor_id)
-        .eq("student_id", pickedPair.student_id)
-        .eq("kind", "topup")
-        .eq("lessons_delta", lessonsDelta)
-        .eq("amount_delta", amountDelta)
-        .gte("created_at", submittedAt)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      let writtenTx: { id: string } | null = null;
+      for (let attempt = 0; attempt < 3 && !writtenTx; attempt += 1) {
+        if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 350));
+        const { data } = await supabase
+          .from("student_wallet_transactions" as any)
+          .select("id")
+          .eq("tutor_id", pickedPair.tutor_id)
+          .eq("student_id", pickedPair.student_id)
+          .eq("kind", "topup")
+          .eq("lessons_delta", lessonsDelta)
+          .eq("amount_delta", amountDelta)
+          .gte("created_at", submittedAt)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        writtenTx = data as { id: string } | null;
+      }
 
       if (!writtenTx) {
         setBusy(false);
