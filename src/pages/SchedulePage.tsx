@@ -1769,11 +1769,7 @@ export default function SchedulePage() {
                             : undefined
                         }
                         className={lessonSourceTint(lesson.source)}
-                        onContentClick={
-                          (isManager || (isTutor && lesson.tutor_id === user?.id))
-                            ? () => openEdit(lesson)
-                            : undefined
-                        }
+                        onContentClick={() => setOpenLessonId(lesson.id)}
                         topRightActions={
                           <>
 
