@@ -726,32 +726,25 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 p-6 shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.25)] sm:mb-8 sm:p-8">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/10" />
-        <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-primary/10" />
-        <div className="relative flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              {greeting}{firstName ? `, ${firstName}` : ""}! <span className="ml-1">{timeEmoji}</span>
-            </h1>
-            <p className="mt-3 max-w-lg text-sm italic text-muted-foreground">
-              <span className="not-italic font-medium text-primary/80">Афірмація дня: </span>
-              {phraseOfDay}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 rounded-lg bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
-                <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                Сьогодні {todayLessons.length}{" "}
-                {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"}
-              </div>
-              {pendingPayments.length > 0 && (
-                <div className="flex items-center gap-1.5 rounded-lg bg-warning/10 px-3 py-1.5 text-xs text-warning">
-                  <Clock className="h-3.5 w-3.5" />
-                  {pendingPayments.length} очікують оплати
-                </div>
-              )}
-            </div>
-          </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
+            {greeting}{firstName ? `, ${firstName}` : ""} <span className="ml-0.5">{timeEmoji}</span>
+          </h1>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <CalendarDays className="h-3 w-3 text-primary" />
+              {todayLessons.length}{" "}
+              {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"} сьогодні
+            </span>
+            {pendingPayments.length > 0 && (
+              <span className="inline-flex items-center gap-1 text-warning">
+                <Clock className="h-3 w-3" />
+                {pendingPayments.length} очікують оплати
+              </span>
+            )}
+          </p>
+        </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {isManager && (
               <>
