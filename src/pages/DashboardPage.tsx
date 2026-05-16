@@ -28,6 +28,7 @@ import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
+import { LessonQuickActionsMenu } from "@/components/LessonQuickActionsMenu";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
@@ -962,6 +963,12 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
+                          topRightActions={
+                            <LessonQuickActionsMenu
+                              onReschedule={() => setOpenLessonId(lesson.id)}
+                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
+                            />
+                          }
                           extraActions={
                             <>
                               <Button
@@ -1063,6 +1070,14 @@ export default function DashboardPage() {
                         chatPartnerId={partnerId}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
+                        topRightActions={
+                          canEditStatus ? (
+                            <LessonQuickActionsMenu
+                              onReschedule={() => setOpenLessonId(lesson.id)}
+                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
+                            />
+                          ) : undefined
+                        }
                         extraActions={
                           canEditStatus ? (
                             <Select
