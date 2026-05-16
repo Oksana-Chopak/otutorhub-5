@@ -215,7 +215,11 @@ export default function ChatsPage() {
     setProfiles(profileMap);
     setManagerIds(mIds);
     setReadMap(reads);
-    setSelectedId((prev) => prev ?? list[0]?.id ?? null);
+    // Auto-select first thread only on desktop. On mobile we want the
+    // user to see the list first (Telegram/WhatsApp pattern).
+    const isDesktop =
+      typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches;
+    setSelectedId((prev) => prev ?? (isDesktop ? list[0]?.id ?? null : null));
     setLoading(false);
   };
 
