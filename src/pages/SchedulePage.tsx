@@ -161,6 +161,9 @@ export default function SchedulePage() {
   }>({});
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
+  // Two-step form: step 1 = хто+коли, step 2 = деталі (оплата, тривалість, повторення).
+  // Більшість користувачів зберігають одразу на кроці 1 з автозаповненими дефолтами.
+  const [step, setStep] = useState<1 | 2>(1);
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
@@ -297,6 +300,7 @@ export default function SchedulePage() {
       tutor_payout_status: "unpaid",
     });
     setNotesOpen(Boolean(lesson.notes));
+    setStep(1);
     setCreateOpen(true);
   };
 
@@ -550,6 +554,76 @@ export default function SchedulePage() {
       cancelled = true;
     };
   }, [isManager, isIndependentTutor, form.tutor_id, form.student_id]);
+
+  // Smart prefill #1: якщо обрано тільки тутора, а в нього лише один учень — підставляємо.
+  // І навпаки: якщо обрано тільки учня, а в нього лише один тутор — підставляємо.
+  // Для менеджера джерело — student_rates (хто з ким працює).
+  useEffect(() => {
+    if (!createOpen) return;
+    if (!isManager) return;
+    let cancelled = false;
+    (async () => {
+      if (form.tutor_id && !form.student_id) {
+        const { data } = await supabase
+          .from("student_rates")
+          .select("student_id")
+          .eq("tutor_id", form.tutor_id);
+        if (cancelled) return;
+        const ids = Array.from(new Set((data ?? []).map((r: any) => r.student_id)));
+        if (ids.length === 1) {
+          setForm((f) => (f.student_id ? f : { ...f, student_id: ids[0] }));
+        }
+      } else if (!form.tutor_id && form.student_id) {
+        const { data } = await supabase
+          .from("student_rates")
+          .select("tutor_id")
+          .eq("student_id", form.student_id);
+        if (cancelled) return;
+        const ids = Array.from(new Set((data ?? []).map((r: any) => r.tutor_id)));
+        if (ids.length === 1) {
+          setForm((f) => (f.tutor_id ? f : { ...f, tutor_id: ids[0] }));
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [createOpen, isManager, form.tutor_id, form.student_id]);
+
+  // Smart prefill #2: для тутора з одним учнем — авто-підстановка.
+  useEffect(() => {
+    if (!createOpen) return;
+    if (isManager || !isTutor) return;
+    if (form.student_id) return;
+    if (students.length === 1) {
+      setForm((f) => ({ ...f, student_id: students[0].id }));
+    }
+  }, [createOpen, isManager, isTutor, students, form.student_id]);
+
+  // Smart prefill #3: успадковуємо тривалість з останнього уроку пари (tutor, student).
+  useEffect(() => {
+    if (!createOpen) return;
+    if (!form.tutor_id || !form.student_id) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("lessons")
+        .select("duration_minutes")
+        .eq("tutor_id", form.tutor_id)
+        .eq("student_id", form.student_id)
+        .order("starts_at", { ascending: false })
+        .limit(1);
+      if (cancelled) return;
+      const d = data?.[0]?.duration_minutes;
+      if (d && d > 0) {
+        // Лише якщо користувач ще не змінював дефолт "60"
+        setForm((f) => (f.duration_minutes && f.duration_minutes !== "60" ? f : { ...f, duration_minutes: String(d) }));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [createOpen, form.tutor_id, form.student_id]);
 
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
@@ -974,7 +1048,7 @@ export default function SchedulePage() {
           {canCreate && (
             <Dialog open={createOpen} onOpenChange={(open) => {
               setCreateOpen(open);
-              if (!open) setFormErrors({});
+              if (!open) setFormErrors({}); else setStep(1);
             }}>
               <DialogTrigger asChild>
                 <Button size="sm" className="h-9 gap-1.5 px-3">
@@ -986,8 +1060,18 @@ export default function SchedulePage() {
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>Новий урок</DialogTitle>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
+                    <span className={step === 1 ? "text-foreground font-medium" : ""}>Хто і коли</span>
+                    <span className="h-px flex-1 bg-border" />
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
+                    <span className={step === 2 ? "text-foreground font-medium" : ""}>Деталі</span>
+                  </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
+                {step === 1 && (<>
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
                       Репетитор <span className="text-destructive">*</span>
@@ -1119,41 +1203,41 @@ export default function SchedulePage() {
                     <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
-                      Дата і час <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="starts_at"
-                      type="datetime-local"
-                      value={form.starts_at}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, starts_at: e.target.value }));
-                        if (formErrors.starts_at && e.target.value) {
-                          setFormErrors((er) => ({ ...er, starts_at: false }));
-                        }
-                      }}
-                      className={cn(
-                        formErrors.starts_at &&
-                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {formErrors.starts_at && (
-                      <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                <div>
+                  <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                    Дата і час <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="starts_at"
+                    type="datetime-local"
+                    value={form.starts_at}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, starts_at: e.target.value }));
+                      if (formErrors.starts_at && e.target.value) {
+                        setFormErrors((er) => ({ ...er, starts_at: false }));
+                      }
+                    }}
+                    className={cn(
+                      formErrors.starts_at &&
+                        "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
                     )}
-                  </div>
-                  <div>
-                    <Label htmlFor="duration">Тривалість (хв)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="15"
-                      step="15"
-                      value={form.duration_minutes}
-                      onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                    />
-                  </div>
+                  />
+                  {formErrors.starts_at && (
+                    <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                  )}
+                </div>
+                </>)}
+                {step === 2 && (<>
+                <div>
+                  <Label htmlFor="duration">Тривалість (хв)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="15"
+                    step="15"
+                    value={form.duration_minutes}
+                    onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                  />
                 </div>
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
@@ -1318,15 +1402,46 @@ export default function SchedulePage() {
                     />
                   )}
                 </div>
+                </>)}
               </div>
-              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Скасувати
-                </Button>
-                <Button onClick={handleCreate} disabled={submitting}>
-                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Зберегти
-                </Button>
+              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
+                {step === 1 ? (
+                  <Button variant="ghost" onClick={() => setCreateOpen(false)}>
+                    Скасувати
+                  </Button>
+                ) : (
+                  <Button variant="ghost" onClick={() => setStep(1)}>
+                    ← Назад
+                  </Button>
+                )}
+                <div className="flex gap-2">
+                  {step === 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // Lightweight validation before jumping to step 2
+                        const errs: typeof formErrors = {};
+                        if (!form.tutor_id) errs.tutor_id = true;
+                        if (!form.student_id) errs.student_id = true;
+                        if (!form.subject || !form.subject.trim()) errs.subject = true;
+                        if (!form.starts_at) errs.starts_at = true;
+                        if (Object.keys(errs).length) {
+                          setFormErrors(errs);
+                          toast.error("Заповніть обов'язкові поля");
+                          return;
+                        }
+                        setFormErrors({});
+                        setStep(2);
+                      }}
+                    >
+                      Деталі →
+                    </Button>
+                  )}
+                  <Button onClick={handleCreate} disabled={submitting}>
+                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Зберегти
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
