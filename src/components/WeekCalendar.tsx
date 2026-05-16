@@ -117,16 +117,10 @@ export function WeekCalendar({
   const lessonsByDay = useMemo(() => {
     const map = new Map<string, CalendarLesson[]>();
     days.forEach((d) => map.set(d.toDateString(), []));
-    let matched = 0;
     lessons.forEach((l) => {
       const k = new Date(l.starts_at).toDateString();
-      if (map.has(k)) { map.get(k)!.push(l); matched++; }
+      if (map.has(k)) map.get(k)!.push(l);
     });
-    const thisWeek = lessons.filter(l => {
-      const k = new Date(l.starts_at).toDateString();
-      return map.has(k);
-    });
-    console.log("[WeekCalendar] matched:", matched, "thisWeek lessons:", thisWeek.length, "samples:", thisWeek.slice(0,3).map(l => ({starts:l.starts_at, key: new Date(l.starts_at).toDateString()})));
     return map;
   }, [lessons, days]);
 
