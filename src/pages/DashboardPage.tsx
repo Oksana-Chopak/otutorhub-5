@@ -831,7 +831,9 @@ export default function DashboardPage() {
           {isIndependentTutor && <AutoCompleteLessonsCard />}
           {(isTutor || isManager) && (
             <div className="mt-4 space-y-4">
-              <QuickActionsCard onChanged={loadData} />
+              <div className="hidden lg:block">
+                <QuickActionsCard onChanged={loadData} />
+              </div>
               <TutorNotesCard />
             </div>
           )}
