@@ -746,6 +746,9 @@ export default function DashboardPage() {
               </span>
             )}
           </p>
+          <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground/80 sm:text-xs">
+            ✨ {phraseOfDay}
+          </p>
         </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {isManager && (
