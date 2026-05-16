@@ -1060,8 +1060,18 @@ export default function SchedulePage() {
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>Новий урок</DialogTitle>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
+                    <span className={step === 1 ? "text-foreground font-medium" : ""}>Хто і коли</span>
+                    <span className="h-px flex-1 bg-border" />
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
+                    <span className={step === 2 ? "text-foreground font-medium" : ""}>Деталі</span>
+                  </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
+                {step === 1 && (<>
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
                       Репетитор <span className="text-destructive">*</span>
