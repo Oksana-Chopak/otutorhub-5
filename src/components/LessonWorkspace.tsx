@@ -63,15 +63,21 @@ export function LessonWorkspace({
   // а в самостійному режимі — лише Pro/Trial
   const aiAllowed = !isIndependent || isPro;
   const canTogglePayment = (isTutor && source === "independent") || isManager;
+  const canMarkCompleted = (isTutor && source === "independent") || isManager;
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
+  const [statusLocal, setStatusLocal] = useState<string>(lessonStatus ?? "scheduled");
+  const [completeBusy, setCompleteBusy] = useState(false);
+  const [justCompleted, setJustCompleted] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const canOpenWallet = (isTutor && source === "independent") || isManager;
 
   useEffect(() => {
     setPaidLocal(studentPaymentStatus ?? "unpaid");
-  }, [studentPaymentStatus, lessonId]);
+    setStatusLocal(lessonStatus ?? "scheduled");
+    setJustCompleted(false);
+  }, [studentPaymentStatus, lessonStatus, lessonId]);
 
   const togglePayment = async () => {
     setPaymentBusy(true);
@@ -86,6 +92,23 @@ export function LessonWorkspace({
     }
     setPaidLocal(next);
     toast({ title: next === "paid" ? "Позначено як оплачено" : "Позначено як неоплачено" });
+    onUpdated?.();
+  };
+
+  const markCompleted = async () => {
+    setCompleteBusy(true);
+    const { error } = await supabase
+      .from("lessons")
+      .update({ status: "completed" })
+      .eq("id", lessonId);
+    setCompleteBusy(false);
+    if (error) {
+      toast({ title: "Не вдалося оновити статус", description: error.message, variant: "destructive" });
+      return;
+    }
+    setStatusLocal("completed");
+    setJustCompleted(true);
+    toast({ title: "Урок позначено як проведений ✓" });
     onUpdated?.();
   };
 
@@ -221,7 +244,50 @@ export function LessonWorkspace({
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {/* 1. Payment status — top priority */}
+      {/* 0. Primary CTA — mark lesson as completed */}
+      {canMarkCompleted && statusLocal === "scheduled" && (
+        <section className="rounded-lg border border-primary/30 bg-primary/5 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-foreground">
+              <div className="font-medium">Урок ще не позначений як проведений</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                Один тап — і урок піде в історію та у фінанси.
+              </div>
+            </div>
+            <Button size="lg" onClick={markCompleted} disabled={completeBusy}>
+              {completeBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Check className="mr-2 h-4 w-4" />}
+              Урок відбувся
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* 0b. Post-completion nudge to record payment */}
+      {canMarkCompleted && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && (
+        <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 md:col-span-2">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-foreground">
+              <div className="font-medium">Учень оплатив цей урок?</div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {studentPrice ? `${studentPrice} ₴ — ` : ""}зафіксуйте оплату, щоб не загубилась.
+              </div>
+            </div>
+            <Button size="lg" variant="default" onClick={togglePayment} disabled={paymentBusy}>
+              {paymentBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Banknote className="mr-2 h-4 w-4" />}
+              Позначити оплату
+            </Button>
+          </div>
+        </section>
+      )}
+
+      {/* 0c. Hub tutor info — payment is handled by manager */}
+      {isTutor && source === "hub" && statusLocal === "completed" && (
+        <section className="rounded-lg border border-border bg-muted/30 p-3 md:col-span-2 text-xs text-muted-foreground">
+          Оплату за проведені уроки невдовзі проведе менеджер.
+        </section>
+      )}
+
+
       {canTogglePayment && (
         <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
