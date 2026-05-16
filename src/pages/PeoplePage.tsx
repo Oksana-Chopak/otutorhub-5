@@ -1251,7 +1251,7 @@ export default function PeoplePage() {
       })()}
 
           {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
-      </>)}
+      </div>)}
     </div>
     );
   };
