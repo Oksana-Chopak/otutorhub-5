@@ -963,14 +963,18 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
-                          topRightActions={
-                            <LessonQuickActionsMenu
-                              onReschedule={() => setOpenLessonId(lesson.id)}
-                              onMark={(s) => updateStatus(lesson.id, s as LessonStatus)}
-                            />
-                          }
                           extraActions={
                             <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => setOpenLessonId(lesson.id)}
+                                title="Перенести урок"
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">Перенести</span>
+                              </Button>
                               <Button
                                 size="sm"
                                 variant="outline"
