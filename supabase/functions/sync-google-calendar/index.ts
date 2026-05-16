@@ -87,6 +87,27 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Authenticate caller
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader.startsWith("Bearer ")) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(
+    authHeader.slice(7),
+  );
+  const callerId = claimsData?.claims?.sub;
+  if (claimsErr || !callerId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   const admin = createClient(supabaseUrl, serviceKey);
 
   const { data: lesson, error: lessonErr } = await admin
@@ -98,6 +119,20 @@ Deno.serve(async (req) => {
   if (lessonErr || !lesson) {
     return new Response(JSON.stringify({ error: "lesson not found" }), {
       status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  // Authorize: caller must be the lesson tutor or a manager
+  const { data: managerRow } = await admin
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", callerId)
+    .eq("role", "manager")
+    .maybeSingle();
+  const isManager = !!managerRow;
+  if (!isManager && lesson.tutor_id !== callerId) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 

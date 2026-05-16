@@ -1,6 +1,9 @@
 // Initiates Google Calendar OAuth flow.
-// GET /functions/v1/google-calendar-auth?user_id={uuid}
+// GET /functions/v1/google-calendar-auth?access_token={supabase_jwt}
+// The caller MUST pass a valid Supabase access token; user_id is derived from
+// the verified JWT — never from a client-supplied parameter.
 
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const REDIRECT_URI =
@@ -31,14 +34,40 @@ function encodeState(payload: Record<string, string>) {
   return btoa(JSON.stringify(payload)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
-Deno.serve((req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   const url = new URL(req.url);
-  const userId = url.searchParams.get("user_id");
-  if (!userId) {
-    return new Response(JSON.stringify({ error: "user_id is required" }), {
-      status: 400,
+
+  // Derive caller identity from a verified Supabase JWT. Accept either the
+  // Authorization header (programmatic callers) or an `access_token` query
+  // param (popup/redirect flows where headers can't be set).
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const headerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  const token = headerToken || url.searchParams.get("access_token") || "";
+
+  if (!token) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!supabaseUrl || !anonKey) {
+    return new Response(JSON.stringify({ error: "server misconfigured" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
+  const supabase = createClient(supabaseUrl, anonKey);
+  const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
+  const userId = claimsData?.claims?.sub;
+  if (claimsErr || !userId) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

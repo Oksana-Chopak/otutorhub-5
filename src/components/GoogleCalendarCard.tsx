@@ -47,10 +47,16 @@ export function GoogleCalendarCard() {
     }
   }, []);
 
-  const connect = () => {
+  const connect = async () => {
     if (!user) return;
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+    if (!accessToken) {
+      toast.error("Будь ласка, увійдіть знову");
+      return;
+    }
     const params = new URLSearchParams({
-      user_id: user.id,
+      access_token: accessToken,
       return_to: `${window.location.origin}${window.location.pathname}`,
     });
     const url = `https://${PROJECT_REF}.supabase.co/functions/v1/google-calendar-auth?${params.toString()}`;
