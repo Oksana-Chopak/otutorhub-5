@@ -1020,7 +1020,7 @@ export default function PeoplePage() {
         </div>
       </div>
 
-      {isExpanded && (<>
+      {isExpanded && (<div>
 
       {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card_last4) && (
         <div className="flex flex-wrap items-center gap-2 mb-3 text-muted-foreground">
