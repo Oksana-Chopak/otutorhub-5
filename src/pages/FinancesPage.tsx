@@ -208,6 +208,49 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, profiles]);
 
+  // Pairs collected from lessons + wallet transactions (for RecordPaymentSheet picker)
+  const pairsList = useMemo<PairOption[]>(() => {
+    const map = new Map<string, PairOption>();
+    const add = (tutor_id: string, student_id: string | null) => {
+      if (!student_id) return;
+      const key = `${tutor_id}:${student_id}`;
+      if (map.has(key)) return;
+      map.set(key, {
+        tutor_id,
+        student_id,
+        tutor_name: nameOf(tutor_id),
+        student_name: nameOf(student_id),
+        rate: pairRates[key],
+      });
+    };
+    lessons.forEach((l) => add(l.tutor_id, l.student_id));
+    walletTxs.forEach((t) => add(t.tutor_id, t.student_id));
+    return Array.from(map.values()).sort((a, b) =>
+      a.student_name.localeCompare(b.student_name, "uk"),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, walletTxs, profiles, pairRates]);
+
+  const unpaidLessonsForSheet = useMemo(
+    () =>
+      lessons
+        .filter(
+          (l) =>
+            l.status !== "cancelled" &&
+            l.student_payment_status === "unpaid" &&
+            l.student_id,
+        )
+        .map((l) => ({
+          id: l.id,
+          subject: l.subject,
+          starts_at: l.starts_at,
+          student_price: l.student_price,
+          student_id: l.student_id,
+          tutor_id: l.tutor_id,
+        })),
+    [lessons],
+  );
+
   const filtered = useMemo(
     () =>
       lessons.filter(
@@ -219,9 +262,6 @@ export default function FinancesPage() {
   );
 
   // Billable = lesson actually counts toward money flow.
-  // Includes: completed lessons, past lessons (date already passed), or any lesson
-  // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
-  // Excludes: cancelled, and pending requests that never happened.
   const nowMs = Date.now();
   const billable = filtered.filter((l) => {
     if (l.status === "cancelled" || l.status === "pending") return false;
@@ -232,7 +272,7 @@ export default function FinancesPage() {
     return isPast || hasPayment;
   });
 
-  const visibleRows = useMemo(() => {
+  const visibleLessons = useMemo(() => {
     switch (statusFilter) {
       case "need_pay":
         return billable.filter((l) => l.student_payment_status === "unpaid");
@@ -247,6 +287,37 @@ export default function FinancesPage() {
         return billable;
     }
   }, [billable, statusFilter]);
+
+  // Wallet top-ups visible in the finance feed (apply same tutor/month filters; status filter doesn't apply)
+  const visiblePrepays = useMemo(() => {
+    return walletTxs
+      .filter((t) => t.kind === "topup")
+      .filter((t) => tutorFilter === "all" || t.tutor_id === tutorFilter)
+      .filter((t) => monthFilter === "all" || monthKey(t.created_at) === monthFilter);
+  }, [walletTxs, tutorFilter, monthFilter]);
+
+  // Unified chronological feed
+  type UnifiedRow =
+    | { type: "lesson"; sort: number; l: LessonRow }
+    | { type: "prepay"; sort: number; tx: WalletTx };
+
+  const unifiedRows = useMemo<UnifiedRow[]>(() => {
+    const rows: UnifiedRow[] = [];
+    if (kindFilter !== "prepay") {
+      visibleLessons.forEach((l) =>
+        rows.push({ type: "lesson", sort: new Date(l.starts_at).getTime(), l }),
+      );
+    }
+    if (kindFilter !== "lessons" && canManagePrepay) {
+      visiblePrepays.forEach((tx) =>
+        rows.push({ type: "prepay", sort: new Date(tx.created_at).getTime(), tx }),
+      );
+    }
+    return rows.sort((a, b) => b.sort - a.sort);
+  }, [visibleLessons, visiblePrepays, kindFilter, canManagePrepay]);
+
+  // Keep visibleRows alias for backwards compatibility with existing code (lessons-only for bulk/CSV)
+  const visibleRows = visibleLessons;
 
   const totalIncome = billable
     .filter((l) => l.student_payment_status === "paid")
