@@ -1686,6 +1686,18 @@ export default function SchedulePage() {
                         }
                         extraActions={
                           <>
+                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => openEdit(lesson)}
+                                title="Перенести урок"
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">Перенести</span>
+                              </Button>
+                            )}
                             {canEditStatus ? (
                               <Select
                                 value={lesson.status}
