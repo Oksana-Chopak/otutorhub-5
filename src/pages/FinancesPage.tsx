@@ -60,6 +60,25 @@ interface Profile {
   last_name: string;
 }
 
+interface WalletTx {
+  id: string;
+  tutor_id: string;
+  student_id: string;
+  kind: "topup" | "lesson_charge" | "refund" | "adjustment";
+  lessons_delta: number;
+  amount_delta: number;
+  lesson_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface WalletBalance {
+  tutor_id: string;
+  student_id: string;
+  lessons_balance: number;
+  amount_balance: number;
+}
+
 const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
@@ -79,15 +98,22 @@ export default function FinancesPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  const canManagePrepay = isManager || isIndependentTutor;
 
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
+  const [balances, setBalances] = useState<Record<string, WalletBalance>>({});
+  const [pairRates, setPairRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [tutorFilter, setTutorFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all"); // all|need_pay|need_payout|done
+  const [kindFilter, setKindFilter] = useState<string>("all"); // all|lessons|prepay
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [walletPair, setWalletPair] = useState<PairOption | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
