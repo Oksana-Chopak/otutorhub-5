@@ -755,7 +755,7 @@ export default function SchedulePage() {
     if (detailsRows.length) {
       const { error: detailsErr } = await supabase
         .from("lesson_details")
-        .upsert(detailsRows, { onConflict: "lesson_id" });
+        .upsert(detailsRows as any, { onConflict: "lesson_id" });
       if (detailsErr) {
         console.warn("Failed to save lesson details", detailsErr);
       }
