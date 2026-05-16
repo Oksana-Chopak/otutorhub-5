@@ -81,14 +81,14 @@ export default function AuthPage() {
   useEffect(() => {
     const emailFromUrl = searchParams.get("email");
     if (searchParams.get("signup") === "1" && emailFromUrl) {
-      supabase
-        .rpc("is_pending_email", { _email: emailFromUrl })
-        .then(({ data }) => {
-          if (data === true) {
-            setPendingHint(emailFromUrl);
-          }
-        })
-      .catch((err: unknown) => console.error("[AuthPage] is_pending_email network error:", err));
+      (async () => {
+        try {
+          const { data } = await supabase.rpc("is_pending_email", { _email: emailFromUrl });
+          if (data === true) setPendingHint(emailFromUrl);
+        } catch (err) {
+          console.error("[AuthPage] is_pending_email network error:", err);
+        }
+      })();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
