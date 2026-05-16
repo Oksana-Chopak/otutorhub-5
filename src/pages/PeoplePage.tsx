@@ -192,6 +192,12 @@ export default function PeoplePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding">("all");
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const navigate = useNavigate();
+
+  const openChatWith = (userId: string) => {
+    navigate(`/chats?with=${userId}`);
+  };
 
   const loadData = async () => {
     setLoading(true);
