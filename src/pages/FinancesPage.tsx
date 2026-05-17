@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
@@ -96,6 +97,7 @@ const formatDate = (iso: string) =>
   });
 
 export default function FinancesPage() {
+  const { t } = useTranslation();
   const { roles } = useAuth();
   const { isIndependent } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
@@ -146,8 +148,8 @@ export default function FinancesPage() {
         .select("tutor_id, student_id, price_per_lesson, archived_at")
         .is("archived_at", null),
     ]);
-    if (lErr) toast.error("Помилка завантаження уроків");
-    if (pErr) toast.error("Помилка завантаження профілів");
+    if (lErr) toast.error(t("finances.loadLessonsError"));
+    if (pErr) toast.error(t("finances.loadProfilesError"));
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
       id: l.id,
       subject: l.subject,
@@ -195,7 +197,7 @@ export default function FinancesPage() {
   const nameOf = (id: string) => {
     const p = profiles[id];
     if (!p) return "—";
-    return `${p.first_name} ${p.last_name}`.trim() || "Без імені";
+    return `${p.first_name} ${p.last_name}`.trim() || t("common.noName");
   };
 
   const months = useMemo(() => {
@@ -414,7 +416,7 @@ export default function FinancesPage() {
     const head = rows.slice(0, TOP);
     const tail = rows.slice(TOP);
     const other = tail.reduce((s, r) => s + r.amount, 0);
-    return [...head, { student_id: "__other__", name: `Інші (${tail.length})`, amount: other }];
+    return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -461,7 +463,7 @@ export default function FinancesPage() {
             : l
         )
       );
-      toast.error("Не вдалося оновити статус");
+      toast.error(t("finances.updateStatusFailed"));
       return;
     }
     if (next === "paid") {
@@ -481,14 +483,14 @@ export default function FinancesPage() {
         await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
       };
       toast.success(
-        field === "student_payment_status" ? "✓ Позначено як оплачено" : "✓ Позначено як виплачено",
+        field === "student_payment_status" ? t("finances.markedAsPaid") : t("finances.markedAsPayout"),
         {
           duration: 5000,
-          action: { label: "Скасувати", onClick: () => { void revert(); } },
+          action: { label: t("finances.undoAction"), onClick: () => { void revert(); } },
         },
       );
     } else {
-      toast.success("Скинуто на неоплачено");
+      toast.success(t("finances.resetToUnpaid"));
     }
   };
 
@@ -551,38 +553,38 @@ export default function FinancesPage() {
       .in("lesson_id", ids);
     setBulkBusy(false);
     if (error) {
-      toast.error("Не вдалося оновити записи");
+      toast.error(t("finances.bulkUpdateFailed"));
       setLessons(previousLessons);
       return;
     }
-    toast.success(`Оновлено ${ids.length} записів`);
+    toast.success(t("finances.bulkUpdated", { count: ids.length }));
     setSelected(new Set());
   };
 
   const exportCsv = () => {
     const header = [
-      "Дата",
-      "Предмет",
-      "Учень",
-      "Ціна учня (₴)",
-      "Статус оплати учня",
-      "Дата оплати учня",
-      "Репетитор",
-      "Виплата (₴)",
-      "Статус виплати",
-      "Дата виплати",
-      "Прибуток (₴)",
+      t("finances.csvDate"),
+      t("finances.csvSubject"),
+      t("finances.csvStudent"),
+      t("finances.csvStudentPrice"),
+      t("finances.csvStudentPayStatus"),
+      t("finances.csvStudentPaidAt"),
+      t("finances.csvTutor"),
+      t("finances.csvPayout"),
+      t("finances.csvPayoutStatus"),
+      t("finances.csvPayoutAt"),
+      t("finances.csvProfit"),
     ];
     const rows = visibleRows.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
       String(l.student_price),
-      l.student_payment_status === "paid" ? "Оплачено" : "Очікує",
+      l.student_payment_status === "paid" ? t("finances.csvPaid") : t("finances.csvPending"),
       l.student_paid_at ? formatDate(l.student_paid_at) : "",
       nameOf(l.tutor_id),
       String(l.tutor_payout),
-      l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує",
+      l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
       l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
       String(Number(l.student_price) - Number(l.tutor_payout)),
     ]);
@@ -597,7 +599,7 @@ export default function FinancesPage() {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 150);
-    toast.success("CSV завантажено");
+    toast.success(t("finances.csvDownloaded"));
   };
 
   const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
@@ -622,7 +624,7 @@ export default function FinancesPage() {
           e.stopPropagation();
           openWalletForPair(tutor_id, student_id);
         }}
-        title={isNegative ? "Від'ємний баланс — потрібна передоплата" : "Баланс передоплати"}
+        title={isNegative ? t("finances.walletNegative") : t("finances.walletPositive")}
         className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
           isNegative
             ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
@@ -645,11 +647,11 @@ export default function FinancesPage() {
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">Фінанси</h1>
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {isIndependentTutor
-              ? "Оплати від ваших учнів"
-              : "Оплати від учнів та виплати репетиторам"}
+              ? t("finances.pageSubtitleTutor")
+              : t("finances.pageSubtitleManager")}
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
@@ -660,7 +662,7 @@ export default function FinancesPage() {
               className="h-9 w-full sm:w-auto"
             >
               <Plus className="mr-1 h-4 w-4" />
-              Зафіксувати оплату
+              {t("finances.recordPayment")}
             </Button>
           )}
           <MobileFilters
@@ -679,7 +681,7 @@ export default function FinancesPage() {
                     <SelectValue placeholder="Репетитор" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Всі репетитори</SelectItem>
+                    <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
                     {tutorOptions.map((t) => (
                       <SelectItem key={t.id} value={t.id}>
                         {t.name}
@@ -695,7 +697,7 @@ export default function FinancesPage() {
                   <SelectValue placeholder="Період" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі періоди</SelectItem>
+                  <SelectItem value="all">{t("finances.allPeriods")}</SelectItem>
                   {months.map((m) => (
                     <SelectItem key={m} value={m}>
                       {formatMonth(m)}
@@ -710,13 +712,13 @@ export default function FinancesPage() {
                   <SelectValue placeholder="Статус" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі статуси</SelectItem>
-                  <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
+                  <SelectItem value="all">{t("finances.allStatuses")}</SelectItem>
+                  <SelectItem value="need_pay">{t("finances.needStudentPay")}</SelectItem>
                   {!isIndependentTutor && (
-                    <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                    <SelectItem value="need_payout">{t("finances.needPayout")}</SelectItem>
                   )}
                   {!isIndependentTutor && (
-                    <SelectItem value="done">Все закрито</SelectItem>
+                    <SelectItem value="done">{t("finances.allClosed")}</SelectItem>
                   )}
                 </SelectContent>
               </Select>
@@ -728,9 +730,9 @@ export default function FinancesPage() {
                     <SelectValue placeholder="Тип" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Уроки + передоплати</SelectItem>
-                    <SelectItem value="lessons">Лише уроки</SelectItem>
-                    <SelectItem value="prepay">Лише передоплати</SelectItem>
+                    <SelectItem value="all">{t("finances.kindAll")}</SelectItem>
+                    <SelectItem value="lessons">{t("finances.kindLessons")}</SelectItem>
+                    <SelectItem value="prepay">{t("finances.kindPrepay")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -742,30 +744,30 @@ export default function FinancesPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Завантаження...
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> {t("common.loading")}
         </div>
       ) : (
         <>
           <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
             <StatCard
-              label={isIndependentTutor ? "Отримано" : "Надходження"}
+              label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
               value={`${totalIncome} ₴`}
               icon={ArrowDownLeft}
               variant="success"
             />
             {!isIndependentTutor && (
-              <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+              <StatCard label={t("finances.payouts")} value={`${totalExpense} ₴`} icon={ArrowUpRight} />
             )}
             {!isIndependentTutor && (
               <StatCard
-                label="Прибуток"
+                label={t("finances.profit")}
                 value={`${profit} ₴`}
                 icon={TrendingUp}
                 variant={profit >= 0 ? "success" : "warning"}
               />
             )}
             <StatCard
-              label={isIndependentTutor ? "Очікує оплати" : "Очікує (отримати/виплатити)"}
+              label={isIndependentTutor ? t("finances.awaitingPay") : t("finances.awaitingPayOrPayout")}
               value={isIndependentTutor ? `${pendingIncome} ₴` : `${pendingIncome} / ${pendingExpense} ₴`}
               icon={DollarSign}
               variant="warning"
@@ -775,7 +777,7 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Маржа
+                      {t("finances.margin")}
                     </p>
                     <p
                       className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
@@ -789,7 +791,7 @@ export default function FinancesPage() {
                       {hubMargin === null ? "—" : `${hubMargin.toFixed(1)}%`}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      Прибуток як % від надходжень
+                      {t("finances.marginDesc")}
                     </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -806,7 +808,7 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">
-                    Тренд прибутку (4 тижні)
+                    {t("finances.profitTrend")}
                   </h2>
                   <span className="text-xs text-muted-foreground">
                     {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
@@ -817,10 +819,10 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">
-                    Надходження за учнями
+                    {t("finances.incomeByStudent")}
                   </h2>
                   <span className="hidden text-xs text-muted-foreground sm:inline">
-                    Лише оплачені
+                    {t("finances.paidOnly")}
                   </span>
                 </div>
                 <IncomeByStudentPie data={incomeByStudent} />
@@ -834,8 +836,8 @@ export default function FinancesPage() {
               <div className="p-6">
                 <EmptyState
                   icon={DollarSign}
-                  title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу."
+                  title={t("finances.noPaymentsFiltered")}
+                  description={t("finances.noPaymentsDesc")}
                 />
               </div>
             ) : (
@@ -855,7 +857,7 @@ export default function FinancesPage() {
                           <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1">
                               <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
-                                <Package className="h-3.5 w-3.5" /> Передоплата
+                                <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
                               </p>
                               <p className="text-xs text-muted-foreground">
                                 {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
@@ -908,7 +910,7 @@ export default function FinancesPage() {
                               </p>
                               {l.student_paid_at && (
                                 <p className="truncate text-[11px] text-muted-foreground">
-                                  опл.: {formatDate(l.student_paid_at)}
+                                  {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                                 </p>
                               )}
                             </div>
@@ -918,7 +920,7 @@ export default function FinancesPage() {
                               </span>
                               <button
                                 onClick={() => togglePayment(l, "student_payment_status")}
-                                aria-label="Змінити статус оплати учня"
+                                aria-label={t("finances.statusPaid")}
                               >
                                 <Badge
                                   className={
@@ -927,7 +929,7 @@ export default function FinancesPage() {
                                       : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
                                   }
                                 >
-                                  {l.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                  {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
                                 </Badge>
                               </button>
                             </div>
@@ -941,7 +943,7 @@ export default function FinancesPage() {
                                 </p>
                                 {l.tutor_paid_at && (
                                   <p className="truncate text-[11px] text-muted-foreground">
-                                    вип.: {formatDate(l.tutor_paid_at)}
+                                    {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                                   </p>
                                 )}
                               </div>
@@ -951,7 +953,7 @@ export default function FinancesPage() {
                                 </span>
                                 <button
                                   onClick={() => togglePayment(l, "tutor_payout_status")}
-                                  aria-label="Змінити статус виплати"
+                                  aria-label={t("finances.statusPaidOut")}
                                 >
                                   <Badge
                                     className={
@@ -960,7 +962,7 @@ export default function FinancesPage() {
                                         : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
                                     }
                                   >
-                                    {l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує"}
+                                    {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
                                   </Badge>
                                 </button>
                               </div>
@@ -981,7 +983,7 @@ export default function FinancesPage() {
                           <Checkbox
                             checked={allSelected ? true : someSelected ? "indeterminate" : false}
                             onCheckedChange={toggleAll}
-                            aria-label="Обрати все"
+                            aria-label={t("finances.selectAll")}
                           />
                         </th>
                         <th className="px-3 py-3 text-left font-medium text-muted-foreground">Дата</th>

@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -80,12 +81,7 @@ interface PersonOption {
   subjects?: string[];
 }
 
-const statusLabel: Record<LessonStatus, string> = {
-  pending: "Запит",
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-};
+// statusLabel is computed inside the component using t() — see statusLabelFn below
 
 const statusBadgeClass: Record<LessonStatus, string> = {
   pending: "bg-warning/10 text-warning border-0",
@@ -110,6 +106,13 @@ function formatTime(iso: string) {
 }
 
 export default function SchedulePage() {
+  const { t } = useTranslation();
+  const statusLabel: Record<LessonStatus, string> = {
+    pending: t('schedule.statusPending'),
+    scheduled: t('schedule.statusScheduled'),
+    completed: t('schedule.statusCompleted'),
+    cancelled: t('schedule.statusCancelled'),
+  };
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -243,7 +246,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error("Не вдалося зберегти зміни");
+        toast.error(t('schedule.saveFailed'));
         return;
       }
     }
@@ -254,7 +257,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error("Не вдалося зберегти зміни");
+        toast.error(t('schedule.saveFailed'));
         return;
       }
     }
@@ -277,8 +280,8 @@ export default function SchedulePage() {
     setEditSubmitting(false);
     toast.success(
       changed.length > 0
-        ? "Урок оновлено. Учень отримає сповіщення."
-        : "Урок оновлено"
+        ? t('schedule.lessonUpdatedNotified')
+        : t('schedule.lessonUpdated')
     );
     setEditingLesson(null);
     loadAll();
@@ -642,13 +645,13 @@ export default function SchedulePage() {
       return ls < endMs && le > startMs;
     });
     if (!conflict) return null;
-    const t = new Date(conflict.starts_at).toLocaleString("uk-UA", {
+    const conflictTime = new Date(conflict.starts_at).toLocaleString("uk-UA", {
       day: "numeric",
       month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `У репетитора вже є урок (${conflict.subject}, ${t}). Можна продовжити, але час перетинається.`;
+    return t('schedule.conflictWarning', { subject: conflict.subject, time: conflictTime });
   }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
 
   const handleCreate = async () => {
@@ -666,7 +669,7 @@ export default function SchedulePage() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error("Заповніть усі обов'язкові поля");
+      toast.error(t('common.fillRequired'));
       return;
     }
     setFormErrors({});
@@ -744,7 +747,7 @@ export default function SchedulePage() {
     if (error) {
       setSubmitting(false);
       console.error("Failed to create lesson", error);
-      toast.error("Не вдалося створити урок. Спробуйте ще раз.");
+      toast.error(t('schedule.createFailed'));
       return;
     }
     const detailsRows = (insertedLessons ?? [])
@@ -766,10 +769,10 @@ export default function SchedulePage() {
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1
-        ? `Створено ${repeats} уроків`
+        ? t('schedule.lessonsCreated', { count: repeats })
         : status === "pending"
-        ? "Запит створено"
-        : "Урок створено"
+        ? t('schedule.requestCreated')
+        : t('schedule.lessonCreated')
     );
     setCreateOpen(false);
     setForm((f) => ({
@@ -792,11 +795,11 @@ export default function SchedulePage() {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
       console.error("Failed to update lesson status", error);
-      toast.error("Не вдалося оновити статус. Спробуйте ще раз.");
+      toast.error(t('schedule.statusUpdateFailed'));
       setLessons(prev);
       return;
     }
-    toast.success("Статус оновлено");
+    toast.success(t('schedule.statusUpdated'));
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 
@@ -820,11 +823,11 @@ export default function SchedulePage() {
       );
     if (error) {
       console.error("Failed to update payment status", error);
-      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      toast.error(t('schedule.paymentUpdateFailed'));
       setLessons(prev);
       return;
     }
-    toast.success("Оплату оновлено");
+    toast.success(t('schedule.paymentUpdated'));
   };
 
   const deleteLesson = async (lessonId: string) => {
@@ -833,11 +836,11 @@ export default function SchedulePage() {
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
       console.error("Failed to delete lesson", error);
-      toast.error("Не вдалося видалити урок. Спробуйте ще раз.");
+      toast.error(t('schedule.deleteFailed'));
       setLessons(prev);
       return;
     }
-    toast.success("Урок видалено");
+    toast.success(t('schedule.lessonDeleted'));
     void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
@@ -892,11 +895,11 @@ export default function SchedulePage() {
     type Bucket = "today" | "tomorrow" | "thisWeek" | "later" | "past";
     const order: Bucket[] = ["today", "tomorrow", "thisWeek", "later", "past"];
     const labels: Record<Bucket, string> = {
-      today: "Сьогодні",
-      tomorrow: "Завтра",
-      thisWeek: "Цей тиждень",
-      later: "Пізніше",
-      past: "Минулі",
+      today: t('common.today'),
+      tomorrow: t('common.tomorrow'),
+      thisWeek: t('schedule.bucketThisWeek'),
+      later: t('schedule.bucketLater'),
+      past: t('schedule.bucketPast'),
     };
     const map = new Map<Bucket, Lesson[]>();
     order.forEach((k) => map.set(k, []));
@@ -970,7 +973,7 @@ export default function SchedulePage() {
         <div className="min-w-0">
           <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
             <span>📅</span>
-            <span className="truncate">Розклад занять</span>
+            <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -987,64 +990,64 @@ export default function SchedulePage() {
             }
           >
             <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.status')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Всі статуси</SelectItem>
-                <SelectItem value="scheduled">Заплановано</SelectItem>
-                <SelectItem value="completed">Проведено</SelectItem>
-                <SelectItem value="cancelled">Скасовано</SelectItem>
+                <SelectItem value="all">{t('schedule.allStatuses')}</SelectItem>
+                <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
+                <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
+                <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
               </SelectContent>
             </Select>
             {isManager && (
               <Select value={filterTutor} onValueChange={setFilterTutor}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('roles.tutor')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  <SelectItem value="all">{t('schedule.allTutors')}</SelectItem>
                   {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
             {(isManager || isTutor) && (
               <Select value={filterStudent} onValueChange={setFilterStudent}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.student')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі учні</SelectItem>
+                  <SelectItem value="all">{t('schedule.allStudents')}</SelectItem>
                   {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
             <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.month')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Весь час</SelectItem>
-                <SelectItem value="upcoming">Майбутні</SelectItem>
-                <SelectItem value="past">Минулі</SelectItem>
-                <SelectItem value="week">Цей тиждень</SelectItem>
-                <SelectItem value="month">Цей місяць</SelectItem>
+                <SelectItem value="all">{t('schedule.allPeriods')}</SelectItem>
+                <SelectItem value="upcoming">{t('schedule.periodUpcoming')}</SelectItem>
+                <SelectItem value="past">{t('schedule.periodPast')}</SelectItem>
+                <SelectItem value="week">{t('schedule.periodThisWeek')}</SelectItem>
+                <SelectItem value="month">{t('schedule.periodThisMonth')}</SelectItem>
               </SelectContent>
             </Select>
             {hasMixedSources && (
               <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.sourceAll')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі</SelectItem>
-                  <SelectItem value="hub">Хаб</SelectItem>
-                  <SelectItem value="independent">Мої</SelectItem>
+                  <SelectItem value="all">{t('schedule.sourceAll')}</SelectItem>
+                  <SelectItem value="hub">{t('schedule.sourceHub')}</SelectItem>
+                  <SelectItem value="independent">{t('schedule.sourceMine')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
             {filtersActive && (
               <Button size="sm" variant="ghost" className="h-9 w-full text-xs" onClick={() => {
                 setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
-              }}>Скинути фільтри</Button>
+              }}>{t('schedule.resetFilters')}</Button>
             )}
           </MobileFilters>
           <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
-              <List className="h-3.5 w-3.5" />Список
+              <List className="h-3.5 w-3.5" />{t('schedule.listView')}
             </Button>
             <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
-              <CalendarRange className="h-3.5 w-3.5" />Тиждень
+              <CalendarRange className="h-3.5 w-3.5" />{t('schedule.weekView')}
             </Button>
           </div>
           {isPureStudent && studentTutors.length === 0 && (
@@ -1065,28 +1068,28 @@ export default function SchedulePage() {
               <DialogTrigger asChild>
                 <Button size="sm" className="h-9 gap-1.5 px-3">
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Створити урок</span>
-                  <span className="sm:hidden">Урок</span>
+                  <span className="hidden sm:inline">{t('schedule.createBtn')}</span>
+                  <span className="sm:hidden">{t('schedule.addLesson')}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-                  <DialogTitle>Новий урок</DialogTitle>
+                  <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
-                    <span className={step === 1 ? "text-foreground font-medium" : ""}>Хто і коли</span>
+                    <span className={step === 1 ? "text-foreground font-medium" : ""}>{t('schedule.step1')}</span>
                     <span className="h-px flex-1 bg-border" />
                     <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
                       step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
-                    <span className={step === 2 ? "text-foreground font-medium" : ""}>Деталі</span>
+                    <span className={step === 2 ? "text-foreground font-medium" : ""}>{t('schedule.step2')}</span>
                   </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                 {step === 1 && (<>
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
-                      Репетитор <span className="text-destructive">*</span>
+                      {t('roles.tutor')} <span className="text-destructive">*</span>
                     </Label>
                     <Select
                       value={form.tutor_id}
@@ -1102,7 +1105,7 @@ export default function SchedulePage() {
                             "border-destructive ring-1 ring-destructive focus:ring-destructive"
                         )}
                       >
-                        <SelectValue placeholder="Оберіть репетитора" />
+                        <SelectValue placeholder={t('schedule.selectTutor')} />
                       </SelectTrigger>
                     <SelectContent>
                       {tutors.map((t) => (

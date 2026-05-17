@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,6 +111,7 @@ const emptyForm: FormData = {
 };
 
 export default function MyStudentsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
@@ -314,19 +316,19 @@ export default function MyStudentsPage() {
     const price = parseFloat(form.price);
 
     if (!fn && !ln) {
-      toast.error("Вкажіть ім'я або прізвище учня");
+      toast.error(t("myStudents.nameRequired"));
       return;
     }
     if (!email && !phone) {
-      toast.error("Потрібен email або телефон, щоб учень міг приєднатися");
+      toast.error(t("myStudents.emailOrPhoneRequired"));
       return;
     }
     if (!subject) {
-      toast.error("Вкажіть предмет");
+      toast.error(t("myStudents.subjectRequired"));
       return;
     }
     if (isNaN(price) || price < 0) {
-      toast.error("Введіть коректну ціну за урок");
+      toast.error(t("myStudents.invalidPrice"));
       return;
     }
 
@@ -341,7 +343,7 @@ export default function MyStudentsPage() {
         .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
       if (profErr) {
         console.error(profErr);
-        toast.error(profErr.message || "Не вдалося створити профіль");
+        toast.error(profErr.message || t("myStudents.createProfileFailed"));
         setSubmitting(false);
         return;
       }
@@ -353,7 +355,7 @@ export default function MyStudentsPage() {
       if (roleErr) {
         console.error(roleErr);
         await supabase.from("profiles").delete().eq("id", newId);
-        toast.error("Не вдалося призначити роль");
+        toast.error(t("myStudents.roleAssignFailed"));
         setSubmitting(false);
         return;
       }
@@ -372,7 +374,7 @@ export default function MyStudentsPage() {
         console.error(rateErr);
         await supabase.from("user_roles").delete().eq("user_id", newId);
         await supabase.from("profiles").delete().eq("id", newId);
-        toast.error("Не вдалося зберегти ціну");
+        toast.error(t("myStudents.savePriceFailed"));
         setSubmitting(false);
         return;
       }
@@ -393,8 +395,8 @@ export default function MyStudentsPage() {
         await supabase.from("profiles").delete().eq("id", newId);
         toast.error(
           String(contErr.message || "").includes("email_lower")
-            ? "Цей email вже зареєстровано"
-            : "Не вдалося зберегти контакти"
+            ? t("myStudents.emailTaken")
+            : t("myStudents.saveContactsFailed")
         );
         setSubmitting(false);
         return;
@@ -407,7 +409,7 @@ export default function MyStudentsPage() {
       const meetingUrlRaw = form.default_meeting_url.trim();
       const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
       if (meetingUrlRaw && !meetingUrl) {
-        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        toast.error(t("myStudents.invalidMeetingUrl"));
         return;
       }
       if (meetingUrl) {
@@ -421,7 +423,7 @@ export default function MyStudentsPage() {
         );
       }
 
-      toast.success("Учня додано");
+      toast.success(t("myStudents.studentAdded"));
 
       // Auto-send email invite if we have an email
       let inviteSent = false;
@@ -432,7 +434,7 @@ export default function MyStudentsPage() {
         );
         if (!inviteErr && (inviteResp as any)?.success) {
           inviteSent = true;
-          toast.success("Запрошення надіслано на email учня");
+          toast.success(t("myStudents.inviteSent"));
         } else if (inviteErr) {
           console.warn("Auto-invite failed", inviteErr);
         }
@@ -496,7 +498,7 @@ export default function MyStudentsPage() {
       const meetingUrlRaw = form.default_meeting_url.trim();
       const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
       if (meetingUrlRaw && !meetingUrl) {
-        toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+        toast.error(t("myStudents.invalidMeetingUrl"));
         return;
       }
       await supabase.from("tutor_student_defaults").upsert(
@@ -508,7 +510,7 @@ export default function MyStudentsPage() {
         { onConflict: "tutor_id,student_id" }
       );
 
-      toast.success("Дані учня оновлено");
+      toast.success(t("myStudents.studentUpdated"));
       if (priceChanged) {
         setPropagate({ open: true, ...priceChanged });
       }
@@ -521,16 +523,16 @@ export default function MyStudentsPage() {
 
   const archive = async (s: MyStudent) => {
     if (!s.rate_id) return;
-    if (!confirm(`Перенести ${`${s.first_name} ${s.last_name}`.trim() || "учня"} в архів? Історію уроків буде збережено.`)) return;
+    if (!confirm(`Перенести ${ `${s.first_name} ${s.last_name}`.trim() || t("common.noName")} в архів? Історію уроків буде збережено.`)) return;
     const { error } = await supabase
       .from("student_rates")
       .update({ archived_at: new Date().toISOString() } as any)
       .eq("id", s.rate_id);
     if (error) {
-      toast.error("Не вдалося архівувати");
+      toast.error(t("myStudents.archiveFailed"));
       return;
     }
-    toast.success("Перенесено в архів");
+    toast.success(t("myStudents.archived"));
     await Promise.all([load(), refresh()]);
   };
 
@@ -541,10 +543,10 @@ export default function MyStudentsPage() {
       .update({ archived_at: null } as any)
       .eq("id", s.rate_id);
     if (error) {
-      toast.error("Не вдалося відновити");
+      toast.error(t("myStudents.unarchiveFailed"));
       return;
     }
-    toast.success("Учня повернено зі списку архіву");
+    toast.success(t("myStudents.unarchived"));
     await Promise.all([load(), refresh()]);
   };
 
@@ -559,18 +561,18 @@ export default function MyStudentsPage() {
     <AppLayout>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">Мої учні</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t("myStudents.title")}</h1>
           <p className="text-sm text-muted-foreground">
-            Учні, яких ви ведете самостійно. Ціни і розклад — повністю на вас.
+            {t("myStudents.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-            {studentCount} {studentCount === 1 ? "учень" : "учнів"}
+            {t("myStudents.studentCount", { count: studentCount })}
           </span>
           <Button onClick={openCreate}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Додати учня
+            {t("myStudents.addStudentBtn")}
           </Button>
         </div>
       </div>
@@ -585,7 +587,7 @@ export default function MyStudentsPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          Активні ({activeStudents.length})
+          {t("myStudents.tabActive", { count: activeStudents.length })}
         </button>
         <button
           type="button"
@@ -596,7 +598,7 @@ export default function MyStudentsPage() {
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          В архіві ({archivedStudents.length})
+          {t("myStudents.tabArchived", { count: archivedStudents.length })}
         </button>
       </div>
 
@@ -608,16 +610,16 @@ export default function MyStudentsPage() {
         view === "active" ? (
           <EmptyState
             icon={UserPlus}
-            title="У вас поки немає власних учнів"
-            description="Додайте першого учня — і почніть планувати уроки. Кількість учнів на безкоштовному плані не обмежена."
-            actionLabel="Додати учня"
+            title={t("myStudents.emptyActiveTitle")}
+            description={t("myStudents.emptyActiveDesc")}
+            actionLabel={t("myStudents.addStudentBtn")}
             onAction={openCreate}
           />
         ) : (
           <EmptyState
             icon={Archive}
-            title="Архів порожній"
-            description="Сюди потрапляють учні, з якими ви тимчасово не працюєте. Історія уроків і платежів зберігається."
+            title={t("myStudents.emptyArchiveTitle")}
+            description={t("myStudents.emptyArchiveDesc")}
           />
         )
       ) : (
@@ -644,15 +646,15 @@ export default function MyStudentsPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-foreground">
-                      {`${s.first_name} ${s.last_name}`.trim() || "Без імені"}
+                      {`${s.first_name} ${s.last_name}`.trim() || t("common.noName")}
                     </p>
                     {s.is_pending && !s.archived_at && (
                       <span
                         className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning"
-                        title="Учень ще не зареєструвався"
+                        title={t("myStudents.pendingBadge")}
                       >
                         <Hourglass className="h-3 w-3" />
-                        Очікує реєстрації
+                        {t("myStudents.pendingBadge")}
                       </span>
                     )}
                     {!s.archived_at && (st.status === "debt" || st.status === "inactive") && (
@@ -669,7 +671,7 @@ export default function MyStudentsPage() {
                     {s.archived_at && (
                       <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                         <Archive className="h-3 w-3" />
-                        В архіві
+                        {t("myStudents.archivedBadge")}
                       </span>
                     )}
                   </div>
@@ -677,7 +679,7 @@ export default function MyStudentsPage() {
                     <span>{s.subject}</span>
                     <span className="inline-flex items-center gap-1">
                       <Banknote className="h-3 w-3" />
-                      {formatPrice(s.price, s.currency)}/урок
+                      {formatPrice(s.price, s.currency)}{t("myStudents.perLesson")}
                     </span>
                     {s.phone && (
                       <span className="inline-flex items-center gap-1">
@@ -727,7 +729,7 @@ export default function MyStudentsPage() {
                         className="inline-flex items-center gap-1 text-primary hover:underline"
                       >
                         <Video className="h-3 w-3" />
-                        Постійна кімната
+                        {t("myStudents.permanentRoom")}
                       </a>
                     )}
                   </div>
@@ -741,7 +743,7 @@ export default function MyStudentsPage() {
                         setChatDialog({
                           open: true,
                           studentId: s.id,
-                          studentName: `${s.first_name} ${s.last_name}`.trim() || "Учень",
+                          studentName: `${s.first_name} ${s.last_name}`.trim() || t("common.noName"),
                         })
                       }
                       title="Написати учню"
@@ -769,7 +771,7 @@ export default function MyStudentsPage() {
                           tutorId: user!.id,
                           studentId: s.id,
                           studentName: `${s.first_name} ${s.last_name}`.trim() || "—",
-                          tutorName: "Ви",
+                          tutorName: t("common.you") ?? "Ви",
                           rate: s.price,
                         })
                       }

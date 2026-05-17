@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -98,13 +99,8 @@ interface UserRow {
   has_paid_lesson?: boolean;
 }
 
-const roleLabel: Record<AppRole, string> = {
-  manager: "Менеджер",
-  tutor: "Репетитор",
-  student: "Учень",
-};
-
 export default function PeoplePage() {
+  const { t } = useTranslation();
   const { user: currentUser, roles } = useAuth();
   const isManager = roles.includes("manager");
   const [loading, setLoading] = useState(true);
@@ -385,7 +381,7 @@ export default function PeoplePage() {
 
   const changeRole = async (userId: string, newRole: AppRole) => {
     if (userId === currentUser?.id && newRole !== "manager") {
-      toast.error("Не можна знімати з себе роль менеджера");
+      toast.error(t("people.cannotRemoveOwnManager"));
       return;
     }
     // Atomic role swap: upsert on user_id (one role per person guaranteed by DB unique constraint)
@@ -394,7 +390,7 @@ export default function PeoplePage() {
       .upsert({ user_id: userId, role: newRole }, { onConflict: "user_id" });
     if (upsertErr) {
       console.error("Failed to update role", upsertErr);
-      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
+      toast.error(t("people.roleUpdateFailed"));
       return;
     }
 
@@ -404,14 +400,14 @@ export default function PeoplePage() {
       await supabase.from("student_details").upsert({ user_id: userId }, { onConflict: "user_id" });
     }
 
-    toast.success("Роль оновлено");
+    toast.success(t("people.roleUpdated"));
     loadData();
   };
 
   const saveTutorRate = async () => {
     const subjects = tutorDialog.subjects;
     if (subjects.length === 0) {
-      toast.error("Оберіть хоча б один предмет");
+      toast.error(t("people.selectAtLeastOneSubject"));
       return;
     }
     // Validate all rates
@@ -419,12 +415,12 @@ export default function PeoplePage() {
     for (const s of subjects) {
       const raw = (tutorDialog.rates[s] ?? "").trim();
       if (raw === "") {
-        toast.error(`Введіть ставку для предмета: ${s}`);
+        toast.error(t("people.enterRateForSubject", { subject: s }));
         return;
       }
       const v = parseFloat(raw);
       if (isNaN(v) || v < 0) {
-        toast.error(`Некоректна ставка для предмета: ${s}`);
+        toast.error(t("people.invalidRateForSubject", { subject: s }));
         return;
       }
       parsed.push({ subject: s, rate: v });
@@ -439,7 +435,7 @@ export default function PeoplePage() {
       );
     if (tdErr) {
       console.error("Failed to save tutor details", tdErr);
-      toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+      toast.error(t("people.saveFailed"));
       return;
     }
 
@@ -454,7 +450,7 @@ export default function PeoplePage() {
       .upsert(rows, { onConflict: "tutor_id,subject" });
     if (srErr) {
       console.error("Failed to save subject rates", srErr);
-      toast.error("Не вдалося зберегти ставки за предметами");
+      toast.error(t("people.subjectRatesSaveFailed"));
       return;
     }
 
@@ -469,7 +465,7 @@ export default function PeoplePage() {
       console.warn("Failed to cleanup obsolete subject rates", delErr);
     }
 
-    toast.success("Збережено");
+    toast.success(t("people.saved"));
     setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();
   };
@@ -477,11 +473,11 @@ export default function PeoplePage() {
   const saveStudentPrice = async () => {
     const price = parseFloat(studentDialog.price);
     if (isNaN(price) || price < 0) {
-      toast.error("Введіть коректну ціну");
+      toast.error(t("people.invalidPrice"));
       return;
     }
     if (!studentDialog.subject) {
-      toast.error("Оберіть предмет");
+      toast.error(t("people.selectSubject"));
       return;
     }
     let oldPrice = 0;
@@ -495,7 +491,7 @@ export default function PeoplePage() {
         .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
-        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+        toast.error(t("people.saveFailed"));
         return;
       }
     } else {
@@ -508,11 +504,11 @@ export default function PeoplePage() {
       });
       if (error) {
         console.error("Failed to insert student rate", error);
-        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+        toast.error(t("people.saveFailed"));
         return;
       }
     }
-    toast.success("Ціну збережено");
+    toast.success(t("people.priceSaved"));
     const propPayload =
       isUpdate && oldPrice !== price
         ? {
@@ -544,16 +540,16 @@ export default function PeoplePage() {
 
   const saveAddTutorToStudent = async () => {
     if (!addTutorToStudent.tutorId) {
-      toast.error("Оберіть репетитора");
+      toast.error(t("people.selectTutor"));
       return;
     }
     if (!addTutorToStudent.subject) {
-      toast.error("Оберіть предмет");
+      toast.error(t("people.selectSubject"));
       return;
     }
     const price = Number.parseFloat(addTutorToStudent.price.replace(",", "."));
     if (!Number.isFinite(price) || price < 0) {
-      toast.error("Вкажіть коректну ціну");
+      toast.error(t("people.enterValidPrice"));
       return;
     }
     const { error } = await supabase.from("student_rates").upsert(
@@ -568,11 +564,11 @@ export default function PeoplePage() {
     );
     if (error) {
       console.error("Failed to add tutor to student", error);
-      toast.error("Не вдалося додати репетитора. Спробуйте ще раз.");
+      toast.error(t("people.addTutorFailed"));
       return;
     }
     await ensureTutorSubject(addTutorToStudent.tutorId, addTutorToStudent.subject);
-    toast.success("Репетитора додано до учня");
+    toast.success(t("people.tutorAddedToStudent"));
     setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
   };
@@ -583,15 +579,15 @@ export default function PeoplePage() {
     const email = addForm.email.trim().toLowerCase();
     const phone = addForm.phone.trim();
     if (!fn && !ln) {
-      toast.error("Вкажіть хоча б ім'я або прізвище");
+      toast.error(t("people.nameRequired"));
       return;
     }
     if (!email && !phone) {
-      toast.error("Вкажіть email або телефон — інакше не зможемо зв'язати з реєстрацією");
+      toast.error(t("people.emailOrPhoneRequired"));
       return;
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Невірний email");
+      toast.error(t("people.invalidEmail"));
       return;
     }
 
@@ -603,7 +599,7 @@ export default function PeoplePage() {
       .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
     if (profErr) {
       console.error("Failed to create ghost profile", profErr);
-      toast.error(profErr.message || "Не вдалося створити профіль");
+      toast.error(profErr.message || t("people.createProfileFailed"));
       setAdding(false);
       return;
     }
@@ -618,9 +614,9 @@ export default function PeoplePage() {
       await supabase.from("profiles").delete().eq("id", newId);
       const msg = String(contErr.message || "");
       if (msg.includes("profile_contacts_email_lower")) {
-        toast.error("Цей email вже зареєстровано в системі");
+        toast.error(t("people.emailAlreadyRegistered"));
       } else {
-        toast.error("Не вдалося зберегти контакти");
+        toast.error(t("people.saveContactsFailed"));
       }
       setAdding(false);
       return;
@@ -634,7 +630,7 @@ export default function PeoplePage() {
       console.error("Failed to assign role", roleErr);
       await supabase.from("profile_contacts").delete().eq("user_id", newId);
       await supabase.from("profiles").delete().eq("id", newId);
-      toast.error("Не вдалося призначити роль");
+      toast.error(t("people.assignRoleFailed"));
       setAdding(false);
       return;
     }
@@ -649,7 +645,7 @@ export default function PeoplePage() {
     }
 
     setAdding(false);
-    toast.success("Людину додано");
+    toast.success(t("people.personAdded"));
     setAddOpen(false);
 
     // Auto-send email invite to students with email
@@ -661,7 +657,7 @@ export default function PeoplePage() {
       );
       if (!inviteErr && (inviteResp as any)?.success) {
         emailSent = true;
-        toast.success("Запрошення надіслано на email учня");
+        toast.success(t("people.inviteSent"));
       } else if (inviteErr) {
         console.warn("Auto-invite failed", inviteErr);
       }
@@ -683,7 +679,7 @@ export default function PeoplePage() {
 
   const archivePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна архівувати власний акаунт");
+      toast.error(t("people.cannotArchiveOwn"));
       return;
     }
     if (!confirm(`Перемістити ${fullName(u)} в архів? Усі уроки, ставки та історія залишаться. Профіль зникне з основних списків — повернути можна будь-коли з вкладки «В архіві».`)) {
@@ -695,10 +691,10 @@ export default function PeoplePage() {
       .eq("id", u.id);
     if (error) {
       console.error("Failed to archive profile", error);
-      toast.error("Не вдалося архівувати");
+      toast.error(t("people.archiveFailed"));
       return;
     }
-    toast.success("Переміщено в архів");
+    toast.success(t("people.archived"));
     loadData();
   };
 
@@ -709,16 +705,16 @@ export default function PeoplePage() {
       .eq("id", u.id);
     if (error) {
       console.error("Failed to unarchive profile", error);
-      toast.error("Не вдалося відновити");
+      toast.error(t("people.unarchiveFailed"));
       return;
     }
-    toast.success("Профіль повернуто");
+    toast.success(t("people.unarchived"));
     loadData();
   };
 
   const purgePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна видалити власний акаунт");
+      toast.error(t("people.cannotDeleteOwn"));
       return;
     }
     const name = fullName(u);
@@ -738,20 +734,20 @@ export default function PeoplePage() {
       `Для підтвердження введіть DELETE великими літерами:`
     );
     if (typed !== "DELETE") {
-      toast.info("Видалення скасовано");
+      toast.info(t("people.deleteCancelled"));
       return;
     }
     const { error } = await supabase.rpc("manager_purge_user", { _user_id: u.id });
     if (error) {
       console.error("Failed to purge user", error);
-      toast.error(`Не вдалося видалити: ${error.message}`);
+      toast.error(t("people.deleteFailed", { message: error.message }));
       return;
     }
-    toast.success(`${name} та всі пов'язані дані видалено`);
+    toast.success(t("people.deleteSuccess", { name }));
     loadData();
   };
 
-  const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
+  const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || t("common.noName");
 
   // Build subject options from all tutors
   const allSubjects = useMemo(() => {
@@ -833,9 +829,9 @@ export default function PeoplePage() {
     const tutorProgress = isManager && u.role === "tutor" && !u.archived_at
       ? (() => {
           const steps = [
-            { ok: !!u.has_student, label: "Учні" },
-            { ok: !!u.has_lesson, label: "Уроки" },
-            { ok: !!u.has_paid_lesson, label: "Оплати" },
+            { ok: !!u.has_student, label: t("people.progressStudents") },
+            { ok: !!u.has_lesson, label: t("people.progressLessons") },
+            { ok: !!u.has_paid_lesson, label: t("people.progressPayments") },
           ];
           const doneCount = steps.filter((s) => s.ok).length;
           const fmt = (d?: string | null) =>
@@ -864,7 +860,7 @@ export default function PeoplePage() {
           onClick={toggleExpanded}
           className="flex min-w-0 flex-1 items-center gap-3 text-left lg:gap-4"
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? "Згорнути картку" : "Розгорнути картку"}
+          aria-label={isExpanded ? t("people.collapseCard") : t("people.expandCard")}
         >
           <div className="relative shrink-0">
             {u.is_pending ? (
@@ -895,12 +891,12 @@ export default function PeoplePage() {
               </p>
               {u.is_pending && (
                 <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
-                  Очікує реєстрації
+                  {t("people.pendingBadge")}
                 </Badge>
               )}
               {u.archived_at && (
                 <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
-                  В архіві
+                  {t("people.archivedBadge")}
                 </Badge>
               )}
               {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
@@ -946,8 +942,8 @@ export default function PeoplePage() {
                 e.stopPropagation();
                 openChatWith(u.id);
               }}
-              title="Написати"
-              aria-label="Написати"
+              title={t("people.writeBtn")}
+              aria-label={t("people.writeBtn")}
             >
               <MessageSquare className="h-4 w-4" />
             </Button>
@@ -961,7 +957,7 @@ export default function PeoplePage() {
                 e.stopPropagation();
                 setContactDialog({ open: true, user: u });
               }}
-              title="Редагувати контакти"
+              title={t("people.editContactsBtn")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -977,7 +973,7 @@ export default function PeoplePage() {
                     e.stopPropagation();
                     unarchivePerson(u);
                   }}
-                  title="Повернути з архіву"
+                  title={t("people.unarchiveBtn")}
                 >
                   <ArchiveRestore className="h-3.5 w-3.5" />
                 </Button>
