@@ -285,6 +285,7 @@ export const sv: Partial<Translations> = {
     itemPaywallMetrics: "Paywall-mätvärden",
     itemAudit: "Granskning",
   },
+  landing: {
     nav: {
       features: "Vad den gör",
       howItWorks: "Så funkar det",
