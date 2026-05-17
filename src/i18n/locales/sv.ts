@@ -495,7 +495,7 @@ export const sv: Partial<Translations> = {
       pro3: "AI-lektionssammanfattningar", pro4: "Inbyggd chatt",
       pro5: "Grupplektioner", pro6: "Google Kalender-synk",
       pro7: "Obegränsat antal elever och lektioner",
-      proCta: "14 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
+      proCta: "30 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
     },
     footer: {
       app: "Appen",
