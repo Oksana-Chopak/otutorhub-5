@@ -271,9 +271,9 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            14 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
+            30 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
             <br />
-            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на рік.
+            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на пів року.
           </p>
         </div>
 
