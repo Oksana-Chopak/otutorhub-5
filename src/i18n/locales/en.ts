@@ -282,7 +282,7 @@ export const en: Translations = {
     pricing: {
       label: "Pricing", title: "Simple and honest",
       spotsOf20: "spots of 20",
-      earlyPlan: "First 20", earlyPeriod: "free for a year",
+      earlyPlan: "First 20", earlyPeriod: "free for half a year",
       early1: "Full access, no limits",
       early2: "Free for an entire year",
       early3: "Price will never increase",
@@ -292,7 +292,7 @@ export const en: Translations = {
       pro3: "AI lesson summaries", pro4: "Built-in chat",
       pro5: "Group sessions", pro6: "Google Calendar sync",
       pro7: "Unlimited students & sessions",
-      proCta: "14 days free →", proNote: "No card required. Cancel anytime.",
+      proCta: "30 days free →", proNote: "No card required. Cancel anytime.",
     },
     footer: {
       app: "App",

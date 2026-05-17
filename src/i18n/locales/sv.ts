@@ -485,7 +485,7 @@ export const sv: Partial<Translations> = {
     pricing: {
       label: "Priser", title: "Enkelt och ärligt",
       spotsOf20: "platser av 20",
-      earlyPlan: "Första 20", earlyPeriod: "gratis i ett år",
+      earlyPlan: "Första 20", earlyPeriod: "gratis i ett halvår",
       early1: "Full åtkomst utan begränsningar",
       early2: "Gratis i ett helt år",
       early3: "Priset höjs aldrig",
@@ -495,7 +495,7 @@ export const sv: Partial<Translations> = {
       pro3: "AI-lektionssammanfattningar", pro4: "Inbyggd chatt",
       pro5: "Grupplektioner", pro6: "Google Kalender-synk",
       pro7: "Obegränsat antal elever och lektioner",
-      proCta: "14 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
+      proCta: "30 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
     },
     footer: {
       app: "Appen",

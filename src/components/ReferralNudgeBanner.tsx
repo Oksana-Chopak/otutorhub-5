@@ -55,7 +55,7 @@ export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
             Знаєш колег-репетиторів? Запроси і отримай <span className="text-primary">місяць Pro</span> безкоштовно
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            +7 днів обом за реєстрацію · +1 місяць Pro щоразу, коли друг переходить на Pro
+            +30 днів обом за реєстрацію · +1 місяць Pro щоразу, коли друг переходить на Pro
           </p>
         </div>
         <Button asChild size="sm" className="shrink-0">

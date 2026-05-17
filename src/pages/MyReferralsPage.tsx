@@ -104,7 +104,7 @@ export default function MyReferralsPage() {
             <CardDescription>Без зірочок і дрібного шрифту</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-foreground">
-            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span>Друг зареєструвався за твоїм посиланням → він отримує <strong>21 день тріалу</strong> замість 14.</span></div>
+            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span>Друг зареєструвався за твоїм посиланням → він отримує <strong>30 днів тріалу у подарунок</strong>.</span></div>
             <div className="flex gap-3"><span className="text-xl">2️⃣</span><span>Друг оплатив перший місяць → ти отримуєш <strong>місяць безкоштовно</strong>.</span></div>
             <div className="flex gap-3"><span className="text-xl">3️⃣</span><span>Три друзі оплатили за один місяць → ти отримуєш <strong>три місяці безкоштовно</strong>.</span></div>
           </CardContent>
@@ -117,7 +117,7 @@ export default function MyReferralsPage() {
               Знаєш репетитора, який досі веде облік у блокноті? Саме час врятувати людину 😄
             </p>
             <p className="text-muted-foreground">
-              Поділись посиланням — твій друг отримає 21 день тріалу, а коли він підпишеться — ти отримаєш місяць безкоштовно. Без умов дрібним шрифтом.
+              Поділись посиланням — твій друг отримає 30 днів тріалу, а коли він підпишеться — ти також отримаєш 30 днів безкоштовно. Без умов дрібним шрифтом.
             </p>
           </CardContent>
         </Card>

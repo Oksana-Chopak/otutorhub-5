@@ -271,9 +271,9 @@ export default function SubscriptionPage() {
         <div className="mb-6">
           <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            14 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
+            30 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
             <br />
-            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на рік.
+            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на пів року.
           </p>
         </div>
 
@@ -308,7 +308,7 @@ export default function SubscriptionPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-display text-base font-bold text-foreground">
-                          14 днів безкоштовно — спробуй без картки
+                          30 днів безкоштовно — спробуй без картки
                         </p>
                         {!soldOut && (
                           <Badge variant="default" className="gap-1">
@@ -543,7 +543,7 @@ export default function SubscriptionPage() {
                 {isTrial && !isActive && <Badge variant="secondary">Тріал</Badge>}
               </div>
               <CardDescription>
-                14 днів повного Pro безкоштовно — без картки.
+                30 днів повного Pro безкоштовно — без картки.
               </CardDescription>
               <div className="mt-2 flex items-baseline gap-2">
                 <p className="font-display text-3xl font-bold text-foreground">
@@ -693,7 +693,7 @@ export default function SubscriptionPage() {
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.
           <br />
-          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на рік.
+          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на пів року.
         </p>
       </div>
       <SubscriptionRequestDialog
