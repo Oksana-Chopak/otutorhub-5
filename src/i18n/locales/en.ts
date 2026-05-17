@@ -282,7 +282,7 @@ export const en: Translations = {
     pricing: {
       label: "Pricing", title: "Simple and honest",
       spotsOf20: "spots of 20",
-      earlyPlan: "First 20", earlyPeriod: "free for a year",
+      earlyPlan: "First 20", earlyPeriod: "free for half a year",
       early1: "Full access, no limits",
       early2: "Free for an entire year",
       early3: "Price will never increase",
