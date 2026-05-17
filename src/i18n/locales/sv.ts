@@ -485,7 +485,7 @@ export const sv: Partial<Translations> = {
     pricing: {
       label: "Priser", title: "Enkelt och ärligt",
       spotsOf20: "platser av 20",
-      earlyPlan: "Första 20", earlyPeriod: "gratis i ett år",
+      earlyPlan: "Första 20", earlyPeriod: "gratis i ett halvår",
       early1: "Full åtkomst utan begränsningar",
       early2: "Gratis i ett helt år",
       early3: "Priset höjs aldrig",
