@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -11,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2, Plus, X, Crown, DollarSign, Wallet, BarChart3, Trophy, HandHeart,
+  Loader2, Plus, X, Crown, BarChart3, Trophy, HandHeart,
   CalendarClock, ShieldAlert, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -60,6 +61,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 }
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
@@ -68,16 +70,16 @@ export default function ProfilePage() {
   const tutorGroups: SectionGroup[] = isTutor
     ? [
         {
-          title: "📅 Розклад і доступність",
-          items: [{ to: "/availability", label: "Доступність", icon: CalendarClock }],
+          title: t("profile.groupScheduleAvail"),
+          items: [{ to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock }],
         },
         {
-          title: "💼 Аккаунт",
+          title: t("profile.groupAccount"),
           items: [
-            { to: "/subscription", label: "Підписка", icon: Crown },
-            { to: "/achievements", label: "Досягнення", icon: Trophy },
-            { to: "/my-referrals", label: "Реферали", icon: HandHeart },
-            { to: "/analytics", label: "Аналітика", icon: BarChart3 },
+            { to: "/subscription", label: t("profile.itemSubscription"), icon: Crown },
+            { to: "/achievements", label: t("profile.itemAchievements"), icon: Trophy },
+            { to: "/my-referrals", label: t("profile.itemReferrals"), icon: HandHeart },
+            { to: "/analytics", label: t("profile.itemAnalytics"), icon: BarChart3 },
           ].filter((it) => {
             if (!isIndependent && ["/subscription", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
             return true;
@@ -89,21 +91,21 @@ export default function ProfilePage() {
   const managerGroups: SectionGroup[] = isManager
     ? [
         {
-          title: "📅 Розклад і доступність",
-          items: [{ to: "/availability", label: "Доступність", icon: CalendarClock }],
+          title: t("profile.groupScheduleAvail"),
+          items: [{ to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock }],
         },
         {
-          title: "👥 Учні і запити",
+          title: t("profile.groupStudentsRequests"),
           items: [
-            { to: "/referrals", label: "Запити на репетиторів", icon: HandHeart },
-            { to: "/subscription-requests", label: "Запити на підписку", icon: Crown },
+            { to: "/referrals", label: t("profile.itemTutorRequests"), icon: HandHeart },
+            { to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown },
           ],
         },
         {
-          title: "📊 Аналітика",
+          title: t("profile.groupAnalytics"),
           items: [
-            { to: "/paywall-metrics", label: "Метрики paywall", icon: BarChart3 },
-            { to: "/audit", label: "Аудит", icon: ShieldAlert },
+            { to: "/paywall-metrics", label: t("profile.itemPaywallMetrics"), icon: BarChart3 },
+            { to: "/audit", label: t("profile.itemAudit"), icon: ShieldAlert },
           ],
         },
       ]
@@ -134,7 +136,6 @@ export default function ProfilePage() {
         .map((r) => (r.subject ?? "").trim())
         .filter(Boolean);
 
-      // Об'єднуємо без дублікатів (case-insensitive), але зберігаємо першу версію назви
       const merged: string[] = [];
       const seen = new Set<string>();
       for (const item of [...stored, ...fromLessons, ...fromRates]) {
@@ -147,7 +148,6 @@ export default function ProfilePage() {
 
       setSubjects(merged);
 
-      // Якщо знайшли нові предмети з уроків/ставок — мовчки збережемо їх у профіль
       if (merged.length > stored.length) {
         await supabase
           .from("tutor_details")
@@ -173,12 +173,12 @@ export default function ProfilePage() {
     const trimmed = newSubject.trim();
     if (!trimmed) return;
     if (trimmed.length > 60) {
-      toast.error("Назва предмета занадто довга");
+      toast.error(t("profile.subjectNameTooLong"));
       return;
     }
     const exists = subjects.some((s) => s.toLowerCase() === trimmed.toLowerCase());
     if (exists) {
-      toast.info("Цей предмет вже є у списку");
+      toast.info(t("profile.subjectAlreadyExists"));
       setNewSubject("");
       return;
     }
@@ -199,10 +199,10 @@ export default function ProfilePage() {
     setSaving(false);
     if (error) {
       console.error(error);
-      toast.error("Не вдалося зберегти предмети");
+      toast.error(t("profile.subjectsSaveFailed"));
       return;
     }
-    toast.success("Предмети збережено");
+    toast.success(t("profile.subjectsSaved"));
   };
 
   if (!isTutor) {
@@ -210,17 +210,17 @@ export default function ProfilePage() {
       <AppLayout>
         <div className="mx-auto max-w-2xl">
           <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-foreground">Профіль</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">{t("profile.managerTitle")}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Керуйте своїм робочим простором.
+              {t("profile.managerSub")}
             </p>
           </div>
           <GoogleCalendarCard />
-          <MoreSection title="Розділи" groups={managerGroups} />
+          <MoreSection title={t("profile.sectionsTitle")} groups={managerGroups} />
           {managerGroups.every((g) => g.items.length === 0) && (
             <Card>
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                Немає додаткових налаштувань.
+                {t("profile.noExtraSettings")}
               </CardContent>
             </Card>
           )}
@@ -233,17 +233,17 @@ export default function ProfilePage() {
     <AppLayout>
       <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-foreground">Мій профіль</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t("profile.tutorTitle")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Вкажіть предмети, які ви викладаєте — їх бачитиме менеджер та учні.
+            {t("profile.tutorSub")}
           </p>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Предмети</CardTitle>
+            <CardTitle>{t("profile.subjectsCardTitle")}</CardTitle>
             <CardDescription>
-              Оберіть зі списку або додайте власний предмет, якщо його немає.
+              {t("profile.subjectsCardDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -273,9 +273,9 @@ export default function ProfilePage() {
 
                 <div className="mt-6 space-y-3 rounded-lg border border-dashed border-border p-4">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Власні предмети</p>
+                    <p className="text-sm font-medium text-foreground">{t("profile.customSubjectsTitle")}</p>
                     <p className="text-xs text-muted-foreground">
-                      Додайте предмет, якого немає у списку вище.
+                      {t("profile.customSubjectsDesc")}
                     </p>
                   </div>
 
@@ -289,7 +289,7 @@ export default function ProfilePage() {
                           addCustomSubject();
                         }
                       }}
-                      placeholder="Напр.: Логіка, Робототехніка"
+                      placeholder={t("profile.customSubjectPlaceholder")}
                       maxLength={60}
                     />
                     <Button
@@ -299,7 +299,7 @@ export default function ProfilePage() {
                       disabled={!newSubject.trim()}
                     >
                       <Plus className="mr-1 h-4 w-4" />
-                      Додати
+                      {t("profile.addBtn")}
                     </Button>
                   </div>
 
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                             type="button"
                             onClick={() => removeCustomSubject(subject)}
                             className="ml-1 rounded-full p-0.5 transition-colors hover:bg-background"
-                            aria-label={`Видалити ${subject}`}
+                            aria-label={t("profile.removeAria", { name: subject })}
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -329,7 +329,7 @@ export default function ProfilePage() {
                 <div className="mt-6 flex justify-end">
                   <Button onClick={save} disabled={saving}>
                     {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Зберегти
+                    {t("common.save")}
                   </Button>
                 </div>
               </>
@@ -344,7 +344,7 @@ export default function ProfilePage() {
         )}
         {isIndependent && <AutoCompleteLessonsCard />}
         <GoogleCalendarCard />
-        <MoreSection title="Більше" groups={tutorGroups} />
+        <MoreSection title={t("profile.moreTitle")} groups={tutorGroups} />
       </div>
     </AppLayout>
   );

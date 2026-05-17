@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   LayoutDashboard,
   CalendarDays,
   MessageSquare,
   Users,
   GraduationCap,
-  UserCircle,
   Coins,
   Home,
 } from "lucide-react";
@@ -16,7 +16,7 @@ import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount
 
 type Item = {
   to: string;
-  label: string;
+  labelKey: string;
   icon: typeof LayoutDashboard;
   roles: AppRole[];
   badgeKey?: "chats" | "availability";
@@ -25,24 +25,25 @@ type Item = {
 // Single 6-item navigation per role — must match AppSidebar.
 const items: Item[] = [
   // Tutor
-  { to: "/", label: "Мій день", icon: Home, roles: ["tutor"] },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
-  { to: "/my-students", label: "Учні", icon: GraduationCap, roles: ["tutor"] },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
-  { to: "/finances", label: "Фінанси", icon: Coins, roles: ["tutor"] },
+  { to: "/", labelKey: "nav.dashboard", icon: Home, roles: ["tutor"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
+  { to: "/my-students", labelKey: "nav.studentsShort", icon: GraduationCap, roles: ["tutor"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
+  { to: "/finances", labelKey: "nav.finances", icon: Coins, roles: ["tutor"] },
   // Manager
-  { to: "/", label: "Мій день", icon: Home, roles: ["manager"] },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
-  { to: "/people", label: "Люди", icon: Users, roles: ["manager"] },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
-  { to: "/finances", label: "Фінанси", icon: Coins, roles: ["manager"] },
+  { to: "/", labelKey: "nav.dashboard", icon: Home, roles: ["manager"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
+  { to: "/people", labelKey: "nav.people", icon: Users, roles: ["manager"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
+  { to: "/finances", labelKey: "nav.finances", icon: Coins, roles: ["manager"] },
   // Student
-  { to: "/", label: "Мій день", icon: Home, roles: ["student"] },
-  { to: "/schedule", label: "Розклад", icon: CalendarDays, roles: ["student"] },
-  { to: "/chats", label: "Чати", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
+  { to: "/", labelKey: "nav.dashboard", icon: Home, roles: ["student"] },
+  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["student"] },
+  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
 ];
 
 export function MobileBottomNav() {
+  const { t } = useTranslation();
   const { roles } = useAuth();
   const chats = useUnreadChats();
   const avail = useAvailabilityRequestCount();
@@ -91,7 +92,7 @@ export function MobileBottomNav() {
                         </span>
                       )}
                     </span>
-                    <span className="truncate leading-tight">{item.label}</span>
+                    <span className="truncate leading-tight">{t(item.labelKey)}</span>
                     {isActive && (
                       <span className="absolute bottom-1 h-1 w-1 rounded-full bg-primary" />
                     )}
