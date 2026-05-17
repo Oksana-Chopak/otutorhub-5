@@ -693,7 +693,7 @@ export default function SubscriptionPage() {
         <p className="mt-6 text-center text-xs text-muted-foreground">
           Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.
           <br />
-          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на рік.
+          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на пів року.
         </p>
       </div>
       <SubscriptionRequestDialog
