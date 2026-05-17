@@ -283,7 +283,7 @@ export const uk = {
     pricing: {
       label: "Ціни", title: "Просто і чесно",
       spotsOf20: "місць з 20",
-      earlyPlan: "Перші 20", earlyPeriod: "безкоштовно на рік",
+      earlyPlan: "Перші 20", earlyPeriod: "безкоштовно на пів року",
       early1: "Весь функціонал без обмежень",
       early2: "Безкоштовно на цілий рік",
       early3: "Ціна не підніметься ніколи",
