@@ -543,7 +543,7 @@ export default function SubscriptionPage() {
                 {isTrial && !isActive && <Badge variant="secondary">Тріал</Badge>}
               </div>
               <CardDescription>
-                14 днів повного Pro безкоштовно — без картки.
+                30 днів повного Pro безкоштовно — без картки.
               </CardDescription>
               <div className="mt-2 flex items-baseline gap-2">
                 <p className="font-display text-3xl font-bold text-foreground">
