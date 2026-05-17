@@ -308,7 +308,7 @@ export default function SubscriptionPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-display text-base font-bold text-foreground">
-                          14 днів безкоштовно — спробуй без картки
+                          30 днів безкоштовно — спробуй без картки
                         </p>
                         {!soldOut && (
                           <Badge variant="default" className="gap-1">
