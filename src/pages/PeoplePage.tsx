@@ -924,7 +924,7 @@ export default function PeoplePage() {
                   return (
                     <p key={s} className="break-words text-xs text-muted-foreground">
                       <span className="text-foreground">{s}</span>
-                      {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
+                      {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
                     </p>
                   );
                 })}
@@ -1068,7 +1068,7 @@ export default function PeoplePage() {
           {u.bank_card_last4 && (
             <span
               className="inline-flex items-center gap-1 text-xs"
-              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `Картка •••• ${u.bank_card_last4}`}
+              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `${t("people.card")} •••• ${u.bank_card_last4}`}
             >
               <CreditCard className="h-3 w-3" />
               <span className="font-mono">
@@ -1451,7 +1451,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-primary" />
-              Репетитори ({tutors.length})
+              {t("people.sectionTutors", { count: tutors.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {tutors.map((u) => renderUserCard(u, "primary"))}
@@ -1463,7 +1463,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
-              Учні ({students.length})
+              {t("people.sectionStudents", { count: students.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {students.map((u) => renderUserCard(u))}
@@ -1477,15 +1477,15 @@ export default function PeoplePage() {
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
         <DialogContent className="max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Налаштування репетитора</DialogTitle>
+            <DialogTitle>{t("people.dialogTutorRateTitle")}</DialogTitle>
             <DialogDescription>
-              Оберіть предмети, які викладає репетитор, і вкажіть ставку (виплату) за урок для кожного.
+              {t("people.dialogTutorRateDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
             <div>
-              <Label>Предмети</Label>
-              <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
+              <Label>{t("people.fieldSubjects")}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
               <SubjectMultiSelect
                 value={tutorDialog.subjects}
                 onChange={(next) =>
@@ -1503,9 +1503,9 @@ export default function PeoplePage() {
 
             {tutorDialog.subjects.length > 0 && (
               <div className="space-y-2">
-                <Label>Ставка за урок по кожному предмету (₴)</Label>
+                <Label>{t("people.ratePerSubject")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Скільки ви виплачуєте репетитору за один проведений урок з цього предмета.
+                  {t("people.ratePerSubjectDesc")}
                 </p>
                 <div className="space-y-2">
                   {tutorDialog.subjects.map((subj) => (
@@ -1534,9 +1534,9 @@ export default function PeoplePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveTutorRate}>Зберегти</Button>
+            <Button onClick={saveTutorRate}>{t("people.saveBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1545,22 +1545,22 @@ export default function PeoplePage() {
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ціна для учня</DialogTitle>
+            <DialogTitle>{t("people.dialogStudentPriceTitle")}</DialogTitle>
             <DialogDescription>
-              Скільки учень платить за один урок із цим репетитором з обраного предмета.
+              {t("people.dialogStudentPriceDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
-              <p>Репетитор: <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
-              <p>Предмет: <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
+              <p>{t("people.labelStudent")} <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
+              <p>{t("people.labelTutor")} <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
+              <p>{t("people.labelSubject")} <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
               {(() => {
                 const tutorRate = tutorSubjectRates[studentDialog.tutorId]?.[studentDialog.subject];
                 if (tutorRate !== undefined && tutorRate > 0) {
                   return (
                     <p className="text-xs">
-                      Ставка репетитора з цього предмета: <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                      {t("people.tutorRateForSubject")} <span className="font-medium text-foreground">{tutorRate} ₴</span>
                     </p>
                   );
                 }
@@ -1568,7 +1568,7 @@ export default function PeoplePage() {
               })()}
             </div>
             <div>
-              <Label htmlFor="price">Ціна за один урок ({currencySymbol(studentDialog.currency)})</Label>
+              <Label htmlFor="price">{t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}</Label>
               <div className="grid grid-cols-[1fr_8rem] gap-2">
                 <Input
                   id="price"
@@ -1597,9 +1597,9 @@ export default function PeoplePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveStudentPrice}>Зберегти</Button>
+            <Button onClick={saveStudentPrice}>{t("people.saveBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1611,15 +1611,14 @@ export default function PeoplePage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Додати репетитора до учня</DialogTitle>
+            <DialogTitle>{t("people.dialogAddTutorTitle")}</DialogTitle>
             <DialogDescription>
-              Оберіть репетитора, предмет і ціну за один урок для учня{" "}
-              <span className="font-medium text-foreground">{addTutorToStudent.studentName}</span>.
+              {t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label>Репетитор</Label>
+              <Label>{t("roles.tutor")}</Label>
               <Select
                 value={addTutorToStudent.tutorId}
                 onValueChange={(v) =>
@@ -1656,14 +1655,14 @@ export default function PeoplePage() {
               if (availableSubjects.length === 0) {
                 return (
                   <p className="text-xs text-muted-foreground italic">
-                    Для цього репетитора всі його предмети вже додано цьому учневі.
+                    {t("people.allSubjectsAdded")}
                   </p>
                 );
               }
               return (
                 <>
                   <div>
-                    <Label>Предмет</Label>
+                    <Label>{t("people.labelSubject").replace(":", "")}</Label>
                     <Select
                       value={addTutorToStudent.subject}
                       onValueChange={(v) => {
@@ -1693,7 +1692,7 @@ export default function PeoplePage() {
                     if (tutorRate !== undefined && tutorRate > 0) {
                       return (
                         <p className="text-xs text-muted-foreground">
-                          Ставка репетитора з цього предмета:{" "}
+                          {t("people.tutorRateForSubject")}{" "}
                           <span className="font-medium text-foreground">{tutorRate} ₴</span>
                         </p>
                       );
@@ -1701,7 +1700,7 @@ export default function PeoplePage() {
                     return null;
                   })()}
                   <div>
-                    <Label htmlFor="add-tutor-price">Ціна за один урок ({currencySymbol(addTutorToStudent.currency)}) для учня</Label>
+                    <Label htmlFor="add-tutor-price">{t("people.priceForStudent", { currency: currencySymbol(addTutorToStudent.currency) })}</Label>
                     <div className="grid grid-cols-[1fr_8rem] gap-2">
                       <Input
                         id="add-tutor-price"
@@ -1738,9 +1737,9 @@ export default function PeoplePage() {
               variant="outline"
               onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
             >
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveAddTutorToStudent}>Додати</Button>
+            <Button onClick={saveAddTutorToStudent}>{t("people.addBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

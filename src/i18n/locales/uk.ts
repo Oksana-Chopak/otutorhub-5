@@ -810,6 +810,7 @@ export const uk = {
     deleteCancelled: "Видалення скасовано",
     deleteFailed: "Не вдалося видалити: {{message}}",
     deleteSuccess: "{{name}} та всі пов'язані дані видалено",
+    card: "Картка",
   },
 
   myStudents: {

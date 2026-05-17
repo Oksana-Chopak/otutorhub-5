@@ -803,6 +803,7 @@ export const en: Translations = {
     deleteCancelled: "Deletion cancelled",
     deleteFailed: "Could not delete: {{message}}",
     deleteSuccess: "{{name}} and all related data deleted",
+    card: "Card",
   },
 
   myStudents: {

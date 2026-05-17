@@ -794,6 +794,7 @@ export const sv: Partial<Translations> = {
     deleteCancelled: "Borttagning avbruten",
     deleteFailed: "Det gick inte att ta bort: {{message}}",
     deleteSuccess: "{{name}} och alla relaterade data borttagna",
+    card: "Kort",
   },
 
   myStudents: {
