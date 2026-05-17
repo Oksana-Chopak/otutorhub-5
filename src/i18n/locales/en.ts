@@ -292,7 +292,7 @@ export const en: Translations = {
       pro3: "AI lesson summaries", pro4: "Built-in chat",
       pro5: "Group sessions", pro6: "Google Calendar sync",
       pro7: "Unlimited students & sessions",
-      proCta: "14 days free →", proNote: "No card required. Cancel anytime.",
+      proCta: "30 days free →", proNote: "No card required. Cancel anytime.",
     },
     footer: {
       app: "App",
