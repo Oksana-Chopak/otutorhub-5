@@ -87,7 +87,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           </div>
           <div>
             <h3 className="font-bold text-foreground">Запроси колегу — економ на Pro</h3>
-            <p className="text-xs text-muted-foreground">Друг отримує 21 день тріалу · ти — місяць за його оплату</p>
+            <p className="text-xs text-muted-foreground">Друг отримує 30 днів тріалу · ти — 30 днів за його реєстрацію</p>
           </div>
         </div>
 
