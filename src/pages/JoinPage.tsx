@@ -75,7 +75,7 @@ export default function JoinPage() {
               Бонус за реєстрацію
             </div>
             <p className="text-sm text-foreground">
-              <strong>+7 днів Pro</strong> безкоштовно тобі. <strong>+7 днів</strong> також {referrerName} як подяка.
+              <strong>+30 днів Pro</strong> безкоштовно тобі. <strong>+30 днів</strong> також {referrerName} як подяка.
             </p>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
