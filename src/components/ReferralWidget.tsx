@@ -65,7 +65,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   };
 
   const handleShare = async () => {
-    const text = `Спробуй oTutorHub — застосунок для репетиторів. За моїм посиланням ти отримаєш +7 днів Pro безкоштовно: ${link}`;
+    const text = `Спробуй oTutorHub — застосунок для репетиторів. За моїм посиланням ти отримаєш +30 днів Pro безкоштовно: ${link}`;
     if (navigator.share) {
       try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch {}
     } else {
