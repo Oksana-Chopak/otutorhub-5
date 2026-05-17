@@ -986,7 +986,7 @@ export default function PeoplePage() {
                     e.stopPropagation();
                     archivePerson(u);
                   }}
-                  title="В архів (історію збережено)"
+                  title={t("people.archiveBtn")}
                 >
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
@@ -999,7 +999,7 @@ export default function PeoplePage() {
                   e.stopPropagation();
                   purgePerson(u);
                 }}
-                title="Повне видалення (з усіма даними)"
+                title={t("people.deleteBtn")}
               >
                 <FlameKindling className="h-3.5 w-3.5" />
               </Button>
@@ -1009,7 +1009,7 @@ export default function PeoplePage() {
             type="button"
             onClick={toggleExpanded}
             className="ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label={isExpanded ? "Згорнути" : "Розгорнути"}
+            aria-label={isExpanded ? t("people.collapse") : t("people.expand")}
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
@@ -1079,15 +1079,15 @@ export default function PeoplePage() {
         </div>
       )}
       <div className="mb-2 flex min-w-0 items-center gap-2 lg:max-w-md">
-        <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
+        <Label className="text-xs text-muted-foreground shrink-0">{t("people.roleLabel")}</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
           <SelectTrigger className="h-8 min-w-0 text-xs">
-            <SelectValue placeholder="Без ролі" />
+            <SelectValue placeholder={t("people.noRoleOption")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="manager">Менеджер</SelectItem>
-            <SelectItem value="tutor">Репетитор</SelectItem>
-            <SelectItem value="student">Учень</SelectItem>
+            <SelectItem value="manager">{t("roles.manager")}</SelectItem>
+            <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
+            <SelectItem value="student">{t("roles.student")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1096,11 +1096,11 @@ export default function PeoplePage() {
         <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Прогрес репетитора · {tutorProgress.doneCount}/3
+              {t("people.progressTitle", { done: tutorProgress.doneCount })}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              Реєстр.: {tutorProgress.fmt(u.created_at)}
-              {u.last_interaction_at && ` · Активн.: ${tutorProgress.fmt(u.last_interaction_at)}`}
+              {t("people.progressRegistered")}: {tutorProgress.fmt(u.created_at)}
+              {u.last_interaction_at && ` · ${t("people.progressActive")}: ${tutorProgress.fmt(u.last_interaction_at)}`}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -1140,7 +1140,7 @@ export default function PeoplePage() {
           }}
         >
           <Settings className="h-3.5 w-3.5 mr-2" />
-          Налаштувати ставки та предмети
+          {t("people.tutorRateBtn")}
         </Button>
       )}
 
@@ -1166,8 +1166,8 @@ export default function PeoplePage() {
             <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
                 {linkedTutors.length === 0
-                  ? "Ще не призначено жодного репетитора."
-                  : "Ціна за урок (по парах репетитор + предмет):"}
+                  ? t("people.noTutorAssigned")
+                  : t("people.priceByPair")}
               </p>
               {isManager && hasAnyTutor && (
                 <Button
@@ -1177,14 +1177,14 @@ export default function PeoplePage() {
                   onClick={openAddTutor}
                 >
                   <UserPlus className="h-3.5 w-3.5 mr-1" />
-                  Додати репетитора
+                  {t("people.addTutorBtn")}
                 </Button>
               )}
             </div>
             {linkedTutors.length === 0 ? (
               !hasAnyTutor && (
                 <p className="text-xs text-muted-foreground italic">
-                  Спочатку додайте репетитора з предметами у розділі «Репетитори».
+                  {t("people.addFirstTutor")}
                 </p>
               )
             ) : (
@@ -1211,7 +1211,7 @@ export default function PeoplePage() {
                             <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
-                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">не задано</span>}
+                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">{t("people.notSet")}</span>}
                               </span>
                               <Button
                                 variant="ghost"
@@ -1231,7 +1231,7 @@ export default function PeoplePage() {
                                   })
                                 }
                               >
-                                Змінити
+                                {t("people.changeBtn")}
                               </Button>
                             </div>
                           </div>
@@ -1256,9 +1256,9 @@ export default function PeoplePage() {
     <AppLayout>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">Люди</h1>
+          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">{t("people.title")}</h1>
           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
-            Користувачі, ролі, контакти й ставки.
+            {t("people.subtitle")}
           </p>
         </div>
         {isManager && (
@@ -1266,20 +1266,20 @@ export default function PeoplePage() {
             <DialogTrigger asChild>
               <Button size="sm" className="shrink-0">
                 <UserPlus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Додати людину</span>
+                <span className="hidden sm:inline">{t("people.addPerson")}</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
-                <DialogTitle>Нова людина</DialogTitle>
+                <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
                 <DialogDescription>
-                  Створюється запис-привид. Коли ця людина зареєструється з тим самим email або телефоном, всі її уроки, оплати і ставки автоматично перенесуться на її акаунт.
+                  {t("people.dialogAddDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="fn">Ім'я</Label>
+                    <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
                     <Input
                       id="fn"
                       value={addForm.first_name}
@@ -1288,7 +1288,7 @@ export default function PeoplePage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="ln">Прізвище</Label>
+                    <Label htmlFor="ln">{t("people.fieldLastName")}</Label>
                     <Input
                       id="ln"
                       value={addForm.last_name}
@@ -1298,7 +1298,7 @@ export default function PeoplePage() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="em">Email</Label>
+                  <Label htmlFor="em">{t("common.email")}</Label>
                   <Input
                     id="em"
                     type="email"
@@ -1309,7 +1309,7 @@ export default function PeoplePage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="ph">Телефон</Label>
+                  <Label htmlFor="ph">{t("common.phone")}</Label>
                   <Input
                     id="ph"
                     type="tel"
@@ -1320,10 +1320,10 @@ export default function PeoplePage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Потрібен хоча б один — email або телефон. За цим полем зв'яжемо привида з реальним акаунтом.
+                  {t("people.ghostHint")}
                 </p>
                 <div>
-                  <Label>Роль</Label>
+                  <Label>{t("people.fieldRole")}</Label>
                   <Select
                     value={addForm.role}
                     onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
@@ -1332,16 +1332,16 @@ export default function PeoplePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Учень</SelectItem>
-                      <SelectItem value="tutor">Репетитор</SelectItem>
-                      <SelectItem value="manager">Менеджер</SelectItem>
+                      <SelectItem value="student">{t("roles.student")}</SelectItem>
+                      <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
+                      <SelectItem value="manager">{t("roles.manager")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {addForm.role === "tutor" && (
                   <div>
-                    <Label>Предмети</Label>
-                    <p className="text-xs text-muted-foreground mb-2">Оберіть один або декілька</p>
+                    <Label>{t("people.fieldSubjects")}</Label>
+                    <p className="text-xs text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
                     <SubjectMultiSelect
                       value={addForm.subjects}
                       onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
@@ -1351,11 +1351,11 @@ export default function PeoplePage() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
-                  Скасувати
+                  {t("people.cancelBtn")}
                 </Button>
                 <Button onClick={addPerson} disabled={adding}>
                   {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Додати
+                  {t("people.addBtn")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1367,7 +1367,7 @@ export default function PeoplePage() {
       {!loading && (
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           <Input
-            placeholder="Пошук за іменем, email, телефоном..."
+            placeholder={t("people.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 min-w-0 flex-1"
@@ -1383,10 +1383,10 @@ export default function PeoplePage() {
             <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Предмет" />
+                  <SelectValue placeholder={t("people.allSubjects")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі предмети</SelectItem>
+                  <SelectItem value="all">{t("people.allSubjects")}</SelectItem>
                   {allSubjects.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
@@ -1398,14 +1398,14 @@ export default function PeoplePage() {
             <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Статус" />
+                  <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Активні</SelectItem>
-                  <SelectItem value="pending">Очікують реєстрації</SelectItem>
-                  <SelectItem value="onboarding">Нові (не завершили онбординг)</SelectItem>
-                  <SelectItem value="archived">В архіві</SelectItem>
-                  <SelectItem value="all">Усі (крім архіву)</SelectItem>
+                  <SelectItem value="active">{t("people.statusActive")}</SelectItem>
+                  <SelectItem value="pending">{t("people.statusPending")}</SelectItem>
+                  <SelectItem value="onboarding">{t("people.statusOnboarding")}</SelectItem>
+                  <SelectItem value="archived">{t("people.statusArchived")}</SelectItem>
+                  <SelectItem value="all">{t("people.statusAll")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1420,14 +1420,14 @@ export default function PeoplePage() {
       ) : (
         <>
           {visiblePeopleCount === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">Нічого не знайдено</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("people.nothingFound")}</p>
           )}
 
           {noRole.length > 0 && (
             <section className="mb-8">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <UsersIcon className="h-5 w-5 text-warning" />
-                Без ролі ({noRole.length})
+                {t("people.sectionNoRole", { count: noRole.length })}
               </h2>
               <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
                 {noRole.map((u) => renderUserCard(u))}
@@ -1439,7 +1439,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <UsersIcon className="h-5 w-5 text-primary" />
-              Менеджери ({managers.length})
+              {t("people.sectionManagers", { count: managers.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {managers.map((u) => renderUserCard(u, "primary"))}
@@ -1523,7 +1523,7 @@ export default function PeoplePage() {
                             rates: { ...s.rates, [subj]: e.target.value },
                           }))
                         }
-                        placeholder="напр. 350"
+                        placeholder={t("people.ratePlaceholder")}
                       />
                       <span className="text-xs text-muted-foreground">₴</span>
                     </div>
@@ -1577,7 +1577,7 @@ export default function PeoplePage() {
                   step="any"
                   value={studentDialog.price}
                   onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
-                  placeholder="напр. 500"
+                  placeholder={t("people.pricePlaceholder")}
                 />
                 <Select
                   value={studentDialog.currency}
@@ -1627,7 +1627,7 @@ export default function PeoplePage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Оберіть репетитора" />
+                  <SelectValue placeholder={t("people.selectTutorPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {allTutors
@@ -1676,7 +1676,7 @@ export default function PeoplePage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Оберіть предмет" />
+                        <SelectValue placeholder={t("people.selectSubjectPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableSubjects.map((s) => (
@@ -1712,7 +1712,7 @@ export default function PeoplePage() {
                         onChange={(e) =>
                           setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
                         }
-                        placeholder="напр. 550"
+                        placeholder={t("people.pricePlaceholder")}
                       />
                       <Select
                         value={addTutorToStudent.currency}

@@ -44,6 +44,7 @@ export const en: Translations = {
     nothingFound: "Nothing found",
     saved: "Saved",
     fillRequired: "Please fill in all required fields",
+    you: "You",
   },
 
   nav: {
@@ -475,6 +476,21 @@ export const en: Translations = {
     noStudentsIndependent: "You have no students yet. Add your first student to create a lesson.",
     noStudentsHub: "You have no assigned students yet. Contact your manager to get a student assigned.",
     conflictWarning: "The tutor already has a lesson ({{subject}}, {{time}}). You can continue, but the times overlap.",
+    subjectPlaceholder: "e.g. English",
+    notesPlaceholder: "Additional information...",
+    homeworkPlaceholder: "What was assigned for homework…",
+    homeworkPlaceholderNone: "Nothing assigned",
+    notesLessonPlaceholder: "What was covered in the lesson…",
+    notesLessonPlaceholderNone: "No lesson notes yet",
+    noTutorTitle: "No tutor yet",
+    noTutorDesc: "Leave a request with the oTutorHub manager — we'll match you with a tutor by goal, budget and schedule. Your lessons will appear here once assigned.",
+    noLessonsTitle: "No lessons yet",
+    noLessonsDescCreate: "Create your first lesson — pick a tutor, student and time.",
+    noLessonsDescWait: "Once a tutor or manager adds a lesson, you'll see it here.",
+    createFirstLesson: "Create first lesson",
+    copyLesson: "Copy lesson",
+    rescheduleLesson: "Reschedule lesson",
+    markCompleted: "Mark as completed",
   },
 
   finances: {

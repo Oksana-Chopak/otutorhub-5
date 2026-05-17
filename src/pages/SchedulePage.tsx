@@ -326,7 +326,7 @@ export default function SchedulePage() {
     const profiles = profilesRes.data ?? [];
     const pmap: Record<string, string> = {};
     profiles.forEach((p: any) => {
-      pmap[p.id] = `${p.first_name} ${p.last_name}`.trim() || "Без імені";
+      pmap[p.id] = `${p.first_name} ${p.last_name}`.trim() || t('common.noName');
     });
     setProfilesMap(pmap);
 
@@ -366,9 +366,9 @@ export default function SchedulePage() {
     }
 
     setTutors(
-      tutorIds.map((id) => ({ id, name: pmap[id] ?? "Репетитор", subjects: tutorSubjects[id] ?? [] }))
+      tutorIds.map((id) => ({ id, name: pmap[id] ?? t('roles.tutor'), subjects: tutorSubjects[id] ?? [] }))
     );
-    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "Учень" })));
+    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? t('roles.student') })));
 
     const rawLessons = (lessonsRes.data ?? []) as any[];
     console.log('[SchedulePage] lessons count:', rawLessons.length, 'unique ids:', new Set(rawLessons.map((l) => l.id)).size);
@@ -946,7 +946,7 @@ export default function SchedulePage() {
   const studentTutors = useMemo(() => {
     if (!isStudent || isManager || isTutor || !user) return [] as PersonOption[];
     const ids = Array.from(new Set(lessons.filter((l) => l.student_id === user.id).map((l) => l.tutor_id)));
-    return ids.map((id) => ({ id, name: profilesMap[id] ?? "Репетитор" }));
+    return ids.map((id) => ({ id, name: profilesMap[id] ?? t('roles.tutor') }));
   }, [lessons, isStudent, isManager, isTutor, user?.id, profilesMap]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -1116,12 +1116,12 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.tutor_id && (
-                    <p className="mt-1 text-xs text-destructive">Оберіть репетитора</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
                   <Label className={cn(formErrors.student_id && "text-destructive")}>
-                    Учень <span className="text-destructive">*</span>
+                    {t('schedule.student')} <span className="text-destructive">*</span>
                   </Label>
                   <Select
                     value={form.student_id}
@@ -1137,7 +1137,7 @@ export default function SchedulePage() {
                           "border-destructive ring-1 ring-destructive focus:ring-destructive"
                       )}
                     >
-                      <SelectValue placeholder="Оберіть учня" />
+                      <SelectValue placeholder={t('schedule.selectStudent')} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((s) => (
@@ -1148,14 +1148,14 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.student_id && (
-                    <p className="mt-1 text-xs text-destructive">Оберіть учня</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectStudent')}</p>
                   )}
                   {students.length === 0 && isTutor && !isManager && (
                     <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs">
                       <p className="text-muted-foreground mb-2">
                         {isIndependentTutor
-                          ? "У вас ще немає учнів. Додайте першого учня — і зможете створити урок."
-                          : "У вас ще немає прив'язаних учнів. Зверніться до менеджера, щоб призначити учня."}
+                          ? t('schedule.noStudentsIndependent')
+                          : t('schedule.noStudentsHub')}
                       </p>
                       {isIndependentTutor && (
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
@@ -1170,7 +1170,7 @@ export default function SchedulePage() {
                 </div>
                 <div>
                   <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
-                    Предмет <span className="text-destructive">*</span>
+                    {t('schedule.subject')} <span className="text-destructive">*</span>
                   </Label>
                   {subjectOptions.length > 0 ? (
                     <Select
@@ -1186,7 +1186,7 @@ export default function SchedulePage() {
                             "border-destructive ring-1 ring-destructive focus:ring-destructive"
                         )}
                       >
-                        <SelectValue placeholder="Оберіть предмет" />
+                        <SelectValue placeholder={t('schedule.selectSubject')} />
                       </SelectTrigger>
                       <SelectContent>
                         {subjectOptions.map((s) => (
@@ -1207,7 +1207,7 @@ export default function SchedulePage() {
                           setFormErrors((er) => ({ ...er, subject: false }));
                         }
                       }}
-                      placeholder="напр. Англійська"
+                      placeholder={t('schedule.subjectPlaceholder')}
                       className={cn(
                         formErrors.subject &&
                           "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
@@ -1215,12 +1215,12 @@ export default function SchedulePage() {
                     />
                   )}
                   {formErrors.subject && (
-                    <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectSubject')}</p>
                   )}
                 </div>
                 <div>
                   <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
-                    Дата і час <span className="text-destructive">*</span>
+                    {t('schedule.dateTime')} <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="starts_at"
@@ -1238,13 +1238,13 @@ export default function SchedulePage() {
                     )}
                   />
                   {formErrors.starts_at && (
-                    <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.dateTime')}</p>
                   )}
                 </div>
                 </>)}
                 {step === 2 && (<>
                 <div>
-                  <Label htmlFor="duration">Тривалість (хв)</Label>
+                  <Label htmlFor="duration">{t('schedule.duration')}</Label>
                   <Input
                     id="duration"
                     type="number"
@@ -1257,7 +1257,7 @@ export default function SchedulePage() {
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
                     <Label htmlFor="indep_student_price" className="flex items-center gap-1.5">
-                      Ціна за урок (₴)
+                      {t('schedule.pricePerLesson')}
                       {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                     </Label>
                     <Input
@@ -1270,34 +1270,34 @@ export default function SchedulePage() {
                     />
                     <p className="mt-1 text-xs text-muted-foreground">
                       {existingRateForPair
-                        ? "💡 Ціна підтягнута з тарифу учня. Можна змінити для цього уроку."
-                        : "🆕 Для цього предмета ще немає ціни — введіть її, і вона збережеться для майбутніх уроків."}
+                        ? `💡 ${t('schedule.priceHintExisting')}`
+                        : `🆕 ${t('schedule.priceHintNew')}`}
                     </p>
                   </div>
                 )}
                 {isManager && (
                   <>
                     <div>
-                      <Label>Статус уроку</Label>
+                      <Label>{t('common.status')}</Label>
                       <Select
                         value={form.status}
                         onValueChange={(v) => setForm((f) => ({ ...f, status: v as LessonStatus }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Оберіть статус" />
+                          <SelectValue placeholder={t('common.status')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Запит</SelectItem>
-                          <SelectItem value="scheduled">Заплановано</SelectItem>
-                          <SelectItem value="completed">Проведено</SelectItem>
-                          <SelectItem value="cancelled">Скасовано</SelectItem>
+                          <SelectItem value="pending">{t('schedule.statusPending')}</SelectItem>
+                          <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
+                          <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
+                          <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="student_price" className="flex items-center gap-1.5">
-                          Оплата учня (₴)
+                          {t('schedule.pricePerLesson')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
@@ -1311,7 +1311,7 @@ export default function SchedulePage() {
                       </div>
                       <div>
                         <Label htmlFor="tutor_payout" className="flex items-center gap-1.5">
-                          Виплата репетитору (₴)
+                          {t('schedule.tutorPayout')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
@@ -1338,32 +1338,32 @@ export default function SchedulePage() {
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label>Статус оплати учня</Label>
+                        <Label>{t('common.status')}</Label>
                         <Select
                           value={form.student_payment_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus }))}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Оберіть статус" />
+                            <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unpaid">Очікує</SelectItem>
-                            <SelectItem value="paid">Оплачено</SelectItem>
+                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
+                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <Label>Статус виплати репетитору</Label>
+                        <Label>{t('schedule.tutorPayout')}</Label>
                         <Select
                           value={form.tutor_payout_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus }))}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Оберіть статус" />
+                            <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unpaid">Очікує</SelectItem>
-                            <SelectItem value="paid">Оплачено</SelectItem>
+                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
+                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1402,7 +1402,7 @@ export default function SchedulePage() {
                     className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
                   >
                     <span className="flex-1 text-left">
-                      Нотатки {form.notes ? `(${form.notes.length})` : "(опц.)"}
+                      {t('schedule.notes')} {form.notes ? `(${form.notes.length})` : `(${t('common.optional')})`}
                     </span>
                     {notesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   </button>
@@ -1413,7 +1413,7 @@ export default function SchedulePage() {
                       className="mt-2"
                       value={form.notes}
                       onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                      placeholder="Додаткова інформація..."
+                      placeholder={t('schedule.notesPlaceholder')}
                     />
                   )}
                 </div>
@@ -1422,11 +1422,11 @@ export default function SchedulePage() {
               <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
                 {step === 1 ? (
                   <Button variant="ghost" onClick={() => setCreateOpen(false)}>
-                    Скасувати
+                    {t('common.cancel')}
                   </Button>
                 ) : (
                   <Button variant="ghost" onClick={() => setStep(1)}>
-                    ← Назад
+                    ← {t('common.back')}
                   </Button>
                 )}
                 <div className="flex gap-2">
@@ -1442,19 +1442,19 @@ export default function SchedulePage() {
                         if (!form.starts_at) errs.starts_at = true;
                         if (Object.keys(errs).length) {
                           setFormErrors(errs);
-                          toast.error("Заповніть обов'язкові поля");
+                          toast.error(t('common.fillRequired'));
                           return;
                         }
                         setFormErrors({});
                         setStep(2);
                       }}
                     >
-                      Більше опцій (оплата, повтор)
+                      {t('schedule.step2')}
                     </Button>
                   )}
                   <Button onClick={handleCreate} disabled={submitting}>
                     {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Зберегти
+                    {t('common.save')}
                   </Button>
                 </div>
               </DialogFooter>
@@ -1470,8 +1470,8 @@ export default function SchedulePage() {
           <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
             <DialogTitle>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
-                ? "Редагувати урок"
-                : "Деталі уроку"}
+                ? t('common.edit')
+                : t('schedule.step2')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto px-6 py-4 flex-1 min-h-0">
@@ -1506,7 +1506,7 @@ export default function SchedulePage() {
                 rows={4}
                 value={editForm.homework}
                 disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? "Що задано додому…" : "Не задано"}
+                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.homeworkPlaceholder') : t('schedule.homeworkPlaceholderNone')}
                 onChange={(e) => setEditForm((f) => ({ ...f, homework: e.target.value }))}
               />
             </div>
@@ -1521,7 +1521,7 @@ export default function SchedulePage() {
                 rows={5}
                 value={editForm.summary}
                 disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? "Що пройшли на уроці…" : "Конспект ще не додано"}
+                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.notesLessonPlaceholder') : t('schedule.notesLessonPlaceholderNone')}
                 onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
               />
               {canEditTeachingFields(editingLesson) && (
@@ -1544,7 +1544,7 @@ export default function SchedulePage() {
           </div>
           <DialogFooter className="px-6 py-3 border-t border-border shrink-0 bg-card">
             <Button variant="outline" onClick={() => setEditingLesson(null)}>
-              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? "Скасувати" : "Закрити"}
+              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? t('common.cancel') : t('common.close')}
             </Button>
             {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
               <Button onClick={saveEdit} disabled={editSubmitting}>
@@ -1689,14 +1689,14 @@ export default function SchedulePage() {
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
-            title="Поки немає репетитора"
-            description="Залиште запит менеджеру oTutorHub — ми підберемо репетитора під ваші цілі, бюджет і графік. Як тільки призначимо — тут з'являться уроки."
+            title={t('schedule.noTutorTitle')}
+            description={t('schedule.noTutorDesc')}
           >
             <FindTutorDialog
               trigger={
                 <Button>
                   <HandHeart className="h-4 w-4 mr-2" />
-                  Запит на підбір репетитора
+                  {t('dashboard.btnRequestTutor')}
                 </Button>
               }
             />
@@ -1704,20 +1704,20 @@ export default function SchedulePage() {
         ) : (
           <EmptyState
             icon={Clock}
-            title="Уроків ще немає"
+            title={t('schedule.noLessonsTitle')}
             description={
               canCreate
-                ? "Створіть перший урок — оберіть репетитора, учня та час."
-                : "Як тільки репетитор або менеджер додасть урок, ви побачите його тут."
+                ? t('schedule.noLessonsDescCreate')
+                : t('schedule.noLessonsDescWait')
             }
-            actionLabel={canCreate ? "Створити перший урок" : undefined}
+            actionLabel={canCreate ? t('schedule.createFirstLesson') : undefined}
             onAction={canCreate ? () => setCreateOpen(true) : undefined}
           />
         )
       ) : (
         <div className="space-y-6">
           {grouped.map(([bucketLabel, dayLessons]) => {
-            const isToday = bucketLabel === "Сьогодні";
+            const isToday = bucketLabel === t('common.today');
             return (
               <div key={bucketLabel}>
                 <h3
@@ -1775,7 +1775,7 @@ export default function SchedulePage() {
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 onClick={() => openCopy(lesson)}
-                                title="Копіювати урок"
+                                title={t('schedule.copyLesson')}
                               >
                                 <Copy className="h-3.5 w-3.5" />
                               </Button>
@@ -1813,10 +1813,10 @@ export default function SchedulePage() {
                                 variant="ghost"
                                 className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
                                 onClick={() => openEdit(lesson)}
-                                title="Перенести урок"
+                                title={t('schedule.rescheduleLesson')}
                               >
                                 <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
+                                <span className="hidden sm:inline">{t('schedule.reschedule')}</span>
                               </Button>
                             )}
                             {canEditStatus && lesson.status === "scheduled" && (
@@ -1825,10 +1825,10 @@ export default function SchedulePage() {
                                 variant="default"
                                 className="h-11 gap-1.5"
                                 onClick={() => updateStatus(lesson.id, "completed")}
-                                title="Позначити як проведений"
+                                title={t('schedule.markCompleted')}
                               >
                                 <CheckCircle2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">Урок відбувся</span>
+                                <span className="hidden sm:inline">{t('schedule.statusCompleted')}</span>
                               </Button>
                             )}
                             {canEditStatus ? (

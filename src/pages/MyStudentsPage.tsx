@@ -746,7 +746,7 @@ export default function MyStudentsPage() {
                           studentName: `${s.first_name} ${s.last_name}`.trim() || t("common.noName"),
                         })
                       }
-                      title="Написати учню"
+                      title={t("chats.noChatsOther")}
                     >
                       <MessageSquare className="h-4 w-4 text-primary" />
                     </Button>
@@ -756,7 +756,7 @@ export default function MyStudentsPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => setLessonDialog({ open: true, studentId: s.id })}
-                      title="Створити урок"
+                      title={t("schedule.addLesson")}
                     >
                       <CalendarPlus className="h-4 w-4 text-primary" />
                     </Button>
@@ -771,17 +771,17 @@ export default function MyStudentsPage() {
                           tutorId: user!.id,
                           studentId: s.id,
                           studentName: `${s.first_name} ${s.last_name}`.trim() || "—",
-                          tutorName: t("common.you") ?? "Ви",
+                          tutorName: t("common.you"),
                           rate: s.price,
                         })
                       }
-                      title="Гаманець (передоплата)"
+                      title={t("nav.wallets")}
                     >
                       <Wallet className="h-4 w-4 text-primary" />
                     </Button>
                   )}
                   {!s.archived_at && (
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title="Редагувати">
+                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title={t("common.edit")}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                   )}
@@ -790,7 +790,7 @@ export default function MyStudentsPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => unarchive(s)}
-                      title="Повернути з архіву"
+                      title={t("people.unarchiveBtn")}
                     >
                       <ArchiveRestore className="h-4 w-4 text-primary" />
                     </Button>
@@ -799,7 +799,7 @@ export default function MyStudentsPage() {
                       size="sm"
                       variant="ghost"
                       onClick={() => archive(s)}
-                      title="В архів (історію збережено)"
+                      title={t("people.archiveBtn")}
                     >
                       <Archive className="h-4 w-4 text-muted-foreground" />
                     </Button>
@@ -820,23 +820,23 @@ export default function MyStudentsPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
-              {dialog.mode === "create" ? "Додати учня" : "Редагувати учня"}
+              {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              Заповніть контакти — учень отримає запрошення приєднатися до вашого кабінету.
+              {t("myStudents.dialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Ім'я</Label>
+                <Label>{t("myStudents.fieldFirstName")}</Label>
                 <Input
                   value={form.first_name}
                   onChange={(e) => setForm({ ...form, first_name: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
-                <Label>Прізвище</Label>
+                <Label>{t("myStudents.fieldLastName")}</Label>
                 <Input
                   value={form.last_name}
                   onChange={(e) => setForm({ ...form, last_name: e.target.value })}
@@ -845,7 +845,7 @@ export default function MyStudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Телефон</Label>
+                <Label>{t("myStudents.fieldPhone")}</Label>
                 <Input
                   type="tel"
                   value={form.phone}
@@ -853,7 +853,7 @@ export default function MyStudentsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Email</Label>
+                <Label>{t("myStudents.fieldEmail")}</Label>
                 <Input
                   type="email"
                   value={form.email}
@@ -862,7 +862,7 @@ export default function MyStudentsPage() {
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Telegram</Label>
+              <Label>{t("myStudents.fieldTelegram")}</Label>
               <Input
                 placeholder="@username або +380..."
                 value={form.telegram}
@@ -871,7 +871,7 @@ export default function MyStudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Facebook</Label>
+                <Label>{t("myStudents.fieldFacebook")}</Label>
                 <Input
                   placeholder="https://facebook.com/..."
                   value={form.facebook_url}
@@ -879,7 +879,7 @@ export default function MyStudentsPage() {
                 />
               </div>
               <div className="space-y-1">
-                <Label>Instagram</Label>
+                <Label>{t("myStudents.fieldInstagram")}</Label>
                 <Input
                   placeholder="https://instagram.com/..."
                   value={form.instagram_url}
@@ -889,15 +889,15 @@ export default function MyStudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Предмет</Label>
+                <Label>{t("myStudents.fieldSubject")}</Label>
                 <Input
-                  placeholder="Англійська, математика…"
+                  placeholder={t("myStudents.subjectPlaceholder")}
                   value={form.subject}
                   onChange={(e) => setForm({ ...form, subject: e.target.value })}
                 />
               </div>
               <div className="space-y-1">
-                <Label>Ціна за урок ({currencySymbol(form.currency)})</Label>
+                <Label>{t("myStudents.fieldPrice", { currency: currencySymbol(form.currency) })}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -908,7 +908,7 @@ export default function MyStudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Валюта оплати</Label>
+                <Label>{t("myStudents.fieldCurrency")}</Label>
                 <Select
                   value={form.currency}
                   onValueChange={(v) => setForm({ ...form, currency: v })}
@@ -927,7 +927,7 @@ export default function MyStudentsPage() {
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Реквізити</Label>
+              <Label>{t("myStudents.fieldPaymentDetails")}</Label>
               <Textarea
                 placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
                 value={form.payment_details}
@@ -935,13 +935,13 @@ export default function MyStudentsPage() {
                 rows={3}
               />
               <p className="text-xs text-muted-foreground">
-                Як учню переказати гроші. Видно учню на сторінці оплат.
+                {t("myStudents.paymentDetailsDesc")}
               </p>
             </div>
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5">
                 <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                Постійне посилання на Zoom / Google Meet
+                {t("myStudents.fieldMeetingUrl")}
               </Label>
               <Input
                 type="url"
@@ -950,7 +950,7 @@ export default function MyStudentsPage() {
                 onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                Якщо у вас одна постійна кімната — учень підключатиметься до неї одним кліком з кожного уроку.
+                {t("myStudents.meetingUrlDesc")}
               </p>
             </div>
           </div>
@@ -959,11 +959,11 @@ export default function MyStudentsPage() {
               variant="outline"
               onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
             >
-              Скасувати
+              {t("myStudents.cancelBtn")}
             </Button>
             <Button onClick={submit} disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {dialog.mode === "create" ? "Додати" : "Зберегти"}
+              {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

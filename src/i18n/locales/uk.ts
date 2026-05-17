@@ -43,6 +43,7 @@ export const uk = {
     nothingFound: "Нічого не знайдено",
     saved: "Збережено",
     fillRequired: "Заповніть усі обов'язкові поля",
+    you: "Ви",
   },
 
   // Sidebar / nav
@@ -479,6 +480,21 @@ export const uk = {
     noStudentsIndependent: "У вас ще немає учнів. Додайте першого учня — і зможете створити урок.",
     noStudentsHub: "У вас ще немає прив'язаних учнів. Зверніться до менеджера, щоб призначити учня.",
     conflictWarning: "У репетитора вже є урок ({{subject}}, {{time}}). Можна продовжити, але час перетинається.",
+    subjectPlaceholder: "напр. Англійська",
+    notesPlaceholder: "Додаткова інформація...",
+    homeworkPlaceholder: "Що задано додому…",
+    homeworkPlaceholderNone: "Не задано",
+    notesLessonPlaceholder: "Що пройшли на уроці…",
+    notesLessonPlaceholderNone: "Конспект ще не додано",
+    noTutorTitle: "Поки немає репетитора",
+    noTutorDesc: "Залиште запит менеджеру oTutorHub — ми підберемо репетитора під ваші цілі, бюджет і графік. Як тільки призначимо — тут з'являться уроки.",
+    noLessonsTitle: "Уроків ще немає",
+    noLessonsDescCreate: "Створіть перший урок — оберіть репетитора, учня та час.",
+    noLessonsDescWait: "Як тільки репетитор або менеджер додасть урок, ви побачите його тут.",
+    createFirstLesson: "Створити перший урок",
+    copyLesson: "Копіювати урок",
+    rescheduleLesson: "Перенести урок",
+    markCompleted: "Позначити як проведений",
   },
 
   // Finances
