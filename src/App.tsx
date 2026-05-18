@@ -70,7 +70,6 @@ function AppRoutes() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
-      <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
