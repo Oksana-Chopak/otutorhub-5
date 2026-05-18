@@ -58,8 +58,18 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
+      <Route path="/marketing-unsubscribe" element={<MarketingUnsubscribePage />} />
+      <Route
+        path="/marketing"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <MarketingPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/" element={<Index />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
