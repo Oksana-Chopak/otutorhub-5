@@ -7,7 +7,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const REDIRECT_URI =
+const REDIRECT_URI 
   "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-callback";
 const SCOPE = [
   "openid",
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
     });
   }
 
-  const clientId = Deno.env.get("GOOGLE_CLIENT_ID");
+  const clientId = Deno.env.get("GOOGLE_CLIENT_ID")?.trim();
   if (!clientId) {
     return new Response(JSON.stringify({ error: "GOOGLE_CLIENT_ID not configured" }), {
       status: 500,
