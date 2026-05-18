@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
+import { DashboardSkeleton } from "@/components/PageSkeletons";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
@@ -16,25 +17,24 @@ import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
 import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
 import { QuickPaymentFab } from "@/components/QuickPaymentFab";
-import { QuickActionsFab } from "@/components/QuickActionsFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { Wallet, CalendarClock } from "lucide-react";
+import { Wallet } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
-
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
 import { lessonSourceTint } from "@/components/SourceBadge";
+import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import {
   CalendarDays,
@@ -458,11 +458,6 @@ export default function DashboardPage() {
   }, [upcomingAll, todayKey]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
 
-  const needsMarkLessons = useMemo(
-    () => lessons.filter((l) => l.status === 'scheduled' && new Date(l.starts_at) < new Date()),
-    [lessons, nowMs]
-  );
-
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
     const d = new Date();
@@ -617,8 +612,8 @@ export default function DashboardPage() {
         tone: "warning" as const,
         title: `Очікують оплати: ${pendingPayments.length}`,
         description: "Завершені уроки без повної оплати або виплати.",
-        to: "/finances",
-        cta: "Перейти до фінансів",
+        to: "/finances?filter=need_pay",
+        cta: "Переглянути неоплачені",
       });
     }
     // 2. Tutor referral requests (students looking for a tutor)
@@ -728,37 +723,40 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6">
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
-            {greeting}{firstName ? `, ${firstName}` : ""} <span className="ml-0.5">{timeEmoji}</span>
-          </h1>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-            <Link
-              to="/schedule"
-              className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
-            >
-              <CalendarDays className="h-3 w-3 text-primary" />
-              {todayLessons.length}{" "}
-              {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"} сьогодні
-            </Link>
-            {pendingPayments.length > 0 && (
-              <span className="inline-flex items-center gap-1 text-warning">
-                <Clock className="h-3 w-3" />
-                {pendingPayments.length} очікують оплати
-              </span>
-            )}
-          </p>
-          <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground/80 sm:text-xs">
-            ✨ {phraseOfDay}
-          </p>
-        </div>
+      <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 p-6 shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.25)] sm:mb-8 sm:p-8">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/10" />
+        <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-primary/10" />
+        <div className="relative flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              {greeting}{firstName ? `, ${firstName}` : ""}! <span className="ml-1">{timeEmoji}</span>
+            </h1>
+            <p className="mt-3 max-w-lg text-sm italic text-muted-foreground">
+              <span className="not-italic font-medium text-primary/80">Афірмація дня: </span>
+              {phraseOfDay}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 rounded-lg bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
+                <CalendarDays className="h-3.5 w-3.5 text-primary" />
+                Сьогодні {todayLessons.length}{" "}
+                {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"}
+              </div>
+              {pendingPayments.length > 0 && (
+                <Link
+                  to="/finances?filter=need_pay"
+                  className="flex items-center gap-1.5 rounded-lg bg-warning/10 px-3 py-1.5 text-xs text-warning transition-colors hover:bg-warning/20"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  {pendingPayments.length} очікують оплати →
+                </Link>
+              )}
+            </div>
+          </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {isManager && (
               <>
-                <QuickActionsFab onChanged={loadData} />
-                <Button asChild variant="outline" size="sm" className="hidden lg:inline-flex"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
-                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")} className="hidden lg:inline-flex">
+                <Button asChild variant="outline" size="sm"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
+                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
                   <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
                 </Button>
               </>
@@ -780,6 +778,7 @@ export default function DashboardPage() {
               />
             )}
           </div>
+        </div>
       </div>
 
       <QuickLessonDialog
@@ -791,52 +790,45 @@ export default function DashboardPage() {
       />
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <DashboardSkeleton />
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
           {isManager && (
-            <div className="space-y-2 sm:space-y-3">
-              <div className="grid grid-cols-3 gap-2 sm:gap-3">
-                <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
-                <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
-                <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
-              </div>
-              <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/5 to-success/5 p-4 transition-colors hover:border-primary/50 sm:p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium leading-tight text-muted-foreground sm:text-sm">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+              <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
+              <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
+              <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
+              <div className="rounded-2xl border border-border bg-card p-2.5 transition-colors hover:border-success/40">
+                <div className="flex items-start justify-between gap-1.5">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-medium leading-tight text-muted-foreground">
                       {t("dashboard.cardProfit")}
                     </p>
                     <Link to="/finances" className="block">
                       <p
-                        className={`mt-1 truncate font-display font-bold leading-none ${
-                          profit >= 0 ? "text-primary" : "text-destructive"
+                        className={`mt-0.5 truncate font-display text-base font-bold sm:text-lg ${
+                          profit >= 0 ? "text-success" : "text-destructive"
                         }`}
-                        style={{ fontSize: "28px" }}
                       >
                         {formatPrice(profit, "UAH")}
                       </p>
                     </Link>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <TrendingUp className="h-5 w-5 text-primary" />
-                    </div>
-                    <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
-                      <SelectTrigger className="h-7 w-[110px] text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
-                        <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
-                        <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-success/10">
+                    <TrendingUp className="h-3.5 w-3.5 text-success" />
                   </div>
                 </div>
+                <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
+                  <SelectTrigger className="mt-1.5 h-6 w-full text-[10px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
+                    <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
+                    <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
@@ -845,9 +837,7 @@ export default function DashboardPage() {
           {isIndependentTutor && <AutoCompleteLessonsCard />}
           {(isTutor || isManager) && (
             <div className="mt-4 space-y-4">
-              <div className="hidden lg:block">
-                <QuickActionsCard onChanged={loadData} />
-              </div>
+              <QuickActionsCard onChanged={loadData} />
               <TutorNotesCard />
             </div>
           )}
@@ -887,28 +877,6 @@ export default function DashboardPage() {
               studentNames={profiles}
               onChanged={loadData}
             />
-          )}
-
-          {needsMarkLessons.length > 0 && (
-            <section className="mb-6">
-              <div className="mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <h2 className="text-base font-semibold">Потребують відмітки</h2>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{needsMarkLessons.length}</span>
-              </div>
-              <div className="space-y-2">
-                {needsMarkLessons.map((lesson) => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
-                    variant="schedule"
-                    studentName={profiles[lesson.student_id] ?? '—'}
-                    onContentClick={() => setOpenLessonId(lesson.id)}
-                    className={lessonSourceTint(lesson.source)}
-                  />
-                ))}
-              </div>
-            </section>
           )}
 
           <div className="grid gap-6 lg:gap-8 xl:grid-cols-2">
@@ -973,20 +941,17 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
-                          chatPartnerId={lesson.student_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
                           extraActions={
                             <>
                               <Button
                                 size="sm"
-                                variant="ghost"
-                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                variant="outline"
+                                className="min-h-[44px]"
                                 onClick={() => setOpenLessonId(lesson.id)}
-                                title="Перенести урок"
                               >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
+                                Відкрити
                               </Button>
                               <Button
                                 size="icon"
@@ -1081,34 +1046,22 @@ export default function DashboardPage() {
                         className={lessonSourceTint(lesson.source)}
                         extraActions={
                           canEditStatus ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => setOpenLessonId(lesson.id)}
-                                title="Перенести урок"
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
-                              </Button>
-                              <Select
-                                value={lesson.status}
-                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                              >
-                                <SelectTrigger className="h-11 w-[140px] text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(isManager
-                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  ).map((s) => (
-                                    <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </>
+                            <Select
+                              value={lesson.status}
+                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                            >
+                              <SelectTrigger className="h-11 w-[140px] text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(isManager
+                                  ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                                  : (["scheduled", "completed", "cancelled"] as LessonStatus[])
+                                ).map((s) => (
+                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           ) : null
                         }
                         footer={
@@ -1163,15 +1116,7 @@ export default function DashboardPage() {
               {isManager ? (
                 <div className="space-y-4">
                   {smartTasks.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
-                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
-                        <TrendingUp className="h-4 w-4 text-success" />
-                      </div>
-                      <p className="text-sm font-medium text-foreground">Усе під контролем 🎉</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Немає термінових задач. Можна планувати наступний тиждень.
-                      </p>
-                    </div>
+                    <EmptyState.AllClear />
                   ) : (
                     smartTasks.map((task) => {
                       const Icon = task.icon;
@@ -1206,6 +1151,7 @@ export default function DashboardPage() {
                       );
                     })
                   )}
+                  <TelegramLinkCard />
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -1289,6 +1235,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   )}
+                  <TelegramLinkCard />
                 </div>
               )}
             </section>
@@ -1296,7 +1243,6 @@ export default function DashboardPage() {
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
-      
       {walletPair && (
         <WalletDialog
           open={!!walletPair}

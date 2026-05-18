@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { EmptyState } from "@/components/EmptyState";
+import { StudentsSkeleton } from "@/components/PageSkeletons";
+import { studentToasts } from "@/lib/toasts";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   UserPlus,
@@ -421,7 +423,7 @@ export default function MyStudentsPage() {
         );
       }
 
-      toast.success("Учня додано");
+      studentToasts.added(`${formData.first_name} ${formData.last_name}`.trim() || formData.email);
 
       // Auto-send email invite if we have an email
       let inviteSent = false;
@@ -432,7 +434,7 @@ export default function MyStudentsPage() {
         );
         if (!inviteErr && (inviteResp as any)?.success) {
           inviteSent = true;
-          toast.success("Запрошення надіслано на email учня");
+          studentToasts.invited(`${formData.first_name} ${formData.last_name}`.trim() || formData.email);
         } else if (inviteErr) {
           console.warn("Auto-invite failed", inviteErr);
         }
@@ -508,7 +510,7 @@ export default function MyStudentsPage() {
         { onConflict: "tutor_id,student_id" }
       );
 
-      toast.success("Дані учня оновлено");
+      studentToasts.updated(`${editForm?.first_name ?? ""} ${editForm?.last_name ?? ""}`.trim() || "Учня");
       if (priceChanged) {
         setPropagate({ open: true, ...priceChanged });
       }
@@ -530,7 +532,7 @@ export default function MyStudentsPage() {
       toast.error("Не вдалося архівувати");
       return;
     }
-    toast.success("Перенесено в архів");
+    studentToasts.archived(`${s.first_name} ${s.last_name}`.trim() || "Учня");
     await Promise.all([load(), refresh()]);
   };
 
@@ -544,7 +546,7 @@ export default function MyStudentsPage() {
       toast.error("Не вдалося відновити");
       return;
     }
-    toast.success("Учня повернено зі списку архіву");
+    studentToasts.restored(`${s.first_name} ${s.last_name}`.trim() || "Учня");
     await Promise.all([load(), refresh()]);
   };
 
@@ -601,9 +603,7 @@ export default function MyStudentsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <StudentsSkeleton />
       ) : visibleStudents.length === 0 ? (
         view === "active" ? (
           <EmptyState

@@ -201,7 +201,7 @@ export function PendingPaymentsCard() {
             />
           </CollapsibleTrigger>
           <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-xs">
-            <Link to="/finances">
+            <Link to="/finances?filter=need_pay">
               <ArrowRight className="h-3 w-3" />
             </Link>
           </Button>

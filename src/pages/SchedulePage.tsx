@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { ScheduleSkeleton } from "@/components/PageSkeletons";
+import { lessonToasts } from "@/lib/toasts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, CalendarClock, CalendarDays } from "lucide-react";
+import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil, CalendarClock, CalendarDays } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -46,7 +48,6 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
-import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
@@ -162,13 +163,9 @@ export default function SchedulePage() {
   }>({});
   const [notesOpen, setNotesOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
-  // Two-step form: step 1 = хто+коли, step 2 = деталі (оплата, тривалість, повторення).
-  // Більшість користувачів зберігають одразу на кроці 1 з автозаповненими дефолтами.
-  const [step, setStep] = useState<1 | 2>(1);
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
-  const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
@@ -302,7 +299,6 @@ export default function SchedulePage() {
       tutor_payout_status: "unpaid",
     });
     setNotesOpen(Boolean(lesson.notes));
-    setStep(1);
     setCreateOpen(true);
   };
 
@@ -557,76 +553,6 @@ export default function SchedulePage() {
     };
   }, [isManager, isIndependentTutor, form.tutor_id, form.student_id]);
 
-  // Smart prefill #1: якщо обрано тільки тутора, а в нього лише один учень — підставляємо.
-  // І навпаки: якщо обрано тільки учня, а в нього лише один тутор — підставляємо.
-  // Для менеджера джерело — student_rates (хто з ким працює).
-  useEffect(() => {
-    if (!createOpen) return;
-    if (!isManager) return;
-    let cancelled = false;
-    (async () => {
-      if (form.tutor_id && !form.student_id) {
-        const { data } = await supabase
-          .from("student_rates")
-          .select("student_id")
-          .eq("tutor_id", form.tutor_id);
-        if (cancelled) return;
-        const ids = Array.from(new Set((data ?? []).map((r: any) => r.student_id)));
-        if (ids.length === 1) {
-          setForm((f) => (f.student_id ? f : { ...f, student_id: ids[0] }));
-        }
-      } else if (!form.tutor_id && form.student_id) {
-        const { data } = await supabase
-          .from("student_rates")
-          .select("tutor_id")
-          .eq("student_id", form.student_id);
-        if (cancelled) return;
-        const ids = Array.from(new Set((data ?? []).map((r: any) => r.tutor_id)));
-        if (ids.length === 1) {
-          setForm((f) => (f.tutor_id ? f : { ...f, tutor_id: ids[0] }));
-        }
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [createOpen, isManager, form.tutor_id, form.student_id]);
-
-  // Smart prefill #2: для тутора з одним учнем — авто-підстановка.
-  useEffect(() => {
-    if (!createOpen) return;
-    if (isManager || !isTutor) return;
-    if (form.student_id) return;
-    if (students.length === 1) {
-      setForm((f) => ({ ...f, student_id: students[0].id }));
-    }
-  }, [createOpen, isManager, isTutor, students, form.student_id]);
-
-  // Smart prefill #3: успадковуємо тривалість з останнього уроку пари (tutor, student).
-  useEffect(() => {
-    if (!createOpen) return;
-    if (!form.tutor_id || !form.student_id) return;
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("lessons")
-        .select("duration_minutes")
-        .eq("tutor_id", form.tutor_id)
-        .eq("student_id", form.student_id)
-        .order("starts_at", { ascending: false })
-        .limit(1);
-      if (cancelled) return;
-      const d = data?.[0]?.duration_minutes;
-      if (d && d > 0) {
-        // Лише якщо користувач ще не змінював дефолт "60"
-        setForm((f) => (f.duration_minutes && f.duration_minutes !== "60" ? f : { ...f, duration_minutes: String(d) }));
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [createOpen, form.tutor_id, form.student_id]);
-
   // Conflict detection: warn (not block) if tutor already has a lesson overlapping the proposed slot
   const conflictWarning = useMemo(() => {
     if (!form.tutor_id || !form.starts_at) return null;
@@ -706,7 +632,6 @@ export default function SchedulePage() {
 
     const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
     const payloads: any[] = [];
-    const detailsPerIndex: Array<Record<string, any> | null> = [];
     for (let i = 0; i < repeats; i++) {
       const dt = new Date(baseStart);
       dt.setDate(dt.getDate() + i * 7);
@@ -721,48 +646,32 @@ export default function SchedulePage() {
         created_by: user.id,
         source: isIndependentTutor ? "independent" : "hub",
       };
-      const details: Record<string, any> = {};
       if (isManager) {
-        details.student_price = Number(form.student_price) || 0;
-        details.tutor_payout = Number(form.tutor_payout) || 0;
-        details.student_payment_status = form.student_payment_status;
-        details.tutor_payout_status = form.tutor_payout_status;
+        payload.student_price = Number(form.student_price) || 0;
+        payload.tutor_payout = Number(form.tutor_payout) || 0;
+        payload.student_payment_status = form.student_payment_status;
+        payload.tutor_payout_status = form.tutor_payout_status;
       } else if (isIndependentTutor) {
+        // Pass the price explicitly so even if the trigger fallback misses (e.g.
+        // the rate upsert failed), the lesson still has the right price.
         const priceFromForm = Number(form.student_price);
         if (priceFromForm > 0) {
-          details.student_price = priceFromForm;
+          payload.student_price = priceFromForm;
         }
       }
       payloads.push(payload);
-      detailsPerIndex.push(Object.keys(details).length ? details : null);
     }
 
     const { data: insertedLessons, error } = await supabase
       .from("lessons")
       .insert(payloads)
       .select("id");
+    setSubmitting(false);
     if (error) {
-      setSubmitting(false);
       console.error("Failed to create lesson", error);
       toast.error("Не вдалося створити урок. Спробуйте ще раз.");
       return;
     }
-    const detailsRows = (insertedLessons ?? [])
-      .map((l, idx) => {
-        const d = detailsPerIndex[idx];
-        if (!d) return null;
-        return { lesson_id: l.id, ...d };
-      })
-      .filter(Boolean) as Array<Record<string, any>>;
-    if (detailsRows.length) {
-      const { error: detailsErr } = await supabase
-        .from("lesson_details")
-        .upsert(detailsRows as any, { onConflict: "lesson_id" });
-      if (detailsErr) {
-        console.warn("Failed to save lesson details", detailsErr);
-      }
-    }
-    setSubmitting(false);
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1
@@ -796,7 +705,7 @@ export default function SchedulePage() {
       setLessons(prev);
       return;
     }
-    toast.success("Статус оновлено");
+    lessonToasts.statusUpdated(newStatus as "completed" | "cancelled" | "scheduled");
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 
@@ -824,7 +733,7 @@ export default function SchedulePage() {
       setLessons(prev);
       return;
     }
-    toast.success("Оплату оновлено");
+    lessonToasts.paymentMarked(field === "student_payment_status" ? "student" : "tutor");
   };
 
   const deleteLesson = async (lessonId: string) => {
@@ -837,7 +746,7 @@ export default function SchedulePage() {
       setLessons(prev);
       return;
     }
-    toast.success("Урок видалено");
+    lessonToasts.deleted();
     void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
@@ -972,6 +881,13 @@ export default function SchedulePage() {
             <span>📅</span>
             <span className="truncate">Розклад занять</span>
           </h1>
+          <p className="text-xs text-muted-foreground sm:text-sm">
+            {isManager
+              ? "Усі уроки школи"
+              : isTutor
+              ? "Ваші уроки та робочий графік"
+              : "Ваші уроки та запити"}
+          </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <MobileFilters
@@ -1060,7 +976,7 @@ export default function SchedulePage() {
           {canCreate && (
             <Dialog open={createOpen} onOpenChange={(open) => {
               setCreateOpen(open);
-              if (!open) setFormErrors({}); else setStep(1);
+              if (!open) setFormErrors({});
             }}>
               <DialogTrigger asChild>
                 <Button size="sm" className="h-9 gap-1.5 px-3">
@@ -1072,18 +988,8 @@ export default function SchedulePage() {
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>Новий урок</DialogTitle>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
-                      step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
-                    <span className={step === 1 ? "text-foreground font-medium" : ""}>Хто і коли</span>
-                    <span className="h-px flex-1 bg-border" />
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
-                      step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
-                    <span className={step === 2 ? "text-foreground font-medium" : ""}>Деталі</span>
-                  </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
-                {step === 1 && (<>
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
                       Репетитор <span className="text-destructive">*</span>
@@ -1215,41 +1121,41 @@ export default function SchedulePage() {
                     <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
                   )}
                 </div>
-                <div>
-                  <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
-                    Дата і час <span className="text-destructive">*</span>
-                  </Label>
-                  <Input
-                    id="starts_at"
-                    type="datetime-local"
-                    value={form.starts_at}
-                    onChange={(e) => {
-                      setForm((f) => ({ ...f, starts_at: e.target.value }));
-                      if (formErrors.starts_at && e.target.value) {
-                        setFormErrors((er) => ({ ...er, starts_at: false }));
-                      }
-                    }}
-                    className={cn(
-                      formErrors.starts_at &&
-                        "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                      Дата і час <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="starts_at"
+                      type="datetime-local"
+                      value={form.starts_at}
+                      onChange={(e) => {
+                        setForm((f) => ({ ...f, starts_at: e.target.value }));
+                        if (formErrors.starts_at && e.target.value) {
+                          setFormErrors((er) => ({ ...er, starts_at: false }));
+                        }
+                      }}
+                      className={cn(
+                        formErrors.starts_at &&
+                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
+                      )}
+                    />
+                    {formErrors.starts_at && (
+                      <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
                     )}
-                  />
-                  {formErrors.starts_at && (
-                    <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
-                  )}
-                </div>
-                </>)}
-                {step === 2 && (<>
-                <div>
-                  <Label htmlFor="duration">Тривалість (хв)</Label>
-                  <Input
-                    id="duration"
-                    type="number"
-                    min="15"
-                    step="15"
-                    value={form.duration_minutes}
-                    onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                  />
+                  </div>
+                  <div>
+                    <Label htmlFor="duration">Тривалість (хв)</Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      min="15"
+                      step="15"
+                      value={form.duration_minutes}
+                      onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                    />
+                  </div>
                 </div>
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
@@ -1414,46 +1320,15 @@ export default function SchedulePage() {
                     />
                   )}
                 </div>
-                </>)}
               </div>
-              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
-                {step === 1 ? (
-                  <Button variant="ghost" onClick={() => setCreateOpen(false)}>
-                    Скасувати
-                  </Button>
-                ) : (
-                  <Button variant="ghost" onClick={() => setStep(1)}>
-                    ← Назад
-                  </Button>
-                )}
-                <div className="flex gap-2">
-                  {step === 1 && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        // Lightweight validation before jumping to step 2
-                        const errs: typeof formErrors = {};
-                        if (!form.tutor_id) errs.tutor_id = true;
-                        if (!form.student_id) errs.student_id = true;
-                        if (!form.subject || !form.subject.trim()) errs.subject = true;
-                        if (!form.starts_at) errs.starts_at = true;
-                        if (Object.keys(errs).length) {
-                          setFormErrors(errs);
-                          toast.error("Заповніть обов'язкові поля");
-                          return;
-                        }
-                        setFormErrors({});
-                        setStep(2);
-                      }}
-                    >
-                      Більше опцій (оплата, повтор)
-                    </Button>
-                  )}
-                  <Button onClick={handleCreate} disabled={submitting}>
-                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    Зберегти
-                  </Button>
-                </div>
+              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
+                <Button variant="outline" onClick={() => setCreateOpen(false)}>
+                  Скасувати
+                </Button>
+                <Button onClick={handleCreate} disabled={submitting}>
+                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Зберегти
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -1611,9 +1486,7 @@ export default function SchedulePage() {
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <ScheduleSkeleton />
       ) : view === "week" ? (
         <WeekCalendar
           weekStart={weekAnchor}
@@ -1650,7 +1523,7 @@ export default function SchedulePage() {
           }}
           onLessonClick={(l) => {
             const full = lessons.find((x) => x.id === l.id);
-            if (full) setOpenLessonId(full.id);
+            if (full) openEdit(full);
           }}
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
@@ -1762,10 +1635,19 @@ export default function SchedulePage() {
                             : undefined
                         }
                         className={lessonSourceTint(lesson.source)}
-                        onContentClick={() => setOpenLessonId(lesson.id)}
                         topRightActions={
                           <>
-
+                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-muted-foreground hover:text-primary"
+                                onClick={() => openEdit(lesson)}
+                                title="Редагувати урок"
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </Button>
+                            )}
                             {canCopy && (
                               <Button
                                 variant="ghost"
@@ -1804,30 +1686,6 @@ export default function SchedulePage() {
                         }
                         extraActions={
                           <>
-                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => openEdit(lesson)}
-                                title="Перенести урок"
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
-                              </Button>
-                            )}
-                            {canEditStatus && lesson.status === "scheduled" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="h-11 gap-1.5"
-                                onClick={() => updateStatus(lesson.id, "completed")}
-                                title="Позначити як проведений"
-                              >
-                                <CheckCircle2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">Урок відбувся</span>
-                              </Button>
-                            )}
                             {canEditStatus ? (
                               <Select
                                 value={lesson.status}
@@ -1920,12 +1778,6 @@ export default function SchedulePage() {
           setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
           setCreateOpen(true);
         }}
-      />
-      <LessonDetailsDialog
-        lessonId={openLessonId}
-        open={!!openLessonId}
-        onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
-        onUpdated={() => loadAll()}
       />
     </AppLayout>
   );

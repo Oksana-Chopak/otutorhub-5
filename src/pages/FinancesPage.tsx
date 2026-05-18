@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +11,7 @@ import {
   Loader2,
   Download,
   CheckCheck,
-  Plus,
-  Wallet,
-  ArrowRight,
-  Package,
-  AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,14 +26,11 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
+import { FinancesSkeleton } from "@/components/PageSkeletons";
 import { Percent } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
-import { RecordPaymentSheet, PairOption } from "@/components/RecordPaymentSheet";
-import { WalletDialog } from "@/components/WalletDialog";
-import { ProfitSparkline } from "@/components/ProfitSparkline";
-import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -63,25 +56,6 @@ interface Profile {
   last_name: string;
 }
 
-interface WalletTx {
-  id: string;
-  tutor_id: string;
-  student_id: string;
-  kind: "topup" | "lesson_charge" | "refund" | "adjustment";
-  lessons_delta: number;
-  amount_delta: number;
-  lesson_id: string | null;
-  note: string | null;
-  created_at: string;
-}
-
-interface WalletBalance {
-  tutor_id: string;
-  student_id: string;
-  lessons_balance: number;
-  amount_balance: number;
-}
-
 const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
@@ -101,51 +75,43 @@ export default function FinancesPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
-  const canManagePrepay = isManager || isIndependentTutor;
+
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [walletTxs, setWalletTxs] = useState<WalletTx[]>([]);
-  const [balances, setBalances] = useState<Record<string, WalletBalance>>({});
-  const [pairRates, setPairRates] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [tutorFilter, setTutorFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all"); // all|need_pay|need_payout|done
-  const [kindFilter, setKindFilter] = useState<string>("all"); // all|lessons|prepay
+  // Read initial filter from URL ?filter=need_pay|need_payout|done
+  const [statusFilter, setStatusFilter] = useState<string>(
+    searchParams.get("filter") ?? "all"
+  );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [recordOpen, setRecordOpen] = useState(false);
-  const [walletPair, setWalletPair] = useState<PairOption | null>(null);
+
+  // Sync statusFilter changes back to URL so the state is shareable/bookmarkable
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    if (value === "all") {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ filter: value }, { replace: true });
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
-    const [
-      { data: lessonsData, error: lErr },
-      { data: profilesData, error: pErr },
-      { data: txData },
-      { data: balData },
-      { data: ratesData },
-    ] = await Promise.all([
-      supabase
-        .from("lessons")
-        .select(
-          "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
-        )
-        .order("starts_at", { ascending: false }),
-      supabase.from("profiles").select("id, first_name, last_name"),
-      supabase
-        .from("student_wallet_transactions" as any)
-        .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
-        .order("created_at", { ascending: false }),
-      supabase
-        .from("student_wallet_balances" as any)
-        .select("tutor_id, student_id, lessons_balance, amount_balance"),
-      supabase
-        .from("student_rates")
-        .select("tutor_id, student_id, price_per_lesson, archived_at")
-        .is("archived_at", null),
-    ]);
+    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
+      await Promise.all([
+        supabase
+          .from("lessons")
+          .select(
+            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
+          )
+          .order("starts_at", { ascending: false }),
+        supabase.from("profiles").select("id, first_name, last_name"),
+      ]);
     if (lErr) toast.error("Помилка завантаження уроків");
     if (pErr) toast.error("Помилка завантаження профілів");
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
@@ -166,24 +132,6 @@ export default function FinancesPage() {
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
-    setWalletTxs(((txData ?? []) as any[]) as WalletTx[]);
-    const balMap: Record<string, WalletBalance> = {};
-    ((balData ?? []) as any[]).forEach((b) => {
-      balMap[`${b.tutor_id}:${b.student_id}`] = {
-        tutor_id: b.tutor_id,
-        student_id: b.student_id,
-        lessons_balance: Number(b.lessons_balance ?? 0),
-        amount_balance: Number(b.amount_balance ?? 0),
-      };
-    });
-    setBalances(balMap);
-    const rateMap: Record<string, number> = {};
-    ((ratesData ?? []) as any[]).forEach((r) => {
-      const key = `${r.tutor_id}:${r.student_id}`;
-      const v = Number(r.price_per_lesson) || 0;
-      if (v > (rateMap[key] ?? 0)) rateMap[key] = v;
-    });
-    setPairRates(rateMap);
     setSelected(new Set());
     setLoading(false);
   };
@@ -211,49 +159,6 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, profiles]);
 
-  // Pairs collected from lessons + wallet transactions (for RecordPaymentSheet picker)
-  const pairsList = useMemo<PairOption[]>(() => {
-    const map = new Map<string, PairOption>();
-    const add = (tutor_id: string, student_id: string | null) => {
-      if (!student_id) return;
-      const key = `${tutor_id}:${student_id}`;
-      if (map.has(key)) return;
-      map.set(key, {
-        tutor_id,
-        student_id,
-        tutor_name: nameOf(tutor_id),
-        student_name: nameOf(student_id),
-        rate: pairRates[key],
-      });
-    };
-    lessons.forEach((l) => add(l.tutor_id, l.student_id));
-    walletTxs.forEach((t) => add(t.tutor_id, t.student_id));
-    return Array.from(map.values()).sort((a, b) =>
-      a.student_name.localeCompare(b.student_name, "uk"),
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lessons, walletTxs, profiles, pairRates]);
-
-  const unpaidLessonsForSheet = useMemo(
-    () =>
-      lessons
-        .filter(
-          (l) =>
-            l.status !== "cancelled" &&
-            l.student_payment_status === "unpaid" &&
-            l.student_id,
-        )
-        .map((l) => ({
-          id: l.id,
-          subject: l.subject,
-          starts_at: l.starts_at,
-          student_price: l.student_price,
-          student_id: l.student_id,
-          tutor_id: l.tutor_id,
-        })),
-    [lessons],
-  );
-
   const filtered = useMemo(
     () =>
       lessons.filter(
@@ -265,6 +170,9 @@ export default function FinancesPage() {
   );
 
   // Billable = lesson actually counts toward money flow.
+  // Includes: completed lessons, past lessons (date already passed), or any lesson
+  // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
+  // Excludes: cancelled, and pending requests that never happened.
   const nowMs = Date.now();
   const billable = filtered.filter((l) => {
     if (l.status === "cancelled" || l.status === "pending") return false;
@@ -275,52 +183,43 @@ export default function FinancesPage() {
     return isPast || hasPayment;
   });
 
-  const visibleLessons = useMemo(() => {
+  const visibleRows = useMemo(() => {
+    let rows: LessonRow[];
     switch (statusFilter) {
       case "need_pay":
-        return billable.filter((l) => l.student_payment_status === "unpaid");
+        rows = billable.filter((l) => l.student_payment_status === "unpaid");
+        break;
       case "need_payout":
-        return billable.filter((l) => l.tutor_payout_status === "unpaid");
+        rows = billable.filter((l) => l.tutor_payout_status === "unpaid");
+        break;
       case "done":
-        return billable.filter(
+        rows = billable.filter(
           (l) =>
             l.student_payment_status === "paid" && l.tutor_payout_status === "paid"
         );
+        break;
       default:
-        return billable;
+        // In "all" view: unpaid rows first (by date desc), then paid (by date desc)
+        rows = [
+          ...billable
+            .filter(
+              (l) =>
+                l.student_payment_status === "unpaid" ||
+                l.tutor_payout_status === "unpaid"
+            )
+            .sort((a, b) => b.starts_at.localeCompare(a.starts_at)),
+          ...billable
+            .filter(
+              (l) =>
+                l.student_payment_status === "paid" &&
+                l.tutor_payout_status === "paid"
+            )
+            .sort((a, b) => b.starts_at.localeCompare(a.starts_at)),
+        ];
+        break;
     }
+    return rows;
   }, [billable, statusFilter]);
-
-  // Wallet top-ups visible in the finance feed (apply same tutor/month filters; status filter doesn't apply)
-  const visiblePrepays = useMemo(() => {
-    return walletTxs
-      .filter((t) => t.kind === "topup")
-      .filter((t) => tutorFilter === "all" || t.tutor_id === tutorFilter)
-      .filter((t) => monthFilter === "all" || monthKey(t.created_at) === monthFilter);
-  }, [walletTxs, tutorFilter, monthFilter]);
-
-  // Unified chronological feed
-  type UnifiedRow =
-    | { type: "lesson"; sort: number; l: LessonRow }
-    | { type: "prepay"; sort: number; tx: WalletTx };
-
-  const unifiedRows = useMemo<UnifiedRow[]>(() => {
-    const rows: UnifiedRow[] = [];
-    if (kindFilter !== "prepay") {
-      visibleLessons.forEach((l) =>
-        rows.push({ type: "lesson", sort: new Date(l.starts_at).getTime(), l }),
-      );
-    }
-    if (kindFilter !== "lessons" && canManagePrepay) {
-      visiblePrepays.forEach((tx) =>
-        rows.push({ type: "prepay", sort: new Date(tx.created_at).getTime(), tx }),
-      );
-    }
-    return rows.sort((a, b) => b.sort - a.sort);
-  }, [visibleLessons, visiblePrepays, kindFilter, canManagePrepay]);
-
-  // Keep visibleRows alias for backwards compatibility with existing code (lessons-only for bulk/CSV)
-  const visibleRows = visibleLessons;
 
   const totalIncome = billable
     .filter((l) => l.student_payment_status === "paid")
@@ -336,24 +235,23 @@ export default function FinancesPage() {
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
 
-  // Маржа = (надходження − виплати) / надходження * 100.
-  // Інтуїтивніша метрика: «скільки % з кожної отриманої гривні залишається хабу».
+  // Markup % ("маржа" як націнка): (income - payout) / payout * 100
   // Рахуємо тільки по уроках, де відомі обидві суми (price > 0 і payout > 0),
-  // інакше маржа не визначена.
-  const computeMargin = (rows: LessonRow[]): number | null => {
+  // інакше націнка не визначена.
+  const computeMarkup = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
     );
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
     const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (income === 0) return null;
-    return ((income - payout) / income) * 100;
+    if (payout === 0) return null;
+    return ((income - payout) / payout) * 100;
   };
 
-  const hubMargin = useMemo(() => computeMargin(billable), [billable]);
+  const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
 
-  const marginByTutor = useMemo(() => {
+  const markupByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
     billable.forEach((l) => {
       if (!groups[l.tutor_id]) groups[l.tutor_id] = [];
@@ -363,58 +261,11 @@ export default function FinancesPage() {
       .map(([tutorId, rows]) => ({
         tutorId,
         name: nameOf(tutorId),
-        margin: computeMargin(rows),
+        markup: computeMarkup(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.margin !== null)
-      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billable, profiles]);
-
-  // Last-4-weeks profit sparkline series
-  const profitSparkline = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayIdx = (today.getDay() + 6) % 7; // 0 = Mon
-    const thisWeekStart = new Date(today);
-    thisWeekStart.setDate(today.getDate() - dayIdx);
-    const buckets: { key: string; start: Date; profit: number }[] = [];
-    for (let i = 3; i >= 0; i--) {
-      const s = new Date(thisWeekStart);
-      s.setDate(thisWeekStart.getDate() - i * 7);
-      buckets.push({ key: s.toISOString().slice(0, 10), start: s, profit: 0 });
-    }
-    const firstStart = buckets[0].start.getTime();
-    billable.forEach((l) => {
-      const t = new Date(l.starts_at).getTime();
-      if (t < firstStart) return;
-      const idx = Math.floor((t - firstStart) / (7 * 24 * 3600 * 1000));
-      if (idx < 0 || idx >= buckets.length) return;
-      const income = l.student_payment_status === "paid" ? Number(l.student_price) : 0;
-      const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
-      buckets[idx].profit += income - expense;
-    });
-    return buckets.map((b) => ({ week: b.key, profit: b.profit }));
-  }, [billable]);
-
-  // Income contribution per student (paid lessons only) — for pie chart
-  const incomeByStudent = useMemo(() => {
-    const map = new Map<string, number>();
-    billable
-      .filter((l) => l.student_payment_status === "paid" && Number(l.student_price) > 0)
-      .forEach((l) => {
-        map.set(l.student_id, (map.get(l.student_id) ?? 0) + Number(l.student_price));
-      });
-    const rows = Array.from(map.entries())
-      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
-      .sort((a, b) => b.amount - a.amount);
-    // Collapse long tail into "Інші" (keep top 6)
-    const TOP = 6;
-    if (rows.length <= TOP) return rows;
-    const head = rows.slice(0, TOP);
-    const tail = rows.slice(TOP);
-    const other = tail.reduce((s, r) => s + r.amount, 0);
-    return [...head, { student_id: "__other__", name: `Інші (${tail.length})`, amount: other }];
+      .filter((r) => r.markup !== null)
+      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -464,50 +315,7 @@ export default function FinancesPage() {
       toast.error("Не вдалося оновити статус");
       return;
     }
-    if (next === "paid") {
-      const revert = async () => {
-        // Restore prior state in DB + UI
-        setLessons((prev) =>
-          prev.map((l) =>
-            l.id === lesson.id
-              ? { ...l, [field]: lesson[field], [paidAtField]: field === "student_payment_status" ? lesson.student_paid_at : lesson.tutor_paid_at } as LessonRow
-              : l
-          )
-        );
-        const revertPayload =
-          field === "student_payment_status"
-            ? { student_payment_status: lesson.student_payment_status }
-            : { tutor_payout_status: lesson.tutor_payout_status };
-        await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
-      };
-      toast.success(
-        field === "student_payment_status" ? "✓ Позначено як оплачено" : "✓ Позначено як виплачено",
-        {
-          duration: 5000,
-          action: { label: "Скасувати", onClick: () => { void revert(); } },
-        },
-      );
-    } else {
-      toast.success("Скинуто на неоплачено");
-    }
-  };
-
-  // Used by RecordPaymentSheet: only marks as paid (no toggle).
-  const markLessonPaidById = async (lessonId: string) => {
-    const lesson = lessons.find((l) => l.id === lessonId);
-    if (!lesson) return;
-    if (lesson.student_payment_status === "paid") return;
-    await togglePayment(lesson, "student_payment_status");
-  };
-
-  const openWalletForPair = (tutor_id: string, student_id: string) => {
-    setWalletPair({
-      tutor_id,
-      student_id,
-      tutor_name: nameOf(tutor_id),
-      student_name: nameOf(student_id),
-      rate: pairRates[`${tutor_id}:${student_id}`],
-    });
+    toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
   };
 
   const toggleRow = (id: string) => {
@@ -596,50 +404,12 @@ export default function FinancesPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 150);
+    URL.revokeObjectURL(url);
     toast.success("CSV завантажено");
   };
 
   const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
   const someSelected = selected.size > 0 && !allSelected;
-
-  // Inline wallet balance pill for a (tutor, student) pair
-  const renderWalletBadge = (tutor_id: string, student_id: string) => {
-    const b = balances[`${tutor_id}:${student_id}`];
-    if (!b) return null;
-    const lessons = Number(b.lessons_balance ?? 0);
-    const amount = Number(b.amount_balance ?? 0);
-    const isNegative = lessons < 0 || amount < 0;
-    const hasPositive = lessons > 0 || amount > 0;
-    if (!isNegative && !hasPositive) return null;
-    const label = isNegative
-      ? `${lessons < 0 ? `${lessons} ур.` : ""}${lessons < 0 && amount < 0 ? " / " : ""}${amount < 0 ? `${amount.toFixed(0)} ₴` : ""}`
-      : `${lessons > 0 ? `${lessons} ур.` : ""}${lessons > 0 && amount > 0 ? " / " : ""}${amount > 0 ? `${amount.toFixed(0)} ₴` : ""}`;
-    return (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          openWalletForPair(tutor_id, student_id);
-        }}
-        title={isNegative ? "Від'ємний баланс — потрібна передоплата" : "Баланс передоплати"}
-        className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
-          isNegative
-            ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
-            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-        }`}
-      >
-        {isNegative ? (
-          <AlertTriangle className="h-2.5 w-2.5" />
-        ) : (
-          <Wallet className="h-2.5 w-2.5" />
-        )}
-        {label}
-      </button>
-    );
-  };
-
-  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
 
   return (
     <AppLayout>
@@ -652,100 +422,90 @@ export default function FinancesPage() {
               : "Оплати від учнів та виплати репетиторам"}
           </p>
         </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          {canManagePrepay && (
-            <Button
-              size="sm"
-              onClick={() => setRecordOpen(true)}
-              className="h-9 w-full sm:w-auto"
-            >
-              <Plus className="mr-1 h-4 w-4" />
-              Зафіксувати оплату
-            </Button>
-          )}
-          <MobileFilters
-            activeCount={
-              (monthFilter !== "all" ? 1 : 0) +
-              (tutorFilter !== "all" ? 1 : 0) +
-              (statusFilter !== "all" ? 1 : 0) +
-              (kindFilter !== "all" ? 1 : 0)
-            }
-            className="w-full sm:w-auto"
-          >
-            {!isIndependentTutor && (
-              <div className="w-full sm:w-44">
-                <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Репетитор" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Всі репетитори</SelectItem>
-                    {tutorOptions.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+        <MobileFilters
+          activeCount={
+            (monthFilter !== "all" ? 1 : 0) +
+            (tutorFilter !== "all" ? 1 : 0) +
+            (statusFilter !== "all" ? 1 : 0)
+          }
+          className="w-full sm:w-auto"
+        >
+          {!isIndependentTutor && (
             <div className="w-full sm:w-44">
-              <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <Select value={tutorFilter} onValueChange={setTutorFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Період" />
+                  <SelectValue placeholder="Репетитор" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі періоди</SelectItem>
-                  {months.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {formatMonth(m)}
+                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  {tutorOptions.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>
+                      {t.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full sm:w-44">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Статус" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Всі статуси</SelectItem>
-                  <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                  {!isIndependentTutor && (
-                    <SelectItem value="need_payout">Очікує виплати</SelectItem>
-                  )}
-                  {!isIndependentTutor && (
-                    <SelectItem value="done">Все закрито</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            {canManagePrepay && (
-              <div className="w-full sm:w-44">
-                <Select value={kindFilter} onValueChange={setKindFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder="Тип" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Уроки + передоплати</SelectItem>
-                    <SelectItem value="lessons">Лише уроки</SelectItem>
-                    <SelectItem value="prepay">Лише передоплати</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </MobileFilters>
-        </div>
+          )}
+          <div className="w-full sm:w-44">
+            <Select value={monthFilter} onValueChange={setMonthFilter}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Період" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі періоди</SelectItem>
+                {months.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {formatMonth(m)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
+          <div className="w-full sm:w-44">
+            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Статус" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всі статуси</SelectItem>
+                <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
+                {!isIndependentTutor && (
+                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
+                )}
+                {!isIndependentTutor && (
+                  <SelectItem value="done">Все закрито</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </MobileFilters>
+      </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Завантаження...
-        </div>
+        <FinancesSkeleton />
       ) : (
         <>
+          {/* Context banner — shown when arriving from dashboard with a filter pre-set */}
+          {statusFilter !== "all" && (
+            <div className="mb-4 flex items-center gap-2 rounded-xl border border-warning/40 bg-warning/8 px-4 py-3 text-sm">
+              <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
+              <span className="flex-1 text-foreground">
+                {statusFilter === "need_pay" && (
+                  <>Показано уроки, <strong>де учень ще не оплатив</strong>. Натисніть на статус щоб позначити оплату.</>
+                )}
+                {statusFilter === "need_payout" && (
+                  <>Показано уроки, <strong>де репетитор ще не отримав виплату</strong>. Натисніть на статус щоб позначити виплату.</>
+                )}
+              </span>
+              <button
+                className="shrink-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                onClick={() => handleStatusFilterChange("all")}
+              >
+                Показати всі
+              </button>
+            </div>
+          )}
           <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
             <StatCard
               label={isIndependentTutor ? "Отримано" : "Надходження"}
@@ -775,21 +535,21 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Маржа
+                      Середня націнка хабу
                     </p>
                     <p
                       className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                        hubMargin === null
+                        hubMarkup === null
                           ? "text-muted-foreground"
-                          : hubMargin >= 0
+                          : hubMarkup >= 0
                           ? "text-success"
                           : "text-destructive"
                       }`}
                     >
-                      {hubMargin === null ? "—" : `${hubMargin.toFixed(1)}%`}
+                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      Прибуток як % від надходжень
+                      (надходження − виплати) / виплати
                     </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -800,79 +560,21 @@ export default function FinancesPage() {
             )}
           </div>
 
-          {/* === Mini-trends row: profit sparkline + income contribution pie === */}
-          {!isIndependentTutor && (
-            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Тренд прибутку (4 тижні)
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
-                  </span>
-                </div>
-                <ProfitSparkline data={profitSparkline} />
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    Надходження за учнями
-                  </h2>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    Лише оплачені
-                  </span>
-                </div>
-                <IncomeByStudentPie data={incomeByStudent} />
-              </div>
-            </div>
-          )}
-
           {/* === Main: Payments table (priority for daily use) === */}
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-            {unifiedRows.length === 0 ? (
+            {visibleRows.length === 0 ? (
               <div className="p-6">
                 <EmptyState
                   icon={DollarSign}
                   title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу."
+                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
                 />
               </div>
             ) : (
               <>
                 {/* Mobile cards (< lg) */}
                 <div className="divide-y divide-border lg:hidden">
-                  {unifiedRows.map((row) => {
-                    if (row.type === "prepay") {
-                      const tx = row.tx;
-                      return (
-                        <button
-                          key={`p-${tx.id}`}
-                          type="button"
-                          onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
-                          className="block w-full p-3 text-left hover:bg-primary/5"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
-                                <Package className="h-3.5 w-3.5" /> Передоплата
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
-                              </p>
-                              {tx.note && (
-                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
-                              )}
-                            </div>
-                            <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
-                              {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                              {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    }
-                    const l = row.l;
+                  {visibleRows.map((l) => {
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
                     return (
                       <div
@@ -904,7 +606,6 @@ export default function FinancesPage() {
                             <div className="min-w-0 flex-1">
                               <p className="truncate font-medium text-foreground">
                                 {nameOf(l.student_id)}
-                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
                               </p>
                               {l.student_paid_at && (
                                 <p className="truncate text-[11px] text-muted-foreground">
@@ -1000,44 +701,7 @@ export default function FinancesPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {unifiedRows.map((row) => {
-                        if (row.type === "prepay") {
-                          const tx = row.tx;
-                          return (
-                            <tr
-                              key={`p-${tx.id}`}
-                              className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
-                              onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
-                            >
-                              <td className="px-3 py-3" />
-                              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-                                {formatDate(tx.created_at)}
-                              </td>
-                              <td className="px-3 py-3" colSpan={desktopColCount - 3}>
-                                <div className="flex items-center gap-2 text-primary">
-                                  <Package className="h-4 w-4 shrink-0" />
-                                  <span className="font-medium">Передоплата</span>
-                                  <span className="text-muted-foreground">·</span>
-                                  <span className="text-foreground truncate">
-                                    {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
-                                  </span>
-                                  {tx.note && (
-                                    <span className="truncate text-xs text-muted-foreground">
-                                      — {tx.note}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
-                                {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                                {Number(tx.amount_delta) > 0 && (
-                                  <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        }
-                        const l = row.l;
+                      {visibleRows.map((l) => {
                         const profit = Number(l.student_price) - Number(l.tutor_payout);
                         const isSelected = selected.has(l.id);
                         return (
@@ -1059,10 +723,7 @@ export default function FinancesPage() {
                             </td>
                             <td className="px-3 py-3 text-foreground">{l.subject}</td>
                             <td className="px-3 py-3">
-                              <div className="font-medium text-foreground">
-                                {nameOf(l.student_id)}
-                                {canManagePrepay && renderWalletBadge(l.tutor_id, l.student_id)}
-                              </div>
+                              <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
                               {l.student_paid_at && (
                                 <div className="text-xs text-muted-foreground">
                                   опл.: {formatDate(l.student_paid_at)}
@@ -1174,18 +835,18 @@ export default function FinancesPage() {
             </div>
           </details>
 
-          {/* === Margin table — analytics, secondary === */}
+          {/* === Markup table — analytics, secondary === */}
           {!isIndependentTutor && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Маржа по репетиторах
+                  Середня націнка по репетиторах
                 </h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                  (ціна учня − виплата) / ціна учня
+                  (ціна учня − виплата) / виплата
                 </span>
               </div>
-              {marginByTutor.length === 0 ? (
+              {markupByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
                 </p>
@@ -1196,11 +857,11 @@ export default function FinancesPage() {
                       <tr className="border-b border-border text-xs text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">Репетитор</th>
                         <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                        <th className="px-2 py-2 text-right font-medium">Маржа</th>
+                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {marginByTutor.map((row) => (
+                      {markupByTutor.map((row) => (
                         <tr key={row.tutorId} className="border-b border-border last:border-0">
                           <td className="px-2 py-2 text-foreground">{row.name}</td>
                           <td className="px-2 py-2 text-right text-muted-foreground">
@@ -1208,10 +869,10 @@ export default function FinancesPage() {
                           </td>
                           <td
                             className={`px-2 py-2 text-right font-semibold ${
-                              (row.margin ?? 0) >= 0 ? "text-success" : "text-destructive"
+                              (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
                             }`}
                           >
-                            {row.margin === null ? "—" : `${row.margin.toFixed(1)}%`}
+                            {row.markup === null ? "—" : `${row.markup.toFixed(1)}%`}
                           </td>
                         </tr>
                       ))}
@@ -1251,48 +912,6 @@ export default function FinancesPage() {
             </div>
           )}
         </>
-      )}
-
-      {canManagePrepay && (
-        <div className="mt-4 flex justify-end">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/wallets">
-              <Wallet className="mr-1 h-4 w-4" />
-              Усі передоплати
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {canManagePrepay && (
-        <RecordPaymentSheet
-          open={recordOpen}
-          onOpenChange={setRecordOpen}
-          pairs={pairsList}
-          unpaidLessons={unpaidLessonsForSheet}
-          onMarkLessonPaid={markLessonPaidById}
-          onWalletTopUp={fetchData}
-        />
-      )}
-
-      {walletPair && (
-        <WalletDialog
-          open={!!walletPair}
-          onOpenChange={(o) => {
-            if (!o) {
-              setWalletPair(null);
-              fetchData();
-            }
-          }}
-          tutorId={walletPair.tutor_id}
-          studentId={walletPair.student_id}
-          tutorName={walletPair.tutor_name}
-          studentName={walletPair.student_name}
-          ratePerLesson={walletPair.rate}
-          canTopUp={canManagePrepay}
-          canDelete={isManager}
-        />
       )}
     </AppLayout>
   );
