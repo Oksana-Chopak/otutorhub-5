@@ -34,6 +34,8 @@ import PremiumAnalyticsPage from "./pages/PremiumAnalyticsPage";
 import PaywallMetricsPage from "./pages/PaywallMetricsPage";
 import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
+import MarketingPage from "./pages/MarketingPage";
+import MarketingUnsubscribePage from "./pages/MarketingUnsubscribePage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
@@ -56,6 +58,15 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
       <Route path="/unsubscribe" element={<UnsubscribePage />} />
+      <Route path="/marketing-unsubscribe" element={<MarketingUnsubscribePage />} />
+      <Route
+        path="/marketing"
+        element={
+          <ProtectedRoute allowedRoles={["manager"]}>
+            <MarketingPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/join/:code" element={<JoinPage />} />

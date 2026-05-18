@@ -883,6 +883,93 @@ export type Database = {
         }
         Relationships: []
       }
+      marketing_campaigns: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          error_message: string | null
+          html_body: string
+          id: string
+          recipients_failed: number
+          recipients_sent: number
+          recipients_total: number
+          segment: string
+          started_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          error_message?: string | null
+          html_body: string
+          id?: string
+          recipients_failed?: number
+          recipients_sent?: number
+          recipients_total?: number
+          segment: string
+          started_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          error_message?: string | null
+          html_body?: string
+          id?: string
+          recipients_failed?: number
+          recipients_sent?: number
+          recipients_total?: number
+          segment?: string
+          started_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      marketing_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          token: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      marketing_unsubscribes: {
+        Row: {
+          email: string
+          reason: string | null
+          unsubscribed_at: string
+        }
+        Insert: {
+          email: string
+          reason?: string | null
+          unsubscribed_at?: string
+        }
+        Update: {
+          email?: string
+          reason?: string | null
+          unsubscribed_at?: string
+        }
+        Relationships: []
+      }
       paywall_events: {
         Row: {
           created_at: string
@@ -1695,6 +1782,7 @@ export type Database = {
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
+          marketing_opt_in: boolean
           onboarding_completed: boolean
           onboarding_step: number
           payment_due_days: number
@@ -1718,6 +1806,7 @@ export type Database = {
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
+          marketing_opt_in?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -1741,6 +1830,7 @@ export type Database = {
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
+          marketing_opt_in?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -1935,6 +2025,15 @@ export type Database = {
           tutor_paid_at: string
           tutor_payout: number
           tutor_payout_status: Database["public"]["Enums"]["payment_status"]
+        }[]
+      }
+      get_marketing_recipients: {
+        Args: { _segment: string }
+        Returns: {
+          email: string
+          first_name: string
+          last_name: string
+          user_id: string
         }[]
       }
       get_or_create_chat_thread: {
