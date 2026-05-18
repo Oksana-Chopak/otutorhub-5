@@ -39,3 +39,7 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.sync-google-calendar]
     verify_jwt = true
+  [functions.marketing-unsubscribe]
+    verify_jwt = false
+  [functions.send-marketing-campaign]
+    verify_jwt = true
