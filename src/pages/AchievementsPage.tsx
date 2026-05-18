@@ -6,8 +6,10 @@ import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function AchievementsPage() {
+  const { t } = useTranslation();
   const { level, streak, badges, loading } = useTutorGamification();
 
   if (loading) {
@@ -28,8 +30,8 @@ export default function AchievementsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Твої досягнення</CardTitle>
-            <CardDescription>{badges.length} з 6 бейджів зібрано</CardDescription>
+            <CardTitle>{t("achievements.title")}</CardTitle>
+            <CardDescription>{t("achievements.badgesCollected", { count: badges.length })}</CardDescription>
           </CardHeader>
           <CardContent>
             <BadgesGrid earned={badges} />

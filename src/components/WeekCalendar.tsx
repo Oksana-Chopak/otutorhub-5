@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export interface CalendarLesson {
   id: string;
@@ -30,7 +31,6 @@ const HOUR_HEIGHT = 48; // px per hour
 const START_HOUR = 7; // 07:00
 const END_HOUR = 23; // 23:00
 const HOURS = END_HOUR - START_HOUR;
-const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
 
 const statusColor: Record<CalendarLesson["status"], string> = {
   pending: "bg-warning/15 border-warning/40 text-warning hover:bg-warning/25",
@@ -72,6 +72,16 @@ export function WeekCalendar({
   onSlotClick,
   nameOf,
 }: Props) {
+  const { t } = useTranslation();
+  const WEEKDAYS = [
+    t("weekCalendar.mon"),
+    t("weekCalendar.tue"),
+    t("weekCalendar.wed"),
+    t("weekCalendar.thu"),
+    t("weekCalendar.fri"),
+    t("weekCalendar.sat"),
+    t("weekCalendar.sun"),
+  ];
   const start = useMemo(() => startOfWeek(weekStart), [weekStart]);
   const days = useMemo(
     () =>
@@ -130,7 +140,7 @@ export function WeekCalendar({
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
         <Button variant="outline" size="sm" onClick={onToday} className="gap-1.5">
           <CalendarDays className="h-3.5 w-3.5" />
-          Сьогодні
+          {t("weekCalendar.today")}
         </Button>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev}>
@@ -236,7 +246,7 @@ export function WeekCalendar({
                     }}
                     className="block w-full border-b border-border/50 hover:bg-primary/5 transition-colors"
                     style={{ height: HOUR_HEIGHT }}
-                    aria-label={`Створити урок на ${String(START_HOUR + h).padStart(2, "0")}:00`}
+                    aria-label={t("weekCalendar.createAt", { time: `${String(START_HOUR + h).padStart(2, "0")}:00` })}
                   />
                 ))}
 

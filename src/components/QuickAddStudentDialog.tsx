@@ -25,6 +25,7 @@ import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { sanitizeHttpUrl } from "@/lib/safeUrl";
 import { CURRENCY_OPTIONS, currencySymbol } from "@/lib/currency";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   open: boolean;
@@ -49,6 +50,7 @@ const empty = {
  * Mirrors the create flow of MyStudentsPage. Only for independent tutors.
  */
 export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
@@ -71,10 +73,10 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     const price = Number(form.price);
     const currency = form.currency || "UAH";
 
-    if (!fn) return toast.error("Вкажіть ім'я учня");
-    if (!email && !phone) return toast.error("Потрібен email або телефон");
-    if (!subject) return toast.error("Вкажіть предмет");
-    if (isNaN(price) || price < 0) return toast.error("Введіть коректну ціну");
+    if (!fn) return toast.error(t("quickAddStudent.nameRequired"));
+    if (!email && !phone) return toast.error(t("quickAddStudent.contactRequired"));
+    if (!subject) return toast.error(t("quickAddStudent.subjectRequired"));
+    if (isNaN(price) || price < 0) return toast.error(t("quickAddStudent.invalidPrice"));
 
     setSubmitting(true);
     const newId = crypto.randomUUID();
@@ -84,7 +86,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
     if (profErr) {
       setSubmitting(false);
-      return toast.error(profErr.message || "Не вдалося створити профіль");
+      return toast.error(profErr.message || t("quickAddStudent.createFailed"));
     }
     const { error: roleErr } = await supabase
       .from("user_roles")
@@ -92,7 +94,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     if (roleErr) {
       await supabase.from("profiles").delete().eq("id", newId);
       setSubmitting(false);
-      return toast.error("Не вдалося призначити роль");
+      return toast.error(t("quickAddStudent.roleFailed"));
     }
     const { error: rateErr } = await supabase.from("student_rates").insert({
       tutor_id: user.id,
@@ -106,7 +108,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       await supabase.from("user_roles").delete().eq("user_id", newId);
       await supabase.from("profiles").delete().eq("id", newId);
       setSubmitting(false);
-      return toast.error("Не вдалося зберегти ціну");
+      return toast.error(t("quickAddStudent.priceFailed"));
     }
     const { error: contErr } = await supabase.from("profile_contacts").insert({
       user_id: newId,
@@ -121,8 +123,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       setSubmitting(false);
       return toast.error(
         String(contErr.message || "").includes("email_lower")
-          ? "Цей email вже зареєстровано"
-          : "Не вдалося зберегти контакти"
+          ? t("quickAddStudent.emailTaken")
+          : t("quickAddStudent.contactsFailed")
       );
     }
     await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
@@ -130,7 +132,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
     if (meetingUrlRaw && !meetingUrl) {
       setSubmitting(false);
-      return toast.error("Некоректне посилання на кімнату — дозволені лише https:// або http://");
+      return toast.error(t("quickAddStudent.invalidMeetingUrl"));
     }
     if (meetingUrl) {
       await supabase.from("tutor_student_defaults").upsert(
@@ -139,7 +141,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       );
     }
 
-    toast.success("Учня додано 🎉");
+    toast.success(t("quickAddStudent.studentAdded"));
     let inviteSent = false;
     if (email) {
       const { data: resp } = await supabase.functions.invoke("send-student-invite", {
@@ -167,50 +169,50 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Додати учня</DialogTitle>
+            <DialogTitle>{t("quickAddStudent.title")}</DialogTitle>
             <DialogDescription>
-              Заповніть основне — учень отримає запрошення приєднатися.
+              {t("quickAddStudent.desc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Ім'я</Label>
+                <Label>{t("quickAddStudent.firstName")}</Label>
                 <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
               </div>
               <div className="space-y-1">
-                <Label>Прізвище</Label>
+                <Label>{t("quickAddStudent.lastName")}</Label>
                 <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Телефон</Label>
+                <Label>{t("quickAddStudent.phone")}</Label>
                 <Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               </div>
               <div className="space-y-1">
-                <Label>Email</Label>
+                <Label>{t("quickAddStudent.email")}</Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Telegram</Label>
+              <Label>{t("quickAddStudent.telegram")}</Label>
               <Input
-                placeholder="@username"
+                placeholder={t("quickAddStudent.telegramPlaceholder")}
                 value={form.telegram}
                 onChange={(e) => setForm({ ...form, telegram: e.target.value })}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label>Предмет</Label>
+                <Label>{t("quickAddStudent.subject")}</Label>
                 <SubjectSelect
                   value={form.subject}
                   onValueChange={(name) => setForm({ ...form, subject: name })}
                 />
               </div>
               <div className="space-y-1">
-                <Label>Ціна за урок ({currencySymbol(form.currency)})</Label>
+                <Label>{t("quickAddStudent.price", { symbol: currencySymbol(form.currency) })}</Label>
                 <Input
                   type="number"
                   min={0}
@@ -220,7 +222,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               </div>
             </div>
             <div className="space-y-1">
-              <Label>Валюта</Label>
+              <Label>{t("quickAddStudent.currency")}</Label>
               <Select value={form.currency} onValueChange={(currency) => setForm({ ...form, currency })}>
                 <SelectTrigger>
                   <SelectValue />
@@ -235,11 +237,11 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <div className="space-y-1">
               <Label className="flex items-center gap-1.5">
                 <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                Постійне посилання Zoom / Meet (необов'язково)
+                {t("quickAddStudent.meetingUrl")}
               </Label>
               <Input
                 type="url"
-                placeholder="https://zoom.us/j/..."
+                placeholder={t("quickAddStudent.meetingUrlPlaceholder")}
                 value={form.default_meeting_url}
                 onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
               />
@@ -247,11 +249,11 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Скасувати
+              {t("quickAddStudent.cancelBtn")}
             </Button>
             <Button onClick={submit} disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Додати
+              {t("quickAddStudent.addBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

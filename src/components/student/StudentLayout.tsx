@@ -8,32 +8,28 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 import { Sun, Moon, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 
-const items = [
-  { to: "/student-dashboard", label: "Кабінет", icon: LayoutDashboard },
-  { to: "/student/schedule", label: "Розклад", icon: CalendarDays },
-  { to: "/student/payments", label: "Оплати", icon: DollarSign },
-  { to: "/student/homework", label: "ДЗ", icon: BookOpen },
-  { to: "/chats", label: "Чати", icon: MessageSquare, badgeKey: "chats" as const },
-  { to: "/student/profile", label: "Профіль", icon: UserCircle },
+const NAV_DEFS = [
+  { to: "/student-dashboard", labelKey: "studentNav.dashboard", titleKey: "studentNav.myDashboard", icon: LayoutDashboard },
+  { to: "/student/schedule", labelKey: "studentNav.schedule", titleKey: "studentNav.schedule", icon: CalendarDays },
+  { to: "/student/payments", labelKey: "studentNav.payments", titleKey: "studentNav.payments", icon: DollarSign },
+  { to: "/student/homework", labelKey: "studentNav.homework", titleKey: "studentNav.myHomework", icon: BookOpen },
+  { to: "/chats", labelKey: "studentNav.chats", titleKey: "studentNav.chats", icon: MessageSquare, badgeKey: "chats" as const },
+  { to: "/student/profile", labelKey: "studentNav.profile", titleKey: "studentNav.profile", icon: UserCircle },
 ];
 
-const mobileItems = items.filter((i) => i.to !== "/student/profile").slice(0, 5);
-
-const titleMap: Record<string, string> = {
-  "/student-dashboard": "Мій кабінет",
-  "/student/schedule": "Розклад",
-  "/student/payments": "Оплати",
-  "/student/homework": "Домашні завдання",
-  "/student/profile": "Профіль",
-};
-
 export function StudentLayout({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const chats = useUnreadChats();
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const title = titleMap[pathname];
+
+  const items = NAV_DEFS.map((d) => ({ ...d, label: t(d.labelKey) }));
+  const mobileItems = items.filter((i) => i.to !== "/student/profile").slice(0, 5);
+  const titleDef = NAV_DEFS.find((d) => d.to === pathname);
+  const title = titleDef ? t(titleDef.titleKey) : undefined;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -75,7 +71,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
           <p className="truncate text-xs text-muted-foreground">{user?.email}</p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1" onClick={signOut}>
-              <LogOut className="mr-2 h-4 w-4" /> Вийти
+              <LogOut className="mr-2 h-4 w-4" /> {t("studentNav.logout")}
             </Button>
             <Button variant="outline" size="icon" className="h-9 w-9" onClick={toggleTheme}>
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}

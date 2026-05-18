@@ -1,6 +1,7 @@
 import { Flame, Snowflake } from "lucide-react";
 import { TutorStreak } from "@/hooks/useTutorGamification";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   streak: TutorStreak | null;
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function StreakCard({ streak, className }: Props) {
+  const { t } = useTranslation();
   const current = streak?.current_streak ?? 0;
   const longest = streak?.longest_streak ?? 0;
   const freezes = streak?.freezes_available ?? 0;
@@ -29,7 +31,7 @@ export function StreakCard({ streak, className }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">Серія днів</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("streak.title")}</div>
             {/* Streak freeze indicator (Duolingo-style) */}
             <div
               className={cn(
@@ -40,41 +42,41 @@ export function StreakCard({ streak, className }: Props) {
               )}
               title={
                 freezes > 0
-                  ? "Якщо пропустиш день — серія не згорить, спрацює рятівник."
-                  : "Рятівник з'явиться 1 числа наступного місяця."
+                  ? t("streak.freezeActive")
+                  : t("streak.freezeNextMonth")
               }
             >
               <Snowflake className="h-3 w-3" />
-              {freezes} {freezes === 1 ? "рятівник" : "рятівники"}
+              {freezes} {freezes === 1 ? t("streak.freezeOne") : t("streak.freezeMany")}
             </div>
           </div>
           <div className="text-lg font-bold text-foreground">
-            {current === 0 ? "Почни сьогодні!" : `${current} ${current === 1 ? "день" : current < 5 ? "дні" : "днів"} поспіль`}
+            {current === 0 ? t("streak.startToday") : t("streak.daysStreak", { count: current })}
           </div>
           {longest > current && (
-            <div className="text-xs text-muted-foreground">Рекорд: {longest}</div>
+            <div className="text-xs text-muted-foreground">{t("streak.record", { longest })}</div>
           )}
         </div>
       </div>
 
       {usedFreeze && (
         <p className="mt-3 rounded-lg bg-sky-500/10 p-2 text-xs text-sky-700 dark:text-sky-300">
-          ❄️ Рятівник врятував твою серію! Без нього вона б скинулась.
+          {t("streak.freezeUsed")}
         </p>
       )}
       {!usedFreeze && freezes === 0 && current > 0 && (
         <p className="mt-3 rounded-lg bg-muted/40 p-2 text-xs text-muted-foreground">
-          У тебе зараз немає рятівника. Пропустиш день — серія скинеться.
+          {t("streak.noFreeze")}
         </p>
       )}
       {toNextBonus > 0 && toNextBonus <= 14 && (
         <p className="mt-3 rounded-lg bg-card/50 p-2 text-xs text-foreground">
-          🎁 Ще <strong>{toNextBonus}</strong> {toNextBonus === 1 ? "день" : "днів"} — і отримаєш <strong>+1 місяць Pro</strong> безкоштовно!
+          {t("streak.daysToBonus", { count: toNextBonus })}
         </p>
       )}
       {current >= 30 && (
         <p className="mt-3 rounded-lg bg-success/10 p-2 text-xs text-success">
-          🏆 Чудова серія! Ти отримав +1 місяць Pro.
+          {t("streak.bonusEarned")}
         </p>
       )}
     </div>

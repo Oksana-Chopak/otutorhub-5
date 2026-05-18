@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
+import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "tutorhub.welcomeBannerDismissed";
 const TOTAL_STEPS = 6;
@@ -12,6 +13,7 @@ const TOTAL_STEPS = 6;
  * Dismissible (per-browser); reappears if onboarding progress changes.
  */
 export function TutorWelcomeBanner() {
+  const { t } = useTranslation();
   const { settings, isIndependent, loading } = useWorkspaceSettings();
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,11 +49,11 @@ export function TutorWelcomeBanner() {
             </div>
             <div className="min-w-0">
               <p className="font-display text-base font-bold text-foreground">
-                🎯 Ваш квест: налаштувати простір
+                {t("tutorWelcome.questTitle")}
               </p>
               <p className="mt-0.5 text-sm text-muted-foreground">
-                <span className="gamify-sticker">Рівень {step}/{TOTAL_STEPS}</span>
-                <span className="ml-2 font-medium">{pct}% готово</span>
+                <span className="gamify-sticker">{t("tutorWelcome.level", { step, total: TOTAL_STEPS })}</span>
+                <span className="ml-2 font-medium">{t("tutorWelcome.progress", { pct })}</span>
               </p>
               <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-muted sm:w-64">
                 <div
@@ -67,7 +69,7 @@ export function TutorWelcomeBanner() {
               className="rounded-full shadow-md hover:scale-105 transition-transform"
               onClick={() => setDialogOpen(true)}
             >
-              Продовжити квест
+              {t("tutorWelcome.continueBtn")}
               <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
             <Button
@@ -75,8 +77,8 @@ export function TutorWelcomeBanner() {
               size="icon"
               className="h-8 w-8 rounded-full"
               onClick={dismiss}
-              title="Сховати"
-              aria-label="Сховати банер"
+              title={t("tutorWelcome.hide")}
+              aria-label={t("tutorWelcome.hideAria")}
             >
               <X className="h-4 w-4" />
             </Button>

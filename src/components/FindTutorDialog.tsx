@@ -17,6 +17,7 @@ import {
 import { HandHeart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SubjectSelect } from "@/components/SubjectSelect";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   trigger?: React.ReactNode;
@@ -24,6 +25,7 @@ interface Props {
 }
 
 export function FindTutorDialog({ trigger, onCreated }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -39,7 +41,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
   const submit = async () => {
     if (!user) return;
     if (!form.subject.trim()) {
-      toast.error("Вкажіть бажаний предмет");
+      toast.error(t("findTutor.subjectRequired"));
       return;
     }
     setSubmitting(true);
@@ -55,10 +57,10 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
     setSubmitting(false);
     if (error) {
       console.error(error);
-      toast.error("Не вдалося надіслати запит");
+      toast.error(t("findTutor.requestFailed"));
       return;
     }
-    toast.success("Запит надіслано! Менеджер скоро з вами зв'яжеться.");
+    toast.success(t("findTutor.requestSent"));
     setOpen(false);
     setForm({ subject: "", preferred_level: "", budget_note: "", preferred_days: "", preferred_times: "", message: "" });
     onCreated?.();
@@ -70,67 +72,67 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         {trigger ?? (
           <Button variant="outline">
             <HandHeart className="mr-2 h-4 w-4" />
-            Знайти репетитора через oTutorHub
+            {t("findTutor.dialogTitle")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Запит менеджеру на підбір репетитора</DialogTitle>
+          <DialogTitle>{t("findTutor.requestTitle")}</DialogTitle>
           <DialogDescription>
-            Опишіть, кого шукаєте — менеджер oTutorHub підбере вам репетитора з нашого пулу.
+            {t("findTutor.requestDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label>Бажаний предмет *</Label>
+            <Label>{t("findTutor.subjectLabel")}</Label>
             <SubjectSelect
               value={form.subject}
               onValueChange={(name) => setForm({ ...form, subject: name })}
-              placeholder="Оберіть предмет"
+              placeholder={t("findTutor.subjectPlaceholder")}
             />
           </div>
           <div className="space-y-1">
-            <Label>Рівень / клас</Label>
+            <Label>{t("findTutor.levelLabel")}</Label>
             <Input
-              placeholder="Початковий, B2, 8 клас…"
+              placeholder={t("findTutor.levelPlaceholder")}
               value={form.preferred_level}
               onChange={(e) => setForm({ ...form, preferred_level: e.target.value })}
               maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Орієнтовний діапазон ціни за один урок</Label>
+            <Label>{t("findTutor.priceLabel")}</Label>
             <Input
-              placeholder="Наприклад: 600–800 ₴/урок"
+              placeholder={t("findTutor.pricePlaceholder")}
               value={form.budget_note}
               onChange={(e) => setForm({ ...form, budget_note: e.target.value })}
               maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Зручні дні занять</Label>
+            <Label>{t("findTutor.daysLabel")}</Label>
             <Input
-              placeholder="Пн, Ср, Пт або будні / вихідні"
+              placeholder={t("findTutor.daysPlaceholder")}
               value={form.preferred_days}
               onChange={(e) => setForm({ ...form, preferred_days: e.target.value })}
               maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Зручні години занять</Label>
+            <Label>{t("findTutor.hoursLabel")}</Label>
             <Input
-              placeholder="Наприклад: 17:00–20:00"
+              placeholder={t("findTutor.hoursPlaceholder")}
               value={form.preferred_times}
               onChange={(e) => setForm({ ...form, preferred_times: e.target.value })}
               maxLength={120}
             />
           </div>
           <div className="space-y-1">
-            <Label>Особливі побажання</Label>
+            <Label>{t("findTutor.wishesLabel")}</Label>
             <Textarea
               rows={4}
-              placeholder="Цілі навчання, формат, особливості, побажання щодо репетитора…"
+              placeholder={t("findTutor.wishesPlaceholder")}
               value={form.message}
               onChange={(e) => setForm({ ...form, message: e.target.value })}
               maxLength={1500}
@@ -139,11 +141,11 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Скасувати
+            {t("findTutor.cancelBtn")}
           </Button>
           <Button onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Надіслати запит
+            {t("findTutor.submitBtn")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -14,18 +14,13 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { useTranslation } from "react-i18next";
 
 type Category = "bug" | "idea" | "question" | "other";
 
-const categories: { value: Category; label: string; icon: typeof Bug; description: string }[] = [
-  { value: "idea", label: "Ідея", icon: Lightbulb, description: "Що покращити" },
-  { value: "bug", label: "Баг", icon: Bug, description: "Щось не працює" },
-  { value: "question", label: "Питання", icon: HelpCircle, description: "Потрібна допомога" },
-  { value: "other", label: "Інше", icon: MoreHorizontal, description: "Будь-який відгук" },
-];
-
 export function FeedbackButton() {
-  const { user, roles } = useAuth();
+  const { t } = useTranslation();
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<Category>("idea");
   const [rating, setRating] = useState<number>(0);
@@ -34,15 +29,22 @@ export function FeedbackButton() {
 
   if (!user) return null;
 
+  const categories: { value: Category; label: string; icon: typeof Bug; description: string }[] = [
+    { value: "idea", label: t("feedback.ideaLabel"), icon: Lightbulb, description: t("feedback.ideaDesc") },
+    { value: "bug", label: t("feedback.bugLabel"), icon: Bug, description: t("feedback.bugDesc") },
+    { value: "question", label: t("feedback.questionLabel"), icon: HelpCircle, description: t("feedback.questionDesc") },
+    { value: "other", label: t("feedback.otherLabel"), icon: MoreHorizontal, description: t("feedback.otherDesc") },
+  ];
+
   const handleSubmit = async () => {
     if (message.trim().length < 5) {
-      toast({ title: "Опишіть детальніше", description: "Мінімум 5 символів", variant: "destructive" });
+      toast({ title: t("feedback.placeholder"), description: t("feedback.minChars"), variant: "destructive" });
       return;
     }
     setSubmitting(true);
     // TODO: insert into feedback table once schema is approved
     setTimeout(() => {
-      toast({ title: "Дякуємо за фідбек!", description: "Менеджер отримає його найближчим часом." });
+      toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });
       setMessage("");
       setRating(0);
       setCategory("idea");
@@ -57,23 +59,23 @@ export function FeedbackButton() {
         <Button
           size="lg"
           className="fixed bottom-20 left-4 z-40 h-12 gap-2 rounded-full shadow-lg lg:bottom-6 lg:right-6 lg:left-auto"
-          aria-label="Залишити фідбек"
+          aria-label={t("feedback.btn")}
         >
           <MessageCircleHeart className="h-5 w-5" />
-          <span className="hidden sm:inline">Фідбек</span>
+          <span className="hidden sm:inline">{t("feedback.title")}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Поділіться думкою</DialogTitle>
+          <DialogTitle>{t("feedback.subtitle")}</DialogTitle>
           <DialogDescription>
-            Ваш відгук допомагає нам покращувати платформу. Менеджер прочитає кожне повідомлення.
+            {t("feedback.description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>Що хочете повідомити?</Label>
+            <Label>{t("feedback.typeLabel")}</Label>
             <div className="grid grid-cols-2 gap-2">
               {categories.map((c) => {
                 const Icon = c.icon;
@@ -100,7 +102,7 @@ export function FeedbackButton() {
           </div>
 
           <div className="space-y-2">
-            <Label>Оцінка платформи (необов'язково)</Label>
+            <Label>{t("feedback.ratingLabel")}</Label>
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button
@@ -113,7 +115,7 @@ export function FeedbackButton() {
                       ? "border-warning bg-warning/10 text-warning"
                       : "border-border text-muted-foreground hover:border-warning/40"
                   )}
-                  aria-label={`${n} з 5`}
+                  aria-label={`${n} ${t("feedback.ofFive")}`}
                 >
                   ★
                 </button>
@@ -122,12 +124,12 @@ export function FeedbackButton() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="feedback-message">Повідомлення</Label>
+            <Label htmlFor="feedback-message">{t("feedback.msgLabel")}</Label>
             <Textarea
               id="feedback-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Опишіть вашу ідею, баг чи побажання…"
+              placeholder={t("feedback.msgPlaceholder")}
               maxLength={1000}
               rows={5}
             />
@@ -136,10 +138,10 @@ export function FeedbackButton() {
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
-              Скасувати
+              {t("feedback.cancel")}
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Надсилаю…" : "Надіслати"}
+              {submitting ? t("feedback.sending") : t("feedback.send")}
             </Button>
           </div>
         </div>

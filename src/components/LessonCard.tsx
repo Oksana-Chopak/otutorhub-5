@@ -4,6 +4,7 @@ import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { safeHref } from "@/lib/safeUrl";
+import { useTranslation } from "react-i18next";
 
 export type LessonCardVariant = "dashboard" | "schedule" | "compact";
 
@@ -43,31 +44,20 @@ interface LessonCardProps {
   onContentClick?: () => void;
 }
 
-const fmtDateTime = (iso: string) => {
-  const d = new Date(iso);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const isToday = d.toDateString() === today.toDateString();
-  const isTomorrow = d.toDateString() === tomorrow.toDateString();
-  const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-  if (isToday) return `Сьогодні · ${time}`;
-  if (isTomorrow) return `Завтра · ${time}`;
-  return d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) + ` · ${time}`;
-};
-
-const STATUS_LABEL: Record<NonNullable<LessonCardData["status"]>, string> = {
-  pending: "Запит",
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-};
+const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
 
 const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
   pending: "bg-warning/15 text-warning ring-1 ring-warning/30",
   scheduled: "bg-primary/15 text-primary ring-1 ring-primary/30",
   completed: "bg-success/15 text-success ring-1 ring-success/30",
   cancelled: "bg-destructive/15 text-destructive ring-1 ring-destructive/30 line-through",
+};
+
+const STATUS_KEY: Record<NonNullable<LessonCardData["status"]>, string> = {
+  pending: "lessonCard.statusPending",
+  scheduled: "lessonCard.statusScheduled",
+  completed: "lessonCard.statusCompleted",
+  cancelled: "lessonCard.statusCancelled",
 };
 
 export function LessonCard({
@@ -87,9 +77,25 @@ export function LessonCard({
   className,
   onContentClick,
 }: LessonCardProps) {
+  const { t, i18n } = useTranslation();
+
+  const fmtDateTime = (iso: string) => {
+    const d = new Date(iso);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const isToday = d.toDateString() === today.toDateString();
+    const isTomorrow = d.toDateString() === tomorrow.toDateString();
+    const locale = i18n.language === "sv" ? "sv-SE" : i18n.language === "en" ? "en-GB" : "uk-UA";
+    const time = d.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+    if (isToday) return t("lessonCard.today", { time });
+    if (isTomorrow) return t("lessonCard.tomorrow", { time });
+    return d.toLocaleDateString(locale, { day: "numeric", month: "short" }) + ` · ${time}`;
+  };
+
   const isGroup = lesson.lesson_type === "pair" || lesson.lesson_type === "group";
   const titleLabel = isGroup
-    ? groupName ?? (groupSize ? `Група · ${groupSize} учнів` : "Група")
+    ? groupName ?? (groupSize ? t("lessonCard.groupStudents", { count: groupSize }) : t("lessonCard.group"))
     : studentName ?? "—";
   const startMs = new Date(lesson.starts_at).getTime();
   const endMs = startMs + (lesson.duration_minutes ?? 0) * 60_000;
@@ -132,7 +138,7 @@ export function LessonCard({
 
         {lesson.status && (
           <div className={cn("absolute left-3 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold", STATUS_CLASS[lesson.status])}>
-            {STATUS_LABEL[lesson.status]}
+            {t(STATUS_KEY[lesson.status])}
           </div>
         )}
 
@@ -143,7 +149,7 @@ export function LessonCard({
               {fmtDateTime(lesson.starts_at)}
             </div>
             <div className="mt-1 text-[11px] uppercase tracking-wide text-muted-foreground">
-              {lesson.duration_minutes} хв
+              {lesson.duration_minutes} {t("lessonCard.min")}
             </div>
           </div>
         </div>
@@ -171,12 +177,12 @@ export function LessonCard({
           </div>
           {showTutor && tutorName && (
             <div className="mt-0.5 truncate text-xs text-muted-foreground">
-              Репетитор: <span className="text-foreground">{tutorName}</span>
+              {t("lessonCard.tutor")}<span className="text-foreground">{tutorName}</span>
             </div>
           )}
           {isNow && (
             <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
-              ● Зараз
+              {t("lessonCard.now")}
             </div>
           )}
         </button>
@@ -201,8 +207,8 @@ export function LessonCard({
               asChild
               size="icon"
               className="h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90"
-              aria-label="Чат"
-              title="Чат"
+              aria-label={t("lessonCard.chatAriaLabel")}
+              title={t("lessonCard.chatAriaLabel")}
             >
               <Link to={`/chats?with=${chatPartnerId}`}>
                 <MessageCircle className="h-5 w-5" />

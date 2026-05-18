@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface LessonRowFull {
   id: string;
@@ -38,6 +39,7 @@ interface Props {
  * always shows current data even when the parent list is stale.
  */
 export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }: Props) {
+  const { t, i18n } = useTranslation();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -66,14 +68,11 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
         <DialogHeader>
           <DialogTitle>
             {row
-              ? `${row.subject} · ${new Date(row.starts_at).toLocaleString("uk-UA", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}`
-              : "Урок"}
+              ? `${row.subject} · ${new Date(row.starts_at).toLocaleString(
+                  i18n.language === "sv" ? "sv-SE" : i18n.language === "en" ? "en-GB" : "uk-UA",
+                  { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
+                )}`
+              : t("lessonDetails.fallbackTitle")}
           </DialogTitle>
         </DialogHeader>
         {loading || !row ? (
