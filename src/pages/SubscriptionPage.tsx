@@ -40,18 +40,18 @@ const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
 const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
   {
     icon: BellRing,
-    title: "Авто-нагадування про оплату",
+    title: t("subscriptionPage.autoReminder"),
     desc: "Учень отримує нагадування у Telegram. Ви обираєте: передоплата, за день до уроку чи за N днів після.",
   },
   {
     icon: CalendarX2,
-    title: "Скасування і перенесення учнем",
-    desc: "Ви задаєте, за скільки годин до уроку дозволено безкоштовно. Запізно — повна або часткова оплата.",
+    title: t("subscriptionPage.cancelPolicy"),
+    desc: t("subscriptionPage.cancelPolicyDesc"),
   },
   {
     icon: BarChart3,
-    title: "Преміум-аналітика з порадами",
-    desc: "Красиві графіки доходів, динаміка по учнях, аналіз і поради, що покращити.",
+    title: t("subscriptionPage.premiumAnalytics"),
+    desc: t("subscriptionPage.premiumAnalyticsDesc"),
   },
   {
     icon: FileDown,

@@ -39,17 +39,17 @@ export function AutoCompleteLessonsCard() {
       );
     setSaving(false);
     if (error) {
-      toast.error("Не вдалося зберегти");
+      toast.error(t("autoComplete.saveFailed"));
       setEnabled(!next);
       return;
     }
-    toast.success(next ? "Авто-відмітка увімкнена" : "Авто-відмітка вимкнена");
+    toast.success(next ? t("autoComplete.enabledSuccess") : t("autoComplete.disabledSuccess"));
   };
 
   return (
     <Card className="mt-6">
       <CardHeader>
-        <CardTitle className="text-base">Як відмічати проведені уроки</CardTitle>
+        <CardTitle className="text-base">{t("autoComplete.cardTitle")}</CardTitle>
         <CardDescription>
           Якщо увімкнено — урок автоматично стає «Проведено» через 1 годину після закінчення.
           Інакше — відмічайте вручну на дашборді.

@@ -89,7 +89,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
             id: p.id,
             name:
               `${(p.first_name ?? "").trim()} ${(p.last_name ?? "").trim()}`.trim() ||
-              "Без імені",
+              t("assignTutor.noName"),
             defaultRate: rateMap.get(p.id) ?? null,
           }))
           .sort((a, b) => a.name.localeCompare(b.name, "uk")),
@@ -124,21 +124,21 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
   const handleAssign = async () => {
     if (!request) return;
     if (!tutorId) {
-      toast.error("Оберіть репетитора");
+      toast.error(t("assignTutor.tutorRequired"));
       return;
     }
     if (!subject.trim()) {
-      toast.error("Вкажіть предмет");
+      toast.error(t("assignTutor.subjectRequired"));
       return;
     }
     const sp = Number(studentPrice);
     const tp = Number(tutorPayout);
     if (!Number.isFinite(sp) || sp < 0) {
-      toast.error("Невірна ціна для учня");
+      toast.error(t("assignTutor.invalidStudentRate"));
       return;
     }
     if (!Number.isFinite(tp) || tp < 0) {
-      toast.error("Невірна виплата репетитору");
+      toast.error(t("assignTutor.invalidTutorRate"));
       return;
     }
 
@@ -159,7 +159,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       );
     if (rateErr) {
       setSubmitting(false);
-      toast.error("Не вдалося створити ставку: " + rateErr.message);
+      toast.error(t("assignTutor.rateFailed") + ": " + rateErr.message);
       return;
     }
 

@@ -64,13 +64,13 @@ export function RatePropagationDialog({
     const { data: rows, error: selErr } = await q;
     if (selErr) {
       setBusy(false);
-      toast.error("Не вдалося оновити уроки");
+      toast.error(t("ratePropagation.updateFailed"));
       return;
     }
     const ids = (rows ?? []).map((r: any) => r.lesson_id);
     if (ids.length === 0) {
       setBusy(false);
-      toast.success("Оновлено уроків: 0");
+      toast.success(t("ratePropagation.updatedZero"));
       onOpenChange(false);
       onDone?.();
       return;
@@ -81,10 +81,10 @@ export function RatePropagationDialog({
       .in("lesson_id", ids);
     setBusy(false);
     if (error) {
-      toast.error("Не вдалося оновити уроки");
+      toast.error(t("ratePropagation.updateFailed"));
       return;
     }
-    toast.success(`Оновлено уроків: ${ids.length}`);
+    toast.success(t("ratePropagation.updated", { count: ids.length }));
     onOpenChange(false);
     onDone?.();
   };
@@ -93,7 +93,7 @@ export function RatePropagationDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Застосувати нову ціну?</AlertDialogTitle>
+          <AlertDialogTitle>{t("ratePropagation.dialogTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             Ставку «{subject}» змінено з <b>{oldPrice} ₴</b> на <b>{newPrice} ₴</b>.
             Оберіть, до яких уроків застосувати нове значення.

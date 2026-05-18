@@ -114,7 +114,7 @@ export default function GroupsPage() {
       <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold">Групи</h1>
+            <h1 className="font-display text-2xl font-bold">{t("groupsPage.title")}</h1>
             <p className="text-sm text-muted-foreground">
               Об'єднуйте учнів у групи для парних та групових уроків
             </p>
@@ -132,9 +132,9 @@ export default function GroupsPage() {
         ) : groups.length === 0 ? (
           <EmptyState
             icon={Users2}
-            title="Поки немає груп"
-            description="Створіть першу групу щоб планувати парні або групові уроки"
-            actionLabel="Створити групу"
+            title={t("groupsPage.noGroups")}
+            description={t("groupsPage.noGroupsDesc")}
+            actionLabel={t("groupsPage.createGroup")}
             onAction={() => setCreateOpen(true)}
           />
         ) : (
@@ -229,7 +229,7 @@ function CreateGroupDialog({
 
   const submit = async () => {
     if (!user || !name.trim()) {
-      toast.error("Вкажіть назву групи");
+      toast.error(t("groupsPage.nameRequired") ?? "Вкажіть назву групи");
       return;
     }
     if (isManager && !tutorId) {

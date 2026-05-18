@@ -56,20 +56,20 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
     setSaving(false);
     if (error) {
       console.error("Failed to add note", error);
-      toast.error("Не вдалося зберегти нотатку");
+      toast.error(t("managerNotes.saveFailed"));
       return;
     }
     setDraft("");
-    toast.success("Нотатку додано");
+    toast.success(t("managerNotes.added"));
     load();
   };
 
   const deleteNote = async (id: string) => {
-    if (!confirm("Видалити нотатку?")) return;
+    if (!confirm(t("managerNotes.confirmDelete"))) return;
     const { error } = await supabase.from("manager_notes").delete().eq("id", id);
     if (error) {
       console.error("Failed to delete note", error);
-      toast.error("Не вдалося видалити");
+      toast.error(t("managerNotes.deleteFailed"));
       return;
     }
     setNotes((prev) => prev.filter((n) => n.id !== id));
@@ -98,7 +98,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Напр.: хоче ще вивчати французьку; має 2-3 вільні години..."
+              placeholder={t("managerNotes.placeholder")}
               className={compact ? "min-h-[52px] resize-none text-xs" : "min-h-[60px] resize-none text-xs"}
             />
           </div>

@@ -30,7 +30,7 @@ export function LevelBadge({ level, variant = "compact", className }: Props) {
           {level.emoji}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-xs uppercase tracking-wide text-muted-foreground">Твій рівень</div>
+          <div className="text-xs uppercase tracking-wide text-muted-foreground">{t("levelBadge.yourLevel")}</div>
           <div className="text-lg font-bold text-foreground">{level.name}</div>
         </div>
       </div>
@@ -42,7 +42,7 @@ export function LevelBadge({ level, variant = "compact", className }: Props) {
           </p>
         </>
       ) : (
-        <p className="text-xs text-muted-foreground">Максимальний рівень досягнуто 🎉</p>
+        <p className="text-xs text-muted-foreground">{t("levelBadge.maxLevel")}</p>
       )}
     </div>
   );

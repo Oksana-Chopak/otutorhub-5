@@ -126,7 +126,7 @@ export function QuickLessonDialog({
           student_id: r.student_id,
           subject: r.subject || "",
           price: Number(r.price_per_lesson ?? 0),
-          name: nameOf.get(r.student_id) ?? "Учень",
+          name: nameOf.get(r.student_id) ?? t("shared.student"),
           default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
         }));
         rows.sort((a, b) => a.name.localeCompare(b.name, "uk"));
@@ -190,13 +190,13 @@ export function QuickLessonDialog({
 
     if (mode === "group") {
       if (!selectedGroup) {
-        toast.error("Виберіть групу");
+        toast.error(t("quickLessonDialog.selectGroup") ?? "Виберіть групу");
         return;
       }
       setSubmitting(true);
       const lessonType: "pair" | "group" =
         selectedGroup.participants.length === 2 ? "pair" : "group";
-      const subj = selectedGroup.subject || "Урок";
+      const subj = selectedGroup.subject || t("shared.lesson");
       const { data: created, error } = await supabase
         .from("lessons")
         .insert({
@@ -215,7 +215,7 @@ export function QuickLessonDialog({
         .single();
       if (error || !created) {
         setSubmitting(false);
-        toast.error(error?.message || "Не вдалося створити урок");
+        toast.error(error?.message || t("schedule.createLessonFailed") ?? "Не вдалося створити урок");
         return;
       }
       // Auto-create participants

@@ -141,7 +141,7 @@ export default function WalletsPage() {
         <header className="space-y-2">
           <div className="flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Передоплати</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("walletsPage.title")}</h1>
           </div>
           <p className="text-sm text-muted-foreground">
             Передоплати учнів за майбутні уроки. Списання відбувається автоматично, як тільки створюється новий урок.
@@ -152,7 +152,7 @@ export default function WalletsPage() {
           <div className="relative min-w-[200px] flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Пошук за учнем або репетитором…"
+              placeholder={t("walletsPage.searchPlaceholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -163,7 +163,7 @@ export default function WalletsPage() {
             size="sm"
             onClick={() => setShowAll((s) => !s)}
           >
-            {showAll ? "Тільки з балансом" : "Показати всі пари"}
+            {showAll ? t("walletsPage.showWithBalance") : t("walletsPage.showAll")}
           </Button>
         </div>
 
@@ -174,10 +174,10 @@ export default function WalletsPage() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Wallet}
-            title="Немає гаманців з балансом"
+            title={t("walletsPage.noWallets")}
             description={
               showAll
-                ? "Жодної активної пари не знайдено."
+                ? t("walletsPage.noActivePairs")
                 : "Жоден учень поки не має передоплати. Натисніть «Показати всі пари», щоб поповнити будь-який гаманець."
             }
           />

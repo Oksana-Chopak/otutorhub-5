@@ -1055,7 +1055,7 @@ export default function SchedulePage() {
               trigger={
                 <Button size="sm" className="h-9 gap-1.5">
                   <HandHeart className="h-4 w-4" />
-                  <span className="hidden sm:inline">Запит на підбір</span>
+                  <span className="hidden sm:inline">{t("scheduleExtra.requestTutor")}</span>
                 </Button>
               }
             />
@@ -1382,15 +1382,15 @@ export default function SchedulePage() {
                 )}
                 {(isManager || isTutor) && (
                   <div>
-                    <Label htmlFor="repeat">Повторювати щотижня</Label>
+                    <Label htmlFor="repeat">{t("scheduleExtra.repeatWeekly")}</Label>
                     <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
                       <SelectTrigger id="repeat"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Не повторювати</SelectItem>
-                        <SelectItem value="2">2 тижні</SelectItem>
-                        <SelectItem value="4">4 тижні</SelectItem>
-                        <SelectItem value="8">8 тижнів</SelectItem>
-                        <SelectItem value="12">12 тижнів</SelectItem>
+                        <SelectItem value="1">{t("scheduleExtra.noRepeat")}</SelectItem>
+                        <SelectItem value="2">{t("scheduleExtra.weeks2")}</SelectItem>
+                        <SelectItem value="4">{t("scheduleExtra.weeks4")}</SelectItem>
+                        <SelectItem value="8">{t("scheduleExtra.weeks8")}</SelectItem>
+                        <SelectItem value="12">{t("scheduleExtra.weeks12")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

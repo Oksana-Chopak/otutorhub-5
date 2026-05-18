@@ -95,14 +95,14 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     if (cardInput.trim()) {
       const digits = cardInput.replace(/\D/g, "");
       if (digits.length < 4 || digits.length > 19) {
-        toast.error("Номер картки виглядає некоректно");
+        toast.error(t("contactEdit.cardInvalid"));
         return;
       }
       bank_card_last4 = digits.slice(-4);
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Невірний email");
+      toast.error(t("contactEdit.emailInvalid"));
       return;
     }
     for (const [label, val] of [
@@ -116,7 +116,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       }
     }
     if (bank_card_last4 && !/^\d{4}$/.test(bank_card_last4)) {
-      toast.error("Останні 4 цифри картки виглядають некоректно");
+      toast.error(t("contactEdit.last4Invalid"));
       return;
     }
 
@@ -142,7 +142,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
       setSaving(false);
-      toast.error("Сесія завершилась. Оновіть сторінку та увійдіть знову.");
+      toast.error(t("contactEdit.sessionExpired"));
       return;
     }
 
@@ -174,7 +174,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
         // Both succeeded
         setSaving(false);
-        toast.success("Контакти збережено");
+        toast.success(t("contactEdit.saved"));
         onOpenChange(false);
         onSaved?.();
         return;

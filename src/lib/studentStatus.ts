@@ -22,18 +22,18 @@ export function computeStudentStatus(
   if (s.unpaid_count > 0) {
     return {
       status: "debt",
-      label: `Борг: ${s.unpaid_total} ₴ (${s.unpaid_count})`,
+      label: i18n.t("studentStatus.debt", { amount: `${s.unpaid_total} ₴`, count: s.unpaid_count }),
     };
   }
   if (!s.last_lesson_at) {
-    return { status: "new", label: "Без уроків" };
+    return { status: "new", label: i18n.t("studentStatus.noLessons") };
   }
   const ageMs = Date.now() - new Date(s.last_lesson_at).getTime();
   if (ageMs > INACTIVE_DAYS * 24 * 60 * 60 * 1000) {
     const days = Math.round(ageMs / (24 * 60 * 60 * 1000));
-    return { status: "inactive", label: `Не виходить на зв'язок ${days}д` };
+    return { status: "inactive", label: i18n.t("studentStatus.inactive", { days }) };
   }
-  return { status: "ok", label: "Все оплачено" };
+  return { status: "ok", label: i18n.t("studentStatus.ok") };
 }
 
 export const studentStatusDotClass: Record<StudentStatus, string> = {

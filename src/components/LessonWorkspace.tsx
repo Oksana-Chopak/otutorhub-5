@@ -87,11 +87,11 @@ export function LessonWorkspace({
       .upsert({ lesson_id: lessonId, student_payment_status: next }, { onConflict: "lesson_id" });
     setPaymentBusy(false);
     if (error) {
-      toast({ title: "Не вдалося оновити оплату", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setPaidLocal(next);
-    toast({ title: next === "paid" ? "Позначено як оплачено" : "Позначено як неоплачено" });
+    toast({ title: next === "paid" ? t("lessonWorkspace.markedPaid") : t("lessonWorkspace.markedUnpaid") });
     onUpdated?.();
   };
 
@@ -103,12 +103,12 @@ export function LessonWorkspace({
       .eq("id", lessonId);
     setCompleteBusy(false);
     if (error) {
-      toast({ title: "Не вдалося оновити статус", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonWorkspace.statusFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setStatusLocal("completed");
     setJustCompleted(true);
-    toast({ title: "Урок позначено як проведений ✓" });
+    toast({ title: t("lessonWorkspace.markedCompleted") });
     onUpdated?.();
   };
 
@@ -128,9 +128,9 @@ export function LessonWorkspace({
       });
       if (error) throw error;
       const generated = (data as any)?.summary;
-      if (!generated) throw new Error("Порожня відповідь AI");
+      if (!generated) throw new Error(t("lessonWorkspace.aiEmpty"));
       setSummaryDraft(generated);
-      toast({ title: "AI-конспект готовий", description: "Перевірте і збережіть." });
+      toast({ title: t("lessonWorkspace.aiReady"), description: t("lessonWorkspace.aiReadyDesc") });
     } catch (e: any) {
       toast({
         title: "Не вдалося згенерувати конспект",

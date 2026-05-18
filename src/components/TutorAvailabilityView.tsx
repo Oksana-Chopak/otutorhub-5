@@ -140,8 +140,8 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
       ) : !hasWeekly && !hasPositiveOverride ? (
         <p className="text-center text-sm text-muted-foreground py-6">
           {hasAnySchedule
-            ? "У репетитора зараз немає вільних годин для нових уроків. Напишіть йому в чат, щоб домовитись."
-            : "Репетитор ще не вказав свої доступні години. Напишіть йому в чат, щоб домовитись про час."}
+            ? t("tutorAvailability.noHours")
+            : t("tutorAvailability.notSet")}
         </p>
       ) : !hasAnySlotInView ? (
         <p className="text-center text-sm text-muted-foreground py-6">

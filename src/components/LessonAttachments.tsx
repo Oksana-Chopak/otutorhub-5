@@ -58,7 +58,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .order("created_at", { ascending: false });
     setLoading(false);
     if (error) {
-      toast({ title: "Не вдалося завантажити вкладення", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.loadFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setItems(data ?? []);
@@ -72,7 +72,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
   const handleUpload = async (file: File) => {
     if (!user) return;
     if (file.size > MAX_BYTES) {
-      toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+      toast({ title: t("lessonAttachments.tooLarge"), description: t("lessonAttachments.tooLargeDesc"), variant: "destructive" });
       return;
     }
     setUploading(true);
@@ -84,7 +84,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .upload(path, file, { contentType: file.type, upsert: false });
     if (upErr) {
       setUploading(false);
-      toast({ title: "Помилка завантаження", description: upErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.uploadFailed"), description: upErr.message, variant: "destructive" });
       return;
     }
 
@@ -99,10 +99,10 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
     setUploading(false);
     if (insErr) {
       await supabase.storage.from("lesson-attachments").remove([path]);
-      toast({ title: "Не вдалося зберегти запис", description: insErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.saveFailed"), description: insErr.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Файл додано" });
+    toast({ title: t("lessonAttachments.fileAdded") });
     if (inputRef.current) inputRef.current.value = "";
     load();
   };
@@ -114,7 +114,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .createSignedUrl(item.storage_path, 60 * 10);
     setBusyId(null);
     if (error || !data?.signedUrl) {
-      toast({ title: "Не вдалося відкрити файл", description: error?.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.openFailed"), description: error?.message, variant: "destructive" });
       return;
     }
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");

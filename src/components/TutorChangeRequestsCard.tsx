@@ -171,7 +171,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
     if (!active) return;
     const lesson = lessons[active.lesson_id];
     if (!lesson) {
-      toast.error("Не вдалося знайти урок");
+      toast.error(t("tutorChangeRequests.lessonNotFound"));
       return;
     }
     setSubmitting(true);
@@ -189,7 +189,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
       if (lessonErr) {
         setSubmitting(false);
-        toast.error("Не вдалося оновити урок", { description: lessonErr.message });
+        toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
         return;
       }
 
@@ -198,13 +198,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         .upsert({ lesson_id: lesson.id, student_price: newPrice } as any, { onConflict: "lesson_id" });
       if (priceErr) {
         setSubmitting(false);
-        toast.error("Не вдалося оновити ціну", { description: priceErr.message });
+        toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
         return;
       }
     } else {
       if (!proposedAt) {
         setSubmitting(false);
-        toast.error("Оберіть новий час");
+        toast.error(t("tutorChangeRequests.timeRequired"));
         return;
       }
       const newStart = new Date(proposedAt).toISOString();
@@ -214,7 +214,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         .eq("id", lesson.id);
       if (lessonErr) {
         setSubmitting(false);
-        toast.error("Не вдалося перенести урок", { description: lessonErr.message });
+        toast.error(t("tutorChangeRequests.rescheduleFailed"), { description: lessonErr.message });
         return;
       }
     }
@@ -233,12 +233,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
     setSubmitting(false);
     if (reqErr) {
-      toast.error("Урок оновлено, але не вдалося оновити запит", {
+      toast.error(t("tutorChangeRequests.requestUpdateFailed") ?? "Урок оновлено, але не вдалося оновити запит", {
         description: reqErr.message,
       });
       return;
     }
-    toast.success(active.kind === "cancel" ? "Скасування підтверджено" : "Перенесення підтверджено");
+    toast.success(active.kind === "cancel" ? t("tutorChangeRequests.cancelApproved") : t("tutorChangeRequests.rescheduleApproved"));
     close();
     load();
   };
@@ -257,7 +257,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       .eq("id", active.id);
     setSubmitting(false);
     if (error) {
-      toast.error("Не вдалося відхилити", { description: error.message });
+      toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
       return;
     }
     toast.success("Запит відхилено");

@@ -57,23 +57,23 @@ export interface StepProgress {
 const steps: Step[] = [
   {
     id: 1,
-    title: "Додайте першого учня",
+    title: t("onboardingContent.addStudentTitle"),
     description:
-      "Введіть ім'я, телефон, email, телеграм/інстаграм. Учень отримає запрошення приєднатися до вашого кабінету.",
-    cta: "Додати учня",
+      t("onboardingContent.addStudentDesc"),
+    cta: t("onboardingContent.addStudentCta"),
     to: "/my-students",
     action: "addStudent",
     icon: UserPlus,
     emoji: "👋",
     xp: 50,
     autoKey: "hasStudent",
-    autoHint: "Учень доданий ✓",
+    autoHint: t("onboardingContent.addStudentHint"),
   },
   {
     id: 2,
-    title: "Складіть розклад",
+    title: t("onboardingContent.scheduleTitle"),
     description:
-      "Створіть перші уроки. Можна повторити щотижня, додати ціну, статус оплати — все в одному місці.",
+      t("onboardingContent.scheduleDesc"),
     cta: "Перейти до розкладу",
     to: "/schedule",
     icon: CalendarClock,
@@ -168,7 +168,7 @@ const steps: Step[] = [
     title: "Відмічайте оплати",
     description:
       "Позначайте оплачені уроки в розділі «Фінанси». Бачите статистику — скільки заробили, хто винен.",
-    cta: "Перейти до фінансів",
+    cta: t("onboardingContent.financeCta"),
     to: "/finances",
     icon: CreditCard,
     emoji: "💰",

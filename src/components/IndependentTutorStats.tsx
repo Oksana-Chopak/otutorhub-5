@@ -23,9 +23,9 @@ import {
 type Period = "all" | "month" | "week";
 
 const periodLabel: Record<Period, string> = {
-  all: "За весь час",
-  month: "За цей місяць",
-  week: "За цей тиждень",
+  all: t("independentStats.periodAll"),
+  month: t("independentStats.periodMonth"),
+  week: t("independentStats.periodWeek"),
 };
 
 interface LessonRow {
@@ -145,20 +145,20 @@ export function IndependentTutorStats() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <StatCard
-          label="Мої учні"
+          label={t("independentStats.myStudents")}
           value={loading ? "…" : studentCount}
           icon={Users}
           to="/my-students"
         />
         <StatCard
-          label="Проведено уроків"
+          label={t("independentStats.lessonsCompleted")}
           value={loading ? "…" : completedCount}
           icon={Clock4}
           to="/schedule"
           trendDelta={loading ? undefined : completedDelta}
         />
         <StatCard
-          label="Отримано"
+          label={t("independentStats.earned")}
           value={loading ? "…" : `${totalIncome} ₴`}
           icon={ArrowDownLeft}
           variant="success"

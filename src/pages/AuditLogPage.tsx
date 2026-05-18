@@ -31,11 +31,11 @@ type AuditEntry = {
 type ProfileLite = { id: string; first_name: string; last_name: string };
 
 const actionLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  "role.assigned": { label: "Призначено роль", variant: "default" },
-  "role.updated": { label: "Змінено роль", variant: "secondary" },
-  "role.removed": { label: "Видалено роль", variant: "destructive" },
-  "profile.deleted": { label: "Видалено профіль", variant: "destructive" },
-  "lesson.financials_updated": { label: "Оновлено фінанси уроку", variant: "secondary" },
+  "role.assigned": { label: t("auditLog.roleAssigned"), variant: "default" },
+  "role.updated": { label: t("auditLog.roleUpdated"), variant: "secondary" },
+  "role.removed": { label: t("auditLog.roleRemoved"), variant: "destructive" },
+  "profile.deleted": { label: t("auditLog.profileDeleted"), variant: "destructive" },
+  "lesson.financials_updated": { label: t("auditLog.financialsUpdated"), variant: "secondary" },
 };
 
 function formatDate(iso: string) {
@@ -99,7 +99,7 @@ export default function AuditLogPage() {
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) {
-        toast.error("Не вдалося завантажити журнал");
+        toast.error(t("auditLog.loadFailed"));
         setLoading(false);
         return;
       }
@@ -204,7 +204,7 @@ export default function AuditLogPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    toast.success("CSV завантажено");
+    toast.success(t("common.success"));
   };
 
   const filtersActive =
@@ -238,7 +238,7 @@ export default function AuditLogPage() {
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Пошук…"
+            placeholder={t("auditLog.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="h-8 max-w-[220px] text-xs"

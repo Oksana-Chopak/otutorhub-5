@@ -81,7 +81,7 @@ export default function StudentPaymentsPage() {
       setTutorPayInfos(
         tutorIds.map((id) => ({
           tutor_id: id,
-          tutor_name: nameMap[id] ?? "Репетитор",
+          tutor_name: nameMap[id] ?? t("studentPages.tutorFallback"),
           currency: payMap[id]?.currency ?? "UAH",
           payment_details: payMap[id]?.payment_details ?? null,
         }))
@@ -113,23 +113,23 @@ export default function StudentPaymentsPage() {
   return (
     <StudentLayout>
       <div className="space-y-4">
-        <h1 className="hidden text-2xl font-bold text-foreground lg:block">Оплати</h1>
+        <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.paymentsTitle")}</h1>
 
         {currencyEntries.length === 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">До оплати</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
               <p className="mt-1 text-xl font-bold text-warning">0</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">Оплачено</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
               <p className="mt-1 text-xl font-bold text-success">0</p>
             </Card>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">До оплати</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} className="text-xl font-bold text-warning">
@@ -139,7 +139,7 @@ export default function StudentPaymentsPage() {
               </div>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">Оплачено</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} className="text-xl font-bold text-success">

@@ -41,10 +41,10 @@ const statusMeta: Record<
   RequestStatus,
   { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
-  new: { label: "Новий", variant: "default" },
-  in_progress: { label: "В роботі", variant: "secondary" },
-  completed: { label: "Завершено", variant: "outline" },
-  rejected: { label: "Відхилено", variant: "destructive" },
+  new: { label: t("subscriptionRequests.statusNew"), variant: "default" },
+  in_progress: { label: t("subscriptionRequests.statusInProgress"), variant: "secondary" },
+  completed: { label: t("subscriptionRequests.statusCompleted"), variant: "outline" },
+  rejected: { label: t("subscriptionRequests.statusRejected"), variant: "destructive" },
 };
 
 export default function SubscriptionRequestsPage() {
@@ -61,7 +61,7 @@ export default function SubscriptionRequestsPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error("Не вдалося завантажити запити");
+      toast.error(t("subscriptionRequests.loadFailed"));
       setLoading(false);
       return;
     }
@@ -117,7 +117,7 @@ export default function SubscriptionRequestsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося оновити запит");
+      toast.error(t("subscriptionRequests.updateFailed"));
       return;
     }
     toast.success("Статус оновлено");

@@ -21,10 +21,10 @@ interface Lesson {
 }
 
 const statusLabel: Record<string, string> = {
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-  pending: "Запит",
+  scheduled: t("studentPages.statusScheduled"),
+  completed: t("studentPages.statusCompleted"),
+  cancelled: t("studentPages.statusCancelled"),
+  pending: t("studentPages.statusPending"),
 };
 const statusClass: Record<string, string> = {
   scheduled: "bg-primary/10 text-primary",
@@ -102,7 +102,7 @@ export default function StudentSchedulePage() {
   return (
     <StudentLayout>
       <div className="space-y-4">
-        <h1 className="hidden text-2xl font-bold text-foreground lg:block">Розклад</h1>
+        <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.scheduleTitle")}</h1>
         <Tabs defaultValue="upcoming">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upcoming">Майбутні ({upcoming.length})</TabsTrigger>

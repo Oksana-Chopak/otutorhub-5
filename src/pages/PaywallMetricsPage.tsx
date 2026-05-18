@@ -41,12 +41,12 @@ interface PaywallEventRow {
 }
 
 const FEATURE_LABELS: Record<string, string> = {
-  ai_summary: "✨ AI-конспект",
-  premium_analytics: "📊 Аналітика Pro",
-  payment_reminder: "🔔 Нагадування про оплату",
-  bulk_actions: "⚡ Масові дії",
-  subscription_page_visit: "👀 Візит /subscription",
-  upgrade_banner: "🎁 Банер апгрейду",
+  ai_summary: t("paywallMetrics.aiSummary"),
+  premium_analytics: t("paywallMetrics.premiumAnalytics"),
+  payment_reminder: t("paywallMetrics.paymentReminder"),
+  bulk_actions: t("paywallMetrics.bulkActions"),
+  subscription_page_visit: t("paywallMetrics.subscriptionPageVisit"),
+  upgrade_banner: t("paywallMetrics.upgradeBanner"),
 };
 
 const STATUS_LABELS: Record<string, string> = {

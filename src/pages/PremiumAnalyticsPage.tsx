@@ -144,7 +144,7 @@ export default function PremiumAnalyticsPage() {
 
   const handleExport = (type: "csv" | "pdf") => {
     toast.info(`Експорт у ${type.toUpperCase()}...`, {
-      description: "Функція генерації звіту готується. Ви отримаєте файл за кілька секунд."
+      description: t("premiumAnalytics.exportDesc")
     });
     
     if (type === "csv") {
@@ -192,12 +192,12 @@ export default function PremiumAnalyticsPage() {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-bold text-foreground">Преміум-аналітика</h1>
+                <h1 className="font-display text-2xl font-bold text-foreground">{t("premiumAnalytics.title")}</h1>
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                   <Crown className="mr-1 h-3 w-3" /> Pro
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">Детальний аналіз вашої діяльності та доходів</p>
+              <p className="text-sm text-muted-foreground">{t("premiumAnalytics.subtitle")}</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -213,7 +213,7 @@ export default function PremiumAnalyticsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-success/5 border-success/20">
             <CardHeader className="pb-2">
-              <CardDescription className="text-success/80">Дохід (отримано)</CardDescription>
+              <CardDescription className="text-success/80">{t("premiumAnalytics.revenueLabel")}</CardDescription>
               <CardTitle className="text-2xl font-bold">{stats.totalIncome} ₴</CardTitle>
             </CardHeader>
           </Card>

@@ -248,16 +248,15 @@ export default function DashboardPage() {
     const seenKey = `monthly_recap_announced_${monthKey}`;
     if (localStorage.getItem(seenKey) === "1") return;
     const months = [
-      "січень", "лютий", "березень", "квітень", "травень", "червень",
-      "липень", "серпень", "вересень", "жовтень", "листопад", "грудень",
+      i18n.t("dashboardExtra.months").split(","), i18n.t("dashboardExtra.months").split(","),
     ];
     const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
     import("sonner").then(({ toast }) => {
       toast(`🎉 Твій ${months[prevMonthIdx]} готовий!`, {
-        description: "Подивись підсумок місяця та поділись з друзями.",
+        description: t("dashboardExtra.monthlySummaryDesc"),
         duration: 8000,
         action: {
-          label: "Подивитись",
+          label: t("dashboardExtra.monthlySummaryBtn"),
           onClick: () => {
             const el = document.getElementById("monthly-summary-anchor");
             el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -305,7 +304,7 @@ export default function DashboardPage() {
     ]);
 
     if (lessonsError) {
-      toast.error("Не вдалося завантажити дані. Перевірте з'єднання.");
+      toast.error(t("dashboardExtra.loadFailed"));
       setLoading(false);
       return;
     }
@@ -320,7 +319,7 @@ export default function DashboardPage() {
 
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
-      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
+      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || t("shared.noName");
     });
 
     const defaultsMap: Record<string, string> = {};
@@ -397,7 +396,7 @@ export default function DashboardPage() {
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
-      toast.error("Не вдалося змінити статус уроку. Спробуйте ще раз.");
+      toast.error(t("dashboardExtra.statusChangeFailed"));
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
@@ -420,7 +419,7 @@ export default function DashboardPage() {
         { onConflict: "lesson_id" },
       );
     if (error) {
-      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
@@ -559,16 +558,16 @@ export default function DashboardPage() {
   );
 
   const profitPeriodLabel: Record<ProfitPeriod, string> = {
-    all: "за весь час",
-    month: "за цей місяць",
-    week: "за цей тиждень",
+    all: t("dashboardExtra.periodAll"),
+    month: t("dashboardExtra.periodMonth"),
+    week: t("dashboardExtra.periodWeek"),
   };
 
   const statusLabel: Record<LessonStatus, string> = {
-    pending: "Запит",
-    scheduled: "Заплановано",
-    completed: "Проведено",
-    cancelled: "Скасовано",
+    pending: t("dashboardExtra.statusPending"),
+    scheduled: t("dashboardExtra.statusScheduled"),
+    completed: t("dashboardExtra.statusCompleted"),
+    cancelled: t("dashboardExtra.statusCancelled"),
   };
 
   const firstName = useMemo(() => {
@@ -578,9 +577,9 @@ export default function DashboardPage() {
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Доброго ранку";
-    if (hour < 18) return "Доброго дня";
-    return "Доброго вечора";
+    if (hour < 12) return t("dashboardExtra.greetingMorning");
+    if (hour < 18) return t("dashboardExtra.greetingDay");
+    return t("dashboardExtra.greetingEvening");
   }, []);
 
   const timeEmoji = useMemo(() => {
@@ -616,9 +615,9 @@ export default function DashboardPage() {
         icon: TrendingUp,
         tone: "warning" as const,
         title: `Очікують оплати: ${pendingPayments.length}`,
-        description: "Завершені уроки без повної оплати або виплати.",
+        description: t("dashboardExtra.pendingPaymentsDesc"),
         to: "/finances",
-        cta: "Перейти до фінансів",
+        cta: t("dashboardExtra.pendingPaymentsCta"),
       });
     }
     // 2. Tutor referral requests (students looking for a tutor)
@@ -630,9 +629,9 @@ export default function DashboardPage() {
         title: `${tutorReferralRequestCount} запит${
           tutorReferralRequestCount === 1 ? "" : tutorReferralRequestCount < 5 ? "и" : "ів"
         } на репетитора`,
-        description: "Учні залишили заявку — підберіть фахівця.",
+        description: t("dashboardExtra.tutorRequestsDesc"),
         to: "/referrals",
-        cta: "Переглянути заявки",
+        cta: t("dashboardExtra.tutorRequestsCta"),
       });
     }
     // 3. Support / subscription requests
@@ -644,9 +643,9 @@ export default function DashboardPage() {
         title: `${supportRequestCount} звернен${
           supportRequestCount === 1 ? "ня" : supportRequestCount < 5 ? "ня" : "ь"
         } у службу підтримки`,
-        description: "Репетитори надіслали запитання — дайте відповідь.",
+        description: t("dashboardExtra.supportRequestsDesc"),
         to: "/subscription-requests",
-        cta: "Відкрити звернення",
+        cta: t("dashboardExtra.supportRequestsCta"),
       });
     }
     // 4. Students without a tutor
@@ -658,9 +657,9 @@ export default function DashboardPage() {
         title: `${studentsWithoutTutor} учн${
           studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
         } без репетитора`,
-        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
+        description: t("dashboardExtra.studentsWithoutTutorDesc"),
         to: "/people",
-        cta: "Відкрити людей",
+        cta: t("dashboardExtra.studentsWithoutTutorCta"),
       });
     }
     // 5. Lessons without meeting link
@@ -670,9 +669,9 @@ export default function DashboardPage() {
         icon: Video,
         tone: "primary" as const,
         title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
-        description: "Репетитори не вказали лінк на зустріч.",
+        description: t("dashboardExtra.noMeetingLinkDesc"),
         to: "/schedule",
-        cta: "Відкрити розклад",
+        cta: t("dashboardExtra.pendingLessonRequestsCta"),
       });
     }
     // Lower-priority items (kept for completeness)
@@ -684,9 +683,9 @@ export default function DashboardPage() {
         title: `${pendingLessonRequests} запит${
           pendingLessonRequests === 1 ? "" : pendingLessonRequests < 5 ? "и" : "ів"
         } на уроки`,
-        description: "Учні чекають підтвердження часу.",
+        description: t("dashboardExtra.pendingLessonRequestsDesc"),
         to: "/schedule",
-        cta: "Відкрити розклад",
+        cta: t("dashboardExtra.pendingLessonRequestsCta"),
       });
     }
     if (pendingRequestCount > 0) {
@@ -697,9 +696,9 @@ export default function DashboardPage() {
         title: `${pendingRequestCount} запит${
           pendingRequestCount === 1 ? "" : pendingRequestCount < 5 ? "и" : "ів"
         } на проставлення годин`,
-        description: "Репетитори або учні просять оновити доступні години.",
+        description: t("dashboardExtra.availabilityRequestsDesc"),
         to: "/availability",
-        cta: "Перейти до годин",
+        cta: t("dashboardExtra.availabilityRequestsCta"),
       });
     }
     if (lessonsWithoutPrice > 0) {
@@ -708,9 +707,9 @@ export default function DashboardPage() {
         icon: Tag,
         tone: "warning" as const,
         title: `${lessonsWithoutPrice} уроків без ціни`,
-        description: "Додайте ставку, щоб коректно рахувати фінанси.",
+        description: t("dashboardExtra.noRateDesc"),
         to: "/schedule",
-        cta: "Відкрити уроки",
+        cta: t("dashboardExtra.noRateCta"),
       });
     }
     return tasks;
@@ -983,7 +982,7 @@ export default function DashboardPage() {
                                 variant="ghost"
                                 className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
                                 onClick={() => setOpenLessonId(lesson.id)}
-                                title="Перенести урок"
+                                title={t("dashboardExtra.rescheduleLesson")}
                               >
                                 <CalendarClock className="h-4 w-4" />
                                 <span className="hidden sm:inline">Перенести</span>
@@ -992,7 +991,7 @@ export default function DashboardPage() {
                                 size="icon"
                                 variant="ghost"
                                 className="h-8 w-8"
-                                title="Поповнити гаманець"
+                                title={t("dashboardExtra.topUpWallet")}
                                 onClick={() =>
                                   setWalletPair({
                                     tutor_id: lesson.tutor_id,
@@ -1087,7 +1086,7 @@ export default function DashboardPage() {
                                 variant="ghost"
                                 className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
                                 onClick={() => setOpenLessonId(lesson.id)}
-                                title="Перенести урок"
+                                title={t("dashboardExtra.rescheduleLesson")}
                               >
                                 <CalendarClock className="h-4 w-4" />
                                 <span className="hidden sm:inline">Перенести</span>

@@ -40,10 +40,10 @@ const formatDateTime = (iso: string) =>
   });
 
 const KIND_LABEL: Record<string, string> = {
-  topup: "Поповнення",
-  lesson_charge: "Списання за урок",
-  refund: "Повернення",
-  adjustment: "Корекція",
+  topup: t("walletDialog.topup"),
+  lesson_charge: t("walletDialog.lessonCharge"),
+  refund: t("walletDialog.refund"),
+  adjustment: t("walletDialog.adjustment"),
 };
 
 export function WalletDialog({
@@ -70,7 +70,7 @@ export function WalletDialog({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (txId: string, hard: boolean) => {
-    const label = hard ? "видалити транзакцію без сліду" : "сторнувати цю операцію";
+    const label = hard ? t("walletDialog.confirmDeleteHard") : t("walletDialog.confirmDeleteSoft");
     if (!window.confirm(`Точно ${label}?`)) return;
     setDeletingId(txId);
     const { error } = await supabase.rpc("wallet_delete_transaction" as any, {

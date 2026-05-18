@@ -205,7 +205,7 @@ export function AvailabilityManager() {
     const start = hhmmToMinutes(weeklyDialog.from);
     const end = hhmmToMinutes(weeklyDialog.to);
     if (start === null || end === null || end <= start) {
-      toast.error("Перевірте час: кінець має бути пізніше за початок");
+      toast.error(t("availabilityManager.timeError"));
       return;
     }
     const { error } = await supabase.from("tutor_availability_weekly").insert({
@@ -216,10 +216,10 @@ export function AvailabilityManager() {
     });
     if (error) {
       console.error(error);
-      toast.error("Не вдалося зберегти");
+      toast.error(t("availabilityManager.saveFailed"));
       return;
     }
-    toast.success("Додано");
+    toast.success(t("availabilityManager.addSuccess"));
     setWeeklyDialog((s) => ({ ...s, open: false }));
     loadAvailability();
   };
@@ -227,7 +227,7 @@ export function AvailabilityManager() {
   const removeWeekly = async (id: string) => {
     const { error } = await supabase.from("tutor_availability_weekly").delete().eq("id", id);
     if (error) {
-      toast.error("Не вдалося видалити");
+      toast.error(t("availabilityManager.deleteFailed"));
       return;
     }
     setWeekly((prev) => prev.filter((r) => r.id !== id));
@@ -242,7 +242,7 @@ export function AvailabilityManager() {
       .eq("tutor_id", tutorId)
       .eq("weekday", day);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("availabilityManager.updateFailed"));
       return;
     }
     toast.success(`${WEEKDAYS_FULL_UK[day]} — вихідний`);
@@ -269,7 +269,7 @@ export function AvailabilityManager() {
     });
     if (error) {
       console.error(error);
-      toast.error("Не вдалося зберегти");
+      toast.error(t("availabilityManager.saveFailed"));
       return;
     }
     toast.success(overrideDialog.is_available ? "Додаткові години додано" : "Вихідний день додано");
@@ -280,7 +280,7 @@ export function AvailabilityManager() {
   const removeOverride = async (id: string) => {
     const { error } = await supabase.from("tutor_availability_overrides").delete().eq("id", id);
     if (error) {
-      toast.error("Не вдалося видалити");
+      toast.error(t("availabilityManager.deleteFailed"));
       return;
     }
     setOverrides((prev) => prev.filter((o) => o.id !== id));
@@ -292,7 +292,7 @@ export function AvailabilityManager() {
       .update({ status: "fulfilled", acknowledged_at: new Date().toISOString() })
       .eq("id", id);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("availabilityManager.updateFailed"));
       return;
     }
     toast.success("Запит закрито");

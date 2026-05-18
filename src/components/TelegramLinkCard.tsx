@@ -86,10 +86,10 @@ export function TelegramLinkCard() {
     const { data, error } = await supabase.rpc("generate_telegram_link_code", { _user_id: user.id });
     setGenerating(false);
     if (error) {
-      toast.error("Не вдалося створити код. Спробуйте ще раз.");
+      toast.error(t("telegramLink.createFailed"));
       return;
     }
-    toast.success("Код створено. Надішліть його боту.");
+    toast.success(t("telegramLink.codeCreated"));
     // realtime subscription will refresh the row
   };
 
@@ -97,7 +97,7 @@ export function TelegramLinkCard() {
     if (!user) return;
     await supabase.from("user_telegram_links").delete().eq("user_id", user.id);
     setLink(null);
-    toast.success("Telegram відʼєднано");
+    toast.success(t("telegramLink.disconnected"));
   };
 
   if (loading) {
@@ -114,7 +114,7 @@ export function TelegramLinkCard() {
     return (
       <div className="flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
         <Check className="h-4 w-4 shrink-0 text-green-600" />
-        <span>Telegram підключено</span>
+        <span>{t("telegramLink.connected")}</span>
       </div>
     );
   }
@@ -162,7 +162,7 @@ export function TelegramLinkCard() {
             )
           ) : link?.link_code ? (
             <>
-              <p className="text-sm font-medium text-foreground">Завершіть підключення</p>
+              <p className="text-sm font-medium text-foreground">{t("telegramLink.connecting")}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 1. Відкрийте бота{" "}
                 {botUsername ? (
@@ -175,7 +175,7 @@ export function TelegramLinkCard() {
                     @{botUsername}
                   </a>
                 ) : (
-                  <span className="text-muted-foreground">(завантаження...)</span>
+                  <span className="text-muted-foreground">{t("telegramLink.loading")}</span>
                 )}
                 <br />
                 2. Натисніть «Start» (або надішліть команду нижче):

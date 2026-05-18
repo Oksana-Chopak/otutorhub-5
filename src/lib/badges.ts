@@ -10,20 +10,20 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   first_lesson: {
     key: "first_lesson",
     emoji: "🎯",
-    name: "Перший урок",
-    description: "Провів перший урок в застосунку",
+    name: i18n.t("badges.firstLesson"),
+    description: i18n.t("badges.firstLessonDesc"),
   },
   no_debts: {
     key: "no_debts",
     emoji: "💸",
-    name: "Без боргів",
-    description: "Всі учні оплатили цього місяця",
+    name: i18n.t("badges.noDebts"),
+    description: i18n.t("badges.noDebtsDesc"),
   },
   streak_7: {
     key: "streak_7",
     emoji: "🔥",
-    name: "7 днів поспіль",
-    description: "Уроки 7 днів підряд",
+    name: i18n.t("badges.streak7"),
+    description: i18n.t("badges.streak7Desc"),
   },
   schedule_maniac: {
     key: "schedule_maniac",

@@ -102,7 +102,7 @@ export function PendingPaymentsCard() {
     setRows(
       lessons.map((l) => ({
         ...l,
-        student_name: names[l.student_id] ?? "Учень",
+        student_name: names[l.student_id] ?? t("pendingPayments.studentFallback"),
         currency: currencies[l.student_id] ?? "UAH",
       }))
     );
@@ -122,7 +122,7 @@ export function PendingPaymentsCard() {
       .in("lesson_id", ids);
     setBusyId(null);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("pendingPayments.updateFailed"));
       return;
     }
     setRows((r) => r.filter((x) => !ids.includes(x.id)));
@@ -136,13 +136,13 @@ export function PendingPaymentsCard() {
     });
     setRemindingId(null);
     if (error) {
-      toast.error("Не вдалося надіслати нагадування");
+      toast.error(t("pendingPayments.reminderFailed"));
       return;
     }
     if ((data as any)?.success) {
       const channels = (data as any).channels as string[];
       const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
-      toast.success(`Нагадування надіслано: ${labels.join(" + ")}`);
+      toast.success(t("pendingPayments.reminderSent", { labels: labels.join(" + ") }));
     } else {
       toast.error("Учень не має ні Telegram, ні email — додайте контакт");
     }

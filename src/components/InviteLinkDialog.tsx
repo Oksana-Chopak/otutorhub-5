@@ -56,12 +56,12 @@ export function InviteLinkDialog({
   }, [email, role]);
 
   const isTutor = role === "tutor";
-  const roleNoun = isTutor ? "репетитора" : "учня";
-  const roleNounDative = isTutor ? "репетитору" : "учню";
+  const roleNoun = isTutor ? t("inviteLink.tutorNoun") : t("inviteLink.studentNoun");
+  const roleNounDative = isTutor ? t("inviteLink.tutorDative") : t("inviteLink.studentDative");
   const roleNounPossessive = isTutor ? "своїм репетитором" : "своїм учнем";
 
   const message = useMemo(() => {
-    const greeting = personName ? `Привіт, ${personName}!` : "Привіт!";
+    const greeting = personName ? t("inviteLink.greeting", { name: personName }) : t("inviteLink.greetingGeneric") ?? "Привіт!";
     const who = inviterName ? ` (${inviterName})` : "";
     const intro = isTutor
       ? `Я${who} запрошую тебе приєднатися до oTutorHub як репетитора. Створи акаунт за посиланням нижче, щоб бачити учнів, розклад, оплати й вести уроки. Використай саме той самий ${email ? "email" : "контакт"}, інакше профіль не зв'яжеться.`

@@ -44,7 +44,7 @@ export function MonthlySummaryCard() {
         await navigator.share({ title: "Мій підсумок місяця", text: shareText, url: "https://otutorhub.com" });
       } else {
         await navigator.clipboard.writeText(shareText);
-        toast.success("Скопійовано в буфер!");
+        toast.success(t("monthlySummary.copied"));
       }
     } catch (e) {
       // user cancelled
@@ -69,7 +69,7 @@ export function MonthlySummaryCard() {
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error(e);
-      toast.error("Не вдалося згенерувати картинку");
+      toast.error(t("monthlySummary.imageFailed"));
     } finally {
       setSharing(false);
     }

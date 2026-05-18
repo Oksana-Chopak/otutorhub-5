@@ -44,7 +44,7 @@ export function TutorNotesCard() {
       .insert({ tutor_id: user.id, text: text.trim() } as any);
     setSaving(false);
     if (error) {
-      toast.error("Не вдалося зберегти нотатку");
+      toast.error(t("tutorNotes.saveFailed"));
       return;
     }
     setText("");
@@ -57,7 +57,7 @@ export function TutorNotesCard() {
     const { error } = await supabase.from("tutor_notes" as any).delete().eq("id", id);
     if (error) {
       setNotes(prev);
-      toast.error("Не вдалося видалити");
+      toast.error(t("tutorNotes.deleteFailed"));
     }
   };
 
@@ -67,13 +67,13 @@ export function TutorNotesCard() {
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
           <StickyNote className="h-4 w-4 text-primary" />
         </div>
-        <p className="text-sm font-medium text-foreground">Мої нотатки</p>
+        <p className="text-sm font-medium text-foreground">{t("tutorNotes.title")}</p>
       </div>
       <div className="space-y-2">
         <Textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Що не забути..."
+          placeholder={t("tutorNotes.placeholder")}
           className="min-h-[60px] text-sm"
           maxLength={500}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add(); } }}
@@ -94,7 +94,7 @@ export function TutorNotesCard() {
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
           </div>
         ) : notes.length === 0 ? (
-          <p className="py-2 text-xs text-muted-foreground">Ще немає нотаток.</p>
+          <p className="py-2 text-xs text-muted-foreground">{t("tutorNotes.empty")}</p>
         ) : (
           notes.map((n) => (
             <div
@@ -106,7 +106,7 @@ export function TutorNotesCard() {
                 type="button"
                 onClick={() => remove(n.id)}
                 className="opacity-50 transition-opacity hover:opacity-100"
-                aria-label="Видалити"
+                aria-label={t("tutorNotes.deleteAria")}
               >
                 <X className="h-3.5 w-3.5 text-muted-foreground" />
               </button>

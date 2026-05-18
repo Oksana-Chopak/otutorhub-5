@@ -25,11 +25,11 @@ export function AvatarUploader({
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      toast.error("Можна завантажити тільки зображення");
+      toast.error(t("avatarUploader.imageOnly"));
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Розмір файлу не може перевищувати 5 МБ");
+      toast.error(t("avatarUploader.tooLarge"));
       return;
     }
     setBusy(true);
@@ -49,7 +49,7 @@ export function AvatarUploader({
       .upload(path, file, { upsert: true, cacheControl: "3600" });
     if (upErr) {
       console.error(upErr);
-      toast.error("Не вдалося завантажити аватар");
+      toast.error(t("avatarUploader.uploadFailed"));
       setBusy(false);
       return;
     }
@@ -62,11 +62,11 @@ export function AvatarUploader({
       .eq("id", userId);
     if (profErr) {
       console.error(profErr);
-      toast.error("Не вдалося оновити профіль");
+      toast.error(t("avatarUploader.updateFailed"));
       setBusy(false);
       return;
     }
-    toast.success("Аватар оновлено");
+    toast.success(t("avatarUploader.uploaded"));
     onChanged?.(url);
     setBusy(false);
   };
@@ -80,7 +80,7 @@ export function AvatarUploader({
         .remove(list.map((f) => `${userId}/${f.name}`));
     }
     await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId);
-    toast.success("Аватар видалено");
+    toast.success(t("avatarUploader.deleted"));
     onChanged?.(null);
     setBusy(false);
   };

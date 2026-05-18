@@ -129,14 +129,14 @@ export function RecordPaymentSheet({
     if (mode === "lessons") {
       const n = parseInt(lessonsCount, 10);
       if (!Number.isFinite(n) || n <= 0) {
-        toast.error("Вкажіть додатну кількість уроків");
+        toast.error(t("recordPayment.lessonsRequired"));
         return;
       }
       lessonsDelta = n;
     } else {
       const a = parseFloat(amount.replace(",", "."));
       if (!Number.isFinite(a) || a <= 0) {
-        toast.error("Вкажіть додатну суму");
+        toast.error(t("recordPayment.amountRequired"));
         return;
       }
       amountDelta = a;
@@ -172,12 +172,12 @@ export function RecordPaymentSheet({
 
       if (!writtenTx) {
         setBusy(false);
-        toast.error("Не вдалося поповнити", { description: error.message });
+        toast.error(t("recordPayment.saveFailed"), { description: error.message });
         return;
       }
     }
 
-    toast.success("Передоплату збережено");
+    toast.success(t("recordPayment.saved"));
     await onWalletTopUp();
     setBusy(false);
     close();
@@ -187,7 +187,7 @@ export function RecordPaymentSheet({
     <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : close())}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Зафіксувати оплату</DialogTitle>
+          <DialogTitle>{t("recordPayment.title")}</DialogTitle>
           <DialogDescription>
             Виберіть тип: оплата за конкретний урок або передоплата на майбутні.
           </DialogDescription>
@@ -269,7 +269,7 @@ export function RecordPaymentSheet({
                 <PickedHeader pair={pickedPair} onBack={() => setPickedPair(null)} />
                 <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="lessons">Уроками</TabsTrigger>
+                    <TabsTrigger value="lessons">{t("recordPayment.byLessons")}</TabsTrigger>
                     <TabsTrigger value="amount">Сумою</TabsTrigger>
                   </TabsList>
                   <TabsContent value="lessons" className="space-y-2 pt-3">

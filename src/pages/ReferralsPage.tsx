@@ -39,10 +39,10 @@ interface ReferralRow {
 }
 
 const statusLabel: Record<ReferralRow["status"], string> = {
-  open: "Новий",
-  in_progress: "В роботі",
-  fulfilled: "Виконано",
-  closed: "Закрито",
+  open: t("referralsPage.statusOpen"),
+  in_progress: t("referralsPage.statusInProgress"),
+  fulfilled: t("referralsPage.statusFulfilled"),
+  closed: t("referralsPage.statusClosed"),
 };
 
 const statusClass: Record<ReferralRow["status"], string> = {
@@ -92,7 +92,7 @@ export default function ReferralsPage() {
 
     const enriched: ReferralRow[] = (rows ?? []).map((r: any) => ({
       ...r,
-      studentName: profileMap.get(r.student_id)?.name ?? "Учень",
+      studentName: profileMap.get(r.student_id)?.name ?? t("shared.student"),
       studentAvatar: profileMap.get(r.student_id)?.avatar ?? null,
       studentEmail: contactMap.get(r.student_id)?.email ?? null,
       studentPhone: contactMap.get(r.student_id)?.phone ?? null,
@@ -118,10 +118,10 @@ export default function ReferralsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося оновити статус");
+      toast.error(t("referralsPage.updateFailed"));
       return;
     }
-    toast.success("Статус оновлено");
+    toast.success(t("referralsPage.updated"));
     load();
   };
 

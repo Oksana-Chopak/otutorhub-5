@@ -92,7 +92,7 @@ export function QuickPaymentFab() {
     setRows(
       lessons.map((l) => ({
         ...l,
-        student_name: names[l.student_id] ?? "Учень",
+        student_name: names[l.student_id] ?? t("quickPayment.studentFallback"),
         currency: currencies[l.student_id] ?? "UAH",
       }))
     );
@@ -112,12 +112,12 @@ export function QuickPaymentFab() {
       .eq("lesson_id", id);
     setBusyId(null);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("quickPayment.updateFailed"));
       return;
     }
     setRows((r) => r.filter((x) => x.id !== id));
     setUnpaidCount((c) => Math.max(0, c - 1));
-    toast.success("Позначено як оплачено");
+    toast.success(t("quickPayment.markedPaid"));
   };
 
   if (unpaidCount === 0) return null;
@@ -128,7 +128,7 @@ export function QuickPaymentFab() {
         <Button
           size="lg"
           className="fixed bottom-20 right-4 z-40 h-14 gap-2 rounded-full shadow-lg md:bottom-6 md:right-6"
-          aria-label="Швидко відмітити оплату"
+          aria-label={t("quickPayment.btnAria")}
         >
           <Wallet className="h-5 w-5" />
           <span className="hidden sm:inline">Отримав оплату</span>

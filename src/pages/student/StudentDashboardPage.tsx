@@ -67,7 +67,7 @@ export default function StudentDashboardPage() {
 
     const upcomingList: UpcomingLesson[] = (lessons ?? []).map((l: any) => ({
       ...l,
-      tutor_name: profileMap[l.tutor_id] ?? "Репетитор",
+      tutor_name: profileMap[l.tutor_id] ?? t("studentPages.tutorFallback"),
     }));
     setUpcoming(upcomingList);
 
@@ -118,8 +118,8 @@ export default function StudentDashboardPage() {
     <StudentLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Привіт! 👋</h1>
-          <p className="text-sm text-muted-foreground">Тут зібрано все найважливіше для тебе.</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("studentPages.greeting")}</h1>
+          <p className="text-sm text-muted-foreground">{t("studentPages.greetingSub")}</p>
         </div>
 
         {/* Block 1: Upcoming lessons */}
@@ -135,7 +135,7 @@ export default function StudentDashboardPage() {
           {loading ? (
             <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : upcoming.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Поки немає запланованих уроків.</p>
+            <p className="text-sm text-muted-foreground">{t("studentPages.noLessons")}</p>
           ) : (
             <ul className="space-y-3">
               {upcoming.map((l) => (
@@ -153,7 +153,7 @@ export default function StudentDashboardPage() {
                       </a>
                     </Button>
                   ) : (
-                    <Badge variant="outline" className="w-fit text-xs">без посилання</Badge>
+                    <Badge variant="outline" className="w-fit text-xs">{t("studentPages.noMeetingLink")}</Badge>
                   )}
                 </li>
               ))}
@@ -170,7 +170,7 @@ export default function StudentDashboardPage() {
                   <DollarSign className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Очікують оплати</p>
+                  <p className="text-xs text-muted-foreground">{t("studentPages.awaitingPayment")}</p>
                   <p className="text-xl font-bold text-foreground">{pendingPaymentsCount}</p>
                 </div>
               </div>
