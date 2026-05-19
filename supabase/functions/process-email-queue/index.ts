@@ -84,12 +84,11 @@ Deno.serve(async (req) => {
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
-  // Authorize: accept either a valid service_role JWT (legacy) OR the shared
-  // cron secret stored in vault. This decouples cron from service-role-key
-  // rotations during publish.
+  // Authorize: compare the bearer token against the cron shared secret OR
+  // the service-role key directly. We do NOT decode JWT claims unverified —
+  // an unverified `role: 'service_role'` claim is trivially forgeable.
   const token = authHeader.slice('Bearer '.length).trim()
-  const claims = parseJwtClaims(token)
-  let authorized = claims?.role === 'service_role'
+  let authorized = token === supabaseServiceKey
   if (!authorized) {
     const { data: expected } = await supabase.rpc('get_cron_shared_secret')
     if (expected && token === expected) authorized = true
