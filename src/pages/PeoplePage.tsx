@@ -1181,10 +1181,10 @@ export default function PeoplePage() {
               )
             ) : (
               <div className="space-y-2">
-              {linkedTutors.map((t) => {
+              {linkedTutors.map((tutor) => {
                   const tSubjects = Array.from(
                     new Set([
-                      ...(t.subjects ?? []),
+                      ...(tutor.subjects ?? []),
                       ...studentRates
                         .filter((r) => r.tutor_id === tutor.id && r.student_id === u.id)
                         .map((r) => r.subject),

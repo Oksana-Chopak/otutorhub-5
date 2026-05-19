@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,11 @@ import {
   Download,
   CheckCheck,
   AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  Package,
+  Plus,
+  Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +34,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { FinancesSkeleton } from "@/components/PageSkeletons";
 import { Percent } from "lucide-react";
+import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
+import { ProfitSparkline } from "@/components/ProfitSparkline";
+import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
+import { WalletDialog } from "@/components/WalletDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
