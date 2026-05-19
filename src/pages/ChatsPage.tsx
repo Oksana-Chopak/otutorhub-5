@@ -750,15 +750,15 @@ export default function ChatsPage() {
                   {search ? t("chats.noResults") : t("chats.noChats")}
                 </p>
               ) : (
-                visibleThreads.map((t) => {
-                  const isUnread = t.id !== selectedId && isUnreadThread(t);
+                visibleThreads.map((thread) => {
+                  const isUnread = thread.id !== selectedId && isUnreadThread(thread);
                   return (
                     <button
-                      key={t.id}
-                      onClick={() => setSelectedId(t.id)}
+                      key={thread.id}
+                      onClick={() => setSelectedId(thread.id)}
                       className={cn(
                         "w-full rounded-lg p-3 text-left transition-colors",
-                        selectedId === t.id ? "bg-primary/10" : "hover:bg-secondary"
+                        selectedId === thread.id ? "bg-primary/10" : "hover:bg-secondary"
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -768,11 +768,11 @@ export default function ChatsPage() {
                             isUnread ? "font-bold" : "font-medium"
                           )}
                         >
-                          {counterpartName(t)}
+                          {counterpartName(thread)}
                         </p>
                         <div className="flex shrink-0 items-center gap-1.5">
                           <span className="text-xs text-muted-foreground">
-                            {timeShort(t.last_message_at)}
+                            {timeShort(thread.last_message_at)}
                           </span>
                           {isUnread && (
                             <span
@@ -788,7 +788,7 @@ export default function ChatsPage() {
                           isUnread ? "text-foreground" : "text-muted-foreground"
                         )}
                       >
-                        {t.last_message_preview ?? t("chats.noMessagesLabel")}
+                        {thread.last_message_preview ?? t("chats.noMessagesLabel")}
                       </p>
                     </button>
                   );

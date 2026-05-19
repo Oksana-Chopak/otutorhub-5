@@ -108,6 +108,7 @@ function formatTime(iso: string) {
 
 export default function SchedulePage() {
   const { t } = useTranslation();
+  const [step, setStep] = useState<1 | 2>(1);
   const statusLabel: Record<LessonStatus, string> = {
     pending: t('schedule.statusPending'),
     scheduled: t('schedule.statusScheduled'),

@@ -1186,17 +1186,17 @@ export default function PeoplePage() {
                     new Set([
                       ...(t.subjects ?? []),
                       ...studentRates
-                        .filter((r) => r.tutor_id === t.id && r.student_id === u.id)
+                        .filter((r) => r.tutor_id === tutor.id && r.student_id === u.id)
                         .map((r) => r.subject),
                     ].filter(Boolean)),
                   );
                   if (tSubjects.length === 0) return null;
                   return (
-                    <div key={t.id} className="space-y-1">
-                      <p className="text-xs font-medium text-foreground lg:text-sm">{fullName(t)}</p>
+                    <div key={tutor.id} className="space-y-1">
+                      <p className="text-xs font-medium text-foreground lg:text-sm">{fullName(tutor)}</p>
                       {tSubjects.map((subj) => {
                         const rate = studentRates.find(
-                          (r) => r.tutor_id === t.id && r.student_id === u.id && r.subject === subj
+                          (r) => r.tutor_id === tutor.id && r.student_id === u.id && r.subject === subj
                         );
                         return (
                           <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
@@ -1214,8 +1214,8 @@ export default function PeoplePage() {
                                     open: true,
                                     studentId: u.id,
                                     studentName: fullName(u),
-                                    tutorId: t.id,
-                                    tutorName: fullName(t),
+                                    tutorId: tutor.id,
+                                    tutorName: fullName(tutor),
                                     subject: subj,
                                     price: rate ? String(rate.price_per_lesson) : "",
                                     currency: rate?.currency ?? "UAH",
