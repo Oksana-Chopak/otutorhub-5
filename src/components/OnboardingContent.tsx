@@ -57,149 +57,149 @@ export interface StepProgress {
 const steps: Step[] = [
   {
     id: 1,
-    title: "Додайте першого учня",
+    title: t("onboardingContent.addStudentTitle"),
     description:
-      "Введіть ім'я, телефон, email, телеграм/інстаграм. Учень отримає запрошення приєднатися до вашого кабінету.",
-    cta: "Додати учня",
+      t("onboardingContent.addStudentDesc"),
+    cta: t("onboardingContent.addStudentCta"),
     to: "/my-students",
     action: "addStudent",
     icon: UserPlus,
     emoji: "👋",
     xp: 50,
     autoKey: "hasStudent",
-    autoHint: "Учень доданий ✓",
+    autoHint: t("onboardingContent.addStudentHint"),
   },
   {
     id: 2,
-    title: "Складіть розклад",
+    title: t("onboardingContent.scheduleTitle"),
     description:
-      "Створіть перші уроки. Можна повторити щотижня, додати ціну, статус оплати — все в одному місці.",
-    cta: "Перейти до розкладу",
+      t("onboardingContent.scheduleDesc"),
+    cta: t("onboardingExtra.scheduleCtaAlt"),
     to: "/schedule",
     icon: CalendarClock,
     emoji: "📅",
     xp: 75,
     autoKey: "hasLesson",
-    autoHint: "Урок створено ✓",
+    autoHint: t("onboardingExtra.scheduleHintAlt"),
   },
   {
     id: 3,
-    title: "Встанови доступні години",
+    title: t("onboardingExtra.availabilityTitle"),
     description:
-      "Вкажи коли ти вільний для нових учнів — вони зможуть бронювати уроки самостійно у твої вільні слоти.",
-    cta: "Налаштувати доступність",
+      t("onboardingExtra.availabilityDesc"),
+    cta: t("onboardingExtra.availabilityCta"),
     to: "/availability",
     icon: Clock,
     emoji: "🕐",
     xp: 75,
     autoKey: "hasAvailability",
-    autoHint: "Доступність налаштовано ✓",
+    autoHint: t("onboardingExtra.availabilityHint"),
   },
   {
     id: 4,
-    title: "Запроси колегу",
+    title: t("onboardingExtra.referralTitle"),
     description:
-      "Поділись посиланням з іншим репетитором — він отримає 30 днів тріалу, а ти — 30 днів безкоштовно за його реєстрацію.",
-    cta: "Запросити колегу",
+      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
+    cta: t("onboardingExtra.referralCta"),
     to: "/referrals",
     icon: Gift,
     emoji: "🎁",
     xp: 100,
-    badge: "Бонус",
+    badge: t("onboardingExtra.referralBadge"),
     autoKey: "hasReferral",
-    autoHint: "Запрошення створено ✓",
+    autoHint: t("onboardingExtra.referralHint"),
   },
   {
     id: 5,
-    title: "Налаштуйте нагадування про оплату (Pro)",
+    title: t("onboardingExtra.proRulesTitle"),
     description:
       "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
-    cta: "Перейти до правил Pro",
+    cta: t("onboardingExtra.proRulesCta"),
     to: "/profile",
     icon: BellRing,
     emoji: "🔔",
     xp: 75,
     badge: "Pro",
     autoKey: "hasPaymentRules",
-    autoHint: "Правила збережено ✓",
+    autoHint: t("onboardingExtra.proRulesHint"),
   },
   {
     id: 6,
-    title: "Як відмічати уроки проведеними",
+    title: t("onboardingExtra.autoMarkTitle"),
     description:
       "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
-    cta: "Налаштувати у профілі",
+    cta: t("onboardingExtra.autoMarkCta"),
     to: "/profile",
     icon: CheckSquare,
     emoji: "✅",
     xp: 50,
     autoKey: "hasAutoCompleteChoice",
-    autoHint: "Режим обрано ✓",
+    autoHint: t("onboardingExtra.autoMarkHint"),
   },
   {
     id: 7,
-    title: "Підключіть Zoom або Google Meet",
+    title: t("onboardingExtra.zoomTitle"),
     description:
       "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
-    cta: "Відкрити «Мої учні»",
+    cta: t("onboardingExtra.zoomCta"),
     to: "/my-students",
     action: "addStudent",
     icon: Video,
     emoji: "🎥",
     xp: 50,
     autoKey: "hasMeetingUrl",
-    autoHint: "Посилання збережено ✓",
+    autoHint: t("onboardingExtra.zoomHint"),
   },
   {
     id: 8,
-    title: "Спілкуйтеся в чаті",
+    title: t("onboardingExtra.chatTitle"),
     description:
-      "З кожним учнем — окремий чат. Надсилайте файли, домашку, нагадування. Все зберігається.",
-    cta: "Відкрити чати",
+      t("onboardingExtra.chatDesc"),
+    cta: t("onboardingExtra.chatCta"),
     to: "/chats",
     icon: MessageCircle,
     emoji: "💬",
     xp: 50,
     autoKey: "hasChat",
-    autoHint: "Чат відкрито ✓",
+    autoHint: t("onboardingExtra.chatHint"),
   },
   {
     id: 9,
-    title: "Відмічайте оплати",
+    title: t("onboardingExtra.financeMarkTitle"),
     description:
-      "Позначайте оплачені уроки в розділі «Фінанси». Бачите статистику — скільки заробили, хто винен.",
-    cta: "Перейти до фінансів",
+      t("onboardingExtra.financeMarkDesc"),
+    cta: t("onboardingContent.financeCta"),
     to: "/finances",
     icon: CreditCard,
     emoji: "💰",
     xp: 100,
     autoKey: "hasPaidLesson",
-    autoHint: "Оплату відмічено ✓",
+    autoHint: t("onboardingExtra.financeMarkHint"),
   },
   {
     id: 10,
-    title: "Підключіть Google Calendar",
+    title: t("onboardingExtra.calendarTitle"),
     description:
       "Уроки автоматично синхронізуються у ваш Google Календар — і для вас, і для учнів, які підключать свій акаунт.",
-    cta: "Підключити Google Calendar",
+    cta: t("onboardingExtra.calendarCta"),
     to: "/profile",
     icon: CalendarCheck,
     emoji: "📆",
     xp: 75,
     autoKey: "hasGoogleCalendar",
-    autoHint: "Calendar підключено ✓",
+    autoHint: t("onboardingExtra.calendarHint"),
   },
   {
     id: 11,
-    title: "AI-конспекти лекцій",
+    title: t("onboardingExtra.aiTitle"),
     description:
-      "Скоро: підключіть Fireflies — і Gemini сам зробить структурований конспект після кожного уроку.",
-    cta: "Дізнатися більше",
+      t("onboardingExtra.aiDesc"),
+    cta: t("onboardingExtra.aiCta"),
     to: "/schedule",
     icon: Sparkles,
     emoji: "✨",
     xp: 150,
-    badge: "Скоро",
+    badge: t("onboardingExtra.aiSoonBadge"),
   },
 ];
 
@@ -261,7 +261,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
           await supabase.from("user_roles").insert({ user_id: studentId, role: "student" });
 
-          const subject = (demo?.student?.subject || "Загальний предмет").toString();
+          const subject = (demo?.student?.subject || t("onboardingExtra.defaultSubject")).toString();
           const price = Number(demo?.student?.price ?? demo?.payment?.amount ?? 0) || 0;
           await supabase.from("student_rates").insert({
             tutor_id: user.id,
@@ -275,7 +275,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         if (studentId && demo?.lesson?.date && demo?.lesson?.time) {
           const startsAt = new Date(`${demo.lesson.date}T${demo.lesson.time}:00`);
           if (!isNaN(startsAt.getTime())) {
-            const subject = (demo?.student?.subject || "Загальний предмет").toString();
+            const subject = (demo?.student?.subject || t("onboardingExtra.defaultSubject")).toString();
             const price = Number(demo?.student?.price ?? 0) || 0;
             const { data: inserted } = await supabase.from("lessons").insert({
               tutor_id: user.id,
@@ -446,7 +446,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
               <Sparkles className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle>Активуйте власний робочий простір</CardTitle>
+            <CardTitle>{t("onboardingExtra.activateWorkspace")}</CardTitle>
             <CardDescription>
               Ведіть своїх власних учнів — окремо від хабу. Ставте ціни самі, отримуйте оплати напряму.
               До 5 учнів — безкоштовно, далі 145 ₴/міс.
@@ -454,19 +454,19 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           </CardHeader>
           <CardContent className="space-y-3">
             <ul className="space-y-1.5 text-sm text-muted-foreground">
-              <li>• Окремий розділ «Мої учні» з контактами і ставками</li>
-              <li>• Власний розклад, оплати та статистика</li>
-              <li>• Чати, домашка та посилання на Zoom/Meet — як у хабі</li>
+              <li>{t("onboardingExtra.workspaceFeature1")}</li>
+              <li>{t("onboardingExtra.workspaceFeature2")}</li>
+              <li>{t("onboardingExtra.workspaceFeature3")}</li>
             </ul>
             <Button onClick={enableIndependent} disabled={activatingIndependent} className="w-full">
               {activatingIndependent ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Активувати робочий простір
             </Button>
             <Button variant="ghost" className="w-full" onClick={handleNav} asChild>
-              <Link to="/">Я працюю лише з учнями хабу</Link>
+              <Link to="/">{t("onboardingExtra.hubOnly")}</Link>
             </Button>
             <div className="rounded-lg bg-muted/50 p-3 text-sm">
-              <p className="font-medium text-foreground">Що це означає?</p>
+              <p className="font-medium text-foreground">{t("onboardingExtra.whatThisMeans")}</p>
               <p className="mt-1 text-muted-foreground">
                 Ви працюєте лише з учнями, яких призначає менеджер школи. У вас немає власних учнів — розклад,
                 оплата та комунікація проходять через хаб. Підписка не потрібна.
@@ -498,7 +498,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <span className="gamify-sticker">
               ⭐ {earnedXP} / {totalXP} XP
             </span>
-            <span className="gamify-sticker success">🏆 Рівень {totalDone}</span>
+            <span className="gamify-sticker success">{t("onboardingExtra.questLevel", { count: totalDone })}</span>
           </div>
         </div>
         <div className="mt-4 flex items-center gap-3">
@@ -527,7 +527,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               <PartyPopper className="h-6 w-6" />
             </div>
             <div className="flex-1">
-              <p className="font-display text-base font-bold text-foreground">🎉 Квест завершено!</p>
+              <p className="font-display text-base font-bold text-foreground">{t("onboardingExtra.questDone")}</p>
               <p className="text-xs text-muted-foreground">
                 Ваш робочий простір готовий. Можете повертатись сюди з розділу «Допомога».
               </p>
@@ -639,7 +639,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       <div className="mt-6 flex justify-end">
         <Button variant="ghost" onClick={finishOnboarding} disabled={dismissing}>
           {dismissing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {completed ? "Закрити" : "Завершити онбординг"}
+          {completed ? t("onboardingExtra.closeBtn") : t("onboardingExtra.finishBtn")}
         </Button>
       </div>
 

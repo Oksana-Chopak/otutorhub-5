@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { FileText, Download, Loader2, Image as ImageIcon } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export interface ChatAttachmentData {
   id: string;
@@ -27,6 +28,7 @@ function formatBytes(b: number | null) {
 const SIGNED_URL_TTL_SEC = 60 * 60; // 1 hour
 
 export function ChatAttachment({ attachment, mine }: Props) {
+  const { t } = useTranslation();
   const isImage = !!attachment.mime_type?.startsWith("image/");
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -43,7 +45,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
         .createSignedUrl(attachment.storage_path, SIGNED_URL_TTL_SEC);
       if (cancelled) return;
       if (err || !data?.signedUrl) {
-        setError(err?.message ?? "Не вдалося отримати файл");
+        setError(err?.message ?? t("chatAttachment.fetchFailed"));
       } else {
         setUrl(data.signedUrl);
       }
@@ -98,7 +100,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                 "absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background group-hover:opacity-100",
                 "max-md:opacity-100"
               )}
-              title="Завантажити"
+              title={t("chatAttachment.download")}
             >
               <Download className="h-3.5 w-3.5" />
             </a>
@@ -127,7 +129,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                     className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-accent"
                   >
                     <Download className="h-3 w-3" />
-                    Завантажити
+                    {t("chatAttachment.download")}
                   </a>
                 </div>
               </div>

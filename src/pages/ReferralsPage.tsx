@@ -39,10 +39,10 @@ interface ReferralRow {
 }
 
 const statusLabel: Record<ReferralRow["status"], string> = {
-  open: "Новий",
-  in_progress: "В роботі",
-  fulfilled: "Виконано",
-  closed: "Закрито",
+  open: t("referralsPage.statusOpen"),
+  in_progress: t("referralsPage.statusInProgress"),
+  fulfilled: t("referralsPage.statusFulfilled"),
+  closed: t("referralsPage.statusClosed"),
 };
 
 const statusClass: Record<ReferralRow["status"], string> = {
@@ -92,7 +92,7 @@ export default function ReferralsPage() {
 
     const enriched: ReferralRow[] = (rows ?? []).map((r: any) => ({
       ...r,
-      studentName: profileMap.get(r.student_id)?.name ?? "Учень",
+      studentName: profileMap.get(r.student_id)?.name ?? t("shared.student"),
       studentAvatar: profileMap.get(r.student_id)?.avatar ?? null,
       studentEmail: contactMap.get(r.student_id)?.email ?? null,
       studentPhone: contactMap.get(r.student_id)?.phone ?? null,
@@ -118,17 +118,17 @@ export default function ReferralsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося оновити статус");
+      toast.error(t("referralsPage.updateFailed"));
       return;
     }
-    toast.success("Статус оновлено");
+    toast.success(t("referralsPage.updated"));
     load();
   };
 
   const saveResponse = async (id: string) => {
     const response = drafts[id]?.trim();
     if (!response) {
-      toast.error("Напишіть відповідь");
+      toast.error(t("referralsPageExtra.replyRequired"));
       return;
     }
     setSavingId(id);
@@ -138,10 +138,10 @@ export default function ReferralsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося зберегти");
+      toast.error(t("referralsPageExtra.replyFailed"));
       return;
     }
-    toast.success("Відповідь надіслано");
+    toast.success(t("referralsPageExtra.replySent"));
     setDrafts((d) => ({ ...d, [id]: "" }));
     load();
   };
@@ -151,7 +151,7 @@ export default function ReferralsPage() {
     // Manager can create thread directly. We need a tutor_id pair — for direct manager↔student
     // we don't have a thread (managers see all threads). Easiest: navigate to /chats and let
     // them filter, or create a minimal helper later. For now show toast hint.
-    toast.info("Відкрийте чати, щоб обрати ниточку для відповіді учневі.");
+    toast.info(t("referralsPageExtra.openChatsHint"));
   };
 
   return (
@@ -172,8 +172,8 @@ export default function ReferralsPage() {
       ) : requests.length === 0 ? (
         <EmptyState
           icon={HandHeart}
-          title="Запитів немає"
-          description="Коли учень попросить нового репетитора, заявка з'явиться тут."
+          title={t("referralsPageExtra.noRequests")}
+          description=t("referralsPageExtra.noRequestsDesc")
         />
       ) : (
         <div className="space-y-3">
@@ -203,30 +203,30 @@ export default function ReferralsPage() {
                     <div className="mt-2 grid gap-1 text-sm">
                       {r.subject && (
                         <p>
-                          <span className="text-muted-foreground">Предмет:</span> {r.subject}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.subjectLabel")}</span> {r.subject}
                         </p>
                       )}
                       {r.preferred_level && (
                         <p>
-                          <span className="text-muted-foreground">Рівень:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.levelLabel")}</span>{" "}
                           {r.preferred_level}
                         </p>
                       )}
                       {r.budget_note && (
                         <p>
-                          <span className="text-muted-foreground">Бюджет:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.budgetLabel")}</span>{" "}
                           {r.budget_note}
                         </p>
                       )}
                       {r.preferred_days && (
                         <p>
-                          <span className="text-muted-foreground">Зручні дні:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.daysLabel")}</span>{" "}
                           {r.preferred_days}
                         </p>
                       )}
                       {r.preferred_times && (
                         <p>
-                          <span className="text-muted-foreground">Зручні години:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.hoursLabel")}</span>{" "}
                           {r.preferred_times}
                         </p>
                       )}
@@ -241,14 +241,14 @@ export default function ReferralsPage() {
 
                 {r.manager_response && (
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-2 text-sm text-foreground">
-                    <p className="text-xs font-medium text-primary">Ваша відповідь:</p>
+                    <p className="text-xs font-medium text-primary">{t("referralsPageExtra.yourReply")}</p>
                     <p className="mt-1 whitespace-pre-wrap">{r.manager_response}</p>
                   </div>
                 )}
 
                 {(r.studentEmail || r.studentPhone || r.studentTelegram) && (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-muted/30 p-2 text-xs">
-                    <span className="text-muted-foreground">Контакти учня:</span>
+                    <span className="text-muted-foreground">{t("referralsPageExtra.studentContacts")}</span>
                     {r.studentEmail && (
                       <a
                         href={`mailto:${r.studentEmail}`}
@@ -289,7 +289,7 @@ export default function ReferralsPage() {
                   <div className="space-y-2">
                     <Textarea
                       rows={2}
-                      placeholder="Відповідь учневі (наприклад, кого ви рекомендуєте)…"
+                      placeholder={t("referralsPageExtra.replyPlaceholder")}
                       value={drafts[r.id] ?? ""}
                       onChange={(e) => setDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
                     />
@@ -310,10 +310,10 @@ export default function ReferralsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="open">Новий</SelectItem>
-                          <SelectItem value="in_progress">В роботі</SelectItem>
-                          <SelectItem value="fulfilled">Виконано</SelectItem>
-                          <SelectItem value="closed">Закрито</SelectItem>
+                          <SelectItem value="open">{t("referralsPage.statusOpen")}</SelectItem>
+                          <SelectItem value="in_progress">{t("referralsPage.statusInProgress")}</SelectItem>
+                          <SelectItem value="fulfilled">{t("referralsPage.statusFulfilled")}</SelectItem>
+                          <SelectItem value="closed">{t("referralsPage.statusClosed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button size="sm" variant="outline" onClick={() => openChat(r.student_id)}>

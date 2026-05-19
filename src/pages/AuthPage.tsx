@@ -19,17 +19,17 @@ import { cn } from "@/lib/utils";
 const REMEMBER_KEY = "tutorhub.rememberMe";
 
 const signUpSchema = z.object({
-  firstName: z.string().trim().min(1, "Введіть ім'я").max(50),
-  lastName: z.string().trim().min(1, "Введіть прізвище").max(50),
+  firstName: z.string().trim().min(1, t("authExtra.nameRequired") ?? "Введіть ім'я").max(50),
+  lastName: z.string().trim().min(1, t("authExtra.lastNameRequired") ?? "Введіть прізвище").max(50),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
-  email: z.string().trim().email("Некоректний email").max(255),
-  password: z.string().min(8, "Мінімум 8 символів").max(128),
+  email: z.string().trim().email(t("authExtra.invalidEmail") ?? "Некоректний email").max(255),
+  password: z.string().min(8, t("authExtra.minPassword") ?? "Мінімум 8 символів").max(128),
   role: z.enum(["student", "tutor"]),
 });
 
 const signInSchema = z.object({
-  email: z.string().trim().email("Некоректний email").max(255),
-  password: z.string().min(1, "Введіть пароль").max(128),
+  email: z.string().trim().email(t("authExtra.invalidEmail") ?? "Некоректний email").max(255),
+  password: z.string().min(1, t("authExtra.passwordRequired") ?? "Введіть пароль").max(128),
 }).required();
 
 type SignUpRole = "student" | "tutor";
@@ -103,8 +103,8 @@ export default function AuthPage() {
       return;
     }
     toast({
-      title: "Email підтверджено! 🎉",
-      description: "Увійдіть, щоб продовжити.",
+      title: t("authExtra.emailConfirmed"),
+      description: t("authExtra.emailConfirmedDesc"),
     });
   }, [isConfirmed, authLoading, user, navigate]);
 
@@ -205,7 +205,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpData);
     if (!parsed.success) {
-      toast({ title: "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: t("common.error") || "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -226,8 +226,8 @@ export default function AuthPage() {
     setLoading(false);
     if (!error && signUpResult?.user && signUpResult.user.identities?.length === 0) {
       toast({
-        title: "Email вже зареєстровано",
-        description: "Цей email вже зареєстрований. Увійдіть або скиньте пароль.",
+        title: t("authExtra.emailAlreadyUsed"),
+        description: t("authExtra.emailAlreadyUsedDesc"),
         variant: "destructive",
       });
       setSignInData((prev) => ({ ...prev, email: parsed.data.email }));
@@ -237,10 +237,10 @@ export default function AuthPage() {
     if (error) {
       console.error("Sign-up failed", error);
       toast({
-        title: "Не вдалося зареєструватися",
+        title: t("authExtra.signupFailed"),
         description: error.message === "User already registered"
-          ? "Користувач з таким email вже існує"
-          : "Не вдалося зареєструватися. Спробуйте ще раз.",
+          : t("authExtra.userExists")
+          : t("authExtra.signupRetry"),
         variant: "destructive",
       });
       return;
@@ -256,7 +256,7 @@ export default function AuthPage() {
     toast({
       title: t("auth.almostDone"),
       description: demoName
-        ? `Ми вже зберегли ${demoName} — продовжуй з наступного кроку 🎉`
+        : t("authExtra.demoContinue", { name: demoName })
         : t("auth.almostDoneDesc"),
     });
   };

@@ -102,7 +102,7 @@ export function PendingPaymentsCard() {
     setRows(
       lessons.map((l) => ({
         ...l,
-        student_name: names[l.student_id] ?? "Учень",
+        student_name: names[l.student_id] ?? t("pendingPayments.studentFallback"),
         currency: currencies[l.student_id] ?? "UAH",
       }))
     );
@@ -122,11 +122,11 @@ export function PendingPaymentsCard() {
       .in("lesson_id", ids);
     setBusyId(null);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("pendingPayments.updateFailed"));
       return;
     }
     setRows((r) => r.filter((x) => !ids.includes(x.id)));
-    toast.success(ids.length === 1 ? "Позначено як оплачено" : `Позначено ${ids.length} уроків`);
+    toast.success(t("pendingPaymentsExtra.markedPaid_one"));
   };
 
   const remindStudent = async (lessonId: string) => {
@@ -136,15 +136,15 @@ export function PendingPaymentsCard() {
     });
     setRemindingId(null);
     if (error) {
-      toast.error("Не вдалося надіслати нагадування");
+      toast.error(t("pendingPayments.reminderFailed"));
       return;
     }
     if ((data as any)?.success) {
       const channels = (data as any).channels as string[];
       const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
-      toast.success(`Нагадування надіслано: ${labels.join(" + ")}`);
+      toast.success(t("pendingPayments.reminderSent", { labels: labels.join(" + ") }));
     } else {
-      toast.error("Учень не має ні Telegram, ні email — додайте контакт");
+      toast.error(t("pendingPaymentsExtra.noContact"));
     }
   };
 
@@ -192,7 +192,7 @@ export function PendingPaymentsCard() {
               Очікують оплати
             </CardTitle>
             <Badge variant="outline" className="ml-1 text-[10px]">
-              {groups.length} {groups.length === 1 ? "учень" : "учнів"} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
+              {t("pendingPaymentsExtra.studentCount", { count: groups.length })} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
             </Badge>
             <ChevronDown
               className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${
@@ -233,7 +233,7 @@ export function PendingPaymentsCard() {
                           {g.student_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          · {g.lessons.length} {g.lessons.length === 1 ? "урок" : "ур."}
+                          · {t("pendingPaymentsExtra.lessonCount", { count: g.lessons.length })}
                         </span>
                         <span className="ml-auto text-sm font-semibold text-foreground">
                           {formatPrice(g.total, g.currency)}
@@ -244,7 +244,7 @@ export function PendingPaymentsCard() {
                         className="h-8 shrink-0 gap-1"
                         onClick={() => markPaid(allIds)}
                         disabled={busy}
-                        title="Позначити всі уроки цього учня як оплачені"
+                        title={t("pendingPaymentsExtra.markAllPaid")}
                       >
                         {busy ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -268,7 +268,7 @@ export function PendingPaymentsCard() {
                                 type="button"
                                 className="min-w-0 flex-1 text-left hover:opacity-80"
                                 onClick={() => setOpenLessonId(r.id)}
-                                title="Відкрити урок"
+                                title={t("pendingPaymentsExtra.openLesson")}
                               >
                                 <p className="truncate text-xs text-foreground">
                                   {r.subject} ·{" "}
@@ -287,7 +287,7 @@ export function PendingPaymentsCard() {
                                 className="h-7 gap-1 px-2 text-xs"
                                 onClick={() => remindStudent(r.id)}
                                 disabled={remindingId === r.id}
-                                title="Надіслати нагадування у Telegram + email"
+                                title={t("pendingPaymentsExtra.sendReminder")}
                               >
                                 {remindingId === r.id ? (
                                   <Loader2 className="h-3 w-3 animate-spin" />

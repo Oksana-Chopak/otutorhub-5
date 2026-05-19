@@ -9,6 +9,7 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Loader2, Save, Settings2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type PaymentMode = "prepaid" | "before_lesson" | "after_lesson";
 
@@ -23,6 +24,7 @@ interface RulesState {
 }
 
 export function ProRulesCard() {
+  const { t } = useTranslation();
   const { settings, isPro, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
   const [saving, setSaving] = useState(false);
@@ -64,10 +66,10 @@ export function ProRulesCard() {
     } as any);
     setSaving(false);
     if (error) {
-      toast.error("Не вдалося зберегти", { description: (error as any).message });
+      toast.error(t("proRulesCard.saveFailed"), { description: (error as any).message });
       return;
     }
-    toast.success("Правила Pro оновлено");
+    toast.success(t("proRulesCard.saveSuccess"));
   };
 
   return (
@@ -78,16 +80,16 @@ export function ProRulesCard() {
             <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
               <Settings2 className="h-4 w-4" />
             </div>
-            <CardTitle className="text-base">Правила Pro</CardTitle>
+            <CardTitle className="text-base">{t("proRulesCard.title")}</CardTitle>
           </div>
           {disabled && (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <Lock className="h-3 w-3" /> Доступно у Pro
+              <Lock className="h-3 w-3" /> {t("proRulesCard.availableInPro")}
             </span>
           )}
         </div>
         <CardDescription>
-          Автоматичні нагадування про оплату та правила скасування уроків учнем.
+          {t("proRulesCard.description")}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -95,11 +97,10 @@ export function ProRulesCard() {
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <Label htmlFor="reminder-enabled" className="text-sm font-medium">
-              Авто-нагадування про оплату
+              {t("proRulesCard.reminderLabel")}
             </Label>
             <p className="text-xs text-muted-foreground">
-              Учень отримує повідомлення у Telegram (а також у застосунку) про
-              майбутню оплату згідно з правилом нижче.
+              {t("proRulesCard.reminderHint")}
             </p>
           </div>
           <Switch
@@ -114,7 +115,7 @@ export function ProRulesCard() {
 
         {/* Payment due mode */}
         <div className="space-y-3">
-          <Label className="text-sm font-medium">Коли учень має сплатити</Label>
+          <Label className="text-sm font-medium">{t("proRulesCard.paymentDueLabel")}</Label>
           <RadioGroup
             value={state.payment_due_mode}
             onValueChange={(v) =>
@@ -126,18 +127,18 @@ export function ProRulesCard() {
             {[
               {
                 value: "prepaid" as PaymentMode,
-                title: "Передоплата",
-                desc: "Нагадування одразу після створення уроку.",
+                title: t("proRulesCard.prepaidTitle"),
+                desc: t("proRulesCard.prepaidDesc"),
               },
               {
                 value: "before_lesson" as PaymentMode,
-                title: "До уроку",
-                desc: "Нагадування за вказану кількість днів до уроку.",
+                title: t("proRulesCard.beforeTitle"),
+                desc: t("proRulesCard.beforeDesc"),
               },
               {
                 value: "after_lesson" as PaymentMode,
-                title: "Після уроку",
-                desc: "Нагадування через вказану кількість днів після уроку.",
+                title: t("proRulesCard.afterTitle"),
+                desc: t("proRulesCard.afterDesc"),
               },
             ].map((opt) => (
               <label
@@ -163,8 +164,9 @@ export function ProRulesCard() {
           {state.payment_due_mode !== "prepaid" && (
             <div className="flex items-center gap-2">
               <Label htmlFor="due-days" className="text-sm text-muted-foreground">
-                Кількість днів{" "}
-                {state.payment_due_mode === "before_lesson" ? "до" : "після"} уроку
+                {state.payment_due_mode === "before_lesson"
+                  ? t("proRulesCard.daysBefore")
+                  : t("proRulesCard.daysAfter")}
               </Label>
               <Input
                 id="due-days"
@@ -187,12 +189,10 @@ export function ProRulesCard() {
         {/* Cancel free hours */}
         <div className="space-y-2">
           <Label htmlFor="cancel-hours" className="text-sm font-medium">
-            Безкоштовне скасування/перенесення
+            {t("proRulesCard.freeCancelLabel")}
           </Label>
           <p className="text-xs text-muted-foreground">
-            Учень може безкоштовно скасувати або перенести запланований урок, якщо
-            до початку залишилося ≥ N годин. Якщо пізніше — ви самі вирішите,
-            нараховувати оплату чи ні (повну або часткову).
+            {t("proRulesCard.freeCancelHint")}
           </p>
           <div className="flex items-center gap-2">
             <Input
@@ -209,19 +209,18 @@ export function ProRulesCard() {
               }
               className="w-24"
             />
-            <span className="text-sm text-muted-foreground">годин до уроку</span>
+            <span className="text-sm text-muted-foreground">{t("proRulesCard.hoursBeforeLesson")}</span>
           </div>
         </div>
 
         {/* Cancel fee percent */}
         <div className="space-y-2">
           <Label className="text-sm font-medium">
-            Авто-стягнення за пізнє скасування
+            {t("proRulesCard.lateCancelLabel")}
           </Label>
           <p className="text-xs text-muted-foreground">
-            Якщо учень скасує урок пізніше ніж за {state.cancel_free_hours} год —
-            автоматично нараховується {state.cancel_fee_percent}% від вартості уроку.
-            {state.cancel_fee_percent === 0 && " (вимкнено)"}
+            {t("proRulesCard.lateCancelHint", { hours: state.cancel_free_hours, percent: state.cancel_fee_percent })}
+            {state.cancel_fee_percent === 0 && t("proRulesCard.lateCancelDisabled")}
           </p>
           <div className="grid grid-cols-5 gap-2">
             {([0, 10, 25, 50, 100] as FeePercent[]).map((p) => (
@@ -252,7 +251,7 @@ export function ProRulesCard() {
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
-          Зберегти правила
+          {t("proRulesCard.saveBtn")}
         </Button>
       </CardContent>
     </Card>

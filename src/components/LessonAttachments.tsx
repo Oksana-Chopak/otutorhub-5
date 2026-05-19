@@ -58,7 +58,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .order("created_at", { ascending: false });
     setLoading(false);
     if (error) {
-      toast({ title: "Не вдалося завантажити вкладення", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.loadFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setItems(data ?? []);
@@ -72,7 +72,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
   const handleUpload = async (file: File) => {
     if (!user) return;
     if (file.size > MAX_BYTES) {
-      toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+      toast({ title: t("lessonAttachments.tooLarge"), description: t("lessonAttachments.tooLargeDesc"), variant: "destructive" });
       return;
     }
     setUploading(true);
@@ -84,7 +84,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .upload(path, file, { contentType: file.type, upsert: false });
     if (upErr) {
       setUploading(false);
-      toast({ title: "Помилка завантаження", description: upErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.uploadFailed"), description: upErr.message, variant: "destructive" });
       return;
     }
 
@@ -99,10 +99,10 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
     setUploading(false);
     if (insErr) {
       await supabase.storage.from("lesson-attachments").remove([path]);
-      toast({ title: "Не вдалося зберегти запис", description: insErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.saveFailed"), description: insErr.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Файл додано" });
+    toast({ title: t("lessonAttachments.fileAdded") });
     if (inputRef.current) inputRef.current.value = "";
     load();
   };
@@ -114,28 +114,28 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       .createSignedUrl(item.storage_path, 60 * 10);
     setBusyId(null);
     if (error || !data?.signedUrl) {
-      toast({ title: "Не вдалося відкрити файл", description: error?.message, variant: "destructive" });
+      toast({ title: t("lessonAttachments.openFailed"), description: error?.message, variant: "destructive" });
       return;
     }
     window.open(data.signedUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleDelete = async (item: AttachmentRow) => {
-    if (!confirm(`Видалити «${item.file_name}»?`)) return;
+    if (!confirm(t("lessonAttachmentsExtra.confirmDelete", { name: item.file_name }))) return;
     setBusyId(item.id);
     const { error: storageErr } = await supabase.storage.from("lesson-attachments").remove([item.storage_path]);
     if (storageErr) {
       setBusyId(null);
-      toast({ title: "Помилка видалення файлу", description: storageErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachmentsExtra.deleteStorageFailed"), description: storageErr.message, variant: "destructive" });
       return;
     }
     const { error: dbErr } = await supabase.from("lesson_attachments").delete().eq("id", item.id);
     setBusyId(null);
     if (dbErr) {
-      toast({ title: "Помилка видалення запису", description: dbErr.message, variant: "destructive" });
+      toast({ title: t("lessonAttachmentsExtra.deleteDbFailed"), description: dbErr.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Видалено" });
+    toast({ title: t("lessonAttachmentsExtra.deleted") });
     load();
   };
 
@@ -155,7 +155,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
           <Loader2 className="h-3 w-3 animate-spin" /> Завантаження…
         </div>
       ) : items.length === 0 ? (
-        <p className="text-xs text-muted-foreground">Поки що файлів немає.</p>
+        <p className="text-xs text-muted-foreground">{t("lessonAttachmentsExtra.noFiles")}</p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((it) => (
@@ -183,7 +183,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
                 className="h-7 w-7"
                 onClick={() => handleOpen(it)}
                 disabled={busyId === it.id}
-                title="Відкрити"
+                title={t("lessonAttachmentsExtra.openTooltip")}
               >
                 {busyId === it.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
               </Button>
@@ -194,7 +194,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
                   className="h-7 w-7 text-destructive hover:text-destructive"
                   onClick={() => handleDelete(it)}
                   disabled={busyId === it.id}
-                  title="Видалити"
+                  title={t("lessonAttachmentsExtra.deleteTooltip")}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -225,7 +225,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
             {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
             Додати файл
           </Button>
-          <p className="mt-1 text-xs text-muted-foreground">PDF або зображення, до 15 МБ.</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("lessonAttachmentsExtra.sizeHint")}</p>
         </div>
       )}
     </div>

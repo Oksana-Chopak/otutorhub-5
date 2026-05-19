@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   value: string[];
@@ -17,6 +18,7 @@ interface Props {
  * Allows adding custom subjects via inline input.
  */
 export function SubjectMultiSelect({ value, onChange, className }: Props) {
+  const { t } = useTranslation();
   const [custom, setCustom] = useState("");
 
   const toggle = (s: string) => {
@@ -71,7 +73,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
             variant="secondary"
             className="cursor-pointer"
             onClick={() => toggle(s)}
-            title="Натисніть щоб видалити"
+            title={t("subjectSelect.removeItem")}
           >
             {s} ✕
           </Badge>
@@ -82,7 +84,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={onKeyDown}
-          placeholder="Свій предмет..."
+          placeholder={t("subjectSelect.customPlaceholder")}
           className="h-8 text-xs"
         />
         <Button
@@ -94,7 +96,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           className="h-8 shrink-0"
         >
           <Plus className="h-3.5 w-3.5 mr-1" />
-          Додати
+          {t("subjectSelect.addBtn")}
         </Button>
       </div>
     </div>

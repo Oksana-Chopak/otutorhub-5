@@ -143,12 +143,12 @@ export default function PremiumAnalyticsPage() {
   }, [lessons, studentCount]);
 
   const handleExport = (type: "csv" | "pdf") => {
-    toast.info(`Експорт у ${type.toUpperCase()}...`, {
-      description: "Функція генерації звіту готується. Ви отримаєте файл за кілька секунд."
+    toast.info(t("premiumAnalytics.exportDesc").split(".")[0] + ` ${type.toUpperCase()}...`, {
+      description: t("premiumAnalytics.exportDesc")
     });
     
     if (type === "csv") {
-      const headers = ["Дата", "Статус", "Ціна", "Оплата"];
+      const headers = ["Date", "Status", "Price", "Payment"];
       const rows = lessons.map(l => [
         format(new Date(l.starts_at), "yyyy-MM-dd HH:mm"),
         l.status,
@@ -192,12 +192,12 @@ export default function PremiumAnalyticsPage() {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl font-bold text-foreground">Преміум-аналітика</h1>
+                <h1 className="font-display text-2xl font-bold text-foreground">{t("premiumAnalytics.title")}</h1>
                 <Badge className="bg-primary/10 text-primary hover:bg-primary/20">
                   <Crown className="mr-1 h-3 w-3" /> Pro
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground">Детальний аналіз вашої діяльності та доходів</p>
+              <p className="text-sm text-muted-foreground">{t("premiumAnalytics.subtitle")}</p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -213,25 +213,25 @@ export default function PremiumAnalyticsPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Card className="bg-success/5 border-success/20">
             <CardHeader className="pb-2">
-              <CardDescription className="text-success/80">Дохід (отримано)</CardDescription>
+              <CardDescription className="text-success/80">{t("premiumAnalytics.revenueLabel")}</CardDescription>
               <CardTitle className="text-2xl font-bold">{stats.totalIncome} ₴</CardTitle>
             </CardHeader>
           </Card>
           <Card className="bg-warning/5 border-warning/20">
             <CardHeader className="pb-2">
-              <CardDescription className="text-warning/80">Очікує оплати</CardDescription>
+              <CardDescription className="text-warning/80">{t("premiumAnalyticsExtra.awaitingPayment")}</CardDescription>
               <CardTitle className="text-2xl font-bold">{stats.unpaidIncome} ₴</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Всього учнів</CardDescription>
+              <CardDescription>{t("premiumAnalyticsExtra.totalStudents")}</CardDescription>
               <CardTitle className="text-2xl font-bold">{stats.studentCount}</CardTitle>
             </CardHeader>
           </Card>
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Успішність уроків</CardDescription>
+              <CardDescription>{t("premiumAnalyticsExtra.lessonSuccess")}</CardDescription>
               <CardTitle className="text-2xl font-bold">{100 - stats.cancellationRate}%</CardTitle>
             </CardHeader>
           </Card>
@@ -241,7 +241,7 @@ export default function PremiumAnalyticsPage() {
           {/* Income Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Динаміка доходу (6 міс)</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("premiumAnalyticsExtra.incomeChart")}</CardTitle>
             </CardHeader>
             <CardContent className="h-[300px] pt-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -253,7 +253,7 @@ export default function PremiumAnalyticsPage() {
                     cursor={{ fill: 'rgba(0,0,0,0.05)' }}
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Bar dataKey="income" fill="#8B5CF6" radius={[4, 4, 0, 0]} name="Дохід" />
+                  <Bar dataKey="income" fill="#8B5CF6" radius={[4, 4, 0, 0]} name={t("premiumAnalyticsExtra.incomeBar")} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -262,7 +262,7 @@ export default function PremiumAnalyticsPage() {
           {/* Lessons count chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Кількість уроків</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("premiumAnalyticsExtra.lessonsChart")}</CardTitle>
             </CardHeader>
             <CardContent className="h-[300px] pt-0">
               <ResponsiveContainer width="100%" height="100%">
@@ -273,7 +273,7 @@ export default function PremiumAnalyticsPage() {
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   />
-                  <Line type="monotone" dataKey="lessons" stroke="#0EA5E9" strokeWidth={3} dot={{ r: 4 }} name="Уроки" />
+                  <Line type="monotone" dataKey="lessons" stroke="#0EA5E9" strokeWidth={3} dot={{ r: 4 }} name={t("premiumAnalyticsExtra.lessonsLine")} />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -285,14 +285,14 @@ export default function PremiumAnalyticsPage() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Lightbulb className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base font-semibold">Аналіз та поради для росту</CardTitle>
+                <CardTitle className="text-base font-semibold">{t("premiumAnalyticsExtra.analysisTitle")}</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4">
                 <TrendingUp className="mt-1 h-5 w-5 text-primary" />
                 <div>
-                  <p className="font-medium text-foreground">Порада по фінансах</p>
+                  <p className="font-medium text-foreground">{t("premiumAnalyticsExtra.financeAdvice")}</p>
                   <p className="text-sm text-muted-foreground">
                     Ваш середній дохід за урок стабільний. Спробуйте впровадити пакетні пропозиції (наприклад, 10 уроків зі знижкою 5%), щоб покращити прогнозованість оплат.
                   </p>
@@ -302,7 +302,7 @@ export default function PremiumAnalyticsPage() {
               <div className="flex items-start gap-3 rounded-lg border border-success/20 bg-success/5 p-4">
                 <Users className="mt-1 h-5 w-5 text-success" />
                 <div>
-                  <p className="font-medium text-foreground">Залучення учнів</p>
+                  <p className="font-medium text-foreground">{t("premiumAnalyticsExtra.engagementAdvice")}</p>
                   <p className="text-sm text-muted-foreground">
                     У вас {stats.studentCount} активних учнів. Для стабільного зростання рекомендуємо підтримувати заповненість графіку на 80%. Наразі у вас є вільні слоти — перевірте розділ <CalendarClock className="inline h-4 w-4 align-text-bottom" /> Години.
                   </p>
@@ -312,11 +312,11 @@ export default function PremiumAnalyticsPage() {
               <div className="flex items-start gap-3 rounded-lg border border-warning/20 bg-warning/5 p-4">
                 <Clock className="mt-1 h-5 w-5 text-warning" />
                 <div>
-                  <p className="font-medium text-foreground">Ефективність розкладу</p>
+                  <p className="font-medium text-foreground">{t("premiumAnalyticsExtra.scheduleAdvice")}</p>
                   <p className="text-sm text-muted-foreground">
                     {stats.cancellationRate > 10 
                       ? `Рівень скасувань складає ${stats.cancellationRate}%. Це вище норми. Спробуйте посилити правила скасування в налаштуваннях Pro.` 
-                      : `Чудовий показник скасувань (${stats.cancellationRate}%)! Ваші учні дуже дисципліновані.`}
+                      : t("premiumAnalyticsExtra.lowCancellation", { rate: stats.cancellationRate })}
                   </p>
                 </div>
               </div>
@@ -325,7 +325,7 @@ export default function PremiumAnalyticsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Статус оплат</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("premiumAnalyticsExtra.paymentStatus")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-0">
               <div className="h-[200px] w-full">
@@ -333,8 +333,8 @@ export default function PremiumAnalyticsPage() {
                   <PieChart>
                     <Pie
                       data={[
-                        { name: "Оплачено", value: stats.totalIncome },
-                        { name: "Очікує", value: stats.unpaidIncome },
+                        { name: t("premiumAnalyticsExtra.paid"), value: stats.totalIncome },
+                        { name: t("premiumAnalyticsExtra.pending"), value: stats.unpaidIncome },
                       ]}
                       cx="50%"
                       cy="50%"
@@ -354,14 +354,14 @@ export default function PremiumAnalyticsPage() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-success" />
-                    <span className="text-muted-foreground">Оплачено</span>
+                    <span className="text-muted-foreground">{t("premiumAnalyticsExtra.paid")}</span>
                   </div>
                   <span className="font-semibold text-foreground">{stats.totalIncome} ₴</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-warning" />
-                    <span className="text-muted-foreground">Очікує</span>
+                    <span className="text-muted-foreground">{t("premiumAnalyticsExtra.pending")}</span>
                   </div>
                   <span className="font-semibold text-foreground">{stats.unpaidIncome} ₴</span>
                 </div>
@@ -376,7 +376,7 @@ export default function PremiumAnalyticsPage() {
               <Sparkles className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-display text-lg font-bold text-foreground">Ви молодець!</h3>
+              <h3 className="font-display text-lg font-bold text-foreground">{t("premiumAnalyticsExtra.wellDone")}</h3>
               <p className="mx-auto max-w-md text-sm text-muted-foreground">
                 Минулого місяця ви провели на {chartData[chartData.length - 1].lessons - chartData[chartData.length - 2]?.lessons || 0} уроків більше, ніж позаминулого. Так тримати!
               </p>

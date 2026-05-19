@@ -41,10 +41,10 @@ const statusMeta: Record<
   RequestStatus,
   { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
 > = {
-  new: { label: "Новий", variant: "default" },
-  in_progress: { label: "В роботі", variant: "secondary" },
-  completed: { label: "Завершено", variant: "outline" },
-  rejected: { label: "Відхилено", variant: "destructive" },
+  new: { label: t("subscriptionRequests.statusNew"), variant: "default" },
+  in_progress: { label: t("subscriptionRequests.statusInProgress"), variant: "secondary" },
+  completed: { label: t("subscriptionRequests.statusCompleted"), variant: "outline" },
+  rejected: { label: t("subscriptionRequests.statusRejected"), variant: "destructive" },
 };
 
 export default function SubscriptionRequestsPage() {
@@ -61,7 +61,7 @@ export default function SubscriptionRequestsPage() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error("Не вдалося завантажити запити");
+      toast.error(t("subscriptionRequests.loadFailed"));
       setLoading(false);
       return;
     }
@@ -117,10 +117,10 @@ export default function SubscriptionRequestsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося оновити запит");
+      toast.error(t("subscriptionRequests.updateFailed"));
       return;
     }
-    toast.success("Статус оновлено");
+    toast.success(t("subscriptionRequestsExtra.updated"));
     setResponseDrafts((p) => ({ ...p, [id]: "" }));
   };
 
@@ -156,7 +156,7 @@ export default function SubscriptionRequestsPage() {
             {requests.map((r) => {
               const name =
                 `${r.tutor?.first_name ?? ""} ${r.tutor?.last_name ?? ""}`.trim() ||
-                "Репетитор";
+                t("subscriptionRequestsExtra.tutorFallback");
               const meta = statusMeta[r.status];
               return (
                 <Card key={r.id}>
@@ -216,7 +216,7 @@ export default function SubscriptionRequestsPage() {
                     {r.status !== "completed" && r.status !== "rejected" && (
                       <div className="space-y-2">
                         <Textarea
-                          placeholder="Коментар для репетитора (опційно)"
+                          placeholder={t("subscriptionRequestsExtra.msgPlaceholder")}
                           value={responseDrafts[r.id] ?? ""}
                           onChange={(e) =>
                             setResponseDrafts((p) => ({
@@ -237,10 +237,10 @@ export default function SubscriptionRequestsPage() {
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="new">Новий</SelectItem>
-                              <SelectItem value="in_progress">В роботі</SelectItem>
-                              <SelectItem value="completed">Завершено</SelectItem>
-                              <SelectItem value="rejected">Відхилено</SelectItem>
+                              <SelectItem value="new">{t("subscriptionRequests.statusNew")}</SelectItem>
+                              <SelectItem value="in_progress">{t("subscriptionRequests.statusInProgress")}</SelectItem>
+                              <SelectItem value="completed">{t("subscriptionRequests.statusCompleted")}</SelectItem>
+                              <SelectItem value="rejected">{t("subscriptionRequests.statusRejected")}</SelectItem>
                             </SelectContent>
                           </Select>
                           <Button

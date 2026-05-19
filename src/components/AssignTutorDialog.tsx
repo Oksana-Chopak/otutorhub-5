@@ -89,7 +89,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
             id: p.id,
             name:
               `${(p.first_name ?? "").trim()} ${(p.last_name ?? "").trim()}`.trim() ||
-              "Без імені",
+              t("assignTutor.noName"),
             defaultRate: rateMap.get(p.id) ?? null,
           }))
           .sort((a, b) => a.name.localeCompare(b.name, "uk")),
@@ -124,21 +124,21 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
   const handleAssign = async () => {
     if (!request) return;
     if (!tutorId) {
-      toast.error("Оберіть репетитора");
+      toast.error(t("assignTutor.tutorRequired"));
       return;
     }
     if (!subject.trim()) {
-      toast.error("Вкажіть предмет");
+      toast.error(t("assignTutor.subjectRequired"));
       return;
     }
     const sp = Number(studentPrice);
     const tp = Number(tutorPayout);
     if (!Number.isFinite(sp) || sp < 0) {
-      toast.error("Невірна ціна для учня");
+      toast.error(t("assignTutor.invalidStudentRate"));
       return;
     }
     if (!Number.isFinite(tp) || tp < 0) {
-      toast.error("Невірна виплата репетитору");
+      toast.error(t("assignTutor.invalidTutorRate"));
       return;
     }
 
@@ -159,7 +159,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       );
     if (rateErr) {
       setSubmitting(false);
-      toast.error("Не вдалося створити ставку: " + rateErr.message);
+      toast.error(t("assignTutor.rateFailed") + ": " + rateErr.message);
       return;
     }
 
@@ -180,7 +180,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     }
 
     // 3. Mark referral request as fulfilled
-    const tutorName = tutors.find((t) => t.id === tutorId)?.name ?? "репетитор";
+    const tutorName = tutors.find((t) => t.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
     const responseNote = `Призначено репетитора: ${tutorName}. Предмет: ${subject.trim()}. Ціна для учня: ${sp} ₴, виплата: ${tp} ₴.`;
     const { error: reqErr } = await supabase
       .from("tutor_referral_requests")
@@ -192,7 +192,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       .eq("id", request.id);
     if (reqErr) {
       setSubmitting(false);
-      toast.error("Ставку створено, але запит не оновлено: " + reqErr.message);
+      toast.error(t("assignTutorExtra.rateCreatedReqFailed", { error: reqErr.message }));
       return;
     }
 
@@ -207,7 +207,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     }
 
     setSubmitting(false);
-    toast.success("Репетитора призначено 🎉");
+    toast.success(t("assignTutorExtra.assigned"));
     onAssigned();
     onOpenChange(false);
   };
@@ -221,7 +221,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Призначити репетитора</DialogTitle>
+          <DialogTitle>{t("assignTutorExtra.title")}</DialogTitle>
           <DialogDescription>
             Учень: <span className="font-medium text-foreground">{request?.studentName}</span>
           </DialogDescription>
@@ -229,7 +229,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
         <div className="space-y-3">
           <div>
-            <Label className="text-xs">Репетитор</Label>
+            <Label className="text-xs">{t("assignTutorExtra.tutorLabel")}</Label>
             {loadingTutors ? (
               <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> Завантаження…
@@ -237,7 +237,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
             ) : (
               <Select value={tutorId} onValueChange={setTutorId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Оберіть зі списку" />
+                  <SelectValue placeholder={t("assignTutorExtra.selectFromList")} />
                 </SelectTrigger>
                 <SelectContent>
                   {tutors.map((t) => (
@@ -256,13 +256,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           </div>
 
           <div>
-            <Label className="text-xs">Предмет</Label>
+            <Label className="text-xs">{t("assignTutorExtra.subjectLabel")}</Label>
             <SubjectSelect value={subject} onValueChange={(name) => setSubject(name)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Ціна для учня (₴)</Label>
+              <Label className="text-xs">{t("assignTutorExtra.studentRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"
@@ -272,7 +272,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               />
             </div>
             <div>
-              <Label className="text-xs">Виплата репетитору (₴)</Label>
+              <Label className="text-xs">{t("assignTutorExtra.tutorRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"

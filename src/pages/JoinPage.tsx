@@ -4,10 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, Gift, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const REFERRAL_KEY = "tutorhub.referralCode";
 
 export default function JoinPage() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [referrer, setReferrer] = useState<{ first_name: string; last_name: string } | null>(null);
@@ -45,18 +47,18 @@ export default function JoinPage() {
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Посилання недійсне</CardTitle>
-            <CardDescription>Можливо, код було змінено. Зареєструйся напряму на oTutorHub.</CardDescription>
+            <CardTitle>{t("join.invalidTitle")}</CardTitle>
+            <CardDescription>{t("join.invalidDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/auth?signup=1&role=tutor")} className="w-full">Зареєструватись</Button>
+            <Button onClick={() => navigate("/auth?signup=1&role=tutor")} className="w-full">{t("join.register")}</Button>
           </CardContent>
         </Card>
       </div>
     );
   }
 
-  const referrerName = referrer ? `${referrer.first_name} ${referrer.last_name}`.trim() : "Колега";
+  const referrerName = referrer ? `${referrer.first_name} ${referrer.last_name}`.trim() : t("join.defaultName");
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-4 py-8">
@@ -65,34 +67,34 @@ export default function JoinPage() {
           <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
             <Gift className="h-7 w-7" />
           </div>
-          <h1 className="mb-1 text-2xl font-bold">{referrerName} запрошує тебе</h1>
-          <p className="text-sm opacity-90">в oTutorHub — застосунок для репетиторів</p>
+          <h1 className="mb-1 text-2xl font-bold">{t("join.inviteTitle", { name: referrerName })}</h1>
+          <p className="text-sm opacity-90">{t("join.inviteSubtitle")}</p>
         </div>
         <CardContent className="space-y-4 p-6">
           <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="mb-1 flex items-center gap-2 font-semibold text-primary">
               <Sparkles className="h-4 w-4" />
-              Бонус за реєстрацію
+              {t("join.bonusTitle")}
             </div>
             <p className="text-sm text-foreground">
-              <strong>+30 днів Pro</strong> безкоштовно тобі. <strong>+30 днів</strong> також {referrerName} як подяка.
+              {t("join.bonusDesc", { name: referrerName })}
             </p>
           </div>
           <div className="space-y-2 text-sm text-muted-foreground">
-            <p>📅 Зручний розклад уроків</p>
-            <p>💰 Облік фінансів і нагадування про оплати</p>
-            <p>💬 Чати з учнями</p>
-            <p>📊 Аналітика твоєї роботи</p>
+            <p>{t("join.feature1")}</p>
+            <p>{t("join.feature2")}</p>
+            <p>{t("join.feature3")}</p>
+            <p>{t("join.feature4")}</p>
           </div>
           <Button
             onClick={() => navigate(`/auth?signup=1&role=tutor`)}
             size="lg"
             className="w-full"
           >
-            Зареєструватись та отримати бонус
+            {t("join.cta")}
           </Button>
           <p className="text-center text-xs text-muted-foreground">
-            Уже маєш акаунт? <Link to="/auth" className="text-primary underline">Увійти</Link>
+            {t("join.hasAccount")} <Link to="/auth" className="text-primary underline">{t("join.signIn")}</Link>
           </p>
         </CardContent>
       </Card>

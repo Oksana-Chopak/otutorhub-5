@@ -16,7 +16,7 @@ interface LanguageSwitcherProps {
 }
 
 const LANGS = [
-  { code: "uk", label: "Українська", short: "UA" },
+  { code: "uk", label: t("languageSwitcher.ukrainian"), short: "UA" },
   { code: "en", label: "English", short: "EN" },
   { code: "sv", label: "Svenska", short: "SV" },
 ] as const;

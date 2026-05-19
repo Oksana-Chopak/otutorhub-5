@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HandHeart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 const DISMISS_KEY = "referral_nudge_dismissed_v1";
 
@@ -20,6 +21,7 @@ interface Props {
  * Hidden permanently after dismissal or once the tutor invites their first colleague.
  */
 export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
+  const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
         type="button"
         onClick={dismiss}
         className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        aria-label="Сховати"
+        aria-label={t("referralBanner.hide")}
       >
         <X className="h-4 w-4" />
       </button>
@@ -52,14 +54,14 @@ export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="font-display text-base font-bold text-foreground">
-            Знаєш колег-репетиторів? Запроси і отримай <span className="text-primary">місяць Pro</span> безкоштовно
+            {t("referralBanner.text")}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            +30 днів обом за реєстрацію · +1 місяць Pro щоразу, коли друг переходить на Pro
+            {t("referralBanner.bonus")}
           </p>
         </div>
         <Button asChild size="sm" className="shrink-0">
-          <Link to="/referrals">Запросити друга →</Link>
+          <Link to="/referrals">{t("referralBanner.cta")}</Link>
         </Button>
       </div>
     </div>

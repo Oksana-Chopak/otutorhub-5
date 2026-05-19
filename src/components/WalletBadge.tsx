@@ -28,7 +28,7 @@ export function WalletBadge({ lessons, amount, onClick, className }: WalletBadge
         onClick && "cursor-pointer",
         className,
       )}
-      title={hasAny ? "Гаманець учня" : "Гаманець порожній"}
+      title={hasAny ? t("walletBadge.hasBalance") : t("walletBadge.empty")}
     >
       <Wallet className="h-3 w-3" />
       {hasAny ? (

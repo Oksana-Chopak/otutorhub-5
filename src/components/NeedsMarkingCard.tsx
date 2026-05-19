@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 interface PastLesson {
   id: string;
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
+  const { t } = useTranslation();
   const [busyId, setBusyId] = useState<string | null>(null);
 
   const items = useMemo(() => {
@@ -37,10 +39,10 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
     const { error } = await supabase.from("lessons").update({ status }).eq("id", id);
     setBusyId(null);
     if (error) {
-      toast.error("Не вдалося оновити статус");
+      toast.error(t("needsMarking.updateFailed"));
       return;
     }
-    toast.success(status === "completed" ? "Відмічено як проведено" : "Скасовано");
+    toast.success(status === "completed" ? t("needsMarking.markedCompleted") : t("needsMarking.markedCancelled"));
     onChanged();
   };
 
@@ -56,10 +58,10 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
           </div>
           <div>
             <p className="text-sm font-medium text-foreground">
-              Потребують відмітки ({items.length})
+              {t("needsMarking.title", { count: items.length })}
             </p>
             <p className="text-xs text-muted-foreground">
-              Уроки минули — відмітьте, чи відбулись.
+              {t("needsMarking.desc")}
             </p>
           </div>
         </div>
@@ -76,7 +78,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
                 <p className="text-xs text-muted-foreground">
                   {fmt(l.starts_at)}
                   {l.source === "hub" && (
-                    <span className="ml-2 italic">Менеджер нарахує виплату після відмітки</span>
+                    <span className="ml-2 italic">{t("needsMarking.managerNote")}</span>
                   )}
                 </p>
               </div>
@@ -88,7 +90,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
                   onClick={() => setStatus(l.id, "completed")}
                 >
                   {busyId === l.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                  Проведено
+                  {t("needsMarking.completed")}
                 </Button>
                 <Button
                   size="sm"
@@ -97,7 +99,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
                   onClick={() => setStatus(l.id, "cancelled")}
                 >
                   <X className="h-3.5 w-3.5" />
-                  Скасовано
+                  {t("needsMarking.cancelled")}
                 </Button>
               </div>
             </div>

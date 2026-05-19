@@ -85,8 +85,8 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       >
         <Hourglass className="h-3 w-3" />
         {pending.kind === "cancel"
-          ? "Запит на скасування"
-          : "Запит на перенесення"}
+          ? t("studentLessonActions.cancelRequest")
+          : t("studentLessonActions.rescheduleRequest")}
       </Badge>
     );
   }
@@ -103,11 +103,11 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Не вдалося надіслати запит", { description: error.message });
+      toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
       return;
     }
-    toast.success("Запит на скасування надіслано", {
-      description: "Репетитор отримає повідомлення та підтвердить рішення.",
+    toast.success(t("studentLessonActions.cancelSent"), {
+      description: t("studentLessonActions.cancelSentDesc"),
     });
     setReason("");
     setCancelOpen(false);
@@ -117,7 +117,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
   const submitReschedule = async () => {
     if (!user) return;
     if (!proposedAt) {
-      toast.error("Оберіть бажаний час");
+      toast.error(t("studentLessonActions.timeRequired"));
       return;
     }
     setSubmitting(true);
@@ -131,10 +131,10 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Не вдалося надіслати запит", { description: error.message });
+      toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
       return;
     }
-    toast.success("Запит на перенесення надіслано");
+    toast.success(t("studentLessonActionsExtra.rescheduleSent"));
     setReason("");
     setRescheduleOpen(false);
     load();
@@ -149,27 +149,27 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
         variant="ghost"
         className="h-8 px-2 text-xs text-muted-foreground hover:text-primary"
         onClick={() => setRescheduleOpen(true)}
-        title="Запит на перенесення"
+        title={t("studentLessonActionsExtra.rescheduleTitle")}
       >
         <CalendarClock className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">Перенести</span>
+        <span className="hidden sm:inline">{t("studentLessonActionsExtra.rescheduleBtn")}</span>
       </Button>
       <Button
         size="sm"
         variant="ghost"
         className="h-8 px-2 text-xs text-muted-foreground hover:text-destructive"
         onClick={() => setCancelOpen(true)}
-        title="Запит на скасування"
+        title={t("studentLessonActionsExtra.cancelTitle2")}
       >
         <CalendarX2 className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">Скасувати</span>
+        <span className="hidden sm:inline">{t("studentLessonActionsExtra.cancelBtn2")}</span>
       </Button>
 
       {/* Cancel dialog */}
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Скасувати урок?</DialogTitle>
+            <DialogTitle>{t("studentLessonActionsExtra.cancelDialogTitle")}</DialogTitle>
             <DialogDescription>
               Урок {lessonDate}. Репетитор підтвердить ваш запит. Якщо до
               початку залишилось мало часу, репетитор може нарахувати оплату за
@@ -177,13 +177,13 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
-            <Label htmlFor="cancel-reason">Причина (опційно)</Label>
+            <Label htmlFor="cancel-reason">{t("studentLessonActionsExtra.cancelReasonLabel")}</Label>
             <Textarea
               id="cancel-reason"
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Коротко поясніть причину…"
+              placeholder={t("studentLessonActionsExtra.cancelReasonPlaceholder")}
               maxLength={500}
             />
           </div>
@@ -207,7 +207,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       <Dialog open={rescheduleOpen} onOpenChange={setRescheduleOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Запит на перенесення</DialogTitle>
+            <DialogTitle>{t("studentLessonActionsExtra.rescheduleDialogTitle")}</DialogTitle>
             <DialogDescription>
               Урок {lessonDate}. Запропонуйте новий час — репетитор підтвердить
               або відхилить.
@@ -215,7 +215,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="proposed-at">Бажаний новий час</Label>
+              <Label htmlFor="proposed-at">{t("studentLessonActionsExtra.newTimeLabel")}</Label>
               <Input
                 id="proposed-at"
                 type="datetime-local"
@@ -224,13 +224,13 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="r-reason">Коментар (опційно)</Label>
+              <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>
               <Textarea
                 id="r-reason"
                 rows={3}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Чому потрібно перенести?"
+                placeholder={t("studentLessonActionsExtra.commentPlaceholder")}
                 maxLength={500}
               />
             </div>

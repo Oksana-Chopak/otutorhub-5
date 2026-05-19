@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Sparkles, ArrowRight, Crown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * Always-visible trial countdown for independent tutors on Pro trial.
  * Becomes more urgent in the last 3 days.
  */
 export function TrialCountdownBanner() {
+  const { t } = useTranslation();
   const { isIndependent, isTrial, trialDaysLeft, trialUntil, isPro, settings } =
     useWorkspaceSettings();
 
@@ -31,12 +33,12 @@ export function TrialCountdownBanner() {
         <div className="mb-4 rounded-xl border border-warning/40 bg-warning/5 px-4 py-3 text-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-medium text-foreground">
-              ⏳ Тріал завершився. Підключіть Pro, щоб продовжити роботу.
+              {t("trial.ended")}
             </span>
             <Button size="sm" asChild className="rounded-full">
               <Link to="/subscription">
                 <Crown className="h-3.5 w-3.5" />
-                Підключити за 129 ₴/міс
+                {t("trial.connectPro")}
               </Link>
             </Button>
           </div>
@@ -54,11 +56,11 @@ export function TrialCountdownBanner() {
       <div className="mb-4 rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-medium text-foreground">
-            ⏰ Тріал завершено. Підключіть Pro, щоб не втратити доступ.
+            {t("trial.expiredBanner")}
           </span>
           <Button size="sm" asChild className="rounded-full">
             <Link to="/subscription">
-              Підключити за 129 ₴/міс
+              {t("trial.connectPro")}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
@@ -78,9 +80,9 @@ export function TrialCountdownBanner() {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="flex items-center gap-2 font-medium text-foreground">
           <Sparkles className={urgent ? "h-4 w-4 text-warning" : "h-4 w-4 text-primary"} />
-          🎁 Тріал Pro: залишилось{" "}
+          {t("trial.remaining")}{" "}
           <span className={urgent ? "font-bold text-warning" : "font-bold text-primary"}>
-            {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
+            {t("trial.day", { count: trialDaysLeft })}
           </span>
         </span>
         <Button
@@ -90,7 +92,7 @@ export function TrialCountdownBanner() {
           className="rounded-full"
         >
           <Link to="/subscription">
-            Підключити за 129 ₴/міс
+            {t("trial.connectPro")}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>

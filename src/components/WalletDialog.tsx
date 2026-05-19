@@ -40,10 +40,10 @@ const formatDateTime = (iso: string) =>
   });
 
 const KIND_LABEL: Record<string, string> = {
-  topup: "Поповнення",
-  lesson_charge: "Списання за урок",
-  refund: "Повернення",
-  adjustment: "Корекція",
+  topup: t("walletDialog.topup"),
+  lesson_charge: t("walletDialog.lessonCharge"),
+  refund: t("walletDialog.refund"),
+  adjustment: t("walletDialog.adjustment"),
 };
 
 export function WalletDialog({
@@ -70,8 +70,8 @@ export function WalletDialog({
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDelete = async (txId: string, hard: boolean) => {
-    const label = hard ? "видалити транзакцію без сліду" : "сторнувати цю операцію";
-    if (!window.confirm(`Точно ${label}?`)) return;
+    const label = hard ? t("walletDialog.confirmDeleteHard") : t("walletDialog.confirmDeleteSoft");
+    if (!window.confirm(t("walletDialogExtra.confirmPrompt", { action: label }))) return;
     setDeletingId(txId);
     const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
       _tx_id: txId,
@@ -79,10 +79,10 @@ export function WalletDialog({
     });
     setDeletingId(null);
     if (error) {
-      toast.error("Не вдалося", { description: error.message });
+      toast.error(t("walletDialogExtra.deleteFailed"), { description: error.message });
       return;
     }
-    toast.success(hard ? "Видалено" : "Сторновано");
+    toast.success(hard ? t("walletDialogExtra.deleted") : t("walletDialogExtra.reversed"));
     refresh();
   };
 
@@ -99,7 +99,7 @@ export function WalletDialog({
     if (mode === "lessons") {
       const n = parseInt(lessonsCount, 10);
       if (!Number.isFinite(n) || n <= 0) {
-        toast.error("Вкажіть додатну кількість уроків");
+        toast.error(t("walletDialogExtra.lessonsRequired"));
         return;
       }
       lessonsDelta = n;
@@ -109,7 +109,7 @@ export function WalletDialog({
     } else {
       const a = parseFloat(amount.replace(",", "."));
       if (!Number.isFinite(a) || a <= 0) {
-        toast.error("Вкажіть додатну суму");
+        toast.error(t("walletDialogExtra.amountRequired"));
         return;
       }
       amountDelta = a;
@@ -125,10 +125,10 @@ export function WalletDialog({
     });
     setBusy(false);
     if (error) {
-      toast.error("Не вдалося поповнити", { description: error.message });
+      toast.error(t("walletDialogExtra.topupFailed"), { description: error.message });
       return;
     }
-    toast.success("Гаманець поповнено");
+    toast.success(t("walletDialogExtra.topupSuccess"));
     reset();
     refresh();
   };
@@ -144,21 +144,21 @@ export function WalletDialog({
           </DialogTitle>
           <DialogDescription>
             {tutorName
-              ? `Передплати в межах пари ${studentName ?? "учень"} ↔ ${tutorName}`
-              : "Передплати учня"}
+              : t("walletDialogExtra.pairLabel", { student: studentName ?? t("shared.student"), tutor: tutorName })
+              : t("walletDialogExtra.pairLabelGeneric")}
           </DialogDescription>
         </DialogHeader>
 
         {/* Balance summary */}
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg border border-border bg-background/50 p-3 text-center">
-            <div className="text-xs text-muted-foreground">Уроки на балансі</div>
+            <div className="text-xs text-muted-foreground">{t("walletDialogExtra.lessonsBalance")}</div>
             <div className="mt-1 text-2xl font-semibold">
               {loading ? "—" : balance.lessons_balance}
             </div>
           </div>
           <div className="rounded-lg border border-border bg-background/50 p-3 text-center">
-            <div className="text-xs text-muted-foreground">Сума на балансі</div>
+            <div className="text-xs text-muted-foreground">{t("walletDialogExtra.moneyBalance")}</div>
             <div className="mt-1 text-2xl font-semibold">
               {loading ? "—" : `${balance.amount_balance.toFixed(0)} ₴`}
             </div>
@@ -181,16 +181,16 @@ export function WalletDialog({
             <TabsContent value="topup" className="space-y-3 pt-3">
               <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="lessons">Уроками</TabsTrigger>
-                  <TabsTrigger value="amount">Сумою</TabsTrigger>
+                  <TabsTrigger value="lessons">{t("walletDialogExtra.byLessons")}</TabsTrigger>
+                  <TabsTrigger value="amount">{t("walletDialogExtra.byAmount")}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="lessons" className="space-y-2 pt-3">
-                  <Label className="text-xs">Кількість уроків</Label>
+                  <Label className="text-xs">{t("walletDialogExtra.lessonsCountLabel")}</Label>
                   <Input
                     type="number"
                     min="1"
-                    placeholder="напр. 5"
+                    placeholder={t("walletDialogExtra.countPlaceholder")}
                     value={lessonsCount}
                     onChange={(e) => setLessonsCount(e.target.value)}
                   />
@@ -203,12 +203,12 @@ export function WalletDialog({
                 </TabsContent>
 
                 <TabsContent value="amount" className="space-y-2 pt-3">
-                  <Label className="text-xs">Сума, ₴</Label>
+                  <Label className="text-xs">{t("walletDialogExtra.amountLabel")}</Label>
                   <Input
                     type="number"
                     min="1"
                     step="0.01"
-                    placeholder="напр. 2500"
+                    placeholder={t("walletDialogExtra.amountPlaceholder")}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
@@ -222,9 +222,9 @@ export function WalletDialog({
               </Tabs>
 
               <div>
-                <Label className="text-xs">Коментар (необов'язково)</Label>
+                <Label className="text-xs">{t("walletDialogExtra.commentLabel")}</Label>
                 <Input
-                  placeholder="напр. готівка, переказ 02.05"
+                  placeholder={t("walletDialogExtra.commentPlaceholder")}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                 />
@@ -292,7 +292,7 @@ export function WalletDialog({
                               size="icon"
                               variant="ghost"
                               className="h-6 w-6"
-                              title="Сторнувати"
+                              title={t("walletDialogExtra.reverseTooltip")}
                               disabled={deletingId === tx.id}
                               onClick={() => handleDelete(tx.id, false)}
                             >
@@ -306,7 +306,7 @@ export function WalletDialog({
                               size="icon"
                               variant="ghost"
                               className="h-6 w-6 text-destructive hover:text-destructive"
-                              title="Видалити без сліду"
+                              title={t("walletDialogExtra.hardDeleteTooltip")}
                               disabled={deletingId === tx.id}
                               onClick={() => handleDelete(tx.id, true)}
                             >

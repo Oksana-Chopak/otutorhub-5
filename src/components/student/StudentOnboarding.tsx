@@ -3,7 +3,6 @@ import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { Card } from "@/components/ui/card";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,45 +10,16 @@ import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Loader2, Check, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const SUBJECT_EMOJI: Record<string, string> = {
-  "Математика (німецька програма)": "🧮",
-  "Математика (польська програма)": "🧮",
-  "Англійська мова": "🇬🇧",
-  "Шведська мова": "🇸🇪",
-  "Польська мова": "🇵🇱",
-  "Німецька мова": "🇩🇪",
+  [t("subjects.mathGerman")]: "🧮",
+  [t("subjects.mathPolish")]: "🧮",
+  [t("subjects.english")]: "🇬🇧",
+  [t("subjects.swedish")]: "🇸🇪",
+  [t("subjects.polish")]: "🇵🇱",
+  [t("subjects.german")]: "🇩🇪",
 };
-
-const LEVELS = [
-  { value: "beginner", label: "Починаю з нуля", emoji: "🐣" },
-  { value: "intermediate", label: "Є база", emoji: "📚" },
-  { value: "advanced", label: "Хочу поглибити", emoji: "🚀" },
-];
-
-const SCHEDULE_SLOTS = [
-  { value: "weekday_morning", label: "Будні ранок" },
-  { value: "weekday_day", label: "Будні день" },
-  { value: "weekday_evening", label: "Будні вечір" },
-  { value: "weekend_morning", label: "Вихідні ранок" },
-  { value: "weekend_day", label: "Вихідні день" },
-  { value: "weekend_evening", label: "Вихідні вечір" },
-];
-
-const GOALS = [
-  { value: "exam", label: "Підготовка до іспиту", emoji: "🎓" },
-  { value: "work", label: "Для роботи", emoji: "💼" },
-  { value: "self", label: "Для себе", emoji: "🌱" },
-  { value: "olympiad", label: "Олімпіада", emoji: "🏆" },
-  { value: "other", label: "Інше", emoji: "✏️" },
-];
-
-const ENCOURAGEMENTS = [
-  "Чудовий вибір! 🎯",
-  "Так тримати! ✨",
-  "Майже готово! 🚀",
-  "Останній штрих! 🎉",
-];
 
 interface Props {
   onComplete: () => void;
@@ -58,6 +28,7 @@ interface Props {
 type Step = 1 | 2 | 3 | 4 | "submitting" | "success" | "telegram" | "done";
 
 export function StudentOnboarding({ onComplete }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -65,6 +36,36 @@ export function StudentOnboarding({ onComplete }: Props) {
   const [schedule, setSchedule] = useState<string[]>([]);
   const [goal, setGoal] = useState<string | null>(null);
   const [goalOther, setGoalOther] = useState("");
+
+  const LEVELS = [
+    { value: "beginner", label: t("studentOnboarding.levelZero"), emoji: "🐣" },
+    { value: "intermediate", label: t("studentOnboarding.levelBase"), emoji: "📚" },
+    { value: "advanced", label: t("studentOnboarding.levelDeepen"), emoji: "🚀" },
+  ];
+
+  const SCHEDULE_SLOTS = [
+    { value: "weekday_morning", label: t("studentOnboarding.slotWeekMorning") },
+    { value: "weekday_day", label: t("studentOnboarding.slotWeekDay") },
+    { value: "weekday_evening", label: t("studentOnboarding.slotWeekEvening") },
+    { value: "weekend_morning", label: t("studentOnboarding.slotWeekendMorning") },
+    { value: "weekend_day", label: t("studentOnboarding.slotWeekendDay") },
+    { value: "weekend_evening", label: t("studentOnboarding.slotWeekendEvening") },
+  ];
+
+  const GOALS = [
+    { value: "exam", label: t("studentOnboarding.goalExam"), emoji: "🎓" },
+    { value: "work", label: t("studentOnboarding.goalWork"), emoji: "💼" },
+    { value: "self", label: t("studentOnboarding.goalSelf"), emoji: "🌱" },
+    { value: "olympiad", label: t("studentOnboarding.goalOlympiad"), emoji: "🏆" },
+    { value: "other", label: t("studentOnboarding.goalOther"), emoji: "✏️" },
+  ];
+
+  const ENCOURAGEMENTS = [
+    t("studentOnboarding.enc1"),
+    t("studentOnboarding.enc2"),
+    t("studentOnboarding.enc3"),
+    t("studentOnboarding.enc4"),
+  ];
 
   const fireConfetti = () => {
     confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
@@ -83,7 +84,7 @@ export function StudentOnboarding({ onComplete }: Props) {
       goal_other: goal === "other" ? goalOther.trim() || null : null,
     });
     if (error) {
-      toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+      toast.error(t("studentOnboarding.saveFailed"));
       setStep(4);
       return;
     }
@@ -105,20 +106,20 @@ export function StudentOnboarding({ onComplete }: Props) {
       <div className="mx-auto max-w-md animate-fade-in space-y-4">
         <div className="text-center">
           <div className="text-4xl">📱</div>
-          <h2 className="mt-3 text-xl font-bold text-foreground">Підключи Telegram</h2>
+          <h2 className="mt-3 text-xl font-bold text-foreground">{t("studentOnboarding.connectTelegram")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Щоб не пропустити відповідь від менеджера
+            {t("studentOnboarding.telegramHint")}
           </p>
         </div>
         <TelegramLinkCard />
         <Button className="w-full" onClick={() => setStep("done")}>
-          Далі <ArrowRight className="ml-2 h-4 w-4" />
+          {t("studentOnboarding.next")} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
         <button
           onClick={() => setStep("done")}
           className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
         >
-          Пропустити
+          {t("studentOnboarding.skip")}
         </button>
       </div>
     );
@@ -129,12 +130,12 @@ export function StudentOnboarding({ onComplete }: Props) {
     return (
       <div className="mx-auto max-w-md animate-scale-in space-y-6 text-center">
         <div className="text-6xl">🚀</div>
-        <h2 className="text-2xl font-bold text-foreground">Все готово!</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("studentOnboarding.doneTitle")}</h2>
         <p className="text-muted-foreground">
-          Менеджер уже отримав твою заявку. Поки чекаєш — можеш ознайомитись із кабінетом.
+          {t("studentOnboarding.doneDesc")}
         </p>
         <Button size="lg" className="w-full" onClick={onComplete}>
-          Перейти до мого кабінету
+          {t("studentOnboarding.goToDashboard")}
         </Button>
       </div>
     );
@@ -146,14 +147,14 @@ export function StudentOnboarding({ onComplete }: Props) {
       <div className="mx-auto max-w-md animate-scale-in space-y-6 text-center">
         <div className="text-6xl">🎉</div>
         <div className="inline-flex items-center gap-2 rounded-full bg-success/10 px-4 py-2 text-sm font-semibold text-success">
-          <Check className="h-4 w-4" /> Профіль заповнено
+          <Check className="h-4 w-4" /> {t("studentOnboarding.profileFilled")}
         </div>
-        <h2 className="text-2xl font-bold text-foreground">Дякуємо!</h2>
+        <h2 className="text-2xl font-bold text-foreground">{t("studentOnboarding.thankYou")}</h2>
         <p className="text-muted-foreground">
-          Твій запит уже у менеджера — підберемо репетитора протягом 24 годин.
+          {t("studentOnboarding.thankYouDesc")}
         </p>
         <Button size="lg" className="w-full" onClick={() => setStep("telegram")}>
-          Далі <ArrowRight className="ml-2 h-4 w-4" />
+          {t("studentOnboarding.next")} <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     );
@@ -172,16 +173,16 @@ export function StudentOnboarding({ onComplete }: Props) {
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
         <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
-          <span>Крок {step} з 4</span>
-          <span>Знайдемо твого ідеального репетитора</span>
+          <span>{t("studentOnboarding.stepOf", { step })}</span>
+          <span>{t("studentOnboarding.findTutor")}</span>
         </div>
         <Progress value={progress} className="h-2" />
       </div>
 
       {step === 1 && (
         <div className="animate-fade-in space-y-4">
-          <h2 className="text-xl font-bold text-foreground">Що вивчаємо?</h2>
-          <p className="text-sm text-muted-foreground">Можна вибрати декілька</p>
+          <h2 className="text-xl font-bold text-foreground">{t("studentOnboarding.whatSubject")}</h2>
+          <p className="text-sm text-muted-foreground">{t("studentOnboarding.selectMultiple")}</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {SUBJECT_OPTIONS.map((s) => {
               const active = subjects.includes(s);
@@ -211,14 +212,14 @@ export function StudentOnboarding({ onComplete }: Props) {
             disabled={subjects.length === 0}
             onClick={() => goToStep(2)}
           >
-            Далі <ArrowRight className="ml-2 h-4 w-4" />
+            {t("studentOnboarding.next")} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       )}
 
       {step === 2 && (
         <div className="animate-fade-in space-y-4">
-          <h2 className="text-xl font-bold text-foreground">Який рівень?</h2>
+          <h2 className="text-xl font-bold text-foreground">{t("studentOnboarding.whatLevel")}</h2>
           <div className="grid gap-3">
             {LEVELS.map((l) => {
               const active = level === l.value;
@@ -243,15 +244,15 @@ export function StudentOnboarding({ onComplete }: Props) {
             })}
           </div>
           <Button variant="ghost" className="w-full" onClick={() => goToStep(1)}>
-            Назад
+            {t("studentOnboarding.back")}
           </Button>
         </div>
       )}
 
       {step === 3 && (
         <div className="animate-fade-in space-y-4">
-          <h2 className="text-xl font-bold text-foreground">Коли зручно займатись?</h2>
-          <p className="text-sm text-muted-foreground">Можна вибрати декілька</p>
+          <h2 className="text-xl font-bold text-foreground">{t("studentOnboarding.whenConvenient")}</h2>
+          <p className="text-sm text-muted-foreground">{t("studentOnboarding.selectMultiple")}</p>
           <div className="grid grid-cols-2 gap-3">
             {SCHEDULE_SLOTS.map((s) => {
               const active = schedule.includes(s.value);
@@ -282,17 +283,17 @@ export function StudentOnboarding({ onComplete }: Props) {
             disabled={schedule.length === 0}
             onClick={() => goToStep(4)}
           >
-            Далі <ArrowRight className="ml-2 h-4 w-4" />
+            {t("studentOnboarding.next")} <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => goToStep(2)}>
-            Назад
+            {t("studentOnboarding.back")}
           </Button>
         </div>
       )}
 
       {step === 4 && (
         <div className="animate-fade-in space-y-4">
-          <h2 className="text-xl font-bold text-foreground">Яка ціль?</h2>
+          <h2 className="text-xl font-bold text-foreground">{t("studentOnboarding.whatGoal")}</h2>
           <div className="grid gap-3">
             {GOALS.map((g) => {
               const active = goal === g.value;
@@ -315,7 +316,7 @@ export function StudentOnboarding({ onComplete }: Props) {
           </div>
           {goal === "other" && (
             <Textarea
-              placeholder="Розкажи про свою ціль…"
+              placeholder={t("studentOnboarding.goalPlaceholder")}
               value={goalOther}
               onChange={(e) => setGoalOther(e.target.value)}
               className="animate-fade-in"
@@ -327,10 +328,10 @@ export function StudentOnboarding({ onComplete }: Props) {
             disabled={!goal || (goal === "other" && goalOther.trim().length === 0)}
             onClick={submit}
           >
-            Завершити
+            {t("studentOnboarding.finish")}
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => goToStep(3)}>
-            Назад
+            {t("studentOnboarding.back")}
           </Button>
         </div>
       )}

@@ -64,13 +64,13 @@ export function RatePropagationDialog({
     const { data: rows, error: selErr } = await q;
     if (selErr) {
       setBusy(false);
-      toast.error("Не вдалося оновити уроки");
+      toast.error(t("ratePropagation.updateFailed"));
       return;
     }
     const ids = (rows ?? []).map((r: any) => r.lesson_id);
     if (ids.length === 0) {
       setBusy(false);
-      toast.success("Оновлено уроків: 0");
+      toast.success(t("ratePropagation.updatedZero"));
       onOpenChange(false);
       onDone?.();
       return;
@@ -81,10 +81,10 @@ export function RatePropagationDialog({
       .in("lesson_id", ids);
     setBusy(false);
     if (error) {
-      toast.error("Не вдалося оновити уроки");
+      toast.error(t("ratePropagation.updateFailed"));
       return;
     }
-    toast.success(`Оновлено уроків: ${ids.length}`);
+    toast.success(t("ratePropagation.updated", { count: ids.length }));
     onOpenChange(false);
     onDone?.();
   };
@@ -93,7 +93,7 @@ export function RatePropagationDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Застосувати нову ціну?</AlertDialogTitle>
+          <AlertDialogTitle>{t("ratePropagation.dialogTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             Ставку «{subject}» змінено з <b>{oldPrice} ₴</b> на <b>{newPrice} ₴</b>.
             Оберіть, до яких уроків застосувати нове значення.
@@ -104,35 +104,35 @@ export function RatePropagationDialog({
           <div className="flex items-start gap-2">
             <RadioGroupItem value="future_unpaid" id="s-fu" className="mt-1" />
             <Label htmlFor="s-fu" className="font-normal cursor-pointer">
-              <div className="font-medium">Майбутні неоплачені (рекомендовано)</div>
-              <div className="text-xs text-muted-foreground">Безпечно: оплачені та минулі не змінюються.</div>
+              <div className="font-medium">{t("ratePropagationExtra.futureUnpaidOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.futureUnpaidDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="all_unpaid" id="s-au" className="mt-1" />
             <Label htmlFor="s-au" className="font-normal cursor-pointer">
-              <div className="font-medium">Усі неоплачені (минулі + майбутні)</div>
-              <div className="text-xs text-muted-foreground">Оплачені залишаються зі старою ціною.</div>
+              <div className="font-medium">{t("ratePropagationExtra.allUnpaidOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.allUnpaidDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="all" id="s-all" className="mt-1" />
             <Label htmlFor="s-all" className="font-normal cursor-pointer">
-              <div className="font-medium">Усі уроки без винятку</div>
-              <div className="text-xs text-muted-foreground text-warning">Перепише і оплачені — попередні фінзвіти зміняться.</div>
+              <div className="font-medium">{t("ratePropagationExtra.allOption")}</div>
+              <div className="text-xs text-muted-foreground text-warning">{t("ratePropagationExtra.allDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="none" id="s-none" className="mt-1" />
             <Label htmlFor="s-none" className="font-normal cursor-pointer">
-              <div className="font-medium">Не чіпати існуючі</div>
-              <div className="text-xs text-muted-foreground">Нова ставка діятиме лише для нових уроків.</div>
+              <div className="font-medium">{t("ratePropagationExtra.skipOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.skipDesc")}</div>
             </Label>
           </div>
         </RadioGroup>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>Скасувати</AlertDialogCancel>
+          <AlertDialogCancel disabled={busy}>{t("common.cancel") || "Скасувати"}</AlertDialogCancel>
           <AlertDialogAction onClick={apply} disabled={busy}>
             {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
             Застосувати

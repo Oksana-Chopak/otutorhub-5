@@ -95,14 +95,14 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     if (cardInput.trim()) {
       const digits = cardInput.replace(/\D/g, "");
       if (digits.length < 4 || digits.length > 19) {
-        toast.error("Номер картки виглядає некоректно");
+        toast.error(t("contactEdit.cardInvalid"));
         return;
       }
       bank_card_last4 = digits.slice(-4);
     }
 
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Невірний email");
+      toast.error(t("contactEdit.emailInvalid"));
       return;
     }
     for (const [label, val] of [
@@ -111,12 +111,12 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       ["Instagram", instagram_url],
     ] as const) {
       if (val && !validateUrl(val)) {
-        toast.error(`${label}: вкажіть повний URL (https://...)`);
+        toast.error(t("contactEdit.urlInvalid", { label }));
         return;
       }
     }
     if (bank_card_last4 && !/^\d{4}$/.test(bank_card_last4)) {
-      toast.error("Останні 4 цифри картки виглядають некоректно");
+      toast.error(t("contactEdit.last4Invalid"));
       return;
     }
 
@@ -142,7 +142,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session) {
       setSaving(false);
-      toast.error("Сесія завершилась. Оновіть сторінку та увійдіть знову.");
+      toast.error(t("contactEdit.sessionExpired"));
       return;
     }
 
@@ -174,7 +174,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
         // Both succeeded
         setSaving(false);
-        toast.success("Контакти збережено");
+        toast.success(t("contactEdit.saved"));
         onOpenChange(false);
         onSaved?.();
         return;
@@ -190,11 +190,11 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     console.error("Failed to save contacts after retries", lastError);
     const msg = String(lastError?.message || "");
     if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
-      toast.error("Цей email вже використовується іншою людиною");
+      toast.error(t("contactEditExtra.emailDuplicate"));
     } else if (/load failed|network|fetch/i.test(msg)) {
-      toast.error("Проблема з мережею. Перевірте з'єднання та спробуйте ще раз.");
+      toast.error(t("contactEditExtra.networkError"));
     } else {
-      toast.error(msg || "Не вдалося зберегти контакти");
+      toast.error(msg || t("contactEdit.saveFailed"));
     }
   };
 
@@ -202,7 +202,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Контакти: {userName}</DialogTitle>
+          <DialogTitle>{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
           <DialogDescription>
             Видимі тільки самій людині та менеджеру. Картка — для зручності виплат.
           </DialogDescription>
@@ -220,7 +220,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               />
             </div>
             <div>
-              <Label htmlFor="c-phone">Телефон</Label>
+              <Label htmlFor="c-phone">{t("contactEditExtra.phoneLabel")}</Label>
               <Input
                 id="c-phone"
                 type="tel"
@@ -232,7 +232,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             </div>
           </div>
           <div>
-            <Label htmlFor="c-tg">Telegram (нік)</Label>
+            <Label htmlFor="c-tg">{t("contactEditExtra.telegramLabel")}</Label>
             <Input
               id="c-tg"
               value={form.telegram ?? ""}
@@ -242,7 +242,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             />
           </div>
           <div>
-            <Label htmlFor="c-msg">Messenger (посилання)</Label>
+            <Label htmlFor="c-msg">{t("contactEditExtra.messengerLabel")}</Label>
             <Input
               id="c-msg"
               type="url"
@@ -276,17 +276,17 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="c-bank">Банк</Label>
+              <Label htmlFor="c-bank">{t("contactEditExtra.bankLabel")}</Label>
               <Input
                 id="c-bank"
                 value={form.bank_name ?? ""}
                 onChange={(e) => setField("bank_name", e.target.value)}
-                placeholder="Напр. Monobank"
+                placeholder={t("contactEditExtra.bankPlaceholder")}
                 maxLength={64}
               />
             </div>
             <div>
-              <Label htmlFor="c-card">Картка (повний номер)</Label>
+              <Label htmlFor="c-card">{t("contactEditExtra.cardLabel")}</Label>
               <Input
                 id="c-card"
                 value={cardInput}

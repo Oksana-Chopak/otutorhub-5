@@ -38,8 +38,8 @@ export function ProfitSparkline({ data }: { data: Point[] }) {
               borderRadius: 8,
               fontSize: 12,
             }}
-            formatter={(v: number) => [`${v} ₴`, "Прибуток"]}
-            labelFormatter={(l) => `Тиждень з ${l}`}
+            formatter={(v: number) => [`${v} ₴`, t("profitSparkline.profit")]}
+            labelFormatter={(l) => t("profitSparkline.weekFrom", { date: l })}
           />
           <Area
             type="monotone"

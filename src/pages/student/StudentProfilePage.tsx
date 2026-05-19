@@ -45,16 +45,16 @@ export default function StudentProfilePage() {
       .upsert({ user_id: user.id, phone: phone.trim() || null }, { onConflict: "user_id" });
     setSaving(false);
     if (pErr || cErr) {
-      toast.error("Не вдалося зберегти");
+      toast.error(t("studentPages.saveFailed"));
       return;
     }
-    toast.success("Збережено");
+    toast.success(t("studentPages.saveSuccess"));
   };
 
   return (
     <StudentLayout>
       <div className="space-y-6">
-        <h1 className="hidden text-2xl font-bold text-foreground lg:block">Профіль</h1>
+        <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.profileTitle")}</h1>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : (
@@ -65,12 +65,12 @@ export default function StudentProfilePage() {
                 <Input id="fn" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ln">Прізвище</Label>
+                <Label htmlFor="ln">{t("studentPages.lastNameLabel")}</Label>
                 <Input id="ln" value={lastName} onChange={(e) => setLastName(e.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ph">Телефон</Label>
+              <Label htmlFor="ph">{t("studentPages.phoneLabel")}</Label>
               <Input id="ph" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
             </div>
             <div className="space-y-1.5">

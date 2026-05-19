@@ -74,8 +74,8 @@ export function SubscriptionRequestDialog({
     setSubmitting(true);
     const billingNote =
       billing === "yearly"
-        ? `Тариф: Pro річний — ${PRICE_YEARLY_PER_MONTH} ₴/міс (${PRICE_YEARLY_TOTAL} ₴ на рік)`
-        : `Тариф: Pro місячний — ${PRICE_MONTHLY} ₴/міс`;
+        : t("subscriptionDialog.yearlyPlan", { perMonth: PRICE_YEARLY_PER_MONTH, total: PRICE_YEARLY_TOTAL })
+        : t("subscriptionDialog.monthlyPlan", { price: PRICE_MONTHLY });
     const fullMessage = message.trim()
       ? `${billingNote}\n\n${message.trim()}`
       : billingNote;
@@ -87,11 +87,11 @@ export function SubscriptionRequestDialog({
     });
     setSubmitting(false);
     if (error) {
-      toast.error("Не вдалося надіслати запит", { description: error.message });
+      toast.error(t("subscriptionDialog.sendFailed"), { description: error.message });
       return;
     }
-    toast.success("Запит надіслано менеджеру", {
-      description: "Ми зв'яжемося з вами найближчим часом.",
+    toast.success(t("subscriptionDialog.sent"), {
+      description: t("subscriptionDialog.sentDesc"),
     });
     setMessage("");
     onOpenChange(false);
@@ -104,7 +104,7 @@ export function SubscriptionRequestDialog({
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Crown className="h-5 w-5" />
           </div>
-          <DialogTitle>Оформити Pro-підписку</DialogTitle>
+          <DialogTitle>{t("subscriptionDialog.title")}</DialogTitle>
           <DialogDescription>
             Оберіть період оплати — менеджер школи отримає ваш запит і зв'яжеться
             для оплати.
@@ -119,7 +119,7 @@ export function SubscriptionRequestDialog({
           <div className="rounded-lg border border-success/30 bg-success/5 p-4 text-sm">
             <div className="mb-1 inline-flex items-center gap-2 text-success">
               <CheckCircle2 className="h-4 w-4" />
-              <span className="font-medium">Запит уже надіслано</span>
+              <span className="font-medium">{t("subscriptionDialog.alreadySent")}</span>
             </div>
             <p className="text-muted-foreground">
               Менеджер уже отримав ваш запит і скоро з вами зв'яжеться. Дублювати
@@ -129,7 +129,7 @@ export function SubscriptionRequestDialog({
         ) : (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Період оплати</Label>
+              <Label>{t("subscriptionDialog.periodLabel")}</Label>
               <RadioGroup
                 value={billing}
                 onValueChange={(v) => setBilling(v as Billing)}
@@ -147,7 +147,7 @@ export function SubscriptionRequestDialog({
                   <RadioGroupItem id="bill-yearly" value="yearly" className="mt-0.5" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-medium text-foreground">Щороку</span>
+                      <span className="font-medium text-foreground">{t("subscriptionDialog.yearly")}</span>
                       <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
                         −23%
                       </span>
@@ -169,7 +169,7 @@ export function SubscriptionRequestDialog({
                 >
                   <RadioGroupItem id="bill-monthly" value="monthly" className="mt-0.5" />
                   <div className="min-w-0">
-                    <span className="font-medium text-foreground">Щомісяця</span>
+                    <span className="font-medium text-foreground">{t("subscriptionDialog.monthly")}</span>
                     <p className="text-xs text-muted-foreground">
                       {PRICE_MONTHLY} ₴/міс
                     </p>
@@ -179,10 +179,10 @@ export function SubscriptionRequestDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="msg">Повідомлення менеджеру (опційно)</Label>
+              <Label htmlFor="msg">{t("subscriptionDialog.msgLabel")}</Label>
               <Textarea
                 id="msg"
-                placeholder="Зручний спосіб зв'язку, побажання тощо…"
+                placeholder={t("subscriptionDialog.msgPlaceholder")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}

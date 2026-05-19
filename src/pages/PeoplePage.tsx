@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -98,13 +99,8 @@ interface UserRow {
   has_paid_lesson?: boolean;
 }
 
-const roleLabel: Record<AppRole, string> = {
-  manager: "Менеджер",
-  tutor: "Репетитор",
-  student: "Учень",
-};
-
 export default function PeoplePage() {
+  const { t } = useTranslation();
   const { user: currentUser, roles } = useAuth();
   const isManager = roles.includes("manager");
   const [loading, setLoading] = useState(true);
@@ -385,7 +381,7 @@ export default function PeoplePage() {
 
   const changeRole = async (userId: string, newRole: AppRole) => {
     if (userId === currentUser?.id && newRole !== "manager") {
-      toast.error("Не можна знімати з себе роль менеджера");
+      toast.error(t("people.cannotRemoveOwnManager"));
       return;
     }
     // Atomic role swap: upsert on user_id (one role per person guaranteed by DB unique constraint)
@@ -394,7 +390,7 @@ export default function PeoplePage() {
       .upsert({ user_id: userId, role: newRole }, { onConflict: "user_id" });
     if (upsertErr) {
       console.error("Failed to update role", upsertErr);
-      toast.error("Не вдалося оновити роль. Спробуйте ще раз.");
+      toast.error(t("people.roleUpdateFailed"));
       return;
     }
 
@@ -404,14 +400,14 @@ export default function PeoplePage() {
       await supabase.from("student_details").upsert({ user_id: userId }, { onConflict: "user_id" });
     }
 
-    toast.success("Роль оновлено");
+    toast.success(t("people.roleUpdated"));
     loadData();
   };
 
   const saveTutorRate = async () => {
     const subjects = tutorDialog.subjects;
     if (subjects.length === 0) {
-      toast.error("Оберіть хоча б один предмет");
+      toast.error(t("people.selectAtLeastOneSubject"));
       return;
     }
     // Validate all rates
@@ -419,12 +415,12 @@ export default function PeoplePage() {
     for (const s of subjects) {
       const raw = (tutorDialog.rates[s] ?? "").trim();
       if (raw === "") {
-        toast.error(`Введіть ставку для предмета: ${s}`);
+        toast.error(t("people.enterRateForSubject", { subject: s }));
         return;
       }
       const v = parseFloat(raw);
       if (isNaN(v) || v < 0) {
-        toast.error(`Некоректна ставка для предмета: ${s}`);
+        toast.error(t("people.invalidRateForSubject", { subject: s }));
         return;
       }
       parsed.push({ subject: s, rate: v });
@@ -439,7 +435,7 @@ export default function PeoplePage() {
       );
     if (tdErr) {
       console.error("Failed to save tutor details", tdErr);
-      toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+      toast.error(t("people.saveFailed"));
       return;
     }
 
@@ -454,7 +450,7 @@ export default function PeoplePage() {
       .upsert(rows, { onConflict: "tutor_id,subject" });
     if (srErr) {
       console.error("Failed to save subject rates", srErr);
-      toast.error("Не вдалося зберегти ставки за предметами");
+      toast.error(t("people.subjectRatesSaveFailed"));
       return;
     }
 
@@ -469,7 +465,7 @@ export default function PeoplePage() {
       console.warn("Failed to cleanup obsolete subject rates", delErr);
     }
 
-    toast.success("Збережено");
+    toast.success(t("people.saved"));
     setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();
   };
@@ -477,11 +473,11 @@ export default function PeoplePage() {
   const saveStudentPrice = async () => {
     const price = parseFloat(studentDialog.price);
     if (isNaN(price) || price < 0) {
-      toast.error("Введіть коректну ціну");
+      toast.error(t("people.invalidPrice"));
       return;
     }
     if (!studentDialog.subject) {
-      toast.error("Оберіть предмет");
+      toast.error(t("people.selectSubject"));
       return;
     }
     let oldPrice = 0;
@@ -495,7 +491,7 @@ export default function PeoplePage() {
         .eq("id", studentDialog.existingId);
       if (error) {
         console.error("Failed to update student rate", error);
-        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+        toast.error(t("people.saveFailed"));
         return;
       }
     } else {
@@ -508,11 +504,11 @@ export default function PeoplePage() {
       });
       if (error) {
         console.error("Failed to insert student rate", error);
-        toast.error("Не вдалося зберегти. Спробуйте ще раз.");
+        toast.error(t("people.saveFailed"));
         return;
       }
     }
-    toast.success("Ціну збережено");
+    toast.success(t("people.priceSaved"));
     const propPayload =
       isUpdate && oldPrice !== price
         ? {
@@ -544,16 +540,16 @@ export default function PeoplePage() {
 
   const saveAddTutorToStudent = async () => {
     if (!addTutorToStudent.tutorId) {
-      toast.error("Оберіть репетитора");
+      toast.error(t("people.selectTutor"));
       return;
     }
     if (!addTutorToStudent.subject) {
-      toast.error("Оберіть предмет");
+      toast.error(t("people.selectSubject"));
       return;
     }
     const price = Number.parseFloat(addTutorToStudent.price.replace(",", "."));
     if (!Number.isFinite(price) || price < 0) {
-      toast.error("Вкажіть коректну ціну");
+      toast.error(t("people.enterValidPrice"));
       return;
     }
     const { error } = await supabase.from("student_rates").upsert(
@@ -568,11 +564,11 @@ export default function PeoplePage() {
     );
     if (error) {
       console.error("Failed to add tutor to student", error);
-      toast.error("Не вдалося додати репетитора. Спробуйте ще раз.");
+      toast.error(t("people.addTutorFailed"));
       return;
     }
     await ensureTutorSubject(addTutorToStudent.tutorId, addTutorToStudent.subject);
-    toast.success("Репетитора додано до учня");
+    toast.success(t("people.tutorAddedToStudent"));
     setAddTutorToStudent({ open: false, studentId: "", studentName: "", tutorId: "", subject: "", price: "", currency: "UAH" });
     loadData();
   };
@@ -583,15 +579,15 @@ export default function PeoplePage() {
     const email = addForm.email.trim().toLowerCase();
     const phone = addForm.phone.trim();
     if (!fn && !ln) {
-      toast.error("Вкажіть хоча б ім'я або прізвище");
+      toast.error(t("people.nameRequired"));
       return;
     }
     if (!email && !phone) {
-      toast.error("Вкажіть email або телефон — інакше не зможемо зв'язати з реєстрацією");
+      toast.error(t("people.emailOrPhoneRequired"));
       return;
     }
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Невірний email");
+      toast.error(t("people.invalidEmail"));
       return;
     }
 
@@ -603,7 +599,7 @@ export default function PeoplePage() {
       .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
     if (profErr) {
       console.error("Failed to create ghost profile", profErr);
-      toast.error(profErr.message || "Не вдалося створити профіль");
+      toast.error(profErr.message || t("people.createProfileFailed"));
       setAdding(false);
       return;
     }
@@ -618,9 +614,9 @@ export default function PeoplePage() {
       await supabase.from("profiles").delete().eq("id", newId);
       const msg = String(contErr.message || "");
       if (msg.includes("profile_contacts_email_lower")) {
-        toast.error("Цей email вже зареєстровано в системі");
+        toast.error(t("people.emailAlreadyRegistered"));
       } else {
-        toast.error("Не вдалося зберегти контакти");
+        toast.error(t("people.saveContactsFailed"));
       }
       setAdding(false);
       return;
@@ -634,7 +630,7 @@ export default function PeoplePage() {
       console.error("Failed to assign role", roleErr);
       await supabase.from("profile_contacts").delete().eq("user_id", newId);
       await supabase.from("profiles").delete().eq("id", newId);
-      toast.error("Не вдалося призначити роль");
+      toast.error(t("people.assignRoleFailed"));
       setAdding(false);
       return;
     }
@@ -649,7 +645,7 @@ export default function PeoplePage() {
     }
 
     setAdding(false);
-    toast.success("Людину додано");
+    toast.success(t("people.personAdded"));
     setAddOpen(false);
 
     // Auto-send email invite to students with email
@@ -661,7 +657,7 @@ export default function PeoplePage() {
       );
       if (!inviteErr && (inviteResp as any)?.success) {
         emailSent = true;
-        toast.success("Запрошення надіслано на email учня");
+        toast.success(t("people.inviteSent"));
       } else if (inviteErr) {
         console.warn("Auto-invite failed", inviteErr);
       }
@@ -683,7 +679,7 @@ export default function PeoplePage() {
 
   const archivePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна архівувати власний акаунт");
+      toast.error(t("people.cannotArchiveOwn"));
       return;
     }
     if (!confirm(`Перемістити ${fullName(u)} в архів? Усі уроки, ставки та історія залишаться. Профіль зникне з основних списків — повернути можна будь-коли з вкладки «В архіві».`)) {
@@ -695,10 +691,10 @@ export default function PeoplePage() {
       .eq("id", u.id);
     if (error) {
       console.error("Failed to archive profile", error);
-      toast.error("Не вдалося архівувати");
+      toast.error(t("people.archiveFailed"));
       return;
     }
-    toast.success("Переміщено в архів");
+    toast.success(t("people.archived"));
     loadData();
   };
 
@@ -709,49 +705,41 @@ export default function PeoplePage() {
       .eq("id", u.id);
     if (error) {
       console.error("Failed to unarchive profile", error);
-      toast.error("Не вдалося відновити");
+      toast.error(t("people.unarchiveFailed"));
       return;
     }
-    toast.success("Профіль повернуто");
+    toast.success(t("people.unarchived"));
     loadData();
   };
 
   const purgePerson = async (u: UserRow) => {
     if (u.id === currentUser?.id) {
-      toast.error("Не можна видалити власний акаунт");
+      toast.error(t("people.cannotDeleteOwn"));
       return;
     }
     const name = fullName(u);
     const first = window.confirm(
-      `ПОВНЕ ВИДАЛЕННЯ для ${name}.\n\n` +
-        `Назавжди буде видалено:\n` +
-        `• усі уроки, домашки та конспекти\n` +
-        `• ставки за предметами\n` +
-        `• чати, повідомлення й вкладені файли\n` +
-        `• нагадування про оплати, запити та доступність\n` +
-        `• передплати, платежі, нотатки менеджера\n` +
-        `• сам профіль\n\n` +
-        `Дію неможливо скасувати. Продовжити?`
+      t("peoplePage.deleteConfirm", { name })
     );
     if (!first) return;
     const typed = window.prompt(
-      `Для підтвердження введіть DELETE великими літерами:`
+      t("peoplePage.deleteTypeDELETE")
     );
     if (typed !== "DELETE") {
-      toast.info("Видалення скасовано");
+      toast.info(t("people.deleteCancelled"));
       return;
     }
     const { error } = await supabase.rpc("manager_purge_user", { _user_id: u.id });
     if (error) {
       console.error("Failed to purge user", error);
-      toast.error(`Не вдалося видалити: ${error.message}`);
+      toast.error(t("people.deleteFailed", { message: error.message }));
       return;
     }
-    toast.success(`${name} та всі пов'язані дані видалено`);
+    toast.success(t("people.deleteSuccess", { name }));
     loadData();
   };
 
-  const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || "Без імені";
+  const fullName = (u: UserRow) => `${u.first_name} ${u.last_name}`.trim() || t("common.noName");
 
   // Build subject options from all tutors
   const allSubjects = useMemo(() => {
@@ -833,9 +821,9 @@ export default function PeoplePage() {
     const tutorProgress = isManager && u.role === "tutor" && !u.archived_at
       ? (() => {
           const steps = [
-            { ok: !!u.has_student, label: "Учні" },
-            { ok: !!u.has_lesson, label: "Уроки" },
-            { ok: !!u.has_paid_lesson, label: "Оплати" },
+            { ok: !!u.has_student, label: t("people.progressStudents") },
+            { ok: !!u.has_lesson, label: t("people.progressLessons") },
+            { ok: !!u.has_paid_lesson, label: t("people.progressPayments") },
           ];
           const doneCount = steps.filter((s) => s.ok).length;
           const fmt = (d?: string | null) =>
@@ -864,7 +852,7 @@ export default function PeoplePage() {
           onClick={toggleExpanded}
           className="flex min-w-0 flex-1 items-center gap-3 text-left lg:gap-4"
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? "Згорнути картку" : "Розгорнути картку"}
+          aria-label={isExpanded ? t("people.collapseCard") : t("people.expandCard")}
         >
           <div className="relative shrink-0">
             {u.is_pending ? (
@@ -895,12 +883,12 @@ export default function PeoplePage() {
               </p>
               {u.is_pending && (
                 <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
-                  Очікує реєстрації
+                  {t("people.pendingBadge")}
                 </Badge>
               )}
               {u.archived_at && (
                 <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
-                  В архіві
+                  {t("people.archivedBadge")}
                 </Badge>
               )}
               {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
@@ -928,7 +916,7 @@ export default function PeoplePage() {
                   return (
                     <p key={s} className="break-words text-xs text-muted-foreground">
                       <span className="text-foreground">{s}</span>
-                      {r !== undefined && r > 0 ? ` — ${r} ₴/урок` : ""}
+                      {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
                     </p>
                   );
                 })}
@@ -946,8 +934,8 @@ export default function PeoplePage() {
                 e.stopPropagation();
                 openChatWith(u.id);
               }}
-              title="Написати"
-              aria-label="Написати"
+              title={t("people.writeBtn")}
+              aria-label={t("people.writeBtn")}
             >
               <MessageSquare className="h-4 w-4" />
             </Button>
@@ -961,7 +949,7 @@ export default function PeoplePage() {
                 e.stopPropagation();
                 setContactDialog({ open: true, user: u });
               }}
-              title="Редагувати контакти"
+              title={t("people.editContactsBtn")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -977,7 +965,7 @@ export default function PeoplePage() {
                     e.stopPropagation();
                     unarchivePerson(u);
                   }}
-                  title="Повернути з архіву"
+                  title={t("people.unarchiveBtn")}
                 >
                   <ArchiveRestore className="h-3.5 w-3.5" />
                 </Button>
@@ -990,7 +978,7 @@ export default function PeoplePage() {
                     e.stopPropagation();
                     archivePerson(u);
                   }}
-                  title="В архів (історію збережено)"
+                  title={t("people.archiveBtn")}
                 >
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
@@ -1003,7 +991,7 @@ export default function PeoplePage() {
                   e.stopPropagation();
                   purgePerson(u);
                 }}
-                title="Повне видалення (з усіма даними)"
+                title={t("people.deleteBtn")}
               >
                 <FlameKindling className="h-3.5 w-3.5" />
               </Button>
@@ -1013,7 +1001,7 @@ export default function PeoplePage() {
             type="button"
             onClick={toggleExpanded}
             className="ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label={isExpanded ? "Згорнути" : "Розгорнути"}
+            aria-label={isExpanded ? t("people.collapse") : t("people.expand")}
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
           </button>
@@ -1072,7 +1060,7 @@ export default function PeoplePage() {
           {u.bank_card_last4 && (
             <span
               className="inline-flex items-center gap-1 text-xs"
-              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `Картка •••• ${u.bank_card_last4}`}
+              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `${t("people.card")} •••• ${u.bank_card_last4}`}
             >
               <CreditCard className="h-3 w-3" />
               <span className="font-mono">
@@ -1083,15 +1071,15 @@ export default function PeoplePage() {
         </div>
       )}
       <div className="mb-2 flex min-w-0 items-center gap-2 lg:max-w-md">
-        <Label className="text-xs text-muted-foreground shrink-0">Роль:</Label>
+        <Label className="text-xs text-muted-foreground shrink-0">{t("people.roleLabel")}</Label>
         <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
           <SelectTrigger className="h-8 min-w-0 text-xs">
-            <SelectValue placeholder="Без ролі" />
+            <SelectValue placeholder={t("people.noRoleOption")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="manager">Менеджер</SelectItem>
-            <SelectItem value="tutor">Репетитор</SelectItem>
-            <SelectItem value="student">Учень</SelectItem>
+            <SelectItem value="manager">{t("roles.manager")}</SelectItem>
+            <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
+            <SelectItem value="student">{t("roles.student")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1100,11 +1088,11 @@ export default function PeoplePage() {
         <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Прогрес репетитора · {tutorProgress.doneCount}/3
+              {t("people.progressTitle", { done: tutorProgress.doneCount })}
             </p>
             <p className="text-[11px] text-muted-foreground">
-              Реєстр.: {tutorProgress.fmt(u.created_at)}
-              {u.last_interaction_at && ` · Активн.: ${tutorProgress.fmt(u.last_interaction_at)}`}
+              {t("people.progressRegistered")}: {tutorProgress.fmt(u.created_at)}
+              {u.last_interaction_at && ` · ${t("people.progressActive")}: ${tutorProgress.fmt(u.last_interaction_at)}`}
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -1144,7 +1132,7 @@ export default function PeoplePage() {
           }}
         >
           <Settings className="h-3.5 w-3.5 mr-2" />
-          Налаштувати ставки та предмети
+          {t("people.tutorRateBtn")}
         </Button>
       )}
 
@@ -1170,8 +1158,8 @@ export default function PeoplePage() {
             <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs text-muted-foreground">
                 {linkedTutors.length === 0
-                  ? "Ще не призначено жодного репетитора."
-                  : "Ціна за урок (по парах репетитор + предмет):"}
+                  ? t("people.noTutorAssigned")
+                  : t("people.priceByPair")}
               </p>
               {isManager && hasAnyTutor && (
                 <Button
@@ -1181,14 +1169,14 @@ export default function PeoplePage() {
                   onClick={openAddTutor}
                 >
                   <UserPlus className="h-3.5 w-3.5 mr-1" />
-                  Додати репетитора
+                  {t("people.addTutorBtn")}
                 </Button>
               )}
             </div>
             {linkedTutors.length === 0 ? (
               !hasAnyTutor && (
                 <p className="text-xs text-muted-foreground italic">
-                  Спочатку додайте репетитора з предметами у розділі «Репетитори».
+                  {t("people.addFirstTutor")}
                 </p>
               )
             ) : (
@@ -1215,7 +1203,7 @@ export default function PeoplePage() {
                             <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
                             <div className="flex items-center gap-2 shrink-0">
                               <span className="font-medium text-foreground">
-                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">не задано</span>}
+                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">{t("people.notSet")}</span>}
                               </span>
                               <Button
                                 variant="ghost"
@@ -1235,7 +1223,7 @@ export default function PeoplePage() {
                                   })
                                 }
                               >
-                                Змінити
+                                {t("people.changeBtn")}
                               </Button>
                             </div>
                           </div>
@@ -1260,9 +1248,9 @@ export default function PeoplePage() {
     <AppLayout>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">Люди</h1>
+          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">{t("people.title")}</h1>
           <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
-            Користувачі, ролі, контакти й ставки.
+            {t("people.subtitle")}
           </p>
         </div>
         {isManager && (
@@ -1270,20 +1258,20 @@ export default function PeoplePage() {
             <DialogTrigger asChild>
               <Button size="sm" className="shrink-0">
                 <UserPlus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Додати людину</span>
+                <span className="hidden sm:inline">{t("people.addPerson")}</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
-                <DialogTitle>Нова людина</DialogTitle>
+                <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
                 <DialogDescription>
-                  Створюється запис-привид. Коли ця людина зареєструється з тим самим email або телефоном, всі її уроки, оплати і ставки автоматично перенесуться на її акаунт.
+                  {t("people.dialogAddDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label htmlFor="fn">Ім'я</Label>
+                    <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
                     <Input
                       id="fn"
                       value={addForm.first_name}
@@ -1292,7 +1280,7 @@ export default function PeoplePage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="ln">Прізвище</Label>
+                    <Label htmlFor="ln">{t("people.fieldLastName")}</Label>
                     <Input
                       id="ln"
                       value={addForm.last_name}
@@ -1302,7 +1290,7 @@ export default function PeoplePage() {
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="em">Email</Label>
+                  <Label htmlFor="em">{t("common.email")}</Label>
                   <Input
                     id="em"
                     type="email"
@@ -1313,7 +1301,7 @@ export default function PeoplePage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="ph">Телефон</Label>
+                  <Label htmlFor="ph">{t("common.phone")}</Label>
                   <Input
                     id="ph"
                     type="tel"
@@ -1324,10 +1312,10 @@ export default function PeoplePage() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Потрібен хоча б один — email або телефон. За цим полем зв'яжемо привида з реальним акаунтом.
+                  {t("people.ghostHint")}
                 </p>
                 <div>
-                  <Label>Роль</Label>
+                  <Label>{t("people.fieldRole")}</Label>
                   <Select
                     value={addForm.role}
                     onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
@@ -1336,16 +1324,16 @@ export default function PeoplePage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="student">Учень</SelectItem>
-                      <SelectItem value="tutor">Репетитор</SelectItem>
-                      <SelectItem value="manager">Менеджер</SelectItem>
+                      <SelectItem value="student">{t("roles.student")}</SelectItem>
+                      <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
+                      <SelectItem value="manager">{t("roles.manager")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 {addForm.role === "tutor" && (
                   <div>
-                    <Label>Предмети</Label>
-                    <p className="text-xs text-muted-foreground mb-2">Оберіть один або декілька</p>
+                    <Label>{t("people.fieldSubjects")}</Label>
+                    <p className="text-xs text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
                     <SubjectMultiSelect
                       value={addForm.subjects}
                       onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
@@ -1355,11 +1343,11 @@ export default function PeoplePage() {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
-                  Скасувати
+                  {t("people.cancelBtn")}
                 </Button>
                 <Button onClick={addPerson} disabled={adding}>
                   {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  Додати
+                  {t("people.addBtn")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -1371,7 +1359,7 @@ export default function PeoplePage() {
       {!loading && (
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           <Input
-            placeholder="Пошук за іменем, email, телефоном..."
+            placeholder={t("people.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="h-9 min-w-0 flex-1"
@@ -1387,10 +1375,10 @@ export default function PeoplePage() {
             <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Предмет" />
+                  <SelectValue placeholder={t("people.allSubjects")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі предмети</SelectItem>
+                  <SelectItem value="all">{t("people.allSubjects")}</SelectItem>
                   {allSubjects.map((s) => (
                     <SelectItem key={s} value={s}>
                       {s}
@@ -1402,14 +1390,14 @@ export default function PeoplePage() {
             <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Статус" />
+                  <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Активні</SelectItem>
-                  <SelectItem value="pending">Очікують реєстрації</SelectItem>
-                  <SelectItem value="onboarding">Нові (не завершили онбординг)</SelectItem>
-                  <SelectItem value="archived">В архіві</SelectItem>
-                  <SelectItem value="all">Усі (крім архіву)</SelectItem>
+                  <SelectItem value="active">{t("people.statusActive")}</SelectItem>
+                  <SelectItem value="pending">{t("people.statusPending")}</SelectItem>
+                  <SelectItem value="onboarding">{t("people.statusOnboarding")}</SelectItem>
+                  <SelectItem value="archived">{t("people.statusArchived")}</SelectItem>
+                  <SelectItem value="all">{t("people.statusAll")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -1424,14 +1412,14 @@ export default function PeoplePage() {
       ) : (
         <>
           {visiblePeopleCount === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">Нічого не знайдено</p>
+            <p className="py-8 text-center text-sm text-muted-foreground">{t("people.nothingFound")}</p>
           )}
 
           {noRole.length > 0 && (
             <section className="mb-8">
               <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                 <UsersIcon className="h-5 w-5 text-warning" />
-                Без ролі ({noRole.length})
+                {t("people.sectionNoRole", { count: noRole.length })}
               </h2>
               <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
                 {noRole.map((u) => renderUserCard(u))}
@@ -1443,7 +1431,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <UsersIcon className="h-5 w-5 text-primary" />
-              Менеджери ({managers.length})
+              {t("people.sectionManagers", { count: managers.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {managers.map((u) => renderUserCard(u, "primary"))}
@@ -1455,7 +1443,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <GraduationCap className="h-5 w-5 text-primary" />
-              Репетитори ({tutors.length})
+              {t("people.sectionTutors", { count: tutors.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {tutors.map((u) => renderUserCard(u, "primary"))}
@@ -1467,7 +1455,7 @@ export default function PeoplePage() {
           <section className="mb-8">
             <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
-              Учні ({students.length})
+              {t("people.sectionStudents", { count: students.length })}
             </h2>
             <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
               {students.map((u) => renderUserCard(u))}
@@ -1481,15 +1469,15 @@ export default function PeoplePage() {
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
         <DialogContent className="max-h-[90vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Налаштування репетитора</DialogTitle>
+            <DialogTitle>{t("people.dialogTutorRateTitle")}</DialogTitle>
             <DialogDescription>
-              Оберіть предмети, які викладає репетитор, і вкажіть ставку (виплату) за урок для кожного.
+              {t("people.dialogTutorRateDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
             <div>
-              <Label>Предмети</Label>
-              <p className="text-xs text-muted-foreground mb-2">Натисніть, щоб обрати один або декілька</p>
+              <Label>{t("people.fieldSubjects")}</Label>
+              <p className="text-xs text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
               <SubjectMultiSelect
                 value={tutorDialog.subjects}
                 onChange={(next) =>
@@ -1507,9 +1495,9 @@ export default function PeoplePage() {
 
             {tutorDialog.subjects.length > 0 && (
               <div className="space-y-2">
-                <Label>Ставка за урок по кожному предмету (₴)</Label>
+                <Label>{t("people.ratePerSubject")}</Label>
                 <p className="text-xs text-muted-foreground">
-                  Скільки ви виплачуєте репетитору за один проведений урок з цього предмета.
+                  {t("people.ratePerSubjectDesc")}
                 </p>
                 <div className="space-y-2">
                   {tutorDialog.subjects.map((subj) => (
@@ -1527,7 +1515,7 @@ export default function PeoplePage() {
                             rates: { ...s.rates, [subj]: e.target.value },
                           }))
                         }
-                        placeholder="напр. 350"
+                        placeholder={t("people.ratePlaceholder")}
                       />
                       <span className="text-xs text-muted-foreground">₴</span>
                     </div>
@@ -1538,9 +1526,9 @@ export default function PeoplePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveTutorRate}>Зберегти</Button>
+            <Button onClick={saveTutorRate}>{t("people.saveBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1549,22 +1537,22 @@ export default function PeoplePage() {
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ціна для учня</DialogTitle>
+            <DialogTitle>{t("people.dialogStudentPriceTitle")}</DialogTitle>
             <DialogDescription>
-              Скільки учень платить за один урок із цим репетитором з обраного предмета.
+              {t("people.dialogStudentPriceDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>Учень: <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
-              <p>Репетитор: <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
-              <p>Предмет: <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
+              <p>{t("people.labelStudent")} <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
+              <p>{t("people.labelTutor")} <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
+              <p>{t("people.labelSubject")} <span className="font-medium text-foreground">{studentDialog.subject}</span></p>
               {(() => {
                 const tutorRate = tutorSubjectRates[studentDialog.tutorId]?.[studentDialog.subject];
                 if (tutorRate !== undefined && tutorRate > 0) {
                   return (
                     <p className="text-xs">
-                      Ставка репетитора з цього предмета: <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                      {t("people.tutorRateForSubject")} <span className="font-medium text-foreground">{tutorRate} ₴</span>
                     </p>
                   );
                 }
@@ -1572,7 +1560,7 @@ export default function PeoplePage() {
               })()}
             </div>
             <div>
-              <Label htmlFor="price">Ціна за один урок ({currencySymbol(studentDialog.currency)})</Label>
+              <Label htmlFor="price">{t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}</Label>
               <div className="grid grid-cols-[1fr_8rem] gap-2">
                 <Input
                   id="price"
@@ -1581,7 +1569,7 @@ export default function PeoplePage() {
                   step="any"
                   value={studentDialog.price}
                   onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
-                  placeholder="напр. 500"
+                  placeholder={t("people.pricePlaceholder")}
                 />
                 <Select
                   value={studentDialog.currency}
@@ -1601,9 +1589,9 @@ export default function PeoplePage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveStudentPrice}>Зберегти</Button>
+            <Button onClick={saveStudentPrice}>{t("people.saveBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1615,15 +1603,14 @@ export default function PeoplePage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Додати репетитора до учня</DialogTitle>
+            <DialogTitle>{t("people.dialogAddTutorTitle")}</DialogTitle>
             <DialogDescription>
-              Оберіть репетитора, предмет і ціну за один урок для учня{" "}
-              <span className="font-medium text-foreground">{addTutorToStudent.studentName}</span>.
+              {t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label>Репетитор</Label>
+              <Label>{t("roles.tutor")}</Label>
               <Select
                 value={addTutorToStudent.tutorId}
                 onValueChange={(v) =>
@@ -1631,7 +1618,7 @@ export default function PeoplePage() {
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Оберіть репетитора" />
+                  <SelectValue placeholder={t("people.selectTutorPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
                   {allTutors
@@ -1660,14 +1647,14 @@ export default function PeoplePage() {
               if (availableSubjects.length === 0) {
                 return (
                   <p className="text-xs text-muted-foreground italic">
-                    Для цього репетитора всі його предмети вже додано цьому учневі.
+                    {t("people.allSubjectsAdded")}
                   </p>
                 );
               }
               return (
                 <>
                   <div>
-                    <Label>Предмет</Label>
+                    <Label>{t("people.labelSubject").replace(":", "")}</Label>
                     <Select
                       value={addTutorToStudent.subject}
                       onValueChange={(v) => {
@@ -1680,7 +1667,7 @@ export default function PeoplePage() {
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Оберіть предмет" />
+                        <SelectValue placeholder={t("people.selectSubjectPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {availableSubjects.map((s) => (
@@ -1697,7 +1684,7 @@ export default function PeoplePage() {
                     if (tutorRate !== undefined && tutorRate > 0) {
                       return (
                         <p className="text-xs text-muted-foreground">
-                          Ставка репетитора з цього предмета:{" "}
+                          {t("people.tutorRateForSubject")}{" "}
                           <span className="font-medium text-foreground">{tutorRate} ₴</span>
                         </p>
                       );
@@ -1705,7 +1692,7 @@ export default function PeoplePage() {
                     return null;
                   })()}
                   <div>
-                    <Label htmlFor="add-tutor-price">Ціна за один урок ({currencySymbol(addTutorToStudent.currency)}) для учня</Label>
+                    <Label htmlFor="add-tutor-price">{t("people.priceForStudent", { currency: currencySymbol(addTutorToStudent.currency) })}</Label>
                     <div className="grid grid-cols-[1fr_8rem] gap-2">
                       <Input
                         id="add-tutor-price"
@@ -1716,7 +1703,7 @@ export default function PeoplePage() {
                         onChange={(e) =>
                           setAddTutorToStudent((s) => ({ ...s, price: e.target.value }))
                         }
-                        placeholder="напр. 550"
+                        placeholder={t("people.pricePlaceholder")}
                       />
                       <Select
                         value={addTutorToStudent.currency}
@@ -1742,9 +1729,9 @@ export default function PeoplePage() {
               variant="outline"
               onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
             >
-              Скасувати
+              {t("people.cancelBtn")}
             </Button>
-            <Button onClick={saveAddTutorToStudent}>Додати</Button>
+            <Button onClick={saveAddTutorToStudent}>{t("people.addBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

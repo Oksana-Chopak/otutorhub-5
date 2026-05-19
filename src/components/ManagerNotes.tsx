@@ -56,20 +56,20 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
     setSaving(false);
     if (error) {
       console.error("Failed to add note", error);
-      toast.error("Не вдалося зберегти нотатку");
+      toast.error(t("managerNotes.saveFailed"));
       return;
     }
     setDraft("");
-    toast.success("Нотатку додано");
+    toast.success(t("managerNotes.added"));
     load();
   };
 
   const deleteNote = async (id: string) => {
-    if (!confirm("Видалити нотатку?")) return;
+    if (!confirm(t("managerNotes.confirmDelete"))) return;
     const { error } = await supabase.from("manager_notes").delete().eq("id", id);
     if (error) {
       console.error("Failed to delete note", error);
-      toast.error("Не вдалося видалити");
+      toast.error(t("managerNotes.deleteFailed"));
       return;
     }
     setNotes((prev) => prev.filter((n) => n.id !== id));
@@ -88,7 +88,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
         className="flex w-full items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <StickyNote className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && `(${notes.length})`}</span>
+        <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && t("managerNotesExtra.titleWithCount", { count: notes.length }).replace("Приватні нотатки (", "").replace(")", "")}</span>
         {expanded ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
       </button>
 
@@ -98,7 +98,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Напр.: хоче ще вивчати французьку; має 2-3 вільні години..."
+              placeholder={t("managerNotes.placeholder")}
               className={compact ? "min-h-[52px] resize-none text-xs" : "min-h-[60px] resize-none text-xs"}
             />
           </div>
@@ -108,7 +108,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             disabled={saving || !draft.trim()}
             className="w-full h-8 text-xs"
           >
-            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Додати нотатку"}
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("managerNotesExtra.addBtn")}
           </Button>
 
           {loading ? (
@@ -116,7 +116,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : notes.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic text-center py-1">Поки що немає нотаток</p>
+            <p className="text-xs text-muted-foreground italic text-center py-1">{t("managerNotesExtra.noNotes")}</p>
           ) : (
             <div className="space-y-2">
               {notes.map((n) => (

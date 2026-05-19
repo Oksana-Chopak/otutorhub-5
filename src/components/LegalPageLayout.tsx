@@ -32,8 +32,8 @@ export function LegalPageLayout({ title, subtitle, children }: LegalPageLayoutPr
         </article>
 
         <div className="mt-16 pt-8 border-t border-border text-sm text-muted-foreground flex flex-wrap gap-4 justify-between">
-          <Link to="/terms" className="hover:text-foreground">Договір оферти</Link>
-          <Link to="/privacy" className="hover:text-foreground">Політика конфіденційності</Link>
+          <Link to="/terms" className="hover:text-foreground">{t("legal.terms")}</Link>
+          <Link to="/privacy" className="hover:text-foreground">{t("legal.privacy")}</Link>
           <a href="mailto:hello@otutorhub.com" className="hover:text-foreground">hello@otutorhub.com</a>
         </div>
       </main>

@@ -35,12 +35,12 @@ export function GoogleCalendarCard() {
     const url = new URL(window.location.href);
     const calendar = url.searchParams.get("calendar");
     if (calendar === "connected") {
-      toast.success("Google Calendar підключено");
+      toast.success(t("googleCalendar.connected"));
       url.searchParams.delete("calendar");
       window.history.replaceState({}, "", url.pathname + url.search);
       load();
     } else if (calendar === "error") {
-      toast.error("Не вдалося підключити Google Calendar");
+      toast.error(t("googleCalendar.connectFailed"));
       url.searchParams.delete("calendar");
       url.searchParams.delete("reason");
       window.history.replaceState({}, "", url.pathname + url.search);
@@ -52,7 +52,7 @@ export function GoogleCalendarCard() {
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData.session?.access_token;
     if (!accessToken) {
-      toast.error("Будь ласка, увійдіть знову");
+      toast.error(t("googleCalendar.reloginRequired"));
       return;
     }
     const params = new URLSearchParams({
@@ -73,10 +73,10 @@ export function GoogleCalendarCard() {
       .eq("user_id", user.id);
     setBusy(false);
     if (error) {
-      toast.error("Не вдалося відключити");
+      toast.error(t("googleCalendar.disconnectFailed"));
       return;
     }
-    toast.success("Google Calendar відключено");
+    toast.success(t("googleCalendar.disconnected"));
     setConnected(false);
     setEmail(null);
   };
@@ -108,7 +108,7 @@ export function GoogleCalendarCard() {
             </Button>
           </div>
         ) : (
-          <Button onClick={connect}>Підключити Google Calendar</Button>
+          <Button onClick={connect}>{t("googleCalendar.connectBtn")}</Button>
         )}
       </CardContent>
     </Card>

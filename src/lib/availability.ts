@@ -1,13 +1,13 @@
 // Time helpers — minutes since midnight in local timezone
 export const WEEKDAYS_UK = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
 export const WEEKDAYS_FULL_UK = [
-  "Неділя",
-  "Понеділок",
-  "Вівторок",
-  "Середа",
-  "Четвер",
-  "П'ятниця",
-  "Субота",
+  i18n.t("weekdays.sun"),
+  i18n.t("weekdays.mon"),
+  i18n.t("weekdays.tue"),
+  i18n.t("weekdays.wed"),
+  i18n.t("weekdays.thu"),
+  i18n.t("weekdays.fri"),
+  i18n.t("weekdays.sat"),
 ] as const;
 
 export const minutesToHHMM = (m: number): string => {

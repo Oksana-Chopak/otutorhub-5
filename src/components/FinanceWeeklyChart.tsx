@@ -113,7 +113,7 @@ export function FinanceWeeklyChart({
     const data = weekKeys.map((key) => {
       const row: Record<string, number | string> = { week: weekLabel(key) };
       tutorIds.forEach((tid) => {
-        row[tutorNames[tid] ?? "Без імені"] = perTutor[tid][key] ?? 0;
+        row[tutorNames[tid] ?? t("shared.noName")] = perTutor[tid][key] ?? 0;
       });
       return row;
     });
@@ -122,7 +122,7 @@ export function FinanceWeeklyChart({
   }, [lessons, tutorNames, weeks]);
 
   const hasData = tutorIds.length > 0 && data.some((row) =>
-    tutorIds.some((tid) => Number(row[tutorNames[tid] ?? "Без імені"]) !== 0)
+    tutorIds.some((tid) => Number(row[tutorNames[tid] ?? t("shared.noName")]) !== 0)
   );
 
   if (!hasData) {
@@ -155,7 +155,7 @@ export function FinanceWeeklyChart({
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
           {tutorIds.map((tid, idx) => {
-            const name = tutorNames[tid] ?? "Без імені";
+            const name = tutorNames[tid] ?? t("shared.noName");
             return (
               <Line
                 key={tid}

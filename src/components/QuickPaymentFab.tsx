@@ -83,7 +83,7 @@ export function QuickPaymentFab() {
           .in("student_id", ids),
       ]);
       (profs ?? []).forEach((p: any) => {
-        names[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень";
+        names[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.student");
       });
       (rates ?? []).forEach((r: any) => {
         currencies[r.student_id] = r.currency ?? "UAH";
@@ -92,7 +92,7 @@ export function QuickPaymentFab() {
     setRows(
       lessons.map((l) => ({
         ...l,
-        student_name: names[l.student_id] ?? "Учень",
+        student_name: names[l.student_id] ?? t("quickPayment.studentFallback"),
         currency: currencies[l.student_id] ?? "UAH",
       }))
     );
@@ -112,12 +112,12 @@ export function QuickPaymentFab() {
       .eq("lesson_id", id);
     setBusyId(null);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("quickPayment.updateFailed"));
       return;
     }
     setRows((r) => r.filter((x) => x.id !== id));
     setUnpaidCount((c) => Math.max(0, c - 1));
-    toast.success("Позначено як оплачено");
+    toast.success(t("quickPayment.markedPaid"));
   };
 
   if (unpaidCount === 0) return null;
@@ -128,10 +128,10 @@ export function QuickPaymentFab() {
         <Button
           size="lg"
           className="fixed bottom-20 right-4 z-40 h-14 gap-2 rounded-full shadow-lg md:bottom-6 md:right-6"
-          aria-label="Швидко відмітити оплату"
+          aria-label={t("quickPayment.btnAria")}
         >
           <Wallet className="h-5 w-5" />
-          <span className="hidden sm:inline">Отримав оплату</span>
+          <span className="hidden sm:inline">{t("quickPaymentFabExtra.btnLabel")}</span>
           <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs font-bold">
             {unpaidCount}
           </span>
@@ -139,7 +139,7 @@ export function QuickPaymentFab() {
       </SheetTrigger>
       <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Відмітити отриману оплату</SheetTitle>
+          <SheetTitle>{t("quickPaymentFabExtra.sheetTitle")}</SheetTitle>
         </SheetHeader>
         {loading ? (
           <div className="flex justify-center py-10">

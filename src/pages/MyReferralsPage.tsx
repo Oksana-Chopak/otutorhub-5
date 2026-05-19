@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Trophy, Medal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "react-i18next";
 
 interface LeaderRow {
   referrer_id: string;
@@ -15,9 +16,9 @@ interface LeaderRow {
   total_signups: number;
 }
 
-const RANK_REWARDS = ["🥇 +6 міс Pro", "🥈 +3 міс Pro", "🥉 +3 міс Pro"];
-
 export default function MyReferralsPage() {
+  const { t } = useTranslation();
+  const RANK_REWARDS = [t("myReferrals.rankReward1"), t("myReferrals.rankReward2"), t("myReferrals.rankReward3")];
   const { user } = useAuth();
   const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,10 +45,10 @@ export default function MyReferralsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Trophy className="h-5 w-5 text-warning" />
-              Топ рефереів місяця
+              {t("myReferrals.leaderboardTitle")}
             </CardTitle>
             <CardDescription>
-              Призи топ-рефереру: 🥇 +6 міс · 🥈🥉 +3 міс · 4–10 місце — +1 міс Pro
+              {t("myReferrals.leaderboardDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -57,7 +58,7 @@ export default function MyReferralsPage() {
               </div>
             ) : leaderboard.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
-                Поки що ніхто не запросив друзів цього місяця. Будь першим! 🚀
+                {t("myReferrals.noReferrals")}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -76,10 +77,10 @@ export default function MyReferralsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-medium text-foreground">
-                          {isMe ? `${name} (ти)` : name}
+                          {isMe ? `${name} ${t("myReferrals.you")}` : name}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {row.total_signups} запрошень · {row.pro_upgrades} Pro
+                          {t("myReferrals.signupsProLabel", { signups: row.total_signups, pro: row.pro_upgrades })}
                         </div>
                       </div>
                       {idx < 3 && (
@@ -88,7 +89,7 @@ export default function MyReferralsPage() {
                         </Badge>
                       )}
                       {idx >= 3 && idx < 10 && (
-                        <Badge variant="outline" className="shrink-0 text-[10px]">+1 міс Pro</Badge>
+                        <Badge variant="outline" className="shrink-0 text-[10px]">{t("myReferrals.rankReward4to10")}</Badge>
                       )}
                     </li>
                   );
@@ -100,25 +101,21 @@ export default function MyReferralsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Три простих правила</CardTitle>
-            <CardDescription>Без зірочок і дрібного шрифту</CardDescription>
+            <CardTitle>{t("myReferrals.rulesTitle")}</CardTitle>
+            <CardDescription>{t("myReferrals.rulesDesc")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-foreground">
-            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span>Друг зареєструвався за твоїм посиланням → він отримує <strong>30 днів тріалу у подарунок</strong>.</span></div>
-            <div className="flex gap-3"><span className="text-xl">2️⃣</span><span>Друг оплатив перший місяць → ти отримуєш <strong>місяць безкоштовно</strong>.</span></div>
-            <div className="flex gap-3"><span className="text-xl">3️⃣</span><span>Три друзі оплатили за один місяць → ти отримуєш <strong>три місяці безкоштовно</strong>.</span></div>
+            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule1") }} /></div>
+            <div className="flex gap-3"><span className="text-xl">2️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule2") }} /></div>
+            <div className="flex gap-3"><span className="text-xl">3️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule3") }} /></div>
           </CardContent>
         </Card>
 
         <Card className="border-primary/20 bg-primary/5">
           <CardContent className="space-y-2 p-5 text-sm">
-            <p className="font-semibold text-foreground">👯 Хороше ділиться двічі</p>
-            <p className="text-muted-foreground">
-              Знаєш репетитора, який досі веде облік у блокноті? Саме час врятувати людину 😄
-            </p>
-            <p className="text-muted-foreground">
-              Поділись посиланням — твій друг отримає 30 днів тріалу, а коли він підпишеться — ти також отримаєш 30 днів безкоштовно. Без умов дрібним шрифтом.
-            </p>
+            <p className="font-semibold text-foreground">{t("myReferrals.shareTitle")}</p>
+            <p className="text-muted-foreground">{t("myReferrals.shareText1")}</p>
+            <p className="text-muted-foreground">{t("myReferrals.shareText2")}</p>
           </CardContent>
         </Card>
       </div>

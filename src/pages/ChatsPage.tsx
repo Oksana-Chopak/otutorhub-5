@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -71,7 +72,7 @@ interface ProfileLite {
 
 function fullName(p?: ProfileLite | null) {
   if (!p) return "—";
-  return `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Без імені";
+  return `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "–";
 }
 
 function timeShort(iso: string | null | undefined) {
@@ -85,6 +86,7 @@ function timeShort(iso: string | null | undefined) {
 }
 
 export default function ChatsPage() {
+  const { t } = useTranslation();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   const myId = user?.id ?? null;
@@ -259,8 +261,8 @@ export default function ChatsPage() {
           setSelectedId(match.id);
         } else {
           toast({
-            title: "Немає чату з цією людиною",
-            description: "Створіть новий чат через кнопку +",
+            title: t("chats.noThreadTitle"),
+            description: t("chats.createViaButton"),
           });
         }
       } else {
@@ -427,13 +429,13 @@ export default function ChatsPage() {
       .single();
     if (error || !msgData) {
       setSending(false);
-      toast({ title: "Не вдалося надіслати", description: error?.message, variant: "destructive" });
+      toast({ title: t("chats.sendFailed"), description: error?.message, variant: "destructive" });
       return;
     }
 
     if (file) {
       if (file.size > MAX_ATTACH_BYTES) {
-        toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+        toast({ title: t("chats.fileTooLarge"), description: t("chats.maxFileSize"), variant: "destructive" });
         setSending(false);
         setPendingFile(null);
         return;
@@ -444,7 +446,7 @@ export default function ChatsPage() {
         .from("chat-attachments")
         .upload(path, file, { contentType: file.type, upsert: false });
       if (upErr) {
-        toast({ title: "Помилка завантаження файлу", description: upErr.message, variant: "destructive" });
+        toast({ title: t("chats.fileUploadError"), description: upErr.message, variant: "destructive" });
       } else {
         const { error: insErr } = await supabase.from("chat_message_attachments").insert({
           message_id: (msgData as any).id,
@@ -456,7 +458,7 @@ export default function ChatsPage() {
           size_bytes: file.size,
         });
         if (insErr) {
-          toast({ title: "Не вдалося прикріпити файл", description: insErr.message, variant: "destructive" });
+          toast({ title: t("chats.attachFailed"), description: insErr.message, variant: "destructive" });
         }
       }
     }
@@ -573,14 +575,14 @@ export default function ChatsPage() {
     });
     setCreatingThread(false);
     if (error) {
-      toast({ title: "Не вдалося створити чат", description: error.message, variant: "destructive" });
+      toast({ title: t("chats.createFailed"), description: error.message, variant: "destructive" });
       return;
     }
     const newId = data as unknown as string;
     setNewChatOpen(false);
     await loadThreads();
     if (newId) setSelectedId(newId);
-    toast({ title: "Чат створено" });
+    toast({ title: t("chats.chatCreated") });
   };
 
   return (
@@ -593,11 +595,11 @@ export default function ChatsPage() {
         )}
       >
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">Чати</h1>
+          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">{t("chats.title")}</h1>
           <p className="text-xs text-muted-foreground lg:text-sm">
             {isManager
-              ? "Перегляд і модерація переписок учнів та репетиторів"
-              : "Особисте листування з вашими репетиторами та учнями"}
+              ? t("chats.pageSubtitleManager")
+              : t("chats.pageSubtitleOther")}
           </p>
         </div>
         {isManager && (
@@ -605,31 +607,31 @@ export default function ChatsPage() {
             <DialogTrigger asChild>
               <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">Створити чат</span>
+                <span className="hidden sm:inline">{t("chats.createChatBtn")}</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Новий чат</DialogTitle>
+                <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
                 <DialogDescription>
-                  Виберіть пару репетитор–учень. Чат стане доступним обом сторонам.
+                  {t("chats.newChatDesc")}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-3 py-2">
-                <Label>Пара</Label>
+                <Label>{t("chats.pairLabel")}</Label>
                 {pairsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Завантаження пар…
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
                   </div>
                 ) : availablePairs.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    Немає активних пар (потрібен хоча б один урок або призначена ставка).
+                    {t("chats.noPairs")}
                   </p>
                 ) : (
                   <>
                     <Select value={selectedPair} onValueChange={setSelectedPair}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Виберіть репетитора та учня" />
+                        <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         {availablePairs.map((p) => {
@@ -640,7 +642,7 @@ export default function ChatsPage() {
                           return (
                             <SelectItem key={key} value={key}>
                               {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
-                              {exists ? "  · чат уже існує" : ""}
+                              {exists ? t("chats.chatAlreadyExistsTag") : ""}
                             </SelectItem>
                           );
                         })}
@@ -652,7 +654,7 @@ export default function ChatsPage() {
                       if (!existing) return null;
                       return (
                         <p className="text-xs text-warning">
-                          Чат для цієї пари вже існує — кнопка просто відкриє його.
+                          {t("chats.chatExistsWarning")}
                         </p>
                       );
                     })()}
@@ -661,10 +663,10 @@ export default function ChatsPage() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
-                  Скасувати
+                  {t("common.cancel")}
                 </Button>
                 <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
-                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : "Створити"}
+                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -681,11 +683,11 @@ export default function ChatsPage() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
-          <p className="text-sm font-medium text-foreground">Поки немає чатів</p>
+          <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
             {isManager
-              ? "Створіть чат для будь-якої пари репетитор–учень кнопкою «Створити чат»."
-              : "Чати зʼявляться, коли менеджер призначить вам урок або ставку."}
+              ? t("chats.noChatsManager")
+              : t("chats.noChatsOther")}
           </p>
         </div>
       ) : (
@@ -707,14 +709,14 @@ export default function ChatsPage() {
                       autoFocus
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      placeholder="Пошук…"
+                      placeholder={t("chats.searchPlaceholder")}
                       className="h-8 pl-8 pr-8 text-sm"
                     />
                     <button
                       type="button"
                       onClick={() => { setSearch(""); setSearchOpen(false); }}
                       className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
-                      aria-label="Закрити пошук"
+                      aria-label={t("chats.closeSearch")}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -725,7 +727,7 @@ export default function ChatsPage() {
                     size="icon"
                     className="h-8 w-8 shrink-0"
                     onClick={() => setSearchOpen(true)}
-                    aria-label="Пошук"
+                    aria-label={t("common.search")}
                   >
                     <Search className="h-4 w-4" />
                   </Button>
@@ -735,9 +737,9 @@ export default function ChatsPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="recent">За останнім повідомленням</SelectItem>
-                    <SelectItem value="unread">Спершу непрочитані</SelectItem>
-                    <SelectItem value="name">За іменем</SelectItem>
+                    <SelectItem value="recent">{t("chats.sortRecent")}</SelectItem>
+                    <SelectItem value="unread">{t("chats.sortUnread")}</SelectItem>
+                    <SelectItem value="name">{t("chats.sortName")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -745,7 +747,7 @@ export default function ChatsPage() {
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {visibleThreads.length === 0 ? (
                 <p className="px-2 py-6 text-center text-xs text-muted-foreground">
-                  {search ? "Нічого не знайдено" : "Немає чатів"}
+                  {search ? t("chats.noResults") : t("chats.noChats")}
                 </p>
               ) : (
                 visibleThreads.map((t) => {
@@ -775,7 +777,7 @@ export default function ChatsPage() {
                           {isUnread && (
                             <span
                               className="h-2 w-2 rounded-full bg-primary"
-                              aria-label="Непрочитане"
+                              aria-label={t("chats.unreadDot")}
                             />
                           )}
                         </div>
@@ -786,7 +788,7 @@ export default function ChatsPage() {
                           isUnread ? "text-foreground" : "text-muted-foreground"
                         )}
                       >
-                        {t.last_message_preview ?? "Немає повідомлень"}
+                        {t.last_message_preview ?? t("chats.noMessagesLabel")}
                       </p>
                     </button>
                   );
@@ -811,7 +813,7 @@ export default function ChatsPage() {
                     size="icon"
                     className="h-9 w-9 shrink-0 lg:hidden"
                     onClick={() => setSelectedId(null)}
-                    aria-label="Назад до списку"
+                    aria-label={t("chats.backToList")}
                   >
                     <ArrowLeft className="h-5 w-5" />
                   </Button>
@@ -821,7 +823,7 @@ export default function ChatsPage() {
                     </p>
                     {isManager && (
                       <p className="truncate text-xs text-muted-foreground">
-                        Репетитор: {fullName(profiles[selectedThread.tutor_id])} · Учень:{" "}
+                        {t("chats.tutorLabel")} {fullName(profiles[selectedThread.tutor_id])} · {t("chats.studentLabel")}{" "}
                         {fullName(profiles[selectedThread.student_id])}
                       </p>
                     )}
@@ -829,7 +831,7 @@ export default function ChatsPage() {
                   {isManager && (
                     <Badge variant="secondary" className="shrink-0 gap-1">
                       <ShieldCheck className="h-3 w-3" />
-                      <span className="hidden sm:inline">Менеджер</span>
+                      <span className="hidden sm:inline">{t("chats.managerBadge")}</span>
                     </Badge>
                   )}
                 </div>
@@ -845,12 +847,12 @@ export default function ChatsPage() {
                           setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
                         }
                       >
-                        Показати всю історію
+                        {t("chats.showHistory")}
                       </Button>
                     </div>
                   )}
                   {messages.length === 0 ? (
-                    <p className="text-center text-xs text-muted-foreground">Немає повідомлень. Напишіть перше!</p>
+                    <p className="text-center text-xs text-muted-foreground">{t("chats.noMessagesYet")}</p>
                   ) : (
                     messages.map((m) => {
                       const mine = m.sender_id === myId;
@@ -880,7 +882,7 @@ export default function ChatsPage() {
                                   )}
                                 >
                                   <ShieldCheck className="h-2.5 w-2.5" />
-                                  Менеджер
+                                  {t("chats.managerBadge")}
                                 </span>
                               )}
                             </p>
@@ -905,17 +907,17 @@ export default function ChatsPage() {
                   <div className="relative border-t border-border">
                     <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1 lg:flex-wrap lg:overflow-visible lg:pb-2">
                       {[
-                        "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
-                        "Дякуємо за оплату — підтверджуємо отримання.",
-                        "Нагадуємо про урок сьогодні. До зустрічі!",
-                        "Будь ласка, надішліть скрін оплати для підтвердження.",
+                        t("chatsQuickReplies").split(",")[0],
+                        t("chatsQuickReplies").split(",")[1],
+                        t("chatsQuickReplies").split(",")[2],
+                        t("chatsQuickReplies").split(",")[3],
                       ].map((tpl) => (
                         <button
                           key={tpl}
                           type="button"
                           onClick={() => setDraft(tpl)}
                           className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                          title="Вставити шаблон"
+                          title={t("chats.insertTemplate")}
                         >
                           {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
                         </button>
@@ -937,7 +939,7 @@ export default function ChatsPage() {
                       type="button"
                       onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
                       className="rounded p-1 text-muted-foreground hover:text-destructive"
-                      aria-label="Прибрати файл"
+                      aria-label={t("chats.removeFile")}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
@@ -959,7 +961,7 @@ export default function ChatsPage() {
                       const f = e.target.files?.[0];
                       if (f) {
                         if (f.size > MAX_ATTACH_BYTES) {
-                          toast({ title: "Файл завеликий", description: "Максимум 15 МБ", variant: "destructive" });
+                          toast({ title: t("chats.fileTooLarge"), description: t("chats.maxFileSize"), variant: "destructive" });
                           e.target.value = "";
                           return;
                         }
@@ -973,8 +975,8 @@ export default function ChatsPage() {
                     variant="ghost"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={sending}
-                    title="Прикріпити файл"
-                    aria-label="Прикріпити файл"
+                    title={t("chats.attach")}
+                    aria-label={t("chats.attach")}
                     className="shrink-0"
                   >
                     <Paperclip className="h-4 w-4" />
@@ -991,7 +993,7 @@ export default function ChatsPage() {
                       }
                     }}
                     placeholder={
-                      isManager ? "Написати від імені менеджера…" : "Напишіть повідомлення…"
+                      isManager ? t("chats.placeholderManager") : t("chats.placeholderOther")
                     }
                     maxLength={4000}
                     disabled={sending}
@@ -1005,7 +1007,7 @@ export default function ChatsPage() {
               </>
             ) : (
               <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted-foreground">
-                Виберіть чат
+                {t("chats.selectChat")}
               </div>
             )}
           </div>

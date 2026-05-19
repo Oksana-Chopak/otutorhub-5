@@ -62,7 +62,7 @@ export default function StudentHomeworkPage() {
   return (
     <StudentLayout>
       <div className="space-y-4">
-        <h1 className="hidden text-2xl font-bold text-foreground lg:block">Домашні завдання</h1>
+        <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.homeworkTitle")}</h1>
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : rows.length === 0 ? (

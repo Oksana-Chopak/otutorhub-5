@@ -171,7 +171,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
     if (!active) return;
     const lesson = lessons[active.lesson_id];
     if (!lesson) {
-      toast.error("Не вдалося знайти урок");
+      toast.error(t("tutorChangeRequests.lessonNotFound"));
       return;
     }
     setSubmitting(true);
@@ -189,7 +189,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
       if (lessonErr) {
         setSubmitting(false);
-        toast.error("Не вдалося оновити урок", { description: lessonErr.message });
+        toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
         return;
       }
 
@@ -198,13 +198,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         .upsert({ lesson_id: lesson.id, student_price: newPrice } as any, { onConflict: "lesson_id" });
       if (priceErr) {
         setSubmitting(false);
-        toast.error("Не вдалося оновити ціну", { description: priceErr.message });
+        toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
         return;
       }
     } else {
       if (!proposedAt) {
         setSubmitting(false);
-        toast.error("Оберіть новий час");
+        toast.error(t("tutorChangeRequests.timeRequired"));
         return;
       }
       const newStart = new Date(proposedAt).toISOString();
@@ -214,7 +214,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         .eq("id", lesson.id);
       if (lessonErr) {
         setSubmitting(false);
-        toast.error("Не вдалося перенести урок", { description: lessonErr.message });
+        toast.error(t("tutorChangeRequests.rescheduleFailed"), { description: lessonErr.message });
         return;
       }
     }
@@ -233,12 +233,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
     setSubmitting(false);
     if (reqErr) {
-      toast.error("Урок оновлено, але не вдалося оновити запит", {
+      toast.error(t("tutorChangeRequests.requestUpdateFailed") ?? "Урок оновлено, але не вдалося оновити запит", {
         description: reqErr.message,
       });
       return;
     }
-    toast.success(active.kind === "cancel" ? "Скасування підтверджено" : "Перенесення підтверджено");
+    toast.success(active.kind === "cancel" ? t("tutorChangeRequests.cancelApproved") : t("tutorChangeRequests.rescheduleApproved"));
     close();
     load();
   };
@@ -257,10 +257,10 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       .eq("id", active.id);
     setSubmitting(false);
     if (error) {
-      toast.error("Не вдалося відхилити", { description: error.message });
+      toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
       return;
     }
-    toast.success("Запит відхилено");
+    toast.success(t("tutorChangeRequestsExtra.requestRejected"));
     close();
     load();
   };
@@ -328,7 +328,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Урок: {lessonDate}
-                      {proposedDate && ` · → новий час: ${proposedDate}`}
+                      {proposedDate && t("tutorChangeRequestsExtra.proposedTime", { time: proposedDate })}
                     </p>
                     {req.reason && (
                       <p className="mt-1 text-xs text-foreground/80 italic">
@@ -339,7 +339,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {req.kind === "cancel" ? "Скасування" : "Перенесення"}
+                    {req.kind === "cancel" ? t("tutorChangeRequestsExtra.kindCancel") : t("tutorChangeRequestsExtra.kindReschedule")}
                   </Badge>
                   <Button size="sm" onClick={() => openRequest(req)}>
                     Розглянути
@@ -358,8 +358,8 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               <DialogHeader>
                 <DialogTitle>
                   {active.kind === "cancel"
-                    ? "Скасування уроку"
-                    : "Перенесення уроку"}
+                    : t("tutorChangeRequestsExtra.cancelTitle")
+                    : t("tutorChangeRequestsExtra.rescheduleTitle")}
                 </DialogTitle>
                 <DialogDescription>
                   {nameOf(active.student_id)} · {activeLesson.subject} ·{" "}
@@ -371,7 +371,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
               {active.reason && (
                 <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                  <p className="text-xs text-muted-foreground mb-1">Коментар учня:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("tutorChangeRequestsExtra.studentComment")}</p>
                   <p className="text-foreground italic">«{active.reason}»</p>
                 </div>
               )}
@@ -388,9 +388,9 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   >
                     {isLate
                       ? `⚠ До уроку ${hoursUntil < 0 ? "вже минув" : `залишилось ~${hoursUntil} год`} — менше за ваше правило (${cancelFreeHours} год). Можна нарахувати оплату.`
-                      : `Запит надійшов вчасно — до уроку ще ~${hoursUntil} год (правило: ≥${cancelFreeHours} год безкоштовно).`}
+                      : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
-                  <Label>Що робимо з оплатою?</Label>
+                  <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
                   <RadioGroup
                     value={chargeChoice}
                     onValueChange={(v) => setChargeChoice(v as ChargeChoice)}
@@ -399,18 +399,18 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     {[
                       {
                         value: "none" as ChargeChoice,
-                        title: "Без оплати",
-                        desc: "Учень нічого не платить — урок просто скасується.",
+                        title: t("tutorChangeRequestsExtra.noPay"),
+                        desc: t("tutorChangeRequestsExtra.noPayDesc"),
                       },
                       {
                         value: "partial" as ChargeChoice,
-                        title: "Часткова оплата",
-                        desc: `Нарахувати лише частину від ${activeLesson.student_price} ₴.`,
+                        title: t("tutorChangeRequestsExtra.partialPay"),
+                        desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: `${activeLesson.student_price} ₴` }),
                       },
                       {
                         value: "full" as ChargeChoice,
-                        title: "Повна оплата",
-                        desc: `Учень платить ${activeLesson.student_price} ₴ як за проведений урок.`,
+                        title: t("tutorChangeRequestsExtra.fullPay"),
+                        desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: `${activeLesson.student_price} ₴` }),
                       },
                     ].map((opt) => (
                       <label
@@ -449,7 +449,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label htmlFor="proposed-time">Новий час</Label>
+                  <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
                   <Input
                     id="proposed-time"
                     type="datetime-local"
@@ -468,13 +468,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="t-response">Коментар учню (опційно)</Label>
+                <Label htmlFor="t-response">{t("tutorChangeRequestsExtra.responseLabel")}</Label>
                 <Textarea
                   id="t-response"
                   rows={2}
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
-                  placeholder="Кілька слів учню…"
+                  placeholder={t("tutorChangeRequestsExtra.responsePlaceholder")}
                   maxLength={500}
                 />
               </div>

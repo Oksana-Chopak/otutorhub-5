@@ -96,7 +96,7 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
   // Student view: rate the lesson
   const save = async () => {
     if (rating < 1) {
-      toast({ title: "Оберіть оцінку від 1 до 5 ⭐", variant: "destructive" });
+      toast({ title: t("lessonFeedback.ratingRequired"), variant: "destructive" });
       return;
     }
     setSaving(true);
@@ -116,11 +116,11 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
       : await supabase.from("lesson_feedback").insert(payload);
     setSaving(false);
     if (error) {
-      toast({ title: "Не вдалося зберегти відгук", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonFeedback.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
     setExisting({ rating, comment: comment.trim() || null });
-    toast({ title: existing ? "Відгук оновлено 💛" : "Дякуємо за відгук! 💛" });
+    toast({ title: existing ? t("lessonFeedback.updated") : t("lessonFeedback.submitted") });
   };
 
   return (
@@ -138,7 +138,7 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
             onMouseLeave={() => setHover(0)}
             onClick={() => setRating(n)}
             className="p-1 transition-transform hover:scale-110"
-            aria-label={`Оцінити на ${n}`}
+            aria-label={t("lessonFeedback.rateAria", { n })}
           >
             <Star
               className={`h-7 w-7 ${
@@ -152,13 +152,13 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
       </div>
       <Textarea
         rows={3}
-        placeholder="Що сподобалося, що можна покращити? (необов'язково)"
+        placeholder={t("lessonFeedback.placeholder")}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
       <Button size="sm" variant="outline" className="mt-2" onClick={save} disabled={saving}>
         {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-        {existing ? "Оновити відгук" : "Надіслати відгук"}
+        {existing ? t("lessonFeedback.updateBtn") : t("lessonFeedback.submitBtn")}
       </Button>
     </section>
   );

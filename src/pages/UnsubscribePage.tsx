@@ -21,7 +21,7 @@ export default function UnsubscribePage() {
 
   useEffect(() => {
     if (!token) {
-      setState({ kind: "error", message: "Посилання недійсне — відсутній токен." });
+      setState({ kind: "error", message: t("unsubscribePage.invalidToken") });
       return;
     }
 
@@ -35,13 +35,13 @@ export default function UnsubscribePage() {
         if (!res.ok || !body.email) {
           setState({
             kind: "error",
-            message: body?.error || "Посилання недійсне або вже використане.",
+            message: body?.error || t("unsubscribePage.invalidLink"),
           });
           return;
         }
         setState({ kind: "ready", email: body.email });
       } catch {
-        setState({ kind: "error", message: "Не вдалося перевірити посилання." });
+        setState({ kind: "error", message: t("unsubscribePage.verifyFailed") });
       }
     })();
   }, [token]);
@@ -60,12 +60,12 @@ export default function UnsubscribePage() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setState({ kind: "error", message: body?.error || "Не вдалося відписати." });
+        setState({ kind: "error", message: body?.error || t("unsubscribePage.unsubFailed") });
         return;
       }
       setState({ kind: "success", email: state.email });
     } catch {
-      setState({ kind: "error", message: "Сталася помилка під час відписки." });
+      setState({ kind: "error", message: t("unsubscribePage.networkError") });
     }
   };
 
@@ -83,7 +83,7 @@ export default function UnsubscribePage() {
                 <MailX className="h-5 w-5 text-foreground" />
               )}
             </div>
-            <h1 className="text-xl font-semibold text-foreground">Відписка від листів</h1>
+            <h1 className="text-xl font-semibold text-foreground">{t("unsubscribePage.title")}</h1>
           </div>
 
           {state.kind === "validating" && (

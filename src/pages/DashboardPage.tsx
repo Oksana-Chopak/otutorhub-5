@@ -248,16 +248,15 @@ export default function DashboardPage() {
     const seenKey = `monthly_recap_announced_${monthKey}`;
     if (localStorage.getItem(seenKey) === "1") return;
     const months = [
-      "січень", "лютий", "березень", "квітень", "травень", "червень",
-      "липень", "серпень", "вересень", "жовтень", "листопад", "грудень",
+      i18n.t("dashboardExtra.months").split(","), i18n.t("dashboardExtra.months").split(","),
     ];
     const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
     import("sonner").then(({ toast }) => {
-      toast(`🎉 Твій ${months[prevMonthIdx]} готовий!`, {
-        description: "Подивись підсумок місяця та поділись з друзями.",
+      toast(`🎉 ${t("monthlySummaryExtra.greetingNoName", { month: months[prevMonthIdx] })} готовий!`, {
+        description: t("dashboardExtra.monthlySummaryDesc"),
         duration: 8000,
         action: {
-          label: "Подивитись",
+          label: t("dashboardExtra.monthlySummaryBtn"),
           onClick: () => {
             const el = document.getElementById("monthly-summary-anchor");
             el?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -305,7 +304,7 @@ export default function DashboardPage() {
     ]);
 
     if (lessonsError) {
-      toast.error("Не вдалося завантажити дані. Перевірте з'єднання.");
+      toast.error(t("dashboardExtra.loadFailed"));
       setLoading(false);
       return;
     }
@@ -320,7 +319,7 @@ export default function DashboardPage() {
 
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
-      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || "Без імені";
+      profileMap[profile.id] = `${profile.first_name} ${profile.last_name}`.trim() || t("shared.noName");
     });
 
     const defaultsMap: Record<string, string> = {};
@@ -397,7 +396,7 @@ export default function DashboardPage() {
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
-      toast.error("Не вдалося змінити статус уроку. Спробуйте ще раз.");
+      toast.error(t("dashboardExtra.statusChangeFailed"));
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
@@ -420,7 +419,7 @@ export default function DashboardPage() {
         { onConflict: "lesson_id" },
       );
     if (error) {
-      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
@@ -554,16 +553,16 @@ export default function DashboardPage() {
   );
 
   const profitPeriodLabel: Record<ProfitPeriod, string> = {
-    all: "за весь час",
-    month: "за цей місяць",
-    week: "за цей тиждень",
+    all: t("dashboardExtra.periodAll"),
+    month: t("dashboardExtra.periodMonth"),
+    week: t("dashboardExtra.periodWeek"),
   };
 
   const statusLabel: Record<LessonStatus, string> = {
-    pending: "Запит",
-    scheduled: "Заплановано",
-    completed: "Проведено",
-    cancelled: "Скасовано",
+    pending: t("dashboardExtra.statusPending"),
+    scheduled: t("dashboardExtra.statusScheduled"),
+    completed: t("dashboardExtra.statusCompleted"),
+    cancelled: t("dashboardExtra.statusCancelled"),
   };
 
   const firstName = useMemo(() => {
@@ -573,9 +572,9 @@ export default function DashboardPage() {
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Доброго ранку";
-    if (hour < 18) return "Доброго дня";
-    return "Доброго вечора";
+    if (hour < 12) return t("dashboardExtra.greetingMorning");
+    if (hour < 18) return t("dashboardExtra.greetingDay");
+    return t("dashboardExtra.greetingEvening");
   }, []);
 
   const timeEmoji = useMemo(() => {
@@ -610,10 +609,10 @@ export default function DashboardPage() {
         key: "pending-payments",
         icon: TrendingUp,
         tone: "warning" as const,
-        title: `Очікують оплати: ${pendingPayments.length}`,
-        description: "Завершені уроки без повної оплати або виплати.",
-        to: "/finances?filter=need_pay",
-        cta: "Переглянути неоплачені",
+        title: t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length }),
+        description: t("dashboardExtra.pendingPaymentsDesc"),
+        to: "/finances",
+        cta: t("dashboardExtra.pendingPaymentsCta"),
       });
     }
     // 2. Tutor referral requests (students looking for a tutor)
@@ -625,9 +624,9 @@ export default function DashboardPage() {
         title: `${tutorReferralRequestCount} запит${
           tutorReferralRequestCount === 1 ? "" : tutorReferralRequestCount < 5 ? "и" : "ів"
         } на репетитора`,
-        description: "Учні залишили заявку — підберіть фахівця.",
+        description: t("dashboardExtra.tutorRequestsDesc"),
         to: "/referrals",
-        cta: "Переглянути заявки",
+        cta: t("dashboardExtra.tutorRequestsCta"),
       });
     }
     // 3. Support / subscription requests
@@ -639,9 +638,9 @@ export default function DashboardPage() {
         title: `${supportRequestCount} звернен${
           supportRequestCount === 1 ? "ня" : supportRequestCount < 5 ? "ня" : "ь"
         } у службу підтримки`,
-        description: "Репетитори надіслали запитання — дайте відповідь.",
+        description: t("dashboardExtra.supportRequestsDesc"),
         to: "/subscription-requests",
-        cta: "Відкрити звернення",
+        cta: t("dashboardExtra.supportRequestsCta"),
       });
     }
     // 4. Students without a tutor
@@ -653,9 +652,9 @@ export default function DashboardPage() {
         title: `${studentsWithoutTutor} учн${
           studentsWithoutTutor === 1 ? "ів" : studentsWithoutTutor < 5 ? "ів" : "ів"
         } без репетитора`,
-        description: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
+        description: t("dashboardExtra.studentsWithoutTutorDesc"),
         to: "/people",
-        cta: "Відкрити людей",
+        cta: t("dashboardExtra.studentsWithoutTutorCta"),
       });
     }
     // 5. Lessons without meeting link
@@ -664,10 +663,10 @@ export default function DashboardPage() {
         key: "no-meeting",
         icon: Video,
         tone: "primary" as const,
-        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
-        description: "Репетитори не вказали лінк на зустріч.",
+        title: t("dashboardPageExtra.lessonsWithoutLink", { count: lessonsWithoutMeeting }),
+        description: t("dashboardExtra.noMeetingLinkDesc"),
         to: "/schedule",
-        cta: "Відкрити розклад",
+        cta: t("dashboardExtra.pendingLessonRequestsCta"),
       });
     }
     // Lower-priority items (kept for completeness)
@@ -679,9 +678,9 @@ export default function DashboardPage() {
         title: `${pendingLessonRequests} запит${
           pendingLessonRequests === 1 ? "" : pendingLessonRequests < 5 ? "и" : "ів"
         } на уроки`,
-        description: "Учні чекають підтвердження часу.",
+        description: t("dashboardExtra.pendingLessonRequestsDesc"),
         to: "/schedule",
-        cta: "Відкрити розклад",
+        cta: t("dashboardExtra.pendingLessonRequestsCta"),
       });
     }
     if (pendingRequestCount > 0) {
@@ -692,9 +691,9 @@ export default function DashboardPage() {
         title: `${pendingRequestCount} запит${
           pendingRequestCount === 1 ? "" : pendingRequestCount < 5 ? "и" : "ів"
         } на проставлення годин`,
-        description: "Репетитори або учні просять оновити доступні години.",
+        description: t("dashboardExtra.availabilityRequestsDesc"),
         to: "/availability",
-        cta: "Перейти до годин",
+        cta: t("dashboardExtra.availabilityRequestsCta"),
       });
     }
     if (lessonsWithoutPrice > 0) {
@@ -702,10 +701,10 @@ export default function DashboardPage() {
         key: "no-price",
         icon: Tag,
         tone: "warning" as const,
-        title: `${lessonsWithoutPrice} уроків без ціни`,
-        description: "Додайте ставку, щоб коректно рахувати фінанси.",
+        title: t("dashboardPageExtra.lessonsWithoutPrice", { count: lessonsWithoutPrice }),
+        description: t("dashboardExtra.noRateDesc"),
         to: "/schedule",
-        cta: "Відкрити уроки",
+        cta: t("dashboardExtra.noRateCta"),
       });
     }
     return tasks;
@@ -723,35 +722,31 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="relative mb-6 overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 via-primary/10 to-primary/5 p-6 shadow-[0_8px_32px_-12px_hsl(var(--primary)/0.25)] sm:mb-8 sm:p-8">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-40 w-40 rounded-full bg-primary/10" />
-        <div className="pointer-events-none absolute -left-10 bottom-0 h-28 w-28 rounded-full bg-primary/10" />
-        <div className="relative flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-              {greeting}{firstName ? `, ${firstName}` : ""}! <span className="ml-1">{timeEmoji}</span>
-            </h1>
-            <p className="mt-3 max-w-lg text-sm italic text-muted-foreground">
-              <span className="not-italic font-medium text-primary/80">Афірмація дня: </span>
-              {phraseOfDay}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 rounded-lg bg-background/60 px-3 py-1.5 text-xs text-muted-foreground">
-                <CalendarDays className="h-3.5 w-3.5 text-primary" />
-                Сьогодні {todayLessons.length}{" "}
-                {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"}
-              </div>
-              {pendingPayments.length > 0 && (
-                <Link
-                  to="/finances?filter=need_pay"
-                  className="flex items-center gap-1.5 rounded-lg bg-warning/10 px-3 py-1.5 text-xs text-warning transition-colors hover:bg-warning/20"
-                >
-                  <Clock className="h-3.5 w-3.5" />
-                  {pendingPayments.length} очікують оплати →
-                </Link>
-              )}
-            </div>
-          </div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6">
+        <div className="min-w-0 flex-1">
+          <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
+            {greeting}{firstName ? `, ${firstName}` : ""} <span className="ml-0.5">{timeEmoji}</span>
+          </h1>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+            <Link
+              to="/schedule"
+              className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
+            >
+              <CalendarDays className="h-3 w-3 text-primary" />
+              {todayLessons.length}{" "}
+              {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
+            </Link>
+            {pendingPayments.length > 0 && (
+              <span className="inline-flex items-center gap-1 text-warning">
+                <Clock className="h-3 w-3" />
+                {pendingPayments.length} очікують оплати
+              </span>
+            )}
+          </p>
+          <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground/80 sm:text-xs">
+            ✨ {phraseOfDay}
+          </p>
+        </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {isManager && (
               <>
@@ -879,6 +874,28 @@ export default function DashboardPage() {
             />
           )}
 
+          {needsMarkLessons.length > 0 && (
+            <section className="mb-6">
+              <div className="mb-3 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+                <h2 className="text-base font-semibold">{t("dashboardPageExtra.needsMarkingTitle")}</h2>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{needsMarkLessons.length}</span>
+              </div>
+              <div className="space-y-2">
+                {needsMarkLessons.map((lesson) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
+                    variant="schedule"
+                    studentName={profiles[lesson.student_id] ?? '—'}
+                    onContentClick={() => setOpenLessonId(lesson.id)}
+                    className={lessonSourceTint(lesson.source)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
           <div className="grid gap-6 lg:gap-8 xl:grid-cols-2">
             <section>
               <div className="mb-4 flex items-center justify-between">
@@ -898,8 +915,8 @@ export default function DashboardPage() {
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
                     {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
                       <div className="space-y-2">
-                        <p className="font-medium text-foreground">👋 Додай першого учня — це займе 2 хвилини</p>
-                        <p className="text-xs">Введи ім'я і ставку — далі створиш урок одним кліком.</p>
+                        <p className="font-medium text-foreground">{t("dashboardPageExtra.addFirstStudent")}</p>
+                        <p className="text-xs">{t("dashboardPageExtra.addFirstStudentHint")}</p>
                         <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
                           <Plus className="h-4 w-4" />
                           Додати першого учня
@@ -950,14 +967,16 @@ export default function DashboardPage() {
                                 variant="outline"
                                 className="min-h-[44px]"
                                 onClick={() => setOpenLessonId(lesson.id)}
+                                title={t("dashboardExtra.rescheduleLesson")}
                               >
-                                Відкрити
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
                               </Button>
                               <Button
                                 size="icon"
                                 variant="ghost"
                                 className="h-8 w-8"
-                                title="Поповнити гаманець"
+                                title={t("dashboardExtra.topUpWallet")}
                                 onClick={() =>
                                   setWalletPair({
                                     tutor_id: lesson.tutor_id,
@@ -1046,22 +1065,34 @@ export default function DashboardPage() {
                         className={lessonSourceTint(lesson.source)}
                         extraActions={
                           canEditStatus ? (
-                            <Select
-                              value={lesson.status}
-                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                            >
-                              <SelectTrigger className="h-11 w-[140px] text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {(isManager
-                                  ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                ).map((s) => (
-                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            <>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => setOpenLessonId(lesson.id)}
+                                title={t("dashboardExtra.rescheduleLesson")}
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
+                              </Button>
+                              <Select
+                                value={lesson.status}
+                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                              >
+                                <SelectTrigger className="h-11 w-[140px] text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {(isManager
+                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
+                                  ).map((s) => (
+                                    <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </>
                           ) : null
                         }
                         footer={
@@ -1116,7 +1147,15 @@ export default function DashboardPage() {
               {isManager ? (
                 <div className="space-y-4">
                   {smartTasks.length === 0 ? (
-                    <EmptyState.AllClear />
+                    <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
+                        <TrendingUp className="h-4 w-4 text-success" />
+                      </div>
+                      <p className="text-sm font-medium text-foreground">{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Немає термінових задач. Можна планувати наступний тиждень.
+                      </p>
+                    </div>
                   ) : (
                     smartTasks.map((task) => {
                       const Icon = task.icon;
@@ -1164,13 +1203,13 @@ export default function DashboardPage() {
                               <CalendarDays className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Уроки призначає репетитор</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.tutorAssignsLessons")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 Дату й час нових уроків додає ваш репетитор або менеджер. Якщо потрібен новий час — напишіть репетитору в чаті.
                               </p>
                               <div className="mt-3 flex gap-2">
-                                <Button asChild size="sm" variant="outline"><Link to="/schedule">До розкладу</Link></Button>
-                                <Button asChild size="sm" variant="ghost"><Link to="/chats">Чати</Link></Button>
+                                <Button asChild size="sm" variant="outline"><Link to="/schedule">{t("dashboardPageExtra.toSchedule")}</Link></Button>
+                                <Button asChild size="sm" variant="ghost"><Link to="/chats">{t("dashboardPageExtra.toChats")}</Link></Button>
                               </div>
                             </div>
                           </div>
@@ -1182,13 +1221,13 @@ export default function DashboardPage() {
                               <HandHeart className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Підібрати репетитора</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 У вас ще немає закріпленого репетитора. Залиште запит — менеджер oTutorHub підбере фахівця під ваші цілі, бюджет і графік.
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
-                                  trigger={<Button size="sm">Залишити запит</Button>}
+                                  trigger={<Button size="sm">{t("dashboardPageExtra.leaveRequest")}</Button>}
                                 />
                               </div>
                             </div>
@@ -1202,13 +1241,13 @@ export default function DashboardPage() {
                               <Users className="h-4 w-4 text-warning" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Знайти нового репетитора</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findNewTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
-                                  trigger={<Button size="sm" variant="outline">Залишити запит</Button>}
+                                  trigger={<Button size="sm" variant="outline">{t("dashboardPageExtra.leaveRequest")}</Button>}
                                 />
                               </div>
                             </div>
@@ -1224,12 +1263,12 @@ export default function DashboardPage() {
                           <CalendarPlus className="h-4 w-4 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">Оновити доступні години</p>
+                          <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.updateHours")}</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             Тримайте календар актуальним, щоб учні бачили вільні слоти.
                           </p>
                           <Button asChild size="sm" variant="outline" className="mt-3">
-                            <Link to="/availability">Відкрити</Link>
+                            <Link to="/availability">{t("dashboardPageExtra.openAvailability")}</Link>
                           </Button>
                         </div>
                       </div>

@@ -40,33 +40,33 @@ const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
 const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
   {
     icon: BellRing,
-    title: "Авто-нагадування про оплату",
+    title: t("subscriptionPage.autoReminder"),
     desc: "Учень отримує нагадування у Telegram. Ви обираєте: передоплата, за день до уроку чи за N днів після.",
   },
   {
     icon: CalendarX2,
-    title: "Скасування і перенесення учнем",
-    desc: "Ви задаєте, за скільки годин до уроку дозволено безкоштовно. Запізно — повна або часткова оплата.",
+    title: t("subscriptionPage.cancelPolicy"),
+    desc: t("subscriptionPage.cancelPolicyDesc"),
   },
   {
     icon: BarChart3,
-    title: "Преміум-аналітика з порадами",
-    desc: "Красиві графіки доходів, динаміка по учнях, аналіз і поради, що покращити.",
+    title: t("subscriptionPage.premiumAnalytics"),
+    desc: t("subscriptionPage.premiumAnalyticsDesc"),
   },
   {
     icon: FileDown,
-    title: "Детальні звіти та експорт",
-    desc: "Формуйте звіт за будь-який період і вивантажуйте у CSV/PDF.",
+    title: t("subscriptionPageExtra.detailedReports"),
+    desc: t("subscriptionPageExtra.detailedReportsDesc"),
   },
   {
     icon: UserPlus,
-    title: "Більше учнів з нашого Хабу",
-    desc: "Пріоритетні рекомендації нових учнів зі спільноти oTutorHub.",
+    title: t("subscriptionPageExtra.moreStudents"),
+    desc: t("subscriptionPageExtra.moreStudentsDesc"),
   },
   {
     icon: Headset,
-    title: "Персональна підтримка менеджера",
-    desc: "Особистий менеджер швидко допоможе з будь-яким питанням і налаштуваннями.",
+    title: t("subscriptionPageExtra.personalManager"),
+    desc: t("subscriptionPageExtra.personalManagerDesc"),
   },
 ];
 
@@ -89,28 +89,28 @@ const statusMeta: Record<
   }
 > = {
   new: {
-    label: "Очікує менеджера",
+    label: t("subscriptionPageExtra.pendingManager"),
     icon: Clock,
     tone: "default",
-    description: "Менеджер уже бачить ваш запит і скоро з вами зв'яжеться.",
+    description: t("subscriptionPageExtra.pendingManagerDesc"),
   },
   in_progress: {
-    label: "В обробці",
+    label: t("subscriptionPageExtra.inProgress"),
     icon: Loader2,
     tone: "secondary",
-    description: "Менеджер опрацьовує ваш запит — очікуйте контакту.",
+    description: t("subscriptionPageExtra.inProgressDesc"),
   },
   completed: {
-    label: "Завершено",
+    label: t("subscriptionPageExtra.completed"),
     icon: CheckCircle2,
     tone: "outline",
-    description: "Запит виконано. Якщо підписка ще не активна — напишіть менеджеру.",
+    description: t("subscriptionPageExtra.completedDesc"),
   },
   rejected: {
-    label: "Відхилено",
+    label: t("subscriptionPageExtra.rejected"),
     icon: XCircle,
     tone: "destructive",
-    description: "Менеджер відхилив запит. Деталі — у відповіді нижче.",
+    description: t("subscriptionPageExtra.rejectedDesc"),
   },
 };
 
@@ -177,7 +177,7 @@ export default function SubscriptionPage() {
   useEffect(() => {
     if (searchParams.get("paid") === "1") {
       import("sonner").then(({ toast }) => {
-        toast.success("Дякуємо за оплату! Підписка активується протягом хвилини.");
+        toast.success(t("subscriptionPageExtra.paymentSuccess"));
       });
     }
   }, [searchParams]);
@@ -269,7 +269,7 @@ export default function SubscriptionPage() {
     <AppLayout>
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-foreground">Підписка</h1>
+          <h1 className="font-display text-2xl font-bold text-foreground">{t("subscriptionPage.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             30 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
             <br />
@@ -355,10 +355,10 @@ export default function SubscriptionPage() {
                         До кінця акції:
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <Cell n={days} label="днів" />
-                        <Cell n={hours} label="год" />
+                        <Cell n={days} label=t("subscriptionPageExtra.daysLabel") />
+                        <Cell n={hours} label=t("subscriptionPageExtra.hoursLabel") />
                         <Cell n={minutes} label="хв" />
-                        <Cell n={seconds} label="сек" />
+                        <Cell n={seconds} label=t("subscriptionPageExtra.secondsLabel") />
                       </div>
                     </div>
                   );
@@ -368,17 +368,17 @@ export default function SubscriptionPage() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
                       {soldOut
-                        ? "Місця закінчились"
-                        : `Підписалось вже ${taken} з ${EARLY_BIRD_LIMIT}`}
+                        : t("subscriptionPageExtra.spotsLeft")
+                        : t("subscriptionPageExtra.spotsTaken", { taken, limit: EARLY_BIRD_LIMIT })}
                     </span>
                     {!soldOut && (
                       <span className="font-semibold text-primary">
                         ще {left}{" "}
                         {left === 1
-                          ? "місце"
+                          : t("subscriptionPageExtra.oneSpot")
                           : left >= 2 && left <= 4
-                          ? "місця"
-                          : "місць"}
+                          : t("subscriptionPageExtra.fewSpots")
+                          : t("subscriptionPageExtra.manySpots")}
                       </span>
                     )}
                   </div>
@@ -407,10 +407,10 @@ export default function SubscriptionPage() {
                   <p className="text-sm text-muted-foreground">
                     Залишилось {trialDaysLeft}{" "}
                     {trialDaysLeft === 1
-                      ? "день"
+                      ? t("subscriptionPageExtra.daysLabel")
                       : trialDaysLeft >= 2 && trialDaysLeft <= 4
-                      ? "дні"
-                      : "днів"}{" "}
+                      ? t("subscriptionPageExtra.daysLabel")
+                      : t("subscriptionPageExtra.daysLabel")}{" "}
                     · до{" "}
                     {format(trialUntil, "d MMMM, HH:mm", { locale: uk })}
                   </p>
@@ -437,36 +437,36 @@ export default function SubscriptionPage() {
                   {isPro ? <Crown className="h-5 w-5" /> : <Users className="h-5 w-5" />}
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Поточний план</p>
+                  <p className="text-sm text-muted-foreground">{t("subscriptionPageExtra.currentPlan")}</p>
                   {(() => {
                     const recurring = (settings as any)?.liqpay_recurring_active === true;
                     const isEarlyBird = isActive && !recurring && !!subscriptionUntil;
                     let title = "Pro";
-                    let badgeLabel = "Активна";
+                    let badgeLabel = t("subscriptionPageExtra.activeLabel");
                     let badgeVariant: "default" | "secondary" | "destructive" = "default";
                     if (isTrial && trialUntil) {
                       title = `Pro тріал · залишилось ${trialDaysLeft} ${
                         trialDaysLeft === 1
-                          ? "день"
+                          ? t("subscriptionPageExtra.daysLabel")
                           : trialDaysLeft >= 2 && trialDaysLeft <= 4
-                          ? "дні"
-                          : "днів"
+                          ? t("subscriptionPageExtra.daysLabel")
+                          : t("subscriptionPageExtra.daysLabel")
                       }`;
-                      badgeLabel = "Тріал";
+                      badgeLabel = t("subscriptionPageExtra.trialLabel");
                       badgeVariant = "secondary";
                     } else if (isEarlyBird) {
-                      title = `Pro · безкоштовно до ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
+                      title = `Pro · ${t("subscriptionPageExtra.trialLabel")} ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
                       badgeLabel = "Early bird";
                     } else if (isActive) {
-                      title = "Pro · активний";
-                      badgeLabel = "Активна";
+                      title = t("subscriptionPage.title") + " · " + t("subscriptionPageExtra.activeLabel");
+                      badgeLabel = t("subscriptionPageExtra.activeLabel");
                     } else if (status === "past_due") {
-                      title = "Підписка прострочена · поновіть Pro";
-                      badgeLabel = "Прострочена";
+                      title = t("subscriptionPageExtra.expiredLabel");
+                      badgeLabel = t("subscriptionPageExtra.expiredLabel");
                       badgeVariant = "destructive";
                     } else {
-                      title = "Тріал завершено · підключіть Pro";
-                      badgeLabel = "Тріал завершено";
+                      title = t("subscriptionPageExtra.trialDone");
+                      badgeLabel = t("subscriptionPageExtra.trialDone");
                       badgeVariant = "secondary";
                     }
                     return (
@@ -539,8 +539,8 @@ export default function SubscriptionPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Pro</CardTitle>
-                {isActive && <Badge>Поточний</Badge>}
-                {isTrial && !isActive && <Badge variant="secondary">Тріал</Badge>}
+                {isActive && <Badge>{t("subscriptionPageExtra.currentBadge")}</Badge>}
+                {isTrial && !isActive && <Badge variant="secondary">{t("subscriptionPageExtra.trialBadge")}</Badge>}
               </div>
               <CardDescription>
                 30 днів повного Pro безкоштовно — без картки.
@@ -549,7 +549,7 @@ export default function SubscriptionPage() {
                 <p className="font-display text-3xl font-bold text-foreground">
                   {proPrice} ₴
                 </p>
-                <span className="text-sm text-muted-foreground">/міс</span>
+                <span className="text-sm text-muted-foreground">{t("subscriptionPageExtra.perMonth")}</span>
                 {billing === "yearly" && (
                   <span className="text-xs text-muted-foreground">
                     · {PRO_PRICE_YEARLY_TOTAL} ₴ на рік
@@ -592,15 +592,15 @@ export default function SubscriptionPage() {
                     plan={billing}
                     recurring
                     className="w-full"
-                    label="Перейти до оплати"
+                    label={t("subscriptionPageExtra.payBtn")}
                   />
                 );
               })()}
               <p className="text-center text-xs text-muted-foreground">
                 Оплата карткою через LiqPay — доступ активується автоматично за кілька секунд.{" "}
                 {billing === "yearly"
-                  ? "Підписка автоматично продовжуватиметься щороку. Скасувати можна будь-коли."
-                  : "Підписка автоматично продовжуватиметься щомісяця. Скасувати можна будь-коли."}
+                  : t("subscriptionPageExtra.autoRenewYearly")
+                  : t("subscriptionPageExtra.autoRenewMonthly")}
               </p>
             </CardContent>
           </Card>
@@ -620,7 +620,7 @@ export default function SubscriptionPage() {
           return (
             <Card className="mt-6 border-dashed">
               <CardHeader>
-                <CardTitle className="text-base">LiqPay не підходить?</CardTitle>
+                <CardTitle className="text-base">{t("subscriptionPageExtra.liqpayAlternative")}</CardTitle>
                 <CardDescription>
                   Залиште запит — менеджер зв'яжеться і допоможе оплатити іншим зручним способом
                   (банк, переказ, рахунок-фактура тощо).
@@ -633,7 +633,7 @@ export default function SubscriptionPage() {
                   className="w-full"
                   disabled={!!hasPending}
                 >
-                  {hasPending ? "Запит уже надіслано" : "Написати менеджеру"}
+                  {hasPending ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
                 </Button>
 
                 {!requestLoading && latestRequest && meta && StatusIcon && (
@@ -649,7 +649,7 @@ export default function SubscriptionPage() {
                           />
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-foreground">Ваш запит на Pro</p>
+                          <p className="text-sm font-medium text-foreground">{t("subscriptionPageExtra.yourRequest")}</p>
                           <p className="text-xs text-muted-foreground">
                             Надіслано{" "}
                             {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {

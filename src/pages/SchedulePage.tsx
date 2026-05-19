@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -81,12 +82,7 @@ interface PersonOption {
   subjects?: string[];
 }
 
-const statusLabel: Record<LessonStatus, string> = {
-  pending: "Запит",
-  scheduled: "Заплановано",
-  completed: "Проведено",
-  cancelled: "Скасовано",
-};
+// statusLabel is computed inside the component using t() — see statusLabelFn below
 
 const statusBadgeClass: Record<LessonStatus, string> = {
   pending: "bg-warning/10 text-warning border-0",
@@ -111,6 +107,13 @@ function formatTime(iso: string) {
 }
 
 export default function SchedulePage() {
+  const { t } = useTranslation();
+  const statusLabel: Record<LessonStatus, string> = {
+    pending: t('schedule.statusPending'),
+    scheduled: t('schedule.statusScheduled'),
+    completed: t('schedule.statusCompleted'),
+    cancelled: t('schedule.statusCancelled'),
+  };
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -240,7 +243,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error("Не вдалося зберегти зміни");
+        toast.error(t('schedule.saveFailed'));
         return;
       }
     }
@@ -251,7 +254,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error("Не вдалося зберегти зміни");
+        toast.error(t('schedule.saveFailed'));
         return;
       }
     }
@@ -274,8 +277,8 @@ export default function SchedulePage() {
     setEditSubmitting(false);
     toast.success(
       changed.length > 0
-        ? "Урок оновлено. Учень отримає сповіщення."
-        : "Урок оновлено"
+        ? t('schedule.lessonUpdatedNotified')
+        : t('schedule.lessonUpdated')
     );
     setEditingLesson(null);
     loadAll();
@@ -319,7 +322,7 @@ export default function SchedulePage() {
     const profiles = profilesRes.data ?? [];
     const pmap: Record<string, string> = {};
     profiles.forEach((p: any) => {
-      pmap[p.id] = `${p.first_name} ${p.last_name}`.trim() || "Без імені";
+      pmap[p.id] = `${p.first_name} ${p.last_name}`.trim() || t('common.noName');
     });
     setProfilesMap(pmap);
 
@@ -359,9 +362,9 @@ export default function SchedulePage() {
     }
 
     setTutors(
-      tutorIds.map((id) => ({ id, name: pmap[id] ?? "Репетитор", subjects: tutorSubjects[id] ?? [] }))
+      tutorIds.map((id) => ({ id, name: pmap[id] ?? t('roles.tutor'), subjects: tutorSubjects[id] ?? [] }))
     );
-    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? "Учень" })));
+    setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? t('roles.student') })));
 
     const rawLessons = (lessonsRes.data ?? []) as any[];
     console.log('[SchedulePage] lessons count:', rawLessons.length, 'unique ids:', new Set(rawLessons.map((l) => l.id)).size);
@@ -568,13 +571,13 @@ export default function SchedulePage() {
       return ls < endMs && le > startMs;
     });
     if (!conflict) return null;
-    const t = new Date(conflict.starts_at).toLocaleString("uk-UA", {
+    const conflictTime = new Date(conflict.starts_at).toLocaleString("uk-UA", {
       day: "numeric",
       month: "short",
       hour: "2-digit",
       minute: "2-digit",
     });
-    return `У репетитора вже є урок (${conflict.subject}, ${t}). Можна продовжити, але час перетинається.`;
+    return t('schedule.conflictWarning', { subject: conflict.subject, time: conflictTime });
   }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
 
   const handleCreate = async () => {
@@ -592,7 +595,7 @@ export default function SchedulePage() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error("Заповніть усі обов'язкові поля");
+      toast.error(t('common.fillRequired'));
       return;
     }
     setFormErrors({});
@@ -669,16 +672,16 @@ export default function SchedulePage() {
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
-      toast.error("Не вдалося створити урок. Спробуйте ще раз.");
+      toast.error(t('schedule.createFailed'));
       return;
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1
-        ? `Створено ${repeats} уроків`
+        ? t('schedule.lessonsCreated', { count: repeats })
         : status === "pending"
-        ? "Запит створено"
-        : "Урок створено"
+        ? t('schedule.requestCreated')
+        : t('schedule.lessonCreated')
     );
     setCreateOpen(false);
     setForm((f) => ({
@@ -701,11 +704,11 @@ export default function SchedulePage() {
     const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
     if (error) {
       console.error("Failed to update lesson status", error);
-      toast.error("Не вдалося оновити статус. Спробуйте ще раз.");
+      toast.error(t('schedule.statusUpdateFailed'));
       setLessons(prev);
       return;
     }
-    lessonToasts.statusUpdated(newStatus as "completed" | "cancelled" | "scheduled");
+    toast.success(t('schedule.statusUpdated'));
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 
@@ -729,11 +732,11 @@ export default function SchedulePage() {
       );
     if (error) {
       console.error("Failed to update payment status", error);
-      toast.error("Не вдалося оновити оплату. Спробуйте ще раз.");
+      toast.error(t('schedule.paymentUpdateFailed'));
       setLessons(prev);
       return;
     }
-    lessonToasts.paymentMarked(field === "student_payment_status" ? "student" : "tutor");
+    toast.success(t('schedule.paymentUpdated'));
   };
 
   const deleteLesson = async (lessonId: string) => {
@@ -742,11 +745,11 @@ export default function SchedulePage() {
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
       console.error("Failed to delete lesson", error);
-      toast.error("Не вдалося видалити урок. Спробуйте ще раз.");
+      toast.error(t('schedule.deleteFailed'));
       setLessons(prev);
       return;
     }
-    lessonToasts.deleted();
+    toast.success(t('schedule.lessonDeleted'));
     void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
@@ -801,11 +804,11 @@ export default function SchedulePage() {
     type Bucket = "today" | "tomorrow" | "thisWeek" | "later" | "past";
     const order: Bucket[] = ["today", "tomorrow", "thisWeek", "later", "past"];
     const labels: Record<Bucket, string> = {
-      today: "Сьогодні",
-      tomorrow: "Завтра",
-      thisWeek: "Цей тиждень",
-      later: "Пізніше",
-      past: "Минулі",
+      today: t('common.today'),
+      tomorrow: t('common.tomorrow'),
+      thisWeek: t('schedule.bucketThisWeek'),
+      later: t('schedule.bucketLater'),
+      past: t('schedule.bucketPast'),
     };
     const map = new Map<Bucket, Lesson[]>();
     order.forEach((k) => map.set(k, []));
@@ -852,7 +855,7 @@ export default function SchedulePage() {
   const studentTutors = useMemo(() => {
     if (!isStudent || isManager || isTutor || !user) return [] as PersonOption[];
     const ids = Array.from(new Set(lessons.filter((l) => l.student_id === user.id).map((l) => l.tutor_id)));
-    return ids.map((id) => ({ id, name: profilesMap[id] ?? "Репетитор" }));
+    return ids.map((id) => ({ id, name: profilesMap[id] ?? t('roles.tutor') }));
   }, [lessons, isStudent, isManager, isTutor, user?.id, profilesMap]);
 
   const todayKey = new Date().toISOString().slice(0, 10);
@@ -879,7 +882,7 @@ export default function SchedulePage() {
         <div className="min-w-0">
           <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
             <span>📅</span>
-            <span className="truncate">Розклад занять</span>
+            <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {isManager
@@ -903,64 +906,64 @@ export default function SchedulePage() {
             }
           >
             <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Статус" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.status')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Всі статуси</SelectItem>
-                <SelectItem value="scheduled">Заплановано</SelectItem>
-                <SelectItem value="completed">Проведено</SelectItem>
-                <SelectItem value="cancelled">Скасовано</SelectItem>
+                <SelectItem value="all">{t('schedule.allStatuses')}</SelectItem>
+                <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
+                <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
+                <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
               </SelectContent>
             </Select>
             {isManager && (
               <Select value={filterTutor} onValueChange={setFilterTutor}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Репетитор" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('roles.tutor')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі репетитори</SelectItem>
+                  <SelectItem value="all">{t('schedule.allTutors')}</SelectItem>
                   {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
             {(isManager || isTutor) && (
               <Select value={filterStudent} onValueChange={setFilterStudent}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Учень" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.student')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі учні</SelectItem>
+                  <SelectItem value="all">{t('schedule.allStudents')}</SelectItem>
                   {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             )}
             <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.month')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Весь час</SelectItem>
-                <SelectItem value="upcoming">Майбутні</SelectItem>
-                <SelectItem value="past">Минулі</SelectItem>
-                <SelectItem value="week">Цей тиждень</SelectItem>
-                <SelectItem value="month">Цей місяць</SelectItem>
+                <SelectItem value="all">{t('schedule.allPeriods')}</SelectItem>
+                <SelectItem value="upcoming">{t('schedule.periodUpcoming')}</SelectItem>
+                <SelectItem value="past">{t('schedule.periodPast')}</SelectItem>
+                <SelectItem value="week">{t('schedule.periodThisWeek')}</SelectItem>
+                <SelectItem value="month">{t('schedule.periodThisMonth')}</SelectItem>
               </SelectContent>
             </Select>
             {hasMixedSources && (
               <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder="Джерело" /></SelectTrigger>
+                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.sourceAll')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Усі</SelectItem>
-                  <SelectItem value="hub">Хаб</SelectItem>
-                  <SelectItem value="independent">Мої</SelectItem>
+                  <SelectItem value="all">{t('schedule.sourceAll')}</SelectItem>
+                  <SelectItem value="hub">{t('schedule.sourceHub')}</SelectItem>
+                  <SelectItem value="independent">{t('schedule.sourceMine')}</SelectItem>
                 </SelectContent>
               </Select>
             )}
             {filtersActive && (
               <Button size="sm" variant="ghost" className="h-9 w-full text-xs" onClick={() => {
                 setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
-              }}>Скинути фільтри</Button>
+              }}>{t('schedule.resetFilters')}</Button>
             )}
           </MobileFilters>
           <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
-              <List className="h-3.5 w-3.5" />Список
+              <List className="h-3.5 w-3.5" />{t('schedule.listView')}
             </Button>
             <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
-              <CalendarRange className="h-3.5 w-3.5" />Тиждень
+              <CalendarRange className="h-3.5 w-3.5" />{t('schedule.weekView')}
             </Button>
           </div>
           {isPureStudent && studentTutors.length === 0 && (
@@ -968,7 +971,7 @@ export default function SchedulePage() {
               trigger={
                 <Button size="sm" className="h-9 gap-1.5">
                   <HandHeart className="h-4 w-4" />
-                  <span className="hidden sm:inline">Запит на підбір</span>
+                  <span className="hidden sm:inline">{t("scheduleExtra.requestTutor")}</span>
                 </Button>
               }
             />
@@ -981,18 +984,27 @@ export default function SchedulePage() {
               <DialogTrigger asChild>
                 <Button size="sm" className="h-9 gap-1.5 px-3">
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Створити урок</span>
-                  <span className="sm:hidden">Урок</span>
+                  <span className="hidden sm:inline">{t('schedule.createBtn')}</span>
+                  <span className="sm:hidden">{t('schedule.addLesson')}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-                  <DialogTitle>Новий урок</DialogTitle>
+                  <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
+                    <span className={step === 1 ? "text-foreground font-medium" : ""}>{t('schedule.step1')}</span>
+                    <span className="h-px flex-1 bg-border" />
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                      step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
+                    <span className={step === 2 ? "text-foreground font-medium" : ""}>{t('schedule.step2')}</span>
+                  </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
-                      Репетитор <span className="text-destructive">*</span>
+                      {t('roles.tutor')} <span className="text-destructive">*</span>
                     </Label>
                     <Select
                       value={form.tutor_id}
@@ -1008,7 +1020,7 @@ export default function SchedulePage() {
                             "border-destructive ring-1 ring-destructive focus:ring-destructive"
                         )}
                       >
-                        <SelectValue placeholder="Оберіть репетитора" />
+                        <SelectValue placeholder={t('schedule.selectTutor')} />
                       </SelectTrigger>
                     <SelectContent>
                       {tutors.map((t) => (
@@ -1019,12 +1031,12 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.tutor_id && (
-                    <p className="mt-1 text-xs text-destructive">Оберіть репетитора</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
                   <Label className={cn(formErrors.student_id && "text-destructive")}>
-                    Учень <span className="text-destructive">*</span>
+                    {t('schedule.student')} <span className="text-destructive">*</span>
                   </Label>
                   <Select
                     value={form.student_id}
@@ -1040,7 +1052,7 @@ export default function SchedulePage() {
                           "border-destructive ring-1 ring-destructive focus:ring-destructive"
                       )}
                     >
-                      <SelectValue placeholder="Оберіть учня" />
+                      <SelectValue placeholder={t('schedule.selectStudent')} />
                     </SelectTrigger>
                     <SelectContent>
                       {students.map((s) => (
@@ -1051,14 +1063,14 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.student_id && (
-                    <p className="mt-1 text-xs text-destructive">Оберіть учня</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectStudent')}</p>
                   )}
                   {students.length === 0 && isTutor && !isManager && (
                     <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs">
                       <p className="text-muted-foreground mb-2">
                         {isIndependentTutor
-                          ? "У вас ще немає учнів. Додайте першого учня — і зможете створити урок."
-                          : "У вас ще немає прив'язаних учнів. Зверніться до менеджера, щоб призначити учня."}
+                          ? t('schedule.noStudentsIndependent')
+                          : t('schedule.noStudentsHub')}
                       </p>
                       {isIndependentTutor && (
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
@@ -1073,7 +1085,7 @@ export default function SchedulePage() {
                 </div>
                 <div>
                   <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
-                    Предмет <span className="text-destructive">*</span>
+                    {t('schedule.subject')} <span className="text-destructive">*</span>
                   </Label>
                   {subjectOptions.length > 0 ? (
                     <Select
@@ -1089,7 +1101,7 @@ export default function SchedulePage() {
                             "border-destructive ring-1 ring-destructive focus:ring-destructive"
                         )}
                       >
-                        <SelectValue placeholder="Оберіть предмет" />
+                        <SelectValue placeholder={t('schedule.selectSubject')} />
                       </SelectTrigger>
                       <SelectContent>
                         {subjectOptions.map((s) => (
@@ -1110,7 +1122,7 @@ export default function SchedulePage() {
                           setFormErrors((er) => ({ ...er, subject: false }));
                         }
                       }}
-                      placeholder="напр. Англійська"
+                      placeholder={t('schedule.subjectPlaceholder')}
                       className={cn(
                         formErrors.subject &&
                           "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
@@ -1118,49 +1130,49 @@ export default function SchedulePage() {
                     />
                   )}
                   {formErrors.subject && (
-                    <p className="mt-1 text-xs text-destructive">Вкажіть предмет</p>
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectSubject')}</p>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
-                      Дата і час <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="starts_at"
-                      type="datetime-local"
-                      value={form.starts_at}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, starts_at: e.target.value }));
-                        if (formErrors.starts_at && e.target.value) {
-                          setFormErrors((er) => ({ ...er, starts_at: false }));
-                        }
-                      }}
-                      className={cn(
-                        formErrors.starts_at &&
-                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                    {formErrors.starts_at && (
-                      <p className="mt-1 text-xs text-destructive">Вкажіть дату і час</p>
+                <div>
+                  <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
+                    {t('schedule.dateTime')} <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="starts_at"
+                    type="datetime-local"
+                    value={form.starts_at}
+                    onChange={(e) => {
+                      setForm((f) => ({ ...f, starts_at: e.target.value }));
+                      if (formErrors.starts_at && e.target.value) {
+                        setFormErrors((er) => ({ ...er, starts_at: false }));
+                      }
+                    }}
+                    className={cn(
+                      formErrors.starts_at &&
+                        "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
                     )}
-                  </div>
-                  <div>
-                    <Label htmlFor="duration">Тривалість (хв)</Label>
-                    <Input
-                      id="duration"
-                      type="number"
-                      min="15"
-                      step="15"
-                      value={form.duration_minutes}
-                      onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
-                    />
-                  </div>
+                  />
+                  {formErrors.starts_at && (
+                    <p className="mt-1 text-xs text-destructive">{t('schedule.dateTime')}</p>
+                  )}
+                </div>
+                </>)}
+                {step === 2 && (<>
+                <div>
+                  <Label htmlFor="duration">{t('schedule.duration')}</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    min="15"
+                    step="15"
+                    value={form.duration_minutes}
+                    onChange={(e) => setForm((f) => ({ ...f, duration_minutes: e.target.value }))}
+                  />
                 </div>
                 {isIndependentTutor && form.tutor_id && form.student_id && form.subject && (
                   <div>
                     <Label htmlFor="indep_student_price" className="flex items-center gap-1.5">
-                      Ціна за урок (₴)
+                      {t('schedule.pricePerLesson')}
                       {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                     </Label>
                     <Input
@@ -1173,34 +1185,34 @@ export default function SchedulePage() {
                     />
                     <p className="mt-1 text-xs text-muted-foreground">
                       {existingRateForPair
-                        ? "💡 Ціна підтягнута з тарифу учня. Можна змінити для цього уроку."
-                        : "🆕 Для цього предмета ще немає ціни — введіть її, і вона збережеться для майбутніх уроків."}
+                        ? `💡 ${t('schedule.priceHintExisting')}`
+                        : `🆕 ${t('schedule.priceHintNew')}`}
                     </p>
                   </div>
                 )}
                 {isManager && (
                   <>
                     <div>
-                      <Label>Статус уроку</Label>
+                      <Label>{t('common.status')}</Label>
                       <Select
                         value={form.status}
                         onValueChange={(v) => setForm((f) => ({ ...f, status: v as LessonStatus }))}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Оберіть статус" />
+                          <SelectValue placeholder={t('common.status')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="pending">Запит</SelectItem>
-                          <SelectItem value="scheduled">Заплановано</SelectItem>
-                          <SelectItem value="completed">Проведено</SelectItem>
-                          <SelectItem value="cancelled">Скасовано</SelectItem>
+                          <SelectItem value="pending">{t('schedule.statusPending')}</SelectItem>
+                          <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
+                          <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
+                          <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label htmlFor="student_price" className="flex items-center gap-1.5">
-                          Оплата учня (₴)
+                          {t('schedule.pricePerLesson')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
@@ -1214,7 +1226,7 @@ export default function SchedulePage() {
                       </div>
                       <div>
                         <Label htmlFor="tutor_payout" className="flex items-center gap-1.5">
-                          Виплата репетитору (₴)
+                          {t('schedule.tutorPayout')}
                           {autoFilling && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
                         </Label>
                         <Input
@@ -1241,32 +1253,32 @@ export default function SchedulePage() {
                     )}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <Label>Статус оплати учня</Label>
+                        <Label>{t('common.status')}</Label>
                         <Select
                           value={form.student_payment_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus }))}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Оберіть статус" />
+                            <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unpaid">Очікує</SelectItem>
-                            <SelectItem value="paid">Оплачено</SelectItem>
+                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
+                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
                       <div>
-                        <Label>Статус виплати репетитору</Label>
+                        <Label>{t('schedule.tutorPayout')}</Label>
                         <Select
                           value={form.tutor_payout_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus }))}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Оберіть статус" />
+                            <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="unpaid">Очікує</SelectItem>
-                            <SelectItem value="paid">Оплачено</SelectItem>
+                            <SelectItem value="unpaid">{t('schedule.unpaid')}</SelectItem>
+                            <SelectItem value="paid">{t('schedule.paid')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1285,15 +1297,15 @@ export default function SchedulePage() {
                 )}
                 {(isManager || isTutor) && (
                   <div>
-                    <Label htmlFor="repeat">Повторювати щотижня</Label>
+                    <Label htmlFor="repeat">{t("scheduleExtra.repeatWeekly")}</Label>
                     <Select value={repeatWeeks} onValueChange={setRepeatWeeks}>
                       <SelectTrigger id="repeat"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="1">Не повторювати</SelectItem>
-                        <SelectItem value="2">2 тижні</SelectItem>
-                        <SelectItem value="4">4 тижні</SelectItem>
-                        <SelectItem value="8">8 тижнів</SelectItem>
-                        <SelectItem value="12">12 тижнів</SelectItem>
+                        <SelectItem value="1">{t("scheduleExtra.noRepeat")}</SelectItem>
+                        <SelectItem value="2">{t("scheduleExtra.weeks2")}</SelectItem>
+                        <SelectItem value="4">{t("scheduleExtra.weeks4")}</SelectItem>
+                        <SelectItem value="8">{t("scheduleExtra.weeks8")}</SelectItem>
+                        <SelectItem value="12">{t("scheduleExtra.weeks12")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1305,7 +1317,7 @@ export default function SchedulePage() {
                     className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
                   >
                     <span className="flex-1 text-left">
-                      Нотатки {form.notes ? `(${form.notes.length})` : "(опц.)"}
+                      {t('schedule.notes')} {form.notes ? `(${form.notes.length})` : `(${t('common.optional')})`}
                     </span>
                     {notesOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
                   </button>
@@ -1316,19 +1328,49 @@ export default function SchedulePage() {
                       className="mt-2"
                       value={form.notes}
                       onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                      placeholder="Додаткова інформація..."
+                      placeholder={t('schedule.notesPlaceholder')}
                     />
                   )}
                 </div>
               </div>
-              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0">
-                <Button variant="outline" onClick={() => setCreateOpen(false)}>
-                  Скасувати
-                </Button>
-                <Button onClick={handleCreate} disabled={submitting}>
-                  {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Зберегти
-                </Button>
+              <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
+                {step === 1 ? (
+                  <Button variant="ghost" onClick={() => setCreateOpen(false)}>
+                    {t('common.cancel')}
+                  </Button>
+                ) : (
+                  <Button variant="ghost" onClick={() => setStep(1)}>
+                    ← {t('common.back')}
+                  </Button>
+                )}
+                <div className="flex gap-2">
+                  {step === 1 && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        // Lightweight validation before jumping to step 2
+                        const errs: typeof formErrors = {};
+                        if (!form.tutor_id) errs.tutor_id = true;
+                        if (!form.student_id) errs.student_id = true;
+                        if (!form.subject || !form.subject.trim()) errs.subject = true;
+                        if (!form.starts_at) errs.starts_at = true;
+                        if (Object.keys(errs).length) {
+                          setFormErrors(errs);
+                          toast.error(t('common.fillRequired'));
+                          return;
+                        }
+                        setFormErrors({});
+                        setStep(2);
+                      }}
+                    >
+                      {t('schedule.step2')}
+                    </Button>
+                  )}
+                  <Button onClick={handleCreate} disabled={submitting}>
+                    {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {t('common.save')}
+                  </Button>
+                </div>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -1342,26 +1384,26 @@ export default function SchedulePage() {
           <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
             <DialogTitle>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
-                ? "Редагувати урок"
-                : "Деталі уроку"}
+                ? t('common.edit')
+                : t('schedule.step2')}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto px-6 py-4 flex-1 min-h-0">
             <div>
-              <Label htmlFor="edit_subject">Предмет</Label>
+              <Label htmlFor="edit_subject">{t("schedulePageExtra.subjectLabel")}</Label>
               <Input id="edit_subject" value={editForm.subject}
                 disabled={!canEditScheduleFields(editingLesson)}
                 onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="edit_starts_at">Дата і час</Label>
+                <Label htmlFor="edit_starts_at">{t("schedulePageExtra.dateTimeLabel")}</Label>
                 <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
                   disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
               </div>
               <div>
-                <Label htmlFor="edit_duration">Тривалість (хв)</Label>
+                <Label htmlFor="edit_duration">{t("schedulePageExtra.durationLabel")}</Label>
                 <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
                   disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
@@ -1378,7 +1420,7 @@ export default function SchedulePage() {
                 rows={4}
                 value={editForm.homework}
                 disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? "Що задано додому…" : "Не задано"}
+                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.homeworkPlaceholder') : t('schedule.homeworkPlaceholderNone')}
                 onChange={(e) => setEditForm((f) => ({ ...f, homework: e.target.value }))}
               />
             </div>
@@ -1393,7 +1435,7 @@ export default function SchedulePage() {
                 rows={5}
                 value={editForm.summary}
                 disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? "Що пройшли на уроці…" : "Конспект ще не додано"}
+                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.notesLessonPlaceholder') : t('schedule.notesLessonPlaceholderNone')}
                 onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
               />
               {canEditTeachingFields(editingLesson) && (
@@ -1416,7 +1458,7 @@ export default function SchedulePage() {
           </div>
           <DialogFooter className="px-6 py-3 border-t border-border shrink-0 bg-card">
             <Button variant="outline" onClick={() => setEditingLesson(null)}>
-              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? "Скасувати" : "Закрити"}
+              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? t('common.cancel') : t('common.close')}
             </Button>
             {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
               <Button onClick={saveEdit} disabled={editSubmitting}>
@@ -1472,7 +1514,7 @@ export default function SchedulePage() {
       <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
-          <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground">{t("schedulePageExtra.tutorsHoursTitle")}</h2>
           {studentTutors.map((t) => (
             <TutorAvailabilityView key={t.id} tutorId={t.id} tutorName={t.name} />
           ))}
@@ -1559,14 +1601,14 @@ export default function SchedulePage() {
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
             icon={HandHeart}
-            title="Поки немає репетитора"
-            description="Залиште запит менеджеру oTutorHub — ми підберемо репетитора під ваші цілі, бюджет і графік. Як тільки призначимо — тут з'являться уроки."
+            title={t('schedule.noTutorTitle')}
+            description={t('schedule.noTutorDesc')}
           >
             <FindTutorDialog
               trigger={
                 <Button>
                   <HandHeart className="h-4 w-4 mr-2" />
-                  Запит на підбір репетитора
+                  {t('dashboard.btnRequestTutor')}
                 </Button>
               }
             />
@@ -1574,20 +1616,20 @@ export default function SchedulePage() {
         ) : (
           <EmptyState
             icon={Clock}
-            title="Уроків ще немає"
+            title={t('schedule.noLessonsTitle')}
             description={
               canCreate
-                ? "Створіть перший урок — оберіть репетитора, учня та час."
-                : "Як тільки репетитор або менеджер додасть урок, ви побачите його тут."
+                ? t('schedule.noLessonsDescCreate')
+                : t('schedule.noLessonsDescWait')
             }
-            actionLabel={canCreate ? "Створити перший урок" : undefined}
+            actionLabel={canCreate ? t('schedule.createFirstLesson') : undefined}
             onAction={canCreate ? () => setCreateOpen(true) : undefined}
           />
         )
       ) : (
         <div className="space-y-6">
           {grouped.map(([bucketLabel, dayLessons]) => {
-            const isToday = bucketLabel === "Сьогодні";
+            const isToday = bucketLabel === t('common.today');
             return (
               <div key={bucketLabel}>
                 <h3
@@ -1654,7 +1696,7 @@ export default function SchedulePage() {
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 onClick={() => openCopy(lesson)}
-                                title="Копіювати урок"
+                                title={t('schedule.copyLesson')}
                               >
                                 <Copy className="h-3.5 w-3.5" />
                               </Button>
@@ -1668,13 +1710,13 @@ export default function SchedulePage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
+                                    <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       Цю дію не можна скасувати.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
+                                    <AlertDialogCancel>{t("schedulePageExtra.cancelBtn")}</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
                                       Видалити
                                     </AlertDialogAction>
@@ -1686,6 +1728,30 @@ export default function SchedulePage() {
                         }
                         extraActions={
                           <>
+                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                                onClick={() => openEdit(lesson)}
+                                title={t('schedule.rescheduleLesson')}
+                              >
+                                <CalendarClock className="h-4 w-4" />
+                                <span className="hidden sm:inline">{t('schedule.reschedule')}</span>
+                              </Button>
+                            )}
+                            {canEditStatus && lesson.status === "scheduled" && (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-11 gap-1.5"
+                                onClick={() => updateStatus(lesson.id, "completed")}
+                                title={t('schedule.markCompleted')}
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                                <span className="hidden sm:inline">{t('schedule.statusCompleted')}</span>
+                              </Button>
+                            )}
                             {canEditStatus ? (
                               <Select
                                 value={lesson.status}

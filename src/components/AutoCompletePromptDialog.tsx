@@ -56,7 +56,7 @@ export function AutoCompletePromptDialog({ enabled }: { enabled: boolean }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Як відмічати проведені уроки?</DialogTitle>
+          <DialogTitle>{t("autoComplete.dialogTitle")}</DialogTitle>
           <DialogDescription>
             Можна автоматично через 1 годину після закінчення уроку, або вручну —
             кнопкою «Проведено» на дашборді. Завжди можна змінити в налаштуваннях.

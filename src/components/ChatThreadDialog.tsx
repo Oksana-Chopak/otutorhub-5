@@ -66,7 +66,7 @@ export function ChatThreadDialog({
         _student_id: studentId,
       });
       if (error || !tid) {
-        toast.error("Не вдалося відкрити чат");
+        toast.error(t("chatThread.openFailed"));
         setLoading(false);
         return;
       }
@@ -126,7 +126,7 @@ export function ChatThreadDialog({
       .insert({ thread_id: threadId, sender_id: myId, body: text });
     setSending(false);
     if (error) {
-      toast.error("Не вдалося надіслати", { description: error.message });
+      toast.error(t("chatThread.sendFailed"), { description: error.message });
       return;
     }
     setDraft("");
@@ -208,7 +208,7 @@ export function ChatThreadDialog({
                   send();
                 }
               }}
-              placeholder="Напишіть повідомлення…"
+              placeholder={t("chatThread.placeholder")}
               disabled={!threadId || sending}
             />
             <Button onClick={send} disabled={!draft.trim() || !threadId || sending}>

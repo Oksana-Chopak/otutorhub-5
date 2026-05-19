@@ -81,7 +81,7 @@ export default function StudentPaymentsPage() {
       setTutorPayInfos(
         tutorIds.map((id) => ({
           tutor_id: id,
-          tutor_name: nameMap[id] ?? "Репетитор",
+          tutor_name: nameMap[id] ?? t("studentPages.tutorFallback"),
           currency: payMap[id]?.currency ?? "UAH",
           payment_details: payMap[id]?.payment_details ?? null,
         }))
@@ -113,23 +113,23 @@ export default function StudentPaymentsPage() {
   return (
     <StudentLayout>
       <div className="space-y-4">
-        <h1 className="hidden text-2xl font-bold text-foreground lg:block">Оплати</h1>
+        <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.paymentsTitle")}</h1>
 
         {currencyEntries.length === 0 ? (
           <div className="grid gap-3 sm:grid-cols-2">
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">До оплати</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
               <p className="mt-1 text-xl font-bold text-warning">0</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">Оплачено</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
               <p className="mt-1 text-xl font-bold text-success">0</p>
             </Card>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">До оплати</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} className="text-xl font-bold text-warning">
@@ -139,7 +139,7 @@ export default function StudentPaymentsPage() {
               </div>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-muted-foreground">Оплачено</p>
+              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} className="text-xl font-bold text-success">
@@ -155,7 +155,7 @@ export default function StudentPaymentsPage() {
           <Card className="border-primary/30 bg-primary/5 p-4">
             <div className="mb-2 flex items-center gap-2">
               <Wallet className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">Як оплатити</h2>
+              <h2 className="text-sm font-semibold text-foreground">{t("studentPagesExtra.howToPay")}</h2>
             </div>
             <ul className="space-y-3">
               {tutorsWithDetails.map((t) => (
@@ -175,7 +175,7 @@ export default function StudentPaymentsPage() {
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : rows.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">Уроків ще немає</Card>
+          <Card className="p-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsCard")}</Card>
         ) : (
           <ul className="space-y-2">
             {rows.map((r) => {
@@ -191,7 +191,7 @@ export default function StudentPaymentsPage() {
                       <span className="font-semibold text-foreground">{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
                       <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${paid ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
                         {paid ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                        {paid ? "Оплачено" : "Очікує"}
+                        {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>
                     </div>
                   </Card>

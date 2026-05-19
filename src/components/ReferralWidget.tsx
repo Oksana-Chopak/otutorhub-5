@@ -60,7 +60,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(link);
     setCopied(true);
-    toast.success("Посилання скопійовано!");
+    toast.success(t("referralWidget.linkCopied"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -70,7 +70,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
       try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch {}
     } else {
       await navigator.clipboard.writeText(text);
-      toast.success("Текст запрошення скопійовано!");
+      toast.success(t("referralWidget.textCopied"));
     }
   };
 
@@ -86,14 +86,14 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
             <HandHeart className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-bold text-foreground">Запроси колегу — економ на Pro</h3>
-            <p className="text-xs text-muted-foreground">Друг отримує 30 днів тріалу · ти — 30 днів за його реєстрацію</p>
+            <h3 className="font-bold text-foreground">{t("referralWidget.title")}</h3>
+            <p className="text-xs text-muted-foreground">{t("referralWidget.desc")}</p>
           </div>
         </div>
 
         {savedUah > 0 && (
           <div className="mb-3 rounded-xl border border-success/30 bg-success/5 p-3">
-            <p className="text-xs text-muted-foreground">Завдяки твоїм запрошенням ти зекономив</p>
+            <p className="text-xs text-muted-foreground">{t("referralWidget.savedLabel")}</p>
             <p className="text-2xl font-bold text-success">{savedUah.toLocaleString("uk-UA")} ₴</p>
           </div>
         )}
@@ -122,7 +122,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
                 Ще <strong>{toBigBonus}</strong> {toBigBonus === 1 ? "оплата" : "оплати"} цього місяця → отримаєш +3 місяці безкоштовно
               </p>
             ) : (
-              <p className="text-[11px] font-semibold text-success">🎉 Ти заробив +3 місяці бонусом!</p>
+              <p className="text-[11px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
             )}
           </div>
         )}

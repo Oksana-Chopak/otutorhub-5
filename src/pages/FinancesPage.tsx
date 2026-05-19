@@ -70,6 +70,7 @@ const formatDate = (iso: string) =>
   });
 
 export default function FinancesPage() {
+  const { t } = useTranslation();
   const { roles } = useAuth();
   const { isIndependent } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
@@ -102,18 +103,34 @@ export default function FinancesPage() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [{ data: lessonsData, error: lErr }, { data: profilesData, error: pErr }] =
-      await Promise.all([
-        supabase
-          .from("lessons")
-          .select(
-            "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
-          )
-          .order("starts_at", { ascending: false }),
-        supabase.from("profiles").select("id, first_name, last_name"),
-      ]);
-    if (lErr) toast.error("Помилка завантаження уроків");
-    if (pErr) toast.error("Помилка завантаження профілів");
+    const [
+      { data: lessonsData, error: lErr },
+      { data: profilesData, error: pErr },
+      { data: txData },
+      { data: balData },
+      { data: ratesData },
+    ] = await Promise.all([
+      supabase
+        .from("lessons")
+        .select(
+          "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
+        )
+        .order("starts_at", { ascending: false }),
+      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase
+        .from("student_wallet_transactions" as any)
+        .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("student_wallet_balances" as any)
+        .select("tutor_id, student_id, lessons_balance, amount_balance"),
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .is("archived_at", null),
+    ]);
+    if (lErr) toast.error(t("finances.loadLessonsError"));
+    if (pErr) toast.error(t("finances.loadProfilesError"));
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
       id: l.id,
       subject: l.subject,
@@ -143,7 +160,7 @@ export default function FinancesPage() {
   const nameOf = (id: string) => {
     const p = profiles[id];
     if (!p) return "—";
-    return `${p.first_name} ${p.last_name}`.trim() || "Без імені";
+    return `${p.first_name} ${p.last_name}`.trim() || t("common.noName");
   };
 
   const months = useMemo(() => {
@@ -264,8 +281,55 @@ export default function FinancesPage() {
         markup: computeMarkup(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.markup !== null)
-      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
+      .filter((r) => r.margin !== null)
+      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable, profiles]);
+
+  // Last-4-weeks profit sparkline series
+  const profitSparkline = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayIdx = (today.getDay() + 6) % 7; // 0 = Mon
+    const thisWeekStart = new Date(today);
+    thisWeekStart.setDate(today.getDate() - dayIdx);
+    const buckets: { key: string; start: Date; profit: number }[] = [];
+    for (let i = 3; i >= 0; i--) {
+      const s = new Date(thisWeekStart);
+      s.setDate(thisWeekStart.getDate() - i * 7);
+      buckets.push({ key: s.toISOString().slice(0, 10), start: s, profit: 0 });
+    }
+    const firstStart = buckets[0].start.getTime();
+    billable.forEach((l) => {
+      const t = new Date(l.starts_at).getTime();
+      if (t < firstStart) return;
+      const idx = Math.floor((t - firstStart) / (7 * 24 * 3600 * 1000));
+      if (idx < 0 || idx >= buckets.length) return;
+      const income = l.student_payment_status === "paid" ? Number(l.student_price) : 0;
+      const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
+      buckets[idx].profit += income - expense;
+    });
+    return buckets.map((b) => ({ week: b.key, profit: b.profit }));
+  }, [billable]);
+
+  // Income contribution per student (paid lessons only) — for pie chart
+  const incomeByStudent = useMemo(() => {
+    const map = new Map<string, number>();
+    billable
+      .filter((l) => l.student_payment_status === "paid" && Number(l.student_price) > 0)
+      .forEach((l) => {
+        map.set(l.student_id, (map.get(l.student_id) ?? 0) + Number(l.student_price));
+      });
+    const rows = Array.from(map.entries())
+      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
+      .sort((a, b) => b.amount - a.amount);
+    // Collapse long tail into "Інші" (keep top 6)
+    const TOP = 6;
+    if (rows.length <= TOP) return rows;
+    const head = rows.slice(0, TOP);
+    const tail = rows.slice(TOP);
+    const other = tail.reduce((s, r) => s + r.amount, 0);
+    return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -312,10 +376,53 @@ export default function FinancesPage() {
             : l
         )
       );
-      toast.error("Не вдалося оновити статус");
+      toast.error(t("finances.updateStatusFailed"));
       return;
     }
-    toast.success(next === "paid" ? "Позначено як оплачено" : "Скинуто на неоплачено");
+    if (next === "paid") {
+      const revert = async () => {
+        // Restore prior state in DB + UI
+        setLessons((prev) =>
+          prev.map((l) =>
+            l.id === lesson.id
+              ? { ...l, [field]: lesson[field], [paidAtField]: field === "student_payment_status" ? lesson.student_paid_at : lesson.tutor_paid_at } as LessonRow
+              : l
+          )
+        );
+        const revertPayload =
+          field === "student_payment_status"
+            ? { student_payment_status: lesson.student_payment_status }
+            : { tutor_payout_status: lesson.tutor_payout_status };
+        await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
+      };
+      toast.success(
+        field === "student_payment_status" ? t("finances.markedAsPaid") : t("finances.markedAsPayout"),
+        {
+          duration: 5000,
+          action: { label: t("finances.undoAction"), onClick: () => { void revert(); } },
+        },
+      );
+    } else {
+      toast.success(t("finances.resetToUnpaid"));
+    }
+  };
+
+  // Used by RecordPaymentSheet: only marks as paid (no toggle).
+  const markLessonPaidById = async (lessonId: string) => {
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson) return;
+    if (lesson.student_payment_status === "paid") return;
+    await togglePayment(lesson, "student_payment_status");
+  };
+
+  const openWalletForPair = (tutor_id: string, student_id: string) => {
+    setWalletPair({
+      tutor_id,
+      student_id,
+      tutor_name: nameOf(tutor_id),
+      student_name: nameOf(student_id),
+      rate: pairRates[`${tutor_id}:${student_id}`],
+    });
   };
 
   const toggleRow = (id: string) => {
@@ -359,38 +466,38 @@ export default function FinancesPage() {
       .in("lesson_id", ids);
     setBulkBusy(false);
     if (error) {
-      toast.error("Не вдалося оновити записи");
+      toast.error(t("finances.bulkUpdateFailed"));
       setLessons(previousLessons);
       return;
     }
-    toast.success(`Оновлено ${ids.length} записів`);
+    toast.success(t("finances.bulkUpdated", { count: ids.length }));
     setSelected(new Set());
   };
 
   const exportCsv = () => {
     const header = [
-      "Дата",
-      "Предмет",
-      "Учень",
-      "Ціна учня (₴)",
-      "Статус оплати учня",
-      "Дата оплати учня",
-      "Репетитор",
-      "Виплата (₴)",
-      "Статус виплати",
-      "Дата виплати",
-      "Прибуток (₴)",
+      t("finances.csvDate"),
+      t("finances.csvSubject"),
+      t("finances.csvStudent"),
+      t("finances.csvStudentPrice"),
+      t("finances.csvStudentPayStatus"),
+      t("finances.csvStudentPaidAt"),
+      t("finances.csvTutor"),
+      t("finances.csvPayout"),
+      t("finances.csvPayoutStatus"),
+      t("finances.csvPayoutAt"),
+      t("finances.csvProfit"),
     ];
     const rows = visibleRows.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
       String(l.student_price),
-      l.student_payment_status === "paid" ? "Оплачено" : "Очікує",
+      l.student_payment_status === "paid" ? t("finances.csvPaid") : t("finances.csvPending"),
       l.student_paid_at ? formatDate(l.student_paid_at) : "",
       nameOf(l.tutor_id),
       String(l.tutor_payout),
-      l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує",
+      l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
       l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
       String(Number(l.student_price) - Number(l.tutor_payout)),
     ]);
@@ -404,63 +511,147 @@ export default function FinancesPage() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast.success("CSV завантажено");
+    setTimeout(() => URL.revokeObjectURL(url), 150);
+    toast.success(t("finances.csvDownloaded"));
   };
 
   const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
   const someSelected = selected.size > 0 && !allSelected;
 
+  // Inline wallet balance pill for a (tutor, student) pair
+  const renderWalletBadge = (tutor_id: string, student_id: string) => {
+    const b = balances[`${tutor_id}:${student_id}`];
+    if (!b) return null;
+    const lessons = Number(b.lessons_balance ?? 0);
+    const amount = Number(b.amount_balance ?? 0);
+    const isNegative = lessons < 0 || amount < 0;
+    const hasPositive = lessons > 0 || amount > 0;
+    if (!isNegative && !hasPositive) return null;
+    const label = isNegative
+      ? `${lessons < 0 ? `${lessons} ур.` : ""}${lessons < 0 && amount < 0 ? " / " : ""}${amount < 0 ? `${amount.toFixed(0)} ₴` : ""}`
+      : `${lessons > 0 ? `${lessons} ур.` : ""}${lessons > 0 && amount > 0 ? " / " : ""}${amount > 0 ? `${amount.toFixed(0)} ₴` : ""}`;
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          openWalletForPair(tutor_id, student_id);
+        }}
+        title={isNegative ? t("finances.walletNegative") : t("finances.walletPositive")}
+        className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
+          isNegative
+            ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
+            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
+        }`}
+      >
+        {isNegative ? (
+          <AlertTriangle className="h-2.5 w-2.5" />
+        ) : (
+          <Wallet className="h-2.5 w-2.5" />
+        )}
+        {label}
+      </button>
+    );
+  };
+
+  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
+
   return (
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">Фінанси</h1>
+          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {isIndependentTutor
-              ? "Оплати від ваших учнів"
-              : "Оплати від учнів та виплати репетиторам"}
+              ? t("finances.pageSubtitleTutor")
+              : t("finances.pageSubtitleManager")}
           </p>
         </div>
-        <MobileFilters
-          activeCount={
-            (monthFilter !== "all" ? 1 : 0) +
-            (tutorFilter !== "all" ? 1 : 0) +
-            (statusFilter !== "all" ? 1 : 0)
-          }
-          className="w-full sm:w-auto"
-        >
-          {!isIndependentTutor && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {canManagePrepay && (
+            <Button
+              size="sm"
+              onClick={() => setRecordOpen(true)}
+              className="h-9 w-full sm:w-auto"
+            >
+              <Plus className="mr-1 h-4 w-4" />
+              {t("finances.recordPayment")}
+            </Button>
+          )}
+          <MobileFilters
+            activeCount={
+              (monthFilter !== "all" ? 1 : 0) +
+              (tutorFilter !== "all" ? 1 : 0) +
+              (statusFilter !== "all" ? 1 : 0) +
+              (kindFilter !== "all" ? 1 : 0)
+            }
+            className="w-full sm:w-auto"
+          >
+            {!isIndependentTutor && (
+              <div className="w-full sm:w-44">
+                <Select value={tutorFilter} onValueChange={setTutorFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder={t("finances.allTutors")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
+                    {tutorOptions.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Репетитор" />
+                  <SelectValue placeholder={t("finances.allPeriods")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі репетитори</SelectItem>
-                  {tutorOptions.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name}
+                  <SelectItem value="all">{t("finances.allPeriods")}</SelectItem>
+                  {months.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {formatMonth(m)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
-          <div className="w-full sm:w-44">
-            <Select value={monthFilter} onValueChange={setMonthFilter}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Період" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі періоди</SelectItem>
-                {months.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {formatMonth(m)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="w-full sm:w-44">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder={t("finances.allStatuses")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("finances.allStatuses")}</SelectItem>
+                  <SelectItem value="need_pay">{t("finances.needStudentPay")}</SelectItem>
+                  {!isIndependentTutor && (
+                    <SelectItem value="need_payout">{t("finances.needPayout")}</SelectItem>
+                  )}
+                  {!isIndependentTutor && (
+                    <SelectItem value="done">{t("finances.allClosed")}</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+            {canManagePrepay && (
+              <div className="w-full sm:w-44">
+                <Select value={kindFilter} onValueChange={setKindFilter}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder={t("finances.kindAll")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("finances.kindAll")}</SelectItem>
+                    <SelectItem value="lessons">{t("finances.kindLessons")}</SelectItem>
+                    <SelectItem value="prepay">{t("finances.kindPrepay")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </MobileFilters>
+        </div>
           </div>
           <div className="w-full sm:w-44">
             <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
@@ -483,7 +674,9 @@ export default function FinancesPage() {
       </div>
 
       {loading ? (
-        <FinancesSkeleton />
+        <div className="flex items-center justify-center py-20 text-muted-foreground">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> {t("common.loading")}
+        </div>
       ) : (
         <>
           {/* Context banner — shown when arriving from dashboard with a filter pre-set */}
@@ -508,24 +701,24 @@ export default function FinancesPage() {
           )}
           <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
             <StatCard
-              label={isIndependentTutor ? "Отримано" : "Надходження"}
+              label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
               value={`${totalIncome} ₴`}
               icon={ArrowDownLeft}
               variant="success"
             />
             {!isIndependentTutor && (
-              <StatCard label="Виплати" value={`${totalExpense} ₴`} icon={ArrowUpRight} />
+              <StatCard label={t("finances.payouts")} value={`${totalExpense} ₴`} icon={ArrowUpRight} />
             )}
             {!isIndependentTutor && (
               <StatCard
-                label="Прибуток"
+                label={t("finances.profit")}
                 value={`${profit} ₴`}
                 icon={TrendingUp}
                 variant={profit >= 0 ? "success" : "warning"}
               />
             )}
             <StatCard
-              label={isIndependentTutor ? "Очікує оплати" : "Очікує (отримати/виплатити)"}
+              label={isIndependentTutor ? t("finances.awaitingPay") : t("finances.awaitingPayOrPayout")}
               value={isIndependentTutor ? `${pendingIncome} ₴` : `${pendingIncome} / ${pendingExpense} ₴`}
               icon={DollarSign}
               variant="warning"
@@ -535,7 +728,7 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      Середня націнка хабу
+                      {t("finances.margin")}
                     </p>
                     <p
                       className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
@@ -549,7 +742,7 @@ export default function FinancesPage() {
                       {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
                     </p>
                     <p className="mt-1 text-[11px] text-muted-foreground">
-                      (надходження − виплати) / виплати
+                      {t("finances.marginDesc")}
                     </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -560,21 +753,79 @@ export default function FinancesPage() {
             )}
           </div>
 
+          {/* === Mini-trends row: profit sparkline + income contribution pie === */}
+          {!isIndependentTutor && (
+            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    {t("finances.profitTrend")}
+                  </h2>
+                  <span className="text-xs text-muted-foreground">
+                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
+                  </span>
+                </div>
+                <ProfitSparkline data={profitSparkline} />
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">
+                    {t("finances.incomeByStudent")}
+                  </h2>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
+                    {t("finances.paidOnly")}
+                  </span>
+                </div>
+                <IncomeByStudentPie data={incomeByStudent} />
+              </div>
+            </div>
+          )}
+
           {/* === Main: Payments table (priority for daily use) === */}
           <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
             {visibleRows.length === 0 ? (
               <div className="p-6">
                 <EmptyState
                   icon={DollarSign}
-                  title="Немає платежів за фільтрами"
-                  description="Спробуйте змінити місяць, репетитора або скиньте фільтри. Завершені уроки з'являться тут одразу."
+                  title={t("finances.noPaymentsFiltered")}
+                  description={t("finances.noPaymentsDesc")}
                 />
               </div>
             ) : (
               <>
                 {/* Mobile cards (< lg) */}
                 <div className="divide-y divide-border lg:hidden">
-                  {visibleRows.map((l) => {
+                  {unifiedRows.map((row) => {
+                    if (row.type === "prepay") {
+                      const tx = row.tx;
+                      return (
+                        <button
+                          key={`p-${tx.id}`}
+                          type="button"
+                          onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                          className="block w-full p-3 text-left hover:bg-primary/5"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
+                                <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                              </p>
+                              {tx.note && (
+                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
+                              )}
+                            </div>
+                            <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
+                              {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                              {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    }
+                    const l = row.l;
                     const profit = Number(l.student_price) - Number(l.tutor_payout);
                     return (
                       <div
@@ -609,7 +860,7 @@ export default function FinancesPage() {
                               </p>
                               {l.student_paid_at && (
                                 <p className="truncate text-[11px] text-muted-foreground">
-                                  опл.: {formatDate(l.student_paid_at)}
+                                  {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                                 </p>
                               )}
                             </div>
@@ -619,7 +870,7 @@ export default function FinancesPage() {
                               </span>
                               <button
                                 onClick={() => togglePayment(l, "student_payment_status")}
-                                aria-label="Змінити статус оплати учня"
+                                aria-label={t("finances.statusPaid")}
                               >
                                 <Badge
                                   className={
@@ -628,7 +879,7 @@ export default function FinancesPage() {
                                       : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
                                   }
                                 >
-                                  {l.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                  {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
                                 </Badge>
                               </button>
                             </div>
@@ -642,7 +893,7 @@ export default function FinancesPage() {
                                 </p>
                                 {l.tutor_paid_at && (
                                   <p className="truncate text-[11px] text-muted-foreground">
-                                    вип.: {formatDate(l.tutor_paid_at)}
+                                    {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                                   </p>
                                 )}
                               </div>
@@ -652,7 +903,7 @@ export default function FinancesPage() {
                                 </span>
                                 <button
                                   onClick={() => togglePayment(l, "tutor_payout_status")}
-                                  aria-label="Змінити статус виплати"
+                                  aria-label={t("finances.statusPaidOut")}
                                 >
                                   <Badge
                                     className={
@@ -661,7 +912,7 @@ export default function FinancesPage() {
                                         : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
                                     }
                                   >
-                                    {l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує"}
+                                    {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
                                   </Badge>
                                 </button>
                               </div>
@@ -682,26 +933,63 @@ export default function FinancesPage() {
                           <Checkbox
                             checked={allSelected ? true : someSelected ? "indeterminate" : false}
                             onCheckedChange={toggleAll}
-                            aria-label="Обрати все"
+                            aria-label={t("finances.selectAll")}
                           />
                         </th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Дата</th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Урок</th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">Учень</th>
-                        <th className="px-3 py-3 text-right font-medium text-success">Надходження</th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colDate")}</th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
+                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colStudent")}</th>
+                        <th className="px-3 py-3 text-right font-medium text-success">{t("finances.colIncome")}</th>
                         {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-left font-medium text-muted-foreground">Репетитор</th>
+                          <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colTutor")}</th>
                         )}
                         {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-right font-medium text-destructive">Виплата</th>
+                          <th className="px-3 py-3 text-right font-medium text-destructive">{t("finances.colPayout")}</th>
                         )}
                         {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-right font-medium text-muted-foreground">Прибуток</th>
+                          <th className="px-3 py-3 text-right font-medium text-muted-foreground">{t("finances.colProfit")}</th>
                         )}
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleRows.map((l) => {
+                      {unifiedRows.map((row) => {
+                        if (row.type === "prepay") {
+                          const tx = row.tx;
+                          return (
+                            <tr
+                              key={`p-${tx.id}`}
+                              className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
+                              onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                            >
+                              <td className="px-3 py-3" />
+                              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+                                {formatDate(tx.created_at)}
+                              </td>
+                              <td className="px-3 py-3" colSpan={desktopColCount - 3}>
+                                <div className="flex items-center gap-2 text-primary">
+                                  <Package className="h-4 w-4 shrink-0" />
+                                  <span className="font-medium">{t("finances.prepayLabel")}</span>
+                                  <span className="text-muted-foreground">·</span>
+                                  <span className="text-foreground truncate">
+                                    {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                                  </span>
+                                  {tx.note && (
+                                    <span className="truncate text-xs text-muted-foreground">
+                                      — {tx.note}
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
+                                {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                                {Number(tx.amount_delta) > 0 && (
+                                  <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const l = row.l;
                         const profit = Number(l.student_price) - Number(l.tutor_payout);
                         const isSelected = selected.has(l.id);
                         return (
@@ -715,7 +1003,7 @@ export default function FinancesPage() {
                               <Checkbox
                                 checked={isSelected}
                                 onCheckedChange={() => toggleRow(l.id)}
-                                aria-label="Обрати рядок"
+                                aria-label={t("finances.selectRow")}
                               />
                             </td>
                             <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
@@ -726,7 +1014,7 @@ export default function FinancesPage() {
                               <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
                               {l.student_paid_at && (
                                 <div className="text-xs text-muted-foreground">
-                                  опл.: {formatDate(l.student_paid_at)}
+                                  {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                                 </div>
                               )}
                             </td>
@@ -743,7 +1031,7 @@ export default function FinancesPage() {
                                       : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
                                   }
                                 >
-                                  {l.student_payment_status === "paid" ? "Оплачено" : "Очікує"}
+                                  {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
                                 </Badge>
                               </button>
                             </td>
@@ -752,7 +1040,7 @@ export default function FinancesPage() {
                                 <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
                                 {l.tutor_paid_at && (
                                   <div className="text-xs text-muted-foreground">
-                                    вип.: {formatDate(l.tutor_paid_at)}
+                                    {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                                   </div>
                                 )}
                               </td>
@@ -771,7 +1059,7 @@ export default function FinancesPage() {
                                         : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
                                     }
                                   >
-                                    {l.tutor_payout_status === "paid" ? "Виплачено" : "Очікує"}
+                                    {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
                                   </Badge>
                                 </button>
                               </td>
@@ -800,11 +1088,11 @@ export default function FinancesPage() {
             <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">
-                  Масові дії {selected.size > 0 && (
+                  {t("finances.bulkActions")} {selected.size > 0 && (
                     <span className="ml-1 font-semibold text-foreground">({selected.size})</span>
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">розгорнути</span>
+                <span className="text-xs text-muted-foreground">{t("finances.expandBulk")}</span>
               </div>
             </summary>
             <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
@@ -815,7 +1103,7 @@ export default function FinancesPage() {
                 onClick={() => bulkMark("student_payment_status")}
               >
                 <CheckCheck className="h-4 w-4" />
-                Учні оплатили
+                {t("finances.markStudentsPaid")}
               </Button>
               {!isIndependentTutor && (
                 <Button
@@ -825,12 +1113,12 @@ export default function FinancesPage() {
                   onClick={() => bulkMark("tutor_payout_status")}
                 >
                   <CheckCheck className="h-4 w-4" />
-                  Виплачено репетиторам
+                  {t("finances.markTutorsPaid")}
                 </Button>
               )}
               <Button size="sm" variant="outline" onClick={exportCsv}>
                 <Download className="h-4 w-4" />
-                Експорт CSV
+                {t("finances.exportCsv")}
               </Button>
             </div>
           </details>
@@ -840,24 +1128,24 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Середня націнка по репетиторах
+                  {t("finances.marginByTutor")}
                 </h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">
-                  (ціна учня − виплата) / виплата
+                  {t("finances.marginFormula")}
                 </span>
               </div>
               {markupByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Немає даних: для розрахунку потрібні завершені уроки з заповненими ціною учня та виплатою.
+                  {t("finances.noMarginData")}
                 </p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-xs text-muted-foreground">
-                        <th className="px-2 py-2 text-left font-medium">Репетитор</th>
-                        <th className="px-2 py-2 text-right font-medium">Уроків</th>
-                        <th className="px-2 py-2 text-right font-medium">Націнка</th>
+                        <th className="px-2 py-2 text-left font-medium">{t("finances.colTutor")}</th>
+                        <th className="px-2 py-2 text-right font-medium">{t("finances.colLessonsCount")}</th>
+                        <th className="px-2 py-2 text-right font-medium">{t("finances.colMargin")}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -888,15 +1176,15 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">
-                  Тижнева динаміка прибутку (12 тижнів)
+                  {t("finances.weeklyTrend")}
                 </h2>
-                <span className="hidden text-xs text-muted-foreground sm:inline">Завершені уроки</span>
+                <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
               <FinanceWeeklyChart
                 tutorNames={Object.fromEntries(
                   Object.values(profiles).map((p) => [
                     p.id,
-                    `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+                    `${p.first_name} ${p.last_name}`.trim() || t("common.noName"),
                   ])
                 )}
                 lessons={filtered.map((l) => ({
@@ -912,6 +1200,48 @@ export default function FinancesPage() {
             </div>
           )}
         </>
+      )}
+
+      {canManagePrepay && (
+        <div className="mt-4 flex justify-end">
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/wallets">
+              <Wallet className="mr-1 h-4 w-4" />
+              {t("finances.allPrepays")}
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {canManagePrepay && (
+        <RecordPaymentSheet
+          open={recordOpen}
+          onOpenChange={setRecordOpen}
+          pairs={pairsList}
+          unpaidLessons={unpaidLessonsForSheet}
+          onMarkLessonPaid={markLessonPaidById}
+          onWalletTopUp={fetchData}
+        />
+      )}
+
+      {walletPair && (
+        <WalletDialog
+          open={!!walletPair}
+          onOpenChange={(o) => {
+            if (!o) {
+              setWalletPair(null);
+              fetchData();
+            }
+          }}
+          tutorId={walletPair.tutor_id}
+          studentId={walletPair.student_id}
+          tutorName={walletPair.tutor_name}
+          studentName={walletPair.student_name}
+          ratePerLesson={walletPair.rate}
+          canTopUp={canManagePrepay}
+          canDelete={isManager}
+        />
       )}
     </AppLayout>
   );

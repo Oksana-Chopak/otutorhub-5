@@ -14,12 +14,13 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-
-const schema = z.object({
-  password: z.string().min(8, "Мінімум 8 символів").max(128),
-});
+import { useTranslation } from "react-i18next";
 
 export default function ResetPasswordPage() {
+  const { t } = useTranslation();
+  const schema = z.object({
+    password: z.string().min(8, t("resetPassword.minChars")).max(128),
+  });
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
@@ -41,7 +42,7 @@ export default function ResetPasswordPage() {
     const parsed = schema.safeParse({ password });
     if (!parsed.success) {
       toast({
-        title: "Помилка",
+        title: t("resetPassword.errorTitle"),
         description: parsed.error.errors[0].message,
         variant: "destructive",
       });
@@ -51,10 +52,10 @@ export default function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
     setLoading(false);
     if (error) {
-      toast({ title: "Не вдалося оновити пароль", description: error.message, variant: "destructive" });
+      toast({ title: t("resetPassword.updateFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Готово", description: "Пароль успішно оновлено." });
+    toast({ title: t("resetPassword.doneTitle"), description: t("resetPassword.doneDesc") });
     navigate("/", { replace: true });
   };
 
@@ -67,17 +68,17 @@ export default function ResetPasswordPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Новий пароль</CardTitle>
+            <CardTitle>{t("resetPassword.title")}</CardTitle>
             <CardDescription>
               {hasRecoverySession
-                ? "Введіть новий пароль для вашого акаунта"
-                : "Перейдіть за посиланням з листа, щоб скинути пароль"}
+                ? t("resetPassword.descHasSession")
+                : t("resetPassword.descNoSession")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="np">Новий пароль</Label>
+                <Label htmlFor="np">{t("resetPassword.label")}</Label>
                 <Input
                   id="np"
                   type="password"
@@ -88,11 +89,11 @@ export default function ResetPasswordPage() {
                   required
                   disabled={!hasRecoverySession}
                 />
-                <p className="text-xs text-muted-foreground">Мінімум 8 символів</p>
+                <p className="text-xs text-muted-foreground">{t("resetPassword.hint")}</p>
               </div>
               <Button type="submit" className="w-full" disabled={loading || !hasRecoverySession}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Зберегти пароль
+                {t("resetPassword.saveBtn")}
               </Button>
               {!hasRecoverySession && (
                 <Button
@@ -101,7 +102,7 @@ export default function ResetPasswordPage() {
                   className="w-full"
                   onClick={() => navigate("/auth")}
                 >
-                  Назад до входу
+                  {t("resetPassword.backToLogin")}
                 </Button>
               )}
             </form>

@@ -33,7 +33,7 @@ export function LiqPayPayButton({
     const checkoutWindow = window.open("", checkoutWindowName);
     if (checkoutWindow) {
       checkoutWindow.opener = null;
-      checkoutWindow.document.write("<p>Переходимо до LiqPay…</p>");
+      checkoutWindow.document.write(t("liqPay.redirecting"));
     }
 
     try {
@@ -48,7 +48,7 @@ export function LiqPayPayButton({
       if (error || !data?.data || !data?.signature) {
         console.error("LiqPay create error:", error, data);
         checkoutWindow?.close();
-        toast.error("Не вдалося створити платіж. Спробуйте пізніше.");
+        toast.error(t("liqPay.createFailed"));
         return;
       }
 
@@ -75,11 +75,11 @@ export function LiqPayPayButton({
       form.submit();
       document.body.removeChild(form);
 
-      toast.success("Відкриваємо вікно оплати LiqPay…");
+      toast.success(t("liqPay.opening"));
     } catch (e) {
       console.error(e);
       checkoutWindow?.close();
-      toast.error("Сталася помилка. Спробуйте ще раз.");
+      toast.error(t("liqPay.error"));
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ export function LiqPayPayButton({
       ) : (
         <CreditCard className="h-4 w-4" />
       )}
-      {label ?? "Сплатити карткою"}
+      {label ?? t("liqPay.payBtn")}
     </Button>
   );
 }

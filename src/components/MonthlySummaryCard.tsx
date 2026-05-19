@@ -8,8 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const MONTH_NAMES = [
-  "січень", "лютий", "березень", "квітень", "травень", "червень",
-  "липень", "серпень", "вересень", "жовтень", "листопад", "грудень",
+  t("months").split(","),
 ];
 
 export function MonthlySummaryCard() {
@@ -35,16 +34,16 @@ export function MonthlySummaryCard() {
   if (!summary || summary.completed_count === 0) return null;
 
   const monthLabel = MONTH_NAMES[month - 1];
-  const shareText = `Мій ${monthLabel} в oTutorHub:\n📚 ${summary.completed_count} уроків проведено\n${summary.on_time_payment_pct !== null ? `✅ ${summary.on_time_payment_pct}% оплат вчасно\n` : ""}${summary.top_percentile && summary.top_percentile <= 50 ? `🏆 Топ-${summary.top_percentile}% репетиторів\n` : ""}\notutorhub.com`;
+  const shareText = `${t("monthlySummaryExtra.shareText", { month: monthLabel, lessons: summary.completed_count })}\n${summary.on_time_payment_pct !== null ? `✅ ${summary.on_time_payment_pct}% оплат вчасно\n` : ""}${summary.top_percentile && summary.top_percentile <= 50 ? `🏆 Топ-${summary.top_percentile}% репетиторів\n` : ""}\notutorhub.com`;
 
   const handleShare = async () => {
     setSharing(true);
     try {
       if (navigator.share) {
-        await navigator.share({ title: "Мій підсумок місяця", text: shareText, url: "https://otutorhub.com" });
+        await navigator.share({ title: t("monthlySummaryExtra.shareNavTitle"), text: shareText, url: "https://otutorhub.com" });
       } else {
         await navigator.clipboard.writeText(shareText);
-        toast.success("Скопійовано в буфер!");
+        toast.success(t("monthlySummary.copied"));
       }
     } catch (e) {
       // user cancelled
@@ -69,7 +68,7 @@ export function MonthlySummaryCard() {
       URL.revokeObjectURL(url);
     } catch (e) {
       console.error(e);
-      toast.error("Не вдалося згенерувати картинку");
+      toast.error(t("monthlySummary.imageFailed"));
     } finally {
       setSharing(false);
     }
@@ -83,17 +82,17 @@ export function MonthlySummaryCard() {
       >
         <div className="absolute right-3 top-3 text-xs opacity-70">oTutorHub</div>
         <div className="mb-1 text-sm opacity-90">
-          {firstName ? `${firstName}, твій ${monthLabel}` : `Твій ${monthLabel}`}
+          {firstName ? t("monthlySummaryExtra.greeting", { name: firstName, month: monthLabel }) : t("monthlySummaryExtra.greetingNoName", { month: monthLabel })}
         </div>
         <div className="space-y-3">
           <div className="flex items-baseline gap-2">
             <span className="text-5xl font-bold">{summary.completed_count}</span>
-            <span className="text-sm opacity-90">уроків проведено 📚</span>
+            <span className="text-sm opacity-90">{t("monthlySummaryExtra.lessonsLabel")}</span>
           </div>
           {summary.on_time_payment_pct !== null && (
             <div className="flex items-baseline gap-2">
               <span className="text-3xl font-bold">{summary.on_time_payment_pct}%</span>
-              <span className="text-sm opacity-90">оплат вчасно ✅</span>
+              <span className="text-sm opacity-90">{t("monthlySummaryExtra.paymentsLabel")}</span>
             </div>
           )}
           {summary.top_percentile && summary.top_percentile <= 50 && (

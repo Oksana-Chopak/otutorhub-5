@@ -205,7 +205,7 @@ export function AvailabilityManager() {
     const start = hhmmToMinutes(weeklyDialog.from);
     const end = hhmmToMinutes(weeklyDialog.to);
     if (start === null || end === null || end <= start) {
-      toast.error("Перевірте час: кінець має бути пізніше за початок");
+      toast.error(t("availabilityManager.timeError"));
       return;
     }
     const { error } = await supabase.from("tutor_availability_weekly").insert({
@@ -216,10 +216,10 @@ export function AvailabilityManager() {
     });
     if (error) {
       console.error(error);
-      toast.error("Не вдалося зберегти");
+      toast.error(t("availabilityManager.saveFailed"));
       return;
     }
-    toast.success("Додано");
+    toast.success(t("availabilityManager.addSuccess"));
     setWeeklyDialog((s) => ({ ...s, open: false }));
     loadAvailability();
   };
@@ -227,7 +227,7 @@ export function AvailabilityManager() {
   const removeWeekly = async (id: string) => {
     const { error } = await supabase.from("tutor_availability_weekly").delete().eq("id", id);
     if (error) {
-      toast.error("Не вдалося видалити");
+      toast.error(t("availabilityManager.deleteFailed"));
       return;
     }
     setWeekly((prev) => prev.filter((r) => r.id !== id));
@@ -242,22 +242,22 @@ export function AvailabilityManager() {
       .eq("tutor_id", tutorId)
       .eq("weekday", day);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("availabilityManager.updateFailed"));
       return;
     }
-    toast.success(`${WEEKDAYS_FULL_UK[day]} — вихідний`);
+    toast.success(t("availabilityManagerExtra.dayOffToast", { day: WEEKDAYS_FULL_UK[day] }));
     loadAvailability();
   };
 
   const addOverride = async () => {
     if (!overrideDialog.date) {
-      toast.error("Оберіть дату");
+      toast.error(t("availabilityManagerExtra.dateRequired"));
       return;
     }
     const start = overrideDialog.fullDay ? 0 : hhmmToMinutes(overrideDialog.from);
     const end = overrideDialog.fullDay ? 24 * 60 - 1 : hhmmToMinutes(overrideDialog.to);
     if (start === null || end === null || end <= start) {
-      toast.error("Перевірте час");
+      toast.error(t("availabilityManagerExtra.timeCheck"));
       return;
     }
     const { error } = await supabase.from("tutor_availability_overrides").insert({
@@ -269,10 +269,10 @@ export function AvailabilityManager() {
     });
     if (error) {
       console.error(error);
-      toast.error("Не вдалося зберегти");
+      toast.error(t("availabilityManager.saveFailed"));
       return;
     }
-    toast.success(overrideDialog.is_available ? "Додаткові години додано" : "Вихідний день додано");
+    toast.success(overrideDialog.is_available ? t("availabilityManagerExtra.extraHoursAdded") : t("availabilityManagerExtra.dayOffAdded"));
     setOverrideDialog((s) => ({ ...s, open: false }));
     loadAvailability();
   };
@@ -280,7 +280,7 @@ export function AvailabilityManager() {
   const removeOverride = async (id: string) => {
     const { error } = await supabase.from("tutor_availability_overrides").delete().eq("id", id);
     if (error) {
-      toast.error("Не вдалося видалити");
+      toast.error(t("availabilityManager.deleteFailed"));
       return;
     }
     setOverrides((prev) => prev.filter((o) => o.id !== id));
@@ -292,10 +292,10 @@ export function AvailabilityManager() {
       .update({ status: "fulfilled", acknowledged_at: new Date().toISOString() })
       .eq("id", id);
     if (error) {
-      toast.error("Не вдалося оновити");
+      toast.error(t("availabilityManager.updateFailed"));
       return;
     }
-    toast.success("Запит закрито");
+    toast.success(t("availabilityManagerExtra.requestClosed"));
     loadRequests();
   };
 
@@ -318,7 +318,7 @@ export function AvailabilityManager() {
     if (sourceDay === targetDay) return;
     const source = groupedWeekly.get(sourceDay) ?? [];
     if (source.length === 0) {
-      toast.error("У вихідному дні немає слотів для копіювання");
+      toast.error(t("availabilityManagerExtra.noSlotsForCopy"));
       return;
     }
     const rows = source.map((s) => ({
@@ -330,10 +330,10 @@ export function AvailabilityManager() {
     const { error } = await supabase.from("tutor_availability_weekly").insert(rows);
     if (error) {
       console.error(error);
-      toast.error("Не вдалося скопіювати слоти");
+      toast.error(t("availabilityManagerExtra.copyFailed"));
       return;
     }
-    toast.success(`Скопійовано ${rows.length} слот(и) → ${WEEKDAYS_FULL_UK[targetDay]}`);
+    toast.success(t("availabilityManagerExtra.copiedSlots", { count: rows.length, day: WEEKDAYS_FULL_UK[targetDay] }));
     loadAvailability();
   };
 
@@ -372,10 +372,10 @@ export function AvailabilityManager() {
 
       {isManager && (
         <div className="mb-6 flex items-center gap-3">
-          <Label className="text-sm shrink-0">Репетитор:</Label>
+          <Label className="text-sm shrink-0">{t("availabilityManagerExtra.tutorLabel")}</Label>
           <Select value={selectedTutorId} onValueChange={setSelectedTutorId}>
             <SelectTrigger className="max-w-xs">
-              <SelectValue placeholder="Оберіть репетитора" />
+              <SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} />
             </SelectTrigger>
             <SelectContent>
               {tutors.map((t) => (
@@ -403,7 +403,7 @@ export function AvailabilityManager() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground">
                       <span className="font-medium">{fullName(requester)}</span>
-                      <span className="text-muted-foreground"> запитує години у </span>
+                      <span className="text-muted-foreground"> {t("availabilityManagerExtra.requestsHours")} </span>
                       <span className="font-medium">{fullName(tutorProfile)}</span>
                     </p>
                     {r.message && <p className="text-xs text-muted-foreground mt-1">{r.message}</p>}
@@ -429,14 +429,14 @@ export function AvailabilityManager() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : !tutorId ? (
-        <p className="text-sm text-muted-foreground">Оберіть репетитора, щоб переглянути графік.</p>
+        <p className="text-sm text-muted-foreground">{t("availabilityManagerExtra.noTutorSelected")}</p>
       ) : (
         <>
           {/* WEEKLY */}
           <section className="mb-8">
             <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
               <div className="flex items-center gap-3">
-                <h2 className="font-display text-lg font-semibold text-foreground">Тижневий шаблон</h2>
+                <h2 className="font-display text-lg font-semibold text-foreground">{t("availabilityManagerExtra.weeklyTemplate")}</h2>
                 {totalWeeklyMinutes > 0 && (
                   <Badge variant="outline" className="text-xs">
                     {totalWeeklyHours} год/тиждень
@@ -476,7 +476,7 @@ export function AvailabilityManager() {
                         openAdd();
                       }
                     }}
-                    aria-label={canEdit ? `Додати години на ${WEEKDAYS_FULL_UK[day]}` : undefined}
+                    aria-label={canEdit ? t("availabilityManagerExtra.addHoursAria", { day: WEEKDAYS_FULL_UK[day] }) : undefined}
                   >
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground">{WEEKDAYS_FULL_UK[day]}</p>
@@ -486,7 +486,7 @@ export function AvailabilityManager() {
                             variant="ghost"
                             size="icon"
                             className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                            title="Зробити цей день вихідним"
+                            title={t("availabilityManagerExtra.makeHoliday")}
                             onClick={() => clearWeekday(day)}
                           >
                             <CalendarOff className="h-3.5 w-3.5" />
@@ -499,7 +499,7 @@ export function AvailabilityManager() {
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                title="Скопіювати з іншого дня"
+                                title={t("availabilityManagerExtra.copyFromDay")}
                               >
                                 <Copy className="h-3 w-3" />
                               </Button>
@@ -520,7 +520,7 @@ export function AvailabilityManager() {
                     </div>
                     {isDayOff ? (
                       <p className="text-xs italic text-muted-foreground">
-                        {canEdit ? "Натисніть, щоб додати години" : "Вихідний"}
+                        {canEdit ? t("availabilityManagerExtra.clickToAdd") : t("availabilityManagerExtra.holiday")}
                       </p>
                     ) : (
                       <div className="space-y-1.5">
@@ -581,7 +581,7 @@ export function AvailabilityManager() {
               )}
             </div>
             {overrides.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Поки що немає винятків.</p>
+              <p className="text-sm text-muted-foreground">{t("availabilityManagerExtra.noExceptions")}</p>
             ) : (
               <div className="space-y-2">
                 {overrides.map((o) => {
@@ -597,7 +597,7 @@ export function AvailabilityManager() {
                               : "border-destructive/40 text-destructive"
                           }
                         >
-                          {o.is_available ? "Додаткові години" : "Вихідний"}
+                          {o.is_available ? t("availabilityManagerExtra.extraHours") : t("availabilityManagerExtra.holiday")}
                         </Badge>
                         <span className="text-sm text-foreground">
                           {new Date(o.slot_date + "T00:00:00").toLocaleDateString("uk-UA", {
@@ -608,7 +608,7 @@ export function AvailabilityManager() {
                         </span>
                         <span className="font-mono text-sm text-muted-foreground">
                           {isFullDay
-                            ? "цілий день"
+                            : t("availabilityManagerExtra.allDay")
                             : `${minutesToHHMM(o.start_minute)} — ${minutesToHHMM(o.end_minute)}`}
                         </span>
                       </div>
@@ -635,12 +635,12 @@ export function AvailabilityManager() {
       <Dialog open={weeklyDialog.open} onOpenChange={(o) => setWeeklyDialog((s) => ({ ...s, open: o }))}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
-            <DialogTitle>Додати робочі години</DialogTitle>
-            <DialogDescription>Слот повторюватиметься щотижня в обраний день.</DialogDescription>
+            <DialogTitle>{t("availabilityManagerExtra.addWeeklyTitle")}</DialogTitle>
+            <DialogDescription>{t("availabilityManagerExtra.addWeeklyDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label>День тижня</Label>
+              <Label>{t("availabilityManagerExtra.dayOfWeekLabel")}</Label>
               <Select
                 value={String(weeklyDialog.weekday)}
                 onValueChange={(v) => setWeeklyDialog((s) => ({ ...s, weekday: Number(v) }))}
@@ -659,7 +659,7 @@ export function AvailabilityManager() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Від</Label>
+                <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
                 <Input
                   type="time"
                   value={weeklyDialog.from}
@@ -680,7 +680,7 @@ export function AvailabilityManager() {
             <Button variant="outline" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>
               Скасувати
             </Button>
-            <Button onClick={addWeekly}>Додати</Button>
+            <Button onClick={addWeekly}>{t("availabilityManagerExtra.addBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -690,17 +690,17 @@ export function AvailabilityManager() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>
-              {overrideDialog.is_available ? "Додаткові години на дату" : "Вихідний день"}
+              {overrideDialog.is_available ? t("availabilityManagerExtra.extraHoursTitle") : t("availabilityManagerExtra.dayOffTitle")}
             </DialogTitle>
             <DialogDescription>
               {overrideDialog.is_available
-                ? "Додає вільний слот понад тижневий шаблон на конкретну дату."
-                : "У цей день учні не зможуть бачити ваші вільні години (навіть якщо вони є у шаблоні)."}
+                : t("availabilityManagerExtra.extraHoursDesc")
+                : t("availabilityManagerExtra.dayOffDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div>
-              <Label>Дата</Label>
+              <Label>{t("availabilityManagerExtra.dateLabel")}</Label>
               <Input
                 type="date"
                 value={overrideDialog.date}
@@ -709,7 +709,7 @@ export function AvailabilityManager() {
               />
             </div>
             <div>
-              <Label>Тип</Label>
+              <Label>{t("availabilityManagerExtra.typeLabel")}</Label>
               <Select
                 value={overrideDialog.is_available ? "yes" : "no"}
                 onValueChange={(v) => setOverrideDialog((s) => ({ ...s, is_available: v === "yes" }))}
@@ -718,8 +718,8 @@ export function AvailabilityManager() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="no">Вихідний (заблокувати години)</SelectItem>
-                  <SelectItem value="yes">Додаткові години (відкрити слот)</SelectItem>
+                  <SelectItem value="no">{t("availabilityManagerExtra.dayOffOption")}</SelectItem>
+                  <SelectItem value="yes">{t("availabilityManagerExtra.extraHoursOption")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -737,7 +737,7 @@ export function AvailabilityManager() {
             {(overrideDialog.is_available || !overrideDialog.fullDay) && (
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label>Від</Label>
+                  <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
                   <Input
                     type="time"
                     value={overrideDialog.from}
@@ -759,7 +759,7 @@ export function AvailabilityManager() {
             <Button variant="outline" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>
               Скасувати
             </Button>
-            <Button onClick={addOverride}>Зберегти</Button>
+            <Button onClick={addOverride}>{t("availabilityManagerExtra.saveBtn")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import { useSubjects } from "@/hooks/useSubjects";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   value: string;
@@ -25,11 +26,13 @@ interface Props {
 export function SubjectSelect({
   value,
   onValueChange,
-  placeholder = "Оберіть предмет",
+  placeholder,
   disabled,
   extraOptions = [],
 }: Props) {
+  const { t } = useTranslation();
   const { subjects, loading } = useSubjects();
+  const resolvedPlaceholder = placeholder ?? t("subjectSelect.placeholder");
 
   const subjectNames = new Set(subjects.map((s) => s.name));
   const fallbackSubjects = SUBJECT_OPTIONS.filter((name) => !subjectNames.has(name));
@@ -48,7 +51,7 @@ export function SubjectSelect({
       disabled={disabled || loading}
     >
       <SelectTrigger>
-        <SelectValue placeholder={loading ? "Завантаження…" : placeholder} />
+        <SelectValue placeholder={loading ? t("subjectSelect.loading") : resolvedPlaceholder} />
       </SelectTrigger>
       <SelectContent>
         {subjects.map((s) => (

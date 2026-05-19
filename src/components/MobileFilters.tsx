@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { Filter, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,6 +36,7 @@ export function MobileFilters({
   compact = false,
   align = "left",
 }: MobileFiltersProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   return (
@@ -52,7 +54,7 @@ export function MobileFilters({
               variant="outline"
               size="icon"
               className="relative h-9 w-9 shrink-0"
-              aria-label="Фільтри"
+              aria-label={t("filters.label")}
             >
               {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
               {activeCount > 0 && !open && (
@@ -70,7 +72,7 @@ export function MobileFilters({
             >
               <span className="flex items-center gap-2">
                 {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
-                Фільтри
+                {t("filters.label")}
                 {activeCount > 0 && (
                   <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
                     {activeCount}

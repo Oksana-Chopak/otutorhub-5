@@ -56,12 +56,12 @@ export function InviteLinkDialog({
   }, [email, role]);
 
   const isTutor = role === "tutor";
-  const roleNoun = isTutor ? "репетитора" : "учня";
-  const roleNounDative = isTutor ? "репетитору" : "учню";
-  const roleNounPossessive = isTutor ? "своїм репетитором" : "своїм учнем";
+  const roleNoun = isTutor ? t("inviteLink.tutorNoun") : t("inviteLink.studentNoun");
+  const roleNounDative = isTutor ? t("inviteLink.tutorDative") : t("inviteLink.studentDative");
+  const roleNounPossessive = isTutor ? t("inviteLinkExtra.tutorPossessive") : t("inviteLinkExtra.studentPossessive");
 
   const message = useMemo(() => {
-    const greeting = personName ? `Привіт, ${personName}!` : "Привіт!";
+    const greeting = personName ? t("inviteLink.greeting", { name: personName }) : t("inviteLink.greetingGeneric") ?? "Привіт!";
     const who = inviterName ? ` (${inviterName})` : "";
     const intro = isTutor
       ? `Я${who} запрошую тебе приєднатися до oTutorHub як репетитора. Створи акаунт за посиланням нижче, щоб бачити учнів, розклад, оплати й вести уроки. Використай саме той самий ${email ? "email" : "контакт"}, інакше профіль не зв'яжеться.`
@@ -79,9 +79,9 @@ export function InviteLinkDialog({
         setCopiedMessage(true);
         setTimeout(() => setCopiedMessage(false), 2000);
       }
-      toast.success("Скопійовано");
+      toast.success(t("inviteLinkExtra.copied"));
     } catch {
-      toast.error("Не вдалося скопіювати");
+      toast.error(t("inviteLinkExtra.copyFailed"));
     }
   };
 
@@ -93,18 +93,18 @@ export function InviteLinkDialog({
     });
     setResending(false);
     if (error) {
-      toast.error("Не вдалося надіслати email");
+      toast.error(t("inviteLinkExtra.emailFailed"));
       return;
     }
     const result = data as { success?: boolean; reason?: string; message?: string };
     if (result?.success) {
       setResent(true);
-      toast.success("Запрошення надіслано на email");
+      toast.success(t("inviteLinkExtra.emailSent"));
     } else if (result?.reason === "rate_limited") {
-      toast.info("Лист уже надсилався недавно. Спробуйте за ~24 години.");
+      toast.info(t("inviteLinkExtra.emailRateLimited"));
       setResent(true);
     } else {
-      toast.error("Не вдалося надіслати email");
+      toast.error(t("inviteLinkExtra.emailFailed"));
     }
   };
 
@@ -112,7 +112,7 @@ export function InviteLinkDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>🎉 {isTutor ? "Репетитора" : "Учня"} додано!</DialogTitle>
+          <DialogTitle>🎉 {isTutor ? t("assignTutorExtra.assigned").replace(" 🎉","") : t("inviteLinkExtra.studentAdded").replace("🎉 ","").replace(" додано!","")} додано!</DialogTitle>
           <DialogDescription>
             {emailSent
               ? `Ми надіслали запрошення на email ${roleNounDative === "репетитору" ? "репетитора" : "учня"}. ${isTutor ? "Він" : "Він/вона"} отримає лист з кнопкою для створення акаунта — після реєстрації профіль автоматично зв'яжеться з вашим.`
@@ -125,7 +125,7 @@ export function InviteLinkDialog({
             <div className="flex items-start gap-2 rounded-md border border-success/40 bg-success/5 p-3 text-xs text-foreground">
               <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="min-w-0">
-                <strong className="break-all">Лист надіслано на {email}</strong>
+                <strong className="break-all">{t("inviteLinkExtra.emailSentLabel", { email })}</strong>
                 <p className="mt-1 text-muted-foreground">
                   Якщо лист не отримано — попросіть перевірити папку «Спам».
                   Можете також скопіювати посилання нижче й передати напряму.
@@ -194,20 +194,20 @@ export function InviteLinkDialog({
               ) : (
                 <Mail className="mr-2 h-4 w-4" />
               )}
-              {resent ? "Надіслати ще раз" : `Надіслати email ${roleNounDative}`}
+              {resent ? t("inviteLinkExtra.resendBtn") : t("inviteLinkExtra.sendEmailTo", { role: roleNounDative })}
             </Button>
           )}
 
           {email && (
             <a
               href={`mailto:${email}?subject=${encodeURIComponent(
-                "Запрошення в oTutorHub"
+                t("inviteLinkExtra.inviteSubject")
               )}&body=${encodeURIComponent(message)}`}
               className="block"
             >
               <Button variant="ghost" size="sm" className="w-full">
                 <Mail className="mr-2 h-4 w-4" />
-                <span className="truncate">Або відкрити у власному поштовому клієнті</span>
+                <span className="truncate">{t("inviteLinkExtra.openEmail")}</span>
               </Button>
             </a>
           )}
