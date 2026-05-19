@@ -355,10 +355,10 @@ export default function SubscriptionPage() {
                         До кінця акції:
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <Cell n={days} label=t("subscriptionPageExtra.daysLabel") />
-                        <Cell n={hours} label=t("subscriptionPageExtra.hoursLabel") />
+                        <Cell n={days} label={t("subscriptionPageExtra.daysLabel")} />
+                        <Cell n={hours} label={t("subscriptionPageExtra.hoursLabel")} />
                         <Cell n={minutes} label="хв" />
-                        <Cell n={seconds} label=t("subscriptionPageExtra.secondsLabel") />
+                        <Cell n={seconds} label={t("subscriptionPageExtra.secondsLabel")} />
                       </div>
                     </div>
                   );
@@ -376,7 +376,7 @@ export default function SubscriptionPage() {
                         ще {left}{" "}
                         {left === 1
                           ? t("subscriptionPageExtra.oneSpot")
-                          ? left >= 2 && left <= 4
+                          : left >= 2 && left <= 4
                           ? t("subscriptionPageExtra.fewSpots")
                           : t("subscriptionPageExtra.manySpots")}
                       </span>

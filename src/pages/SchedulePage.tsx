@@ -1002,6 +1002,7 @@ export default function SchedulePage() {
                   </div>
                 </DialogHeader>
                 <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1">
+                  {step === 1 && (<>
                   <div>
                     <Label className={cn(formErrors.tutor_id && "text-destructive")}>
                       {t('roles.tutor')} <span className="text-destructive">*</span>
@@ -1332,6 +1333,7 @@ export default function SchedulePage() {
                     />
                   )}
                 </div>
+                </>)}
               </div>
               <DialogFooter className="px-6 pb-6 pt-3 border-t border-border bg-background shrink-0 flex-row justify-between sm:justify-between gap-2">
                 {step === 1 ? (
