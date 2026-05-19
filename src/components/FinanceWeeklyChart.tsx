@@ -1,7 +1,6 @@
 import { useMemo } from "react";
-import {
 import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import {
   LineChart,
   Line,
   XAxis,
@@ -11,6 +10,8 @@ const t = i18nInstance.t.bind(i18nInstance);
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface LessonForChart {
   starts_at: string;

@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 /**
  * Shared helper for student "traffic light" status across pages.
  *

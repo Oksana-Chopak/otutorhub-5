@@ -2,6 +2,9 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { BADGE_DEFS } from "@/lib/badges";
 import type { TutorBadge } from "@/hooks/useTutorGamification";
+import i18n from "@/i18n";
+
+const t = i18n.t.bind(i18n);
 
 const STORAGE_KEY = "seen_badge_keys_v1";
 

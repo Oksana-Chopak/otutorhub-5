@@ -15,6 +15,9 @@ import { Loader2, GraduationCap, BookOpenCheck, Mail } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
+import i18n from "@/i18n";
+
+const t = i18n.t.bind(i18n);
 
 const REMEMBER_KEY = "tutorhub.rememberMe";
 

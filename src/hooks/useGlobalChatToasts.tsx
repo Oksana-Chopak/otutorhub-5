@@ -3,6 +3,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
+import i18n from "@/i18n";
+
+const t = i18n.t.bind(i18n);
 
 /**
  * Listens to new chat_messages inserts and shows a toast when:

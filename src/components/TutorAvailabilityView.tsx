@@ -2,9 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
-import {
 import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import {
   WEEKDAYS_FULL_UK,
   computeAvailableForDate,
   splitIntoSlots,
@@ -15,6 +14,8 @@ const t = i18nInstance.t.bind(i18nInstance);
   type OverrideRow,
   type BookedRow,
 } from "@/lib/availability";
+
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface TutorCalendarProps {
   tutorId: string;

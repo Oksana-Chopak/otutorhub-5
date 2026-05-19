@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 // Badge definitions for the gamification system
 export interface BadgeDef {
   key: string;

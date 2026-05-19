@@ -38,6 +38,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import {
   CalendarDays,
+  CalendarClock,
   Users,
   TrendingUp,
   Loader2,
@@ -247,9 +248,7 @@ export default function DashboardPage() {
     const monthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
     const seenKey = `monthly_recap_announced_${monthKey}`;
     if (localStorage.getItem(seenKey) === "1") return;
-    const months = [
-      i18n.t("dashboardExtra.months").split(","), i18n.t("dashboardExtra.months").split(","),
-    ];
+    const months = t("dashboardExtra.months").split(",");
     const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
     import("sonner").then(({ toast }) => {
       toast(`🎉 ${t("monthlySummaryExtra.greetingNoName", { month: months[prevMonthIdx] })} готовий!`, {
@@ -506,6 +505,11 @@ export default function DashboardPage() {
           (l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid")
         );
       }),
+    [lessons, nowMs]
+  );
+
+  const needsMarkLessons = useMemo(
+    () => lessons.filter((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() < nowMs),
     [lessons, nowMs]
   );
 

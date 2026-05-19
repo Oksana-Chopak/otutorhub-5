@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 // Time helpers — minutes since midnight in local timezone
 export const WEEKDAYS_UK = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
 export const WEEKDAYS_FULL_UK = [

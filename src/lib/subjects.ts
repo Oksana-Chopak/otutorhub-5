@@ -1,3 +1,5 @@
+import i18n from "@/i18n";
+
 // Канонічний список предметів школи. Зберігаються як рядки в tutor_details.subjects.
 export const SUBJECT_OPTIONS = [
   i18n.t("subjects.mathGerman"),

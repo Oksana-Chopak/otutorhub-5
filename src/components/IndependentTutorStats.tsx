@@ -12,15 +12,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
 import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import {
   Users,
   TrendingUp,
   ArrowDownLeft,
   Clock4,
   Crown,
 } from "lucide-react";
+
+const t = i18nInstance.t.bind(i18nInstance);
 
 type Period = "all" | "month" | "week";
 

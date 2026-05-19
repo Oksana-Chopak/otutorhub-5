@@ -1691,19 +1691,6 @@ export const uk = {
     upgradeBanner: "🎁 Банер апгрейду",
     title: "Метрики paywall",
   },
-  myReferrals: {
-    rank1: "🥇 +6 міс Pro",
-    rank2: "🥈 +3 міс Pro",
-    rank3: "🥉 +3 міс Pro",
-    bonusLabel: "+1 міс Pro",
-    rulesTitle: "Три простих правила",
-    rulesSubtitle: "Без зірочок і дрібного шрифту",
-    rule1: "Друг зареєструвався за твоїм посиланням",
-    rule2: "Друг оплатив перший місяць Pro",
-    rule3: "Ти отримуєш +1 місяць Pro безкоштовно",
-    title: "Реферали",
-    noReferrals: "Ще немає рефералів",
-  },
   independentStats: {
     periodAll: "За весь час",
     periodMonth: "За цей місяць",
@@ -2471,18 +2458,9 @@ export const uk = {
     terms: "Договір оферти",
     privacy: "Політика конфіденційності",
   },
-  common: {
-    cancel: "Скасувати",
-    error: "Помилка",
-    success: "Готово",
-  },
   emptyState: {
     allClear: "Усе під контролем 🎉",
     allClearDesc: "Немає термінових задач. Можна планувати наступний тиждень.",
-  },
-  pendingPaymentsExtra: {
-    studentCount: "{{count}} учнів",
-    lessonCount: "{{count}} ур.",
   },
 
 };

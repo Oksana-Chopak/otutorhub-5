@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,11 @@ import {
   Download,
   CheckCheck,
   AlertCircle,
+  AlertTriangle,
+  ArrowRight,
+  Package,
+  Plus,
+  Wallet,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +34,10 @@ import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { FinancesSkeleton } from "@/components/PageSkeletons";
 import { Percent } from "lucide-react";
+import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
+import { ProfitSparkline } from "@/components/ProfitSparkline";
+import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
+import { WalletDialog } from "@/components/WalletDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { MobileFilters } from "@/components/MobileFilters";
@@ -56,6 +66,20 @@ interface Profile {
   last_name: string;
 }
 
+interface WalletTransaction {
+  id: string;
+  tutor_id: string;
+  student_id: string;
+  kind: string;
+  lessons_delta: number;
+  amount_delta: number;
+  lesson_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface WalletPair extends PairOption {}
+
 const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
@@ -76,6 +100,7 @@ export default function FinancesPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  const canManagePrepay = isManager || isIndependentTutor;
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -90,6 +115,12 @@ export default function FinancesPage() {
   );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [kindFilter, setKindFilter] = useState<"all" | "lessons" | "prepay">("all");
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
+  const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
+  const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
 
   // Sync statusFilter changes back to URL so the state is shareable/bookmarkable
   const handleStatusFilterChange = (value: string) => {
@@ -149,6 +180,24 @@ export default function FinancesPage() {
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
+    setTransactions(((txData ?? []) as any[]).map((tx) => ({
+      ...tx,
+      lessons_delta: Number(tx.lessons_delta ?? 0),
+      amount_delta: Number(tx.amount_delta ?? 0),
+    })) as WalletTransaction[]);
+    const balanceMap: Record<string, { lessons_balance: number; amount_balance: number }> = {};
+    ((balData ?? []) as any[]).forEach((b) => {
+      balanceMap[`${b.tutor_id}:${b.student_id}`] = {
+        lessons_balance: Number(b.lessons_balance ?? 0),
+        amount_balance: Number(b.amount_balance ?? 0),
+      };
+    });
+    setBalances(balanceMap);
+    const rateMap: Record<string, number | undefined> = {};
+    ((ratesData ?? []) as any[]).forEach((r) => {
+      rateMap[`${r.tutor_id}:${r.student_id}`] = Number(r.price_per_lesson ?? 0) || undefined;
+    });
+    setPairRates(rateMap);
     setSelected(new Set());
     setLoading(false);
   };
@@ -281,8 +330,8 @@ export default function FinancesPage() {
         markup: computeMarkup(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.margin !== null)
-      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+      .filter((r) => r.markup !== null)
+      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -332,6 +381,51 @@ export default function FinancesPage() {
     return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
+
+  const pairsList = useMemo<PairOption[]>(() => {
+    const keys = new Set<string>();
+    lessons.forEach((l) => keys.add(`${l.tutor_id}:${l.student_id}`));
+    transactions.forEach((tx) => keys.add(`${tx.tutor_id}:${tx.student_id}`));
+    Object.keys(balances).forEach((key) => keys.add(key));
+    Object.keys(pairRates).forEach((key) => keys.add(key));
+    return Array.from(keys).map((key) => {
+      const [tutor_id, student_id] = key.split(":");
+      return {
+        tutor_id,
+        student_id,
+        tutor_name: nameOf(tutor_id),
+        student_name: nameOf(student_id),
+        rate: pairRates[key],
+      };
+    }).sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, transactions, balances, pairRates, profiles]);
+
+  const unpaidLessonsForSheet = useMemo<UnpaidLessonOption[]>(() =>
+    billable
+      .filter((l) => l.student_payment_status === "unpaid")
+      .map((l) => ({
+        id: l.id,
+        subject: l.subject,
+        starts_at: l.starts_at,
+        student_price: Number(l.student_price),
+        student_id: l.student_id,
+        tutor_id: l.tutor_id,
+      })),
+    [billable]
+  );
+
+  const unifiedRows = useMemo(() => {
+    const lessonRows = kindFilter === "prepay" ? [] : visibleRows.map((l) => ({ type: "lesson" as const, l }));
+    const prepayRows = kindFilter === "lessons" ? [] : transactions
+      .filter((tx) => tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
+      .map((tx) => ({ type: "prepay" as const, tx }));
+    return [...lessonRows, ...prepayRows].sort((a, b) => {
+      const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
+      const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
+      return bd.localeCompare(ad);
+    });
+  }, [kindFilter, visibleRows, transactions]);
 
   const togglePayment = async (
     lesson: LessonRow,
@@ -638,7 +732,7 @@ export default function FinancesPage() {
             </div>
             {canManagePrepay && (
               <div className="w-full sm:w-44">
-                <Select value={kindFilter} onValueChange={setKindFilter}>
+                <Select value={kindFilter} onValueChange={(value) => setKindFilter(value as "all" | "lessons" | "prepay")}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder={t("finances.kindAll")} />
                   </SelectTrigger>
