@@ -239,7 +239,7 @@ export default function AuthPage() {
       toast({
         title: t("authExtra.signupFailed"),
         description: error.message === "User already registered"
-          : t("authExtra.userExists")
+          ? t("authExtra.userExists")
           : t("authExtra.signupRetry"),
         variant: "destructive",
       });
