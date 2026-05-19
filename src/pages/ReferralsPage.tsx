@@ -173,7 +173,7 @@ export default function ReferralsPage() {
         <EmptyState
           icon={HandHeart}
           title={t("referralsPageExtra.noRequests")}
-          description=t("referralsPageExtra.noRequestsDesc")
+          description={t("referralsPageExtra.noRequestsDesc")}
         />
       ) : (
         <div className="space-y-3">
