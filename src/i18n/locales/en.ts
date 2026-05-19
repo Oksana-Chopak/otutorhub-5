@@ -2348,7 +2348,6 @@ export const en: Translations = {
   languageSwitcher: {
     ukrainian: "Ukrainian",
   },
-,
   dayAffirmations: [
     'I calmly manage my day and see what matters most.',
     'I create clarity for myself, my students, and my team.',
@@ -2440,7 +2439,7 @@ export const en: Translations = {
     'I choose clarity, consistency and humanity.',
     'My day has direction even when there are many changes.',
     'I manage — step by step, lesson by lesson.',
-  ],,
+  ],
 
   subjects: {
     mathGerman: "Mathematics (German curriculum)",
