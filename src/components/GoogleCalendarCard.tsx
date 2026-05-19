@@ -49,19 +49,18 @@ export function GoogleCalendarCard() {
 
   const connect = async () => {
     if (!user) return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.access_token;
-    if (!accessToken) {
-      toast.error(t("googleCalendar.reloginRequired"));
+    // Request a short-lived one-time exchange code from the edge function.
+    // The user's session JWT is sent only in the Authorization header (via
+    // supabase.functions.invoke) — never as a URL query param.
+    const { data, error } = await supabase.functions.invoke("google-calendar-auth", {
+      body: { return_to: `${window.location.origin}${window.location.pathname}` },
+    });
+    if (error || !data?.redirect_url) {
+      toast.error(t("googleCalendar.connectFailed"));
       return;
     }
-    const params = new URLSearchParams({
-      access_token: accessToken,
-      return_to: `${window.location.origin}${window.location.pathname}`,
-    });
-    const url = `https://${PROJECT_REF}.supabase.co/functions/v1/google-calendar-auth?${params.toString()}`;
-    const popup = window.open(url, "_blank");
-    if (!popup) window.location.href = url;
+    const popup = window.open(data.redirect_url, "_blank");
+    if (!popup) window.location.href = data.redirect_url;
   };
 
   const disconnect = async () => {
