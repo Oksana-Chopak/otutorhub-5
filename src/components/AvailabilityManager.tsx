@@ -608,7 +608,7 @@ export function AvailabilityManager() {
                         </span>
                         <span className="font-mono text-sm text-muted-foreground">
                           {isFullDay
-                            : t("availabilityManagerExtra.allDay")
+                            ? t("availabilityManagerExtra.allDay")
                             : `${minutesToHHMM(o.start_minute)} — ${minutesToHHMM(o.end_minute)}`}
                         </span>
                       </div>
@@ -694,7 +694,7 @@ export function AvailabilityManager() {
             </DialogTitle>
             <DialogDescription>
               {overrideDialog.is_available
-                : t("availabilityManagerExtra.extraHoursDesc")
+                ? t("availabilityManagerExtra.extraHoursDesc")
                 : t("availabilityManagerExtra.dayOffDesc")}
             </DialogDescription>
           </DialogHeader>

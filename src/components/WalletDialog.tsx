@@ -144,7 +144,7 @@ export function WalletDialog({
           </DialogTitle>
           <DialogDescription>
             {tutorName
-              : t("walletDialogExtra.pairLabel", { student: studentName ?? t("shared.student"), tutor: tutorName })
+              ? t("walletDialogExtra.pairLabel", { student: studentName ?? t("shared.student"), tutor: tutorName })
               : t("walletDialogExtra.pairLabelGeneric")}
           </DialogDescription>
         </DialogHeader>
