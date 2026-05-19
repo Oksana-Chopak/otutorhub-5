@@ -1667,19 +1667,6 @@ export const sv: Partial<Translations> = {
     upgradeBanner: "🎁 Uppgraderingsbanner",
     title: "Paywall-mätvärden",
   },
-  myReferrals: {
-    rank1: "🥇 +6 mån Pro",
-    rank2: "🥈 +3 mån Pro",
-    rank3: "🥉 +3 mån Pro",
-    bonusLabel: "+1 mån Pro",
-    rulesTitle: "Tre enkla regler",
-    rulesSubtitle: "Inga asterisker eller finstilt",
-    rule1: "Vän registrerade sig via din länk",
-    rule2: "Vän betalade för sin första Pro-månad",
-    rule3: "Du får +1 månads Pro gratis",
-    title: "Remisser",
-    noReferrals: "Inga remisser ännu",
-  },
   independentStats: {
     periodAll: "All tid",
     periodMonth: "Denna månad",
@@ -2444,18 +2431,9 @@ export const sv: Partial<Translations> = {
     terms: "Användarvillkor",
     privacy: "Integritetspolicy",
   },
-  common: {
-    cancel: "Avbryt",
-    error: "Fel",
-    success: "Klart",
-  },
   emptyState: {
     allClear: "Allt under kontroll 🎉",
     allClearDesc: "Inga brådskande uppgifter. Dags att planera nästa vecka.",
-  },
-  pendingPaymentsExtra: {
-    studentCount: "{{count}} elever",
-    lessonCount: "{{count}} lek.",
   },
 
 };

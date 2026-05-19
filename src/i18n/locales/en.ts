@@ -1676,19 +1676,6 @@ export const en: Translations = {
     upgradeBanner: "🎁 Upgrade banner",
     title: "Paywall metrics",
   },
-  myReferrals: {
-    rank1: "🥇 +6 mo Pro",
-    rank2: "🥈 +3 mo Pro",
-    rank3: "🥉 +3 mo Pro",
-    bonusLabel: "+1 mo Pro",
-    rulesTitle: "Three simple rules",
-    rulesSubtitle: "No asterisks or fine print",
-    rule1: "Friend signed up using your link",
-    rule2: "Friend paid for their first Pro month",
-    rule3: "You get +1 month Pro for free",
-    title: "Referrals",
-    noReferrals: "No referrals yet",
-  },
   independentStats: {
     periodAll: "All time",
     periodMonth: "This month",
@@ -2453,18 +2440,9 @@ export const en: Translations = {
     terms: "Terms of Service",
     privacy: "Privacy Policy",
   },
-  common: {
-    cancel: "Cancel",
-    error: "Error",
-    success: "Done",
-  },
   emptyState: {
     allClear: "All under control 🎉",
     allClearDesc: "No urgent tasks. Time to plan the next week.",
-  },
-  pendingPaymentsExtra: {
-    studentCount: "{{count}} students",
-    lessonCount: "{{count}} les.",
   },
 
 };
