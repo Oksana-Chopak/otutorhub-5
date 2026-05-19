@@ -300,6 +300,33 @@ export type Database = {
         }
         Relationships: []
       }
+      google_oauth_exchange_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          return_to: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          return_to: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          return_to?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       group_enrollments: {
         Row: {
           created_at: string
