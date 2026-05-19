@@ -66,6 +66,20 @@ interface Profile {
   last_name: string;
 }
 
+interface WalletTransaction {
+  id: string;
+  tutor_id: string;
+  student_id: string;
+  kind: string;
+  lessons_delta: number;
+  amount_delta: number;
+  lesson_id: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+interface WalletPair extends PairOption {}
+
 const monthKey = (iso: string) => iso.slice(0, 7);
 const formatMonth = (key: string) => {
   const [y, m] = key.split("-");
@@ -86,6 +100,7 @@ export default function FinancesPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  const canManagePrepay = isManager || isIndependentTutor;
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -100,6 +115,12 @@ export default function FinancesPage() {
   );
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [recordOpen, setRecordOpen] = useState(false);
+  const [kindFilter, setKindFilter] = useState<"all" | "lessons" | "prepay">("all");
+  const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
+  const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
+  const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
 
   // Sync statusFilter changes back to URL so the state is shareable/bookmarkable
   const handleStatusFilterChange = (value: string) => {
