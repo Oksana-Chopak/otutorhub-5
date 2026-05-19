@@ -368,16 +368,16 @@ export default function SubscriptionPage() {
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
                       {soldOut
-                        : t("subscriptionPageExtra.spotsLeft")
+                        ? t("subscriptionPageExtra.spotsLeft")
                         : t("subscriptionPageExtra.spotsTaken", { taken, limit: EARLY_BIRD_LIMIT })}
                     </span>
                     {!soldOut && (
                       <span className="font-semibold text-primary">
                         ще {left}{" "}
                         {left === 1
-                          : t("subscriptionPageExtra.oneSpot")
-                          : left >= 2 && left <= 4
-                          : t("subscriptionPageExtra.fewSpots")
+                          ? t("subscriptionPageExtra.oneSpot")
+                          ? left >= 2 && left <= 4
+                          ? t("subscriptionPageExtra.fewSpots")
                           : t("subscriptionPageExtra.manySpots")}
                       </span>
                     )}
@@ -599,7 +599,7 @@ export default function SubscriptionPage() {
               <p className="text-center text-xs text-muted-foreground">
                 Оплата карткою через LiqPay — доступ активується автоматично за кілька секунд.{" "}
                 {billing === "yearly"
-                  : t("subscriptionPageExtra.autoRenewYearly")
+                  ? t("subscriptionPageExtra.autoRenewYearly")
                   : t("subscriptionPageExtra.autoRenewMonthly")}
               </p>
             </CardContent>

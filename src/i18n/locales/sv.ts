@@ -1187,7 +1187,7 @@ export const sv: Partial<Translations> = {
 
   lessonDetails: {
     fallbackTitle: "Lektion",
-  },,
+  },
 
   dashboardExtra: {
     noName: "Okänt",
@@ -1714,7 +1714,6 @@ export const sv: Partial<Translations> = {
     newMessage: "Nytt meddelande",
     open: "Öppna",
   },
-,
 
   quickActionsCard: {
     noName: "Okänt",
@@ -2340,7 +2339,6 @@ export const sv: Partial<Translations> = {
   languageSwitcher: {
     ukrainian: "Ukrainska",
   },
-,
   dayAffirmations: [
     'Jag hanterar lugnt min dag och ser det viktigaste.',
     'Jag skapar klarhet för mig själv, mina elever och mitt team.',
@@ -2432,7 +2430,7 @@ export const sv: Partial<Translations> = {
     'Jag väljer klarhet, konsekvens och mänsklighet.',
     'Min dag har riktning även när det finns många förändringar.',
     'Jag klarar det — steg för steg, lektion för lektion.',
-  ],,
+  ],
 
   subjects: {
     mathGerman: "Matematik (tyskt program)",

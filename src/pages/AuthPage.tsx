@@ -256,7 +256,7 @@ export default function AuthPage() {
     toast({
       title: t("auth.almostDone"),
       description: demoName
-        : t("authExtra.demoContinue", { name: demoName })
+        ? t("authExtra.demoContinue", { name: demoName })
         : t("auth.almostDoneDesc"),
     });
   };
