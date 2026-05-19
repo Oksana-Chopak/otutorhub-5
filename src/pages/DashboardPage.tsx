@@ -614,7 +614,7 @@ export default function DashboardPage() {
         key: "pending-payments",
         icon: TrendingUp,
         tone: "warning" as const,
-        title: `Очікують оплати: ${pendingPayments.length}`,
+        title: t("dashboardExtra.pendingPaymentsTitle", { count: pendingPayments.length }),
         description: t("dashboardExtra.pendingPaymentsDesc"),
         to: "/finances",
         cta: t("dashboardExtra.pendingPaymentsCta"),
@@ -668,7 +668,7 @@ export default function DashboardPage() {
         key: "no-meeting",
         icon: Video,
         tone: "primary" as const,
-        title: `${lessonsWithoutMeeting} майбутніх уроків без посилання`,
+        title: t("dashboardPageExtra.lessonsWithoutLink", { count: lessonsWithoutMeeting }),
         description: t("dashboardExtra.noMeetingLinkDesc"),
         to: "/schedule",
         cta: t("dashboardExtra.pendingLessonRequestsCta"),
@@ -706,7 +706,7 @@ export default function DashboardPage() {
         key: "no-price",
         icon: Tag,
         tone: "warning" as const,
-        title: `${lessonsWithoutPrice} уроків без ціни`,
+        title: t("dashboardPageExtra.lessonsWithoutPrice", { count: lessonsWithoutPrice }),
         description: t("dashboardExtra.noRateDesc"),
         to: "/schedule",
         cta: t("dashboardExtra.noRateCta"),
@@ -892,7 +892,7 @@ export default function DashboardPage() {
             <section className="mb-6">
               <div className="mb-3 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <h2 className="text-base font-semibold">Потребують відмітки</h2>
+                <h2 className="text-base font-semibold">{t("dashboardPageExtra.needsMarkingTitle")}</h2>
                 <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{needsMarkLessons.length}</span>
               </div>
               <div className="space-y-2">
@@ -929,8 +929,8 @@ export default function DashboardPage() {
                   <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
                     {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
                       <div className="space-y-2">
-                        <p className="font-medium text-foreground">👋 Додай першого учня — це займе 2 хвилини</p>
-                        <p className="text-xs">Введи ім'я і ставку — далі створиш урок одним кліком.</p>
+                        <p className="font-medium text-foreground">{t("dashboardPageExtra.addFirstStudent")}</p>
+                        <p className="text-xs">{t("dashboardPageExtra.addFirstStudentHint")}</p>
                         <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
                           <Plus className="h-4 w-4" />
                           Додати першого учня

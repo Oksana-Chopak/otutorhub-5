@@ -47,7 +47,7 @@ export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
       const name = def?.name ?? b.badge_key;
       const desc = def?.description;
       setTimeout(() => {
-        toast.success(`${emoji} Новий бейдж: ${name}!`, {
+        toast.success(t("badgeUnlockToast.newBadge", { emoji, name }), {
           description: desc,
           duration: 6000,
           className: "animate-pop",

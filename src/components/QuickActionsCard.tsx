@@ -31,18 +31,18 @@ interface OpenState {
 const STORAGE_KEY = "otutorhub_quick_actions";
 
 const UKRAINIAN_MONTHS = [
-  "січня",
-  "лютого",
-  "березня",
-  "квітня",
-  "травня",
-  "червня",
-  "липня",
-  "серпня",
-  "вересня",
-  "жовтня",
-  "листопада",
-  "грудня",
+  t("monthsGen").split(",")[0],
+  t("monthsGen").split(",")[1],
+  t("monthsGen").split(",")[2],
+  t("monthsGen").split(",")[3],
+  t("monthsGen").split(",")[4],
+  t("monthsGen").split(",")[5],
+  t("monthsGen").split(",")[6],
+  t("monthsGen").split(",")[7],
+  t("monthsGen").split(",")[8],
+  t("monthsGen").split(",")[9],
+  t("monthsGen").split(",")[10],
+  t("monthsGen").split(",")[11],
 ];
 
 function datePartsFromIso(date: string) {
@@ -215,12 +215,12 @@ export function QuickActionsCard({ onChanged }: Props) {
     const nameOf = new Map(
       (profs ?? []).map((p: any) => [
         p.id,
-        `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Без імені",
+        `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("quickActionsCard.noName"),
       ])
     );
 
     const tutorOptions = tutorIds
-      .map((id) => ({ id, name: nameOf.get(id) ?? "Репетитор" }))
+      .map((id) => ({ id, name: nameOf.get(id) ?? t("quickActionsCard.tutorFallback") }))
       .sort((a, b) => a.name.localeCompare(b.name, "uk"));
     setTutors(tutorOptions);
 
@@ -234,9 +234,9 @@ export function QuickActionsCard({ onChanged }: Props) {
       rate_id: r.id,
       rate_key: r.id || `${r.tutor_id}:${r.student_id}:${r.subject || ""}`,
       tutor_id: r.tutor_id,
-      tutor_name: nameOf.get(r.tutor_id) ?? "Репетитор",
+      tutor_name: nameOf.get(r.tutor_id) ?? t("quickActionsCard.tutorFallback"),
       student_id: r.student_id,
-      name: nameOf.get(r.student_id) ?? "Учень",
+      name: nameOf.get(r.student_id) ?? t("quickActionsCard.studentFallback"),
       subject: r.subject || "",
       price: Number(r.price_per_lesson ?? 0),
       source: r.source || (isManager ? "hub" : "independent"),
@@ -278,9 +278,9 @@ export function QuickActionsCard({ onChanged }: Props) {
   const [activeTab, setActiveTab] = useState<keyof OpenState>(initialTab);
 
   const tabs: { id: keyof OpenState; emoji: string; label: string; highlight?: boolean }[] = [
-    { id: "student", emoji: "➕", label: "Учень", highlight: !hasStudents },
-    { id: "lesson", emoji: "📅", label: "Урок", highlight: hasStudents && !hasLessons },
-    { id: "payment", emoji: "💰", label: "Отримана оплата" },
+    { id: "student", emoji: "➕", label: t("quickActionsCard.addStudent"), highlight: !hasStudents },
+    { id: "lesson", emoji: "📅", label: t("quickActionsCard.addLesson"), highlight: hasStudents && !hasLessons },
+    { id: "payment", emoji: "💰", label: t("quickActionsCard.addPayment") },
   ];
 
   const renderPanel = (id: keyof OpenState) => {
@@ -306,7 +306,7 @@ export function QuickActionsCard({ onChanged }: Props) {
   return (
     <Card className="p-3 sm:p-4">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <h2 className="font-display text-sm font-semibold text-foreground">Швидкі дії</h2>
+        <h2 className="font-display text-sm font-semibold text-foreground">{t("quickActionsCard.title")}</h2>
       </div>
 
       {!hasStudents && !loading && (
@@ -430,12 +430,12 @@ function AddStudentForm({
     if (!user) return;
     const fn = name.trim();
     const ownerTutorId = isManager ? tutorId : user.id;
-    if (!fn) return toast.error("Вкажіть ім'я учня");
-    if (isManager && !ownerTutorId) return toast.error("Виберіть репетитора");
-    if (!subject) return toast.error("Виберіть предмет");
+    if (!fn) return toast.error(t("quickActionsCard.nameRequired"));
+    if (isManager && !ownerTutorId) return toast.error(t("quickActionsCard.tutorRequired"));
+    if (!subject) return toast.error(t("quickActionsCard.subjectRequired"));
     const normalizedSubject = subject.trim();
     const p = Number(price);
-    if (isNaN(p) || p < 0) return toast.error("Введіть коректну ціну");
+    if (isNaN(p) || p < 0) return toast.error(t("quickActionsCard.invalidPrice"));
 
     setBusy(true);
     const newId = crypto.randomUUID();
@@ -444,13 +444,13 @@ function AddStudentForm({
       .insert({ id: newId, first_name: fn, last_name: "", is_pending: true });
     if (profErr) {
       setBusy(false);
-      return toast.error(profErr.message || "Не вдалося");
+      return toast.error(profErr.message || t("quickActionsCard.createProfileFailed"));
     }
     const { error: roleErr } = await supabase.from("user_roles").insert({ user_id: newId, role: "student" });
     if (roleErr) {
       await supabase.from("profiles").delete().eq("id", newId);
       setBusy(false);
-      return toast.error("Не вдалося призначити роль");
+      return toast.error(t("quickActionsCard.roleFailed"));
     }
     const { error: rateErr } = await supabase.from("student_rates").insert({
       tutor_id: ownerTutorId,
@@ -464,10 +464,10 @@ function AddStudentForm({
     if (rateErr) {
       await supabase.from("user_roles").delete().eq("user_id", newId);
       await supabase.from("profiles").delete().eq("id", newId);
-      return toast.error("Не вдалося зберегти");
+      return toast.error(t("quickActionsCard.saveFailed"));
     }
     await ensureTutorHasSubject(ownerTutorId, normalizedSubject);
-    toast.success(`${fn} додано 🎉`);
+    toast.success(t("quickActionsCard.studentAdded", { name: fn }));
     setName("");
     setSubject("");
     setPrice("");
@@ -483,9 +483,9 @@ function AddStudentForm({
         </div>
         {isManager && (
           <div className="space-y-1">
-            <Label className="text-xs">Репетитор</Label>
+            <Label className="text-xs">{t("quickActionsCard.tutorLabel")}</Label>
             <Select value={tutorId} onValueChange={setTutorId}>
-              <SelectTrigger className="h-9"><SelectValue placeholder="Виберіть" /></SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue placeholder={t("quickActionsCard.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {tutors.map((t) => (
                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
@@ -495,12 +495,12 @@ function AddStudentForm({
           </div>
         )}
         <div className="space-y-1">
-          <Label className="text-xs">Предмет</Label>
+          <Label className="text-xs">{t("quickActionsCard.subjectLabel")}</Label>
           <SubjectSelect value={subject} onValueChange={setSubject} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs">Ціна ({currencySymbol(currency)})</Label>
+            <Label className="text-xs">{t("quickActionsCard.priceLabel", { symbol: currencySymbol(currency) })}</Label>
             <Input
               type="number"
               min={0}
@@ -510,7 +510,7 @@ function AddStudentForm({
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Валюта</Label>
+            <Label className="text-xs">{t("quickActionsCard.currencyLabel")}</Label>
             <Select value={currency} onValueChange={setCurrency}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -557,9 +557,9 @@ function AddLessonForm({
 
   const submit = async () => {
     if (!user) return;
-    if (!selected) return toast.error("Виберіть учня");
+    if (!selected) return toast.error(t("quickActionsCard.selectStudent"));
     if (!selected.subject) return toast.error("У учня не вказаний предмет");
-    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return toast.error("Вкажіть час у форматі 18:00");
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return toast.error(t("quickActionsCard.invalidTime"));
     setBusy(true);
     const startsAt = new Date(`${date}T${time}:00`);
     const { data: created, error } = await supabase
@@ -585,8 +585,8 @@ function AddLessonForm({
         );
     }
     setBusy(false);
-    if (error) return toast.error(error.message || "Не вдалося");
-    toast.success("Урок створено");
+    if (error) return toast.error(error.message || t("quickActionsCard.lessonCreateFailed"));
+    toast.success(t("quickActionsCard.lessonCreated"));
     onCreated();
   };
 
@@ -598,7 +598,7 @@ function AddLessonForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Учень</Label>
+          <Label className="text-xs">{t("quickActionsCard.studentLabel")}</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
@@ -616,7 +616,7 @@ function AddLessonForm({
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Тривалість, хв</Label>
+          <Label className="text-xs">{t("quickActionsCard.durationLabel")}</Label>
           <Input
             type="number"
             min={15}
@@ -629,7 +629,7 @@ function AddLessonForm({
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Дата (ДД.ММ.РРРР)</Label>
+          <Label className="text-xs">{t("quickActionsCard.dateLabel")}</Label>
           <Input
             type="text"
             inputMode="numeric"
@@ -644,7 +644,7 @@ function AddLessonForm({
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Час, 24 год</Label>
+          <Label className="text-xs">{t("quickActionsCard.timeLabel")}</Label>
           <Input
             type="text"
             inputMode="numeric"
@@ -657,7 +657,7 @@ function AddLessonForm({
         </div>
       </div>
       <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
-        <p className="text-[11px] font-medium uppercase text-muted-foreground">Дата і час уроку</p>
+        <p className="text-[11px] font-medium uppercase text-muted-foreground">{t("quickActionsCard.dateTimeLabel")}</p>
         <p className="text-sm font-semibold text-foreground">{formatUkrainianDateTimeFromParts(date, time)}</p>
       </div>
       <div className="flex justify-end">
@@ -710,13 +710,13 @@ function AddPaymentForm({
   }, [lessonOptions]);
 
   const submit = async () => {
-    if (!selected) return toast.error("Виберіть учня");
+    if (!selected) return toast.error(t("quickActionsCard.selectStudent"));
     setBusy(true);
 
     if (paymentType === "lesson") {
       if (!lessonId) {
         setBusy(false);
-        return toast.error("Виберіть урок");
+        return toast.error(t("quickActionsCard.selectLesson"));
       }
       const { error } = await supabase
         .from("lesson_details")
@@ -726,7 +726,7 @@ function AddPaymentForm({
         );
       setBusy(false);
       if (error) return toast.error(error.message);
-      toast.success("Позначено як оплачено");
+      toast.success(t("quickActionsCard.markedPaid"));
       onSaved();
       return;
     }
@@ -737,14 +737,14 @@ function AddPaymentForm({
       const n = parseInt(lessonsCount, 10);
       if (!Number.isFinite(n) || n <= 0) {
         setBusy(false);
-        return toast.error("Вкажіть додатну кількість уроків");
+        return toast.error(t("quickActionsCard.lessonsRequired"));
       }
       lessonsDelta = n;
     } else {
       const n = parseFloat(amount.replace(",", "."));
       if (!Number.isFinite(n) || n <= 0) {
         setBusy(false);
-        return toast.error("Вкажіть додатну суму");
+        return toast.error(t("quickActionsCard.amountRequired"));
       }
       amountDelta = n;
     }
@@ -754,11 +754,11 @@ function AddPaymentForm({
       _student_id: selected.student_id,
       _lessons_delta: lessonsDelta,
       _amount_delta: amountDelta,
-      _note: note.trim() || "Отримана оплата",
+      _note: note.trim() || t("quickActionsCard.defaultNote"),
     });
     setBusy(false);
-    if (error) return toast.error("Не вдалося зберегти оплату", { description: error.message });
-    toast.success("Оплату додано");
+    if (error) return toast.error(t("quickActionsCard.paymentSaveFailed"), { description: error.message });
+    toast.success(t("quickActionsCard.paymentAdded"));
     setLessonsCount("");
     setAmount("");
     setNote("");
@@ -773,13 +773,13 @@ function AddPaymentForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Учень</Label>
+          <Label className="text-xs">{t("quickActionsCard.studentLabel")}</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {students.map((s) => (
                 <SelectItem key={s.rate_key} value={s.rate_key}>
-                  {s.name} · {s.subject || "предмет"} · {formatPrice(s.price, s.currency)} · {s.tutor_name}
+                  {s.name} · {s.subject || t("quickActionsCard.subjectFallback")} · {formatPrice(s.price, s.currency)} · {s.tutor_name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -798,12 +798,12 @@ function AddPaymentForm({
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">Дія</Label>
+          <Label className="text-xs">{t("quickActionsCard.actionLabel")}</Label>
           <Select value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
             <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="wallet">Додати отриману оплату</SelectItem>
-              <SelectItem value="lesson" disabled={lessonOptions.length === 0}>Позначити урок оплаченим</SelectItem>
+              <SelectItem value="wallet">{t("quickActionsCard.addWalletPayment")}</SelectItem>
+              <SelectItem value="lesson" disabled={lessonOptions.length === 0}>{t("quickActionsCard.markLessonPaid")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -811,7 +811,7 @@ function AddPaymentForm({
 
       {paymentType === "lesson" ? (
         <div className="space-y-1">
-          <Label className="text-xs">Урок</Label>
+          <Label className="text-xs">{t("quickActionsCard.lessonLabel")}</Label>
           <Select value={lessonId} onValueChange={setLessonId}>
             <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
@@ -830,12 +830,12 @@ function AddPaymentForm({
         <>
           <div className="grid grid-cols-1 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">Формат</Label>
+              <Label className="text-xs">{t("quickActionsCard.formatLabel")}</Label>
               <Select value={paymentUnit} onValueChange={(v) => setPaymentUnit(v as PaymentUnit)}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="amount">Сума ({selectedCurrencySymbol})</SelectItem>
-                  <SelectItem value="lessons">Кількість уроків</SelectItem>
+                  <SelectItem value="amount">{t("quickActionsCard.byAmount", { symbol: selectedCurrencySymbol })}</SelectItem>
+                  <SelectItem value="lessons">{t("quickActionsCard.byLessons")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -849,17 +849,17 @@ function AddPaymentForm({
                 step={paymentUnit === "lessons" ? 1 : 0.01}
                 value={paymentUnit === "lessons" ? lessonsCount : amount}
                 onChange={(e) => paymentUnit === "lessons" ? setLessonsCount(e.target.value) : setAmount(e.target.value)}
-                placeholder={paymentUnit === "lessons" ? "напр. 4" : `напр. 500 ${selectedCurrencySymbol}`}
+                placeholder={paymentUnit === "lessons" ? t("quickActionsCard.countPlaceholder") : t("quickActionsCard.amountPlaceholder", { symbol: selectedCurrencySymbol })}
                 className="h-9"
               />
             </div>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">Коментар</Label>
+            <Label className="text-xs">{t("quickActionsCard.commentLabel")}</Label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="напр. готівка, переказ"
+              placeholder={t("quickActionsCard.commentPlaceholder")}
               className="h-9"
             />
           </div>

@@ -166,7 +166,7 @@ export function IndependentTutorStats() {
           trendDelta={loading ? undefined : incomeDelta}
         />
         <StatCard
-          label="Очікує оплати"
+          label={t("independentStatsExtra.awaitingPayment")}
           value={loading ? "…" : `${pendingIncome} ₴`}
           icon={TrendingUp}
           variant={pendingIncome > 0 ? "warning" : "default"}
@@ -191,7 +191,7 @@ export function IndependentTutorStats() {
             </div>
           </div>
           <Button asChild size="sm">
-            <Link to="/subscription">Деталі</Link>
+            <Link to="/subscription">{t("independentStatsExtra.detailsLink")}</Link>
           </Button>
         </div>
       )}

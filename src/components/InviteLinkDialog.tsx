@@ -58,7 +58,7 @@ export function InviteLinkDialog({
   const isTutor = role === "tutor";
   const roleNoun = isTutor ? t("inviteLink.tutorNoun") : t("inviteLink.studentNoun");
   const roleNounDative = isTutor ? t("inviteLink.tutorDative") : t("inviteLink.studentDative");
-  const roleNounPossessive = isTutor ? "своїм репетитором" : "своїм учнем";
+  const roleNounPossessive = isTutor ? t("inviteLinkExtra.tutorPossessive") : t("inviteLinkExtra.studentPossessive");
 
   const message = useMemo(() => {
     const greeting = personName ? t("inviteLink.greeting", { name: personName }) : t("inviteLink.greetingGeneric") ?? "Привіт!";
@@ -79,9 +79,9 @@ export function InviteLinkDialog({
         setCopiedMessage(true);
         setTimeout(() => setCopiedMessage(false), 2000);
       }
-      toast.success("Скопійовано");
+      toast.success(t("inviteLinkExtra.copied"));
     } catch {
-      toast.error("Не вдалося скопіювати");
+      toast.error(t("inviteLinkExtra.copyFailed"));
     }
   };
 
@@ -93,18 +93,18 @@ export function InviteLinkDialog({
     });
     setResending(false);
     if (error) {
-      toast.error("Не вдалося надіслати email");
+      toast.error(t("inviteLinkExtra.emailFailed"));
       return;
     }
     const result = data as { success?: boolean; reason?: string; message?: string };
     if (result?.success) {
       setResent(true);
-      toast.success("Запрошення надіслано на email");
+      toast.success(t("inviteLinkExtra.emailSent"));
     } else if (result?.reason === "rate_limited") {
-      toast.info("Лист уже надсилався недавно. Спробуйте за ~24 години.");
+      toast.info(t("inviteLinkExtra.emailRateLimited"));
       setResent(true);
     } else {
-      toast.error("Не вдалося надіслати email");
+      toast.error(t("inviteLinkExtra.emailFailed"));
     }
   };
 
@@ -112,7 +112,7 @@ export function InviteLinkDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>🎉 {isTutor ? "Репетитора" : "Учня"} додано!</DialogTitle>
+          <DialogTitle>🎉 {isTutor ? t("assignTutorExtra.assigned").replace(" 🎉","") : t("inviteLinkExtra.studentAdded").replace("🎉 ","").replace(" додано!","")} додано!</DialogTitle>
           <DialogDescription>
             {emailSent
               ? `Ми надіслали запрошення на email ${roleNounDative === "репетитору" ? "репетитора" : "учня"}. ${isTutor ? "Він" : "Він/вона"} отримає лист з кнопкою для створення акаунта — після реєстрації профіль автоматично зв'яжеться з вашим.`

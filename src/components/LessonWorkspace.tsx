@@ -133,8 +133,8 @@ export function LessonWorkspace({
       toast({ title: t("lessonWorkspace.aiReady"), description: t("lessonWorkspace.aiReadyDesc") });
     } catch (e: any) {
       toast({
-        title: "Не вдалося згенерувати конспект",
-        description: e?.message ?? "Спробуйте ще раз пізніше",
+        title: t("lessonWorkspaceExtra.aiGenerateFailed"),
+        description: e?.message ?? t("lessonWorkspaceExtra.aiGenerateFailedDesc"),
         variant: "destructive",
       });
     } finally {
@@ -177,8 +177,8 @@ export function LessonWorkspace({
         if (!safe) {
           setSaving(null);
           toast({
-            title: "Некоректне посилання",
-            description: "Дозволені лише https:// або http:// посилання.",
+            title: t("lessonWorkspaceExtra.invalidUrl"),
+            description: t("lessonWorkspaceExtra.invalidUrlDesc"),
             variant: "destructive",
           });
           return;
@@ -200,10 +200,10 @@ export function LessonWorkspace({
     }
     setSaving(null);
     if (error) {
-      toast({ title: "Не вдалося зберегти", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonWorkspaceExtra.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Збережено" });
+    toast({ title: t("lessonWorkspaceExtra.saved") });
     onUpdated?.();
   };
 
@@ -217,8 +217,8 @@ export function LessonWorkspace({
       if (!safe) {
         setSaving(null);
         toast({
-          title: "Некоректне посилання",
-          description: "Дозволені лише https:// або http:// посилання.",
+          title: t("lessonWorkspaceExtra.invalidUrl"),
+          description: t("lessonWorkspaceExtra.invalidUrlDesc"),
           variant: "destructive",
         });
         return;
@@ -233,10 +233,10 @@ export function LessonWorkspace({
       );
     setSaving(null);
     if (error) {
-      toast({ title: "Не вдалося зберегти", description: error.message, variant: "destructive" });
+      toast({ title: t("lessonWorkspaceExtra.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Постійне посилання збережено" });
+    toast({ title: t("lessonWorkspaceExtra.linkSaved") });
   };
 
   const canEditTutorFields = isTutor;
@@ -249,7 +249,7 @@ export function LessonWorkspace({
         <section className="rounded-lg border border-primary/30 bg-primary/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
-              <div className="font-medium">Урок ще не позначений як проведений</div>
+              <div className="font-medium">{t("lessonWorkspaceExtra.notCompleted")}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 Один тап — і урок піде в історію та у фінанси.
               </div>
@@ -267,7 +267,7 @@ export function LessonWorkspace({
         <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
-              <div className="font-medium">Учень оплатив цей урок?</div>
+              <div className="font-medium">{t("lessonWorkspaceExtra.studentPaidQuestion")}</div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {studentPrice ? `${studentPrice} ₴ — ` : ""}зафіксуйте оплату, щоб не загубилась.
               </div>
@@ -306,7 +306,7 @@ export function LessonWorkspace({
                     : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
                 }
               >
-                {paidLocal === "paid" ? "Оплачено" : "Не оплачено"}
+                {paidLocal === "paid" ? t("lessonWorkspaceExtra.paid") : t("lessonWorkspaceExtra.unpaid")}
               </span>
               <Button
                 size="sm"
@@ -319,14 +319,14 @@ export function LessonWorkspace({
                 ) : (
                   <Check className="mr-2 h-4 w-4" />
                 )}
-                {paidLocal === "paid" ? "Скасувати оплату" : "Позначити оплаченим"}
+                {paidLocal === "paid" ? t("lessonWorkspaceExtra.unmarkPaid") : t("lessonWorkspaceExtra.markPaid")}
               </Button>
               {canOpenWallet && (
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => setWalletOpen(true)}
-                  title="Гаманець (передоплата / списання)"
+                  title={t("lessonWorkspaceExtra.walletTooltip")}
                 >
                   <Wallet className="h-4 w-4 text-primary" />
                 </Button>
@@ -346,7 +346,7 @@ export function LessonWorkspace({
           <>
             <Textarea
               rows={4}
-              placeholder="Що потрібно виконати до наступного уроку…"
+              placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")}
               value={homeworkDraft}
               onChange={(e) => setHomeworkDraft(e.target.value)}
             />
@@ -364,7 +364,7 @@ export function LessonWorkspace({
         ) : homework ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{homework}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">Поки що домашки немає.</p>
+          <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
         )}
       </section>
 
@@ -379,7 +379,7 @@ export function LessonWorkspace({
             <>
               <Textarea
                 rows={4}
-                placeholder="Що було незрозуміло, питання до репетитора, власні думки…"
+                placeholder={t("lessonWorkspaceExtra.notesPlaceholder")}
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}
               />
@@ -418,7 +418,7 @@ export function LessonWorkspace({
                 type="button"
                 disabled={aiLoading}
                 onClick={generateAiSummary}
-                title="AI допише детальний конспект на основі ваших нотаток"
+                title={t("lessonWorkspaceExtra.aiTooltip")}
               >
                 {aiLoading ? (
                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -436,7 +436,7 @@ export function LessonWorkspace({
                   trackPaywallClick("ai_summary", "lesson_workspace", { lessonId });
                   navigate("/subscription?from=ai_summary");
                 }}
-                title="AI-конспект доступний на тарифі Pro"
+                title={t("lessonWorkspaceExtra.aiProTooltip")}
                 className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Lock className="mr-1.5 h-3.5 w-3.5" />
@@ -459,7 +459,7 @@ export function LessonWorkspace({
             )}
             <Textarea
               rows={5}
-              placeholder="Що пройшли на уроці, ключові моменти, посилання на матеріали…"
+              placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")}
               value={summaryDraft}
               onChange={(e) => setSummaryDraft(e.target.value)}
             />
@@ -477,7 +477,7 @@ export function LessonWorkspace({
         ) : summary ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{summary}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">Конспект ще не додано.</p>
+          <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
         )}
       </section>
 
@@ -504,9 +504,9 @@ export function LessonWorkspace({
                 <Video className="h-4 w-4 text-primary" />
                 Онлайн-зустріч
                 {effectiveMeetingUrl ? (
-                  <span className="text-xs font-normal text-success">· посилання є</span>
+                  <span className="text-xs font-normal text-success">{t("lessonWorkspaceExtra.linkExists")}</span>
                 ) : (
-                  <span className="text-xs font-normal text-warning">· посилання немає</span>
+                  <span className="text-xs font-normal text-warning">{t("lessonWorkspaceExtra.linkMissing")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -522,7 +522,7 @@ export function LessonWorkspace({
                   size="sm"
                   variant="ghost"
                   onClick={() => setChatOpen(true)}
-                  title="Написати учню"
+                  title={t("lessonWorkspaceExtra.chatTooltip")}
                 >
                   <MessageSquare className="mr-1 h-4 w-4" />
                   Написати
@@ -587,7 +587,7 @@ export function LessonWorkspace({
                   </a>
                 </Button>
               ) : (
-                <span className="text-xs text-muted-foreground">Посилання ще не додано.</span>
+                <span className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noLink")}</span>
               )}
               {(isStudent || isTutor) && (
                 <Button

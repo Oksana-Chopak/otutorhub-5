@@ -230,7 +230,7 @@ export function QuickLessonDialog({
       setSubmitting(false);
       localStorage.setItem(LAST_MODE_KEY, "group");
       localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
-      toast.success(`Груповий урок створено · ${selectedGroup.name}`);
+      toast.success(t("quickLessonDialogExtra.groupCreated", { name: selectedGroup.name }));
       void syncLessonToGoogleCalendar(created.id, "upsert");
       onOpenChange(false);
       onCreated?.();
@@ -239,7 +239,7 @@ export function QuickLessonDialog({
 
     if (!selected) return;
     if (!selected.subject) {
-      toast.error("У учня не вказаний предмет — відкрийте повну форму");
+      toast.error(t("quickLessonDialogExtra.studentNoSubject"));
       return;
     }
     setSubmitting(true);
@@ -270,7 +270,7 @@ export function QuickLessonDialog({
     setSubmitting(false);
     if (error) {
       console.error(error);
-      toast.error(error.message || "Не вдалося створити урок");
+      toast.error(error.message || t("quickLessonDialogExtra.lessonCreateFailed"));
       return;
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
@@ -303,7 +303,7 @@ export function QuickLessonDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
-          <DialogTitle>Швидкий урок</DialogTitle>
+          <DialogTitle>{t("quickLessonDialogExtra.title")}</DialogTitle>
           <DialogDescription>{timeLabel}</DialogDescription>
         </DialogHeader>
         {loading ? (
@@ -349,7 +349,7 @@ export function QuickLessonDialog({
 
             {mode === "individual" ? (
               <div className="space-y-1">
-                <Label>Учень</Label>
+                <Label>{t("quickLessonDialogExtra.studentLabel")}</Label>
                 <Select value={studentId} onValueChange={setStudentId}>
                   <SelectTrigger>
                     <SelectValue />
@@ -365,10 +365,10 @@ export function QuickLessonDialog({
               </div>
             ) : (
               <div className="space-y-1">
-                <Label>Група</Label>
+                <Label>{t("quickLessonDialogExtra.groupLabel")}</Label>
                 <Select value={groupId} onValueChange={setGroupId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Виберіть групу" />
+                    <SelectValue placeholder={t("quickLessonDialogExtra.selectGroup")} />
                   </SelectTrigger>
                   <SelectContent>
                     {groups.map((g) => (
@@ -381,7 +381,7 @@ export function QuickLessonDialog({
               </div>
             )}
             <div className="space-y-1">
-              <Label>Тривалість, хв</Label>
+              <Label>{t("quickLessonDialogExtra.durationLabel")}</Label>
               <Input
                 type="number"
                 min={15}
@@ -392,13 +392,13 @@ export function QuickLessonDialog({
             </div>
             {mode === "individual" && selected && (
               <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
-                {selected.subject || "Без предмета"} · {selected.price || 0} ₴
+                {selected.subject || t("quickLessonDialogExtra.noSubject")} · {selected.price || 0} ₴
                 {selected.default_meeting_url ? " · Zoom/Meet ✓" : ""}
               </p>
             )}
             {mode === "group" && selectedGroup && (
               <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
-                {selectedGroup.subject || "Без предмета"} · {selectedGroup.participants.length} учасників
+                {selectedGroup.subject || t("quickLessonDialogExtra.noSubject")} · {selectedGroup.participants.length} учасників
               </p>
             )}
           </div>

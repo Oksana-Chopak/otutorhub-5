@@ -183,7 +183,7 @@ export default function AuditLogPage() {
   };
 
   const exportCsv = () => {
-    const header = ["Час", "Актор", "Дія", "Сутність", "Сутність ID", "Before", "After"];
+    const header = [t("auditLogExtra.csvHeader").split(",")[0], t("auditLogExtra.csvHeader").split(",")[1], t("auditLogExtra.csvHeader").split(",")[2], t("auditLogExtra.csvHeader").split(",")[3], t("auditLogExtra.csvHeader").split(",")[4], "Before", "After"];
     const rows = filtered.map((e) => [
       formatDate(e.created_at),
       nameOf(profiles, e.actor_id),
@@ -244,39 +244,39 @@ export default function AuditLogPage() {
             className="h-8 max-w-[220px] text-xs"
           />
           <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue placeholder="Актор" /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всі актори</SelectItem>
+              <SelectItem value="all">{t("auditLogExtra.allActors")}</SelectItem>
               {actorOptions.map((a) => (
                 <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder="Дія" /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всі дії</SelectItem>
+              <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
                 <SelectItem key={a} value={a}>{actionLabels[a]?.label ?? a}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder="Сутність" /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Всі сутності</SelectItem>
+              <SelectItem value="all">{t("auditLogExtra.allEntities")}</SelectItem>
               {entityOptions.map((a) => (
                 <SelectItem key={a} value={a}>{a}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as Period)}>
-            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder="Період" /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Весь час</SelectItem>
-              <SelectItem value="today">Сьогодні</SelectItem>
-              <SelectItem value="7d">7 днів</SelectItem>
-              <SelectItem value="30d">30 днів</SelectItem>
+              <SelectItem value="all">{t("auditLogExtra.allTime")}</SelectItem>
+              <SelectItem value="today">{t("auditLogExtra.today")}</SelectItem>
+              <SelectItem value="7d">{t("auditLogExtra.days7")}</SelectItem>
+              <SelectItem value="30d">{t("auditLogExtra.days30")}</SelectItem>
             </SelectContent>
           </Select>
           {filtersActive && (
@@ -309,11 +309,11 @@ export default function AuditLogPage() {
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={ShieldAlert}
-            title={entries.length === 0 ? "Поки що немає записів" : "Нічого не знайдено"}
+            title={entries.length === 0 ? t("auditLogExtra.noRecords") : t("auditLogExtra.noResults")}
             description={
               entries.length === 0
-                ? "Тут з'являться дії менеджера: зміна ролей, видалення профілів, оновлення платежів."
-                : "Спробуйте змінити фільтри або скинути їх."
+                ? t("auditLogExtra.noRecordsDesc")
+                : t("auditLogExtra.noResultsDesc")
             }
           />
         ) : (
@@ -368,9 +368,9 @@ export default function AuditLogPage() {
                       <table className="w-full text-xs">
                         <thead>
                           <tr className="bg-secondary/50">
-                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">Поле</th>
-                            <th className="px-3 py-2 text-left font-medium text-destructive">Було</th>
-                            <th className="px-3 py-2 text-left font-medium text-success">Стало</th>
+                            <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t("auditLogExtra.fieldHeader")}</th>
+                            <th className="px-3 py-2 text-left font-medium text-destructive">{t("auditLogExtra.beforeHeader")}</th>
+                            <th className="px-3 py-2 text-left font-medium text-success">{t("auditLogExtra.afterHeader")}</th>
                           </tr>
                         </thead>
                         <tbody>

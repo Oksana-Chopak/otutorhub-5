@@ -260,7 +260,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
       return;
     }
-    toast.success("Запит відхилено");
+    toast.success(t("tutorChangeRequestsExtra.requestRejected"));
     close();
     load();
   };
@@ -339,7 +339,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   <Badge variant="secondary" className="text-xs">
-                    {req.kind === "cancel" ? "Скасування" : "Перенесення"}
+                    {req.kind === "cancel" ? t("tutorChangeRequestsExtra.kindCancel") : t("tutorChangeRequestsExtra.kindReschedule")}
                   </Badge>
                   <Button size="sm" onClick={() => openRequest(req)}>
                     Розглянути
@@ -358,8 +358,8 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               <DialogHeader>
                 <DialogTitle>
                   {active.kind === "cancel"
-                    ? "Скасування уроку"
-                    : "Перенесення уроку"}
+                    : t("tutorChangeRequestsExtra.cancelTitle")
+                    : t("tutorChangeRequestsExtra.rescheduleTitle")}
                 </DialogTitle>
                 <DialogDescription>
                   {nameOf(active.student_id)} · {activeLesson.subject} ·{" "}
@@ -371,7 +371,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
               {active.reason && (
                 <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                  <p className="text-xs text-muted-foreground mb-1">Коментар учня:</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("tutorChangeRequestsExtra.studentComment")}</p>
                   <p className="text-foreground italic">«{active.reason}»</p>
                 </div>
               )}
@@ -390,7 +390,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       ? `⚠ До уроку ${hoursUntil < 0 ? "вже минув" : `залишилось ~${hoursUntil} год`} — менше за ваше правило (${cancelFreeHours} год). Можна нарахувати оплату.`
                       : `Запит надійшов вчасно — до уроку ще ~${hoursUntil} год (правило: ≥${cancelFreeHours} год безкоштовно).`}
                   </div>
-                  <Label>Що робимо з оплатою?</Label>
+                  <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
                   <RadioGroup
                     value={chargeChoice}
                     onValueChange={(v) => setChargeChoice(v as ChargeChoice)}
@@ -399,17 +399,17 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     {[
                       {
                         value: "none" as ChargeChoice,
-                        title: "Без оплати",
-                        desc: "Учень нічого не платить — урок просто скасується.",
+                        title: t("tutorChangeRequestsExtra.noPay"),
+                        desc: t("tutorChangeRequestsExtra.noPayDesc"),
                       },
                       {
                         value: "partial" as ChargeChoice,
-                        title: "Часткова оплата",
+                        title: t("tutorChangeRequestsExtra.partialPay"),
                         desc: `Нарахувати лише частину від ${activeLesson.student_price} ₴.`,
                       },
                       {
                         value: "full" as ChargeChoice,
-                        title: "Повна оплата",
+                        title: t("tutorChangeRequestsExtra.fullPay"),
                         desc: `Учень платить ${activeLesson.student_price} ₴ як за проведений урок.`,
                       },
                     ].map((opt) => (
@@ -449,7 +449,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <Label htmlFor="proposed-time">Новий час</Label>
+                  <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
                   <Input
                     id="proposed-time"
                     type="datetime-local"
@@ -468,13 +468,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="t-response">Коментар учню (опційно)</Label>
+                <Label htmlFor="t-response">{t("tutorChangeRequestsExtra.responseLabel")}</Label>
                 <Textarea
                   id="t-response"
                   rows={2}
                   value={response}
                   onChange={(e) => setResponse(e.target.value)}
-                  placeholder="Кілька слів учню…"
+                  placeholder={t("tutorChangeRequestsExtra.responsePlaceholder")}
                   maxLength={500}
                 />
               </div>

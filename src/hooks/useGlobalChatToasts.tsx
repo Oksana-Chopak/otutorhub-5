@@ -56,13 +56,13 @@ export function useGlobalChatToasts() {
             .eq("id", msg.sender_id)
             .maybeSingle();
           const senderName = senderProfile
-            ? `${senderProfile.first_name ?? ""} ${senderProfile.last_name ?? ""}`.trim() || "Нове повідомлення"
-            : "Нове повідомлення";
+            ? `${senderProfile.first_name ?? ""} ${senderProfile.last_name ?? ""}`.trim() || t("globalChatExtra.newMessage")
+            : t("globalChatExtra.newMessage");
 
           toast(senderName, {
             description: msg.body.length > 120 ? msg.body.slice(0, 117) + "…" : msg.body,
             action: {
-              label: "Відкрити",
+              label: t("globalChatExtra.open"),
               onClick: () => navigate("/chats"),
             },
           });

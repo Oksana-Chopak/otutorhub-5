@@ -88,7 +88,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
         className="flex w-full items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <StickyNote className="h-3.5 w-3.5" />
-        <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && `(${notes.length})`}</span>
+        <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && t("managerNotesExtra.titleWithCount", { count: notes.length }).replace("Приватні нотатки (", "").replace(")", "")}</span>
         {expanded ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
       </button>
 
@@ -108,7 +108,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             disabled={saving || !draft.trim()}
             className="w-full h-8 text-xs"
           >
-            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : "Додати нотатку"}
+            {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("managerNotesExtra.addBtn")}
           </Button>
 
           {loading ? (
@@ -116,7 +116,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : notes.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic text-center py-1">Поки що немає нотаток</p>
+            <p className="text-xs text-muted-foreground italic text-center py-1">{t("managerNotesExtra.noNotes")}</p>
           ) : (
             <div className="space-y-2">
               {notes.map((n) => (

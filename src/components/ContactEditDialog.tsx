@@ -111,7 +111,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
       ["Instagram", instagram_url],
     ] as const) {
       if (val && !validateUrl(val)) {
-        toast.error(`${label}: вкажіть повний URL (https://...)`);
+        toast.error(t("contactEdit.urlInvalid", { label }));
         return;
       }
     }
@@ -190,11 +190,11 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     console.error("Failed to save contacts after retries", lastError);
     const msg = String(lastError?.message || "");
     if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
-      toast.error("Цей email вже використовується іншою людиною");
+      toast.error(t("contactEditExtra.emailDuplicate"));
     } else if (/load failed|network|fetch/i.test(msg)) {
-      toast.error("Проблема з мережею. Перевірте з'єднання та спробуйте ще раз.");
+      toast.error(t("contactEditExtra.networkError"));
     } else {
-      toast.error(msg || "Не вдалося зберегти контакти");
+      toast.error(msg || t("contactEdit.saveFailed"));
     }
   };
 

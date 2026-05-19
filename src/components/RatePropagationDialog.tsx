@@ -104,29 +104,29 @@ export function RatePropagationDialog({
           <div className="flex items-start gap-2">
             <RadioGroupItem value="future_unpaid" id="s-fu" className="mt-1" />
             <Label htmlFor="s-fu" className="font-normal cursor-pointer">
-              <div className="font-medium">Майбутні неоплачені (рекомендовано)</div>
-              <div className="text-xs text-muted-foreground">Безпечно: оплачені та минулі не змінюються.</div>
+              <div className="font-medium">{t("ratePropagationExtra.futureUnpaidOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.futureUnpaidDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="all_unpaid" id="s-au" className="mt-1" />
             <Label htmlFor="s-au" className="font-normal cursor-pointer">
-              <div className="font-medium">Усі неоплачені (минулі + майбутні)</div>
-              <div className="text-xs text-muted-foreground">Оплачені залишаються зі старою ціною.</div>
+              <div className="font-medium">{t("ratePropagationExtra.allUnpaidOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.allUnpaidDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="all" id="s-all" className="mt-1" />
             <Label htmlFor="s-all" className="font-normal cursor-pointer">
-              <div className="font-medium">Усі уроки без винятку</div>
-              <div className="text-xs text-muted-foreground text-warning">Перепише і оплачені — попередні фінзвіти зміняться.</div>
+              <div className="font-medium">{t("ratePropagationExtra.allOption")}</div>
+              <div className="text-xs text-muted-foreground text-warning">{t("ratePropagationExtra.allDesc")}</div>
             </Label>
           </div>
           <div className="flex items-start gap-2">
             <RadioGroupItem value="none" id="s-none" className="mt-1" />
             <Label htmlFor="s-none" className="font-normal cursor-pointer">
-              <div className="font-medium">Не чіпати існуючі</div>
-              <div className="text-xs text-muted-foreground">Нова ставка діятиме лише для нових уроків.</div>
+              <div className="font-medium">{t("ratePropagationExtra.skipOption")}</div>
+              <div className="text-xs text-muted-foreground">{t("ratePropagationExtra.skipDesc")}</div>
             </Label>
           </div>
         </RadioGroup>

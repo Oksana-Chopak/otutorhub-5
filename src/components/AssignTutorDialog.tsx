@@ -180,7 +180,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     }
 
     // 3. Mark referral request as fulfilled
-    const tutorName = tutors.find((t) => t.id === tutorId)?.name ?? "репетитор";
+    const tutorName = tutors.find((t) => t.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
     const responseNote = `Призначено репетитора: ${tutorName}. Предмет: ${subject.trim()}. Ціна для учня: ${sp} ₴, виплата: ${tp} ₴.`;
     const { error: reqErr } = await supabase
       .from("tutor_referral_requests")
@@ -192,7 +192,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       .eq("id", request.id);
     if (reqErr) {
       setSubmitting(false);
-      toast.error("Ставку створено, але запит не оновлено: " + reqErr.message);
+      toast.error(t("assignTutorExtra.rateCreatedReqFailed", { error: reqErr.message }));
       return;
     }
 
@@ -207,7 +207,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     }
 
     setSubmitting(false);
-    toast.success("Репетитора призначено 🎉");
+    toast.success(t("assignTutorExtra.assigned"));
     onAssigned();
     onOpenChange(false);
   };

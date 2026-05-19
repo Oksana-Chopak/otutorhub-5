@@ -270,14 +270,14 @@ export function RecordPaymentSheet({
                 <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="lessons">{t("recordPayment.byLessons")}</TabsTrigger>
-                    <TabsTrigger value="amount">Сумою</TabsTrigger>
+                    <TabsTrigger value="amount">{t("recordPaymentExtra.byAmount")}</TabsTrigger>
                   </TabsList>
                   <TabsContent value="lessons" className="space-y-2 pt-3">
-                    <Label className="text-xs">Кількість уроків</Label>
+                    <Label className="text-xs">{t("recordPaymentExtra.countLabel")}</Label>
                     <Input
                       type="number"
                       min="1"
-                      placeholder="напр. 5"
+                      placeholder={t("recordPaymentExtra.countPlaceholder")}
                       value={lessonsCount}
                       onChange={(e) => setLessonsCount(e.target.value)}
                     />
@@ -288,12 +288,12 @@ export function RecordPaymentSheet({
                     )}
                   </TabsContent>
                   <TabsContent value="amount" className="space-y-2 pt-3">
-                    <Label className="text-xs">Сума, ₴</Label>
+                    <Label className="text-xs">{t("recordPaymentExtra.amountLabel")}</Label>
                     <Input
                       type="number"
                       min="1"
                       step="0.01"
-                      placeholder="напр. 1800"
+                      placeholder={t("recordPaymentExtra.amountPlaceholder")}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
                     />
@@ -305,9 +305,9 @@ export function RecordPaymentSheet({
                   </TabsContent>
                 </Tabs>
                 <div>
-                  <Label className="text-xs">Коментар (необов'язково)</Label>
+                  <Label className="text-xs">{t("recordPaymentExtra.commentLabel")}</Label>
                   <Input
-                    placeholder="напр. готівка 16.05"
+                    placeholder={t("recordPaymentExtra.commentPlaceholder")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                   />
@@ -341,7 +341,7 @@ function PairPicker({
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Пошук пари учень/репетитор…"
+          placeholder={t("recordPaymentExtra.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-8"

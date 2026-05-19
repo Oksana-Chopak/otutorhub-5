@@ -719,19 +719,11 @@ export default function PeoplePage() {
     }
     const name = fullName(u);
     const first = window.confirm(
-      `ПОВНЕ ВИДАЛЕННЯ для ${name}.\n\n` +
-        `Назавжди буде видалено:\n` +
-        `• усі уроки, домашки та конспекти\n` +
-        `• ставки за предметами\n` +
-        `• чати, повідомлення й вкладені файли\n` +
-        `• нагадування про оплати, запити та доступність\n` +
-        `• передплати, платежі, нотатки менеджера\n` +
-        `• сам профіль\n\n` +
-        `Дію неможливо скасувати. Продовжити?`
+      t("peoplePage.deleteConfirm", { name })
     );
     if (!first) return;
     const typed = window.prompt(
-      `Для підтвердження введіть DELETE великими літерами:`
+      t("peoplePage.deleteTypeDELETE")
     );
     if (typed !== "DELETE") {
       toast.info(t("people.deleteCancelled"));

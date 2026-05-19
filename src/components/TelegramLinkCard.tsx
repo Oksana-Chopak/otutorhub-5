@@ -188,7 +188,7 @@ export function TelegramLinkCard() {
                   className="h-6 w-6"
                   onClick={() => {
                     navigator.clipboard.writeText(`/start ${link.link_code}`);
-                    toast.success("Скопійовано");
+                    toast.success(t("telegramLinkExtra.copied"));
                   }}
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -204,7 +204,7 @@ export function TelegramLinkCard() {
             </>
           ) : (
             <>
-              <p className="text-sm font-medium text-foreground">Сповіщення в Telegram</p>
+              <p className="text-sm font-medium text-foreground">{t("telegramLinkExtra.notificationsTitle")}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Підʼєднайте Telegram, щоб отримувати сповіщення про нові повідомлення в чатах, навіть коли застосунок закритий.
               </p>

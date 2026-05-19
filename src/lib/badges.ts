@@ -28,20 +28,20 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
   schedule_maniac: {
     key: "schedule_maniac",
     emoji: "📅",
-    name: "Розклад-маніяк",
-    description: "Заплановано 20+ уроків на місяць",
+    name: i18n.t("badgesExtra.scheduleManiac"),
+    description: i18n.t("badgesExtra.scheduleManiacDesc"),
   },
   first_referral: {
     key: "first_referral",
     emoji: "🤝",
-    name: "Перший реферал",
-    description: "Привів першого друга",
+    name: i18n.t("badgesExtra.firstReferral"),
+    description: i18n.t("badgesExtra.firstReferralDesc"),
   },
   top_tutor: {
     key: "top_tutor",
     emoji: "👑",
-    name: "Топ-репетитор",
-    description: "В топ-10 за активністю місяця",
+    name: i18n.t("badgesExtra.topTutor"),
+    description: i18n.t("badgesExtra.topTutorDesc"),
   },
 };
 

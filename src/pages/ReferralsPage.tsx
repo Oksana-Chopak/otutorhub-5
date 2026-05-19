@@ -128,7 +128,7 @@ export default function ReferralsPage() {
   const saveResponse = async (id: string) => {
     const response = drafts[id]?.trim();
     if (!response) {
-      toast.error("Напишіть відповідь");
+      toast.error(t("referralsPageExtra.replyRequired"));
       return;
     }
     setSavingId(id);
@@ -138,10 +138,10 @@ export default function ReferralsPage() {
       .eq("id", id);
     setSavingId(null);
     if (error) {
-      toast.error("Не вдалося зберегти");
+      toast.error(t("referralsPageExtra.replyFailed"));
       return;
     }
-    toast.success("Відповідь надіслано");
+    toast.success(t("referralsPageExtra.replySent"));
     setDrafts((d) => ({ ...d, [id]: "" }));
     load();
   };
@@ -151,7 +151,7 @@ export default function ReferralsPage() {
     // Manager can create thread directly. We need a tutor_id pair — for direct manager↔student
     // we don't have a thread (managers see all threads). Easiest: navigate to /chats and let
     // them filter, or create a minimal helper later. For now show toast hint.
-    toast.info("Відкрийте чати, щоб обрати ниточку для відповіді учневі.");
+    toast.info(t("referralsPageExtra.openChatsHint"));
   };
 
   return (
@@ -172,8 +172,8 @@ export default function ReferralsPage() {
       ) : requests.length === 0 ? (
         <EmptyState
           icon={HandHeart}
-          title="Запитів немає"
-          description="Коли учень попросить нового репетитора, заявка з'явиться тут."
+          title={t("referralsPageExtra.noRequests")}
+          description=t("referralsPageExtra.noRequestsDesc")
         />
       ) : (
         <div className="space-y-3">
@@ -289,7 +289,7 @@ export default function ReferralsPage() {
                   <div className="space-y-2">
                     <Textarea
                       rows={2}
-                      placeholder="Відповідь учневі (наприклад, кого ви рекомендуєте)…"
+                      placeholder={t("referralsPageExtra.replyPlaceholder")}
                       value={drafts[r.id] ?? ""}
                       onChange={(e) => setDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
                     />
@@ -310,10 +310,10 @@ export default function ReferralsPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="open">Новий</SelectItem>
-                          <SelectItem value="in_progress">В роботі</SelectItem>
-                          <SelectItem value="fulfilled">Виконано</SelectItem>
-                          <SelectItem value="closed">Закрито</SelectItem>
+                          <SelectItem value="open">{t("referralsPage.statusOpen")}</SelectItem>
+                          <SelectItem value="in_progress">{t("referralsPage.statusInProgress")}</SelectItem>
+                          <SelectItem value="fulfilled">{t("referralsPage.statusFulfilled")}</SelectItem>
+                          <SelectItem value="closed">{t("referralsPage.statusClosed")}</SelectItem>
                         </SelectContent>
                       </Select>
                       <Button size="sm" variant="outline" onClick={() => openChat(r.student_id)}>

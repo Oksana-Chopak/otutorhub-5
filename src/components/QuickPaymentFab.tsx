@@ -131,7 +131,7 @@ export function QuickPaymentFab() {
           aria-label={t("quickPayment.btnAria")}
         >
           <Wallet className="h-5 w-5" />
-          <span className="hidden sm:inline">Отримав оплату</span>
+          <span className="hidden sm:inline">{t("quickPaymentFabExtra.btnLabel")}</span>
           <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs font-bold">
             {unpaidCount}
           </span>
@@ -139,7 +139,7 @@ export function QuickPaymentFab() {
       </SheetTrigger>
       <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Відмітити отриману оплату</SheetTitle>
+          <SheetTitle>{t("quickPaymentFabExtra.sheetTitle")}</SheetTitle>
         </SheetHeader>
         {loading ? (
           <div className="flex justify-center py-10">

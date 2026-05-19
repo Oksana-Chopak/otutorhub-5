@@ -233,7 +233,7 @@ function CreateGroupDialog({
       return;
     }
     if (isManager && !tutorId) {
-      toast.error("Виберіть репетитора");
+      toast.error(t("groupsPageExtra.selectTutorRequired"));
       return;
     }
     setSubmitting(true);
@@ -252,7 +252,7 @@ function CreateGroupDialog({
     setSubject("");
     setSubjectId(undefined);
     setTutorId("");
-    toast.success("Групу створено");
+    toast.success(t("groupsPageExtra.created"));
     onCreated();
   };
 
@@ -260,16 +260,16 @@ function CreateGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Нова група</DialogTitle>
-          <DialogDescription>Створіть групу учнів для парних або групових уроків</DialogDescription>
+          <DialogTitle>{t("groupsPageExtra.newGroupTitle")}</DialogTitle>
+          <DialogDescription>{t("groupsPageExtra.newGroupDesc")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-3">
           {isManager && (
             <div className="space-y-1">
-              <Label>Репетитор</Label>
+              <Label>{t("groupsPageExtra.tutorLabel")}</Label>
               <Select value={tutorId} onValueChange={setTutorId}>
                 <SelectTrigger>
-                  <SelectValue placeholder={tutors.length ? "Виберіть репетитора" : "Немає репетиторів"} />
+                  <SelectValue placeholder={tutors.length ? t("groupsPageExtra.selectTutor") : t("groupsPageExtra.noTutors")} />
                 </SelectTrigger>
                 <SelectContent>
                   {tutors.map((t) => (
@@ -282,7 +282,7 @@ function CreateGroupDialog({
             </div>
           )}
           <div className="space-y-1">
-            <Label>Назва</Label>
+            <Label>{t("groupsPageExtra.nameLabel")}</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Англійська · 9-Б" />
           </div>
           <div className="space-y-1">
@@ -388,7 +388,7 @@ function GroupDetailsDialog({
       return;
     }
     setPickedStudent("");
-    toast.success("Учня додано");
+    toast.success(t("groupsPageExtra.studentAdded"));
     load();
     onChanged();
   };
@@ -401,19 +401,19 @@ function GroupDetailsDialog({
       toast.error(error.message);
       return;
     }
-    toast.success("Учня видалено з групи");
+    toast.success(t("groupsPageExtra.studentRemoved"));
     load();
     onChanged();
   };
 
   const archiveGroup = async () => {
-    if (!confirm("Видалити групу? Уроки залишаться, але група зникне.")) return;
+    if (!confirm(t("groupsPageExtra.confirmDelete"))) return;
     const { error } = await supabase.from("lesson_groups").delete().eq("id", groupId);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Групу видалено");
+    toast.success(t("groupsPageExtra.deleted"));
     onChanged();
     onOpenChange(false);
   };
@@ -424,7 +424,7 @@ function GroupDetailsDialog({
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{group?.name ?? "Група"}</DialogTitle>
+          <DialogTitle>{group?.name ?? t("groupsPageExtra.groupFallback")}</DialogTitle>
           {group?.subject && <DialogDescription>{group.subject}</DialogDescription>}
         </DialogHeader>
         {loading ? (
@@ -436,7 +436,7 @@ function GroupDetailsDialog({
             <div>
               <h4 className="mb-2 text-sm font-semibold">Учасники ({active.length})</h4>
               {active.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Поки немає учасників</p>
+                <p className="text-sm text-muted-foreground">{t("groupsPageExtra.noMembers")}</p>
               ) : (
                 <ul className="space-y-1">
                   {active.map((e) => (
@@ -461,11 +461,11 @@ function GroupDetailsDialog({
             </div>
 
             <div className="space-y-1">
-              <Label>Додати учня</Label>
+              <Label>{t("groupsPageExtra.addStudentLabel")}</Label>
               <div className="flex gap-2">
                 <Select value={pickedStudent} onValueChange={setPickedStudent}>
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={available.length ? "Виберіть учня" : "Немає вільних учнів"} />
+                    <SelectValue placeholder={available.length ? t("shared.student") : t("groupsPageExtra.noStudents")} />
                   </SelectTrigger>
                   <SelectContent>
                     {available.map((s) => (
@@ -487,7 +487,7 @@ function GroupDetailsDialog({
             <Archive className="mr-2 h-4 w-4" />
             Видалити групу
           </Button>
-          <Button onClick={() => onOpenChange(false)}>Готово</Button>
+          <Button onClick={() => onOpenChange(false)}>{t("groupsPageExtra.doneBtn")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

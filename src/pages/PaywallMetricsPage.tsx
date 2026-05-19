@@ -53,8 +53,8 @@ const STATUS_LABELS: Record<string, string> = {
   free: "Free",
   trial: "Trial",
   active: "Pro",
-  past_due: "Прострочено",
-  cancelled: "Скасовано",
+  past_due: t("paywallMetricsExtra.pastDue"),
+  cancelled: t("paywallMetricsExtra.cancelled"),
 };
 
 const COLORS = ["#8B5CF6", "#0EA5E9", "#F59E0B", "#10B981", "#EF4444", "#EC4899"];
@@ -132,10 +132,10 @@ export default function PaywallMetricsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="free">Лише Free</SelectItem>
-                <SelectItem value="trial">Лише Trial</SelectItem>
-                <SelectItem value="active">Лише Pro</SelectItem>
-                <SelectItem value="all">Усі статуси</SelectItem>
+                <SelectItem value="free">{t("paywallMetricsExtra.onlyFree")}</SelectItem>
+                <SelectItem value="trial">{t("paywallMetricsExtra.onlyTrial")}</SelectItem>
+                <SelectItem value="active">{t("paywallMetricsExtra.onlyPro")}</SelectItem>
+                <SelectItem value="all">{t("paywallMetricsExtra.allStatuses")}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={period} onValueChange={(v) => setPeriod(v as "7" | "30" | "90")}>
@@ -143,9 +143,9 @@ export default function PaywallMetricsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="7">7 днів</SelectItem>
-                <SelectItem value="30">30 днів</SelectItem>
-                <SelectItem value="90">90 днів</SelectItem>
+                <SelectItem value="7">{t("paywallMetricsExtra.days7")}</SelectItem>
+                <SelectItem value="30">{t("paywallMetricsExtra.days30")}</SelectItem>
+                <SelectItem value="90">{t("paywallMetricsExtra.days90")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -182,11 +182,11 @@ export default function PaywallMetricsPage() {
         {/* Bar chart */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Топ-фічі за кліками</CardTitle>
+            <CardTitle className="text-lg">{t("paywallMetricsExtra.topFeatures")}</CardTitle>
             <CardDescription>
               {statusFilter === "free"
-                ? "Що найбільше цікавить Free-юзерів — це готові кандидати продавати"
-                : "Загальний розподіл інтересу"}
+                ? t("paywallMetricsExtra.conversionHint")
+                : t("paywallMetricsExtra.generalHint")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -218,7 +218,7 @@ export default function PaywallMetricsPage() {
                     }}
                     formatter={(value: number, name: string) => [
                       value,
-                      name === "clicks" ? "Кліків" : "Унікальних юзерів",
+                      name === "clicks" ? t("paywallMetricsExtra.clicksLabel") : t("paywallMetricsExtra.uniqueUsers"),
                     ]}
                   />
                   <Bar dataKey="clicks" radius={[0, 6, 6, 0]}>
@@ -235,24 +235,24 @@ export default function PaywallMetricsPage() {
         {/* Per-feature breakdown */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Деталі по фічах</CardTitle>
+            <CardTitle className="text-lg">{t("paywallMetricsExtra.details")}</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Mobile cards */}
             <div className="space-y-2 md:hidden">
               {featureStats.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">Немає даних</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">{t("paywallMetricsExtra.noData")}</p>
               ) : (
                 featureStats.map((f) => (
                   <div key={f.key} className="rounded-xl border border-border bg-card p-3">
                     <div className="mb-2 text-sm font-medium text-foreground">{f.label}</div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <div className="text-[10px] uppercase text-muted-foreground">Кліків</div>
+                        <div className="text-[10px] uppercase text-muted-foreground">{t("paywallMetricsExtra.clicksCol")}</div>
                         <div className="text-sm font-semibold">{f.clicks}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase text-muted-foreground">Юзерів</div>
+                        <div className="text-[10px] uppercase text-muted-foreground">{t("paywallMetricsExtra.usersSmall")}</div>
                         <div className="text-sm font-semibold">{f.uniqueUsers}</div>
                       </div>
                       <div>
@@ -271,10 +271,10 @@ export default function PaywallMetricsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Фіча</TableHead>
-                    <TableHead className="text-right">Кліків</TableHead>
+                    <TableHead>{t("paywallMetricsExtra.featureCol")}</TableHead>
+                    <TableHead className="text-right">{t("paywallMetricsExtra.clicksCol")}</TableHead>
                     <TableHead className="text-right">Унікальних юзерів</TableHead>
-                    <TableHead className="text-right">Кліків/юзер</TableHead>
+                    <TableHead className="text-right">{t("paywallMetricsExtra.ratioCol")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -305,14 +305,14 @@ export default function PaywallMetricsPage() {
         {/* Recent events */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Останні події</CardTitle>
-            <CardDescription>До 100 останніх кліків з фільтром</CardDescription>
+            <CardTitle className="text-lg">{t("paywallMetricsExtra.recentEvents")}</CardTitle>
+            <CardDescription>{t("paywallMetricsExtra.recentEventsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Mobile cards */}
             <div className="space-y-2 md:hidden">
               {recent.length === 0 ? (
-                <p className="py-6 text-center text-sm text-muted-foreground">Немає подій</p>
+                <p className="py-6 text-center text-sm text-muted-foreground">{t("paywallMetricsExtra.noEvents")}</p>
               ) : (
                 recent.map((e) => (
                   <div key={e.id} className="rounded-xl border border-border bg-card p-3">
@@ -354,10 +354,10 @@ export default function PaywallMetricsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Час</TableHead>
-                    <TableHead>Фіча</TableHead>
-                    <TableHead>Звідки</TableHead>
-                    <TableHead>Статус</TableHead>
+                    <TableHead>{t("paywallMetricsExtra.timeCol")}</TableHead>
+                    <TableHead>{t("paywallMetricsExtra.featureCol")}</TableHead>
+                    <TableHead>{t("paywallMetricsExtra.fromCol")}</TableHead>
+                    <TableHead>{t("paywallMetricsExtra.statusCol")}</TableHead>
                     <TableHead>User</TableHead>
                   </TableRow>
                 </TableHeader>
