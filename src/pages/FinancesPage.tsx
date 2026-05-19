@@ -732,7 +732,7 @@ export default function FinancesPage() {
             </div>
             {canManagePrepay && (
               <div className="w-full sm:w-44">
-                <Select value={kindFilter} onValueChange={setKindFilter}>
+                <Select value={kindFilter} onValueChange={(value) => setKindFilter(value as "all" | "lessons" | "prepay")}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder={t("finances.kindAll")} />
                   </SelectTrigger>
