@@ -653,25 +653,6 @@ export default function FinancesPage() {
           </MobileFilters>
         </div>
           </div>
-          <div className="w-full sm:w-44">
-            <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Статус" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всі статуси</SelectItem>
-                <SelectItem value="need_pay">Очікує оплати учня</SelectItem>
-                {!isIndependentTutor && (
-                  <SelectItem value="need_payout">Очікує виплати</SelectItem>
-                )}
-                {!isIndependentTutor && (
-                  <SelectItem value="done">Все закрито</SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-        </MobileFilters>
-      </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20 text-muted-foreground">
