@@ -892,12 +892,14 @@ export const sv: Partial<Translations> = {
     freezeMany: "räddare",
     startToday: "Börja idag!",
     daysStreak_one: "{{count}} dag i rad",
-    daysStreak_other: "{{count}} dagar i rad",
+    daysStreak_few: "{{count}} dagar i rad",
+    daysStreak_many: "{{count}} dagar i rad",
     record: "Rekord: {{longest}}",
     freezeUsed: "❄️ Din räddare skyddade din svit! Utan den hade den återställts.",
     noFreeze: "Du har ingen räddare just nu. Missar du en dag — återställs sviten.",
     daysToBonus_one: "🎁 Bara {{count}} dag till — och du får +1 månad Pro gratis!",
-    daysToBonus_other: "🎁 Bara {{count}} dagar till — och du får +1 månad Pro gratis!",
+    daysToBonus_few: "🎁 Bara {{count}} dagar till — och du får +1 månad Pro gratis!",
+    daysToBonus_many: "🎁 Bara {{count}} dagar till — och du får +1 månad Pro gratis!",
     bonusEarned: "🏆 Bra svit! Du fick +1 månad Pro.",
   },
 
@@ -907,7 +909,8 @@ export const sv: Partial<Translations> = {
     expiredBanner: "⏰ Provperioden slutade. Anslut Pro för att behålla åtkomst.",
     remaining: "🎁 Pro-provperiod: återstår",
     day_one: "{{count}} dag",
-    day_other: "{{count}} dagar",
+    day_few: "{{count}} dagar",
+    day_many: "{{count}} dagar",
   },
 
   studentNav: {

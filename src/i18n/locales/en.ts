@@ -901,12 +901,14 @@ export const en: Translations = {
     freezeMany: "savers",
     startToday: "Start today!",
     daysStreak_one: "{{count}} day in a row",
-    daysStreak_other: "{{count}} days in a row",
+    daysStreak_few: "{{count}} days in a row",
+    daysStreak_many: "{{count}} days in a row",
     record: "Record: {{longest}}",
     freezeUsed: "❄️ Your saver protected your streak! Without it, it would have reset.",
     noFreeze: "You have no saver right now. Miss a day — your streak resets.",
     daysToBonus_one: "🎁 Just {{count}} more day — and you get +1 month Pro for free!",
-    daysToBonus_other: "🎁 Just {{count}} more days — and you get +1 month Pro for free!",
+    daysToBonus_few: "🎁 Just {{count}} more days — and you get +1 month Pro for free!",
+    daysToBonus_many: "🎁 Just {{count}} more days — and you get +1 month Pro for free!",
     bonusEarned: "🏆 Great streak! You earned +1 month Pro.",
   },
 
@@ -916,7 +918,8 @@ export const en: Translations = {
     expiredBanner: "⏰ Trial expired. Connect Pro to keep access.",
     remaining: "🎁 Pro trial: remaining",
     day_one: "{{count}} day",
-    day_other: "{{count}} days",
+    day_few: "{{count}} days",
+    day_many: "{{count}} days",
   },
 
   studentNav: {
