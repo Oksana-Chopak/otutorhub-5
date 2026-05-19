@@ -180,6 +180,24 @@ export default function FinancesPage() {
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
+    setTransactions(((txData ?? []) as any[]).map((tx) => ({
+      ...tx,
+      lessons_delta: Number(tx.lessons_delta ?? 0),
+      amount_delta: Number(tx.amount_delta ?? 0),
+    })) as WalletTransaction[]);
+    const balanceMap: Record<string, { lessons_balance: number; amount_balance: number }> = {};
+    ((balData ?? []) as any[]).forEach((b) => {
+      balanceMap[`${b.tutor_id}:${b.student_id}`] = {
+        lessons_balance: Number(b.lessons_balance ?? 0),
+        amount_balance: Number(b.amount_balance ?? 0),
+      };
+    });
+    setBalances(balanceMap);
+    const rateMap: Record<string, number | undefined> = {};
+    ((ratesData ?? []) as any[]).forEach((r) => {
+      rateMap[`${r.tutor_id}:${r.student_id}`] = Number(r.price_per_lesson ?? 0) || undefined;
+    });
+    setPairRates(rateMap);
     setSelected(new Set());
     setLoading(false);
   };
@@ -312,8 +330,8 @@ export default function FinancesPage() {
         markup: computeMarkup(rows),
         lessonsCount: rows.length,
       }))
-      .filter((r) => r.margin !== null)
-      .sort((a, b) => (b.margin ?? 0) - (a.margin ?? 0));
+      .filter((r) => r.markup !== null)
+      .sort((a, b) => (b.markup ?? 0) - (a.markup ?? 0));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
@@ -363,6 +381,51 @@ export default function FinancesPage() {
     return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
+
+  const pairsList = useMemo<PairOption[]>(() => {
+    const keys = new Set<string>();
+    lessons.forEach((l) => keys.add(`${l.tutor_id}:${l.student_id}`));
+    transactions.forEach((tx) => keys.add(`${tx.tutor_id}:${tx.student_id}`));
+    Object.keys(balances).forEach((key) => keys.add(key));
+    Object.keys(pairRates).forEach((key) => keys.add(key));
+    return Array.from(keys).map((key) => {
+      const [tutor_id, student_id] = key.split(":");
+      return {
+        tutor_id,
+        student_id,
+        tutor_name: nameOf(tutor_id),
+        student_name: nameOf(student_id),
+        rate: pairRates[key],
+      };
+    }).sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, transactions, balances, pairRates, profiles]);
+
+  const unpaidLessonsForSheet = useMemo<UnpaidLessonOption[]>(() =>
+    billable
+      .filter((l) => l.student_payment_status === "unpaid")
+      .map((l) => ({
+        id: l.id,
+        subject: l.subject,
+        starts_at: l.starts_at,
+        student_price: Number(l.student_price),
+        student_id: l.student_id,
+        tutor_id: l.tutor_id,
+      })),
+    [billable]
+  );
+
+  const unifiedRows = useMemo(() => {
+    const lessonRows = kindFilter === "prepay" ? [] : visibleRows.map((l) => ({ type: "lesson" as const, l }));
+    const prepayRows = kindFilter === "lessons" ? [] : transactions
+      .filter((tx) => tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
+      .map((tx) => ({ type: "prepay" as const, tx }));
+    return [...lessonRows, ...prepayRows].sort((a, b) => {
+      const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
+      const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
+      return bd.localeCompare(ad);
+    });
+  }, [kindFilter, visibleRows, transactions]);
 
   const togglePayment = async (
     lesson: LessonRow,
