@@ -1,13 +1,27 @@
-// Initiates Google Calendar OAuth flow.
-// GET /functions/v1/google-calendar-auth?access_token={supabase_jwt}
-// The caller MUST pass a valid Supabase access token; user_id is derived from
-// the verified JWT — never from a client-supplied parameter.
-// State is HMAC-signed to prevent forgery / token-slot hijacking.
+// Initiates Google Calendar OAuth flow using a one-time exchange code so the
+// user's Supabase session JWT is never exposed in a URL query parameter.
+//
+// Flow:
+//   1. Client calls this function via POST with `Authorization: Bearer <jwt>`.
+//      Function verifies the JWT, mints a short-lived (60s), single-use code
+//      tied to the user_id (+ optional return_to), stores it in
+//      `google_oauth_exchange_codes`, and returns `{ redirect_url }` pointing
+//      at this same function with `?code=<one-time-code>`.
+//   2. Client opens that URL in a popup / top-level navigation.
+//   3. GET ?code=... — function looks up the code, marks it used, derives
+//      user_id server-side, then signs OAuth state and redirects to Google.
+//
+// The session JWT only ever travels in an Authorization header, never in a URL.
 
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
-const REDIRECT_URI 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
+
+const REDIRECT_URI =
   "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-callback";
 const SCOPE = [
   "openid",
@@ -16,6 +30,7 @@ const SCOPE = [
 ].join(" ");
 
 const DEFAULT_RETURN_TO = "https://otutorhub.com/profile";
+const CODE_TTL_SECONDS = 60;
 
 function safeReturnTo(value: string | null) {
   if (!value) return DEFAULT_RETURN_TO;
@@ -59,69 +74,115 @@ async function buildSignedState(payload: Record<string, string>, secret: string)
   return `${body}.${sig}`;
 }
 
+function randomCode() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return b64urlEncode(bytes);
+}
+
+function jsonResponse(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
-  const url = new URL(req.url);
-
-  const authHeader = req.headers.get("Authorization") ?? "";
-  const headerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-  const token = headerToken || url.searchParams.get("access_token") || "";
-
-  if (!token) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const stateSecret =
-    Deno.env.get("OAUTH_STATE_SECRET") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!supabaseUrl || !anonKey || !stateSecret) {
-    return new Response(JSON.stringify({ error: "server misconfigured" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  const supabase = createClient(supabaseUrl, anonKey);
-  const { data: claimsData, error: claimsErr } = await supabase.auth.getClaims(token);
-  const userId = claimsData?.claims?.sub;
-  if (claimsErr || !userId) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const stateSecret = Deno.env.get("OAUTH_STATE_SECRET") || serviceKey;
   const clientId = Deno.env.get("GOOGLE_CLIENT_ID")?.trim();
+
+  if (!supabaseUrl || !anonKey || !serviceKey || !stateSecret) {
+    return jsonResponse({ error: "server misconfigured" }, 500);
+  }
   if (!clientId) {
-    return new Response(JSON.stringify({ error: "GOOGLE_CLIENT_ID not configured" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse({ error: "GOOGLE_CLIENT_ID not configured" }, 500);
   }
 
-  const state = await buildSignedState(
-    { user_id: userId, return_to: safeReturnTo(url.searchParams.get("return_to")) },
-    stateSecret,
-  );
+  const url = new URL(req.url);
+  const admin = createClient(supabaseUrl, serviceKey);
 
-  const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: REDIRECT_URI,
-    response_type: "code",
-    scope: SCOPE,
-    access_type: "offline",
-    prompt: "consent",
-    state,
-    include_granted_scopes: "true",
-  });
+  // -------- Step 1: mint a one-time exchange code (POST + Authorization). --------
+  if (req.method === "POST") {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader.startsWith("Bearer ")) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+    const jwt = authHeader.slice(7);
 
-  return Response.redirect(
-    `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
-    302,
-  );
+    const userClient = createClient(supabaseUrl, anonKey);
+    const { data: claimsData, error: claimsErr } = await userClient.auth.getClaims(jwt);
+    const userId = claimsData?.claims?.sub;
+    if (claimsErr || !userId) {
+      return jsonResponse({ error: "Unauthorized" }, 401);
+    }
+
+    let body: { return_to?: string } = {};
+    try { body = await req.json(); } catch { /* empty body OK */ }
+
+    const code = randomCode();
+    const expiresAt = new Date(Date.now() + CODE_TTL_SECONDS * 1000).toISOString();
+    const returnTo = safeReturnTo(body.return_to ?? null);
+
+    const { error: insertErr } = await admin
+      .from("google_oauth_exchange_codes")
+      .insert({ code, user_id: userId, return_to: returnTo, expires_at: expiresAt });
+    if (insertErr) {
+      console.error("[google-calendar-auth] failed to issue code", insertErr);
+      return jsonResponse({ error: "failed to issue code" }, 500);
+    }
+
+    const redirectUrl = `https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/google-calendar-auth?code=${encodeURIComponent(code)}`;
+    return jsonResponse({ redirect_url: redirectUrl });
+  }
+
+  // -------- Step 2: redeem code (GET ?code=...), then redirect to Google. --------
+  if (req.method === "GET") {
+    const code = url.searchParams.get("code");
+    if (!code) {
+      return jsonResponse({ error: "missing code" }, 400);
+    }
+
+    // Atomic single-use redeem: only mark used if not already used and not expired.
+    const nowIso = new Date().toISOString();
+    const { data: redeemed, error: redeemErr } = await admin
+      .from("google_oauth_exchange_codes")
+      .update({ used_at: nowIso })
+      .eq("code", code)
+      .is("used_at", null)
+      .gt("expires_at", nowIso)
+      .select("user_id, return_to")
+      .maybeSingle();
+
+    if (redeemErr || !redeemed) {
+      return jsonResponse({ error: "invalid or expired code" }, 401);
+    }
+
+    const state = await buildSignedState(
+      { user_id: redeemed.user_id, return_to: safeReturnTo(redeemed.return_to) },
+      stateSecret,
+    );
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: REDIRECT_URI,
+      response_type: "code",
+      scope: SCOPE,
+      access_type: "offline",
+      prompt: "consent",
+      state,
+      include_granted_scopes: "true",
+    });
+
+    return Response.redirect(
+      `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
+      302,
+    );
+  }
+
+  return jsonResponse({ error: "method not allowed" }, 405);
 });
