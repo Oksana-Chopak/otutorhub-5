@@ -1196,7 +1196,7 @@ export const en: Translations = {
 
   lessonDetails: {
     fallbackTitle: "Lesson",
-  },,
+  },
 
   dashboardExtra: {
     noName: "Unknown",
@@ -1723,7 +1723,6 @@ export const en: Translations = {
     newMessage: "New message",
     open: "Open",
   },
-,
 
   quickActionsCard: {
     noName: "Unknown",
@@ -2035,17 +2034,7 @@ export const en: Translations = {
   },
   peoplePage: {
     archiveConfirm: "Move {{name}} to archive? All lessons, rates and history will remain. The profile will disappear from the list.",
-    deleteConfirm: "FULL DELETION for {{name}}.
-
-Will be permanently deleted:
-• all lessons, homework and notes
-• subject rates
-• chats, messages and attached files
-• payment reminders, requests and availability
-• prepayments, payments, manager notes
-• the profile itself
-
-This action cannot be undone. Continue?",
+    deleteConfirm: "FULL DELETION for {{name}}.\n\nWill be permanently deleted:\n• all lessons, homework and notes\n• subject rates\n• chats, messages and attached files\n• payment reminders, requests and availability\n• prepayments, payments, manager notes\n• the profile itself\n\nThis action cannot be undone. Continue?",
     deleteTypeDELETE: "To confirm, type DELETE in capital letters:",
   },
   pendingPaymentsExtra: {
@@ -2235,8 +2224,7 @@ This action cannot be undone. Continue?",
     commentPlaceholder: "e.g. cash 16.05",
   },
   monthlySummaryExtra: {
-    shareText: "My {{month}} in oTutorHub:
-📚 {{lessons}} lessons completed",
+    shareText: "My {{month}} in oTutorHub:\n📚 {{lessons}} lessons completed",
     shareNavTitle: "My monthly summary",
     greeting: "{{name}}, your {{month}}",
     greetingNoName: "Your {{month}}",

@@ -45,8 +45,6 @@ interface LessonCardProps {
 }
 
 const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
-
-const STATUS_CLASS: Record<NonNullable<LessonCardData["status"]>, string> = {
   pending: "bg-warning/15 text-warning ring-1 ring-warning/30",
   scheduled: "bg-primary/15 text-primary ring-1 ring-primary/30",
   completed: "bg-success/15 text-success ring-1 ring-success/30",

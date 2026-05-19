@@ -280,7 +280,7 @@ export function QuickLessonDialog({
       `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: startsAt.toLocaleTimeString("uk-UA", {
         hour: "2-digit",
         minute: "2-digit",
-      })}`
+      }) })}`
     );
     onOpenChange(false);
     onCreated?.();

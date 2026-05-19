@@ -74,7 +74,7 @@ export function SubscriptionRequestDialog({
     setSubmitting(true);
     const billingNote =
       billing === "yearly"
-        : t("subscriptionDialog.yearlyPlan", { perMonth: PRICE_YEARLY_PER_MONTH, total: PRICE_YEARLY_TOTAL })
+        ? t("subscriptionDialog.yearlyPlan", { perMonth: PRICE_YEARLY_PER_MONTH, total: PRICE_YEARLY_TOTAL })
         : t("subscriptionDialog.monthlyPlan", { price: PRICE_MONTHLY });
     const fullMessage = message.trim()
       ? `${billingNote}\n\n${message.trim()}`

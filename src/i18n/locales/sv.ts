@@ -2026,17 +2026,7 @@ export const sv: Partial<Translations> = {
   },
   peoplePage: {
     archiveConfirm: "Flytta {{name}} till arkiv? Alla lektioner, priser och historik finns kvar. Profilen försvinner från listan.",
-    deleteConfirm: "FULLSTÄNDIG RADERING för {{name}}.
-
-Kommer att raderas permanent:
-• alla lektioner, läxor och anteckningar
-• ämnessatser
-• chattar, meddelanden och bifogade filer
-• betalningspåminnelser, förfrågningar och tillgänglighet
-• förskottsbetalningar, betalningar, manageranteckningar
-• själva profilen
-
-Denna åtgärd kan inte ångras. Fortsätta?",
+    deleteConfirm: "FULLSTÄNDIG RADERING för {{name}}.\n\nKommer att raderas permanent:\n• alla lektioner, läxor och anteckningar\n• ämnessatser\n• chattar, meddelanden och bifogade filer\n• betalningspåminnelser, förfrågningar och tillgänglighet\n• förskottsbetalningar, betalningar, manageranteckningar\n• själva profilen\n\nDenna åtgärd kan inte ångras. Fortsätta?",
     deleteTypeDELETE: "För att bekräfta, skriv DELETE med stora bokstäver:",
   },
   pendingPaymentsExtra: {
@@ -2226,8 +2216,7 @@ Denna åtgärd kan inte ångras. Fortsätta?",
     commentPlaceholder: "t.ex. kontant 16.05",
   },
   monthlySummaryExtra: {
-    shareText: "Min {{month}} i oTutorHub:
-📚 {{lessons}} lektioner genomförda",
+    shareText: "Min {{month}} i oTutorHub:\n📚 {{lessons}} lektioner genomförda",
     shareNavTitle: "Min månadssammanfattning",
     greeting: "{{name}}, din {{month}}",
     greetingNoName: "Din {{month}}",

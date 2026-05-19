@@ -358,7 +358,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               <DialogHeader>
                 <DialogTitle>
                   {active.kind === "cancel"
-                    : t("tutorChangeRequestsExtra.cancelTitle")
+                    ? t("tutorChangeRequestsExtra.cancelTitle")
                     : t("tutorChangeRequestsExtra.rescheduleTitle")}
                 </DialogTitle>
                 <DialogDescription>
