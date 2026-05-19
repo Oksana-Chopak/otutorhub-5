@@ -29,6 +29,8 @@ import {
   Cell,
 } from "recharts";
 import { BarChart3, Loader2, MousePointerClick, Users, TrendingUp } from "lucide-react";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface PaywallEventRow {
   id: string;

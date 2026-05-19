@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Copy, Check, Mail, Send, Loader2, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
   open: boolean;

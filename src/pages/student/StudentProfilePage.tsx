@@ -10,6 +10,8 @@ import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 export default function StudentProfilePage() {
   const { user, signOut } = useAuth();

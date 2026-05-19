@@ -23,6 +23,8 @@ import { toast } from "sonner";
 import { Loader2, Pencil, User, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
   open: boolean;

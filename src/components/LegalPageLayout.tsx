@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface LegalPageLayoutProps {
   title: string;

@@ -32,6 +32,8 @@ interface LessonWorkspaceProps {
 }
 
 import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 function normalizeUrl(value: string): string {
   // Returns an empty string if the URL is not a safe http(s) URL.

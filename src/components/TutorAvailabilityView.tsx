@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Loader2, CalendarClock, ChevronLeft, ChevronRight } from "lucide-react";
 import {
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
   WEEKDAYS_FULL_UK,
   computeAvailableForDate,
   splitIntoSlots,

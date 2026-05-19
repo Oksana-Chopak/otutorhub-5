@@ -13,6 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
   Users,
   TrendingUp,
   ArrowDownLeft,

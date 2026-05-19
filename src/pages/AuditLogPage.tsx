@@ -16,6 +16,8 @@ import {
 import { ShieldAlert, Download, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 type AuditEntry = {
   id: string;

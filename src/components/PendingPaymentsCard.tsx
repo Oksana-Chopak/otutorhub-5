@@ -21,6 +21,8 @@ import {
 import { toast } from "sonner";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { formatPrice } from "@/lib/currency";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface UnpaidRow {
   id: string;

@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, MessageCircle, Check, Copy, X, AlertTriangle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 // Bot username is fetched from the edge function (telegram-bot-info)
 

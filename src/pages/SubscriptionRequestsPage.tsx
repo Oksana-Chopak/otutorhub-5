@@ -16,6 +16,8 @@ import { Loader2, Crown, Mail, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 type RequestStatus = "new" | "in_progress" | "completed" | "rejected";
 

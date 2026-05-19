@@ -1,4 +1,6 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Point {
   week: string;

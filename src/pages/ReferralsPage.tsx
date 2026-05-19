@@ -18,6 +18,8 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck, Mail, Phone, Send } from "lucide-react";
 import { toast } from "sonner";
 import { AssignTutorDialog } from "@/components/AssignTutorDialog";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface ReferralRow {
   id: string;
