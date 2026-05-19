@@ -2224,8 +2224,7 @@ export const en: Translations = {
     commentPlaceholder: "e.g. cash 16.05",
   },
   monthlySummaryExtra: {
-    shareText: "My {{month}} in oTutorHub:
-📚 {{lessons}} lessons completed",
+    shareText: "My {{month}} in oTutorHub:\n📚 {{lessons}} lessons completed",
     shareNavTitle: "My monthly summary",
     greeting: "{{name}}, your {{month}}",
     greetingNoName: "Your {{month}}",
