@@ -215,7 +215,7 @@ export function QuickLessonDialog({
         .single();
       if (error || !created) {
         setSubmitting(false);
-        toast.error(error?.message || t("schedule.createLessonFailed") ?? "Не вдалося створити урок");
+        toast.error(error?.message || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
         return;
       }
       // Auto-create participants
