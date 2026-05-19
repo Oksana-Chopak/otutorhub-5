@@ -4,6 +4,8 @@ import { Loader2, Upload, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserAvatar } from "./UserAvatar";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface AvatarUploaderProps {
   userId: string;

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Loader2, BookOpen } from "lucide-react";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface HomeworkRow {
   lesson_id: string;

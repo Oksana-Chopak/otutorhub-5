@@ -39,6 +39,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
   WEEKDAYS_FULL_UK,
   WEEKDAYS_UK,
   hhmmToMinutes,

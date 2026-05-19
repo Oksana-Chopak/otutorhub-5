@@ -6,6 +6,8 @@ import { useMonthlySummary } from "@/hooks/useTutorGamification";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 const MONTH_NAMES = [
   t("months").split(","),

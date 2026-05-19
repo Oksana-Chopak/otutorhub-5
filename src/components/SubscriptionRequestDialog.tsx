@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, CheckCircle2, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 type Billing = "monthly" | "yearly";
 

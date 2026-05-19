@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Wallet, Plus, History, Loader2, ArrowDownLeft, ArrowUpRight, Undo2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useStudentWallet } from "@/hooks/useStudentWallet";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletDialogProps {
   open: boolean;

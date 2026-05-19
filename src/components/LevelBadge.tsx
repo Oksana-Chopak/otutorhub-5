@@ -1,6 +1,8 @@
 import { TutorLevel } from "@/hooks/useTutorGamification";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
   level: TutorLevel;

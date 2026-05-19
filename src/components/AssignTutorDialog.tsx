@@ -21,6 +21,8 @@ import {
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
   open: boolean;

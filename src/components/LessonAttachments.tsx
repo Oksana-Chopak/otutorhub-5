@@ -4,6 +4,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Paperclip, Upload, Trash2, Loader2, FileText, Image as ImageIcon, Download } from "lucide-react";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface LessonAttachmentsProps {
   lessonId: string;

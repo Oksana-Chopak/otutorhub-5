@@ -1,5 +1,7 @@
 import { Wallet } from "lucide-react";
 import { cn } from "@/lib/utils";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletBadgeProps {
   lessons: number;

@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Loader2, Check, Clock, Wallet } from "lucide-react";
 import { formatPrice, currencySymbol } from "@/lib/currency";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Row {
   id: string;

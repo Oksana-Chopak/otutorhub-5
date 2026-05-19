@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface LiqPayPayButtonProps {
   plan: "monthly" | "yearly";

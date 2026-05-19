@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface UpcomingLesson {
   id: string;

@@ -32,6 +32,8 @@ import { LiqPayPayButton } from "@/components/LiqPayPayButton";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 const PRO_PRICE_MONTHLY = 129;
 const PRO_PRICE_YEARLY_PER_MONTH = 99;

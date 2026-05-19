@@ -22,6 +22,8 @@ import {
   Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 export interface PairOption {
   tutor_id: string;

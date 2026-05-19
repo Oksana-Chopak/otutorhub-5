@@ -35,6 +35,8 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface ChangeRequestRow {
   id: string;

@@ -25,6 +25,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Users2, UserPlus, Archive } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Group {
   id: string;

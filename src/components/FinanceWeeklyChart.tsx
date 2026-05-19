@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import {
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
   LineChart,
   Line,
   XAxis,

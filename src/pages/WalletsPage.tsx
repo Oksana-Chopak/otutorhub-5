@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Wallet, Plus, Search, Loader2 } from "lucide-react";
 import { WalletDialog } from "@/components/WalletDialog";
 import { EmptyState } from "@/components/EmptyState";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface PairRow {
   tutor_id: string;
