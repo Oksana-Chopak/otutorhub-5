@@ -183,7 +183,7 @@ export default function StudentDashboardPage() {
                   <BookOpen className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Домашні завдання</p>
+                  <p className="text-xs text-muted-foreground">{t("studentPagesExtra.homeworkTitle")}</p>
                   <p className="text-xl font-bold text-foreground">{homeworkCount}</p>
                 </div>
               </div>
@@ -197,7 +197,7 @@ export default function StudentDashboardPage() {
             <div className="flex items-start gap-3">
               <Sparkles className="h-5 w-5 shrink-0 text-primary" />
               <div className="flex-1">
-                <h3 className="font-semibold text-foreground">Шукаємо тобі репетитора</h3>
+                <h3 className="font-semibold text-foreground">{t("studentPagesExtra.searchingTutor")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Менеджер уже отримав твою заявку. Якщо хочеш — заповни ще одну для іншого предмета.
                 </p>

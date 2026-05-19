@@ -286,7 +286,7 @@ function CreateGroupDialog({
             <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Англійська · 9-Б" />
           </div>
           <div className="space-y-1">
-            <Label>Предмет</Label>
+            <Label>{t("groupsPageExtra.subjectLabel")}</Label>
             <SubjectSelect
               value={subject}
               onValueChange={(name, id) => {
@@ -434,7 +434,7 @@ function GroupDetailsDialog({
         ) : (
           <div className="space-y-4">
             <div>
-              <h4 className="mb-2 text-sm font-semibold">Учасники ({active.length})</h4>
+              <h4 className="mb-2 text-sm font-semibold">{t("groupsPageExtra.members", { count: active.length })}</h4>
               {active.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("groupsPageExtra.noMembers")}</p>
               ) : (
@@ -444,7 +444,7 @@ function GroupDetailsDialog({
                       key={e.id}
                       className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
                     >
-                      <span>{studentNames.get(e.student_id) ?? "Учень"}</span>
+                      <span>{studentNames.get(e.student_id) ?? t("shared.student")}</span>
                       <Button
                         variant="ghost"
                         size="icon"

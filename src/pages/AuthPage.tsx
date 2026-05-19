@@ -205,7 +205,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpData);
     if (!parsed.success) {
-      toast({ title: "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: t("common.error") || "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);

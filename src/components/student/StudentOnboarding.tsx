@@ -13,12 +13,12 @@ import { Loader2, Check, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 const SUBJECT_EMOJI: Record<string, string> = {
-  "Математика (німецька програма)": "🧮",
-  "Математика (польська програма)": "🧮",
-  "Англійська мова": "🇬🇧",
-  "Шведська мова": "🇸🇪",
-  "Польська мова": "🇵🇱",
-  "Німецька мова": "🇩🇪",
+  [t("subjects.mathGerman")]: "🧮",
+  [t("subjects.mathPolish")]: "🧮",
+  [t("subjects.english")]: "🇬🇧",
+  [t("subjects.swedish")]: "🇸🇪",
+  [t("subjects.polish")]: "🇵🇱",
+  [t("subjects.german")]: "🇩🇪",
 };
 
 interface Props {

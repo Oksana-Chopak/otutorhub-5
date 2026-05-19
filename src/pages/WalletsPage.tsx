@@ -178,7 +178,7 @@ export default function WalletsPage() {
             description={
               showAll
                 ? t("walletsPage.noActivePairs")
-                : "Жоден учень поки не має передоплати. Натисніть «Показати всі пари», щоб поповнити будь-який гаманець."
+                : t("walletsPage.noPrepaidsHint")
             }
           />
         ) : (
@@ -221,11 +221,11 @@ export default function WalletsPage() {
               <table className="w-full text-sm">
                 <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-4 py-3 text-left">Учень</th>
-                    <th className="px-4 py-3 text-left">Репетитор</th>
-                    <th className="px-4 py-3 text-right">Баланс уроків</th>
-                    <th className="px-4 py-3 text-right">Баланс ₴</th>
-                    <th className="px-4 py-3 text-left">Остання операція</th>
+                    <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
+                    <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
+                    <th className="px-4 py-3 text-right">{t("walletsPageExtra.lessonsBalanceCol")}</th>
+                    <th className="px-4 py-3 text-right">{t("walletsPageExtra.moneyBalanceCol")}</th>
+                    <th className="px-4 py-3 text-left">{t("walletsPageExtra.lastOpCol")}</th>
                     <th className="px-4 py-3"></th>
                   </tr>
                 </thead>

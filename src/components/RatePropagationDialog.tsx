@@ -132,7 +132,7 @@ export function RatePropagationDialog({
         </RadioGroup>
 
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={busy}>Скасувати</AlertDialogCancel>
+          <AlertDialogCancel disabled={busy}>{t("common.cancel") || "Скасувати"}</AlertDialogCancel>
           <AlertDialogAction onClick={apply} disabled={busy}>
             {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
             Застосувати

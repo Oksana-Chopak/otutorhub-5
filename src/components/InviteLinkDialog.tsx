@@ -125,7 +125,7 @@ export function InviteLinkDialog({
             <div className="flex items-start gap-2 rounded-md border border-success/40 bg-success/5 p-3 text-xs text-foreground">
               <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="min-w-0">
-                <strong className="break-all">Лист надіслано на {email}</strong>
+                <strong className="break-all">{t("inviteLinkExtra.emailSentLabel", { email })}</strong>
                 <p className="mt-1 text-muted-foreground">
                   Якщо лист не отримано — попросіть перевірити папку «Спам».
                   Можете також скопіювати посилання нижче й передати напряму.
@@ -194,20 +194,20 @@ export function InviteLinkDialog({
               ) : (
                 <Mail className="mr-2 h-4 w-4" />
               )}
-              {resent ? "Надіслати ще раз" : `Надіслати email ${roleNounDative}`}
+              {resent ? t("inviteLinkExtra.resendBtn") : t("inviteLinkExtra.sendEmailTo", { role: roleNounDative })}
             </Button>
           )}
 
           {email && (
             <a
               href={`mailto:${email}?subject=${encodeURIComponent(
-                "Запрошення в oTutorHub"
+                t("inviteLinkExtra.inviteSubject")
               )}&body=${encodeURIComponent(message)}`}
               className="block"
             >
               <Button variant="ghost" size="sm" className="w-full">
                 <Mail className="mr-2 h-4 w-4" />
-                <span className="truncate">Або відкрити у власному поштовому клієнті</span>
+                <span className="truncate">{t("inviteLinkExtra.openEmail")}</span>
               </Button>
             </a>
           )}

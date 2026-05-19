@@ -203,30 +203,30 @@ export default function ReferralsPage() {
                     <div className="mt-2 grid gap-1 text-sm">
                       {r.subject && (
                         <p>
-                          <span className="text-muted-foreground">Предмет:</span> {r.subject}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.subjectLabel")}</span> {r.subject}
                         </p>
                       )}
                       {r.preferred_level && (
                         <p>
-                          <span className="text-muted-foreground">Рівень:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.levelLabel")}</span>{" "}
                           {r.preferred_level}
                         </p>
                       )}
                       {r.budget_note && (
                         <p>
-                          <span className="text-muted-foreground">Бюджет:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.budgetLabel")}</span>{" "}
                           {r.budget_note}
                         </p>
                       )}
                       {r.preferred_days && (
                         <p>
-                          <span className="text-muted-foreground">Зручні дні:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.daysLabel")}</span>{" "}
                           {r.preferred_days}
                         </p>
                       )}
                       {r.preferred_times && (
                         <p>
-                          <span className="text-muted-foreground">Зручні години:</span>{" "}
+                          <span className="text-muted-foreground">{t("referralsPageExtra.hoursLabel")}</span>{" "}
                           {r.preferred_times}
                         </p>
                       )}
@@ -241,14 +241,14 @@ export default function ReferralsPage() {
 
                 {r.manager_response && (
                   <div className="rounded-md border border-primary/30 bg-primary/5 p-2 text-sm text-foreground">
-                    <p className="text-xs font-medium text-primary">Ваша відповідь:</p>
+                    <p className="text-xs font-medium text-primary">{t("referralsPageExtra.yourReply")}</p>
                     <p className="mt-1 whitespace-pre-wrap">{r.manager_response}</p>
                   </div>
                 )}
 
                 {(r.studentEmail || r.studentPhone || r.studentTelegram) && (
                   <div className="flex flex-wrap gap-2 rounded-md border border-border bg-muted/30 p-2 text-xs">
-                    <span className="text-muted-foreground">Контакти учня:</span>
+                    <span className="text-muted-foreground">{t("referralsPageExtra.studentContacts")}</span>
                     {r.studentEmail && (
                       <a
                         href={`mailto:${r.studentEmail}`}

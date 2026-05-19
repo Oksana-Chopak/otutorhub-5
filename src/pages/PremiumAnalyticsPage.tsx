@@ -316,7 +316,7 @@ export default function PremiumAnalyticsPage() {
                   <p className="text-sm text-muted-foreground">
                     {stats.cancellationRate > 10 
                       ? `Рівень скасувань складає ${stats.cancellationRate}%. Це вище норми. Спробуйте посилити правила скасування в налаштуваннях Pro.` 
-                      : `Чудовий показник скасувань (${stats.cancellationRate}%)! Ваші учні дуже дисципліновані.`}
+                      : t("premiumAnalyticsExtra.lowCancellation", { rate: stats.cancellationRate })}
                   </p>
                 </div>
               </div>
@@ -354,14 +354,14 @@ export default function PremiumAnalyticsPage() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-success" />
-                    <span className="text-muted-foreground">Оплачено</span>
+                    <span className="text-muted-foreground">{t("premiumAnalyticsExtra.paid")}</span>
                   </div>
                   <span className="font-semibold text-foreground">{stats.totalIncome} ₴</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <div className="h-3 w-3 rounded-full bg-warning" />
-                    <span className="text-muted-foreground">Очікує</span>
+                    <span className="text-muted-foreground">{t("premiumAnalyticsExtra.pending")}</span>
                   </div>
                   <span className="font-semibold text-foreground">{stats.unpaidIncome} ₴</span>
                 </div>

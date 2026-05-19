@@ -252,7 +252,7 @@ export default function DashboardPage() {
     ];
     const prevMonthIdx = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
     import("sonner").then(({ toast }) => {
-      toast(`🎉 Твій ${months[prevMonthIdx]} готовий!`, {
+      toast(`🎉 ${t("monthlySummaryExtra.greetingNoName", { month: months[prevMonthIdx] })} готовий!`, {
         description: t("dashboardExtra.monthlySummaryDesc"),
         duration: 8000,
         action: {
@@ -739,7 +739,7 @@ export default function DashboardPage() {
             >
               <CalendarDays className="h-3 w-3 text-primary" />
               {todayLessons.length}{" "}
-              {todayLessons.length === 1 ? "урок" : todayLessons.length < 5 && todayLessons.length !== 0 ? "уроки" : "уроків"} сьогодні
+              {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
             </Link>
             {pendingPayments.length > 0 && (
               <span className="inline-flex items-center gap-1 text-warning">
@@ -985,7 +985,7 @@ export default function DashboardPage() {
                                 title={t("dashboardExtra.rescheduleLesson")}
                               >
                                 <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
+                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
                               </Button>
                               <Button
                                 size="icon"
@@ -1089,7 +1089,7 @@ export default function DashboardPage() {
                                 title={t("dashboardExtra.rescheduleLesson")}
                               >
                                 <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">Перенести</span>
+                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
                               </Button>
                               <Select
                                 value={lesson.status}
@@ -1166,7 +1166,7 @@ export default function DashboardPage() {
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
                         <TrendingUp className="h-4 w-4 text-success" />
                       </div>
-                      <p className="text-sm font-medium text-foreground">Усе під контролем 🎉</p>
+                      <p className="text-sm font-medium text-foreground">{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
                       <p className="mt-1 text-xs text-muted-foreground">
                         Немає термінових задач. Можна планувати наступний тиждень.
                       </p>
@@ -1217,13 +1217,13 @@ export default function DashboardPage() {
                               <CalendarDays className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Уроки призначає репетитор</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.tutorAssignsLessons")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 Дату й час нових уроків додає ваш репетитор або менеджер. Якщо потрібен новий час — напишіть репетитору в чаті.
                               </p>
                               <div className="mt-3 flex gap-2">
-                                <Button asChild size="sm" variant="outline"><Link to="/schedule">До розкладу</Link></Button>
-                                <Button asChild size="sm" variant="ghost"><Link to="/chats">Чати</Link></Button>
+                                <Button asChild size="sm" variant="outline"><Link to="/schedule">{t("dashboardPageExtra.toSchedule")}</Link></Button>
+                                <Button asChild size="sm" variant="ghost"><Link to="/chats">{t("dashboardPageExtra.toChats")}</Link></Button>
                               </div>
                             </div>
                           </div>
@@ -1235,13 +1235,13 @@ export default function DashboardPage() {
                               <HandHeart className="h-4 w-4 text-primary" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Підібрати репетитора</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 У вас ще немає закріпленого репетитора. Залиште запит — менеджер oTutorHub підбере фахівця під ваші цілі, бюджет і графік.
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
-                                  trigger={<Button size="sm">Залишити запит</Button>}
+                                  trigger={<Button size="sm">{t("dashboardPageExtra.leaveRequest")}</Button>}
                                 />
                               </div>
                             </div>
@@ -1255,13 +1255,13 @@ export default function DashboardPage() {
                               <Users className="h-4 w-4 text-warning" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">Знайти нового репетитора</p>
+                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findNewTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
                                 Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
-                                  trigger={<Button size="sm" variant="outline">Залишити запит</Button>}
+                                  trigger={<Button size="sm" variant="outline">{t("dashboardPageExtra.leaveRequest")}</Button>}
                                 />
                               </div>
                             </div>
@@ -1277,12 +1277,12 @@ export default function DashboardPage() {
                           <CalendarPlus className="h-4 w-4 text-primary" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">Оновити доступні години</p>
+                          <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.updateHours")}</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
                             Тримайте календар актуальним, щоб учні бачили вільні слоти.
                           </p>
                           <Button asChild size="sm" variant="outline" className="mt-3">
-                            <Link to="/availability">Відкрити</Link>
+                            <Link to="/availability">{t("dashboardPageExtra.openAvailability")}</Link>
                           </Button>
                         </div>
                       </div>

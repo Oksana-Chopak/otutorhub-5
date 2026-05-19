@@ -558,7 +558,7 @@ function AddLessonForm({
   const submit = async () => {
     if (!user) return;
     if (!selected) return toast.error(t("quickActionsCard.selectStudent"));
-    if (!selected.subject) return toast.error("У учня не вказаний предмет");
+    if (!selected.subject) return toast.error(t("quickActionsCard.noSubjectOnStudent"));
     if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return toast.error(t("quickActionsCard.invalidTime"));
     setBusy(true);
     const startsAt = new Date(`${date}T${time}:00`);
@@ -787,11 +787,11 @@ function AddPaymentForm({
           {selected && (
             <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">Валюта оплати</span>
+                <span className="text-muted-foreground">{t("quickActionsCard.currencyPayment")}</span>
                 <span className="font-semibold text-foreground">{selectedCurrency} · {selectedCurrencySymbol}</span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">Ціна уроку</span>
+                <span className="text-muted-foreground">{t("quickActionsCard.lessonPrice")}</span>
                 <span className="font-semibold text-foreground">{formatPrice(selected.price, selectedCurrency)}</span>
               </div>
             </div>

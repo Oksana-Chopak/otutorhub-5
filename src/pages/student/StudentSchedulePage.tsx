@@ -68,7 +68,7 @@ export default function StudentSchedulePage() {
 
   const renderList = (items: Lesson[]) => {
     if (loading) return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
-    if (items.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">Уроків немає</p>;
+    if (items.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsInTab")}</p>;
     return (
       <ul className="space-y-3">
         {items.map((l) => (
@@ -105,8 +105,8 @@ export default function StudentSchedulePage() {
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.scheduleTitle")}</h1>
         <Tabs defaultValue="upcoming">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upcoming">Майбутні ({upcoming.length})</TabsTrigger>
-            <TabsTrigger value="past">Архів ({past.length})</TabsTrigger>
+            <TabsTrigger value="upcoming">{t("studentPagesExtra.upcoming", { count: upcoming.length })}</TabsTrigger>
+            <TabsTrigger value="past">{t("studentPagesExtra.past", { count: past.length })}</TabsTrigger>
           </TabsList>
           <TabsContent value="upcoming" className="mt-4">{renderList(upcoming)}</TabsContent>
           <TabsContent value="past" className="mt-4">{renderList(past)}</TabsContent>

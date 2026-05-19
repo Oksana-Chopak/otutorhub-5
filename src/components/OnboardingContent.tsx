@@ -498,7 +498,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <span className="gamify-sticker">
               ⭐ {earnedXP} / {totalXP} XP
             </span>
-            <span className="gamify-sticker success">🏆 Рівень {totalDone}</span>
+            <span className="gamify-sticker success">{t("onboardingExtra.questLevel", { count: totalDone })}</span>
           </div>
         </div>
         <div className="mt-4 flex items-center gap-3">

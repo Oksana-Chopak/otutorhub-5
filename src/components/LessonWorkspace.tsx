@@ -537,7 +537,7 @@ export function LessonWorkspace({
             </div>
             <CollapsibleContent className="mt-3 space-y-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Посилання для цього уроку</Label>
+                <Label className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://meet.google.com/…"
@@ -555,7 +555,7 @@ export function LessonWorkspace({
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Постійне посилання для цієї пари</Label>
+                <Label className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://us02web.zoom.us/j/…"
@@ -594,7 +594,7 @@ export function LessonWorkspace({
                   size="sm"
                   variant="ghost"
                   onClick={() => setChatOpen(true)}
-                  title="Чат"
+                  title={t("lessonWorkspaceExtra.chatBtn")}
                 >
                   <MessageSquare className="mr-1 h-4 w-4" />
                   Чат

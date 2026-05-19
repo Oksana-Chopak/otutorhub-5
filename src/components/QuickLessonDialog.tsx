@@ -277,7 +277,7 @@ export function QuickLessonDialog({
     if (created) void syncLessonToGoogleCalendar(created.id, "upsert");
     localStorage.setItem(LAST_MODE_KEY, "individual");
     toast.success(
-      `Урок створено · ${selected.name} · ${startsAt.toLocaleTimeString("uk-UA", {
+      `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: startsAt.toLocaleTimeString("uk-UA", {
         hour: "2-digit",
         minute: "2-digit",
       })}`

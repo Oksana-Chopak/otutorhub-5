@@ -328,7 +328,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Урок: {lessonDate}
-                      {proposedDate && ` · → новий час: ${proposedDate}`}
+                      {proposedDate && t("tutorChangeRequestsExtra.proposedTime", { time: proposedDate })}
                     </p>
                     {req.reason && (
                       <p className="mt-1 text-xs text-foreground/80 italic">
@@ -388,7 +388,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   >
                     {isLate
                       ? `⚠ До уроку ${hoursUntil < 0 ? "вже минув" : `залишилось ~${hoursUntil} год`} — менше за ваше правило (${cancelFreeHours} год). Можна нарахувати оплату.`
-                      : `Запит надійшов вчасно — до уроку ще ~${hoursUntil} год (правило: ≥${cancelFreeHours} год безкоштовно).`}
+                      : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
                   <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
                   <RadioGroup
@@ -405,12 +405,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       {
                         value: "partial" as ChargeChoice,
                         title: t("tutorChangeRequestsExtra.partialPay"),
-                        desc: `Нарахувати лише частину від ${activeLesson.student_price} ₴.`,
+                        desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: `${activeLesson.student_price} ₴` }),
                       },
                       {
                         value: "full" as ChargeChoice,
                         title: t("tutorChangeRequestsExtra.fullPay"),
-                        desc: `Учень платить ${activeLesson.student_price} ₴ як за проведений урок.`,
+                        desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: `${activeLesson.student_price} ₴` }),
                       },
                     ].map((opt) => (
                       <label

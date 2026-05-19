@@ -403,7 +403,7 @@ export function AvailabilityManager() {
                   <div className="min-w-0 flex-1">
                     <p className="text-sm text-foreground">
                       <span className="font-medium">{fullName(requester)}</span>
-                      <span className="text-muted-foreground"> запитує години у </span>
+                      <span className="text-muted-foreground"> {t("availabilityManagerExtra.requestsHours")} </span>
                       <span className="font-medium">{fullName(tutorProfile)}</span>
                     </p>
                     {r.message && <p className="text-xs text-muted-foreground mt-1">{r.message}</p>}

@@ -907,10 +907,10 @@ export default function ChatsPage() {
                   <div className="relative border-t border-border">
                     <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1 lg:flex-wrap lg:overflow-visible lg:pb-2">
                       {[
-                        "Доброго дня! Підтверджуємо урок завтра о вказаному часі.",
-                        "Дякуємо за оплату — підтверджуємо отримання.",
-                        "Нагадуємо про урок сьогодні. До зустрічі!",
-                        "Будь ласка, надішліть скрін оплати для підтвердження.",
+                        t("chatsQuickReplies").split(",")[0],
+                        t("chatsQuickReplies").split(",")[1],
+                        t("chatsQuickReplies").split(",")[2],
+                        t("chatsQuickReplies").split(",")[3],
                       ].map((tpl) => (
                         <button
                           key={tpl}

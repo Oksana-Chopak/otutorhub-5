@@ -202,7 +202,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Контакти: {userName}</DialogTitle>
+          <DialogTitle>{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
           <DialogDescription>
             Видимі тільки самій людині та менеджеру. Картка — для зручності виплат.
           </DialogDescription>
@@ -220,7 +220,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               />
             </div>
             <div>
-              <Label htmlFor="c-phone">Телефон</Label>
+              <Label htmlFor="c-phone">{t("contactEditExtra.phoneLabel")}</Label>
               <Input
                 id="c-phone"
                 type="tel"
@@ -232,7 +232,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             </div>
           </div>
           <div>
-            <Label htmlFor="c-tg">Telegram (нік)</Label>
+            <Label htmlFor="c-tg">{t("contactEditExtra.telegramLabel")}</Label>
             <Input
               id="c-tg"
               value={form.telegram ?? ""}
@@ -242,7 +242,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             />
           </div>
           <div>
-            <Label htmlFor="c-msg">Messenger (посилання)</Label>
+            <Label htmlFor="c-msg">{t("contactEditExtra.messengerLabel")}</Label>
             <Input
               id="c-msg"
               type="url"
@@ -276,17 +276,17 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="c-bank">Банк</Label>
+              <Label htmlFor="c-bank">{t("contactEditExtra.bankLabel")}</Label>
               <Input
                 id="c-bank"
                 value={form.bank_name ?? ""}
                 onChange={(e) => setField("bank_name", e.target.value)}
-                placeholder="Напр. Monobank"
+                placeholder={t("contactEditExtra.bankPlaceholder")}
                 maxLength={64}
               />
             </div>
             <div>
-              <Label htmlFor="c-card">Картка (повний номер)</Label>
+              <Label htmlFor="c-card">{t("contactEditExtra.cardLabel")}</Label>
               <Input
                 id="c-card"
                 value={cardInput}

@@ -221,7 +221,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Призначити репетитора</DialogTitle>
+          <DialogTitle>{t("assignTutorExtra.title")}</DialogTitle>
           <DialogDescription>
             Учень: <span className="font-medium text-foreground">{request?.studentName}</span>
           </DialogDescription>
@@ -229,7 +229,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
         <div className="space-y-3">
           <div>
-            <Label className="text-xs">Репетитор</Label>
+            <Label className="text-xs">{t("assignTutorExtra.tutorLabel")}</Label>
             {loadingTutors ? (
               <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> Завантаження…
@@ -237,7 +237,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
             ) : (
               <Select value={tutorId} onValueChange={setTutorId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Оберіть зі списку" />
+                  <SelectValue placeholder={t("assignTutorExtra.selectFromList")} />
                 </SelectTrigger>
                 <SelectContent>
                   {tutors.map((t) => (
@@ -256,13 +256,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           </div>
 
           <div>
-            <Label className="text-xs">Предмет</Label>
+            <Label className="text-xs">{t("assignTutorExtra.subjectLabel")}</Label>
             <SubjectSelect value={subject} onValueChange={(name) => setSubject(name)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">Ціна для учня (₴)</Label>
+              <Label className="text-xs">{t("assignTutorExtra.studentRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"
@@ -272,7 +272,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               />
             </div>
             <div>
-              <Label className="text-xs">Виплата репетитору (₴)</Label>
+              <Label className="text-xs">{t("assignTutorExtra.tutorRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"

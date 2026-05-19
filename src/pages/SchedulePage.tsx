@@ -1476,20 +1476,20 @@ export default function SchedulePage() {
           </DialogHeader>
           <div className="space-y-4 overflow-y-auto px-6 py-4 flex-1 min-h-0">
             <div>
-              <Label htmlFor="edit_subject">Предмет</Label>
+              <Label htmlFor="edit_subject">{t("schedulePageExtra.subjectLabel")}</Label>
               <Input id="edit_subject" value={editForm.subject}
                 disabled={!canEditScheduleFields(editingLesson)}
                 onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label htmlFor="edit_starts_at">Дата і час</Label>
+                <Label htmlFor="edit_starts_at">{t("schedulePageExtra.dateTimeLabel")}</Label>
                 <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
                   disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
               </div>
               <div>
-                <Label htmlFor="edit_duration">Тривалість (хв)</Label>
+                <Label htmlFor="edit_duration">{t("schedulePageExtra.durationLabel")}</Label>
                 <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
                   disabled={!canEditScheduleFields(editingLesson)}
                   onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
@@ -1600,7 +1600,7 @@ export default function SchedulePage() {
       <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
-          <h2 className="font-display text-lg font-semibold text-foreground">Доступні години ваших репетиторів</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground">{t("schedulePageExtra.tutorsHoursTitle")}</h2>
           {studentTutors.map((t) => (
             <TutorAvailabilityView key={t.id} tutorId={t.id} tutorName={t.name} />
           ))}
@@ -1789,13 +1789,13 @@ export default function SchedulePage() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Видалити урок?</AlertDialogTitle>
+                                    <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
                                     <AlertDialogDescription>
                                       Цю дію не можна скасувати.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
-                                    <AlertDialogCancel>Скасувати</AlertDialogCancel>
+                                    <AlertDialogCancel>{t("schedulePageExtra.cancelBtn")}</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
                                       Видалити
                                     </AlertDialogAction>

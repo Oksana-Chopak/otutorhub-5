@@ -224,7 +224,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="r-reason">Коментар (опційно)</Label>
+              <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>
               <Textarea
                 id="r-reason"
                 rows={3}

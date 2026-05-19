@@ -192,7 +192,7 @@ export function PendingPaymentsCard() {
               Очікують оплати
             </CardTitle>
             <Badge variant="outline" className="ml-1 text-[10px]">
-              {groups.length} {groups.length === 1 ? "учень" : "учнів"} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
+              {t("pendingPaymentsExtra.studentCount", { count: groups.length })} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
             </Badge>
             <ChevronDown
               className={`ml-auto h-4 w-4 text-muted-foreground transition-transform ${
@@ -233,7 +233,7 @@ export function PendingPaymentsCard() {
                           {g.student_name}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          · {g.lessons.length} {g.lessons.length === 1 ? "урок" : "ур."}
+                          · {t("pendingPaymentsExtra.lessonCount", { count: g.lessons.length })}
                         </span>
                         <span className="ml-auto text-sm font-semibold text-foreground">
                           {formatPrice(g.total, g.currency)}

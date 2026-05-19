@@ -864,7 +864,7 @@ export default function MyStudentsPage() {
             <div className="space-y-1">
               <Label>{t("myStudents.fieldTelegram")}</Label>
               <Input
-                placeholder="@username або +380..."
+                placeholder={t("scheduleExtra.telegramPlaceholder")}
                 value={form.telegram}
                 onChange={(e) => setForm({ ...form, telegram: e.target.value })}
               />
@@ -945,7 +945,7 @@ export default function MyStudentsPage() {
               </Label>
               <Input
                 type="url"
-                placeholder="https://zoom.us/j/... або https://meet.google.com/..."
+                placeholder={t("scheduleExtra.meetingUrlPlaceholder")}
                 value={form.default_meeting_url}
                 onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
               />

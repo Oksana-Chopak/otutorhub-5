@@ -273,7 +273,7 @@ export default function PaywallMetricsPage() {
                   <TableRow>
                     <TableHead>{t("paywallMetricsExtra.featureCol")}</TableHead>
                     <TableHead className="text-right">{t("paywallMetricsExtra.clicksCol")}</TableHead>
-                    <TableHead className="text-right">Унікальних юзерів</TableHead>
+                    <TableHead className="text-right">{t("paywallMetricsExtra.uniqueUsersCol")}</TableHead>
                     <TableHead className="text-right">{t("paywallMetricsExtra.ratioCol")}</TableHead>
                   </TableRow>
                 </TableHeader>

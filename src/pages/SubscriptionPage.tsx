@@ -377,7 +377,7 @@ export default function SubscriptionPage() {
                         {left === 1
                           : t("subscriptionPageExtra.oneSpot")
                           : left >= 2 && left <= 4
-                          ? "місця"
+                          : t("subscriptionPageExtra.fewSpots")
                           : t("subscriptionPageExtra.manySpots")}
                       </span>
                     )}
@@ -455,7 +455,7 @@ export default function SubscriptionPage() {
                       badgeLabel = t("subscriptionPageExtra.trialLabel");
                       badgeVariant = "secondary";
                     } else if (isEarlyBird) {
-                      title = `Pro · безкоштовно до ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
+                      title = `Pro · ${t("subscriptionPageExtra.trialLabel")} ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
                       badgeLabel = "Early bird";
                     } else if (isActive) {
                       title = t("subscriptionPage.title") + " · " + t("subscriptionPageExtra.activeLabel");
@@ -466,7 +466,7 @@ export default function SubscriptionPage() {
                       badgeVariant = "destructive";
                     } else {
                       title = t("subscriptionPageExtra.trialDone");
-                      badgeLabel = "Тріал завершено";
+                      badgeLabel = t("subscriptionPageExtra.trialDone");
                       badgeVariant = "secondary";
                     }
                     return (

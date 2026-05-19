@@ -87,7 +87,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           </div>
           <div>
             <h3 className="font-bold text-foreground">{t("referralWidget.title")}</h3>
-            <p className="text-xs text-muted-foreground">Друг отримує 21 день тріалу · ти — місяць за його оплату</p>
+            <p className="text-xs text-muted-foreground">{t("referralWidget.desc")}</p>
           </div>
         </div>
 
@@ -122,7 +122,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
                 Ще <strong>{toBigBonus}</strong> {toBigBonus === 1 ? "оплата" : "оплати"} цього місяця → отримаєш +3 місяці безкоштовно
               </p>
             ) : (
-              <p className="text-[11px] font-semibold text-success">🎉 Ти заробив +3 місяці бонусом!</p>
+              <p className="text-[11px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
             )}
           </div>
         )}

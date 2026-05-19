@@ -53,7 +53,7 @@ export function StudentWalletCard({ studentId }: { studentId: string }) {
         setPairs(
           rows.map((r) => ({
             tutor_id: r.tutor_id,
-            tutor_name: nameMap.get(r.tutor_id) ?? "Репетитор",
+            tutor_name: nameMap.get(r.tutor_id) ?? t("shared.tutor"),
             lessons_balance: r.lessons_balance,
             amount_balance: Number(r.amount_balance),
           })),
