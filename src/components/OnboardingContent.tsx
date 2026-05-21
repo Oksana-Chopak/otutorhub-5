@@ -320,22 +320,61 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       return;
     }
     let cancelled = false;
+
+    const safe = async <T,>(p: PromiseLike<T>, fallback: T): Promise<T> => {
+      try {
+        return await p;
+      } catch (err) {
+        console.error("[OnboardingContent] query failed", err);
+        return fallback;
+      }
+    };
+
+    const applyPatch = (patch: Partial<StepProgress>) => {
+      if (cancelled) return;
+      setProgress((prev) => ({ ...prev, ...patch }));
+    };
+
     (async () => {
       setProgressLoading(true);
-      const [
-        { data: students },
-        { data: lessons },
-        { data: defaults },
-        { data: threads },
-        { data: paid },
-        { data: availability },
-        { data: referrals },
-        { data: gcal },
-      ] = await Promise.all([
-        supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
-        supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
+
+      // Priority 1 — critical (students + lessons). Unblock UI ASAP.
+      const [studentsRes, lessonsRes] = await Promise.all([
+        safe(
+          supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source", "independent").limit(1),
+          { data: [] as any[] } as any,
+        ),
+        safe(
+          supabase.from("lessons").select("id, meeting_url").eq("tutor_id", user.id).eq("source", "independent").limit(50),
+          { data: [] as any[] } as any,
+        ),
+      ]);
+      const lessonsList = (lessonsRes as any).data ?? [];
+      applyPatch({
+        hasStudent: ((studentsRes as any).data?.length ?? 0) > 0,
+        hasLesson: lessonsList.length > 0,
+        hasMeetingUrl: lessonsList.some((l: any) => l.meeting_url && l.meeting_url.trim()),
+        hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
+        hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
+      });
+      if (!cancelled) setProgressLoading(false);
+
+      // Priority 2 — secondary signals, fire-and-forget, each independent.
+      safe(
         supabase.from("tutor_student_defaults").select("default_meeting_url").eq("tutor_id", user.id).limit(20),
-        supabase.from("chat_threads").select("id").eq("tutor_id", user.id).limit(1),
+        { data: [] as any[] } as any,
+      ).then((res: any) => {
+        const defaultsList = res.data ?? [];
+        if (defaultsList.some((d: any) => d.default_meeting_url && d.default_meeting_url.trim())) {
+          applyPatch({ hasMeetingUrl: true });
+        }
+      });
+
+      safe(supabase.from("chat_threads").select("id").eq("tutor_id", user.id).limit(1), { data: [] } as any).then(
+        (res: any) => applyPatch({ hasChat: (res.data?.length ?? 0) > 0 }),
+      );
+
+      safe(
         supabase
           .from("lesson_details")
           .select("lesson_id, lessons!inner(tutor_id, source)")
@@ -343,33 +382,24 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
           .eq("lessons.source", "independent")
           .eq("student_payment_status", "paid")
           .limit(1),
+        { data: [] } as any,
+      ).then((res: any) => applyPatch({ hasPaidLesson: (res.data?.length ?? 0) > 0 }));
+
+      safe(
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
-        supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1),
+        { data: [] } as any,
+      ).then((res: any) => applyPatch({ hasAvailability: (res.data?.length ?? 0) > 0 }));
+
+      safe(supabase.from("referral_codes").select("id").eq("tutor_id", user.id).limit(1), { data: [] } as any).then(
+        (res: any) => applyPatch({ hasReferral: (res.data?.length ?? 0) > 0 }),
+      );
+
+      safe(
         supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1),
-      ]) as any;
-
-      if (cancelled) return;
-
-      const lessonsList = lessons ?? [];
-      const defaultsList = defaults ?? [];
-      const hasMeetingUrl =
-        lessonsList.some((l: any) => l.meeting_url && l.meeting_url.trim()) ||
-        defaultsList.some((d: any) => d.default_meeting_url && d.default_meeting_url.trim());
-
-      setProgress({
-        hasStudent: (students?.length ?? 0) > 0,
-        hasLesson: lessonsList.length > 0,
-        hasAvailability: (availability?.length ?? 0) > 0,
-        hasReferral: (referrals?.length ?? 0) > 0,
-        hasMeetingUrl,
-        hasChat: (threads?.length ?? 0) > 0,
-        hasPaidLesson: (paid?.length ?? 0) > 0,
-        hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
-        hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
-        hasGoogleCalendar: (gcal?.length ?? 0) > 0,
-      });
-      setProgressLoading(false);
+        { data: [] } as any,
+      ).then((res: any) => applyPatch({ hasGoogleCalendar: (res.data?.length ?? 0) > 0 }));
     })();
+
     return () => {
       cancelled = true;
     };
