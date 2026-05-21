@@ -182,7 +182,12 @@ export default function MarketingPage() {
                   <span className="text-muted-foreground">Тема: </span>
                   <span className="font-medium">{subject || "(порожньо)"}</span>
                 </div>
-                <div dangerouslySetInnerHTML={{ __html: previewHtml }} />
+                <iframe
+                  srcDoc={previewHtml}
+                  sandbox=""
+                  title="Email preview"
+                  className="w-full min-h-[400px] rounded border bg-white"
+                />
               </div>
             </CardContent>
           </Card>
