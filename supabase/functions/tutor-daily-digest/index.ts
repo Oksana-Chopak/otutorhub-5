@@ -246,7 +246,7 @@ Deno.serve(async (req) => {
         .slice(0, 8);
       for (const [studentId, v] of debtList) {
         const name = nameById.get(studentId) ?? "Учень";
-        lines.push(`• ${name} — ${v.total} ₴ (${v.count} ур.)`);
+        lines.push(`• ${escapeHtml(name)} — ${v.total} ₴ (${v.count} ур.)`);
       }
     }
 
