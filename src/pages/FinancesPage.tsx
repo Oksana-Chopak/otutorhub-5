@@ -149,8 +149,7 @@ export default function FinancesPage() {
     setSelected(new Set());
     const params = new URLSearchParams(searchParams);
     params.delete("filter");
-    if (next === "debts") params.delete("tab");
-    else params.set("tab", next);
+    params.set("tab", next);
     setSearchParams(params, { replace: true });
   };
 
@@ -296,10 +295,35 @@ export default function FinancesPage() {
     | { type: "lesson"; l: LessonRow }
     | { type: "prepay"; tx: WalletTransaction };
 
-  const sortDesc = (a: Row, b: Row) => {
+  // Smart sort:
+  //   1) unpaid (student or tutor) — nearest to today first (overdue first, then future)
+  //   2) past paid — newest first
+  //   3) future paid — soonest first
+  // Prepays always go to bucket 2 (paid income, sorted by created_at desc).
+  const nowTs = Date.now();
+  const lessonBucket = (l: LessonRow): number => {
+    const anyUnpaid =
+      l.student_payment_status === "unpaid" ||
+      (!isIndependentTutor && l.tutor_payout_status === "unpaid");
+    if (anyUnpaid) return 1;
+    const ts = new Date(l.starts_at).getTime();
+    return ts <= nowTs ? 2 : 3;
+  };
+
+  const smartSort = (a: Row, b: Row) => {
+    const aBucket = a.type === "lesson" ? lessonBucket(a.l) : 2;
+    const bBucket = b.type === "lesson" ? lessonBucket(b.l) : 2;
+    if (aBucket !== bBucket) return aBucket - bBucket;
     const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
     const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
-    return bd.localeCompare(ad);
+    if (aBucket === 1) {
+      // Closest to today first (abs distance)
+      const aDiff = Math.abs(new Date(ad).getTime() - nowTs);
+      const bDiff = Math.abs(new Date(bd).getTime() - nowTs);
+      return aDiff - bDiff;
+    }
+    if (aBucket === 3) return ad.localeCompare(bd); // soonest first for future
+    return bd.localeCompare(ad); // newest first for past
   };
 
   const incomeRows: Row[] = useMemo(() => {
@@ -309,7 +333,8 @@ export default function FinancesPage() {
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
-    return [...lessonRows, ...prepayRows].sort(sortDesc);
+    return [...lessonRows, ...prepayRows].sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, periodTopups, canManagePrepay]);
 
   const expensesRows: Row[] = useMemo(() => {
@@ -317,7 +342,8 @@ export default function FinancesPage() {
     return periodBillable
       .filter((l) => l.tutor_payout_status === "paid")
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(sortDesc);
+      .sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, isIndependentTutor]);
 
   const debtsRows: Row[] = useMemo(() => {
@@ -328,7 +354,8 @@ export default function FinancesPage() {
           || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
       )
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(sortDesc);
+      .sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, isIndependentTutor]);
 
   const rowsForActiveTab: Row[] =
@@ -356,6 +383,7 @@ export default function FinancesPage() {
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
+  // Gross margin: (income - payout) / income * 100. Capped at sensible bounds.
   const computeMarkup = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
@@ -363,8 +391,8 @@ export default function FinancesPage() {
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
     const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (payout === 0) return null;
-    return ((income - payout) / payout) * 100;
+    if (income === 0) return null;
+    return ((income - payout) / income) * 100;
   };
 
   const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
@@ -683,8 +711,14 @@ export default function FinancesPage() {
             }
             const l = row.l;
             const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
+            const studentUnpaid = l.student_payment_status === "unpaid";
+            const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+            const anyUnpaid = studentUnpaid || tutorUnpaid;
             return (
-              <div key={l.id} className="p-3">
+              <div
+                key={l.id}
+                className={cn("p-3", anyUnpaid && "bg-warning/5 border-l-2 border-l-warning")}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{l.subject}</p>
@@ -702,7 +736,10 @@ export default function FinancesPage() {
                 </div>
 
                 <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
-                  <div className="flex items-center justify-between gap-2 rounded-md bg-success/5 px-2.5 py-1.5">
+                  <div className={cn(
+                    "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+                    studentUnpaid ? "bg-warning/10" : "bg-success/5",
+                  )}>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
                       {l.student_paid_at && (
@@ -712,7 +749,10 @@ export default function FinancesPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-sm font-semibold text-success">+{l.student_price} ₴</span>
+                      <span className={cn(
+                        "text-sm font-semibold",
+                        studentUnpaid ? "text-warning" : "text-success",
+                      )}>+{l.student_price} ₴</span>
                       <button
                         onClick={() => togglePayment(l, "student_payment_status")}
                         aria-label={t("finances.statusPaid")}
@@ -731,7 +771,10 @@ export default function FinancesPage() {
                   </div>
 
                   {!isIndependentTutor && (
-                    <div className="flex items-center justify-between gap-2 rounded-md bg-destructive/5 px-2.5 py-1.5">
+                    <div className={cn(
+                      "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+                      tutorUnpaid ? "bg-warning/10" : "bg-secondary/40",
+                    )}>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
                         {l.tutor_paid_at && (
@@ -741,7 +784,10 @@ export default function FinancesPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-semibold text-destructive">-{l.tutor_payout} ₴</span>
+                        <span className={cn(
+                          "text-sm font-semibold",
+                          tutorUnpaid ? "text-warning" : "text-foreground",
+                        )}>-{l.tutor_payout} ₴</span>
                         <button
                           onClick={() => togglePayment(l, "tutor_payout_status")}
                           aria-label={t("finances.statusPaidOut")}
@@ -827,10 +873,17 @@ export default function FinancesPage() {
                 const l = row.l;
                 const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
                 const isSelected = selected.has(l.id);
+                const studentUnpaid = l.student_payment_status === "unpaid";
+                const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+                const anyUnpaid = studentUnpaid || tutorUnpaid;
                 return (
                   <tr
                     key={l.id}
-                    className={`border-b border-border last:border-0 ${isSelected ? "bg-primary/5" : ""}`}
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      isSelected && "bg-primary/5",
+                      !isSelected && anyUnpaid && "bg-warning/[0.06]",
+                    )}
                   >
                     <td className="px-3 py-3">
                       <Checkbox
@@ -850,7 +903,10 @@ export default function FinancesPage() {
                       )}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <div className="font-semibold text-success">+{l.student_price} ₴</div>
+                      <div className={cn(
+                        "font-semibold",
+                        studentUnpaid ? "text-warning" : "text-success",
+                      )}>+{l.student_price} ₴</div>
                       <button onClick={() => togglePayment(l, "student_payment_status")} className="mt-1 inline-block">
                         <Badge
                           className={
@@ -875,7 +931,10 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className="px-3 py-3 text-right">
-                        <div className="font-semibold text-destructive">-{l.tutor_payout} ₴</div>
+                        <div className={cn(
+                          "font-semibold",
+                          tutorUnpaid ? "text-warning" : "text-destructive",
+                        )}>-{l.tutor_payout} ₴</div>
                         <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
                           <Badge
                             className={
