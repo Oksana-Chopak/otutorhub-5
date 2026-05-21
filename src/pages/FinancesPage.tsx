@@ -711,8 +711,14 @@ export default function FinancesPage() {
             }
             const l = row.l;
             const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
+            const studentUnpaid = l.student_payment_status === "unpaid";
+            const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+            const anyUnpaid = studentUnpaid || tutorUnpaid;
             return (
-              <div key={l.id} className="p-3">
+              <div
+                key={l.id}
+                className={cn("p-3", anyUnpaid && "bg-warning/5 border-l-2 border-l-warning")}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{l.subject}</p>
@@ -730,7 +736,10 @@ export default function FinancesPage() {
                 </div>
 
                 <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
-                  <div className="flex items-center justify-between gap-2 rounded-md bg-success/5 px-2.5 py-1.5">
+                  <div className={cn(
+                    "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+                    studentUnpaid ? "bg-warning/10" : "bg-success/5",
+                  )}>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
                       {l.student_paid_at && (
@@ -740,7 +749,10 @@ export default function FinancesPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-sm font-semibold text-success">+{l.student_price} ₴</span>
+                      <span className={cn(
+                        "text-sm font-semibold",
+                        studentUnpaid ? "text-warning" : "text-success",
+                      )}>+{l.student_price} ₴</span>
                       <button
                         onClick={() => togglePayment(l, "student_payment_status")}
                         aria-label={t("finances.statusPaid")}
@@ -759,7 +771,10 @@ export default function FinancesPage() {
                   </div>
 
                   {!isIndependentTutor && (
-                    <div className="flex items-center justify-between gap-2 rounded-md bg-destructive/5 px-2.5 py-1.5">
+                    <div className={cn(
+                      "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
+                      tutorUnpaid ? "bg-warning/10" : "bg-secondary/40",
+                    )}>
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
                         {l.tutor_paid_at && (
@@ -769,7 +784,10 @@ export default function FinancesPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-semibold text-destructive">-{l.tutor_payout} ₴</span>
+                        <span className={cn(
+                          "text-sm font-semibold",
+                          tutorUnpaid ? "text-warning" : "text-foreground",
+                        )}>-{l.tutor_payout} ₴</span>
                         <button
                           onClick={() => togglePayment(l, "tutor_payout_status")}
                           aria-label={t("finances.statusPaidOut")}
