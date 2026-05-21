@@ -53,7 +53,8 @@ import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
-import { MobileFilters } from "@/components/MobileFilters";
+import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
+import { useScheduleFilters } from "@/hooks/useScheduleFilters";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
