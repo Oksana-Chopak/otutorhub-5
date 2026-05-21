@@ -810,12 +810,7 @@ export default function SchedulePage() {
     return entries;
   }, [lessonsForList]);
 
-  const filtersActive =
-    filterStatus !== "all" ||
-    filterTutor !== "all" ||
-    filterStudent !== "all" ||
-    filterSource !== "all" ||
-    filterPeriod !== "all";
+  const filtersActive = filters.isActive;
 
   // Show source filter only for managers (they may need to filter hub vs independent lessons across the school).
   // For an independent tutor "Всі / Самостійний" фільтр не має сенсу — він і так бачить лише свої уроки.
