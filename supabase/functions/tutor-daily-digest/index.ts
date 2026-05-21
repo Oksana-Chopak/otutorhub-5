@@ -60,6 +60,15 @@ async function sendTg(
   return resp.ok;
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -220,7 +229,7 @@ Deno.serve(async (req) => {
         });
         const name = nameById.get(l.student_id) ?? "Учень";
         const paid = l.student_payment_status === "paid" ? " ✅" : "";
-        lines.push(`• ${t} — ${name} (${l.subject})${paid}`);
+        lines.push(`• ${t} — ${escapeHtml(name)} (${escapeHtml(l.subject)})${paid}`);
       }
     }
 
@@ -237,7 +246,7 @@ Deno.serve(async (req) => {
         .slice(0, 8);
       for (const [studentId, v] of debtList) {
         const name = nameById.get(studentId) ?? "Учень";
-        lines.push(`• ${name} — ${v.total} ₴ (${v.count} ур.)`);
+        lines.push(`• ${escapeHtml(name)} — ${v.total} ₴ (${v.count} ур.)`);
       }
     }
 

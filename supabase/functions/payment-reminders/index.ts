@@ -41,6 +41,12 @@ async function sendTg(
   return resp.ok;
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -215,17 +221,18 @@ Deno.serve(async (req) => {
     const price = Number(lesson.student_price ?? 0);
     let header = "💳 Нагадування про оплату";
     let body = "";
+    const tnameEsc = escapeHtml(tname);
     if (mode === "prepaid") {
-      body = `Нагадуємо про передоплату за майбутній урок (${dateStr}) з ${tname}.`;
+      body = `Нагадуємо про передоплату за майбутній урок (${dateStr}) з ${tnameEsc}.`;
     } else if (mode === "before_lesson") {
-      body = `Нагадуємо про оплату уроку ${dateStr} з ${tname}. До початку залишилось ~${days} ${
+      body = `Нагадуємо про оплату уроку ${dateStr} з ${tnameEsc}. До початку залишилось ~${days} ${
         days === 1 ? "день" : "днів"
       }.`;
     } else {
-      body = `Дякуємо за урок ${dateStr} з ${tname}! Час оплатити заняття.`;
+      body = `Дякуємо за урок ${dateStr} з ${tnameEsc}! Час оплатити заняття.`;
     }
     const priceLine = price > 0 ? `\n\nСума: <b>${price} ₴</b>` : "";
-    const text = `${header}\n\n${body}${priceLine}\n\nПредмет: ${lesson.subject}`;
+    const text = `${header}\n\n${body}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
 
     const ok = await sendTg(TELEGRAM_BOT_TOKEN, chatId, text);
     if (!ok) {

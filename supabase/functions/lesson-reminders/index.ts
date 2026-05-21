@@ -38,6 +38,13 @@ function escapeHtmlAttr(value: string): string {
     .replace(/>/g, "&gt;");
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -165,7 +172,7 @@ Deno.serve(async (req) => {
         if (studentChat && !sentSet.has(fbKey)) {
           const tutorName = nameById.get(lesson.tutor_id) ?? "репетитором";
           const text =
-            `⭐ Як пройшов урок з <b>${tutorName}</b> (${lesson.subject})?\n\n` +
+            `⭐ Як пройшов урок з <b>${escapeHtml(tutorName)}</b> (${escapeHtml(lesson.subject)})?\n\n` +
             `Відкрийте урок у застосунку і поставте оцінку — це допоможе репетитору і іншим учням.`;
           if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
             await supabase.from("lesson_reminders").insert({
@@ -207,7 +214,7 @@ Deno.serve(async (req) => {
           minute: "2-digit",
         });
         const text =
-          `📝 Урок з <b>${studentName}</b> (${lesson.subject}) ${dateStr} вже мав відбутися.\n\n` +
+          `📝 Урок з <b>${escapeHtml(studentName)}</b> (${escapeHtml(lesson.subject)}) ${dateStr} вже мав відбутися.\n\n` +
           `Будь ласка, відмітьте у застосунку: <b>Проведено</b> ✅ або <b>Скасовано</b> ❌.\n` +
           `Без статусу оплата за урок не нараховується.`;
         if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
@@ -252,8 +259,8 @@ Deno.serve(async (req) => {
       const tutorKey = `${lesson.id}:${lesson.tutor_id}:${rule.kind}`;
       if (tutorChat && !sentSet.has(tutorKey)) {
         const text =
-          `⏰ Урок з <b>${studentName}</b> через ${rule.minutesBefore} хв\n` +
-          `📚 ${lesson.subject}\n📅 ${dateStr}${link}`;
+          `⏰ Урок з <b>${escapeHtml(studentName)}</b> через ${rule.minutesBefore} хв\n` +
+          `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
         if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
@@ -273,8 +280,8 @@ Deno.serve(async (req) => {
       const studentKey = `${lesson.id}:${lesson.student_id}:${rule.kind}`;
       if (studentChat && !sentSet.has(studentKey)) {
         const text =
-          `⏰ Урок з <b>${tutorName}</b> через ${rule.minutesBefore} хв\n` +
-          `📚 ${lesson.subject}\n📅 ${dateStr}${link}`;
+          `⏰ Урок з <b>${escapeHtml(tutorName)}</b> через ${rule.minutesBefore} хв\n` +
+          `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
         if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,

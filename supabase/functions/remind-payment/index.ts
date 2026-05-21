@@ -15,6 +15,15 @@ function json(body: unknown, status = 200) {
   });
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -100,7 +109,7 @@ Deno.serve(async (req) => {
   // Telegram
   const chatId = tgLink?.chat_id ? Number(tgLink.chat_id) : null;
   if (chatId && TELEGRAM_BOT_TOKEN) {
-    const text = `💳 <b>Нагадування про оплату</b>\n\n${tutorName} нагадує про оплату уроку <b>${lesson.subject}</b> (${lessonDate}).${
+    const text = `💳 <b>Нагадування про оплату</b>\n\n${escapeHtml(tutorName)} нагадує про оплату уроку <b>${escapeHtml(lesson.subject)}</b> (${lessonDate}).${
       amount > 0 ? `\n\nСума: <b>${amount} ₴</b>` : ""
     }\n\nДякуємо! 🙏`;
     const r = await fetch(
