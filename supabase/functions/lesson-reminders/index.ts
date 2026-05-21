@@ -280,8 +280,8 @@ Deno.serve(async (req) => {
       const studentKey = `${lesson.id}:${lesson.student_id}:${rule.kind}`;
       if (studentChat && !sentSet.has(studentKey)) {
         const text =
-          `⏰ Урок з <b>${tutorName}</b> через ${rule.minutesBefore} хв\n` +
-          `📚 ${lesson.subject}\n📅 ${dateStr}${link}`;
+          `⏰ Урок з <b>${escapeHtml(tutorName)}</b> через ${rule.minutesBefore} хв\n` +
+          `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
         if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
