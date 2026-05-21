@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
           minute: "2-digit",
         });
         const text =
-          `📝 Урок з <b>${studentName}</b> (${lesson.subject}) ${dateStr} вже мав відбутися.\n\n` +
+          `📝 Урок з <b>${escapeHtml(studentName)}</b> (${escapeHtml(lesson.subject)}) ${dateStr} вже мав відбутися.\n\n` +
           `Будь ласка, відмітьте у застосунку: <b>Проведено</b> ✅ або <b>Скасовано</b> ❌.\n` +
           `Без статусу оплата за урок не нараховується.`;
         if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
