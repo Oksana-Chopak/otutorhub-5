@@ -133,14 +133,8 @@ export default function SchedulePage() {
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
 
-  // Filters
-  const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
-  const [filterTutor, setFilterTutor] = useState<string>("all");
-  const [filterStudent, setFilterStudent] = useState<string>("all");
-  const [filterSource, setFilterSource] = useState<"all" | LessonSource>("all");
-  const [filterPeriod, setFilterPeriod] = useState<"all" | "upcoming" | "past" | "month" | "week">(
-    "all"
-  );
+  // Filters — centralized in a hook so desktop + mobile share state/logic.
+  const filters = useScheduleFilters();
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
