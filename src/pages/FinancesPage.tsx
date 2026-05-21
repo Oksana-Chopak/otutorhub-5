@@ -873,10 +873,17 @@ export default function FinancesPage() {
                 const l = row.l;
                 const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
                 const isSelected = selected.has(l.id);
+                const studentUnpaid = l.student_payment_status === "unpaid";
+                const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+                const anyUnpaid = studentUnpaid || tutorUnpaid;
                 return (
                   <tr
                     key={l.id}
-                    className={`border-b border-border last:border-0 ${isSelected ? "bg-primary/5" : ""}`}
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      isSelected && "bg-primary/5",
+                      !isSelected && anyUnpaid && "bg-warning/[0.06]",
+                    )}
                   >
                     <td className="px-3 py-3">
                       <Checkbox
@@ -896,7 +903,10 @@ export default function FinancesPage() {
                       )}
                     </td>
                     <td className="px-3 py-3 text-right">
-                      <div className="font-semibold text-success">+{l.student_price} ₴</div>
+                      <div className={cn(
+                        "font-semibold",
+                        studentUnpaid ? "text-warning" : "text-success",
+                      )}>+{l.student_price} ₴</div>
                       <button onClick={() => togglePayment(l, "student_payment_status")} className="mt-1 inline-block">
                         <Badge
                           className={
@@ -921,7 +931,10 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className="px-3 py-3 text-right">
-                        <div className="font-semibold text-destructive">-{l.tutor_payout} ₴</div>
+                        <div className={cn(
+                          "font-semibold",
+                          tutorUnpaid ? "text-warning" : "text-destructive",
+                        )}>-{l.tutor_payout} ₴</div>
                         <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
                           <Badge
                             className={
