@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
-import { StatCard } from "@/components/StatCard";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ArrowDownLeft,
@@ -12,12 +11,12 @@ import {
   Loader2,
   Download,
   CheckCheck,
-  AlertCircle,
   AlertTriangle,
   ArrowRight,
   Package,
   Plus,
   Wallet,
+  Percent,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,20 +29,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
 import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
 import { FinancesSkeleton } from "@/components/PageSkeletons";
-import { Percent } from "lucide-react";
 import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
 import { ProfitSparkline } from "@/components/ProfitSparkline";
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
 import { WalletDialog } from "@/components/WalletDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
-import { MobileFilters } from "@/components/MobileFilters";
+import { cn } from "@/lib/utils";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
+type Period = "week" | "month" | "all";
+type TabKey = "income" | "expenses" | "debts";
 
 interface LessonRow {
   id: string;
@@ -80,18 +81,37 @@ interface WalletTransaction {
 
 interface WalletPair extends PairOption {}
 
-const monthKey = (iso: string) => iso.slice(0, 7);
-const formatMonth = (key: string) => {
-  const [y, m] = key.split("-");
-  const date = new Date(Number(y), Number(m) - 1, 1);
-  return date.toLocaleDateString("uk-UA", { month: "long", year: "numeric" });
-};
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString("uk-UA", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
+
+/** Start of current ISO week (Mon, local midnight). */
+function startOfWeek(now = new Date()) {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  const day = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - day);
+  return d;
+}
+
+function startOfMonth(now = new Date()) {
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(1);
+  return d;
+}
+
+/**
+ * Map legacy `?filter=` param to the new tab model so old links keep working.
+ */
+function legacyFilterToTab(value: string | null): TabKey {
+  if (value === "need_pay" || value === "need_payout") return "debts";
+  if (value === "done") return "income";
+  return "debts";
+}
 
 export default function FinancesPage() {
   const { t } = useTranslation();
@@ -107,29 +127,31 @@ export default function FinancesPage() {
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
-  const [monthFilter, setMonthFilter] = useState<string>("all");
   const [tutorFilter, setTutorFilter] = useState<string>("all");
-  // Read initial filter from URL ?filter=need_pay|need_payout|done
-  const [statusFilter, setStatusFilter] = useState<string>(
-    searchParams.get("filter") ?? "all"
-  );
+  const [period, setPeriod] = useState<Period>("month");
+  // Tab is sourced from URL (?tab=) with legacy ?filter= support so deep links keep working.
+  const initialTab: TabKey = (searchParams.get("tab") as TabKey | null)
+    ?? legacyFilterToTab(searchParams.get("filter"));
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [recordOpen, setRecordOpen] = useState(false);
-  const [kindFilter, setKindFilter] = useState<"all" | "lessons" | "prepay">("all");
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
   const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
 
-  // Sync statusFilter changes back to URL so the state is shareable/bookmarkable
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value);
-    if (value === "all") {
-      setSearchParams({}, { replace: true });
-    } else {
-      setSearchParams({ filter: value }, { replace: true });
-    }
+  // Sync tab to URL so the view is shareable/bookmarkable; clear legacy `filter`.
+  const handleTabChange = (value: string) => {
+    const next = value as TabKey;
+    setActiveTab(next);
+    setSelected(new Set());
+    const params = new URLSearchParams(searchParams);
+    params.delete("filter");
+    if (next === "debts") params.delete("tab");
+    else params.set("tab", next);
+    setSearchParams(params, { replace: true });
   };
 
   const fetchData = async () => {
@@ -212,11 +234,6 @@ export default function FinancesPage() {
     return `${p.first_name} ${p.last_name}`.trim() || t("common.noName");
   };
 
-  const months = useMemo(() => {
-    const set = new Set(lessons.map((l) => monthKey(l.starts_at)));
-    return Array.from(set).sort().reverse();
-  }, [lessons]);
-
   const tutorOptions = useMemo(() => {
     const ids = Array.from(new Set(lessons.map((l) => l.tutor_id)));
     return ids
@@ -225,85 +242,120 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, profiles]);
 
-  const filtered = useMemo(
-    () =>
-      lessons.filter(
-        (l) =>
-          (monthFilter === "all" || monthKey(l.starts_at) === monthFilter) &&
-          (tutorFilter === "all" || l.tutor_id === tutorFilter)
-      ),
-    [lessons, monthFilter, tutorFilter]
+  // Tutor scope applies everywhere (analytics + tab content).
+  const tutorScoped = useMemo(
+    () => lessons.filter((l) => tutorFilter === "all" || l.tutor_id === tutorFilter),
+    [lessons, tutorFilter],
   );
 
   // Billable = lesson actually counts toward money flow.
   // Includes: completed lessons, past lessons (date already passed), or any lesson
   // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
   // Excludes: cancelled, and pending requests that never happened.
-  const nowMs = Date.now();
-  const billable = filtered.filter((l) => {
-    if (l.status === "cancelled" || l.status === "pending") return false;
-    if (l.status === "completed") return true;
-    const isPast = new Date(l.starts_at).getTime() < nowMs;
-    const hasPayment =
-      l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
-    return isPast || hasPayment;
-  });
+  const billable = useMemo(() => {
+    const nowMs = Date.now();
+    return tutorScoped.filter((l) => {
+      if (l.status === "cancelled" || l.status === "pending") return false;
+      if (l.status === "completed") return true;
+      const isPast = new Date(l.starts_at).getTime() < nowMs;
+      const hasPayment =
+        l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
+      return isPast || hasPayment;
+    });
+  }, [tutorScoped]);
 
-  const visibleRows = useMemo(() => {
-    let rows: LessonRow[];
-    switch (statusFilter) {
-      case "need_pay":
-        rows = billable.filter((l) => l.student_payment_status === "unpaid");
-        break;
-      case "need_payout":
-        rows = billable.filter((l) => l.tutor_payout_status === "unpaid");
-        break;
-      case "done":
-        rows = billable.filter(
-          (l) =>
-            l.student_payment_status === "paid" && l.tutor_payout_status === "paid"
-        );
-        break;
-      default:
-        // In "all" view: unpaid rows first (by date desc), then paid (by date desc)
-        rows = [
-          ...billable
-            .filter(
-              (l) =>
-                l.student_payment_status === "unpaid" ||
-                l.tutor_payout_status === "unpaid"
-            )
-            .sort((a, b) => b.starts_at.localeCompare(a.starts_at)),
-          ...billable
-            .filter(
-              (l) =>
-                l.student_payment_status === "paid" &&
-                l.tutor_payout_status === "paid"
-            )
-            .sort((a, b) => b.starts_at.localeCompare(a.starts_at)),
-        ];
-        break;
-    }
-    return rows;
-  }, [billable, statusFilter]);
+  // Period scope drives the sticky summary card and tab content.
+  const periodStart = useMemo(() => {
+    if (period === "week") return startOfWeek().getTime();
+    if (period === "month") return startOfMonth().getTime();
+    return 0;
+  }, [period]);
 
-  const totalIncome = billable
+  const inPeriod = (iso: string) => new Date(iso).getTime() >= periodStart;
+
+  const periodBillable = useMemo(
+    () => billable.filter((l) => inPeriod(l.starts_at)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [billable, periodStart],
+  );
+
+  const periodTopups = useMemo(
+    () =>
+      transactions.filter(
+        (tx) =>
+          (tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
+          && (tutorFilter === "all" || tx.tutor_id === tutorFilter)
+          && inPeriod(tx.created_at),
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [transactions, tutorFilter, periodStart],
+  );
+
+  // Per-tab row sets — keep the same shape used by both mobile cards and desktop table.
+  type Row =
+    | { type: "lesson"; l: LessonRow }
+    | { type: "prepay"; tx: WalletTransaction };
+
+  const sortDesc = (a: Row, b: Row) => {
+    const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
+    const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
+    return bd.localeCompare(ad);
+  };
+
+  const incomeRows: Row[] = useMemo(() => {
+    const lessonRows: Row[] = periodBillable
+      .filter((l) => l.student_payment_status === "paid")
+      .map((l) => ({ type: "lesson", l }));
+    const prepayRows: Row[] = canManagePrepay
+      ? periodTopups.map((tx) => ({ type: "prepay", tx }))
+      : [];
+    return [...lessonRows, ...prepayRows].sort(sortDesc);
+  }, [periodBillable, periodTopups, canManagePrepay]);
+
+  const expensesRows: Row[] = useMemo(() => {
+    if (isIndependentTutor) return [];
+    return periodBillable
+      .filter((l) => l.tutor_payout_status === "paid")
+      .map((l) => ({ type: "lesson" as const, l }))
+      .sort(sortDesc);
+  }, [periodBillable, isIndependentTutor]);
+
+  const debtsRows: Row[] = useMemo(() => {
+    return periodBillable
+      .filter(
+        (l) =>
+          l.student_payment_status === "unpaid"
+          || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
+      )
+      .map((l) => ({ type: "lesson" as const, l }))
+      .sort(sortDesc);
+  }, [periodBillable, isIndependentTutor]);
+
+  const rowsForActiveTab: Row[] =
+    activeTab === "income" ? incomeRows : activeTab === "expenses" ? expensesRows : debtsRows;
+
+  const visibleLessons: LessonRow[] = useMemo(
+    () => rowsForActiveTab.filter((r): r is { type: "lesson"; l: LessonRow } => r.type === "lesson").map((r) => r.l),
+    [rowsForActiveTab],
+  );
+
+  // Sticky-summary totals — all derived from the same `periodBillable`.
+  const totalIncome = periodBillable
     .filter((l) => l.student_payment_status === "paid")
     .reduce((s, l) => s + Number(l.student_price), 0);
-  const totalExpense = billable
+  const totalExpense = periodBillable
     .filter((l) => l.tutor_payout_status === "paid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
   const profit = totalIncome - totalExpense;
-  const pendingIncome = billable
+  const pendingIncome = periodBillable
     .filter((l) => l.student_payment_status === "unpaid")
     .reduce((s, l) => s + Number(l.student_price), 0);
-  const pendingExpense = billable
+  const pendingExpense = periodBillable
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
+  const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
-  // Markup % ("маржа" як націнка): (income - payout) / payout * 100
-  // Рахуємо тільки по уроках, де відомі обидві суми (price > 0 і payout > 0),
-  // інакше націнка не визначена.
+  // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
   const computeMarkup = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
@@ -335,11 +387,10 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable, profiles]);
 
-  // Last-4-weeks profit sparkline series
   const profitSparkline = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const dayIdx = (today.getDay() + 6) % 7; // 0 = Mon
+    const dayIdx = (today.getDay() + 6) % 7;
     const thisWeekStart = new Date(today);
     thisWeekStart.setDate(today.getDate() - dayIdx);
     const buckets: { key: string; start: Date; profit: number }[] = [];
@@ -350,9 +401,9 @@ export default function FinancesPage() {
     }
     const firstStart = buckets[0].start.getTime();
     billable.forEach((l) => {
-      const t = new Date(l.starts_at).getTime();
-      if (t < firstStart) return;
-      const idx = Math.floor((t - firstStart) / (7 * 24 * 3600 * 1000));
+      const ts = new Date(l.starts_at).getTime();
+      if (ts < firstStart) return;
+      const idx = Math.floor((ts - firstStart) / (7 * 24 * 3600 * 1000));
       if (idx < 0 || idx >= buckets.length) return;
       const income = l.student_payment_status === "paid" ? Number(l.student_price) : 0;
       const expense = l.tutor_payout_status === "paid" ? Number(l.tutor_payout) : 0;
@@ -361,7 +412,6 @@ export default function FinancesPage() {
     return buckets.map((b) => ({ week: b.key, profit: b.profit }));
   }, [billable]);
 
-  // Income contribution per student (paid lessons only) — for pie chart
   const incomeByStudent = useMemo(() => {
     const map = new Map<string, number>();
     billable
@@ -372,7 +422,6 @@ export default function FinancesPage() {
     const rows = Array.from(map.entries())
       .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
       .sort((a, b) => b.amount - a.amount);
-    // Collapse long tail into "Інші" (keep top 6)
     const TOP = 6;
     if (rows.length <= TOP) return rows;
     const head = rows.slice(0, TOP);
@@ -415,29 +464,15 @@ export default function FinancesPage() {
     [billable]
   );
 
-  const unifiedRows = useMemo(() => {
-    const lessonRows = kindFilter === "prepay" ? [] : visibleRows.map((l) => ({ type: "lesson" as const, l }));
-    const prepayRows = kindFilter === "lessons" ? [] : transactions
-      .filter((tx) => tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
-      .map((tx) => ({ type: "prepay" as const, tx }));
-    return [...lessonRows, ...prepayRows].sort((a, b) => {
-      const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
-      const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
-      return bd.localeCompare(ad);
-    });
-  }, [kindFilter, visibleRows, transactions]);
-
+  // === Mutations (logic unchanged) ===
   const togglePayment = async (
     lesson: LessonRow,
     field: "student_payment_status" | "tutor_payout_status"
   ) => {
     const next: PaymentStatus = lesson[field] === "paid" ? "unpaid" : "paid";
-    const nextPaidAt =
-      next === "paid" ? new Date().toISOString() : null;
-    const paidAtField =
-      field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    const nextPaidAt = next === "paid" ? new Date().toISOString() : null;
+    const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
 
-    // Optimistic update — no full page reload, no jump.
     setLessons((prev) =>
       prev.map((l) =>
         l.id === lesson.id
@@ -446,16 +481,11 @@ export default function FinancesPage() {
       )
     );
 
-    const payload =
-      field === "student_payment_status"
-        ? { student_payment_status: next }
-        : { tutor_payout_status: next };
-    const { error } = await supabase
-      .from("lesson_details")
-      .update(payload)
-      .eq("lesson_id", lesson.id);
+    const payload = field === "student_payment_status"
+      ? { student_payment_status: next }
+      : { tutor_payout_status: next };
+    const { error } = await supabase.from("lesson_details").update(payload).eq("lesson_id", lesson.id);
     if (error) {
-      // Roll back
       setLessons((prev) =>
         prev.map((l) =>
           l.id === lesson.id
@@ -475,7 +505,6 @@ export default function FinancesPage() {
     }
     if (next === "paid") {
       const revert = async () => {
-        // Restore prior state in DB + UI
         setLessons((prev) =>
           prev.map((l) =>
             l.id === lesson.id
@@ -483,10 +512,9 @@ export default function FinancesPage() {
               : l
           )
         );
-        const revertPayload =
-          field === "student_payment_status"
-            ? { student_payment_status: lesson.student_payment_status }
-            : { tutor_payout_status: lesson.tutor_payout_status };
+        const revertPayload = field === "student_payment_status"
+          ? { student_payment_status: lesson.student_payment_status }
+          : { tutor_payout_status: lesson.tutor_payout_status };
         await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
       };
       toast.success(
@@ -501,7 +529,6 @@ export default function FinancesPage() {
     }
   };
 
-  // Used by RecordPaymentSheet: only marks as paid (no toggle).
   const markLessonPaidById = async (lessonId: string) => {
     const lesson = lessons.find((l) => l.id === lessonId);
     if (!lesson) return;
@@ -529,10 +556,10 @@ export default function FinancesPage() {
   };
 
   const toggleAll = () => {
-    if (selected.size === visibleRows.length && visibleRows.length > 0) {
+    if (selected.size === visibleLessons.length && visibleLessons.length > 0) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(visibleRows.map((r) => r.id)));
+      setSelected(new Set(visibleLessons.map((r) => r.id)));
     }
   };
 
@@ -541,23 +568,17 @@ export default function FinancesPage() {
     setBulkBusy(true);
     const ids = Array.from(selected);
     const nowIso = new Date().toISOString();
-    const payload =
-      field === "student_payment_status"
-        ? { student_payment_status: "paid" as PaymentStatus }
-        : { tutor_payout_status: "paid" as PaymentStatus };
-    // Optimistic
-    const paidAtField =
-      field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    const payload = field === "student_payment_status"
+      ? { student_payment_status: "paid" as PaymentStatus }
+      : { tutor_payout_status: "paid" as PaymentStatus };
+    const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
     const previousLessons = lessons;
     setLessons((prev) =>
       prev.map((l) =>
         ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
       )
     );
-    const { error } = await supabase
-      .from("lesson_details")
-      .update(payload)
-      .in("lesson_id", ids);
+    const { error } = await supabase.from("lesson_details").update(payload).in("lesson_id", ids);
     setBulkBusy(false);
     if (error) {
       toast.error(t("finances.bulkUpdateFailed"));
@@ -582,7 +603,7 @@ export default function FinancesPage() {
       t("finances.csvPayoutAt"),
       t("finances.csvProfit"),
     ];
-    const rows = visibleRows.map((l) => [
+    const rows = visibleLessons.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
@@ -609,46 +630,286 @@ export default function FinancesPage() {
     toast.success(t("finances.csvDownloaded"));
   };
 
-  const allSelected = selected.size === visibleRows.length && visibleRows.length > 0;
+  const allSelected = selected.size === visibleLessons.length && visibleLessons.length > 0;
   const someSelected = selected.size > 0 && !allSelected;
+  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
 
-  // Inline wallet balance pill for a (tutor, student) pair
-  const renderWalletBadge = (tutor_id: string, student_id: string) => {
-    const b = balances[`${tutor_id}:${student_id}`];
-    if (!b) return null;
-    const lessons = Number(b.lessons_balance ?? 0);
-    const amount = Number(b.amount_balance ?? 0);
-    const isNegative = lessons < 0 || amount < 0;
-    const hasPositive = lessons > 0 || amount > 0;
-    if (!isNegative && !hasPositive) return null;
-    const label = isNegative
-      ? `${lessons < 0 ? `${lessons} ур.` : ""}${lessons < 0 && amount < 0 ? " / " : ""}${amount < 0 ? `${amount.toFixed(0)} ₴` : ""}`
-      : `${lessons > 0 ? `${lessons} ур.` : ""}${lessons > 0 && amount > 0 ? " / " : ""}${amount > 0 ? `${amount.toFixed(0)} ₴` : ""}`;
+  // === Renderers ===
+  const renderRows = (rows: Row[]) => {
+    if (rows.length === 0) {
+      return (
+        <div className="rounded-xl border border-border bg-card p-6">
+          <EmptyState
+            icon={DollarSign}
+            title={t("finances.noPaymentsFiltered")}
+            description={t("finances.noPaymentsDesc")}
+          />
+        </div>
+      );
+    }
     return (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          openWalletForPair(tutor_id, student_id);
-        }}
-        title={isNegative ? t("finances.walletNegative") : t("finances.walletPositive")}
-        className={`ml-1.5 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium align-middle ${
-          isNegative
-            ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20"
-            : "border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-        }`}
-      >
-        {isNegative ? (
-          <AlertTriangle className="h-2.5 w-2.5" />
-        ) : (
-          <Wallet className="h-2.5 w-2.5" />
-        )}
-        {label}
-      </button>
+      <div className="overflow-hidden rounded-xl border border-border bg-card">
+        {/* Mobile cards */}
+        <div className="divide-y divide-border lg:hidden">
+          {rows.map((row) => {
+            if (row.type === "prepay") {
+              const tx = row.tx;
+              return (
+                <button
+                  key={`p-${tx.id}`}
+                  type="button"
+                  onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                  className="block w-full p-3 text-left hover:bg-primary/5"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
+                        <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                      </p>
+                      {tx.note && (
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
+                      {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                      {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                    </div>
+                  </div>
+                </button>
+              );
+            }
+            const l = row.l;
+            const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
+            return (
+              <div key={l.id} className="p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{l.subject}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(l.starts_at)}</p>
+                  </div>
+                  {!isIndependentTutor && (
+                    <div
+                      className={`text-right shrink-0 text-sm font-semibold ${
+                        lessonProfit >= 0 ? "text-foreground" : "text-destructive"
+                      }`}
+                    >
+                      {lessonProfit} ₴
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
+                  <div className="flex items-center justify-between gap-2 rounded-md bg-success/5 px-2.5 py-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
+                      {l.student_paid_at && (
+                        <p className="truncate text-[11px] text-muted-foreground">
+                          {t("finances.paidDate")} {formatDate(l.student_paid_at)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-semibold text-success">+{l.student_price} ₴</span>
+                      <button
+                        onClick={() => togglePayment(l, "student_payment_status")}
+                        aria-label={t("finances.statusPaid")}
+                      >
+                        <Badge
+                          className={
+                            l.student_payment_status === "paid"
+                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
+                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                          }
+                        >
+                          {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
+                        </Badge>
+                      </button>
+                    </div>
+                  </div>
+
+                  {!isIndependentTutor && (
+                    <div className="flex items-center justify-between gap-2 rounded-md bg-destructive/5 px-2.5 py-1.5">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
+                        {l.tutor_paid_at && (
+                          <p className="truncate text-[11px] text-muted-foreground">
+                            {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm font-semibold text-destructive">-{l.tutor_payout} ₴</span>
+                        <button
+                          onClick={() => togglePayment(l, "tutor_payout_status")}
+                          aria-label={t("finances.statusPaidOut")}
+                        >
+                          <Badge
+                            className={
+                              l.tutor_payout_status === "paid"
+                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
+                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                            }
+                          >
+                            {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
+                          </Badge>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden lg:block overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-secondary/50">
+                <th className="px-3 py-3 w-10">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleAll}
+                    aria-label={t("finances.selectAll")}
+                  />
+                </th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colDate")}</th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colStudent")}</th>
+                <th className="px-3 py-3 text-right font-medium text-success">{t("finances.colIncome")}</th>
+                {!isIndependentTutor && (
+                  <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colTutor")}</th>
+                )}
+                {!isIndependentTutor && (
+                  <th className="px-3 py-3 text-right font-medium text-destructive">{t("finances.colPayout")}</th>
+                )}
+                {!isIndependentTutor && (
+                  <th className="px-3 py-3 text-right font-medium text-muted-foreground">{t("finances.colProfit")}</th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => {
+                if (row.type === "prepay") {
+                  const tx = row.tx;
+                  return (
+                    <tr
+                      key={`p-${tx.id}`}
+                      className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
+                      onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                    >
+                      <td className="px-3 py-3" />
+                      <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
+                      <td className="px-3 py-3" colSpan={desktopColCount - 3}>
+                        <div className="flex items-center gap-2 text-primary">
+                          <Package className="h-4 w-4 shrink-0" />
+                          <span className="font-medium">{t("finances.prepayLabel")}</span>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="text-foreground truncate">
+                            {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
+                          </span>
+                          {tx.note && (
+                            <span className="truncate text-xs text-muted-foreground">— {tx.note}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
+                        {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                        {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                      </td>
+                    </tr>
+                  );
+                }
+                const l = row.l;
+                const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
+                const isSelected = selected.has(l.id);
+                return (
+                  <tr
+                    key={l.id}
+                    className={`border-b border-border last:border-0 ${isSelected ? "bg-primary/5" : ""}`}
+                  >
+                    <td className="px-3 py-3">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleRow(l.id)}
+                        aria-label={t("finances.selectRow")}
+                      />
+                    </td>
+                    <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{formatDate(l.starts_at)}</td>
+                    <td className="px-3 py-3 text-foreground">{l.subject}</td>
+                    <td className="px-3 py-3">
+                      <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
+                      {l.student_paid_at && (
+                        <div className="text-xs text-muted-foreground">
+                          {t("finances.paidDate")} {formatDate(l.student_paid_at)}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <div className="font-semibold text-success">+{l.student_price} ₴</div>
+                      <button onClick={() => togglePayment(l, "student_payment_status")} className="mt-1 inline-block">
+                        <Badge
+                          className={
+                            l.student_payment_status === "paid"
+                              ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                              : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                          }
+                        >
+                          {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
+                        </Badge>
+                      </button>
+                    </td>
+                    {!isIndependentTutor && (
+                      <td className="px-3 py-3">
+                        <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
+                        {l.tutor_paid_at && (
+                          <div className="text-xs text-muted-foreground">
+                            {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
+                          </div>
+                        )}
+                      </td>
+                    )}
+                    {!isIndependentTutor && (
+                      <td className="px-3 py-3 text-right">
+                        <div className="font-semibold text-destructive">-{l.tutor_payout} ₴</div>
+                        <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
+                          <Badge
+                            className={
+                              l.tutor_payout_status === "paid"
+                                ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                            }
+                          >
+                            {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
+                          </Badge>
+                        </button>
+                      </td>
+                    )}
+                    {!isIndependentTutor && (
+                      <td className={`px-3 py-3 text-right font-semibold ${lessonProfit >= 0 ? "text-foreground" : "text-destructive"}`}>
+                        {lessonProfit} ₴
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
     );
   };
 
-  const desktopColCount = 5 + (isIndependentTutor ? 0 : 3);
+  const periodLabel =
+    period === "week"
+      ? t("finances.periodWeek", { defaultValue: "Цей тиждень" })
+      : period === "month"
+      ? t("finances.periodMonth", { defaultValue: "Цей місяць" })
+      : t("finances.periodAll", { defaultValue: "Весь час" });
 
   return (
     <AppLayout>
@@ -656,509 +917,126 @@ export default function FinancesPage() {
         <div>
           <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
-            {isIndependentTutor
-              ? t("finances.pageSubtitleTutor")
-              : t("finances.pageSubtitleManager")}
+            {isIndependentTutor ? t("finances.pageSubtitleTutor") : t("finances.pageSubtitleManager")}
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           {canManagePrepay && (
-            <Button
-              size="sm"
-              onClick={() => setRecordOpen(true)}
-              className="h-9 w-full sm:w-auto"
-            >
+            <Button size="sm" onClick={() => setRecordOpen(true)} className="h-9 w-full sm:w-auto">
               <Plus className="mr-1 h-4 w-4" />
               {t("finances.recordPayment")}
             </Button>
           )}
-          <MobileFilters
-            activeCount={
-              (monthFilter !== "all" ? 1 : 0) +
-              (tutorFilter !== "all" ? 1 : 0) +
-              (statusFilter !== "all" ? 1 : 0) +
-              (kindFilter !== "all" ? 1 : 0)
-            }
-            className="w-full sm:w-auto"
-          >
-            {!isIndependentTutor && (
-              <div className="w-full sm:w-44">
-                <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder={t("finances.allTutors")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
-                    {tutorOptions.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+          {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder={t("finances.allPeriods")} />
+                  <SelectValue placeholder={t("finances.allTutors")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("finances.allPeriods")}</SelectItem>
-                  {months.map((m) => (
-                    <SelectItem key={m} value={m}>
-                      {formatMonth(m)}
-                    </SelectItem>
+                  <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
+                  {tutorOptions.map((tu) => (
+                    <SelectItem key={tu.id} value={tu.id}>{tu.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full sm:w-44">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="h-9">
-                  <SelectValue placeholder={t("finances.allStatuses")} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t("finances.allStatuses")}</SelectItem>
-                  <SelectItem value="need_pay">{t("finances.needStudentPay")}</SelectItem>
-                  {!isIndependentTutor && (
-                    <SelectItem value="need_payout">{t("finances.needPayout")}</SelectItem>
-                  )}
-                  {!isIndependentTutor && (
-                    <SelectItem value="done">{t("finances.allClosed")}</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            {canManagePrepay && (
-              <div className="w-full sm:w-44">
-                <Select value={kindFilter} onValueChange={(value) => setKindFilter(value as "all" | "lessons" | "prepay")}>
-                  <SelectTrigger className="h-9">
-                    <SelectValue placeholder={t("finances.kindAll")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("finances.kindAll")}</SelectItem>
-                    <SelectItem value="lessons">{t("finances.kindLessons")}</SelectItem>
-                    <SelectItem value="prepay">{t("finances.kindPrepay")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </MobileFilters>
+          )}
         </div>
-          </div>
+      </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20 text-muted-foreground">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" /> {t("common.loading")}
-        </div>
+        <FinancesSkeleton />
       ) : (
         <>
-          {/* Context banner — shown when arriving from dashboard with a filter pre-set */}
-          {statusFilter !== "all" && (
-            <div className="mb-4 flex items-center gap-2 rounded-xl border border-warning/40 bg-warning/8 px-4 py-3 text-sm">
-              <AlertCircle className="h-4 w-4 shrink-0 text-warning" />
-              <span className="flex-1 text-foreground">
-                {statusFilter === "need_pay" && (
-                  <>Показано уроки, <strong>де учень ще не оплатив</strong>. Натисніть на статус щоб позначити оплату.</>
-                )}
-                {statusFilter === "need_payout" && (
-                  <>Показано уроки, <strong>де репетитор ще не отримав виплату</strong>. Натисніть на статус щоб позначити виплату.</>
-                )}
-              </span>
-              <button
-                className="shrink-0 text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-                onClick={() => handleStatusFilterChange("all")}
-              >
-                Показати всі
-              </button>
-            </div>
-          )}
-          <div className={`grid grid-cols-2 gap-3 sm:gap-4 ${isIndependentTutor ? "lg:grid-cols-2" : "lg:grid-cols-4 xl:grid-cols-5"}`}>
-            <StatCard
-              label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
-              value={`${totalIncome} ₴`}
-              icon={ArrowDownLeft}
-              variant="success"
-            />
-            {!isIndependentTutor && (
-              <StatCard label={t("finances.payouts")} value={`${totalExpense} ₴`} icon={ArrowUpRight} />
-            )}
-            {!isIndependentTutor && (
-              <StatCard
-                label={t("finances.profit")}
-                value={`${profit} ₴`}
-                icon={TrendingUp}
-                variant={profit >= 0 ? "success" : "warning"}
-              />
-            )}
-            <StatCard
-              label={isIndependentTutor ? t("finances.awaitingPay") : t("finances.awaitingPayOrPayout")}
-              value={isIndependentTutor ? `${pendingIncome} ₴` : `${pendingIncome} / ${pendingExpense} ₴`}
-              icon={DollarSign}
-              variant="warning"
-            />
-            {!isIndependentTutor && (
-              <div className="col-span-2 rounded-xl border border-border bg-card p-3 lg:col-span-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-medium leading-tight text-muted-foreground sm:text-xs">
-                      {t("finances.margin")}
-                    </p>
-                    <p
-                      className={`mt-1 truncate font-display text-lg font-bold sm:text-xl ${
-                        hubMarkup === null
-                          ? "text-muted-foreground"
-                          : hubMarkup >= 0
-                          ? "text-success"
-                          : "text-destructive"
-                      }`}
+          {/* === Sticky summary card — always visible at top while scrolling === */}
+          <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
+            <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground">{periodLabel}</span>
+                <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
+                  {(["week", "month", "all"] as Period[]).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPeriod(p)}
+                      className={cn(
+                        "px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors",
+                        period === p
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground",
+                      )}
                     >
-                      {hubMarkup === null ? "—" : `${hubMarkup.toFixed(1)}%`}
-                    </p>
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      {t("finances.marginDesc")}
-                    </p>
-                  </div>
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                    <Percent className="h-3.5 w-3.5 text-primary" />
-                  </div>
+                      {p === "week"
+                        ? t("finances.periodWeekShort", { defaultValue: "Тижд." })
+                        : p === "month"
+                        ? t("finances.periodMonthShort", { defaultValue: "Міс." })
+                        : t("finances.periodAllShort", { defaultValue: "Все" })}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* === Mini-trends row: profit sparkline + income contribution pie === */}
-          {!isIndependentTutor && (
-            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    {t("finances.profitTrend")}
-                  </h2>
-                  <span className="text-xs text-muted-foreground">
-                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
-                  </span>
-                </div>
-                <ProfitSparkline data={profitSparkline} />
-              </div>
-              <div className="rounded-xl border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">
-                    {t("finances.incomeByStudent")}
-                  </h2>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {t("finances.paidOnly")}
-                  </span>
-                </div>
-                <IncomeByStudentPie data={incomeByStudent} />
-              </div>
-            </div>
-          )}
-
-          {/* === Main: Payments table (priority for daily use) === */}
-          <div className="mt-6 overflow-hidden rounded-xl border border-border bg-card">
-            {visibleRows.length === 0 ? (
-              <div className="p-6">
-                <EmptyState
+              <div className={cn("grid gap-2 sm:gap-3", isIndependentTutor ? "grid-cols-2" : "grid-cols-2 sm:grid-cols-4")}>
+                <SummaryStat
+                  icon={ArrowDownLeft}
+                  label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
+                  value={`${totalIncome} ₴`}
+                  tone="success"
+                />
+                {!isIndependentTutor && (
+                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${totalExpense} ₴`} tone="neutral" />
+                )}
+                {!isIndependentTutor && (
+                  <SummaryStat
+                    icon={TrendingUp}
+                    label={t("finances.profit")}
+                    value={`${profit} ₴`}
+                    tone={profit >= 0 ? "success" : "warning"}
+                  />
+                )}
+                <SummaryStat
                   icon={DollarSign}
-                  title={t("finances.noPaymentsFiltered")}
-                  description={t("finances.noPaymentsDesc")}
+                  label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
+                  value={`${totalDebt} ₴`}
+                  tone={totalDebt > 0 ? "warning" : "neutral"}
                 />
               </div>
-            ) : (
-              <>
-                {/* Mobile cards (< lg) */}
-                <div className="divide-y divide-border lg:hidden">
-                  {unifiedRows.map((row) => {
-                    if (row.type === "prepay") {
-                      const tx = row.tx;
-                      return (
-                        <button
-                          key={`p-${tx.id}`}
-                          type="button"
-                          onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
-                          className="block w-full p-3 text-left hover:bg-primary/5"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="min-w-0 flex-1">
-                              <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
-                                <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
-                              </p>
-                              {tx.note && (
-                                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
-                              )}
-                            </div>
-                            <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
-                              {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                              {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    }
-                    const l = row.l;
-                    const profit = Number(l.student_price) - Number(l.tutor_payout);
-                    return (
-                      <div
-                        key={l.id}
-                        className="p-3"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium text-foreground">
-                              {l.subject}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {formatDate(l.starts_at)}
-                            </p>
-                          </div>
-                          {!isIndependentTutor && (
-                            <div
-                              className={`text-right shrink-0 text-sm font-semibold ${
-                                profit >= 0 ? "text-foreground" : "text-destructive"
-                              }`}
-                            >
-                              {profit} ₴
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
-                          <div className="flex items-center justify-between gap-2 rounded-md bg-success/5 px-2.5 py-1.5">
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate font-medium text-foreground">
-                                {nameOf(l.student_id)}
-                              </p>
-                              {l.student_paid_at && (
-                                <p className="truncate text-[11px] text-muted-foreground">
-                                  {t("finances.paidDate")} {formatDate(l.student_paid_at)}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="text-sm font-semibold text-success">
-                                +{l.student_price} ₴
-                              </span>
-                              <button
-                                onClick={() => togglePayment(l, "student_payment_status")}
-                                aria-label={t("finances.statusPaid")}
-                              >
-                                <Badge
-                                  className={
-                                    l.student_payment_status === "paid"
-                                      ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
-                                      : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
-                                  }
-                                >
-                                  {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
-                                </Badge>
-                              </button>
-                            </div>
-                          </div>
-
-                          {!isIndependentTutor && (
-                            <div className="flex items-center justify-between gap-2 rounded-md bg-destructive/5 px-2.5 py-1.5">
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate font-medium text-foreground">
-                                  {nameOf(l.tutor_id)}
-                                </p>
-                                {l.tutor_paid_at && (
-                                  <p className="truncate text-[11px] text-muted-foreground">
-                                    {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 shrink-0">
-                                <span className="text-sm font-semibold text-destructive">
-                                  -{l.tutor_payout} ₴
-                                </span>
-                                <button
-                                  onClick={() => togglePayment(l, "tutor_payout_status")}
-                                  aria-label={t("finances.statusPaidOut")}
-                                >
-                                  <Badge
-                                    className={
-                                      l.tutor_payout_status === "paid"
-                                        ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
-                                        : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
-                                    }
-                                  >
-                                    {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
-                                  </Badge>
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Desktop table (>= lg) */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/50">
-                        <th className="px-3 py-3 w-10">
-                          <Checkbox
-                            checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                            onCheckedChange={toggleAll}
-                            aria-label={t("finances.selectAll")}
-                          />
-                        </th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colDate")}</th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
-                        <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colStudent")}</th>
-                        <th className="px-3 py-3 text-right font-medium text-success">{t("finances.colIncome")}</th>
-                        {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colTutor")}</th>
-                        )}
-                        {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-right font-medium text-destructive">{t("finances.colPayout")}</th>
-                        )}
-                        {!isIndependentTutor && (
-                          <th className="px-3 py-3 text-right font-medium text-muted-foreground">{t("finances.colProfit")}</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {unifiedRows.map((row) => {
-                        if (row.type === "prepay") {
-                          const tx = row.tx;
-                          return (
-                            <tr
-                              key={`p-${tx.id}`}
-                              className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
-                              onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
-                            >
-                              <td className="px-3 py-3" />
-                              <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-                                {formatDate(tx.created_at)}
-                              </td>
-                              <td className="px-3 py-3" colSpan={desktopColCount - 3}>
-                                <div className="flex items-center gap-2 text-primary">
-                                  <Package className="h-4 w-4 shrink-0" />
-                                  <span className="font-medium">{t("finances.prepayLabel")}</span>
-                                  <span className="text-muted-foreground">·</span>
-                                  <span className="text-foreground truncate">
-                                    {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
-                                  </span>
-                                  {tx.note && (
-                                    <span className="truncate text-xs text-muted-foreground">
-                                      — {tx.note}
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
-                                {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                                {Number(tx.amount_delta) > 0 && (
-                                  <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        }
-                        const l = row.l;
-                        const profit = Number(l.student_price) - Number(l.tutor_payout);
-                        const isSelected = selected.has(l.id);
-                        return (
-                          <tr
-                            key={l.id}
-                            className={`border-b border-border last:border-0 ${
-                              isSelected ? "bg-primary/5" : ""
-                            }`}
-                          >
-                            <td className="px-3 py-3">
-                              <Checkbox
-                                checked={isSelected}
-                                onCheckedChange={() => toggleRow(l.id)}
-                                aria-label={t("finances.selectRow")}
-                              />
-                            </td>
-                            <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-                              {formatDate(l.starts_at)}
-                            </td>
-                            <td className="px-3 py-3 text-foreground">{l.subject}</td>
-                            <td className="px-3 py-3">
-                              <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
-                              {l.student_paid_at && (
-                                <div className="text-xs text-muted-foreground">
-                                  {t("finances.paidDate")} {formatDate(l.student_paid_at)}
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-3 py-3 text-right">
-                              <div className="font-semibold text-success">+{l.student_price} ₴</div>
-                              <button
-                                onClick={() => togglePayment(l, "student_payment_status")}
-                                className="mt-1 inline-block"
-                              >
-                                <Badge
-                                  className={
-                                    l.student_payment_status === "paid"
-                                      ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                      : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                  }
-                                >
-                                  {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
-                                </Badge>
-                              </button>
-                            </td>
-                            {!isIndependentTutor && (
-                              <td className="px-3 py-3">
-                                <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
-                                {l.tutor_paid_at && (
-                                  <div className="text-xs text-muted-foreground">
-                                    {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
-                                  </div>
-                                )}
-                              </td>
-                            )}
-                            {!isIndependentTutor && (
-                              <td className="px-3 py-3 text-right">
-                                <div className="font-semibold text-destructive">-{l.tutor_payout} ₴</div>
-                                <button
-                                  onClick={() => togglePayment(l, "tutor_payout_status")}
-                                  className="mt-1 inline-block"
-                                >
-                                  <Badge
-                                    className={
-                                      l.tutor_payout_status === "paid"
-                                        ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                        : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                                    }
-                                  >
-                                    {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
-                                  </Badge>
-                                </button>
-                              </td>
-                            )}
-                            {!isIndependentTutor && (
-                              <td
-                                className={`px-3 py-3 text-right font-semibold ${
-                                  profit >= 0 ? "text-foreground" : "text-destructive"
-                                }`}
-                              >
-                                {profit} ₴
-                              </td>
-                            )}
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
+            </div>
           </div>
 
-          {/* === Bulk actions — secondary, after table === */}
+          {/* === Main tabs: Income / Expenses / Debts === */}
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
+            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-grid">
+              <TabsTrigger value="income" className="gap-1.5">
+                <ArrowDownLeft className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
+                <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
+                <span className="ml-1 text-[10px] text-muted-foreground">({incomeRows.length})</span>
+              </TabsTrigger>
+              {!isIndependentTutor && (
+                <TabsTrigger value="expenses" className="gap-1.5">
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">{t("finances.expensesTab", { defaultValue: "Витрати" })}</span>
+                  <span className="sm:hidden">{t("finances.expensesTabShort", { defaultValue: "Витрати" })}</span>
+                  <span className="ml-1 text-[10px] text-muted-foreground">({expensesRows.length})</span>
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="debts" className="gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
+                <span className="sm:hidden">{t("finances.debtsTabShort", { defaultValue: "Борги" })}</span>
+                <span className="ml-1 text-[10px] text-muted-foreground">({debtsRows.length})</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="income" className="mt-4">{renderRows(incomeRows)}</TabsContent>
+            {!isIndependentTutor && (
+              <TabsContent value="expenses" className="mt-4">{renderRows(expensesRows)}</TabsContent>
+            )}
+            <TabsContent value="debts" className="mt-4">{renderRows(debtsRows)}</TabsContent>
+          </Tabs>
+
+          {/* === Bulk actions — kept as secondary, only on desktop === */}
           <details className="mt-4 hidden rounded-xl border border-border bg-card lg:block">
             <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
               <div className="flex items-center justify-between gap-2">
@@ -1198,21 +1076,36 @@ export default function FinancesPage() {
             </div>
           </details>
 
-          {/* === Markup table — analytics, secondary === */}
+          {/* === Analytics (unchanged) === */}
+          {!isIndependentTutor && (
+            <div className="mt-4 grid gap-3 sm:gap-4 lg:grid-cols-2">
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
+                  <span className="text-xs text-muted-foreground">
+                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
+                  </span>
+                </div>
+                <ProfitSparkline data={profitSparkline} />
+              </div>
+              <div className="rounded-xl border border-border bg-card p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}</h2>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
+                </div>
+                <IncomeByStudentPie data={incomeByStudent} />
+              </div>
+            </div>
+          )}
+
           {!isIndependentTutor && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {t("finances.marginByTutor")}
-                </h2>
-                <span className="hidden text-xs text-muted-foreground sm:inline">
-                  {t("finances.marginFormula")}
-                </span>
+                <h2 className="text-sm font-semibold text-foreground">{t("finances.marginByTutor")}</h2>
+                <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.marginFormula")}</span>
               </div>
               {markupByTutor.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  {t("finances.noMarginData")}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("finances.noMarginData")}</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -1227,9 +1120,7 @@ export default function FinancesPage() {
                       {markupByTutor.map((row) => (
                         <tr key={row.tutorId} className="border-b border-border last:border-0">
                           <td className="px-2 py-2 text-foreground">{row.name}</td>
-                          <td className="px-2 py-2 text-right text-muted-foreground">
-                            {row.lessonsCount}
-                          </td>
+                          <td className="px-2 py-2 text-right text-muted-foreground">{row.lessonsCount}</td>
                           <td
                             className={`px-2 py-2 text-right font-semibold ${
                               (row.markup ?? 0) >= 0 ? "text-success" : "text-destructive"
@@ -1246,13 +1137,10 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {/* === Chart — moved to the bottom === */}
           {!isIndependentTutor && (
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
-                <h2 className="text-sm font-semibold text-foreground">
-                  {t("finances.weeklyTrend")}
-                </h2>
+                <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
               <FinanceWeeklyChart
@@ -1262,7 +1150,7 @@ export default function FinancesPage() {
                     `${p.first_name} ${p.last_name}`.trim() || t("common.noName"),
                   ])
                 )}
-                lessons={filtered.map((l) => ({
+                lessons={tutorScoped.map((l) => ({
                   starts_at: l.starts_at,
                   status: l.status,
                   tutor_id: l.tutor_id,
@@ -1322,3 +1210,36 @@ export default function FinancesPage() {
   );
 }
 
+/**
+ * Compact stat tile for the sticky summary card. Smaller than a `StatCard`
+ * so 4 of them fit on mobile without wrapping.
+ */
+function SummaryStat({
+  icon: Icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: typeof DollarSign;
+  label: string;
+  value: string;
+  tone: "success" | "warning" | "neutral";
+}) {
+  const toneClass =
+    tone === "success"
+      ? "text-success"
+      : tone === "warning"
+      ? "text-warning"
+      : "text-foreground";
+  return (
+    <div className="min-w-0 rounded-lg bg-secondary/40 px-2.5 py-2">
+      <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground sm:text-[11px]">
+        <Icon className="h-3 w-3" />
+        <span className="truncate">{label}</span>
+      </div>
+      <p className={cn("mt-0.5 truncate font-display text-base font-bold tabular-nums sm:text-lg", toneClass)}>
+        {value}
+      </p>
+    </div>
+  );
+}
