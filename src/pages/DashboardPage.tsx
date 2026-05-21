@@ -30,7 +30,7 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
-import { AutoCompletePromptDialog } from "@/components/AutoCompletePromptDialog";
+
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
 import { lessonSourceTint } from "@/components/SourceBadge";
@@ -1310,7 +1310,7 @@ export default function DashboardPage() {
         onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
         onUpdated={loadData}
       />
-      <AutoCompletePromptDialog enabled={isIndependentTutor} />
+      
     </AppLayout>
   );
 }
