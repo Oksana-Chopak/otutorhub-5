@@ -749,30 +749,8 @@ export default function SchedulePage() {
     void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
-  // Apply filters
-  const filteredLessons = useMemo(() => {
-    const now = Date.now();
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const weekStart = new Date();
-    const day = (weekStart.getDay() + 6) % 7;
-    weekStart.setDate(weekStart.getDate() - day);
-    weekStart.setHours(0, 0, 0, 0);
-
-    return lessons.filter((l) => {
-      if (filterStatus !== "all" && l.status !== filterStatus) return false;
-      if (filterTutor !== "all" && l.tutor_id !== filterTutor) return false;
-      if (filterStudent !== "all" && l.student_id !== filterStudent) return false;
-      if (filterSource !== "all" && (l.source ?? "hub") !== filterSource) return false;
-      const ts = new Date(l.starts_at).getTime();
-      if (filterPeriod === "upcoming" && ts < now - 60 * 60 * 1000) return false;
-      if (filterPeriod === "past" && ts >= now) return false;
-      if (filterPeriod === "month" && ts < monthStart.getTime()) return false;
-      if (filterPeriod === "week" && ts < weekStart.getTime()) return false;
-      return true;
-    });
-  }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
+  // Apply filters via the centralized hook (shared by desktop + mobile UI).
+  const filteredLessons = useMemo(() => filters.apply(lessons), [lessons, filters.apply]);
 
   // Pure student in list view: split into upcoming vs archive (past) and sort accordingly.
   // Upcoming → ascending (closest first). Past → descending (most recent first).
