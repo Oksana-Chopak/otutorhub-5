@@ -149,8 +149,7 @@ export default function FinancesPage() {
     setSelected(new Set());
     const params = new URLSearchParams(searchParams);
     params.delete("filter");
-    if (next === "debts") params.delete("tab");
-    else params.set("tab", next);
+    params.set("tab", next);
     setSearchParams(params, { replace: true });
   };
 
