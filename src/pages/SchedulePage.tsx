@@ -862,71 +862,14 @@ export default function SchedulePage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <MobileFilters
-            compact
-            align="right"
-            desktopInline={false}
-            activeCount={
-              (filterStatus !== "all" ? 1 : 0) +
-              (filterTutor !== "all" ? 1 : 0) +
-              (filterStudent !== "all" ? 1 : 0) +
-              (filterSource !== "all" ? 1 : 0) +
-              (filterPeriod !== "all" ? 1 : 0)
-            }
-          >
-            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.status')} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('schedule.allStatuses')}</SelectItem>
-                <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
-                <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
-                <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
-              </SelectContent>
-            </Select>
-            {isManager && (
-              <Select value={filterTutor} onValueChange={setFilterTutor}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('roles.tutor')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.allTutors')}</SelectItem>
-                  {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            {(isManager || isTutor) && (
-              <Select value={filterStudent} onValueChange={setFilterStudent}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.student')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.allStudents')}</SelectItem>
-                  {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.month')} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('schedule.allPeriods')}</SelectItem>
-                <SelectItem value="upcoming">{t('schedule.periodUpcoming')}</SelectItem>
-                <SelectItem value="past">{t('schedule.periodPast')}</SelectItem>
-                <SelectItem value="week">{t('schedule.periodThisWeek')}</SelectItem>
-                <SelectItem value="month">{t('schedule.periodThisMonth')}</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasMixedSources && (
-              <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.sourceAll')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.sourceAll')}</SelectItem>
-                  <SelectItem value="hub">{t('schedule.sourceHub')}</SelectItem>
-                  <SelectItem value="independent">{t('schedule.sourceMine')}</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            {filtersActive && (
-              <Button size="sm" variant="ghost" className="h-9 w-full text-xs" onClick={() => {
-                setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
-              }}>{t('schedule.resetFilters')}</Button>
-            )}
-          </MobileFilters>
+          <ScheduleFiltersSheet
+            filters={filters}
+            showTutorFilter={isManager}
+            showStudentFilter={isManager || isTutor}
+            showSourceFilter={hasMixedSources}
+            tutors={tutors}
+            students={students}
+          />
           <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
               <List className="h-3.5 w-3.5" />{t('schedule.listView')}
