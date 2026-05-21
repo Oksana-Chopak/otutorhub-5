@@ -53,7 +53,8 @@ import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
-import { MobileFilters } from "@/components/MobileFilters";
+import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
+import { useScheduleFilters } from "@/hooks/useScheduleFilters";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -133,14 +134,8 @@ export default function SchedulePage() {
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
 
-  // Filters
-  const [filterStatus, setFilterStatus] = useState<"all" | LessonStatus>("all");
-  const [filterTutor, setFilterTutor] = useState<string>("all");
-  const [filterStudent, setFilterStudent] = useState<string>("all");
-  const [filterSource, setFilterSource] = useState<"all" | LessonSource>("all");
-  const [filterPeriod, setFilterPeriod] = useState<"all" | "upcoming" | "past" | "month" | "week">(
-    "all"
-  );
+  // Filters — centralized in a hook so desktop + mobile share state/logic.
+  const filters = useScheduleFilters();
 
   // Create dialog state
   const [createOpen, setCreateOpen] = useState(false);
@@ -754,30 +749,8 @@ export default function SchedulePage() {
     void syncLessonToGoogleCalendar(lessonId, "delete");
   };
 
-  // Apply filters
-  const filteredLessons = useMemo(() => {
-    const now = Date.now();
-    const monthStart = new Date();
-    monthStart.setDate(1);
-    monthStart.setHours(0, 0, 0, 0);
-    const weekStart = new Date();
-    const day = (weekStart.getDay() + 6) % 7;
-    weekStart.setDate(weekStart.getDate() - day);
-    weekStart.setHours(0, 0, 0, 0);
-
-    return lessons.filter((l) => {
-      if (filterStatus !== "all" && l.status !== filterStatus) return false;
-      if (filterTutor !== "all" && l.tutor_id !== filterTutor) return false;
-      if (filterStudent !== "all" && l.student_id !== filterStudent) return false;
-      if (filterSource !== "all" && (l.source ?? "hub") !== filterSource) return false;
-      const ts = new Date(l.starts_at).getTime();
-      if (filterPeriod === "upcoming" && ts < now - 60 * 60 * 1000) return false;
-      if (filterPeriod === "past" && ts >= now) return false;
-      if (filterPeriod === "month" && ts < monthStart.getTime()) return false;
-      if (filterPeriod === "week" && ts < weekStart.getTime()) return false;
-      return true;
-    });
-  }, [lessons, filterStatus, filterTutor, filterStudent, filterSource, filterPeriod]);
+  // Apply filters via the centralized hook (shared by desktop + mobile UI).
+  const filteredLessons = useMemo(() => filters.apply(lessons), [lessons, filters.apply]);
 
   // Pure student in list view: split into upcoming vs archive (past) and sort accordingly.
   // Upcoming → ascending (closest first). Past → descending (most recent first).
@@ -837,12 +810,7 @@ export default function SchedulePage() {
     return entries;
   }, [lessonsForList]);
 
-  const filtersActive =
-    filterStatus !== "all" ||
-    filterTutor !== "all" ||
-    filterStudent !== "all" ||
-    filterSource !== "all" ||
-    filterPeriod !== "all";
+  const filtersActive = filters.isActive;
 
   // Show source filter only for managers (they may need to filter hub vs independent lessons across the school).
   // For an independent tutor "Всі / Самостійний" фільтр не має сенсу — він і так бачить лише свої уроки.
@@ -894,71 +862,14 @@ export default function SchedulePage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <MobileFilters
-            compact
-            align="right"
-            desktopInline={false}
-            activeCount={
-              (filterStatus !== "all" ? 1 : 0) +
-              (filterTutor !== "all" ? 1 : 0) +
-              (filterStudent !== "all" ? 1 : 0) +
-              (filterSource !== "all" ? 1 : 0) +
-              (filterPeriod !== "all" ? 1 : 0)
-            }
-          >
-            <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.status')} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('schedule.allStatuses')}</SelectItem>
-                <SelectItem value="scheduled">{t('schedule.statusScheduled')}</SelectItem>
-                <SelectItem value="completed">{t('schedule.statusCompleted')}</SelectItem>
-                <SelectItem value="cancelled">{t('schedule.statusCancelled')}</SelectItem>
-              </SelectContent>
-            </Select>
-            {isManager && (
-              <Select value={filterTutor} onValueChange={setFilterTutor}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('roles.tutor')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.allTutors')}</SelectItem>
-                  {tutors.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            {(isManager || isTutor) && (
-              <Select value={filterStudent} onValueChange={setFilterStudent}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.student')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.allStudents')}</SelectItem>
-                  {students.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-            <Select value={filterPeriod} onValueChange={(v) => setFilterPeriod(v as any)}>
-              <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('common.month')} /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('schedule.allPeriods')}</SelectItem>
-                <SelectItem value="upcoming">{t('schedule.periodUpcoming')}</SelectItem>
-                <SelectItem value="past">{t('schedule.periodPast')}</SelectItem>
-                <SelectItem value="week">{t('schedule.periodThisWeek')}</SelectItem>
-                <SelectItem value="month">{t('schedule.periodThisMonth')}</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasMixedSources && (
-              <Select value={filterSource} onValueChange={(v) => setFilterSource(v as any)}>
-                <SelectTrigger className="h-9 w-full text-xs"><SelectValue placeholder={t('schedule.sourceAll')} /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t('schedule.sourceAll')}</SelectItem>
-                  <SelectItem value="hub">{t('schedule.sourceHub')}</SelectItem>
-                  <SelectItem value="independent">{t('schedule.sourceMine')}</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            {filtersActive && (
-              <Button size="sm" variant="ghost" className="h-9 w-full text-xs" onClick={() => {
-                setFilterStatus("all"); setFilterTutor("all"); setFilterStudent("all"); setFilterSource("all"); setFilterPeriod("all");
-              }}>{t('schedule.resetFilters')}</Button>
-            )}
-          </MobileFilters>
+          <ScheduleFiltersSheet
+            filters={filters}
+            showTutorFilter={isManager}
+            showStudentFilter={isManager || isTutor}
+            showSourceFilter={hasMixedSources}
+            tutors={tutors}
+            students={students}
+          />
           <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
               <List className="h-3.5 w-3.5" />{t('schedule.listView')}
