@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
         });
         const name = nameById.get(l.student_id) ?? "Учень";
         const paid = l.student_payment_status === "paid" ? " ✅" : "";
-        lines.push(`• ${t} — ${name} (${l.subject})${paid}`);
+        lines.push(`• ${t} — ${escapeHtml(name)} (${escapeHtml(l.subject)})${paid}`);
       }
     }
 
