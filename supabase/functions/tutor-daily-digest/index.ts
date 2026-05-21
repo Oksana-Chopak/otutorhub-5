@@ -60,6 +60,15 @@ async function sendTg(
   return resp.ok;
 }
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
