@@ -295,10 +295,35 @@ export default function FinancesPage() {
     | { type: "lesson"; l: LessonRow }
     | { type: "prepay"; tx: WalletTransaction };
 
-  const sortDesc = (a: Row, b: Row) => {
+  // Smart sort:
+  //   1) unpaid (student or tutor) — nearest to today first (overdue first, then future)
+  //   2) past paid — newest first
+  //   3) future paid — soonest first
+  // Prepays always go to bucket 2 (paid income, sorted by created_at desc).
+  const nowTs = Date.now();
+  const lessonBucket = (l: LessonRow): number => {
+    const anyUnpaid =
+      l.student_payment_status === "unpaid" ||
+      (!isIndependentTutor && l.tutor_payout_status === "unpaid");
+    if (anyUnpaid) return 1;
+    const ts = new Date(l.starts_at).getTime();
+    return ts <= nowTs ? 2 : 3;
+  };
+
+  const smartSort = (a: Row, b: Row) => {
+    const aBucket = a.type === "lesson" ? lessonBucket(a.l) : 2;
+    const bBucket = b.type === "lesson" ? lessonBucket(b.l) : 2;
+    if (aBucket !== bBucket) return aBucket - bBucket;
     const ad = a.type === "lesson" ? a.l.starts_at : a.tx.created_at;
     const bd = b.type === "lesson" ? b.l.starts_at : b.tx.created_at;
-    return bd.localeCompare(ad);
+    if (aBucket === 1) {
+      // Closest to today first (abs distance)
+      const aDiff = Math.abs(new Date(ad).getTime() - nowTs);
+      const bDiff = Math.abs(new Date(bd).getTime() - nowTs);
+      return aDiff - bDiff;
+    }
+    if (aBucket === 3) return ad.localeCompare(bd); // soonest first for future
+    return bd.localeCompare(ad); // newest first for past
   };
 
   const incomeRows: Row[] = useMemo(() => {
@@ -308,7 +333,8 @@ export default function FinancesPage() {
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
-    return [...lessonRows, ...prepayRows].sort(sortDesc);
+    return [...lessonRows, ...prepayRows].sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, periodTopups, canManagePrepay]);
 
   const expensesRows: Row[] = useMemo(() => {
@@ -316,7 +342,8 @@ export default function FinancesPage() {
     return periodBillable
       .filter((l) => l.tutor_payout_status === "paid")
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(sortDesc);
+      .sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, isIndependentTutor]);
 
   const debtsRows: Row[] = useMemo(() => {
@@ -327,7 +354,8 @@ export default function FinancesPage() {
           || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
       )
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(sortDesc);
+      .sort(smartSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, isIndependentTutor]);
 
   const rowsForActiveTab: Row[] =
