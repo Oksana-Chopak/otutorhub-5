@@ -172,7 +172,7 @@ Deno.serve(async (req) => {
         if (studentChat && !sentSet.has(fbKey)) {
           const tutorName = nameById.get(lesson.tutor_id) ?? "репетитором";
           const text =
-            `⭐ Як пройшов урок з <b>${tutorName}</b> (${lesson.subject})?\n\n` +
+            `⭐ Як пройшов урок з <b>${escapeHtml(tutorName)}</b> (${escapeHtml(lesson.subject)})?\n\n` +
             `Відкрийте урок у застосунку і поставте оцінку — це допоможе репетитору і іншим учням.`;
           if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
             await supabase.from("lesson_reminders").insert({
