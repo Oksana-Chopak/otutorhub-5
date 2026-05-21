@@ -383,6 +383,7 @@ export default function FinancesPage() {
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
+  // Gross margin: (income - payout) / income * 100. Capped at sensible bounds.
   const computeMarkup = (rows: LessonRow[]): number | null => {
     const valid = rows.filter(
       (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
@@ -390,8 +391,8 @@ export default function FinancesPage() {
     if (valid.length === 0) return null;
     const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
     const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (payout === 0) return null;
-    return ((income - payout) / payout) * 100;
+    if (income === 0) return null;
+    return ((income - payout) / income) * 100;
   };
 
   const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
