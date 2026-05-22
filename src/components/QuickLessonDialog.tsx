@@ -439,6 +439,14 @@ export function QuickLessonDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => {
+          setAddStudentOpen(false);
+          setReloadTrigger((n) => n + 1);
+        }}
+      />
     </Dialog>
   );
 }
