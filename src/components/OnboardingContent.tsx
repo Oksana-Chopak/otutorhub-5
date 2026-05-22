@@ -28,8 +28,7 @@ import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface Step {
   id: number;
