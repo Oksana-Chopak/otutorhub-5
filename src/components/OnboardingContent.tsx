@@ -719,7 +719,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                             className="rounded-full"
                           >
                             {savingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Зберегти предмет
+                            {t("onboardingExtra.saveSubject")}
                           </Button>
                         </div>
                       ) : step.action === "addStudent" ? (
