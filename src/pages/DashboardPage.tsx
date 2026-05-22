@@ -1291,6 +1291,29 @@ export default function DashboardPage() {
               )}
             </section>
           </div>
+
+          {/* Independent tutor: secondary stack moved BELOW upcoming + next steps */}
+          {isIndependentTutor && (
+            <>
+              <IndependentTutorStats />
+              <div className="mt-4 space-y-4">
+                <TutorNotesCard />
+                <QuickActionsCard onChanged={loadData} />
+              </div>
+              <AutoCompleteLessonsCard />
+              <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
+                <MonthlySummaryCard />
+                <ReferralWidget compact />
+              </div>
+              {upcomingAll.length === 0 && (myCompletedLessonsCount === 0) && (
+                <TutorWelcomeBanner />
+              )}
+              <ReferralNudgeBanner
+                completedLessons={myCompletedLessonsCount}
+                invitedCount={referralInvitedCount}
+              />
+            </>
+          )}
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}
