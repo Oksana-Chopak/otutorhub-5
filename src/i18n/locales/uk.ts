@@ -2466,6 +2466,14 @@ export const uk = {
     popular: "Популярні",
     addCustom: "Додати «{{subject}}»",
   },
+  currencyComboBox: {
+    selectCurrency: "Оберіть валюту",
+    searchCurrency: "Пошук валюти...",
+    addCustomCurrency: "Додати валюту «{{code}}»",
+    customCurrencyInvalid: "Введіть код від 2 до 6 літер (напр. CZK)",
+    customCurrencies: "Інші валюти",
+    commonCurrencies: "Популярні валюти",
+  },
   legal: {
     terms: "Договір оферти",
     privacy: "Політика конфіденційності",
