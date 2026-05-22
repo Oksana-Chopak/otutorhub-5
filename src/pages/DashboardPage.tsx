@@ -30,6 +30,8 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
+import { StreakCard } from "@/components/StreakCard";
+import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
@@ -226,8 +228,9 @@ export default function DashboardPage() {
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
-  // Gamification: badge unlock toasts + referral nudge counters
-  const { badges, loading: gamificationLoading } = useTutorGamification();
+  // Gamification: badge unlock toasts + streak card + referral nudge counters
+  const gamification = useTutorGamification();
+  const { badges, loading: gamificationLoading, streak } = gamification;
   useBadgeUnlockToasts(badges, gamificationLoading);
   const [referralInvitedCount, setReferralInvitedCount] = useState(0);
   useEffect(() => {
@@ -399,6 +402,15 @@ export default function DashboardPage() {
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+    if (newStatus === "completed") {
+      toast.success("✓ Урок проведено", {
+        description: streak?.current_streak
+          ? `🔥 ${streak.current_streak} днів поспіль!`
+          : "Чудово!",
+        duration: 3000,
+      });
+      gamification.refresh();
+    }
   };
 
   const updatePayment = async (
@@ -760,10 +772,15 @@ export default function DashboardPage() {
               </>
             )}
             {isTutor && !isManager && (
-              <Button size="sm" onClick={() => setQuickLessonOpen(true)}>
-                <Plus className="h-4 w-4" />
-                {t("dashboard.btnCreateLesson")}
-              </Button>
+              <QuickActionsFab
+                onChanged={loadData}
+                trigger={
+                  <Button size="sm" className="gap-1.5" aria-label={t("quickActions.title")}>
+                    <Plus className="h-4 w-4" />
+                    <span>Дія</span>
+                  </Button>
+                }
+              />
             )}
             {isStudent && !isTutor && !isManager && (
               <FindTutorDialog
@@ -832,30 +849,21 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {isIndependentTutor && <TutorWelcomeBanner />}
-          {isIndependentTutor && <AutoCompleteLessonsCard />}
-          {(isTutor || isManager) && (
+          {/* Hub tutor / manager keep QuickActions + Notes near the top */}
+          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
             <div className="mt-4 space-y-4">
               <QuickActionsCard onChanged={loadData} />
               <TutorNotesCard />
             </div>
           )}
-          {isIndependentTutor && (
-            <ReferralNudgeBanner
-              completedLessons={myCompletedLessonsCount}
-              invitedCount={referralInvitedCount}
-            />
+
+          {/* Independent tutor: streak + pending payments first */}
+          {isIndependentTutor && streak && streak.current_streak > 0 && (
+            <StreakCard streak={streak} />
           )}
-          {isIndependentTutor && <IndependentTutorStats />}
           {isTutor && !isManager && (
             <div className="mt-4">
               <PendingPaymentsCard />
-            </div>
-          )}
-          {isIndependentTutor && (
-            <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
-              <MonthlySummaryCard />
-              <ReferralWidget compact />
             </div>
           )}
 
@@ -889,7 +897,7 @@ export default function DashboardPage() {
                 {needsMarkLessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? 'UAH' }}
                     variant="schedule"
                     studentName={profiles[lesson.student_id] ?? '—'}
                     onContentClick={() => setOpenLessonId(lesson.id)}
@@ -1283,6 +1291,29 @@ export default function DashboardPage() {
               )}
             </section>
           </div>
+
+          {/* Independent tutor: secondary stack moved BELOW upcoming + next steps */}
+          {isIndependentTutor && (
+            <>
+              <IndependentTutorStats />
+              <div className="mt-4 space-y-4">
+                <TutorNotesCard />
+                <QuickActionsCard onChanged={loadData} />
+              </div>
+              <AutoCompleteLessonsCard />
+              <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
+                <MonthlySummaryCard />
+                <ReferralWidget compact />
+              </div>
+              {upcomingAll.length === 0 && (myCompletedLessonsCount === 0) && (
+                <TutorWelcomeBanner />
+              )}
+              <ReferralNudgeBanner
+                completedLessons={myCompletedLessonsCount}
+                invitedCount={referralInvitedCount}
+              />
+            </>
+          )}
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}

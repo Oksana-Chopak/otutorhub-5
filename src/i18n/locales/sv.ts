@@ -1165,7 +1165,7 @@ export const sv: Partial<Translations> = {
   proRulesCard: {
     saveFailed: "Kunde inte spara",
     saveSuccess: "Pro-regler uppdaterade",
-    title: "Pro-regler",
+    title: "Avbokningsregler för lektioner",
     availableInPro: "Tillgängligt i Pro",
     description: "Automatiska betalningspåminnelser och avbokningsregler för elever.",
     reminderLabel: "Auto betalningspåminnelse",

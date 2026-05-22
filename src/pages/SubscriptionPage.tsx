@@ -29,7 +29,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
 import { LiqPayPayButton } from "@/components/LiqPayPayButton";
-import { ProRulesCard } from "@/components/ProRulesCard";
+
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
 import i18nInstance from "@/i18n";
@@ -425,74 +425,7 @@ export default function SubscriptionPage() {
           </Card>
         )}
 
-        {/* Current plan card */}
-        <Card className="mb-6">
-          <CardContent className="p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <div
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-full",
-                    isPro ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                  )}
-                >
-                  {isPro ? <Crown className="h-5 w-5" /> : <Users className="h-5 w-5" />}
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{t("subscriptionPageExtra.currentPlan")}</p>
-                  {(() => {
-                    const recurring = (settings as any)?.liqpay_recurring_active === true;
-                    const isEarlyBird = isActive && !recurring && !!subscriptionUntil;
-                    let title = "Pro";
-                    let badgeLabel = t("subscriptionPageExtra.activeLabel");
-                    let badgeVariant: "default" | "secondary" | "destructive" = "default";
-                    if (isTrial && trialUntil) {
-                      title = `Pro тріал · залишилось ${trialDaysLeft} ${
-                        trialDaysLeft === 1
-                          ? t("subscriptionPageExtra.daysLabel")
-                          : trialDaysLeft >= 2 && trialDaysLeft <= 4
-                          ? t("subscriptionPageExtra.daysLabel")
-                          : t("subscriptionPageExtra.daysLabel")
-                      }`;
-                      badgeLabel = t("subscriptionPageExtra.trialLabel");
-                      badgeVariant = "secondary";
-                    } else if (isEarlyBird) {
-                      title = `Pro · ${t("subscriptionPageExtra.trialLabel")} ${format(subscriptionUntil!, "d MMMM yyyy", { locale: uk })}`;
-                      badgeLabel = "Early bird";
-                    } else if (isActive) {
-                      title = t("subscriptionPage.title") + " · " + t("subscriptionPageExtra.activeLabel");
-                      badgeLabel = t("subscriptionPageExtra.activeLabel");
-                    } else if (status === "past_due") {
-                      title = t("subscriptionPageExtra.expiredLabel");
-                      badgeLabel = t("subscriptionPageExtra.expiredLabel");
-                      badgeVariant = "destructive";
-                    } else {
-                      title = t("subscriptionPageExtra.trialDone");
-                      badgeLabel = t("subscriptionPageExtra.trialDone");
-                      badgeVariant = "secondary";
-                    }
-                    return (
-                      <>
-                        <p className="font-display text-lg font-semibold text-foreground">
-                          {title}
-                        </p>
-                        <div className="mt-1">
-                          <Badge variant={badgeVariant}>{badgeLabel}</Badge>
-                        </div>
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-            <p className="mt-3 text-sm text-muted-foreground">
-              Учнів зараз: <span className="font-semibold text-foreground">{studentCount}</span>{" "}
-              <span className="inline-flex items-center gap-1 align-middle">
-                / <InfinityIcon className="inline h-3.5 w-3.5" />
-              </span>
-            </p>
-          </CardContent>
-        </Card>
+        {/* Current plan card removed — top status banners above already convey Pro state */}
 
         {/* Latest subscription request status — moved below pricing */}
 
@@ -608,9 +541,6 @@ export default function SubscriptionPage() {
           </Card>
         </div>
 
-        <div className="mt-6">
-          <ProRulesCard />
-        </div>
 
         {/* Alternative payment via manager — placed below pricing as a fallback */}
         {!isActive && (() => {

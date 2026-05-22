@@ -1174,7 +1174,7 @@ export const en: Translations = {
   proRulesCard: {
     saveFailed: "Failed to save",
     saveSuccess: "Pro rules updated",
-    title: "Pro Rules",
+    title: "Lesson cancellation rules",
     availableInPro: "Available in Pro",
     description: "Automatic payment reminders and cancellation rules for students.",
     reminderLabel: "Auto payment reminders",

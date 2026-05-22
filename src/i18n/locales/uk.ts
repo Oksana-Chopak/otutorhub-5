@@ -1181,7 +1181,7 @@ export const uk = {
   proRulesCard: {
     saveFailed: "Не вдалося зберегти",
     saveSuccess: "Правила Pro оновлено",
-    title: "Правила Pro",
+    title: "Правила скасування уроків",
     availableInPro: "Доступно у Pro",
     description: "Автоматичні нагадування про оплату та правила скасування уроків учнем.",
     reminderLabel: "Авто-нагадування про оплату",
