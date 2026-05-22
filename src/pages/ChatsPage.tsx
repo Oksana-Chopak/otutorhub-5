@@ -695,7 +695,14 @@ export default function ChatsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div
+          className={cn(
+            "grid min-w-0 gap-4",
+            canShowContext && selectedId
+              ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
+              : "lg:grid-cols-[320px_minmax(0,1fr)]"
+          )}
+        >
           {/* Thread list — hidden on mobile when a chat is selected */}
           <div
             className={cn(
@@ -837,6 +844,18 @@ export default function ChatsPage() {
                       <ShieldCheck className="h-3 w-3" />
                       <span className="hidden sm:inline">{t("chats.managerBadge")}</span>
                     </Badge>
+                  )}
+                  {canShowContext && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 lg:hidden"
+                      onClick={() => setShowContextPanel(true)}
+                      title={t("chatContext.openBtn")}
+                      aria-label={t("chatContext.openBtn")}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
 
