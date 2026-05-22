@@ -594,10 +594,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
+              {t("onboardingExtra.welcomeTitle")} <span className="inline-block animate-wiggle-slow">👋</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Виконайте свої досягнення — отримайте XP і налаштуйте простір.
+              {t("onboardingExtra.welcomeSubtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
