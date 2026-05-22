@@ -1410,9 +1410,6 @@ export default function SchedulePage() {
         </Button>
       </div>
 
-      {activeTab === "availability" ? (
-        <AvailabilityManager />
-      ) : (
       <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
