@@ -211,8 +211,8 @@ export function AppSidebar() {
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
-                <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary/20 px-1.5 text-[10px] font-semibold text-primary">
-                  {settings?.onboarding_step ?? 1}/6
+                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-primary px-2 text-[10px] font-semibold text-primary-foreground animate-pulse">
+                  {t("nav.newBadge") || "Новий!"}
                 </span>
               )}
             </button>
