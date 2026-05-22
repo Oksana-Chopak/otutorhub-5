@@ -636,7 +636,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <div className="flex-1">
               <p className="font-display text-base font-bold text-foreground">{t("onboardingExtra.questDone")}</p>
               <p className="text-xs text-muted-foreground">
-                Ваш робочий простір готовий. Можете повертатись сюди з розділу «Допомога».
+                {t("onboardingExtra.workspaceReady")}
               </p>
             </div>
             <Button
@@ -647,7 +647,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               }}
               className="rounded-full"
             >
-              На дашборд
+              {t("onboardingExtra.goToDashboard")}
             </Button>
           </div>
         </div>
