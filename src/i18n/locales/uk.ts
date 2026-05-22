@@ -2498,6 +2498,21 @@ export const uk = {
     allClear: "Усе під контролем 🎉",
     allClearDesc: "Немає термінових задач. Можна планувати наступний тиждень.",
   },
+  chatContext: {
+    title: "Контекст учня",
+    nextLesson: "Наступний урок",
+    noUpcoming: "Немає запланованих уроків",
+    debt: "Борг",
+    debtLessons_one: "{{count}} урок не оплачено",
+    debtLessons_few: "{{count}} уроки не оплачено",
+    debtLessons_many: "{{count}} уроків не оплачено",
+    debtLessons_other: "{{count}} уроків не оплачено",
+    viewDebts: "Переглянути →",
+    lastHomework: "Остання домашка",
+    paid: "✓ Оплачено",
+    unpaid: "⏳ Не оплачено",
+    openBtn: "Контекст",
+  },
 
 };
 

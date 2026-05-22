@@ -2481,5 +2481,20 @@ export const sv: Partial<Translations> = {
     allClear: "Allt under kontroll 🎉",
     allClearDesc: "Inga brådskande uppgifter. Dags att planera nästa vecka.",
   },
+  chatContext: {
+    title: "Elevkontext",
+    nextLesson: "Nästa lektion",
+    noUpcoming: "Inga kommande lektioner",
+    debt: "Skuld",
+    debtLessons_one: "{{count}} lektion obetald",
+    debtLessons_few: "{{count}} lektioner obetalda",
+    debtLessons_many: "{{count}} lektioner obetalda",
+    debtLessons_other: "{{count}} lektioner obetalda",
+    viewDebts: "Visa →",
+    lastHomework: "Senaste läxa",
+    paid: "✓ Betald",
+    unpaid: "⏳ Obetald",
+    openBtn: "Kontext",
+  },
 
 };

@@ -2490,5 +2490,20 @@ export const en: Translations = {
     allClear: "All under control 🎉",
     allClearDesc: "No urgent tasks. Time to plan the next week.",
   },
+  chatContext: {
+    title: "Student context",
+    nextLesson: "Next lesson",
+    noUpcoming: "No upcoming lessons",
+    debt: "Debt",
+    debtLessons_one: "{{count}} lesson unpaid",
+    debtLessons_few: "{{count}} lessons unpaid",
+    debtLessons_many: "{{count}} lessons unpaid",
+    debtLessons_other: "{{count}} lessons unpaid",
+    viewDebts: "View →",
+    lastHomework: "Last homework",
+    paid: "✓ Paid",
+    unpaid: "⏳ Unpaid",
+    openBtn: "Context",
+  },
 
 };

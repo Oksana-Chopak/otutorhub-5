@@ -24,10 +24,12 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
+import { ChatContextPanel } from "@/components/ChatContextPanel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface MessageAttachment {
   id: string;
@@ -96,6 +98,8 @@ export default function ChatsPage() {
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [managerIds, setManagerIds] = useState<Set<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showContextPanel, setShowContextPanel] = useState(false);
+  const canShowContext = !roles.includes("student");
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -691,7 +695,14 @@ export default function ChatsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid min-w-0 gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div
+          className={cn(
+            "grid min-w-0 gap-4",
+            canShowContext && selectedId
+              ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
+              : "lg:grid-cols-[320px_minmax(0,1fr)]"
+          )}
+        >
           {/* Thread list — hidden on mobile when a chat is selected */}
           <div
             className={cn(
@@ -833,6 +844,18 @@ export default function ChatsPage() {
                       <ShieldCheck className="h-3 w-3" />
                       <span className="hidden sm:inline">{t("chats.managerBadge")}</span>
                     </Badge>
+                  )}
+                  {canShowContext && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 lg:hidden"
+                      onClick={() => setShowContextPanel(true)}
+                      title={t("chatContext.openBtn")}
+                      aria-label={t("chatContext.openBtn")}
+                    >
+                      <Info className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
 
@@ -1011,7 +1034,33 @@ export default function ChatsPage() {
               </div>
             )}
           </div>
+
+          {/* Desktop context panel */}
+          {canShowContext && selectedThread && (
+            <ChatContextPanel
+              tutorId={selectedThread.tutor_id}
+              studentId={selectedThread.student_id}
+              className="hidden lg:flex rounded-xl border border-border h-[calc(100vh-8rem)] lg:h-auto lg:max-h-[70vh]"
+            />
+          )}
         </div>
+      )}
+
+      {/* Mobile context sheet */}
+      {canShowContext && (
+        <Sheet open={showContextPanel} onOpenChange={setShowContextPanel}>
+          <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
+            <SheetHeader className="px-4 pt-4">
+              <SheetTitle className="text-left">{t("chatContext.title")}</SheetTitle>
+            </SheetHeader>
+            <ChatContextPanel
+              tutorId={selectedThread?.tutor_id ?? null}
+              studentId={selectedThread?.student_id ?? null}
+              onClose={() => setShowContextPanel(false)}
+              className="border-none bg-transparent pt-2 flex-1"
+            />
+          </SheetContent>
+        </Sheet>
       )}
     </AppLayout>
   );
