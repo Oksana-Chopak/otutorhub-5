@@ -222,6 +222,8 @@ interface OnboardingContentProps {
 }
 
 export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentProps) {
+  const { t } = useTranslation();
+  const steps = useMemo(() => buildSteps(t), [t]);
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { settings, loading, updateSettings, isIndependent } = useWorkspaceSettings();
