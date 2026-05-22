@@ -556,8 +556,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             </div>
             <CardTitle>{t("onboardingExtra.activateWorkspace")}</CardTitle>
             <CardDescription>
-              Ведіть своїх власних учнів — окремо від хабу. Ставте ціни самі, отримуйте оплати напряму.
-              До 5 учнів — безкоштовно, далі 145 ₴/міс.
+              {t("onboardingExtra.workspaceDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -568,7 +567,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             </ul>
             <Button onClick={enableIndependent} disabled={activatingIndependent} className="w-full">
               {activatingIndependent ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Активувати робочий простір
+              {t("onboardingExtra.activateBtn")}
             </Button>
             <Button variant="ghost" className="w-full" onClick={handleNav} asChild>
               <Link to="/">{t("onboardingExtra.hubOnly")}</Link>
@@ -576,8 +575,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <div className="rounded-lg bg-muted/50 p-3 text-sm">
               <p className="font-medium text-foreground">{t("onboardingExtra.whatThisMeans")}</p>
               <p className="mt-1 text-muted-foreground">
-                Ви працюєте лише з учнями, яких призначає менеджер школи. У вас немає власних учнів — розклад,
-                оплата та комунікація проходять через хаб. Підписка не потрібна.
+                {t("onboardingExtra.hubOnlyDesc")}
               </p>
             </div>
           </CardContent>
