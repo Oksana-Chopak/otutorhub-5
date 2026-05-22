@@ -1034,7 +1034,33 @@ export default function ChatsPage() {
               </div>
             )}
           </div>
+
+          {/* Desktop context panel */}
+          {canShowContext && selectedThread && (
+            <ChatContextPanel
+              tutorId={selectedThread.tutor_id}
+              studentId={selectedThread.student_id}
+              className="hidden lg:flex rounded-xl border border-border h-[calc(100vh-8rem)] lg:h-auto lg:max-h-[70vh]"
+            />
+          )}
         </div>
+      )}
+
+      {/* Mobile context sheet */}
+      {canShowContext && (
+        <Sheet open={showContextPanel} onOpenChange={setShowContextPanel}>
+          <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
+            <SheetHeader className="px-4 pt-4">
+              <SheetTitle className="text-left">{t("chatContext.title")}</SheetTitle>
+            </SheetHeader>
+            <ChatContextPanel
+              tutorId={selectedThread?.tutor_id ?? null}
+              studentId={selectedThread?.student_id ?? null}
+              onClose={() => setShowContextPanel(false)}
+              className="border-none bg-transparent pt-2 flex-1"
+            />
+          </SheetContent>
+        </Sheet>
       )}
     </AppLayout>
   );
