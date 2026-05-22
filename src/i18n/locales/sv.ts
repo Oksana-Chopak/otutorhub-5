@@ -2449,6 +2449,14 @@ export const sv: Partial<Translations> = {
     popular: "Populära",
     addCustom: "Lägg till \"{{subject}}\"",
   },
+  currencyComboBox: {
+    selectCurrency: "Välj valuta",
+    searchCurrency: "Sök valuta...",
+    addCustomCurrency: "Lägg till valuta \"{{code}}\"",
+    customCurrencyInvalid: "Ange en 2–6 bokstäver kod (t.ex. CZK)",
+    customCurrencies: "Andra valutor",
+    commonCurrencies: "Vanliga valutor",
+  },
   legal: {
     terms: "Användarvillkor",
     privacy: "Integritetspolicy",
