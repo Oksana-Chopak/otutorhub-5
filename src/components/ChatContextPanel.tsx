@@ -31,7 +31,7 @@ interface LastHomework {
   homework: string;
 }
 
-const localeMap: Record<string, Locale> = { uk: ukLocale, en: enUS, sv: svLocale };
+const localeMap: Record<string, typeof ukLocale> = { uk: ukLocale, en: enUS, sv: svLocale };
 
 export function ChatContextPanel({ tutorId, studentId, className, onClose }: ChatContextPanelProps) {
   const { t, i18n } = useTranslation();
