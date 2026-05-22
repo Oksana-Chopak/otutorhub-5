@@ -8,11 +8,14 @@ export async function syncLessonToGoogleCalendar(
   action: "upsert" | "delete" = "upsert",
 ) {
   try {
-    await supabase.functions.invoke("sync-google-calendar", {
+    const { error } = await supabase.functions.invoke("sync-google-calendar", {
       body: { lesson_id: lessonId, action },
     });
+    if (error) {
+      // Sync is best-effort; do not block lesson UX.
+      console.warn("[google-calendar] sync returned error", error);
+    }
   } catch (e) {
-    // Sync is best-effort; do not block lesson UX.
     console.warn("[google-calendar] sync failed", e);
   }
 }

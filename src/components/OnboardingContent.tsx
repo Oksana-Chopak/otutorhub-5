@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -22,9 +22,12 @@ import {
   BellRing,
   CheckSquare,
   CalendarCheck,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
+import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -44,6 +47,7 @@ interface Step {
 }
 
 export interface StepProgress {
+  hasSubject: boolean;
   hasStudent: boolean;
   hasLesson: boolean;
   hasAvailability: boolean;
@@ -58,10 +62,21 @@ export interface StepProgress {
 
 const steps: Step[] = [
   {
+    id: 0,
+    title: t("onboardingContent.subjectTitle"),
+    description: t("onboardingContent.subjectDesc"),
+    cta: t("onboardingContent.subjectCta"),
+    to: "/profile",
+    icon: BookOpen,
+    emoji: "📚",
+    xp: 25,
+    autoKey: "hasSubject",
+    autoHint: t("onboardingContent.subjectHint"),
+  },
+  {
     id: 1,
     title: t("onboardingContent.addStudentTitle"),
-    description:
-      t("onboardingContent.addStudentDesc"),
+    description: t("onboardingContent.addStudentDesc"),
     cta: t("onboardingContent.addStudentCta"),
     to: "/my-students",
     action: "addStudent",
@@ -74,8 +89,7 @@ const steps: Step[] = [
   {
     id: 2,
     title: t("onboardingContent.scheduleTitle"),
-    description:
-      t("onboardingContent.scheduleDesc"),
+    description: t("onboardingContent.scheduleDesc"),
     cta: t("onboardingExtra.scheduleCtaAlt"),
     to: "/schedule",
     icon: CalendarClock,
@@ -153,10 +167,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.zoomHint"),
   },
   {
-    id: 8,
+    id: 4,
     title: t("onboardingExtra.chatTitle"),
-    description:
-      t("onboardingExtra.chatDesc"),
+    description: t("onboardingExtra.chatDesc"),
     cta: t("onboardingExtra.chatCta"),
     to: "/chats",
     icon: MessageCircle,
@@ -166,10 +179,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.chatHint"),
   },
   {
-    id: 9,
+    id: 5,
     title: t("onboardingExtra.financeMarkTitle"),
-    description:
-      t("onboardingExtra.financeMarkDesc"),
+    description: t("onboardingExtra.financeMarkDesc"),
     cta: t("onboardingContent.financeCta"),
     to: "/finances",
     icon: CreditCard,
@@ -177,6 +189,59 @@ const steps: Step[] = [
     xp: 100,
     autoKey: "hasPaidLesson",
     autoHint: t("onboardingExtra.financeMarkHint"),
+  },
+  {
+    id: 6,
+    title: t("onboardingExtra.availabilityTitle"),
+    description: t("onboardingExtra.availabilityDesc"),
+    cta: t("onboardingExtra.availabilityCta"),
+    to: "/availability",
+    icon: Clock,
+    emoji: "🕐",
+    xp: 75,
+    autoKey: "hasAvailability",
+    autoHint: t("onboardingExtra.availabilityHint"),
+  },
+  {
+    id: 7,
+    title: t("onboardingExtra.autoMarkTitle"),
+    description:
+      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
+    cta: t("onboardingExtra.autoMarkCta"),
+    to: "/profile",
+    icon: CheckSquare,
+    emoji: "✅",
+    xp: 50,
+    autoKey: "hasAutoCompleteChoice",
+    autoHint: t("onboardingExtra.autoMarkHint"),
+  },
+  {
+    id: 8,
+    title: t("onboardingContent.cancelRulesTitle"),
+    description:
+      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
+    cta: t("onboardingExtra.proRulesCta"),
+    to: "/profile",
+    icon: BellRing,
+    emoji: "🔔",
+    xp: 75,
+    badge: "Pro",
+    autoKey: "hasPaymentRules",
+    autoHint: t("onboardingExtra.proRulesHint"),
+  },
+  {
+    id: 9,
+    title: t("onboardingExtra.referralTitle"),
+    description:
+      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
+    cta: t("onboardingExtra.referralCta"),
+    to: "/referrals",
+    icon: Gift,
+    emoji: "🎁",
+    xp: 100,
+    badge: t("onboardingExtra.referralBadge"),
+    autoKey: "hasReferral",
+    autoHint: t("onboardingExtra.referralHint"),
   },
   {
     id: 10,
@@ -194,8 +259,7 @@ const steps: Step[] = [
   {
     id: 11,
     title: t("onboardingExtra.aiTitle"),
-    description:
-      t("onboardingExtra.aiDesc"),
+    description: t("onboardingExtra.aiDesc"),
     cta: t("onboardingExtra.aiCta"),
     to: "/schedule",
     icon: Sparkles,
@@ -219,6 +283,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [activatingIndependent, setActivatingIndependent] = useState(false);
   const [dismissing, setDismissing] = useState(false);
   const [progress, setProgress] = useState<StepProgress>({
+    hasSubject: false,
     hasStudent: false,
     hasLesson: false,
     hasAvailability: false,
@@ -234,6 +299,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [progressReloadKey, setProgressReloadKey] = useState(0);
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [subjectDraft, setSubjectDraft] = useState("");
+  const [savingSubject, setSavingSubject] = useState(false);
+  const [victoryStep, setVictoryStep] = useState<{ emoji: string; title: string; xp: number; isFinal: boolean } | null>(null);
+  const prevCompletedIdsRef = useRef<Set<number> | null>(null);
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
@@ -395,6 +464,14 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       );
 
       safe(
+        supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
+        { data: null } as any,
+      ).then((res: any) => {
+        const subjects = res.data?.subjects;
+        if (Array.isArray(subjects) && subjects.length > 0) applyPatch({ hasSubject: true });
+      });
+
+      safe(
         supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1),
         { data: [] } as any,
       ).then((res: any) => applyPatch({ hasGoogleCalendar: (res.data?.length ?? 0) > 0 }));
@@ -412,6 +489,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     });
     return ids;
   }, [progress]);
+
+  useEffect(() => {
+    if (progressLoading) return;
+    const prev = prevCompletedIdsRef.current;
+    if (prev === null) {
+      // First load — don't celebrate pre-existing completions
+      prevCompletedIdsRef.current = new Set(autoCompletedIds);
+      return;
+    }
+    const newlyDone = [...autoCompletedIds].find((id) => !prev.has(id));
+    if (newlyDone !== undefined) {
+      const justCompleted = steps.find((s) => s.id === newlyDone);
+      if (justCompleted) {
+        const totalAuto = steps.filter((s) => s.autoKey).length;
+        const isFinal = autoCompletedIds.size === totalAuto;
+        setVictoryStep({
+          emoji: justCompleted.emoji,
+          title: justCompleted.title,
+          xp: justCompleted.xp,
+          isFinal,
+        });
+      }
+    }
+    prevCompletedIdsRef.current = new Set(autoCompletedIds);
+  }, [autoCompletedIds, progressLoading]);
+
 
   const savedStep = settings?.onboarding_step ?? 1;
   const completed = settings?.onboarding_completed ?? false;
@@ -441,6 +544,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const skipStep = async (stepId: number) => {
     const next = Math.min(stepId + 1, steps.length);
     await updateSettings({ onboarding_step: next });
+  };
+
+  const saveSubject = async () => {
+    if (!user || !subjectDraft.trim()) return;
+    setSavingSubject(true);
+    const { data: existing } = await supabase
+      .from("tutor_details")
+      .select("subjects")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const current = (existing?.subjects as string[] | null) ?? [];
+    const trimmed = subjectDraft.trim();
+    const merged = current.some((s) => s.toLowerCase() === trimmed.toLowerCase())
+      ? current
+      : [...current, trimmed];
+    const { error } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: user.id, subjects: merged }, { onConflict: "user_id" });
+    setSavingSubject(false);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setSubjectDraft("");
+    setProgress((p) => ({ ...p, hasSubject: true }));
+    setProgressReloadKey((k) => k + 1);
   };
 
   const finishOnboarding = async () => {
@@ -523,7 +652,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Виконайте квести — отримайте XP і налаштуйте простір.
+              Виконайте свої досягнення — отримайте XP і налаштуйте простір.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -630,7 +759,24 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                   <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                   {!isDone && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {step.action === "addStudent" ? (
+                      {step.id === 0 ? (
+                        <div className="flex w-full flex-col gap-2 sm:flex-row">
+                          <SubjectComboBox
+                            value={subjectDraft}
+                            onChange={setSubjectDraft}
+                            className="flex-1"
+                          />
+                          <Button
+                            size="default"
+                            disabled={!subjectDraft.trim() || savingSubject}
+                            onClick={saveSubject}
+                            className="rounded-full"
+                          >
+                            {savingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Зберегти предмет
+                          </Button>
+                        </div>
+                      ) : step.action === "addStudent" ? (
                         <Button
                           size="sm"
                           variant={isCurrent ? "default" : "outline"}
@@ -659,6 +805,23 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                           Пропустити
                         </Button>
                       )}
+                      {isCurrent && step.action === "addStudent" && user && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground"
+                          onClick={() => {
+                            localStorage.setItem(
+                              `invite_reminder_dismissed_${user.id}`,
+                              new Date().toISOString()
+                            );
+                            localStorage.setItem(`pending_invite_reminder_${user.id}`, "1");
+                            skipStep(step.id);
+                          }}
+                        >
+                          Нагадати пізніше
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -680,6 +843,16 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         onOpenChange={setAddStudentOpen}
         onCreated={() => setProgressReloadKey((k) => k + 1)}
       />
+
+      {victoryStep && (
+        <StepVictoryOverlay
+          emoji={victoryStep.emoji}
+          title={victoryStep.title}
+          xp={victoryStep.xp}
+          isFinal={victoryStep.isFinal}
+          onDone={() => setVictoryStep(null)}
+        />
+      )}
     </div>
   );
 }

@@ -30,6 +30,8 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
+import { StreakCard } from "@/components/StreakCard";
+import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
@@ -201,9 +203,16 @@ export default function DashboardPage() {
     }
   }, [isStudent, isManager, isTutor, navigate]);
 
-  // Note: previously we auto-redirected new tutors to /onboarding here.
-  // Removed per UX feedback — instead we show an inline "Add first student"
-  // CTA on the empty dashboard so the tutor isn't bounced to another page.
+  // First-session redirect: new independent tutor → /onboarding.
+  // Uses localStorage so we only auto-redirect once per device per user.
+  useEffect(() => {
+    if (wsLoading || !user || !isIndependentTutor) return;
+    if (settings?.onboarding_completed) return;
+    const key = `onboarding_shown_${user.id}`;
+    if (localStorage.getItem(key) === "1") return;
+    localStorage.setItem(key, "1");
+    navigate("/onboarding", { replace: true });
+  }, [wsLoading, user?.id, isIndependentTutor, settings?.onboarding_completed, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
@@ -226,8 +235,9 @@ export default function DashboardPage() {
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
-  // Gamification: badge unlock toasts + referral nudge counters
-  const { badges, loading: gamificationLoading } = useTutorGamification();
+  // Gamification: badge unlock toasts + streak card + referral nudge counters
+  const gamification = useTutorGamification();
+  const { badges, loading: gamificationLoading, streak } = gamification;
   useBadgeUnlockToasts(badges, gamificationLoading);
   const [referralInvitedCount, setReferralInvitedCount] = useState(0);
   useEffect(() => {
@@ -399,6 +409,15 @@ export default function DashboardPage() {
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+    if (newStatus === "completed") {
+      toast.success("✓ Урок проведено", {
+        description: streak?.current_streak
+          ? `🔥 ${streak.current_streak} днів поспіль!`
+          : "Чудово!",
+        duration: 3000,
+      });
+      gamification.refresh();
+    }
   };
 
   const updatePayment = async (
@@ -737,7 +756,6 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
             >
               <CalendarDays className="h-3 w-3 text-primary" />
-              {todayLessons.length}{" "}
               {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
             </Link>
             {pendingPayments.length > 0 && (
@@ -761,10 +779,15 @@ export default function DashboardPage() {
               </>
             )}
             {isTutor && !isManager && (
-              <Button size="sm" onClick={() => setQuickLessonOpen(true)}>
-                <Plus className="h-4 w-4" />
-                {t("dashboard.btnCreateLesson")}
-              </Button>
+              <QuickActionsFab
+                onChanged={loadData}
+                trigger={
+                  <Button size="sm" className="gap-1.5" aria-label={t("quickActions.title")}>
+                    <Plus className="h-4 w-4" />
+                    <span>Дія</span>
+                  </Button>
+                }
+              />
             )}
             {isStudent && !isTutor && !isManager && (
               <FindTutorDialog
@@ -833,30 +856,55 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {isIndependentTutor && <TutorWelcomeBanner />}
-          {isIndependentTutor && <AutoCompleteLessonsCard />}
-          {(isTutor || isManager) && (
+          {/* Hub tutor / manager keep QuickActions + Notes near the top */}
+          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
             <div className="mt-4 space-y-4">
               <QuickActionsCard onChanged={loadData} />
               <TutorNotesCard />
             </div>
           )}
-          {isIndependentTutor && (
-            <ReferralNudgeBanner
-              completedLessons={myCompletedLessonsCount}
-              invitedCount={referralInvitedCount}
-            />
+
+          {/* Independent tutor: streak + pending payments first */}
+          {isIndependentTutor && streak && streak.current_streak > 0 && (
+            <StreakCard streak={streak} />
           )}
-          {isIndependentTutor && <IndependentTutorStats />}
+          {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (
+            <div className="flex items-start justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <HandHeart className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Ви ще не запросили учня</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Запросіть першого учня — це займе хвилину, а ваш простір одразу оживе.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" onClick={() => setAddStudentOpen(true)}>
+                      Запросити зараз
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 shrink-0"
+                aria-label="Прибрати нагадування"
+                onClick={() => {
+                  localStorage.removeItem(`pending_invite_reminder_${user.id}`);
+                  // Force re-render via state bump
+                  setAddStudentOpen((v) => v);
+                  loadData();
+                }}
+              >
+                ×
+              </Button>
+            </div>
+          )}
           {isTutor && !isManager && (
             <div className="mt-4">
               <PendingPaymentsCard />
-            </div>
-          )}
-          {isIndependentTutor && (
-            <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
-              <MonthlySummaryCard />
-              <ReferralWidget compact />
             </div>
           )}
 
@@ -890,7 +938,7 @@ export default function DashboardPage() {
                 {needsMarkLessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? 'UAH' }}
                     variant="schedule"
                     studentName={profiles[lesson.student_id] ?? '—'}
                     onContentClick={() => setOpenLessonId(lesson.id)}
@@ -1284,6 +1332,29 @@ export default function DashboardPage() {
               )}
             </section>
           </div>
+
+          {/* Independent tutor: secondary stack moved BELOW upcoming + next steps */}
+          {isIndependentTutor && (
+            <>
+              <IndependentTutorStats />
+              <div className="mt-4 space-y-4">
+                <TutorNotesCard />
+                <QuickActionsCard onChanged={loadData} />
+              </div>
+              <AutoCompleteLessonsCard />
+              <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
+                <MonthlySummaryCard />
+                <ReferralWidget compact />
+              </div>
+              {upcomingAll.length === 0 && (myCompletedLessonsCount === 0) && (
+                <TutorWelcomeBanner />
+              )}
+              <ReferralNudgeBanner
+                completedLessons={myCompletedLessonsCount}
+                invitedCount={referralInvitedCount}
+              />
+            </>
+          )}
         </div>
       )}
       {isTutor && !isManager && <QuickPaymentFab />}

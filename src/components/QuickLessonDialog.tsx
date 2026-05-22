@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Pencil, User, Users2 } from "lucide-react";
+import { Loader2, Pencil, Plus, User, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -81,6 +82,8 @@ export function QuickLessonDialog({
   );
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [groupId, setGroupId] = useState<string>("");
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -175,7 +178,7 @@ export function QuickLessonDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, user?.id, initialStudentId]);
+  }, [open, user?.id, initialStudentId, reloadTrigger]);
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === groupId) ?? null,
@@ -189,6 +192,11 @@ export function QuickLessonDialog({
 
   const submit = async () => {
     if (!user || !startsAt) return;
+
+    if (mode === "individual" && students.length === 0) {
+      toast.error("Спочатку додайте учня");
+      return;
+    }
 
     if (mode === "group") {
       if (!selectedGroup) {
@@ -313,9 +321,15 @@ export function QuickLessonDialog({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : students.length === 0 && groups.length === 0 ? (
-          <p className="py-4 text-sm text-muted-foreground">
-            Спершу додайте учня в розділі «Мої учні» або створіть групу.
-          </p>
+          <div className="space-y-3 py-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Спочатку додайте першого учня, щоб створити урок
+            </p>
+            <Button size="sm" onClick={() => setAddStudentOpen(true)}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Додати учня
+            </Button>
+          </div>
         ) : (
           <div className="space-y-3">
             {/* Type toggle */}
@@ -425,6 +439,14 @@ export function QuickLessonDialog({
           </Button>
         </DialogFooter>
       </DialogContent>
+      <QuickAddStudentDialog
+        open={addStudentOpen}
+        onOpenChange={setAddStudentOpen}
+        onCreated={() => {
+          setAddStudentOpen(false);
+          setReloadTrigger((n) => n + 1);
+        }}
+      />
     </Dialog>
   );
 }

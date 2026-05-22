@@ -578,6 +578,12 @@ export default function SchedulePage() {
 
   const handleCreate = async () => {
     if (!user) return;
+
+    if (isIndependentTutor && students.length === 0) {
+      toast.error("Спочатку додайте учня");
+      return;
+    }
+
     const errors: {
       tutor_id?: boolean;
       student_id?: boolean;
@@ -591,7 +597,11 @@ export default function SchedulePage() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error(t('common.fillRequired'));
+      if (errors.student_id && !form.student_id) {
+        toast.error("Оберіть учня");
+      } else {
+        toast.error(t('common.fillRequired'));
+      }
       return;
     }
     setFormErrors({});
@@ -668,7 +678,11 @@ export default function SchedulePage() {
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
-      toast.error(t('schedule.createFailed'));
+      if (isIndependentTutor && students.length === 0) {
+        toast.error("Спочатку додайте учня");
+      } else {
+        toast.error(t('schedule.createFailed'));
+      }
       return;
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
@@ -837,7 +851,7 @@ export default function SchedulePage() {
   const showAvailabilityTab = isManager || isTutor;
   const availabilityBadge = useAvailabilityRequestCount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") === "availability" && showAvailabilityTab ? "availability" : "lessons";
+  const activeTab: "lessons" = "lessons";
   const setTab = (t: "lessons" | "availability") => {
     const next = new URLSearchParams(searchParams);
     if (t === "lessons") next.delete("tab");
@@ -1384,33 +1398,7 @@ export default function SchedulePage() {
         </DialogContent>
       </Dialog>
 
-      {showAvailabilityTab && (
-        <div className="mb-5 inline-flex rounded-lg border border-border bg-card p-0.5">
-          <Button
-            variant={activeTab === "lessons" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 gap-1.5"
-            onClick={() => setTab("lessons")}
-          >
-            <CalendarDays className="h-3.5 w-3.5" />
-            Уроки
-          </Button>
-          <Button
-            variant={activeTab === "availability" ? "secondary" : "ghost"}
-            size="sm"
-            className="h-8 gap-1.5 relative"
-            onClick={() => setTab("availability")}
-          >
-            <CalendarClock className="h-3.5 w-3.5" />
-            Мої години
-            {availabilityBadge > 0 && (
-              <span className="ml-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-warning px-1 text-[10px] font-semibold text-warning-foreground">
-                {availabilityBadge}
-              </span>
-            )}
-          </Button>
-        </div>
-      )}
+      {/* Top "Lessons / My hours" tab switcher removed — availability now lives on /availability and is linked at the bottom of this page. */}
 
       {/* Mobile-only view switcher */}
       <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5 sm:hidden">
@@ -1422,9 +1410,6 @@ export default function SchedulePage() {
         </Button>
       </div>
 
-      {activeTab === "availability" ? (
-        <AvailabilityManager />
-      ) : (
       <>
       {studentTutors.length > 0 && (
         <div className="mb-6 space-y-4">
@@ -1748,6 +1733,16 @@ export default function SchedulePage() {
         </>
       )}
       </>
+
+      {(isManager || isTutor) && (
+        <div className="mt-8 border-t border-border pt-4 text-center">
+          <a
+            href="/availability"
+            className="text-sm text-primary hover:underline"
+          >
+            Налаштувати доступні години для бронювання →
+          </a>
+        </div>
       )}
       <QuickLessonDialog
         open={!!quickSlot}

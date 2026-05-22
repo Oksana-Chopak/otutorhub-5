@@ -986,7 +986,7 @@ export const uk = {
 
   availability: {
     title: "Доступні години",
-    subtitle: "Тижневий шаблон вільних годин і вихідні дні. Учні бачать ваші вільні слоти, щоб домовитися про урок у чаті.",
+    subtitle: "Вкажіть години, коли ви доступні для нових уроків. Учні зможуть бачити ці слоти при бронюванні.",
   },
 
   myReferrals: {
@@ -1032,10 +1032,10 @@ export const uk = {
   },
 
   tutorWelcome: {
-    questTitle: "🎯 Ваш квест: налаштувати простір",
+    questTitle: "🎯 Мої досягнення: налаштувати простір",
     level: "Рівень {{step}}/{{total}}",
     progress: "{{pct}}% готово",
-    continueBtn: "Продовжити квест",
+    continueBtn: "Продовжити",
     hide: "Сховати",
     hideAria: "Сховати банер",
   },
@@ -1181,7 +1181,7 @@ export const uk = {
   proRulesCard: {
     saveFailed: "Не вдалося зберегти",
     saveSuccess: "Правила Pro оновлено",
-    title: "Правила Pro",
+    title: "Правила скасування уроків",
     availableInPro: "Доступно у Pro",
     description: "Автоматичні нагадування про оплату та правила скасування уроків учнем.",
     reminderLabel: "Авто-нагадування про оплату",
@@ -1720,6 +1720,11 @@ export const uk = {
     rateCta: "Відкрити профіль",
     doneAll: "Все налаштовано! 🎉",
     doneAllDesc: "Ваш кабінет готовий до роботи.",
+    subjectTitle: "Оберіть свій предмет",
+    subjectDesc: "Вкажіть що ви викладаєте — це займе 10 секунд",
+    subjectCta: "Обрати предмет",
+    subjectHint: "Предмет обрано ✓",
+    cancelRulesTitle: "Правила скасування уроків",
   },
   globalChat: {
     newMessage: "Нове повідомлення",
@@ -1831,7 +1836,7 @@ export const uk = {
     hubOnly: "Я працюю лише з учнями хабу",
     whatThisMeans: "Що це означає?",
     questLevel: "🏆 Рівень {{count}}",
-    questDone: "🎉 Квест завершено!",
+    questDone: "🎉 Готово! Усі досягнення виконано",
     closeBtn: "Закрити",
     finishBtn: "Завершити онбординг",
   },
@@ -2453,6 +2458,21 @@ export const uk = {
     swedish: "Шведська мова",
     polish: "Польська мова",
     german: "Німецька мова",
+  },
+  subjectComboBox: {
+    selectPlaceholder: "Оберіть або введіть предмет",
+    searchPlaceholder: "Пошук предмету...",
+    noResults: "Нічого не знайдено",
+    popular: "Популярні",
+    addCustom: "Додати «{{subject}}»",
+  },
+  currencyComboBox: {
+    selectCurrency: "Оберіть валюту",
+    searchCurrency: "Пошук валюти...",
+    addCustomCurrency: "Додати валюту «{{code}}»",
+    customCurrencyInvalid: "Введіть код від 2 до 6 літер (напр. CZK)",
+    customCurrencies: "Інші валюти",
+    commonCurrencies: "Популярні валюти",
   },
   legal: {
     terms: "Договір оферти",

@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -104,6 +104,19 @@ export function LessonCard({
   const isCancelled = lesson.status === "cancelled";
   const href = useMemo(() => (meetingUrl ? safeHref(meetingUrl) : null), [meetingUrl]);
 
+  // Brief micro-victory pulse when a lesson flips to "completed"
+  const [justCompleted, setJustCompleted] = useState(false);
+  const prevStatusRef = useRef(lesson.status);
+  useEffect(() => {
+    if (prevStatusRef.current !== "completed" && lesson.status === "completed") {
+      setJustCompleted(true);
+      const id = window.setTimeout(() => setJustCompleted(false), 600);
+      prevStatusRef.current = lesson.status;
+      return () => window.clearTimeout(id);
+    }
+    prevStatusRef.current = lesson.status;
+  }, [lesson.status]);
+
   // Single structural left border only. Payment/source state is shown in explicit labels,
   // not as an unexplained orange vertical stripe.
   const borderLeft = isCancelled
@@ -118,7 +131,8 @@ export function LessonCard({
     <div className={cn("space-y-0", className)}>
       <div
         className={cn(
-          "relative flex flex-col gap-3 rounded-xl border border-l-4 bg-card transition-colors",
+          "relative flex flex-col gap-3 rounded-xl border border-l-4 bg-card transition-transform duration-300",
+          justCompleted && "scale-[1.02] animate-pulse",
           borderLeft,
           isNow && "bg-success/5 border-success/40 border-l-success",
           isPast && !isNow && "opacity-80",

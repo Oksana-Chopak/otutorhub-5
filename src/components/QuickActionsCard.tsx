@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SubjectSelect } from "@/components/SubjectSelect";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import {
   Select,
   SelectContent,
@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { CurrencyComboBox } from "@/components/CurrencyComboBox";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -498,7 +499,7 @@ function AddStudentForm({
         )}
         <div className="space-y-1">
           <Label className="text-xs">{t("quickActionsCard.subjectLabel")}</Label>
-          <SubjectSelect value={subject} onValueChange={setSubject} />
+          <SubjectComboBox value={subject} onChange={setSubject} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
@@ -513,14 +514,7 @@ function AddStudentForm({
           </div>
           <div className="space-y-1">
             <Label className="text-xs">{t("quickActionsCard.currencyLabel")}</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {CURRENCY_OPTIONS.map((c) => (
-                  <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CurrencyComboBox value={currency} onChange={setCurrency} className="h-9" />
           </div>
         </div>
       </div>
