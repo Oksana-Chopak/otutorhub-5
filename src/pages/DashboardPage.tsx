@@ -897,7 +897,7 @@ export default function DashboardPage() {
                 {needsMarkLessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}_${lesson.student_id}`] ?? 'UAH' }}
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? 'UAH' }}
                     variant="schedule"
                     studentName={profiles[lesson.student_id] ?? '—'}
                     onContentClick={() => setOpenLessonId(lesson.id)}
