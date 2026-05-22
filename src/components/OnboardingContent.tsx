@@ -523,7 +523,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Виконайте квести — отримайте XP і налаштуйте простір.
+              Виконайте свої досягнення — отримайте XP і налаштуйте простір.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -657,6 +657,23 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                       {isCurrent && step.autoKey && (
                         <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
                           Пропустити
+                        </Button>
+                      )}
+                      {isCurrent && step.action === "addStudent" && user && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground"
+                          onClick={() => {
+                            localStorage.setItem(
+                              `invite_reminder_dismissed_${user.id}`,
+                              new Date().toISOString()
+                            );
+                            localStorage.setItem(`pending_invite_reminder_${user.id}`, "1");
+                            skipStep(step.id);
+                          }}
+                        >
+                          Нагадати пізніше
                         </Button>
                       )}
                     </div>
