@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SubjectSelect } from "@/components/SubjectSelect";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { Loader2, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
