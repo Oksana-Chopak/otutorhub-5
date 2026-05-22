@@ -247,6 +247,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const [subjectDraft, setSubjectDraft] = useState("");
   const [savingSubject, setSavingSubject] = useState(false);
+  const [victoryStep, setVictoryStep] = useState<{ emoji: string; title: string; xp: number; isFinal: boolean } | null>(null);
+  const prevCompletedIdsRef = useRef<Set<number> | null>(null);
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
