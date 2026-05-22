@@ -765,7 +765,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                             skipStep(step.id);
                           }}
                         >
-                          Нагадати пізніше
+                          {t("onboardingExtra.remindLater")}
                         </Button>
                       )}
                     </div>
