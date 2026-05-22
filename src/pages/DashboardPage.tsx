@@ -849,30 +849,21 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {isIndependentTutor && <TutorWelcomeBanner />}
-          {isIndependentTutor && <AutoCompleteLessonsCard />}
-          {(isTutor || isManager) && (
+          {/* Hub tutor / manager keep QuickActions + Notes near the top */}
+          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
             <div className="mt-4 space-y-4">
               <QuickActionsCard onChanged={loadData} />
               <TutorNotesCard />
             </div>
           )}
-          {isIndependentTutor && (
-            <ReferralNudgeBanner
-              completedLessons={myCompletedLessonsCount}
-              invitedCount={referralInvitedCount}
-            />
+
+          {/* Independent tutor: streak + pending payments first */}
+          {isIndependentTutor && streak && streak.current_streak > 0 && (
+            <StreakCard streak={streak} />
           )}
-          {isIndependentTutor && <IndependentTutorStats />}
           {isTutor && !isManager && (
             <div className="mt-4">
               <PendingPaymentsCard />
-            </div>
-          )}
-          {isIndependentTutor && (
-            <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
-              <MonthlySummaryCard />
-              <ReferralWidget compact />
             </div>
           )}
 
