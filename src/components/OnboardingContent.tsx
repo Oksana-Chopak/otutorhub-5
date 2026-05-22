@@ -29,6 +29,7 @@ import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 interface Step {
   id: number;
