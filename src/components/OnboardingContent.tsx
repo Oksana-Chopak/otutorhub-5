@@ -748,7 +748,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                       )}
                       {isCurrent && step.autoKey && (
                         <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
-                          Пропустити
+                          {t("onboardingExtra.skip")}
                         </Button>
                       )}
                       {isCurrent && step.action === "addStudent" && user && (
