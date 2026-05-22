@@ -203,9 +203,16 @@ export default function DashboardPage() {
     }
   }, [isStudent, isManager, isTutor, navigate]);
 
-  // Note: previously we auto-redirected new tutors to /onboarding here.
-  // Removed per UX feedback — instead we show an inline "Add first student"
-  // CTA on the empty dashboard so the tutor isn't bounced to another page.
+  // First-session redirect: new independent tutor → /onboarding.
+  // Uses localStorage so we only auto-redirect once per device per user.
+  useEffect(() => {
+    if (wsLoading || !user || !isIndependentTutor) return;
+    if (settings?.onboarding_completed) return;
+    const key = `onboarding_shown_${user.id}`;
+    if (localStorage.getItem(key) === "1") return;
+    localStorage.setItem(key, "1");
+    navigate("/onboarding", { replace: true });
+  }, [wsLoading, user?.id, isIndependentTutor, settings?.onboarding_completed, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
