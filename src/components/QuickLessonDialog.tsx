@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Pencil, User, Users2 } from "lucide-react";
+import { Loader2, Pencil, Plus, User, Users2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
