@@ -1733,6 +1733,16 @@ export default function SchedulePage() {
         </>
       )}
       </>
+
+      {(isManager || isTutor) && (
+        <div className="mt-8 border-t border-border pt-4 text-center">
+          <a
+            href="/availability"
+            className="text-sm text-primary hover:underline"
+          >
+            Налаштувати доступні години для бронювання →
+          </a>
+        </div>
       )}
       <QuickLessonDialog
         open={!!quickSlot}
