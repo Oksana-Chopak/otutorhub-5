@@ -1712,6 +1712,11 @@ export const en: Translations = {
     rateCta: "Open profile",
     doneAll: "All set up! 🎉",
     doneAllDesc: "Your workspace is ready to use.",
+    subjectTitle: "Choose your subject",
+    subjectDesc: "Tell us what you teach — takes 10 seconds",
+    subjectCta: "Pick subject",
+    subjectHint: "Subject chosen ✓",
+    cancelRulesTitle: "Cancellation rules",
   },
   globalChat: {
     newMessage: "New message",
