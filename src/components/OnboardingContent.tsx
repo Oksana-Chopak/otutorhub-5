@@ -404,6 +404,14 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
       );
 
       safe(
+        supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
+        { data: null } as any,
+      ).then((res: any) => {
+        const subjects = res.data?.subjects;
+        if (Array.isArray(subjects) && subjects.length > 0) applyPatch({ hasSubject: true });
+      });
+
+      safe(
         supabase.from("google_calendar_tokens" as any).select("user_id").eq("user_id", user.id).limit(1),
         { data: [] } as any,
       ).then((res: any) => applyPatch({ hasGoogleCalendar: (res.data?.length ?? 0) > 0 }));
