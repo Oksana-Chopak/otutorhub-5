@@ -26,6 +26,7 @@ import {
   Wallet,
   Users2,
   CreditCard,
+  MessageCircleHeart,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -46,6 +47,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
+import { FeedbackDialog } from "@/components/FeedbackDialog";
 
 type NavItem = {
   to: string;
@@ -110,6 +112,7 @@ export function AppSidebar() {
   const [profile, setProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -220,6 +223,20 @@ export function AppSidebar() {
           </div>
         )}
 
+        <div className="border-t border-border px-3 py-2">
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              setFeedbackOpen(true);
+            }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <MessageCircleHeart className="h-4 w-4 shrink-0" />
+            <span>{t("feedback.btn")}</span>
+          </button>
+        </div>
+
         <div className="shrink-0 border-t border-border px-4 py-4 space-y-3" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
           <div className="flex items-center gap-3">
             <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
@@ -290,6 +307,7 @@ export function AppSidebar() {
         </div>
       </aside>
       <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
   );
 }
