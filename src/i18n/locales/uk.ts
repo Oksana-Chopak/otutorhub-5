@@ -2506,6 +2506,7 @@ export const uk = {
     debtLessons_one: "{{count}} урок не оплачено",
     debtLessons_few: "{{count}} уроки не оплачено",
     debtLessons_many: "{{count}} уроків не оплачено",
+    debtLessons_other: "{{count}} уроків не оплачено",
     viewDebts: "Переглянути →",
     lastHomework: "Остання домашка",
     paid: "✓ Оплачено",

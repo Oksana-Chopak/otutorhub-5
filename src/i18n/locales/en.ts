@@ -2496,6 +2496,8 @@ export const en: Translations = {
     noUpcoming: "No upcoming lessons",
     debt: "Debt",
     debtLessons_one: "{{count}} lesson unpaid",
+    debtLessons_few: "{{count}} lessons unpaid",
+    debtLessons_many: "{{count}} lessons unpaid",
     debtLessons_other: "{{count}} lessons unpaid",
     viewDebts: "View →",
     lastHomework: "Last homework",

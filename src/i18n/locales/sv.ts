@@ -2487,6 +2487,8 @@ export const sv: Partial<Translations> = {
     noUpcoming: "Inga kommande lektioner",
     debt: "Skuld",
     debtLessons_one: "{{count}} lektion obetald",
+    debtLessons_few: "{{count}} lektioner obetalda",
+    debtLessons_many: "{{count}} lektioner obetalda",
     debtLessons_other: "{{count}} lektioner obetalda",
     viewDebts: "Visa →",
     lastHomework: "Senaste läxa",
