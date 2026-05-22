@@ -678,7 +678,11 @@ export default function SchedulePage() {
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
-      toast.error(t('schedule.createFailed'));
+      if (isIndependentTutor && students.length === 0) {
+        toast.error("Спочатку додайте учня");
+      } else {
+        toast.error(t('schedule.createFailed'));
+      }
       return;
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
