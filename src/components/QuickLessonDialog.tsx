@@ -193,6 +193,11 @@ export function QuickLessonDialog({
   const submit = async () => {
     if (!user || !startsAt) return;
 
+    if (mode === "individual" && students.length === 0) {
+      toast.error("Спочатку додайте учня");
+      return;
+    }
+
     if (mode === "group") {
       if (!selectedGroup) {
         toast.error(t("quickLessonDialog.selectGroup") ?? "Виберіть групу");
