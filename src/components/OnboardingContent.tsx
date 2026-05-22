@@ -250,7 +250,46 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [subjectDraft, setSubjectDraft] = useState("");
   const [savingSubject, setSavingSubject] = useState(false);
   const [victoryStep, setVictoryStep] = useState<{ emoji: string; title: string; xp: number; isFinal: boolean } | null>(null);
+  const [connectingCalendar, setConnectingCalendar] = useState(false);
   const prevCompletedIdsRef = useRef<Set<number> | null>(null);
+
+  // Handle return from Google Calendar OAuth (full-page redirect back to onboarding).
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    const calendar = url.searchParams.get("calendar");
+    if (calendar === "connected") {
+      toast.success(t("googleCalendar.connected"));
+      url.searchParams.delete("calendar");
+      window.history.replaceState({}, "", url.pathname + url.search);
+      setProgressReloadKey((k) => k + 1);
+    } else if (calendar === "error") {
+      toast.error(t("googleCalendar.connectFailed"));
+      url.searchParams.delete("calendar");
+      url.searchParams.delete("reason");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const connectGoogleCalendar = async () => {
+    if (!user || connectingCalendar) return;
+    setConnectingCalendar(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("google-calendar-auth", {
+        body: { return_to: `${window.location.origin}${window.location.pathname}` },
+      });
+      if (error || !data?.redirect_url) {
+        toast.error(t("googleCalendar.connectFailed"));
+        setConnectingCalendar(false);
+        return;
+      }
+      // Full-page redirect — user comes back to onboarding with ?calendar=connected
+      window.location.href = data.redirect_url;
+    } catch (_) {
+      toast.error(t("googleCalendar.connectFailed"));
+      setConnectingCalendar(false);
+    }
+  };
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
