@@ -737,7 +737,6 @@ export default function DashboardPage() {
               className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
             >
               <CalendarDays className="h-3 w-3 text-primary" />
-              {todayLessons.length}{" "}
               {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
             </Link>
             {pendingPayments.length > 0 && (

@@ -578,6 +578,12 @@ export default function SchedulePage() {
 
   const handleCreate = async () => {
     if (!user) return;
+
+    if (isIndependentTutor && students.length === 0) {
+      toast.error("Спочатку додайте учня");
+      return;
+    }
+
     const errors: {
       tutor_id?: boolean;
       student_id?: boolean;
@@ -591,7 +597,11 @@ export default function SchedulePage() {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
-      toast.error(t('common.fillRequired'));
+      if (errors.student_id && !form.student_id) {
+        toast.error("Оберіть учня");
+      } else {
+        toast.error(t('common.fillRequired'));
+      }
       return;
     }
     setFormErrors({});
@@ -668,7 +678,11 @@ export default function SchedulePage() {
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
-      toast.error(t('schedule.createFailed'));
+      if (isIndependentTutor && students.length === 0) {
+        toast.error("Спочатку додайте учня");
+      } else {
+        toast.error(t('schedule.createFailed'));
+      }
       return;
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
