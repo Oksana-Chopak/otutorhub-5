@@ -1346,9 +1346,7 @@ export default function DashboardPage() {
                 <MonthlySummaryCard />
                 <ReferralWidget compact />
               </div>
-              {upcomingAll.length === 0 && (myCompletedLessonsCount === 0) && (
-                <TutorWelcomeBanner />
-              )}
+              <TutorWelcomeBanner />
               <ReferralNudgeBanner
                 completedLessons={myCompletedLessonsCount}
                 invitedCount={referralInvitedCount}
