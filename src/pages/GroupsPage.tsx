@@ -92,7 +92,7 @@ export default function GroupsPage() {
           .in("id", studentIds);
         const m = new Map<string, string>();
         (profs ?? []).forEach((p: any) => {
-          m.set(p.id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень");
+          m.set(p.id, `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.student"));
         });
         setStudentNames(m);
       } else {
@@ -223,7 +223,7 @@ function CreateGroupDialog({
       setTutors(
         (profs ?? []).map((p: any) => ({
           id: p.id,
-          name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Репетитор",
+          name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.tutor"),
         }))
       );
     })();

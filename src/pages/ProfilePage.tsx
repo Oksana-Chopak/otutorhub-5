@@ -104,7 +104,7 @@ export default function ProfilePage() {
         {
           title: t("profile.groupAnalytics"),
           items: [
-            { to: "/marketing", label: "Email-розсилки", icon: HandHeart },
+            { to: "/marketing", label: t("profile.emailMarketing") ?? "Email-розсилки", icon: HandHeart },
             { to: "/paywall-metrics", label: t("profile.itemPaywallMetrics"), icon: BarChart3 },
             { to: "/audit", label: t("profile.itemAudit"), icon: ShieldAlert },
           ],

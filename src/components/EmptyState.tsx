@@ -108,12 +108,12 @@ EmptyState.Students = function EmptyStateStudents({
     <EmptyState
       icon={Users}
       variant="highlight"
-      title="Додайте першого учня — це займе 2 хвилини"
-      description="Введіть ім'я і ставку, щоб почати планувати уроки і відстежувати оплати."
-      hint="Вже є учні? Запросіть їх поштою і вони самі зареєструються."
-      actionLabel="Додати учня"
+      title={t("onboardingContent.addStudentTitle")}
+      description={t("onboardingContent.addStudentDesc")}
+      hint={t("inviteLink.resendBtn")}
+      actionLabel={t("onboardingContent.addStudentCta")}
       onAction={onAdd}
-      secondaryLabel="Запросити поштою"
+      secondaryLabel={t("inviteLinkExtra.resendBtn")}
       onSecondary={onInvite}
     />
   );
@@ -128,9 +128,9 @@ EmptyState.Lessons = function EmptyStateLessons({
     <EmptyState
       icon={CalendarDays}
       variant="default"
-      title="Уроків поки немає"
-      description="Запишіть перший урок — це займе 30 секунд."
-      actionLabel="Запланувати урок"
+      title={t("schedule.noLessons") ?? "Уроків поки немає"}
+      description={t("schedule.noLessonsDesc") ?? "Запишіть перший урок — це займе 30 секунд."}
+      actionLabel={t("schedule.addLesson") ?? "Запланувати урок"}
       onAction={onSchedule}
     />
   );
@@ -147,7 +147,7 @@ EmptyState.UpcomingLessons = function EmptyStateUpcoming({
     <EmptyState
       icon={CalendarDays}
       variant="subtle"
-      title="Наступних уроків немає"
+      title={t("schedule.noUpcoming") ?? "Наступних уроків немає"}
       description={
         isTutor
           ? "Створіть урок — він з'явиться тут одразу після збереження."
@@ -164,8 +164,8 @@ EmptyState.Payments = function EmptyStatePayments() {
     <EmptyState
       icon={Wallet}
       variant="subtle"
-      title="Заборгованостей немає"
-      description="Всі уроки оплачено. Гарна робота!"
+      title={t("finances.noDebts") ?? "Заборгованостей немає"}
+      description={t("finances.noDebtsDesc") ?? "Всі уроки оплачено. Гарна робота!"}
     />
   );
 };
@@ -179,8 +179,8 @@ EmptyState.Messages = function EmptyStateMessages({
     <EmptyState
       icon={MessageSquare}
       variant="subtle"
-      title="Поки немає повідомлень"
-      description="Написати учню або репетитору можна прямо звідси."
+      title={t("chats.empty") ?? "Поки немає повідомлень"}
+      description={t("chats.emptyDesc") ?? "Написати учню або репетитору можна прямо звідси."}
       actionLabel="Написати"
       onAction={onNewChat}
     />
@@ -192,8 +192,8 @@ EmptyState.Analytics = function EmptyStateAnalytics() {
     <EmptyState
       icon={BarChart3}
       variant="subtle"
-      title="Даних ще недостатньо"
-      description="Статистика з'явиться після перших проведених уроків."
+      title={t("analytics.noData") ?? "Даних ще недостатньо"}
+      description={t("analytics.noDataDesc") ?? "Статистика з'явиться після перших проведених уроків."}
       hint="Зазвичай достатньо 3–5 занять."
     />
   );
@@ -202,8 +202,8 @@ EmptyState.Analytics = function EmptyStateAnalytics() {
 EmptyState.AllClear = function EmptyStateAllClear() {
   return (
     <EmptyState
-      title="Усе під контролем 🎉"
-      description="Термінових задач немає. Можна планувати наступний тиждень."
+      title={t("emptyState.allClear")}
+      description={t("emptyState.allClearDesc")}
       variant="subtle"
     />
   );

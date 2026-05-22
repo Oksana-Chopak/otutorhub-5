@@ -375,7 +375,7 @@ export function LessonWorkspace({
         <section className="rounded-lg border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <NotebookPen className="h-4 w-4 text-primary" />
-            Мої нотатки {isManager && !canEditStudentNotes && <span className="text-xs text-muted-foreground">(учня)</span>}
+            {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-xs text-muted-foreground">(учня)</span>}
           </div>
           {canEditStudentNotes ? (
             <>

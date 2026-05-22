@@ -47,7 +47,7 @@ export function StudentWalletCard({ studentId }: { studentId: string }) {
       const nameMap = new Map(
         (profiles ?? []).map((p: any) => [
           p.id,
-          `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Репетитор",
+          `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.tutor"),
         ]),
       );
 

@@ -183,7 +183,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
     // 3. Mark referral request as fulfilled
     const tutorName = tutors.find((t) => t.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
-    const responseNote = `Призначено репетитора: ${tutorName}. Предмет: ${subject.trim()}. Ціна для учня: ${sp} ₴, виплата: ${tp} ₴.`;
+    const responseNote = `${t("assignTutorExtra.assigned")}: ${tutorName}. ${t("assignTutorExtra.subjectLabel")}: ${subject.trim()}. Ціна для учня: ${sp} ₴, виплата: ${tp} ₴.`;
     const { error: reqErr } = await supabase
       .from("tutor_referral_requests")
       .update({

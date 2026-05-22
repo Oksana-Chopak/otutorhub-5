@@ -389,7 +389,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     )}
                   >
                     {isLate
-                      ? `⚠ До уроку ${hoursUntil < 0 ? "вже минув" : `залишилось ~${hoursUntil} год`} — менше за ваше правило (${cancelFreeHours} год). Можна нарахувати оплату.`
+                      ? t("tutorChangeRequestsExtra.lateWarning", { status: hoursUntil < 0 ? "вже минув" : `~${hoursUntil} год`, hours: cancelFreeHours })
                       : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
                   <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>

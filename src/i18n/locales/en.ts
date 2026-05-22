@@ -2454,5 +2454,88 @@ export const en: Translations = {
     allClear: "All under control 🎉",
     allClearDesc: "No urgent tasks. Time to plan the next week.",
   },
+,
+
+  authExtra: {
+    nameRequired: "Enter your first name",
+    lastNameRequired: "Enter your last name",
+    invalidEmail: "Invalid email address",
+    minPassword: "Minimum 8 characters",
+    passwordRequired: "Enter your password",
+  },
+  dashboardExtra: {
+    lessonsToday_one: "{{count}} lesson today",
+    lessonsToday_other: "{{count}} lessons today",
+    months: "January,February,March,April,May,June,July,August,September,October,November,December",
+  },
+  finances: {
+    incomeTab: "Income",
+    incomeTabShort: "Income",
+    expensesTab: "Expenses",
+    expensesTabShort: "Expenses",
+    debtsTab: "Debts",
+    debtsTabShort: "Debts",
+    periodAll: "All time",
+    periodAllShort: "All",
+    periodMonth: "This month",
+    periodMonthShort: "Month",
+    periodWeek: "This week",
+    periodWeekShort: "Week",
+  },
+  common: {
+    done: "Done",
+    save: "Save",
+    cancel: "Cancel",
+    close: "Close",
+    error: "Error",
+    success: "Success",
+  },
+  groupsPage: {
+    nameRequired: "Enter group name",
+  },
+  groupsPageExtra: {
+    selectTutor: "Select tutor",
+  },
+  inviteLink: {
+    greeting: "Hi, {{name}}!",
+    greetingGeneric: "Hi there!",
+  },
+  landing: {
+    pricing: {
+      title: "Simple and transparent pricing",
+      pro2: "up to 2 students",
+      pro4: "up to 4 students",
+      pro6: "up to 6 students",
+      proBadge: "Most popular",
+      proNote: "All Pro features included",
+      earlyNote: "Price for first 100 users",
+      earlyPeriod: "Early access",
+    },
+  },
+  pendingPaymentsExtra: {
+    studentCount_one: "{{count}} student",
+    studentCount_other: "{{count}} students",
+    lessonCount_one: "{{count}} lesson",
+    lessonCount_other: "{{count}} lessons",
+  },
+  quickLessonDialog: {
+    selectGroup: "Select group",
+  },
+  schedule: {
+    createLessonFailed: "Failed to create lesson",
+  },
+  streak: {
+    daysStreak_one: "{{count}} day in a row",
+    daysStreak_other: "{{count}} days in a row",
+    daysToBonus_one: "🎁 Just {{count}} more day — get +1 month Pro free!",
+    daysToBonus_other: "🎁 Just {{count}} more days — get +1 month Pro free!",
+  },
+  trial: {
+    day_one: "{{count}} day",
+    day_other: "{{count}} days",
+  },
+  tutorChangeRequests: {
+    requestUpdateFailed: "Lesson updated but request could not be updated",
+  },
 
 };

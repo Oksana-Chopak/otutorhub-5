@@ -79,7 +79,7 @@ export default function ReferralsPage() {
       ]);
       (profilesRes.data ?? []).forEach((p: any) => {
         profileMap.set(p.id, {
-          name: `${p.first_name} ${p.last_name}`.trim() || "Без імені",
+          name: `${p.first_name} ${p.last_name}`.trim() || t("shared.noName"),
           avatar: p.avatar_url,
         });
       });

@@ -682,7 +682,7 @@ export default function PeoplePage() {
       toast.error(t("people.cannotArchiveOwn"));
       return;
     }
-    if (!confirm(`Перемістити ${fullName(u)} в архів? Усі уроки, ставки та історія залишаться. Профіль зникне з основних списків — повернути можна будь-коли з вкладки «В архіві».`)) {
+    if (!confirm(t("peoplePage.archiveConfirm", { name: fullName(u) }))) {
       return;
     }
     const { error } = await supabase

@@ -2445,5 +2445,88 @@ export const sv: Partial<Translations> = {
     allClear: "Allt under kontroll 🎉",
     allClearDesc: "Inga brådskande uppgifter. Dags att planera nästa vecka.",
   },
+,
+
+  authExtra: {
+    nameRequired: "Ange ditt förnamn",
+    lastNameRequired: "Ange ditt efternamn",
+    invalidEmail: "Ogiltig e-postadress",
+    minPassword: "Minst 8 tecken",
+    passwordRequired: "Ange ditt lösenord",
+  },
+  dashboardExtra: {
+    lessonsToday_one: "{{count}} lektion idag",
+    lessonsToday_other: "{{count}} lektioner idag",
+    months: "januari,februari,mars,april,maj,juni,juli,augusti,september,oktober,november,december",
+  },
+  finances: {
+    incomeTab: "Intäkter",
+    incomeTabShort: "Intäkter",
+    expensesTab: "Utgifter",
+    expensesTabShort: "Utgifter",
+    debtsTab: "Skulder",
+    debtsTabShort: "Skulder",
+    periodAll: "All tid",
+    periodAllShort: "Allt",
+    periodMonth: "Denna månad",
+    periodMonthShort: "Månad",
+    periodWeek: "Denna vecka",
+    periodWeekShort: "Vecka",
+  },
+  common: {
+    done: "Klar",
+    save: "Spara",
+    cancel: "Avbryt",
+    close: "Stäng",
+    error: "Fel",
+    success: "Klart",
+  },
+  groupsPage: {
+    nameRequired: "Ange gruppnamn",
+  },
+  groupsPageExtra: {
+    selectTutor: "Välj lärare",
+  },
+  inviteLink: {
+    greeting: "Hej, {{name}}!",
+    greetingGeneric: "Hej!",
+  },
+  landing: {
+    pricing: {
+      title: "Enkel och transparent prissättning",
+      pro2: "upp till 2 elever",
+      pro4: "upp till 4 elever",
+      pro6: "upp till 6 elever",
+      proBadge: "Mest populär",
+      proNote: "Alla Pro-funktioner ingår",
+      earlyNote: "Pris för de första 100 användarna",
+      earlyPeriod: "Tidig åtkomst",
+    },
+  },
+  pendingPaymentsExtra: {
+    studentCount_one: "{{count}} elev",
+    studentCount_other: "{{count}} elever",
+    lessonCount_one: "{{count}} lektion",
+    lessonCount_other: "{{count}} lektioner",
+  },
+  quickLessonDialog: {
+    selectGroup: "Välj grupp",
+  },
+  schedule: {
+    createLessonFailed: "Kunde inte skapa lektion",
+  },
+  streak: {
+    daysStreak_one: "{{count}} dag i rad",
+    daysStreak_other: "{{count}} dagar i rad",
+    daysToBonus_one: "🎁 Bara {{count}} dag till — få +1 månad Pro gratis!",
+    daysToBonus_other: "🎁 Bara {{count}} dagar till — få +1 månad Pro gratis!",
+  },
+  trial: {
+    day_one: "{{count}} dag",
+    day_other: "{{count}} dagar",
+  },
+  tutorChangeRequests: {
+    requestUpdateFailed: "Lektionen uppdaterades men förfrågan kunde inte uppdateras",
+  },
 
 };

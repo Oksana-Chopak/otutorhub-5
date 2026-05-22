@@ -95,7 +95,7 @@ export function PendingPaymentsCard() {
           .in("student_id", ids),
       ]);
       (profs ?? []).forEach((p: any) => {
-        names[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень";
+        names[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.student");
       });
       (rates ?? []).forEach((r: any) => {
         currencies[r.student_id] = r.currency ?? "UAH";

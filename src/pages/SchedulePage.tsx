@@ -855,7 +855,7 @@ export default function SchedulePage() {
           </h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {isManager
-              ? "Усі уроки школи"
+              : t("schedule.allLessons") ?? "Усі уроки школи"
               : isTutor
               ? "Ваші уроки та робочий графік"
               : "Ваші уроки та запити"}

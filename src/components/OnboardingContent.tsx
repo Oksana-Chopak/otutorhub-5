@@ -101,7 +101,7 @@ const steps: Step[] = [
     id: 4,
     title: t("onboardingExtra.referralTitle"),
     description:
-      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
+      t("onboardingExtra.referralDesc"),
     cta: t("onboardingExtra.referralCta"),
     to: "/referrals",
     icon: Gift,

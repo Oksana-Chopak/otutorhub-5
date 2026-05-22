@@ -36,7 +36,7 @@ function success(title: string, opts?: ToastOptions) {
 function error(title: string, opts?: ToastOptions) {
   toast.error(title, {
     duration: opts?.duration ?? 5000,
-    description: opts?.description ?? "Спробуйте ще раз або оновіть сторінку.",
+    description: opts?.description,
     action: opts?.action,
   });
 }

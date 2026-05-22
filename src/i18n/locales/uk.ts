@@ -2462,6 +2462,108 @@ export const uk = {
     allClear: "Усе під контролем 🎉",
     allClearDesc: "Немає термінових задач. Можна планувати наступний тиждень.",
   },
+,
+
+  // Auth validation
+  authExtra: {
+    nameRequired: "Введіть ім'я",
+    lastNameRequired: "Введіть прізвище",
+    invalidEmail: "Некоректний email",
+    minPassword: "Мінімум 8 символів",
+    passwordRequired: "Введіть пароль",
+  },
+  // Dashboard
+  dashboardExtra: {
+    lessonsToday_one: "{{count}} урок сьогодні",
+    lessonsToday_few: "{{count}} уроки сьогодні",
+    lessonsToday_many: "{{count}} уроків сьогодні",
+    months: "січень,лютий,березень,квітень,травень,червень,липень,серпень,вересень,жовтень,листопад,грудень",
+  },
+  // Finances tabs
+  finances: {
+    incomeTab: "Доходи",
+    incomeTabShort: "Доходи",
+    expensesTab: "Витрати",
+    expensesTabShort: "Витрати",
+    debtsTab: "Борги",
+    debtsTabShort: "Борги",
+    periodAll: "Весь час",
+    periodAllShort: "Все",
+    periodMonth: "Цей місяць",
+    periodMonthShort: "Місяць",
+    periodWeek: "Цей тиждень",
+    periodWeekShort: "Тиждень",
+  },
+  // Common
+  common: {
+    done: "Готово",
+    save: "Зберегти",
+    cancel: "Скасувати",
+    close: "Закрити",
+    error: "Помилка",
+    success: "Успіх",
+  },
+  // Groups
+  groupsPage: {
+    nameRequired: "Вкажіть назву групи",
+  },
+  groupsPageExtra: {
+    selectTutor: "Оберіть репетитора",
+  },
+  // Invite link
+  inviteLink: {
+    greeting: "Привіт, {{name}}!",
+    greetingGeneric: "Привіт!",
+  },
+  // Landing pricing
+  landing: {
+    pricing: {
+      title: "Простий і прозорий прайс",
+      pro2: "до 2 учнів",
+      pro4: "до 4 учнів",
+      pro6: "до 6 учнів",
+      proBadge: "Найпопулярніший",
+      proNote: "Всі функції Pro включені",
+      earlyNote: "Ціна для перших 100 користувачів",
+      earlyPeriod: "Ранній доступ",
+    },
+  },
+  // Pending payments
+  pendingPaymentsExtra: {
+    studentCount_one: "{{count}} учень",
+    studentCount_few: "{{count}} учнів",
+    studentCount_many: "{{count}} учнів",
+    lessonCount_one: "{{count}} урок",
+    lessonCount_few: "{{count}} ур.",
+    lessonCount_many: "{{count}} ур.",
+  },
+  // Quick lesson
+  quickLessonDialog: {
+    selectGroup: "Оберіть групу",
+  },
+  // Schedule
+  schedule: {
+    createLessonFailed: "Не вдалося створити урок",
+  },
+  // Streak
+  streak: {
+    daysStreak_one: "{{count}} день поспіль",
+    daysStreak_few: "{{count}} дні поспіль",
+    daysStreak_many: "{{count}} днів поспіль",
+    daysToBonus_one: "🎁 Ще {{count}} день — і отримаєш +1 місяць Pro безкоштовно!",
+    daysToBonus_few: "🎁 Ще {{count}} дні — і отримаєш +1 місяць Pro безкоштовно!",
+    daysToBonus_many: "🎁 Ще {{count}} днів — і отримаєш +1 місяць Pro безкоштовно!",
+  },
+  // Trial
+  trial: {
+    day_one: "{{count}} день",
+    day_few: "{{count}} дні",
+    day_many: "{{count}} днів",
+  },
+  // Tutor change requests
+  tutorChangeRequests: {
+    requestUpdateFailed: "Урок оновлено, але не вдалося оновити запит",
+  },
 
 };
 

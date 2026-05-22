@@ -743,7 +743,7 @@ export default function DashboardPage() {
             {pendingPayments.length > 0 && (
               <span className="inline-flex items-center gap-1 text-warning">
                 <Clock className="h-3 w-3" />
-                {pendingPayments.length} очікують оплати
+                {t("pendingPayments.title") ?? `${pendingPayments.length} очікують оплати`}
               </span>
             )}
           </p>
@@ -924,7 +924,7 @@ export default function DashboardPage() {
                         <p className="text-xs">{t("dashboardPageExtra.addFirstStudentHint")}</p>
                         <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
                           <Plus className="h-4 w-4" />
-                          Додати першого учня
+                          {t("onboardingContent.addStudentCta")}
                         </Button>
                       </div>
                     ) : (
@@ -1210,7 +1210,7 @@ export default function DashboardPage() {
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.tutorAssignsLessons")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
-                                Дату й час нових уроків додає ваш репетитор або менеджер. Якщо потрібен новий час — напишіть репетитору в чаті.
+                                {t("studentPages.tutorScheduleHint") ?? "Дату й час нових уроків додає ваш репетитор або менеджер."}
                               </p>
                               <div className="mt-3 flex gap-2">
                                 <Button asChild size="sm" variant="outline"><Link to="/schedule">{t("dashboardPageExtra.toSchedule")}</Link></Button>
@@ -1228,7 +1228,7 @@ export default function DashboardPage() {
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
-                                У вас ще немає закріпленого репетитора. Залиште запит — менеджер oTutorHub підбере фахівця під ваші цілі, бюджет і графік.
+                                {t("studentPages.noTutorHint") ?? "У вас ще немає закріпленого репетитора."}
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
@@ -1248,7 +1248,7 @@ export default function DashboardPage() {
                             <div className="min-w-0 flex-1">
                               <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findNewTutor")}</p>
                               <p className="mt-0.5 text-xs text-muted-foreground">
-                                Шукаєте додаткового репетитора? Менеджер oTutorHub підбере вам спеціаліста.
+                                {t("studentPages.findMoreHint") ?? "Шукаєте додаткового репетитора?"}
                               </p>
                               <div className="mt-3">
                                 <FindTutorDialog
@@ -1270,7 +1270,7 @@ export default function DashboardPage() {
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.updateHours")}</p>
                           <p className="mt-0.5 text-xs text-muted-foreground">
-                            Тримайте календар актуальним, щоб учні бачили вільні слоти.
+                            {t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним."}
                           </p>
                           <Button asChild size="sm" variant="outline" className="mt-3">
                             <Link to="/availability">{t("dashboardPageExtra.openAvailability")}</Link>

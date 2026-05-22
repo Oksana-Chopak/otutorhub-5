@@ -593,7 +593,7 @@ function AddLessonForm({
   };
 
   if (students.length === 0) {
-    return <p className="text-xs text-muted-foreground">Спочатку додайте учня — після цього урок створюється за кілька секунд.</p>;
+    return <p className="text-xs text-muted-foreground">{t("quickActionsCard.firstAddStudent")}</p>;
   }
 
   return (
@@ -768,7 +768,7 @@ function AddPaymentForm({
   };
 
   if (students.length === 0) {
-    return <p className="text-xs text-muted-foreground">Спочатку додайте учня — тоді тут можна буде швидко внести оплату.</p>;
+    return <p className="text-xs text-muted-foreground">{t("quickActionsCard.firstAddStudentPayment")}</p>;
   }
 
   return (
