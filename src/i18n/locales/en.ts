@@ -2474,7 +2474,6 @@ export const en: Translations = {
     allClear: "All under control 🎉",
     allClearDesc: "No urgent tasks. Time to plan the next week.",
   },
-,
 
   authExtra: {
     nameRequired: "Enter your first name",

@@ -2482,7 +2482,6 @@ export const uk = {
     allClear: "Усе під контролем 🎉",
     allClearDesc: "Немає термінових задач. Можна планувати наступний тиждень.",
   },
-,
 
   // Auth validation
   authExtra: {
