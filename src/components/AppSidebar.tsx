@@ -89,6 +89,7 @@ const roleLabelKey: Record<AppRole, string> = {
 
 export function AppSidebar() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
