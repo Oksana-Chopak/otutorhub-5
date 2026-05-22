@@ -1805,6 +1805,7 @@ export type Database = {
           cancel_free_hours: number
           created_at: string
           current_plan: string | null
+          custom_currencies: string[]
           daily_digest_enabled: boolean
           independent_workspace: boolean
           liqpay_card_token: string | null
@@ -1829,6 +1830,7 @@ export type Database = {
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
+          custom_currencies?: string[]
           daily_digest_enabled?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
@@ -1853,6 +1855,7 @@ export type Database = {
           cancel_free_hours?: number
           created_at?: string
           current_plan?: string | null
+          custom_currencies?: string[]
           daily_digest_enabled?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
