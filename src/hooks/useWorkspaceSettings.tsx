@@ -10,6 +10,7 @@ export interface WorkspaceSettings {
   trial_until: string | null;
   onboarding_completed: boolean;
   onboarding_step: number;
+  custom_currencies: string[];
 }
 
 /**
