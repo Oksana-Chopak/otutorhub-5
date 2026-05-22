@@ -227,6 +227,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [activatingIndependent, setActivatingIndependent] = useState(false);
   const [dismissing, setDismissing] = useState(false);
   const [progress, setProgress] = useState<StepProgress>({
+    hasSubject: false,
     hasStudent: false,
     hasLesson: false,
     hasAvailability: false,
