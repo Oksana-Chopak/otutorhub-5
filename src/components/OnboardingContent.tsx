@@ -45,6 +45,7 @@ interface Step {
 }
 
 export interface StepProgress {
+  hasSubject: boolean;
   hasStudent: boolean;
   hasLesson: boolean;
   hasAvailability: boolean;
@@ -59,10 +60,21 @@ export interface StepProgress {
 
 const steps: Step[] = [
   {
+    id: 0,
+    title: t("onboardingContent.subjectTitle"),
+    description: t("onboardingContent.subjectDesc"),
+    cta: t("onboardingContent.subjectCta"),
+    to: "/profile",
+    icon: BookOpen,
+    emoji: "📚",
+    xp: 25,
+    autoKey: "hasSubject",
+    autoHint: t("onboardingContent.subjectHint"),
+  },
+  {
     id: 1,
     title: t("onboardingContent.addStudentTitle"),
-    description:
-      t("onboardingContent.addStudentDesc"),
+    description: t("onboardingContent.addStudentDesc"),
     cta: t("onboardingContent.addStudentCta"),
     to: "/my-students",
     action: "addStudent",
@@ -75,8 +87,7 @@ const steps: Step[] = [
   {
     id: 2,
     title: t("onboardingContent.scheduleTitle"),
-    description:
-      t("onboardingContent.scheduleDesc"),
+    description: t("onboardingContent.scheduleDesc"),
     cta: t("onboardingExtra.scheduleCtaAlt"),
     to: "/schedule",
     icon: CalendarClock,
@@ -87,60 +98,6 @@ const steps: Step[] = [
   },
   {
     id: 3,
-    title: t("onboardingExtra.availabilityTitle"),
-    description:
-      t("onboardingExtra.availabilityDesc"),
-    cta: t("onboardingExtra.availabilityCta"),
-    to: "/availability",
-    icon: Clock,
-    emoji: "🕐",
-    xp: 75,
-    autoKey: "hasAvailability",
-    autoHint: t("onboardingExtra.availabilityHint"),
-  },
-  {
-    id: 4,
-    title: t("onboardingExtra.referralTitle"),
-    description:
-      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
-    cta: t("onboardingExtra.referralCta"),
-    to: "/referrals",
-    icon: Gift,
-    emoji: "🎁",
-    xp: 100,
-    badge: t("onboardingExtra.referralBadge"),
-    autoKey: "hasReferral",
-    autoHint: t("onboardingExtra.referralHint"),
-  },
-  {
-    id: 5,
-    title: t("onboardingExtra.proRulesTitle"),
-    description:
-      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
-    cta: t("onboardingExtra.proRulesCta"),
-    to: "/profile",
-    icon: BellRing,
-    emoji: "🔔",
-    xp: 75,
-    badge: "Pro",
-    autoKey: "hasPaymentRules",
-    autoHint: t("onboardingExtra.proRulesHint"),
-  },
-  {
-    id: 6,
-    title: t("onboardingExtra.autoMarkTitle"),
-    description:
-      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
-    cta: t("onboardingExtra.autoMarkCta"),
-    to: "/profile",
-    icon: CheckSquare,
-    emoji: "✅",
-    xp: 50,
-    autoKey: "hasAutoCompleteChoice",
-    autoHint: t("onboardingExtra.autoMarkHint"),
-  },
-  {
-    id: 7,
     title: t("onboardingExtra.zoomTitle"),
     description:
       "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
@@ -154,10 +111,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.zoomHint"),
   },
   {
-    id: 8,
+    id: 4,
     title: t("onboardingExtra.chatTitle"),
-    description:
-      t("onboardingExtra.chatDesc"),
+    description: t("onboardingExtra.chatDesc"),
     cta: t("onboardingExtra.chatCta"),
     to: "/chats",
     icon: MessageCircle,
@@ -167,10 +123,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.chatHint"),
   },
   {
-    id: 9,
+    id: 5,
     title: t("onboardingExtra.financeMarkTitle"),
-    description:
-      t("onboardingExtra.financeMarkDesc"),
+    description: t("onboardingExtra.financeMarkDesc"),
     cta: t("onboardingContent.financeCta"),
     to: "/finances",
     icon: CreditCard,
@@ -178,6 +133,59 @@ const steps: Step[] = [
     xp: 100,
     autoKey: "hasPaidLesson",
     autoHint: t("onboardingExtra.financeMarkHint"),
+  },
+  {
+    id: 6,
+    title: t("onboardingExtra.availabilityTitle"),
+    description: t("onboardingExtra.availabilityDesc"),
+    cta: t("onboardingExtra.availabilityCta"),
+    to: "/availability",
+    icon: Clock,
+    emoji: "🕐",
+    xp: 75,
+    autoKey: "hasAvailability",
+    autoHint: t("onboardingExtra.availabilityHint"),
+  },
+  {
+    id: 7,
+    title: t("onboardingExtra.autoMarkTitle"),
+    description:
+      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
+    cta: t("onboardingExtra.autoMarkCta"),
+    to: "/profile",
+    icon: CheckSquare,
+    emoji: "✅",
+    xp: 50,
+    autoKey: "hasAutoCompleteChoice",
+    autoHint: t("onboardingExtra.autoMarkHint"),
+  },
+  {
+    id: 8,
+    title: t("onboardingContent.cancelRulesTitle"),
+    description:
+      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
+    cta: t("onboardingExtra.proRulesCta"),
+    to: "/profile",
+    icon: BellRing,
+    emoji: "🔔",
+    xp: 75,
+    badge: "Pro",
+    autoKey: "hasPaymentRules",
+    autoHint: t("onboardingExtra.proRulesHint"),
+  },
+  {
+    id: 9,
+    title: t("onboardingExtra.referralTitle"),
+    description:
+      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
+    cta: t("onboardingExtra.referralCta"),
+    to: "/referrals",
+    icon: Gift,
+    emoji: "🎁",
+    xp: 100,
+    badge: t("onboardingExtra.referralBadge"),
+    autoKey: "hasReferral",
+    autoHint: t("onboardingExtra.referralHint"),
   },
   {
     id: 10,
@@ -195,8 +203,7 @@ const steps: Step[] = [
   {
     id: 11,
     title: t("onboardingExtra.aiTitle"),
-    description:
-      t("onboardingExtra.aiDesc"),
+    description: t("onboardingExtra.aiDesc"),
     cta: t("onboardingExtra.aiCta"),
     to: "/schedule",
     icon: Sparkles,
