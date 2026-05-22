@@ -462,6 +462,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     await updateSettings({ onboarding_step: next });
   };
 
+  const saveSubject = async () => {
+    if (!user || !subjectDraft.trim()) return;
+    setSavingSubject(true);
+    const { data: existing } = await supabase
+      .from("tutor_details")
+      .select("subjects")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const current = (existing?.subjects as string[] | null) ?? [];
+    const trimmed = subjectDraft.trim();
+    const merged = current.some((s) => s.toLowerCase() === trimmed.toLowerCase())
+      ? current
+      : [...current, trimmed];
+    const { error } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: user.id, subjects: merged }, { onConflict: "user_id" });
+    setSavingSubject(false);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setSubjectDraft("");
+    setProgress((p) => ({ ...p, hasSubject: true }));
+    setProgressReloadKey((k) => k + 1);
+  };
+
   const finishOnboarding = async () => {
     setDismissing(true);
     await updateSettings({ onboarding_completed: true });
