@@ -59,7 +59,10 @@ export interface StepProgress {
   hasGoogleCalendar: boolean;
 }
 
-const steps: Step[] = [
+type TFn = (key: string, opts?: any) => string;
+
+function buildSteps(t: TFn): Step[] {
+  return [
   {
     id: 0,
     title: t("onboardingContent.subjectTitle"),
@@ -100,8 +103,7 @@ const steps: Step[] = [
   {
     id: 3,
     title: t("onboardingExtra.availabilityTitle"),
-    description:
-      t("onboardingExtra.availabilityDesc"),
+    description: t("onboardingExtra.availabilityDesc"),
     cta: t("onboardingExtra.availabilityCta"),
     to: "/availability",
     icon: Clock,
@@ -113,8 +115,7 @@ const steps: Step[] = [
   {
     id: 4,
     title: t("onboardingExtra.referralTitle"),
-    description:
-      t("onboardingExtra.referralDesc"),
+    description: t("onboardingExtra.referralDesc"),
     cta: t("onboardingExtra.referralCta"),
     to: "/referrals",
     icon: Gift,
@@ -127,8 +128,7 @@ const steps: Step[] = [
   {
     id: 5,
     title: t("onboardingExtra.proRulesTitle"),
-    description:
-      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
+    description: t("onboardingExtra.proRulesLongDesc"),
     cta: t("onboardingExtra.proRulesCta"),
     to: "/profile",
     icon: BellRing,
@@ -141,8 +141,7 @@ const steps: Step[] = [
   {
     id: 6,
     title: t("onboardingExtra.autoMarkTitle"),
-    description:
-      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
+    description: t("onboardingExtra.autoMarkLongDesc"),
     cta: t("onboardingExtra.autoMarkCta"),
     to: "/profile",
     icon: CheckSquare,
@@ -154,8 +153,7 @@ const steps: Step[] = [
   {
     id: 7,
     title: t("onboardingExtra.zoomTitle"),
-    description:
-      "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
+    description: t("onboardingExtra.zoomLongDesc"),
     cta: t("onboardingExtra.zoomCta"),
     to: "/my-students",
     action: "addStudent",
@@ -166,7 +164,7 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.zoomHint"),
   },
   {
-    id: 4,
+    id: 8,
     title: t("onboardingExtra.chatTitle"),
     description: t("onboardingExtra.chatDesc"),
     cta: t("onboardingExtra.chatCta"),
@@ -178,7 +176,7 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.chatHint"),
   },
   {
-    id: 5,
+    id: 9,
     title: t("onboardingExtra.financeMarkTitle"),
     description: t("onboardingExtra.financeMarkDesc"),
     cta: t("onboardingContent.financeCta"),
@@ -190,63 +188,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.financeMarkHint"),
   },
   {
-    id: 6,
-    title: t("onboardingExtra.availabilityTitle"),
-    description: t("onboardingExtra.availabilityDesc"),
-    cta: t("onboardingExtra.availabilityCta"),
-    to: "/availability",
-    icon: Clock,
-    emoji: "🕐",
-    xp: 75,
-    autoKey: "hasAvailability",
-    autoHint: t("onboardingExtra.availabilityHint"),
-  },
-  {
-    id: 7,
-    title: t("onboardingExtra.autoMarkTitle"),
-    description:
-      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
-    cta: t("onboardingExtra.autoMarkCta"),
-    to: "/profile",
-    icon: CheckSquare,
-    emoji: "✅",
-    xp: 50,
-    autoKey: "hasAutoCompleteChoice",
-    autoHint: t("onboardingExtra.autoMarkHint"),
-  },
-  {
-    id: 8,
-    title: t("onboardingContent.cancelRulesTitle"),
-    description:
-      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
-    cta: t("onboardingExtra.proRulesCta"),
-    to: "/profile",
-    icon: BellRing,
-    emoji: "🔔",
-    xp: 75,
-    badge: "Pro",
-    autoKey: "hasPaymentRules",
-    autoHint: t("onboardingExtra.proRulesHint"),
-  },
-  {
-    id: 9,
-    title: t("onboardingExtra.referralTitle"),
-    description:
-      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
-    cta: t("onboardingExtra.referralCta"),
-    to: "/referrals",
-    icon: Gift,
-    emoji: "🎁",
-    xp: 100,
-    badge: t("onboardingExtra.referralBadge"),
-    autoKey: "hasReferral",
-    autoHint: t("onboardingExtra.referralHint"),
-  },
-  {
     id: 10,
     title: t("onboardingExtra.calendarTitle"),
-    description:
-      "Уроки автоматично синхронізуються у ваш Google Календар — і для вас, і для учнів, які підключать свій акаунт.",
+    description: t("onboardingExtra.calendarLongDesc"),
     cta: t("onboardingExtra.calendarCta"),
     to: "/profile",
     icon: CalendarCheck,
@@ -266,7 +210,9 @@ const steps: Step[] = [
     xp: 150,
     badge: t("onboardingExtra.aiSoonBadge"),
   },
-];
+  ];
+}
+
 
 interface OnboardingContentProps {
   /** When set, link clicks will call this (e.g. close a containing modal) before navigating */
