@@ -402,6 +402,15 @@ export default function DashboardPage() {
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+    if (newStatus === "completed") {
+      toast.success("✓ Урок проведено", {
+        description: streak?.current_streak
+          ? `🔥 ${streak.current_streak} днів поспіль!`
+          : "Чудово!",
+        duration: 3000,
+      });
+      gamification.refresh();
+    }
   };
 
   const updatePayment = async (
