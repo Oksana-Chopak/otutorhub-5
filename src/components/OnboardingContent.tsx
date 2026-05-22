@@ -436,6 +436,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     return ids;
   }, [progress]);
 
+  useEffect(() => {
+    if (progressLoading) return;
+    const prev = prevCompletedIdsRef.current;
+    if (prev === null) {
+      // First load — don't celebrate pre-existing completions
+      prevCompletedIdsRef.current = new Set(autoCompletedIds);
+      return;
+    }
+    const newlyDone = [...autoCompletedIds].find((id) => !prev.has(id));
+    if (newlyDone !== undefined) {
+      const justCompleted = steps.find((s) => s.id === newlyDone);
+      if (justCompleted) {
+        const totalAuto = steps.filter((s) => s.autoKey).length;
+        const isFinal = autoCompletedIds.size === totalAuto;
+        setVictoryStep({
+          emoji: justCompleted.emoji,
+          title: justCompleted.title,
+          xp: justCompleted.xp,
+          isFinal,
+        });
+      }
+    }
+    prevCompletedIdsRef.current = new Set(autoCompletedIds);
+  }, [autoCompletedIds, progressLoading]);
+
+
   const savedStep = settings?.onboarding_step ?? 1;
   const completed = settings?.onboarding_completed ?? false;
   const totalDone = completed
