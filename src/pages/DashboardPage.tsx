@@ -772,10 +772,15 @@ export default function DashboardPage() {
               </>
             )}
             {isTutor && !isManager && (
-              <Button size="sm" onClick={() => setQuickLessonOpen(true)}>
-                <Plus className="h-4 w-4" />
-                {t("dashboard.btnCreateLesson")}
-              </Button>
+              <QuickActionsFab
+                onChanged={loadData}
+                trigger={
+                  <Button size="sm" className="gap-1.5" aria-label={t("quickActions.title")}>
+                    <Plus className="h-4 w-4" />
+                    <span>Дія</span>
+                  </Button>
+                }
+              />
             )}
             {isStudent && !isTutor && !isManager && (
               <FindTutorDialog
