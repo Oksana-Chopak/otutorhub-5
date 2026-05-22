@@ -282,27 +282,24 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Input
-                      value={newSubject}
-                      onChange={(e) => setNewSubject(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          addCustomSubject();
+                    <SubjectComboBox
+                      value=""
+                      onChange={(picked) => {
+                        const trimmed = picked.trim();
+                        if (!trimmed) return;
+                        if (trimmed.length > 60) {
+                          toast.error(t("profile.subjectNameTooLong"));
+                          return;
                         }
+                        if (subjects.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
+                          toast.info(t("profile.subjectAlreadyExists"));
+                          return;
+                        }
+                        setSubjects((prev) => [...prev, trimmed]);
+                        setNewSubject("");
                       }}
-                      placeholder={t("profile.customSubjectPlaceholder")}
-                      maxLength={60}
+                      className="flex-1"
                     />
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={addCustomSubject}
-                      disabled={!newSubject.trim()}
-                    >
-                      <Plus className="mr-1 h-4 w-4" />
-                      {t("profile.addBtn")}
-                    </Button>
                   </div>
 
                   {customSubjects.length > 0 && (
