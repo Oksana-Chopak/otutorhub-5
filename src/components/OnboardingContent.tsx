@@ -772,6 +772,18 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                           {step.cta}
                           <ArrowRight className="ml-1 h-3 w-3" />
                         </Button>
+                      ) : step.id === 10 ? (
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className="rounded-full hover:scale-105 transition-transform"
+                          onClick={connectGoogleCalendar}
+                          disabled={connectingCalendar}
+                        >
+                          {connectingCalendar && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
+                          {step.cta}
+                          {!connectingCalendar && <ArrowRight className="ml-1 h-3 w-3" />}
+                        </Button>
                       ) : (
                         <Button
                           asChild
