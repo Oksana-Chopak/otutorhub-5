@@ -82,6 +82,8 @@ export function QuickLessonDialog({
   );
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [groupId, setGroupId] = useState<string>("");
+  const [addStudentOpen, setAddStudentOpen] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   useEffect(() => {
     if (!open || !user) return;
