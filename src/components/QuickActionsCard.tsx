@@ -498,7 +498,7 @@ function AddStudentForm({
         )}
         <div className="space-y-1">
           <Label className="text-xs">{t("quickActionsCard.subjectLabel")}</Label>
-          <SubjectSelect value={subject} onValueChange={setSubject} />
+          <SubjectComboBox value={subject} onChange={setSubject} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
