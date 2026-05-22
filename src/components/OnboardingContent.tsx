@@ -243,6 +243,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [progressReloadKey, setProgressReloadKey] = useState(0);
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [subjectDraft, setSubjectDraft] = useState("");
+  const [savingSubject, setSavingSubject] = useState(false);
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
