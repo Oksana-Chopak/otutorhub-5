@@ -131,7 +131,8 @@ export function LessonCard({
     <div className={cn("space-y-0", className)}>
       <div
         className={cn(
-          "relative flex flex-col gap-3 rounded-xl border border-l-4 bg-card transition-colors",
+          "relative flex flex-col gap-3 rounded-xl border border-l-4 bg-card transition-transform duration-300",
+          justCompleted && "scale-[1.02] animate-pulse",
           borderLeft,
           isNow && "bg-success/5 border-success/40 border-l-success",
           isPast && !isNow && "opacity-80",
