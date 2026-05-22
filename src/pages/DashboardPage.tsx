@@ -228,8 +228,9 @@ export default function DashboardPage() {
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
 
-  // Gamification: badge unlock toasts + referral nudge counters
-  const { badges, loading: gamificationLoading } = useTutorGamification();
+  // Gamification: badge unlock toasts + streak card + referral nudge counters
+  const gamification = useTutorGamification();
+  const { badges, loading: gamificationLoading, streak } = gamification;
   useBadgeUnlockToasts(badges, gamificationLoading);
   const [referralInvitedCount, setReferralInvitedCount] = useState(0);
   useEffect(() => {
