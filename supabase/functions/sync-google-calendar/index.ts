@@ -116,9 +116,17 @@ Deno.serve(async (req) => {
     .eq("id", lessonId)
     .maybeSingle();
 
-  if (lessonErr || !lesson) {
-    return new Response(JSON.stringify({ error: "lesson not found" }), {
-      status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  if (lessonErr) {
+    console.error("lesson lookup failed", lessonErr);
+    return new Response(JSON.stringify({ error: "lesson lookup failed" }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+  if (!lesson) {
+    // Lesson no longer exists (already deleted, or invoked before commit).
+    // Treat as a successful no-op so the client doesn't surface this as a failure.
+    return new Response(JSON.stringify({ ok: true, skipped: "lesson_not_found" }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
