@@ -868,6 +868,40 @@ export default function DashboardPage() {
           {isIndependentTutor && streak && streak.current_streak > 0 && (
             <StreakCard streak={streak} />
           )}
+          {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (
+            <div className="flex items-start justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                  <HandHeart className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">Ви ще не запросили учня</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Запросіть першого учня — це займе хвилину, а ваш простір одразу оживе.
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    <Button size="sm" onClick={() => setAddStudentOpen(true)}>
+                      Запросити зараз
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 shrink-0"
+                aria-label="Прибрати нагадування"
+                onClick={() => {
+                  localStorage.removeItem(`pending_invite_reminder_${user.id}`);
+                  // Force re-render via state bump
+                  setAddStudentOpen((v) => v);
+                  loadData();
+                }}
+              >
+                ×
+              </Button>
+            </div>
+          )}
           {isTutor && !isManager && (
             <div className="mt-4">
               <PendingPaymentsCard />
