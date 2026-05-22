@@ -1703,6 +1703,11 @@ export const sv: Partial<Translations> = {
     rateCta: "Öppna profil",
     doneAll: "Allt klart! 🎉",
     doneAllDesc: "Din arbetsyta är redo att använda.",
+    subjectTitle: "Välj ditt ämne",
+    subjectDesc: "Berätta vad du undervisar — tar 10 sekunder",
+    subjectCta: "Välj ämne",
+    subjectHint: "Ämne valt ✓",
+    cancelRulesTitle: "Avbokningsregler",
   },
   globalChat: {
     newMessage: "Nytt meddelande",
