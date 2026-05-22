@@ -2458,6 +2458,14 @@ export const en: Translations = {
     popular: "Popular",
     addCustom: "Add \"{{subject}}\"",
   },
+  currencyComboBox: {
+    selectCurrency: "Select currency",
+    searchCurrency: "Search currency...",
+    addCustomCurrency: "Add currency \"{{code}}\"",
+    customCurrencyInvalid: "Enter a 2–6 letter code (e.g. CZK)",
+    customCurrencies: "Other currencies",
+    commonCurrencies: "Common currencies",
+  },
   legal: {
     terms: "Terms of Service",
     privacy: "Privacy Policy",
