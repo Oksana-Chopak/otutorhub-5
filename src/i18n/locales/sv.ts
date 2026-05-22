@@ -2465,7 +2465,6 @@ export const sv: Partial<Translations> = {
     allClear: "Allt under kontroll 🎉",
     allClearDesc: "Inga brådskande uppgifter. Dags att planera nästa vecka.",
   },
-,
 
   authExtra: {
     nameRequired: "Ange ditt förnamn",
