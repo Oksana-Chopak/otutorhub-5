@@ -30,6 +30,8 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
+import { StreakCard } from "@/components/StreakCard";
+import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
