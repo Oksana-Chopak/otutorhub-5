@@ -22,6 +22,7 @@ import {
   BellRing,
   CheckSquare,
   CalendarCheck,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
