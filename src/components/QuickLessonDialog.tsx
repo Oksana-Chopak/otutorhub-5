@@ -321,9 +321,15 @@ export function QuickLessonDialog({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : students.length === 0 && groups.length === 0 ? (
-          <p className="py-4 text-sm text-muted-foreground">
-            Спершу додайте учня в розділі «Мої учні» або створіть групу.
-          </p>
+          <div className="space-y-3 py-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              Спочатку додайте першого учня, щоб створити урок
+            </p>
+            <Button size="sm" onClick={() => setAddStudentOpen(true)}>
+              <Plus className="mr-1 h-3.5 w-3.5" />
+              Додати учня
+            </Button>
+          </div>
         ) : (
           <div className="space-y-3">
             {/* Type toggle */}
