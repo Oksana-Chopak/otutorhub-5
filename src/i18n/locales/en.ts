@@ -1025,10 +1025,10 @@ export const en: Translations = {
   },
 
   tutorWelcome: {
-    questTitle: "🎯 Your quest: set up your workspace",
+    questTitle: "🎯 My achievements: set up your workspace",
     level: "Level {{step}}/{{total}}",
     progress: "{{pct}}% done",
-    continueBtn: "Continue quest",
+    continueBtn: "Continue",
     hide: "Hide",
     hideAria: "Hide banner",
   },
@@ -1823,7 +1823,7 @@ export const en: Translations = {
     hubOnly: "I work only with hub students",
     whatThisMeans: "What does this mean?",
     questLevel: "🏆 Level {{count}}",
-    questDone: "🎉 Quest completed!",
+    questDone: "🎉 All achievements unlocked!",
     closeBtn: "Close",
     finishBtn: "Finish onboarding",
   },

@@ -1016,10 +1016,10 @@ export const sv: Partial<Translations> = {
   },
 
   tutorWelcome: {
-    questTitle: "🎯 Ditt uppdrag: konfigurera din arbetsyta",
+    questTitle: "🎯 Mina prestationer: konfigurera din arbetsyta",
     level: "Nivå {{step}}/{{total}}",
     progress: "{{pct}}% klart",
-    continueBtn: "Fortsätt uppdraget",
+    continueBtn: "Fortsätt",
     hide: "Dölj",
     hideAria: "Dölj banner",
   },
@@ -1814,7 +1814,7 @@ export const sv: Partial<Translations> = {
     hubOnly: "Jag arbetar bara med hubbelever",
     whatThisMeans: "Vad betyder detta?",
     questLevel: "🏆 Nivå {{count}}",
-    questDone: "🎉 Uppdrag slutfört!",
+    questDone: "🎉 Alla prestationer klara!",
     closeBtn: "Stäng",
     finishBtn: "Avsluta onboarding",
   },

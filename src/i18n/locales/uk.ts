@@ -1032,10 +1032,10 @@ export const uk = {
   },
 
   tutorWelcome: {
-    questTitle: "🎯 Ваш квест: налаштувати простір",
+    questTitle: "🎯 Мої досягнення: налаштувати простір",
     level: "Рівень {{step}}/{{total}}",
     progress: "{{pct}}% готово",
-    continueBtn: "Продовжити квест",
+    continueBtn: "Продовжити",
     hide: "Сховати",
     hideAria: "Сховати банер",
   },
@@ -1831,7 +1831,7 @@ export const uk = {
     hubOnly: "Я працюю лише з учнями хабу",
     whatThisMeans: "Що це означає?",
     questLevel: "🏆 Рівень {{count}}",
-    questDone: "🎉 Квест завершено!",
+    questDone: "🎉 Готово! Усі досягнення виконано",
     closeBtn: "Закрити",
     finishBtn: "Завершити онбординг",
   },
