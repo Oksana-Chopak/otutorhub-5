@@ -1,4 +1,4 @@
-import { NavLink as RouterNavLink } from "react-router-dom";
+import { NavLink as RouterNavLink, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
