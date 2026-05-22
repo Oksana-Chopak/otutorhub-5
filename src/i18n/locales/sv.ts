@@ -2442,6 +2442,13 @@ export const sv: Partial<Translations> = {
     polish: "Polska",
     german: "Tyska",
   },
+  subjectComboBox: {
+    selectPlaceholder: "Välj eller skriv ett ämne",
+    searchPlaceholder: "Sök ämne...",
+    noResults: "Inget hittat",
+    popular: "Populära",
+    addCustom: "Lägg till \"{{subject}}\"",
+  },
   legal: {
     terms: "Användarvillkor",
     privacy: "Integritetspolicy",

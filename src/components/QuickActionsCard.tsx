@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SubjectSelect } from "@/components/SubjectSelect";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import {
   Select,
   SelectContent,
@@ -498,7 +498,7 @@ function AddStudentForm({
         )}
         <div className="space-y-1">
           <Label className="text-xs">{t("quickActionsCard.subjectLabel")}</Label>
-          <SubjectSelect value={subject} onValueChange={setSubject} />
+          <SubjectComboBox value={subject} onChange={setSubject} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">

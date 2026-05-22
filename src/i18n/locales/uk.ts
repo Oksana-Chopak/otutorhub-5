@@ -2459,6 +2459,13 @@ export const uk = {
     polish: "Польська мова",
     german: "Німецька мова",
   },
+  subjectComboBox: {
+    selectPlaceholder: "Оберіть або введіть предмет",
+    searchPlaceholder: "Пошук предмету...",
+    noResults: "Нічого не знайдено",
+    popular: "Популярні",
+    addCustom: "Додати «{{subject}}»",
+  },
   legal: {
     terms: "Договір оферти",
     privacy: "Політика конфіденційності",

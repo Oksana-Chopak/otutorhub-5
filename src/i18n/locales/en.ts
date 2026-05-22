@@ -2451,6 +2451,13 @@ export const en: Translations = {
     polish: "Polish",
     german: "German",
   },
+  subjectComboBox: {
+    selectPlaceholder: "Select or type a subject",
+    searchPlaceholder: "Search subjects...",
+    noResults: "Nothing found",
+    popular: "Popular",
+    addCustom: "Add \"{{subject}}\"",
+  },
   legal: {
     terms: "Terms of Service",
     privacy: "Privacy Policy",

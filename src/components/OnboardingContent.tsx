@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -243,6 +244,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [progressReloadKey, setProgressReloadKey] = useState(0);
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
+  const [subjectDraft, setSubjectDraft] = useState("");
+  const [savingSubject, setSavingSubject] = useState(false);
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
@@ -460,6 +463,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     await updateSettings({ onboarding_step: next });
   };
 
+  const saveSubject = async () => {
+    if (!user || !subjectDraft.trim()) return;
+    setSavingSubject(true);
+    const { data: existing } = await supabase
+      .from("tutor_details")
+      .select("subjects")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const current = (existing?.subjects as string[] | null) ?? [];
+    const trimmed = subjectDraft.trim();
+    const merged = current.some((s) => s.toLowerCase() === trimmed.toLowerCase())
+      ? current
+      : [...current, trimmed];
+    const { error } = await supabase
+      .from("tutor_details")
+      .upsert({ user_id: user.id, subjects: merged }, { onConflict: "user_id" });
+    setSavingSubject(false);
+    if (error) {
+      console.error(error);
+      return;
+    }
+    setSubjectDraft("");
+    setProgress((p) => ({ ...p, hasSubject: true }));
+    setProgressReloadKey((k) => k + 1);
+  };
+
   const finishOnboarding = async () => {
     setDismissing(true);
     await updateSettings({ onboarding_completed: true });
@@ -647,7 +676,24 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                   <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                   {!isDone && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {step.action === "addStudent" ? (
+                      {step.id === 0 ? (
+                        <div className="flex w-full flex-col gap-2 sm:flex-row">
+                          <SubjectComboBox
+                            value={subjectDraft}
+                            onChange={setSubjectDraft}
+                            className="flex-1"
+                          />
+                          <Button
+                            size="default"
+                            disabled={!subjectDraft.trim() || savingSubject}
+                            onClick={saveSubject}
+                            className="rounded-full"
+                          >
+                            {savingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Зберегти предмет
+                          </Button>
+                        </div>
+                      ) : step.action === "addStudent" ? (
                         <Button
                           size="sm"
                           variant={isCurrent ? "default" : "outline"}
