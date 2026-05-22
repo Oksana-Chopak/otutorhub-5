@@ -12,6 +12,8 @@ import { ReactNode } from "react";
 import { LucideIcon, Users, CalendarDays, Wallet, MessageSquare, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface EmptyStateProps {
   icon?: LucideIcon;
