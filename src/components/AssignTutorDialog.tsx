@@ -259,7 +259,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
           <div>
             <Label className="text-xs">{t("assignTutorExtra.subjectLabel")}</Label>
-            <SubjectSelect value={subject} onValueChange={(name) => setSubject(name)} />
+            <SubjectComboBox value={subject} onChange={(name) => setSubject(name)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
