@@ -541,9 +541,6 @@ export default function SubscriptionPage() {
           </Card>
         </div>
 
-        <div className="mt-6">
-          <ProRulesCard />
-        </div>
 
         {/* Alternative payment via manager — placed below pricing as a fallback */}
         {!isActive && (() => {
