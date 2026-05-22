@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
+import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -246,6 +247,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [demoNotice, setDemoNotice] = useState<string | null>(null);
   const [subjectDraft, setSubjectDraft] = useState("");
   const [savingSubject, setSavingSubject] = useState(false);
+  const [victoryStep, setVictoryStep] = useState<{ emoji: string; title: string; xp: number; isFinal: boolean } | null>(null);
+  const prevCompletedIdsRef = useRef<Set<number> | null>(null);
 
   // Auto-import demo data captured on the landing page (LandingTryDemo).
   useEffect(() => {
@@ -432,6 +435,32 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
     });
     return ids;
   }, [progress]);
+
+  useEffect(() => {
+    if (progressLoading) return;
+    const prev = prevCompletedIdsRef.current;
+    if (prev === null) {
+      // First load — don't celebrate pre-existing completions
+      prevCompletedIdsRef.current = new Set(autoCompletedIds);
+      return;
+    }
+    const newlyDone = [...autoCompletedIds].find((id) => !prev.has(id));
+    if (newlyDone !== undefined) {
+      const justCompleted = steps.find((s) => s.id === newlyDone);
+      if (justCompleted) {
+        const totalAuto = steps.filter((s) => s.autoKey).length;
+        const isFinal = autoCompletedIds.size === totalAuto;
+        setVictoryStep({
+          emoji: justCompleted.emoji,
+          title: justCompleted.title,
+          xp: justCompleted.xp,
+          isFinal,
+        });
+      }
+    }
+    prevCompletedIdsRef.current = new Set(autoCompletedIds);
+  }, [autoCompletedIds, progressLoading]);
+
 
   const savedStep = settings?.onboarding_step ?? 1;
   const completed = settings?.onboarding_completed ?? false;
@@ -760,6 +789,16 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         onOpenChange={setAddStudentOpen}
         onCreated={() => setProgressReloadKey((k) => k + 1)}
       />
+
+      {victoryStep && (
+        <StepVictoryOverlay
+          emoji={victoryStep.emoji}
+          title={victoryStep.title}
+          xp={victoryStep.xp}
+          isFinal={victoryStep.isFinal}
+          onDone={() => setVictoryStep(null)}
+        />
+      )}
     </div>
   );
 }
