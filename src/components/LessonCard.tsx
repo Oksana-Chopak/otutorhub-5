@@ -104,6 +104,19 @@ export function LessonCard({
   const isCancelled = lesson.status === "cancelled";
   const href = useMemo(() => (meetingUrl ? safeHref(meetingUrl) : null), [meetingUrl]);
 
+  // Brief micro-victory pulse when a lesson flips to "completed"
+  const [justCompleted, setJustCompleted] = useState(false);
+  const prevStatusRef = useRef(lesson.status);
+  useEffect(() => {
+    if (prevStatusRef.current !== "completed" && lesson.status === "completed") {
+      setJustCompleted(true);
+      const id = window.setTimeout(() => setJustCompleted(false), 600);
+      prevStatusRef.current = lesson.status;
+      return () => window.clearTimeout(id);
+    }
+    prevStatusRef.current = lesson.status;
+  }, [lesson.status]);
+
   // Single structural left border only. Payment/source state is shown in explicit labels,
   // not as an unexplained orange vertical stripe.
   const borderLeft = isCancelled
