@@ -789,6 +789,16 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         onOpenChange={setAddStudentOpen}
         onCreated={() => setProgressReloadKey((k) => k + 1)}
       />
+
+      {victoryStep && (
+        <StepVictoryOverlay
+          emoji={victoryStep.emoji}
+          title={victoryStep.title}
+          xp={victoryStep.xp}
+          isFinal={victoryStep.isFinal}
+          onDone={() => setVictoryStep(null)}
+        />
+      )}
     </div>
   );
 }
