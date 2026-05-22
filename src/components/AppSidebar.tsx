@@ -205,7 +205,7 @@ export function AppSidebar() {
               type="button"
               onClick={() => {
                 setOpen(false);
-                setOnboardingOpen(true);
+                navigate("/onboarding");
               }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
             >
