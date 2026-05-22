@@ -178,7 +178,7 @@ export function QuickLessonDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, user?.id, initialStudentId]);
+  }, [open, user?.id, initialStudentId, reloadTrigger]);
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === groupId) ?? null,
