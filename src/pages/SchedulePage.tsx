@@ -851,7 +851,7 @@ export default function SchedulePage() {
   const showAvailabilityTab = isManager || isTutor;
   const availabilityBadge = useAvailabilityRequestCount();
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = searchParams.get("tab") === "availability" && showAvailabilityTab ? "availability" : "lessons";
+  const activeTab: "lessons" = "lessons";
   const setTab = (t: "lessons" | "availability") => {
     const next = new URLSearchParams(searchParams);
     if (t === "lessons") next.delete("tab");
