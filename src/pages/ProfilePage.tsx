@@ -20,6 +20,7 @@ import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
