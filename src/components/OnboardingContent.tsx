@@ -523,7 +523,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Виконайте квести — отримайте XP і налаштуйте простір.
+              Виконайте свої досягнення — отримайте XP і налаштуйте простір.
             </p>
           </div>
           <div className="flex items-center gap-2">
