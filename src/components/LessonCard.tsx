@@ -1,4 +1,4 @@
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, Video, Users2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
