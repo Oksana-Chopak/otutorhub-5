@@ -620,9 +620,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
       {demoNotice && (
         <div className="mb-4 rounded-2xl border-2 border-primary/30 bg-primary/5 p-4">
-          <p className="text-sm text-foreground">
-            Ми вже зберегли <span className="font-bold">{demoNotice}</span> — продовжуй з наступного кроку 🎉
-          </p>
+          <p
+            className="text-sm text-foreground"
+            dangerouslySetInnerHTML={{ __html: t("onboardingExtra.demoSaved", { name: demoNotice }) }}
+          />
         </div>
       )}
 
