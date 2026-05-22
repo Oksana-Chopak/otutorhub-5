@@ -2496,5 +2496,3 @@ export const sv: Partial<Translations> = {
   },
 
 };
-
-};
