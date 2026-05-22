@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { CurrencyComboBox } from "@/components/CurrencyComboBox";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
