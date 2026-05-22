@@ -28,8 +28,7 @@ import { cn } from "@/lib/utils";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface Step {
   id: number;
@@ -60,7 +59,10 @@ export interface StepProgress {
   hasGoogleCalendar: boolean;
 }
 
-const steps: Step[] = [
+type TFn = (key: string, opts?: any) => string;
+
+function buildSteps(t: TFn): Step[] {
+  return [
   {
     id: 0,
     title: t("onboardingContent.subjectTitle"),
@@ -101,8 +103,7 @@ const steps: Step[] = [
   {
     id: 3,
     title: t("onboardingExtra.availabilityTitle"),
-    description:
-      t("onboardingExtra.availabilityDesc"),
+    description: t("onboardingExtra.availabilityDesc"),
     cta: t("onboardingExtra.availabilityCta"),
     to: "/availability",
     icon: Clock,
@@ -114,8 +115,7 @@ const steps: Step[] = [
   {
     id: 4,
     title: t("onboardingExtra.referralTitle"),
-    description:
-      t("onboardingExtra.referralDesc"),
+    description: t("onboardingExtra.referralDesc"),
     cta: t("onboardingExtra.referralCta"),
     to: "/referrals",
     icon: Gift,
@@ -128,8 +128,7 @@ const steps: Step[] = [
   {
     id: 5,
     title: t("onboardingExtra.proRulesTitle"),
-    description:
-      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
+    description: t("onboardingExtra.proRulesLongDesc"),
     cta: t("onboardingExtra.proRulesCta"),
     to: "/profile",
     icon: BellRing,
@@ -142,8 +141,7 @@ const steps: Step[] = [
   {
     id: 6,
     title: t("onboardingExtra.autoMarkTitle"),
-    description:
-      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
+    description: t("onboardingExtra.autoMarkLongDesc"),
     cta: t("onboardingExtra.autoMarkCta"),
     to: "/profile",
     icon: CheckSquare,
@@ -155,8 +153,7 @@ const steps: Step[] = [
   {
     id: 7,
     title: t("onboardingExtra.zoomTitle"),
-    description:
-      "Відкрийте картку учня → «Редагувати» і вставте постійне посилання на Zoom або Meet. Учень підключатиметься одним кліком з кожного уроку.",
+    description: t("onboardingExtra.zoomLongDesc"),
     cta: t("onboardingExtra.zoomCta"),
     to: "/my-students",
     action: "addStudent",
@@ -167,7 +164,7 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.zoomHint"),
   },
   {
-    id: 4,
+    id: 8,
     title: t("onboardingExtra.chatTitle"),
     description: t("onboardingExtra.chatDesc"),
     cta: t("onboardingExtra.chatCta"),
@@ -179,7 +176,7 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.chatHint"),
   },
   {
-    id: 5,
+    id: 9,
     title: t("onboardingExtra.financeMarkTitle"),
     description: t("onboardingExtra.financeMarkDesc"),
     cta: t("onboardingContent.financeCta"),
@@ -191,63 +188,9 @@ const steps: Step[] = [
     autoHint: t("onboardingExtra.financeMarkHint"),
   },
   {
-    id: 6,
-    title: t("onboardingExtra.availabilityTitle"),
-    description: t("onboardingExtra.availabilityDesc"),
-    cta: t("onboardingExtra.availabilityCta"),
-    to: "/availability",
-    icon: Clock,
-    emoji: "🕐",
-    xp: 75,
-    autoKey: "hasAvailability",
-    autoHint: t("onboardingExtra.availabilityHint"),
-  },
-  {
-    id: 7,
-    title: t("onboardingExtra.autoMarkTitle"),
-    description:
-      "Оберіть зручний для вас режим: автоматично через 1 годину після завершення — або вручну після кожного уроку. Перемикач — у Профілі.",
-    cta: t("onboardingExtra.autoMarkCta"),
-    to: "/profile",
-    icon: CheckSquare,
-    emoji: "✅",
-    xp: 50,
-    autoKey: "hasAutoCompleteChoice",
-    autoHint: t("onboardingExtra.autoMarkHint"),
-  },
-  {
-    id: 8,
-    title: t("onboardingContent.cancelRulesTitle"),
-    description:
-      "Оберіть, коли учень отримує нагадування про оплату — передоплата, до уроку чи після. І чи стягувати % за пізнє скасування. Налаштування — у Профілі.",
-    cta: t("onboardingExtra.proRulesCta"),
-    to: "/profile",
-    icon: BellRing,
-    emoji: "🔔",
-    xp: 75,
-    badge: "Pro",
-    autoKey: "hasPaymentRules",
-    autoHint: t("onboardingExtra.proRulesHint"),
-  },
-  {
-    id: 9,
-    title: t("onboardingExtra.referralTitle"),
-    description:
-      "Поділись посиланням з іншим репетитором — він отримає 21 день тріалу, а ти — місяць безкоштовно коли він підпишеться.",
-    cta: t("onboardingExtra.referralCta"),
-    to: "/referrals",
-    icon: Gift,
-    emoji: "🎁",
-    xp: 100,
-    badge: t("onboardingExtra.referralBadge"),
-    autoKey: "hasReferral",
-    autoHint: t("onboardingExtra.referralHint"),
-  },
-  {
     id: 10,
     title: t("onboardingExtra.calendarTitle"),
-    description:
-      "Уроки автоматично синхронізуються у ваш Google Календар — і для вас, і для учнів, які підключать свій акаунт.",
+    description: t("onboardingExtra.calendarLongDesc"),
     cta: t("onboardingExtra.calendarCta"),
     to: "/profile",
     icon: CalendarCheck,
@@ -267,7 +210,9 @@ const steps: Step[] = [
     xp: 150,
     badge: t("onboardingExtra.aiSoonBadge"),
   },
-];
+  ];
+}
+
 
 interface OnboardingContentProps {
   /** When set, link clicks will call this (e.g. close a containing modal) before navigating */
@@ -277,6 +222,8 @@ interface OnboardingContentProps {
 }
 
 export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentProps) {
+  const { t } = useTranslation();
+  const steps = useMemo(() => buildSteps(t), [t]);
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const { settings, loading, updateSettings, isIndependent } = useWorkspaceSettings();
@@ -609,8 +556,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             </div>
             <CardTitle>{t("onboardingExtra.activateWorkspace")}</CardTitle>
             <CardDescription>
-              Ведіть своїх власних учнів — окремо від хабу. Ставте ціни самі, отримуйте оплати напряму.
-              До 5 учнів — безкоштовно, далі 145 ₴/міс.
+              {t("onboardingExtra.workspaceDesc")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -621,7 +567,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             </ul>
             <Button onClick={enableIndependent} disabled={activatingIndependent} className="w-full">
               {activatingIndependent ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Активувати робочий простір
+              {t("onboardingExtra.activateBtn")}
             </Button>
             <Button variant="ghost" className="w-full" onClick={handleNav} asChild>
               <Link to="/">{t("onboardingExtra.hubOnly")}</Link>
@@ -629,8 +575,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <div className="rounded-lg bg-muted/50 p-3 text-sm">
               <p className="font-medium text-foreground">{t("onboardingExtra.whatThisMeans")}</p>
               <p className="mt-1 text-muted-foreground">
-                Ви працюєте лише з учнями, яких призначає менеджер школи. У вас немає власних учнів — розклад,
-                оплата та комунікація проходять через хаб. Підписка не потрібна.
+                {t("onboardingExtra.hubOnlyDesc")}
               </p>
             </div>
           </CardContent>
@@ -649,10 +594,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Ласкаво просимо! <span className="inline-block animate-wiggle-slow">👋</span>
+              {t("onboardingExtra.welcomeTitle")} <span className="inline-block animate-wiggle-slow">👋</span>
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Виконайте свої досягнення — отримайте XP і налаштуйте простір.
+              {t("onboardingExtra.welcomeSubtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -675,9 +620,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
       {demoNotice && (
         <div className="mb-4 rounded-2xl border-2 border-primary/30 bg-primary/5 p-4">
-          <p className="text-sm text-foreground">
-            Ми вже зберегли <span className="font-bold">{demoNotice}</span> — продовжуй з наступного кроку 🎉
-          </p>
+          <p
+            className="text-sm text-foreground"
+            dangerouslySetInnerHTML={{ __html: t("onboardingExtra.demoSaved", { name: demoNotice }) }}
+          />
         </div>
       )}
 
@@ -690,7 +636,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
             <div className="flex-1">
               <p className="font-display text-base font-bold text-foreground">{t("onboardingExtra.questDone")}</p>
               <p className="text-xs text-muted-foreground">
-                Ваш робочий простір готовий. Можете повертатись сюди з розділу «Допомога».
+                {t("onboardingExtra.workspaceReady")}
               </p>
             </div>
             <Button
@@ -701,7 +647,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               }}
               className="rounded-full"
             >
-              На дашборд
+              {t("onboardingExtra.goToDashboard")}
             </Button>
           </div>
         </div>
@@ -773,7 +719,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                             className="rounded-full"
                           >
                             {savingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Зберегти предмет
+                            {t("onboardingExtra.saveSubject")}
                           </Button>
                         </div>
                       ) : step.action === "addStudent" ? (
@@ -802,7 +748,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                       )}
                       {isCurrent && step.autoKey && (
                         <Button size="sm" variant="ghost" className="rounded-full" onClick={() => skipStep(step.id)}>
-                          Пропустити
+                          {t("onboardingExtra.skip")}
                         </Button>
                       )}
                       {isCurrent && step.action === "addStudent" && user && (
@@ -819,7 +765,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                             skipStep(step.id);
                           }}
                         >
-                          Нагадати пізніше
+                          {t("onboardingExtra.remindLater")}
                         </Button>
                       )}
                     </div>
