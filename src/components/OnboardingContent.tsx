@@ -676,7 +676,24 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                   <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
                   {!isDone && (
                     <div className="mt-3 flex flex-wrap gap-2">
-                      {step.action === "addStudent" ? (
+                      {step.id === 0 ? (
+                        <div className="flex w-full flex-col gap-2 sm:flex-row">
+                          <SubjectComboBox
+                            value={subjectDraft}
+                            onChange={setSubjectDraft}
+                            className="flex-1"
+                          />
+                          <Button
+                            size="default"
+                            disabled={!subjectDraft.trim() || savingSubject}
+                            onClick={saveSubject}
+                            className="rounded-full"
+                          >
+                            {savingSubject && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Зберегти предмет
+                          </Button>
+                        </div>
+                      ) : step.action === "addStudent" ? (
                         <Button
                           size="sm"
                           variant={isCurrent ? "default" : "outline"}
