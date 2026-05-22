@@ -1720,6 +1720,11 @@ export const uk = {
     rateCta: "Відкрити профіль",
     doneAll: "Все налаштовано! 🎉",
     doneAllDesc: "Ваш кабінет готовий до роботи.",
+    subjectTitle: "Оберіть свій предмет",
+    subjectDesc: "Вкажіть що ви викладаєте — це займе 10 секунд",
+    subjectCta: "Обрати предмет",
+    subjectHint: "Предмет обрано ✓",
+    cancelRulesTitle: "Правила скасування уроків",
   },
   globalChat: {
     newMessage: "Нове повідомлення",
