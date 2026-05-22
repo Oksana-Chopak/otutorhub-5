@@ -659,6 +659,23 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                           Пропустити
                         </Button>
                       )}
+                      {isCurrent && step.action === "addStudent" && user && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="rounded-full text-muted-foreground"
+                          onClick={() => {
+                            localStorage.setItem(
+                              `invite_reminder_dismissed_${user.id}`,
+                              new Date().toISOString()
+                            );
+                            localStorage.setItem(`pending_invite_reminder_${user.id}`, "1");
+                            skipStep(step.id);
+                          }}
+                        >
+                          Нагадати пізніше
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
