@@ -311,6 +311,7 @@ export const uk = {
 
   // Auth
   auth: {
+    emailConfirmedBanner: "Email підтверджено! Увійдіть, щоб продовжити 🎉",
     login: "Увійти",
     signup: "Зареєструватися",
     loginTitle: "Вхід в oTutorHub",
@@ -415,6 +416,7 @@ export const uk = {
 
   // Schedule
   schedule: {
+    addStudentFirst: "Спочатку додайте учня",
     title: "Розклад",
     weekView: "Тиждень",
     listView: "Список",
@@ -1732,6 +1734,12 @@ export const uk = {
   },
 
   quickActionsCard: {
+    nameLabel: "Ім'я",
+    addBtn: "Додати",
+    saveBtn: "Зберегти",
+    emptyStartHint: "Додайте першого учня щоб почати 👋",
+    amountSumLabel: "Сума оплати ({{symbol}})",
+    lessonPriceInline: "Ціна за урок: {{price}}",
     noName: "Без імені",
     tutorFallback: "Репетитор",
     studentFallback: "Учень",

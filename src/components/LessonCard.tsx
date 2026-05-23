@@ -188,7 +188,7 @@ export function LessonCard({
             {lesson.subject}
           </div>
           {showTutor && tutorName && (
-            <div className="mt-0.5 truncate text-xs text-muted-foreground">
+            <div className="mt-0.5 truncate text-sm text-muted-foreground">
               {t("lessonCard.tutor")}<span className="text-foreground">{tutorName}</span>
             </div>
           )}

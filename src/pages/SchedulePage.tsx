@@ -580,7 +580,7 @@ export default function SchedulePage() {
     if (!user) return;
 
     if (isIndependentTutor && students.length === 0) {
-      toast.error("Спочатку додайте учня");
+      toast.error(t("schedule.addStudentFirst"));
       return;
     }
 
@@ -598,7 +598,7 @@ export default function SchedulePage() {
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       if (errors.student_id && !form.student_id) {
-        toast.error("Оберіть учня");
+        toast.error(t("schedule.selectStudent"));
       } else {
         toast.error(t('common.fillRequired'));
       }
@@ -679,7 +679,7 @@ export default function SchedulePage() {
     if (error) {
       console.error("Failed to create lesson", error);
       if (isIndependentTutor && students.length === 0) {
-        toast.error("Спочатку додайте учня");
+        toast.error(t("schedule.addStudentFirst"));
       } else {
         toast.error(t('schedule.createFailed'));
       }

@@ -297,9 +297,9 @@ export default function AuthPage() {
               </div>
             )}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup">{t("auth.tabSignUp")}</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg h-11">
+                <TabsTrigger value="signin" className="h-9">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="h-9">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
@@ -329,7 +329,7 @@ export default function AuthPage() {
               <TabsContent value="signin">
                 {confirmedNotice && (
                   <div className="mb-4 rounded-md border border-primary/30 bg-primary/10 p-3 text-sm">
-                    Email підтверджено! Увійдіть, щоб продовжити 🎉
+                    {t("auth.emailConfirmedBanner")}
                   </div>
                 )}
                 <form onSubmit={handleSignIn} className="space-y-4">

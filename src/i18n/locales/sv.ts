@@ -85,6 +85,7 @@ export const sv: Partial<Translations> = {
     toggle: "Växla tema",
   },
   auth: {
+    emailConfirmedBanner: "E-post bekräftad! Logga in för att fortsätta 🎉",
     login: "Logga in",
     signup: "Registrera",
     loginTitle: "Logga in på oTutorHub",
@@ -185,6 +186,7 @@ export const sv: Partial<Translations> = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    addStudentFirst: "Lägg till en elev först",
     title: "Schema",
     weekView: "Vecka",
     listView: "Lista",
@@ -1715,6 +1717,12 @@ export const sv: Partial<Translations> = {
   },
 
   quickActionsCard: {
+    nameLabel: "Namn",
+    addBtn: "Lägg till",
+    saveBtn: "Spara",
+    emptyStartHint: "Lägg till din första elev för att börja 👋",
+    amountSumLabel: "Betalningsbelopp ({{symbol}})",
+    lessonPriceInline: "Lektionspris: {{price}}",
     noName: "Okänt",
     tutorFallback: "Lärare",
     studentFallback: "Elev",

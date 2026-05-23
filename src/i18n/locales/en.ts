@@ -309,6 +309,7 @@ export const en: Translations = {
   },
 
   auth: {
+    emailConfirmedBanner: "Email confirmed! Sign in to continue 🎉",
     login: "Sign in",
     signup: "Sign up",
     loginTitle: "Sign in to oTutorHub",
@@ -411,6 +412,7 @@ export const en: Translations = {
   },
 
   schedule: {
+    addStudentFirst: "First add a student",
     title: "Schedule",
     weekView: "Week",
     listView: "List",
@@ -1724,6 +1726,12 @@ export const en: Translations = {
   },
 
   quickActionsCard: {
+    nameLabel: "Name",
+    addBtn: "Add",
+    saveBtn: "Save",
+    emptyStartHint: "Add your first student to get started 👋",
+    amountSumLabel: "Payment amount ({{symbol}})",
+    lessonPriceInline: "Lesson price: {{price}}",
     noName: "Unknown",
     tutorFallback: "Tutor",
     studentFallback: "Student",

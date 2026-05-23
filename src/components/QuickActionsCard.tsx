@@ -313,8 +313,8 @@ export function QuickActionsCard({ onChanged }: Props) {
       </div>
 
       {!hasStudents && !loading && (
-        <p className="mb-3 text-xs text-muted-foreground">
-          Додайте першого учня щоб почати 👋
+        <p className="mb-3 text-sm text-muted-foreground">
+          {t("quickActionsCard.emptyStartHint")}
         </p>
       )}
 
@@ -481,14 +481,14 @@ function AddStudentForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">Ім'я</Label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-9" />
+          <Label className="text-sm font-medium">{t("quickActionsCard.nameLabel")}</Label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10 md:h-9" />
         </div>
         {isManager && (
           <div className="space-y-1">
-            <Label className="text-xs">{t("quickActionsCard.tutorLabel")}</Label>
+            <Label className="text-sm font-medium">{t("quickActionsCard.tutorLabel")}</Label>
             <Select value={tutorId} onValueChange={setTutorId}>
-              <SelectTrigger className="h-9"><SelectValue placeholder={t("quickActionsCard.selectPlaceholder")} /></SelectTrigger>
+              <SelectTrigger className="h-10 md:h-9"><SelectValue placeholder={t("quickActionsCard.selectPlaceholder")} /></SelectTrigger>
               <SelectContent>
                 {tutors.map((t) => (
                   <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
@@ -498,30 +498,30 @@ function AddStudentForm({
           </div>
         )}
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.subjectLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.subjectLabel")}</Label>
           <SubjectComboBox value={subject} onChange={setSubject} />
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
-            <Label className="text-xs">{t("quickActionsCard.priceLabel", { symbol: currencySymbol(currency) })}</Label>
+            <Label className="text-sm font-medium">{t("quickActionsCard.priceLabel", { symbol: currencySymbol(currency) })}</Label>
             <Input
               type="number"
               min={0}
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              className="h-9"
+              className="h-10 md:h-9"
             />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">{t("quickActionsCard.currencyLabel")}</Label>
-            <CurrencyComboBox value={currency} onChange={setCurrency} className="h-9" />
+            <Label className="text-sm font-medium">{t("quickActionsCard.currencyLabel")}</Label>
+            <CurrencyComboBox value={currency} onChange={setCurrency} className="h-10 md:h-9" />
           </div>
         </div>
       </div>
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy || (isManager && tutors.length === 0)}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-          Додати
+          {t("quickActionsCard.addBtn")}
         </Button>
       </div>
     </div>
@@ -594,9 +594,9 @@ function AddLessonForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.studentLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.studentLabel")}</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
-            <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectTrigger className="h-10 md:h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {students.map((s) => (
                 <SelectItem key={s.rate_key} value={s.rate_key}>
@@ -606,26 +606,26 @@ function AddLessonForm({
             </SelectContent>
           </Select>
           {selected && (
-            <p className="text-[11px] text-muted-foreground">
-              Ціна за урок: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
+            <p className="text-xs text-muted-foreground">
+              {t("quickActionsCard.lessonPriceInline", { price: formatPrice(selected.price, selected.currency) })}
             </p>
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.durationLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.durationLabel")}</Label>
           <Input
             type="number"
             min={15}
             step={15}
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
-            className="h-9"
+            className="h-10 md:h-9"
           />
         </div>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.dateLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.dateLabel")}</Label>
           <Input
             type="text"
             inputMode="numeric"
@@ -636,11 +636,11 @@ function AddLessonForm({
               if (iso) setDate(iso);
             }}
             placeholder="11.05.2026"
-            className="h-9"
+            className="h-10 md:h-9"
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.timeLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.timeLabel")}</Label>
           <Input
             type="text"
             inputMode="numeric"
@@ -648,7 +648,7 @@ function AddLessonForm({
             value={time}
             onChange={(e) => setTime(e.target.value)}
             placeholder="18:00"
-            className="h-9"
+            className="h-10 md:h-9"
           />
         </div>
       </div>
@@ -659,7 +659,7 @@ function AddLessonForm({
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-          Додати
+          {t("quickActionsCard.addBtn")}
         </Button>
       </div>
     </div>
@@ -769,9 +769,9 @@ function AddPaymentForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.studentLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.studentLabel")}</Label>
           <Select value={rateKey} onValueChange={setRateKey}>
-            <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectTrigger className="h-10 md:h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {students.map((s) => (
                 <SelectItem key={s.rate_key} value={s.rate_key}>
@@ -794,9 +794,9 @@ function AddPaymentForm({
           )}
         </div>
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.actionLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.actionLabel")}</Label>
           <Select value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
-            <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-10 md:h-9"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="wallet">{t("quickActionsCard.addWalletPayment")}</SelectItem>
               <SelectItem value="lesson" disabled={lessonOptions.length === 0}>{t("quickActionsCard.markLessonPaid")}</SelectItem>
@@ -807,9 +807,9 @@ function AddPaymentForm({
 
       {paymentType === "lesson" ? (
         <div className="space-y-1">
-          <Label className="text-xs">{t("quickActionsCard.lessonLabel")}</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.lessonLabel")}</Label>
           <Select value={lessonId} onValueChange={setLessonId}>
-            <SelectTrigger className="h-9"><SelectValue placeholder="—" /></SelectTrigger>
+            <SelectTrigger className="h-10 md:h-9"><SelectValue placeholder="—" /></SelectTrigger>
             <SelectContent>
               {lessonOptions.map((u) => {
                 return (
@@ -826,9 +826,9 @@ function AddPaymentForm({
         <>
           <div className="grid grid-cols-1 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs">{t("quickActionsCard.formatLabel")}</Label>
+              <Label className="text-sm font-medium">{t("quickActionsCard.formatLabel")}</Label>
               <Select value={paymentUnit} onValueChange={(v) => setPaymentUnit(v as PaymentUnit)}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-10 md:h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="amount">{t("quickActionsCard.byAmount", { symbol: selectedCurrencySymbol })}</SelectItem>
                   <SelectItem value="lessons">{t("quickActionsCard.byLessons")}</SelectItem>
@@ -836,8 +836,10 @@ function AddPaymentForm({
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs">
-                {paymentUnit === "lessons" ? `Кількість уроків · ${formatPrice(selected?.price ?? 0, selectedCurrency)} за урок` : `Сума оплати (${selectedCurrencySymbol})`}
+              <Label className="text-sm font-medium">
+                {paymentUnit === "lessons"
+                  ? t("quickActionsCard.lessonsSummary", { price: formatPrice(selected?.price ?? 0, selectedCurrency) })
+                  : t("quickActionsCard.amountSumLabel", { symbol: selectedCurrencySymbol })}
               </Label>
               <Input
                 type="number"
@@ -846,17 +848,17 @@ function AddPaymentForm({
                 value={paymentUnit === "lessons" ? lessonsCount : amount}
                 onChange={(e) => paymentUnit === "lessons" ? setLessonsCount(e.target.value) : setAmount(e.target.value)}
                 placeholder={paymentUnit === "lessons" ? t("quickActionsCard.countPlaceholder") : t("quickActionsCard.amountPlaceholder", { symbol: selectedCurrencySymbol })}
-                className="h-9"
+                className="h-10 md:h-9"
               />
             </div>
           </div>
           <div className="space-y-1">
-            <Label className="text-xs">{t("quickActionsCard.commentLabel")}</Label>
+            <Label className="text-sm font-medium">{t("quickActionsCard.commentLabel")}</Label>
             <Input
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={t("quickActionsCard.commentPlaceholder")}
-              className="h-9"
+              className="h-10 md:h-9"
             />
           </div>
         </>
@@ -865,7 +867,7 @@ function AddPaymentForm({
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy || !selected}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-          Зберегти
+          {t("quickActionsCard.saveBtn")}
         </Button>
       </div>
     </div>
