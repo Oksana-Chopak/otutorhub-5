@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
       if (!msg) continue;
       const text: string = msg.text ?? '';
       const chatId: number = msg.chat.id;
-      const fromName = msg.from?.first_name ?? 'друже';
+      const fromName = escapeHtml(msg.from?.first_name ?? 'друже');
 
       const startMatch = text.match(/^\/start(?:\s+(\S+))?/);
       if (startMatch) {
