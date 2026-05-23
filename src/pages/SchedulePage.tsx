@@ -598,7 +598,7 @@ export default function SchedulePage() {
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       if (errors.student_id && !form.student_id) {
-        toast.error("Оберіть учня");
+        toast.error(t("schedule.selectStudent"));
       } else {
         toast.error(t('common.fillRequired'));
       }
