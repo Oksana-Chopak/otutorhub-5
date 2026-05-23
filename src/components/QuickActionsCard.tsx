@@ -837,7 +837,9 @@ function AddPaymentForm({
             </div>
             <div className="space-y-1">
               <Label className="text-sm font-medium">
-                {paymentUnit === "lessons" ? `Кількість уроків · ${formatPrice(selected?.price ?? 0, selectedCurrency)} за урок` : `Сума оплати (${selectedCurrencySymbol})`}
+                {paymentUnit === "lessons"
+                  ? t("quickActionsCard.lessonsSummary", { price: formatPrice(selected?.price ?? 0, selectedCurrency) })
+                  : t("quickActionsCard.amountSumLabel", { symbol: selectedCurrencySymbol })}
               </Label>
               <Input
                 type="number"
