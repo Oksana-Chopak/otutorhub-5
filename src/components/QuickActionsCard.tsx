@@ -867,7 +867,7 @@ function AddPaymentForm({
       <div className="flex justify-end">
         <Button size="sm" onClick={submit} disabled={busy || !selected}>
           {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-          Зберегти
+          {t("quickActionsCard.saveBtn")}
         </Button>
       </div>
     </div>
