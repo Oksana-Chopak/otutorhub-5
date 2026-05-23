@@ -39,7 +39,11 @@ import {
   Wallet,
   MessageSquare,
   CalendarPlus,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
+import { CurrencyComboBox } from "@/components/CurrencyComboBox";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
@@ -128,6 +132,7 @@ export default function MyStudentsPage() {
   );
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [showMoreFields, setShowMoreFields] = useState(false);
   const [invite, setInvite] = useState<{
     open: boolean;
     name: string;
@@ -287,6 +292,7 @@ export default function MyStudentsPage() {
 
   const openCreate = () => {
     setForm(emptyForm);
+    setShowMoreFields(false);
     setDialog({ open: true, mode: "create", studentId: null });
   };
 
@@ -305,6 +311,7 @@ export default function MyStudentsPage() {
       currency: s.currency || "UAH",
       payment_details: s.payment_details ?? "",
     });
+    setShowMoreFields(true);
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
 
