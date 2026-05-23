@@ -1717,6 +1717,12 @@ export const sv: Partial<Translations> = {
   },
 
   quickActionsCard: {
+    nameLabel: "Namn",
+    addBtn: "Lägg till",
+    saveBtn: "Spara",
+    emptyStartHint: "Lägg till din första elev för att börja 👋",
+    amountSumLabel: "Betalningsbelopp ({{symbol}})",
+    lessonPriceInline: "Lektionspris: {{price}}",
     noName: "Okänt",
     tutorFallback: "Lärare",
     studentFallback: "Elev",
