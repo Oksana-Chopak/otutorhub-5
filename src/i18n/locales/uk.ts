@@ -830,6 +830,7 @@ export const uk = {
     studentCount_one: "{{count}} учень",
     studentCount_few: "{{count}} учні",
     studentCount_many: "{{count}} учнів",
+    studentCount_other: "{{count}} учнів",
     addStudentBtn: "Додати учня",
     tabActive: "Активні ({{count}})",
     tabArchived: "В архіві ({{count}})",
@@ -2547,22 +2548,6 @@ export const uk = {
     paid: "✓ Оплачено",
     unpaid: "⏳ Не оплачено",
     openBtn: "Контекст",
-  },
-  chatContext: {
-    debtLessons_one: "{{count}} урок не оплачено",
-    debtLessons_few: "{{count}} уроки не оплачено",
-    debtLessons_many: "{{count}} уроків не оплачено",
-  },
-  chats: {
-    empty: "Поки немає повідомлень",
-    emptyDesc: "Написати учню або репетитору можна прямо звідси.",
-  },
-  analytics: {
-    noData: "Даних ще недостатньо",
-    noDataDesc: "Статистика з'явиться після перших проведених уроків.",
-  },
-  pendingPayments: {
-    title: "Очікують оплати",
   },
 
 };

@@ -2539,20 +2539,5 @@ export const en: Translations = {
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
   },
-  chatContext: {
-    debtLessons_one: "{{count}} lesson unpaid",
-    debtLessons_other: "{{count}} lessons unpaid",
-  },
-  chats: {
-    empty: "No messages yet",
-    emptyDesc: "You can message a student or tutor right here.",
-  },
-  analytics: {
-    noData: "Not enough data yet",
-    noDataDesc: "Stats will appear after your first completed lessons.",
-  },
-  pendingPayments: {
-    title: "Awaiting payment",
-  },
 
 };

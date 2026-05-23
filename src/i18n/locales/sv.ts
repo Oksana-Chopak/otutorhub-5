@@ -2530,20 +2530,5 @@ export const sv: Partial<Translations> = {
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
   },
-  chatContext: {
-    debtLessons_one: "{{count}} lektion obetald",
-    debtLessons_other: "{{count}} lektioner obetalda",
-  },
-  chats: {
-    empty: "Inga meddelanden ännu",
-    emptyDesc: "Du kan skriva till en elev eller lärare direkt härifrån.",
-  },
-  analytics: {
-    noData: "Inte tillräckligt med data ännu",
-    noDataDesc: "Statistik visas efter dina första genomförda lektioner.",
-  },
-  pendingPayments: {
-    title: "Väntar på betalning",
-  },
 
 };
