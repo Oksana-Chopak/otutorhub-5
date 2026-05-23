@@ -309,6 +309,7 @@ export const en: Translations = {
   },
 
   auth: {
+    emailConfirmedBanner: "Email confirmed! Sign in to continue 🎉",
     login: "Sign in",
     signup: "Sign up",
     loginTitle: "Sign in to oTutorHub",
