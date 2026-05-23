@@ -134,6 +134,23 @@ export default function FinancesPage() {
     ?? legacyFilterToTab(searchParams.get("filter"));
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
+  // Auto-switch to debts tab on first load if there are unpaid lessons and no explicit tab in URL
+  const autoSwitchedRef = (globalThis as any).__finAutoSwitched ?? { current: false };
+  useEffect(() => {
+    if (autoSwitchedRef.current) return;
+    if (searchParams.get("tab") || searchParams.get("filter")) {
+      autoSwitchedRef.current = true;
+      return;
+    }
+    if (loading) return;
+    const hasDebts = lessons.some(
+      (l) => l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid"
+    );
+    if (hasDebts) setActiveTab("debts");
+    autoSwitchedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, lessons]);
+
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [recordOpen, setRecordOpen] = useState(false);
