@@ -823,6 +823,13 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                       )}
                     </div>
                   )}
+                  {!isDone && step.id === 11 && (
+                    <div className="mt-3">
+                      <span className="gamify-sticker warning text-[10px]">
+                        {t("onboardingExtra.aiSoonBadge")}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
