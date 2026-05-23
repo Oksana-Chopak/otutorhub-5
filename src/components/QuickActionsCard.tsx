@@ -481,7 +481,7 @@ function AddStudentForm({
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
         <div className="space-y-1">
-          <Label className="text-sm font-medium">Ім'я</Label>
+          <Label className="text-sm font-medium">{t("quickActionsCard.nameLabel")}</Label>
           <Input value={name} onChange={(e) => setName(e.target.value)} className="h-10 md:h-9" />
         </div>
         {isManager && (
