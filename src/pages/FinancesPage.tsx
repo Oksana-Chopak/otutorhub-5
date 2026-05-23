@@ -1080,6 +1080,24 @@ export default function FinancesPage() {
             </div>
           </div>
 
+          {activeTab === "debts" && searchParams.get("filter") && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+              <span className="flex-1 text-foreground">{t("finances.debtsBannerHint")}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  const p = new URLSearchParams(searchParams);
+                  p.delete("filter");
+                  setSearchParams(p, { replace: true });
+                }}
+              >
+                {t("finances.showAll")}
+              </Button>
+            </div>
+          )}
+
           {/* === Main tabs: Income / Expenses / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-grid">
