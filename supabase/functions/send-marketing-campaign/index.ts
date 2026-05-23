@@ -103,8 +103,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get recipients
-    const { data: recipients, error: recErr } = await admin
+    // Get recipients (call via userClient so auth.uid() is set inside the SECURITY DEFINER function)
+    const { data: recipients, error: recErr } = await userClient
       .rpc("get_marketing_recipients", { _segment: segment });
     if (recErr) throw recErr;
     const list = (recipients ?? []) as Array<{ user_id: string; email: string; first_name: string | null; last_name: string | null }>;
