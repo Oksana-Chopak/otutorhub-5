@@ -118,7 +118,7 @@ function buildSteps(t: TFn): Step[] {
     title: t("onboardingExtra.referralTitle"),
     description: t("onboardingExtra.referralDesc"),
     cta: t("onboardingExtra.referralCta"),
-    to: "/referrals",
+    to: "/my-referrals",
     icon: Gift,
     emoji: "🎁",
     xp: 100,
