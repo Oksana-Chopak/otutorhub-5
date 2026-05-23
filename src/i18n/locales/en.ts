@@ -411,6 +411,7 @@ export const en: Translations = {
   },
 
   schedule: {
+    addStudentFirst: "First add a student",
     title: "Schedule",
     weekView: "Week",
     listView: "List",
