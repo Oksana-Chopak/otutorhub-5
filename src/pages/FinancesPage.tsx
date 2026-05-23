@@ -130,7 +130,8 @@ export default function FinancesPage() {
   const [tutorFilter, setTutorFilter] = useState<string>("all");
   const [period, setPeriod] = useState<Period>("month");
   // Tab is sourced from URL (?tab=) with legacy ?filter= support so deep links keep working.
-  const initialTab: TabKey = (searchParams.get("tab") as TabKey | null)
+  const rawTab = searchParams.get("tab");
+  const initialTab: TabKey = (rawTab === "expenses" ? "income" : rawTab as TabKey | null)
     ?? legacyFilterToTab(searchParams.get("filter"));
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
