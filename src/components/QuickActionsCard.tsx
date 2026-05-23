@@ -606,8 +606,8 @@ function AddLessonForm({
             </SelectContent>
           </Select>
           {selected && (
-            <p className="text-[11px] text-muted-foreground">
-              Ціна за урок: <span className="font-medium text-foreground">{formatPrice(selected.price, selected.currency)}</span>
+            <p className="text-xs text-muted-foreground">
+              {t("quickActionsCard.lessonPriceInline", { price: formatPrice(selected.price, selected.currency) })}
             </p>
           )}
         </div>
