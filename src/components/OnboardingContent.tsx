@@ -43,7 +43,7 @@ interface Step {
   badge?: string;
   autoKey?: keyof StepProgress;
   autoHint?: string;
-  action?: "addStudent";
+  action?: "addStudent" | "editMeetingUrl";
 }
 
 export interface StepProgress {
@@ -157,7 +157,7 @@ function buildSteps(t: TFn): Step[] {
     description: t("onboardingExtra.zoomLongDesc"),
     cta: t("onboardingExtra.zoomCta"),
     to: "/my-students",
-    action: "addStudent",
+    action: "editMeetingUrl",
     icon: Video,
     emoji: "🎥",
     xp: 50,
@@ -772,6 +772,19 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                         >
                           {step.cta}
                           <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
+                      ) : step.action === "editMeetingUrl" ? (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className="rounded-full hover:scale-105 transition-transform"
+                          onClick={handleNav}
+                        >
+                          <Link to="/my-students">
+                            {step.cta}
+                            <ArrowRight className="ml-1 h-3 w-3" />
+                          </Link>
                         </Button>
                       ) : step.id === 10 ? (
                         <Button
