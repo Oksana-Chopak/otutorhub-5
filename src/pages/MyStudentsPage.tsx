@@ -850,59 +850,15 @@ export default function MyStudentsPage() {
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldPhone")}</Label>
-                <Input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldEmail")}</Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                />
-              </div>
-            </div>
             <div className="space-y-1">
-              <Label>{t("myStudents.fieldTelegram")}</Label>
-              <Input
-                placeholder={t("scheduleExtra.telegramPlaceholder")}
-                value={form.telegram}
-                onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+              <Label>{t("myStudents.fieldSubject")}</Label>
+              <SubjectComboBox
+                value={form.subject}
+                onChange={(v) => setForm({ ...form, subject: v })}
+                placeholder={t("myStudents.subjectPlaceholder")}
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldFacebook")}</Label>
-                <Input
-                  placeholder="https://facebook.com/..."
-                  value={form.facebook_url}
-                  onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldInstagram")}</Label>
-                <Input
-                  placeholder="https://instagram.com/..."
-                  value={form.instagram_url}
-                  onChange={(e) => setForm({ ...form, instagram_url: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldSubject")}</Label>
-                <Input
-                  placeholder={t("myStudents.subjectPlaceholder")}
-                  value={form.subject}
-                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                />
-              </div>
               <div className="space-y-1">
                 <Label>{t("myStudents.fieldPrice", { currency: currencySymbol(form.currency) })}</Label>
                 <Input
@@ -912,54 +868,99 @@ export default function MyStudentsPage() {
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
                 />
               </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <Label>{t("myStudents.fieldCurrency")}</Label>
-                <Select
+                <CurrencyComboBox
                   value={form.currency}
-                  onValueChange={(v) => setForm({ ...form, currency: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CURRENCY_OPTIONS.map((c) => (
-                      <SelectItem key={c.code} value={c.code}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(v) => setForm({ ...form, currency: v })}
+                />
               </div>
             </div>
-            <div className="space-y-1">
-              <Label>{t("myStudents.fieldPaymentDetails")}</Label>
-              <Textarea
-                placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
-                value={form.payment_details}
-                onChange={(e) => setForm({ ...form, payment_details: e.target.value })}
-                rows={3}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t("myStudents.paymentDetailsDesc")}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <Label className="flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                {t("myStudents.fieldMeetingUrl")}
-              </Label>
-              <Input
-                type="url"
-                placeholder={t("scheduleExtra.meetingUrlPlaceholder")}
-                value={form.default_meeting_url}
-                onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">
-                {t("myStudents.meetingUrlDesc")}
-              </p>
-            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowMoreFields((v) => !v)}
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-1"
+            >
+              {showMoreFields ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              {showMoreFields ? t("myStudents.hideContacts") : t("myStudents.showContacts")}
+            </button>
+
+            {showMoreFields && (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label>{t("myStudents.fieldPhone")}</Label>
+                    <Input
+                      type="tel"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>{t("myStudents.fieldEmail")}</Label>
+                    <Input
+                      type="email"
+                      value={form.email}
+                      onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>{t("myStudents.fieldTelegram")}</Label>
+                  <Input
+                    placeholder={t("scheduleExtra.telegramPlaceholder")}
+                    value={form.telegram}
+                    onChange={(e) => setForm({ ...form, telegram: e.target.value })}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label>{t("myStudents.fieldFacebook")}</Label>
+                    <Input
+                      placeholder="https://facebook.com/..."
+                      value={form.facebook_url}
+                      onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>{t("myStudents.fieldInstagram")}</Label>
+                    <Input
+                      placeholder="https://instagram.com/..."
+                      value={form.instagram_url}
+                      onChange={(e) => setForm({ ...form, instagram_url: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <Label>{t("myStudents.fieldPaymentDetails")}</Label>
+                  <Textarea
+                    placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
+                    value={form.payment_details}
+                    onChange={(e) => setForm({ ...form, payment_details: e.target.value })}
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("myStudents.paymentDetailsDesc")}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="flex items-center gap-1.5">
+                    <Video className="h-3.5 w-3.5 text-muted-foreground" />
+                    {t("myStudents.fieldMeetingUrl")}
+                  </Label>
+                  <Input
+                    type="url"
+                    placeholder={t("scheduleExtra.meetingUrlPlaceholder")}
+                    value={form.default_meeting_url}
+                    onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t("myStudents.meetingUrlDesc")}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
           <DialogFooter>
             <Button
