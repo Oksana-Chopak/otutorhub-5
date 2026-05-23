@@ -1734,6 +1734,12 @@ export const uk = {
   },
 
   quickActionsCard: {
+    nameLabel: "Ім'я",
+    addBtn: "Додати",
+    saveBtn: "Зберегти",
+    emptyStartHint: "Додайте першого учня щоб почати 👋",
+    amountSumLabel: "Сума оплати ({{symbol}})",
+    lessonPriceInline: "Ціна за урок: {{price}}",
     noName: "Без імені",
     tutorFallback: "Репетитор",
     studentFallback: "Учень",
