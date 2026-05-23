@@ -51,6 +51,7 @@ export const uk = {
     dashboard: "Мій день",
     schedule: "Розклад",
     finances: "Фінанси",
+    marketing: "Email-розсилки",
     wallets: "Передоплати",
     chats: "Чати",
     people: "Люди",

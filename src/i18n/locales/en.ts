@@ -51,6 +51,7 @@ export const en: Translations = {
     dashboard: "My day",
     schedule: "Schedule",
     finances: "Finances",
+    marketing: "Email campaigns",
     wallets: "Prepayments",
     chats: "Chats",
     people: "People",

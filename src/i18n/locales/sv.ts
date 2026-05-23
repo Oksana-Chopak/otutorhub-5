@@ -51,6 +51,7 @@ export const sv: Partial<Translations> = {
     dashboard: "Min dag",
     schedule: "Schema",
     finances: "Ekonomi",
+    marketing: "E-postkampanjer",
     wallets: "Förskott",
     chats: "Chattar",
     people: "Personer",

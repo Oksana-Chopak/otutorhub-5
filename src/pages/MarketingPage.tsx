@@ -50,9 +50,15 @@ export default function MarketingPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
 
   const previewHtml = useMemo(() => {
+    // Convert plain newlines to <br> for preview display
+    // (actual send uses htmlBody as-is, supporting raw HTML)
+    const previewBody = htmlBody
+      ? htmlBody.replace(/\n/g, '<br>')
+      : "<em style='color:#888'>Тіло листа з'явиться тут</em>";
+
     return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;padding:24px;border:1px solid #e5e5e5;border-radius:8px;">
       <p style="margin:0 0 12px;">Привіт, [ім'я]!</p>
-      <div style="font-size:15px;line-height:1.6;">${htmlBody || "<em style='color:#888'>Тіло листа з'явиться тут</em>"}</div>
+      <div style="font-size:15px;line-height:1.6;">${previewBody}</div>
       <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0 12px;">
       <p style="font-size:12px;color:#888;margin:0;">Відписатися від розсилок</p>
     </div>`;
@@ -162,6 +168,9 @@ export default function MarketingPage() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Підтримується HTML. Порожній рядок = новий абзац.
                 </p>
               </div>
 
