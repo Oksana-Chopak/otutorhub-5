@@ -679,7 +679,7 @@ export default function SchedulePage() {
     if (error) {
       console.error("Failed to create lesson", error);
       if (isIndependentTutor && students.length === 0) {
-        toast.error("Спочатку додайте учня");
+        toast.error(t("schedule.addStudentFirst"));
       } else {
         toast.error(t('schedule.createFailed'));
       }
