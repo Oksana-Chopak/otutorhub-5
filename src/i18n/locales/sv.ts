@@ -811,6 +811,10 @@ export const sv: Partial<Translations> = {
     title: "Mina elever",
     subtitle: "Elever du hanterar självständigt. Priser och schema är helt upp till dig.",
     studentCount: "{{count}} elever",
+    studentCount_one: "{{count}} elev",
+    studentCount_few: "{{count}} elever",
+    studentCount_many: "{{count}} elever",
+    studentCount_other: "{{count}} elever",
     addStudentBtn: "Lägg till elev",
     tabActive: "Aktiva ({{count}})",
     tabArchived: "Arkiverade ({{count}})",
@@ -2527,21 +2531,6 @@ export const sv: Partial<Translations> = {
     paid: "✓ Betald",
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
-  },
-  chatContext: {
-    debtLessons_one: "{{count}} lektion obetald",
-    debtLessons_other: "{{count}} lektioner obetalda",
-  },
-  chats: {
-    empty: "Inga meddelanden ännu",
-    emptyDesc: "Du kan skriva till en elev eller lärare direkt härifrån.",
-  },
-  analytics: {
-    noData: "Inte tillräckligt med data ännu",
-    noDataDesc: "Statistik visas efter dina första genomförda lektioner.",
-  },
-  pendingPayments: {
-    title: "Väntar på betalning",
   },
 
 };

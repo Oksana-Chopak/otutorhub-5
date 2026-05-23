@@ -820,6 +820,10 @@ export const en: Translations = {
     title: "My students",
     subtitle: "Students you manage independently. Prices and schedule are entirely up to you.",
     studentCount: "{{count}} students",
+    studentCount_one: "{{count}} student",
+    studentCount_few: "{{count}} students",
+    studentCount_many: "{{count}} students",
+    studentCount_other: "{{count}} students",
     addStudentBtn: "Add student",
     tabActive: "Active ({{count}})",
     tabArchived: "Archived ({{count}})",
@@ -2536,21 +2540,6 @@ export const en: Translations = {
     paid: "✓ Paid",
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
-  },
-  chatContext: {
-    debtLessons_one: "{{count}} lesson unpaid",
-    debtLessons_other: "{{count}} lessons unpaid",
-  },
-  chats: {
-    empty: "No messages yet",
-    emptyDesc: "You can message a student or tutor right here.",
-  },
-  analytics: {
-    noData: "Not enough data yet",
-    noDataDesc: "Stats will appear after your first completed lessons.",
-  },
-  pendingPayments: {
-    title: "Awaiting payment",
   },
 
 };
