@@ -313,8 +313,8 @@ export function QuickActionsCard({ onChanged }: Props) {
       </div>
 
       {!hasStudents && !loading && (
-        <p className="mb-3 text-xs text-muted-foreground">
-          Додайте першого учня щоб почати 👋
+        <p className="mb-3 text-sm text-muted-foreground">
+          {t("quickActionsCard.emptyStartHint")}
         </p>
       )}
 
