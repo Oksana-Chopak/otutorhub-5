@@ -188,6 +188,7 @@ export const sv: Partial<Translations> = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    selectStudentError: "Välj en elev",
     studentRequestHint: "Detta blir en förfrågan. Läraren bekräftar den.",
     addStudentFirst: "Lägg till en elev först",
     title: "Schema",

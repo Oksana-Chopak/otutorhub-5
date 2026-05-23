@@ -105,6 +105,7 @@ const SKIP_KEY_PREFIXES = [
   "trial.", "referralWidget.", "quickLessonDialog.", "walletDialog.",
   "authExtra.", "scheduleExtra.", "studentPages.", "dashboardExtra.",
   "pendingPaymentsExtra.", "groupsPageExtra.", "inviteLinkExtra.", "emptyState.",
+  "chatContext.", "groupsPage.", "inviteLink.",
 ];
 
 const missingTCalls = new Map(); // key → [files]

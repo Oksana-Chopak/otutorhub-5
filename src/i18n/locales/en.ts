@@ -414,6 +414,7 @@ export const en: Translations = {
   },
 
   schedule: {
+    selectStudentError: "Select a student",
     studentRequestHint: "This will be a request. The tutor will confirm it.",
     addStudentFirst: "First add a student",
     title: "Schedule",

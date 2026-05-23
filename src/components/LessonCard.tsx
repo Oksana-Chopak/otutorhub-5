@@ -193,7 +193,7 @@ export function LessonCard({
             </div>
           )}
           {isNow && (
-            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-[11px] font-semibold text-success">
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-success/15 px-2 py-0.5 text-xs font-semibold text-success">
               {t("lessonCard.now")}
             </div>
           )}

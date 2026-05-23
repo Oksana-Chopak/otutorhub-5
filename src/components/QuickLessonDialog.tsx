@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import i18nInstance from "@/i18n";
+import { useTranslation } from "react-i18next";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
@@ -72,6 +73,7 @@ export function QuickLessonDialog({
   initialStudentId,
 }: Props) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [students, setStudents] = useState<StudentRow[]>([]);

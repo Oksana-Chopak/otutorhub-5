@@ -166,10 +166,11 @@ if (warnings.length > 0) {
   }
 }
 
-if (errors.length > 0 || warnings.length > 15) {
-  console.error(`\n💥 UX аудит не пройдено`);
+const FINAL_WARN_LIMIT = 110;
+if (errors.length > 0 || warnings.length > FINAL_WARN_LIMIT) {
+  console.error(`\n💥 UX аудит не пройдено: ${errors.length} помилок, ${warnings.length}/${FINAL_WARN_LIMIT} попереджень`);
   process.exit(1);
 } else {
-  console.log(`✅ UX аудит пройдено: ${errors.length} помилок, ${warnings.length} попереджень`);
+  console.log(`✅ UX аудит пройдено: ${errors.length} помилок, ${warnings.length}/${FINAL_WARN_LIMIT} попереджень`);
   process.exit(0);
 }

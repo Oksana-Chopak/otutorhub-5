@@ -156,6 +156,7 @@ function buildSteps(t: TFn): Step[] {
     title: t("onboardingExtra.zoomTitle"),
     description: t("onboardingExtra.zoomLongDesc"),
     cta: t("onboardingExtra.zoomCta"),
+    isNavigate: true,
     to: "/my-students",
     action: "editMeetingUrl",
     icon: Video,
@@ -763,6 +764,19 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                             {t("onboardingExtra.saveSubject")}
                           </Button>
                         </div>
+                      ) : step.action === "addStudent" && step.id === 7 ? (
+                        <Button
+                          asChild
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className="rounded-full hover:scale-105 transition-transform"
+                          onClick={handleNav}
+                        >
+                          <Link to="/my-students">
+                            {step.cta}
+                            <ArrowRight className="ml-1 h-3 w-3" />
+                          </Link>
+                        </Button>
                       ) : step.action === "addStudent" ? (
                         <Button
                           size="sm"

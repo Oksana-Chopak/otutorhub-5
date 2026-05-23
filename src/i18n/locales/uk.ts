@@ -418,6 +418,7 @@ export const uk = {
 
   // Schedule
   schedule: {
+    selectStudentError: "Оберіть учня",
     studentRequestHint: "Це буде запит. Репетитор підтвердить його.",
     addStudentFirst: "Спочатку додайте учня",
     title: "Розклад",

@@ -54,6 +54,7 @@ export default function AuthPage() {
   const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState<string>(isConfirmed ? "signin" : initialTab);
   const [pendingHint, setPendingHint] = useState<string | null>(null);
+  const [showOptional, setShowOptional] = useState(false);
   const [confirmedNotice, setConfirmedNotice] = useState<boolean>(isConfirmed);
 
   const [signInData, setSignInData] = useState({
@@ -299,8 +300,8 @@ export default function AuthPage() {
             )}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg h-11">
-                <TabsTrigger value="signin" className="h-9">{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup" className="h-9">{t("auth.tabSignUp")}</TabsTrigger>
+                <TabsTrigger value="signin" className="rounded-md data-[state=active]:shadow-sm">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-md data-[state=active]:shadow-sm">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">

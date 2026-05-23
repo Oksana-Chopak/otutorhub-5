@@ -50,7 +50,7 @@ export function ProRulesCard() {
     );
   }
 
-  const disabled = !isPro;
+  const disabled = !isPro && !isTrial; // trial users can configure rules
 
   const save = async () => {
     setSaving(true);
