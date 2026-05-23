@@ -744,7 +744,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                     )}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
-                  {!isDone && (
+                  {!isDone && step.id !== 11 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {step.id === 0 ? (
                         <div className="flex w-full flex-col gap-2 sm:flex-row">
