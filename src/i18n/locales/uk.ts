@@ -311,6 +311,7 @@ export const uk = {
 
   // Auth
   auth: {
+    emailConfirmedBanner: "Email підтверджено! Увійдіть, щоб продовжити 🎉",
     login: "Увійти",
     signup: "Зареєструватися",
     loginTitle: "Вхід в oTutorHub",
