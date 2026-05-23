@@ -415,6 +415,7 @@ export const uk = {
 
   // Schedule
   schedule: {
+    addStudentFirst: "Спочатку додайте учня",
     title: "Розклад",
     weekView: "Тиждень",
     listView: "Список",
