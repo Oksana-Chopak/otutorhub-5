@@ -185,6 +185,7 @@ export const sv: Partial<Translations> = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    addStudentFirst: "Lägg till en elev först",
     title: "Schema",
     weekView: "Vecka",
     listView: "Lista",
