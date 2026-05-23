@@ -811,6 +811,8 @@ export const sv: Partial<Translations> = {
     title: "Mina elever",
     subtitle: "Elever du hanterar självständigt. Priser och schema är helt upp till dig.",
     studentCount: "{{count}} elever",
+    studentCount_one: "{{count}} elev",
+    studentCount_other: "{{count}} elever",
     addStudentBtn: "Lägg till elev",
     tabActive: "Aktiva ({{count}})",
     tabArchived: "Arkiverade ({{count}})",

@@ -820,6 +820,8 @@ export const en: Translations = {
     title: "My students",
     subtitle: "Students you manage independently. Prices and schedule are entirely up to you.",
     studentCount: "{{count}} students",
+    studentCount_one: "{{count}} student",
+    studentCount_other: "{{count}} students",
     addStudentBtn: "Add student",
     tabActive: "Active ({{count}})",
     tabArchived: "Archived ({{count}})",
