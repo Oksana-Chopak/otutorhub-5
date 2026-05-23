@@ -356,14 +356,6 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, periodTopups, canManagePrepay]);
 
-  const expensesRows: Row[] = useMemo(() => {
-    if (isIndependentTutor) return [];
-    return periodBillable
-      .filter((l) => l.tutor_payout_status === "paid")
-      .map((l) => ({ type: "lesson" as const, l }))
-      .sort(smartSort);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, isIndependentTutor]);
 
   const debtsRows: Row[] = useMemo(() => {
     return periodBillable
@@ -378,7 +370,7 @@ export default function FinancesPage() {
   }, [periodBillable, isIndependentTutor]);
 
   const rowsForActiveTab: Row[] =
-    activeTab === "income" ? incomeRows : activeTab === "expenses" ? expensesRows : debtsRows;
+    activeTab === "income" ? incomeRows : debtsRows;
 
   const visibleLessons: LessonRow[] = useMemo(
     () => rowsForActiveTab.filter((r): r is { type: "lesson"; l: LessonRow } => r.type === "lesson").map((r) => r.l),
@@ -1100,23 +1092,15 @@ export default function FinancesPage() {
             </div>
           )}
 
-          {/* === Main tabs: Income / Expenses / Debts === */}
+          {/* === Main tabs: Income / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-grid">
+            <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-grid">
               <TabsTrigger value="income" className="gap-1.5">
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
                 <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
                 <span className="ml-1 text-[10px] text-muted-foreground">({incomeRows.length})</span>
               </TabsTrigger>
-              {!isIndependentTutor && (
-                <TabsTrigger value="expenses" className="gap-1.5">
-                  <ArrowUpRight className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">{t("finances.expensesTab", { defaultValue: "Витрати" })}</span>
-                  <span className="sm:hidden">{t("finances.expensesTabShort", { defaultValue: "Витрати" })}</span>
-                  <span className="ml-1 text-[10px] text-muted-foreground">({expensesRows.length})</span>
-                </TabsTrigger>
-              )}
               <TabsTrigger value="debts" className="gap-1.5">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
@@ -1126,9 +1110,6 @@ export default function FinancesPage() {
             </TabsList>
 
             <TabsContent value="income" className="mt-4">{renderRows(incomeRows)}</TabsContent>
-            {!isIndependentTutor && (
-              <TabsContent value="expenses" className="mt-4">{renderRows(expensesRows)}</TabsContent>
-            )}
             <TabsContent value="debts" className="mt-4">{renderRows(debtsRows)}</TabsContent>
           </Tabs>
 
