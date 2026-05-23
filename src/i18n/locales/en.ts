@@ -1726,6 +1726,12 @@ export const en: Translations = {
   },
 
   quickActionsCard: {
+    nameLabel: "Name",
+    addBtn: "Add",
+    saveBtn: "Save",
+    emptyStartHint: "Add your first student to get started 👋",
+    amountSumLabel: "Payment amount ({{symbol}})",
+    lessonPriceInline: "Lesson price: {{price}}",
     noName: "Unknown",
     tutorFallback: "Tutor",
     studentFallback: "Student",
