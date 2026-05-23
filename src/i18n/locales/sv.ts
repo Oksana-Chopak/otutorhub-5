@@ -1581,6 +1581,7 @@ export const sv: Partial<Translations> = {
     notSet: "Läraren har inte angett sina tillgängliga tider ännu. Skriv till dem i chatten.",
   },
   tutorChangeRequests: {
+    requestUpdateFailed: "Lektion uppdaterades men förfrågan kunde inte uppdateras",
     lessonNotFound: "Lektion hittades inte",
     updateFailed: "Kunde inte uppdatera lektion",
     priceFailed: "Kunde inte uppdatera pris",
@@ -1611,6 +1612,9 @@ export const sv: Partial<Translations> = {
     copyFailed: "Kunde inte kopiera länk",
     copied: "Länk kopierad!",
     title: "Bjud in",
+  
+    greetingGeneric: "Hej!",
+    greeting: "Hej, {{name}}!",
   },
   chatThread: {
     openFailed: "Kunde inte öppna chatt",
@@ -2522,6 +2526,21 @@ export const sv: Partial<Translations> = {
     paid: "✓ Betald",
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
+  },
+  chatContext: {
+    debtLessons_one: "{{count}} lektion obetald",
+    debtLessons_other: "{{count}} lektioner obetalda",
+  },
+  chats: {
+    empty: "Inga meddelanden ännu",
+    emptyDesc: "Du kan skriva till en elev eller lärare direkt härifrån.",
+  },
+  analytics: {
+    noData: "Inte tillräckligt med data ännu",
+    noDataDesc: "Statistik visas efter dina första genomförda lektioner.",
+  },
+  pendingPayments: {
+    title: "Väntar på betalning",
   },
 
 };

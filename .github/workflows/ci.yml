@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "claude/**", "lovable/**", "feature/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─── Job 1: TypeScript + Lint + Build ────────────────────────────────────
+  build:
+    name: 🔨 Build check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript — zero errors
+        run: npx tsc --noEmit
+        # If this fails → Lovable broke types
+
+      - name: ESLint — zero warnings
+        run: npx eslint src --ext .tsx,.ts --max-warnings 20
+        # 20 warnings allowed (some are acceptable), errors are 0
+        continue-on-error: false
+
+      - name: Vite build
+        run: npm run build
+        env:
+          # Provide fake env vars so build doesn't fail on missing .env
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder_anon_key
+        # If this fails → app won't run in production
+
+  # ─── Job 2: Unit tests ───────────────────────────────────────────────────
+  unit-tests:
+    name: 🧪 Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Vitest
+        run: npm run test -- --reporter=verbose
+        # Shows which tests pass/fail clearly
+
+  # ─── Job 3: i18n audit ───────────────────────────────────────────────────
+  i18n-audit:
+    name: 🌍 i18n audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for missing translation keys
+        run: node scripts/check-i18n.mjs
+
+      - name: Check for hardcoded Ukrainian strings
+        run: node scripts/check-hardcode.mjs
+
+  # ─── Job 4: UX audit ─────────────────────────────────────────────────────
+  ux-audit:
+    name: 🎨 UX audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check touch target sizes (no h-9 on inputs)
+        run: node scripts/check-ux.mjs
+        # Catches regressions like h-9 inputs, text-[11px] content

@@ -1598,6 +1598,7 @@ export const uk = {
     notSet: "Репетитор ще не вказав свої доступні години. Напишіть йому в чат, щоб домовитись про час.",
   },
   tutorChangeRequests: {
+    requestUpdateFailed: "Урок оновлено, але запит не вдалося оновити",
     lessonNotFound: "Не вдалося знайти урок",
     updateFailed: "Не вдалося оновити урок",
     priceFailed: "Не вдалося оновити ціну",
@@ -1628,6 +1629,9 @@ export const uk = {
     copyFailed: "Не вдалося скопіювати посилання",
     copied: "Посилання скопійовано!",
     title: "Запросити",
+  
+    greetingGeneric: "Привіт!",
+    greeting: "Привіт, {{name}}!",
   },
   chatThread: {
     openFailed: "Не вдалося відкрити чат",
@@ -2539,6 +2543,22 @@ export const uk = {
     paid: "✓ Оплачено",
     unpaid: "⏳ Не оплачено",
     openBtn: "Контекст",
+  },
+  chatContext: {
+    debtLessons_one: "{{count}} урок не оплачено",
+    debtLessons_few: "{{count}} уроки не оплачено",
+    debtLessons_many: "{{count}} уроків не оплачено",
+  },
+  chats: {
+    empty: "Поки немає повідомлень",
+    emptyDesc: "Написати учню або репетитору можна прямо звідси.",
+  },
+  analytics: {
+    noData: "Даних ще недостатньо",
+    noDataDesc: "Статистика з'явиться після перших проведених уроків.",
+  },
+  pendingPayments: {
+    title: "Очікують оплати",
   },
 
 };

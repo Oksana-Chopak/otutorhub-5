@@ -1590,6 +1590,7 @@ export const en: Translations = {
     notSet: "The tutor hasn't set their available hours yet. Write to them in chat to arrange a time.",
   },
   tutorChangeRequests: {
+    requestUpdateFailed: "Lesson updated but request could not be updated",
     lessonNotFound: "Lesson not found",
     updateFailed: "Failed to update lesson",
     priceFailed: "Failed to update price",
@@ -1620,6 +1621,9 @@ export const en: Translations = {
     copyFailed: "Failed to copy link",
     copied: "Link copied!",
     title: "Invite",
+  
+    greetingGeneric: "Hi there!",
+    greeting: "Hi, {{name}}!",
   },
   chatThread: {
     openFailed: "Failed to open chat",
@@ -2531,6 +2535,21 @@ export const en: Translations = {
     paid: "✓ Paid",
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
+  },
+  chatContext: {
+    debtLessons_one: "{{count}} lesson unpaid",
+    debtLessons_other: "{{count}} lessons unpaid",
+  },
+  chats: {
+    empty: "No messages yet",
+    emptyDesc: "You can message a student or tutor right here.",
+  },
+  analytics: {
+    noData: "Not enough data yet",
+    noDataDesc: "Stats will appear after your first completed lessons.",
+  },
+  pendingPayments: {
+    title: "Awaiting payment",
   },
 
 };

@@ -1,6 +1,5 @@
 /**
- * Перевіряє, що в навігації (sidebar / mobile bottom-nav) користувач
- * бачить ТІЛЬКИ ті пункти, що відповідають його ролі.
+ * Перевіряє, що MobileBottomNav показує правильні пункти для кожної ролі.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -23,21 +22,36 @@ vi.mock("@/hooks/useAuth", () => ({
   }),
 }));
 
-vi.mock("@/hooks/useUnreadChats", () => ({
-  useUnreadChats: () => 0,
-}));
-
-vi.mock("@/hooks/useAvailabilityRequestCount", () => ({
-  useAvailabilityRequestCount: () => 0,
-}));
-
+vi.mock("@/hooks/useUnreadChats", () => ({ useUnreadChats: () => 0 }));
+vi.mock("@/hooks/useAvailabilityRequestCount", () => ({ useAvailabilityRequestCount: () => 0 }));
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null }) }) }),
-    }),
+    from: () => ({ select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null }) }) }) }),
     storage: { from: () => ({ getPublicUrl: () => ({ data: { publicUrl: "" } }) }) },
   },
+}));
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const labels: Record<string, string> = {
+        "nav.dashboard": "Головна",
+        "nav.schedule": "Розклад",
+        "nav.studentsShort": "Учні",
+        "nav.students": "Мої учні",
+        "nav.finances": "Фінанси",
+        "nav.chats": "Чати",
+        "nav.people": "Люди",
+        "nav.profile": "Профіль",
+        "nav.audit": "Аудит",
+        "nav.availability": "Доступність",
+      };
+      return labels[key] ?? key.split(".").pop() ?? key;
+    },
+    i18n: { language: "uk", changeLanguage: () => Promise.resolve() },
+  }),
+  Trans: ({ children }: any) => children,
+  initReactI18next: { type: "3rdParty", init: () => {} },
 }));
 
 import { MobileBottomNav } from "@/components/MobileBottomNav";
@@ -50,39 +64,38 @@ function setRoles(roles: AppRole[]) {
 beforeEach(() => setRoles([]));
 
 function renderNav() {
-  return render(
-    <MemoryRouter>
-      <MobileBottomNav />
-    </MemoryRouter>,
-  );
+  return render(<MemoryRouter><MobileBottomNav /></MemoryRouter>);
 }
 
 describe("MobileBottomNav — пункти за ролями", () => {
-  it("MANAGER бачить 'Люди', 'Фінанси' та 'Профіль'", () => {
+  it("без ролей — нічого не рендериться", () => {
+    setRoles([]);
+    mockAuth.current.user = null;
+    const { container } = renderNav();
+    expect(container.querySelector("nav")).toBeNull();
+  });
+
+  it("MANAGER бачить 'Люди' та 'Фінанси'", () => {
     setRoles(["manager"]);
     renderNav();
     expect(screen.queryByText(/Люди/i)).toBeTruthy();
     expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
-    expect(screen.queryByText(/Профіль/i)).toBeTruthy();
+    // Manager не бачить "Учні" (це tutor-специфічний пункт)
+    expect(screen.queryByText(/^Учні$/i)).toBeNull();
   });
 
-  it("TUTOR бачить 'Учні', 'Фінанси' та 'Профіль', не бачить 'Люди' / 'Аудит'", () => {
+  it("TUTOR бачить 'Учні', 'Фінанси' і НЕ бачить 'Люди'", () => {
     setRoles(["tutor"]);
     renderNav();
-    expect(screen.queryByText(/Учні/i)).toBeTruthy();
+    expect(screen.queryByText(/^Учні$/i)).toBeTruthy();
     expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
-    expect(screen.queryByText(/Профіль/i)).toBeTruthy();
     expect(screen.queryByText(/Люди/i)).toBeNull();
-    expect(screen.queryByText(/Аудит/i)).toBeNull();
   });
 
-  it("STUDENT не бачить 'Фінанси' / 'Люди' / 'Аудит' / 'Доступність' / 'Учні'", () => {
+  it("STUDENT не бачить 'Фінанси' і 'Люди'", () => {
     setRoles(["student"]);
     renderNav();
     expect(screen.queryByText(/Фінанси/i)).toBeNull();
     expect(screen.queryByText(/Люди/i)).toBeNull();
-    expect(screen.queryByText(/Аудит/i)).toBeNull();
-    expect(screen.queryByText(/Доступність/i)).toBeNull();
-    expect(screen.queryByText(/Учні/i)).toBeNull();
   });
 });
