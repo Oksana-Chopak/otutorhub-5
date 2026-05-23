@@ -662,10 +662,15 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
       {demoNotice && (
         <div className="mb-4 rounded-2xl border-2 border-primary/30 bg-primary/5 p-4">
-          <p
-            className="text-sm text-foreground"
-            dangerouslySetInnerHTML={{ __html: t("onboardingExtra.demoSaved", { name: demoNotice }) }}
-          />
+          <Trans
+            i18nKey="onboardingExtra.demoSaved"
+            values={{ name: demoNotice }}
+            components={{ 1: <b /> }}
+            parent="p"
+            tOptions={{ interpolation: { escapeValue: true } }}
+          >
+            <p className="text-sm text-foreground" />
+          </Trans>
         </div>
       )}
 
