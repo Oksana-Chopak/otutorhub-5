@@ -962,7 +962,7 @@ export default function MyStudentsPage() {
               </div>
             )}
           </div>
-          </>)}
+          
           <DialogFooter>
             <Button
               variant="outline"
