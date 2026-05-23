@@ -85,6 +85,7 @@ export const sv: Partial<Translations> = {
     toggle: "Växla tema",
   },
   auth: {
+    emailConfirmedBanner: "E-post bekräftad! Logga in för att fortsätta 🎉",
     login: "Logga in",
     signup: "Registrera",
     loginTitle: "Logga in på oTutorHub",
