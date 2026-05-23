@@ -895,7 +895,7 @@ export default function SchedulePage() {
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
-                <Button size="sm" className="h-9 gap-1.5">
+                <Button size="sm" className="h-10 gap-1.5">
                   <HandHeart className="h-4 w-4" />
                   <span className="hidden sm:inline">{t("scheduleExtra.requestTutor")}</span>
                 </Button>
@@ -908,7 +908,7 @@ export default function SchedulePage() {
               if (!open) setFormErrors({});
             }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="h-9 gap-1.5 px-3">
+                <Button size="sm" className="h-10 gap-1.5 px-3">
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">{t('schedule.createBtn')}</span>
                   <span className="sm:hidden">{t('schedule.addLesson')}</span>
@@ -1003,7 +1003,7 @@ export default function SchedulePage() {
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
-                            Додати учня
+                            {t("myStudents.addStudentBtn")}
                           </Link>
                         </Button>
                       )}
@@ -1214,7 +1214,7 @@ export default function SchedulePage() {
                 )}
                 {isStudent && !isManager && !isTutor && (
                   <p className="text-xs text-muted-foreground">
-                    Це буде запит. Менеджер або репетитор підтвердить його.
+                    {t("schedule.studentRequestHint")}
                   </p>
                 )}
                 {conflictWarning && (
