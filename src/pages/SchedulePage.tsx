@@ -365,10 +365,16 @@ export default function SchedulePage() {
 
     const rawLessons = (lessonsRes.data ?? []) as any[];
     console.log('[SchedulePage] lessons count:', rawLessons.length, 'unique ids:', new Set(rawLessons.map((l) => l.id)).size);
-    const lessonsWithSource = rawLessons.map((l) => ({
-      ...l,
-      source: (l.source as LessonSource) ?? "hub",
-    }));
+    const lessonsWithSource = rawLessons
+      .filter((l) => {
+        // Manager should never see independent tutor lessons
+        if (isManager && l.source === "independent") return false;
+        return true;
+      })
+      .map((l) => ({
+        ...l,
+        source: (l.source as LessonSource) ?? "hub",
+      }));
     setLessons(Array.from(
       new Map(lessonsWithSource.map((l: any) => [l.id, l])).values()
     ) as Lesson[]);

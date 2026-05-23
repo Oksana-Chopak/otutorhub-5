@@ -179,12 +179,13 @@ export default function FinancesPage() {
       { data: balData },
       { data: ratesData },
     ] = await Promise.all([
-      supabase
-        .from("lessons")
-        .select(
-          "id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)"
-        )
-        .order("starts_at", { ascending: false }),
+      (() => {
+        let q = supabase
+          .from("lessons")
+          .select("id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)");
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q.order("starts_at", { ascending: false });
+      })(),
       supabase.from("profiles").select("id, first_name, last_name"),
       supabase
         .from("student_wallet_transactions" as any)

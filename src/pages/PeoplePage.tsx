@@ -206,7 +206,8 @@ export default function PeoplePage() {
         .select("user_id, phone, email, telegram, messenger_url, facebook_url, instagram_url"),
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
-      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
+      // Independent tutor rates filtered at RLS level
+supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
     ]);
 
