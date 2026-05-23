@@ -525,7 +525,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
   const enableIndependent = async () => {
     setActivatingIndependent(true);
-    await updateSettings({ independent_workspace: true, onboarding_step: 1 });
+    await updateSettings({ independent_workspace: true, onboarding_step: 0 });
     setActivatingIndependent(false);
   };
 
