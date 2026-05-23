@@ -503,24 +503,25 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   }, [autoCompletedIds, progressLoading]);
 
 
-  const savedStep = settings?.onboarding_step ?? 1;
+  const savedStep = settings?.onboarding_step ?? 0;
   const completed = settings?.onboarding_completed ?? false;
+  const autoStepCount = useMemo(() => steps.filter((s) => s.autoKey).length, [steps]);
   const totalDone = completed
-    ? steps.length
-    : Math.max(autoCompletedIds.size, Math.min(savedStep - 1, steps.length));
-  const progressPct = Math.round((totalDone / steps.length) * 100);
+    ? autoStepCount
+    : Math.max(autoCompletedIds.size, Math.min(savedStep, autoStepCount));
+  const progressPct = Math.round((totalDone / Math.max(1, autoStepCount)) * 100);
 
   useEffect(() => {
     if (!settings || progressLoading || completed) return;
-    const nextStep = Math.min(autoCompletedIds.size + 1, steps.length);
-    if (nextStep > (settings.onboarding_step ?? 1)) {
+    const nextStep = Math.min(autoCompletedIds.size, steps.length - 1);
+    if (nextStep > (settings.onboarding_step ?? 0)) {
       updateSettings({ onboarding_step: nextStep });
     }
-    if (autoCompletedIds.size === steps.length && !completed) {
+    if (autoCompletedIds.size >= autoStepCount && !completed) {
       updateSettings({ onboarding_completed: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoCompletedIds.size, progressLoading, completed]);
+  }, [autoCompletedIds.size, progressLoading, completed, autoStepCount]);
 
   const enableIndependent = async () => {
     setActivatingIndependent(true);
