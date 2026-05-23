@@ -44,7 +44,7 @@ import { cn } from "@/lib/utils";
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type Period = "week" | "month" | "all";
-type TabKey = "income" | "expenses" | "debts";
+type TabKey = "income" | "debts";
 
 interface LessonRow {
   id: string;
