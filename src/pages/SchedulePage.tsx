@@ -49,6 +49,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
@@ -895,7 +896,7 @@ export default function SchedulePage() {
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
-                <Button size="sm" className="h-9 gap-1.5">
+                <Button size="sm" className="h-10 gap-1.5">
                   <HandHeart className="h-4 w-4" />
                   <span className="hidden sm:inline">{t("scheduleExtra.requestTutor")}</span>
                 </Button>
@@ -908,7 +909,7 @@ export default function SchedulePage() {
               if (!open) setFormErrors({});
             }}>
               <DialogTrigger asChild>
-                <Button size="sm" className="h-9 gap-1.5 px-3">
+                <Button size="sm" className="h-10 gap-1.5 px-3">
                   <Plus className="h-4 w-4" />
                   <span className="hidden sm:inline">{t('schedule.createBtn')}</span>
                   <span className="sm:hidden">{t('schedule.addLesson')}</span>
@@ -1003,7 +1004,7 @@ export default function SchedulePage() {
                         <Button asChild size="sm" variant="outline" className="h-7 text-xs">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
-                            Додати учня
+                            {t("myStudents.addStudentBtn")}
                           </Link>
                         </Button>
                       )}
@@ -1014,48 +1015,20 @@ export default function SchedulePage() {
                   <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
                     {t('schedule.subject')} <span className="text-destructive">*</span>
                   </Label>
-                  {subjectOptions.length > 0 ? (
-                    <Select
-                      value={form.subject}
-                      onValueChange={(v) => {
-                        setForm((f) => ({ ...f, subject: v }));
-                        if (formErrors.subject) setFormErrors((e) => ({ ...e, subject: false }));
-                      }}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          formErrors.subject &&
-                            "border-destructive ring-1 ring-destructive focus:ring-destructive"
-                        )}
-                      >
-                        <SelectValue placeholder={t('schedule.selectSubject')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjectOptions.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                            {pairSubjects.includes(s) ? " ✓" : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id="subject"
-                      value={form.subject}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, subject: e.target.value }));
-                        if (formErrors.subject && e.target.value.trim()) {
-                          setFormErrors((er) => ({ ...er, subject: false }));
-                        }
-                      }}
-                      placeholder={t('schedule.subjectPlaceholder')}
-                      className={cn(
-                        formErrors.subject &&
-                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                  )}
+                  <SubjectComboBox
+                    value={form.subject}
+                    onChange={(v) => {
+                      setForm((f) => ({ ...f, subject: v }));
+                      if (formErrors.subject && v.trim()) {
+                        setFormErrors((er) => ({ ...er, subject: false }));
+                      }
+                    }}
+                    extraOptions={subjectOptions}
+                    className={cn(
+                      formErrors.subject &&
+                        "border-destructive ring-1 ring-destructive"
+                    )}
+                  />
                   {formErrors.subject && (
                     <p className="mt-1 text-xs text-destructive">{t('schedule.selectSubject')}</p>
                   )}
@@ -1214,7 +1187,7 @@ export default function SchedulePage() {
                 )}
                 {isStudent && !isManager && !isTutor && (
                   <p className="text-xs text-muted-foreground">
-                    Це буде запит. Менеджер або репетитор підтвердить його.
+                    {t("schedule.studentRequestHint")}
                   </p>
                 )}
                 {conflictWarning && (

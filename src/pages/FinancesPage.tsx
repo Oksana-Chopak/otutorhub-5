@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
@@ -133,6 +133,23 @@ export default function FinancesPage() {
   const initialTab: TabKey = (searchParams.get("tab") as TabKey | null)
     ?? legacyFilterToTab(searchParams.get("filter"));
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
+
+  // Auto-switch to debts tab on first load if there are unpaid lessons and no explicit tab in URL
+  const autoSwitchedRef = useRef(false);
+  useEffect(() => {
+    if (autoSwitchedRef.current) return;
+    if (searchParams.get("tab") || searchParams.get("filter")) {
+      autoSwitchedRef.current = true;
+      return;
+    }
+    if (loading) return;
+    const hasDebts = lessons.some(
+      (l) => l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid"
+    );
+    if (hasDebts) setActiveTab("debts");
+    autoSwitchedRef.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, lessons]);
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -1062,6 +1079,24 @@ export default function FinancesPage() {
               </div>
             </div>
           </div>
+
+          {activeTab === "debts" && searchParams.get("filter") && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm">
+              <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
+              <span className="flex-1 text-foreground">{t("finances.debtsBannerHint")}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  const p = new URLSearchParams(searchParams);
+                  p.delete("filter");
+                  setSearchParams(p, { replace: true });
+                }}
+              >
+                {t("finances.showAll")}
+              </Button>
+            </div>
+          )}
 
           {/* === Main tabs: Income / Expenses / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>

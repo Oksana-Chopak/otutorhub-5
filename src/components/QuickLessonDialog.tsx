@@ -194,7 +194,7 @@ export function QuickLessonDialog({
     if (!user || !startsAt) return;
 
     if (mode === "individual" && students.length === 0) {
-      toast.error("Спочатку додайте учня");
+      toast.error(t("quickLessonDialog.addStudentFirst"));
       return;
     }
 
@@ -323,11 +323,11 @@ export function QuickLessonDialog({
         ) : students.length === 0 && groups.length === 0 ? (
           <div className="space-y-3 py-4 text-center">
             <p className="text-sm text-muted-foreground">
-              Спочатку додайте першого учня, щоб створити урок
+              {t("quickLessonDialog.noStudentsHint")}
             </p>
             <Button size="sm" onClick={() => setAddStudentOpen(true)}>
               <Plus className="mr-1 h-3.5 w-3.5" />
-              Додати учня
+              {t("quickLessonDialog.addStudentBtn")}
             </Button>
           </div>
         ) : (
@@ -345,7 +345,7 @@ export function QuickLessonDialog({
                 )}
               >
                 <User className="h-3.5 w-3.5" />
-                Індивідуальний
+                {t("quickLessonDialog.modeIndividual")}
               </button>
               <button
                 type="button"
@@ -359,7 +359,7 @@ export function QuickLessonDialog({
                 )}
               >
                 <Users2 className="h-3.5 w-3.5" />
-                Груповий
+                {t("quickLessonDialog.modeGroup")}
               </button>
             </div>
 
@@ -389,7 +389,7 @@ export function QuickLessonDialog({
                   <SelectContent>
                     {groups.map((g) => (
                       <SelectItem key={g.id} value={g.id}>
-                        {g.name} · {g.participants.length} учнів
+                        {g.name} · {t("quickLessonDialog.participantsCount", { count: g.participants.length })}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -430,12 +430,12 @@ export function QuickLessonDialog({
               }}
             >
               <Pencil className="mr-1 h-3.5 w-3.5" />
-              Деталі
+              {t("quickLessonDialog.detailsBtn")}
             </Button>
           )}
           <Button onClick={submit} disabled={!canSubmit}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Створити
+            {t("quickLessonDialog.createBtn")}
           </Button>
         </DialogFooter>
       </DialogContent>

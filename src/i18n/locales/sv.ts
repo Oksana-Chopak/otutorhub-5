@@ -85,6 +85,8 @@ export const sv: Partial<Translations> = {
     toggle: "Växla tema",
   },
   auth: {
+    showOptional: "Lägg till telefon (valfritt)",
+    hideOptional: "Dölj",
     emailConfirmedBanner: "E-post bekräftad! Logga in för att fortsätta 🎉",
     login: "Logga in",
     signup: "Registrera",
@@ -186,6 +188,7 @@ export const sv: Partial<Translations> = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    studentRequestHint: "Detta blir en förfrågan. Läraren bekräftar den.",
     addStudentFirst: "Lägg till en elev först",
     title: "Schema",
     weekView: "Vecka",
@@ -269,6 +272,8 @@ export const sv: Partial<Translations> = {
     markCompleted: "Markera som genomförd",
   },
   finances: {
+    debtsBannerHint: "Visar lektioner med väntande betalning. Klicka på en rad för att markera.",
+    showAll: "Visa alla",
     title: "Ekonomi",
     income: "Intäkt",
     payouts: "Utbetalningar",
@@ -800,6 +805,8 @@ export const sv: Partial<Translations> = {
   },
 
   myStudents: {
+    showContacts: "Lägg till kontakter & detaljer ↓",
+    hideContacts: "Dölj valfria fält ↑",
     title: "Mina elever",
     subtitle: "Elever du hanterar självständigt. Priser och schema är helt upp till dig.",
     studentCount: "{{count}} elever",
@@ -2331,6 +2338,18 @@ export const sv: Partial<Translations> = {
   independentStatsExtra: {
     awaitingPayment: "Väntar på betalning",
     detailsLink: "Detaljer",
+  },
+  quickLessonDialog: {
+    addStudentFirst: "Lägg till en elev först",
+    noStudentsHint: "Lägg till din första elev för att skapa en lektion",
+    addStudentBtn: "Lägg till elev",
+    modeIndividual: "Individuell",
+    modeGroup: "Grupp",
+    participantsCount_one: "{{count}} deltagare",
+    participantsCount_few: "{{count}} deltagare",
+    participantsCount_many: "{{count}} deltagare",
+    detailsBtn: "Detaljer",
+    createBtn: "Skapa",
   },
   quickLessonDialogExtra: {
     groupCreated: "Grupplektion skapad · {{name}}",

@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, GraduationCap, BookOpenCheck, Mail } from "lucide-react";
+import { Loader2, GraduationCap, BookOpenCheck, Mail, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { cn } from "@/lib/utils";
@@ -43,6 +43,7 @@ export default function AuthPage() {
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [showExtra, setShowExtra] = useState(false);
   const [remember, setRemember] = useState<boolean>(() => {
     const stored = localStorage.getItem(REMEMBER_KEY);
     return stored === null ? true : stored === "true";
@@ -436,16 +437,26 @@ export default function AuthPage() {
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="su-phone">{t("auth.phone")}</Label>
-                    <Input
-                      id="su-phone"
-                      type="tel"
-                      autoComplete="tel"
-                      value={signUpData.phone}
-                      onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowExtra((v) => !v)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    {showExtra ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                    {showExtra ? t("auth.hideOptional") : t("auth.showOptional")}
+                  </button>
+                  {showExtra && (
+                    <div className="space-y-2">
+                      <Label htmlFor="su-phone">{t("auth.phone")}</Label>
+                      <Input
+                        id="su-phone"
+                        type="tel"
+                        autoComplete="tel"
+                        value={signUpData.phone}
+                        onChange={(e) => setSignUpData({ ...signUpData, phone: e.target.value })}
+                      />
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="su-email">Email</Label>
                     <Input
