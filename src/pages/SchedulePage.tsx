@@ -580,7 +580,7 @@ export default function SchedulePage() {
     if (!user) return;
 
     if (isIndependentTutor && students.length === 0) {
-      toast.error("Спочатку додайте учня");
+      toast.error(t("schedule.addStudentFirst"));
       return;
     }
 
