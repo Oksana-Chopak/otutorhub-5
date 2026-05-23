@@ -49,6 +49,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
 import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
@@ -1014,48 +1015,20 @@ export default function SchedulePage() {
                   <Label htmlFor="subject" className={cn(formErrors.subject && "text-destructive")}>
                     {t('schedule.subject')} <span className="text-destructive">*</span>
                   </Label>
-                  {subjectOptions.length > 0 ? (
-                    <Select
-                      value={form.subject}
-                      onValueChange={(v) => {
-                        setForm((f) => ({ ...f, subject: v }));
-                        if (formErrors.subject) setFormErrors((e) => ({ ...e, subject: false }));
-                      }}
-                    >
-                      <SelectTrigger
-                        className={cn(
-                          formErrors.subject &&
-                            "border-destructive ring-1 ring-destructive focus:ring-destructive"
-                        )}
-                      >
-                        <SelectValue placeholder={t('schedule.selectSubject')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {subjectOptions.map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {s}
-                            {pairSubjects.includes(s) ? " ✓" : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Input
-                      id="subject"
-                      value={form.subject}
-                      onChange={(e) => {
-                        setForm((f) => ({ ...f, subject: e.target.value }));
-                        if (formErrors.subject && e.target.value.trim()) {
-                          setFormErrors((er) => ({ ...er, subject: false }));
-                        }
-                      }}
-                      placeholder={t('schedule.subjectPlaceholder')}
-                      className={cn(
-                        formErrors.subject &&
-                          "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                      )}
-                    />
-                  )}
+                  <SubjectComboBox
+                    value={form.subject}
+                    onChange={(v) => {
+                      setForm((f) => ({ ...f, subject: v }));
+                      if (formErrors.subject && v.trim()) {
+                        setFormErrors((er) => ({ ...er, subject: false }));
+                      }
+                    }}
+                    extraOptions={subjectOptions}
+                    className={cn(
+                      formErrors.subject &&
+                        "border-destructive ring-1 ring-destructive"
+                    )}
+                  />
                   {formErrors.subject && (
                     <p className="mt-1 text-xs text-destructive">{t('schedule.selectSubject')}</p>
                   )}
