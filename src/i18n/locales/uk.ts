@@ -311,6 +311,8 @@ export const uk = {
 
   // Auth
   auth: {
+    showOptional: "Додати телефон (необов'язково)",
+    hideOptional: "Сховати",
     emailConfirmedBanner: "Email підтверджено! Увійдіть, щоб продовжити 🎉",
     login: "Увійти",
     signup: "Зареєструватися",
@@ -416,6 +418,7 @@ export const uk = {
 
   // Schedule
   schedule: {
+    studentRequestHint: "Це буде запит. Репетитор підтвердить його.",
     addStudentFirst: "Спочатку додайте учня",
     title: "Розклад",
     weekView: "Тиждень",
@@ -501,6 +504,8 @@ export const uk = {
 
   // Finances
   finances: {
+    debtsBannerHint: "Показано уроки з очікуваною оплатою. Натисніть на рядок щоб відмітити.",
+    showAll: "Показати все",
     title: "Фінанси",
     income: "Дохід",
     payouts: "Виплати",
@@ -816,6 +821,8 @@ export const uk = {
   },
 
   myStudents: {
+    showContacts: "Додати контакти та деталі ↓",
+    hideContacts: "Сховати необов'язкові поля ↑",
     title: "Мої учні",
     subtitle: "Учні, яких ви ведете самостійно. Ціни і розклад — повністю на вас.",
     studentCount: "{{count}} учнів",
@@ -2348,6 +2355,18 @@ export const uk = {
   independentStatsExtra: {
     awaitingPayment: "Очікує оплати",
     detailsLink: "Деталі",
+  },
+  quickLessonDialog: {
+    addStudentFirst: "Спочатку додайте учня",
+    noStudentsHint: "Спочатку додайте першого учня, щоб створити урок",
+    addStudentBtn: "Додати учня",
+    modeIndividual: "Індивідуальний",
+    modeGroup: "Груповий",
+    participantsCount_one: "{{count}} учасник",
+    participantsCount_few: "{{count}} учасники",
+    participantsCount_many: "{{count}} учасників",
+    detailsBtn: "Деталі",
+    createBtn: "Створити",
   },
   quickLessonDialogExtra: {
     groupCreated: "Груповий урок створено · {{name}}",

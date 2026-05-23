@@ -309,6 +309,8 @@ export const en: Translations = {
   },
 
   auth: {
+    showOptional: "Add phone (optional)",
+    hideOptional: "Hide",
     emailConfirmedBanner: "Email confirmed! Sign in to continue 🎉",
     login: "Sign in",
     signup: "Sign up",
@@ -412,6 +414,7 @@ export const en: Translations = {
   },
 
   schedule: {
+    studentRequestHint: "This will be a request. The tutor will confirm it.",
     addStudentFirst: "First add a student",
     title: "Schedule",
     weekView: "Week",
@@ -496,6 +499,8 @@ export const en: Translations = {
   },
 
   finances: {
+    debtsBannerHint: "Showing lessons awaiting payment. Click a row to mark it.",
+    showAll: "Show all",
     title: "Finances",
     income: "Income",
     payouts: "Payouts",
@@ -809,6 +814,8 @@ export const en: Translations = {
   },
 
   myStudents: {
+    showContacts: "Add contacts & details ↓",
+    hideContacts: "Hide optional fields ↑",
     title: "My students",
     subtitle: "Students you manage independently. Prices and schedule are entirely up to you.",
     studentCount: "{{count}} students",
@@ -2340,6 +2347,17 @@ export const en: Translations = {
   independentStatsExtra: {
     awaitingPayment: "Awaiting payment",
     detailsLink: "Details",
+  },
+  quickLessonDialog: {
+    addStudentFirst: "Add a student first",
+    noStudentsHint: "Add your first student to create a lesson",
+    addStudentBtn: "Add student",
+    modeIndividual: "Individual",
+    modeGroup: "Group",
+    participantsCount_one: "{{count}} participant",
+    participantsCount_other: "{{count}} participants",
+    detailsBtn: "Details",
+    createBtn: "Create",
   },
   quickLessonDialogExtra: {
     groupCreated: "Group lesson created · {{name}}",
