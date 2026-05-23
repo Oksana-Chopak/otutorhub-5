@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Student updates own notes" ON public.lessons;
