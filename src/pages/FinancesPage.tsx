@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
@@ -135,7 +135,7 @@ export default function FinancesPage() {
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
 
   // Auto-switch to debts tab on first load if there are unpaid lessons and no explicit tab in URL
-  const autoSwitchedRef = (globalThis as any).__finAutoSwitched ?? { current: false };
+  const autoSwitchedRef = useRef(false);
   useEffect(() => {
     if (autoSwitchedRef.current) return;
     if (searchParams.get("tab") || searchParams.get("filter")) {
