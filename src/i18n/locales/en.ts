@@ -821,6 +821,8 @@ export const en: Translations = {
     subtitle: "Students you manage independently. Prices and schedule are entirely up to you.",
     studentCount: "{{count}} students",
     studentCount_one: "{{count}} student",
+    studentCount_few: "{{count}} students",
+    studentCount_many: "{{count}} students",
     studentCount_other: "{{count}} students",
     addStudentBtn: "Add student",
     tabActive: "Active ({{count}})",
