@@ -1441,6 +1441,8 @@ export const uk = {
     statusCancelled: "Скасовано",
     statusPending: "Запит",
     noScheduled: "Немає запланованих уроків",
+    upcomingLessonsTitle: "Найближчі уроки",
+    allLessonsLink: "Усі уроки →",
   },
   availabilityManager: {
     timeError: "Перевірте час: кінець має бути пізніше за початок",
@@ -2131,6 +2133,9 @@ export const uk = {
   studentPagesExtra: {
     homeworkTitle: "Домашні завдання",
     searchingTutor: "Шукаємо тобі репетитора",
+    searchingTutorDesc: "Менеджер уже отримав твою заявку. Якщо хочеш — заповни ще одну для іншого предмета.",
+    findTutorBtn: "Знайти репетитора",
+    noHomework: "Поки що немає домашніх завдань",
     howToPay: "Як оплатити",
     noLessonsCard: "Уроків ще немає",
     paidStatus: "Оплачено",

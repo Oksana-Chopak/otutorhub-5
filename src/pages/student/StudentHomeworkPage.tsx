@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Loader2, BookOpen } from "lucide-react";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface HomeworkRow {
   lesson_id: string;
@@ -17,6 +16,7 @@ interface HomeworkRow {
 }
 
 export default function StudentHomeworkPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [rows, setRows] = useState<HomeworkRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +70,7 @@ export default function StudentHomeworkPage() {
         ) : rows.length === 0 ? (
           <Card className="p-8 text-center text-sm text-muted-foreground">
             <BookOpen className="mx-auto mb-2 h-8 w-8 opacity-40" />
-            Поки що немає домашніх завдань
+            {t("studentPagesExtra.noHomework")}
           </Card>
         ) : (
           <ul className="space-y-3">

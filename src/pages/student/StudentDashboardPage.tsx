@@ -10,8 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface UpcomingLesson {
   id: string;
@@ -24,6 +23,7 @@ interface UpcomingLesson {
 }
 
 export default function StudentDashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { loading: ctxLoading, hasQuiz, hasTutor, refresh } = useStudentContext();
   const [showOnboarding, setShowOnboarding] = useState(false);
@@ -128,10 +128,10 @@ export default function StudentDashboardPage() {
         <Card className="p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 font-semibold text-foreground">
-              <CalendarDays className="h-4 w-4 text-primary" /> Найближчі уроки
+              <CalendarDays className="h-4 w-4 text-primary" /> {t("studentPages.upcomingLessonsTitle")}
             </h2>
             <Link to="/student/schedule" className="text-xs text-primary hover:underline">
-              Усі уроки →
+              {t("studentPages.allLessonsLink")}
             </Link>
           </div>
           {loading ? (
@@ -201,10 +201,10 @@ export default function StudentDashboardPage() {
               <div className="flex-1">
                 <h3 className="font-semibold text-foreground">{t("studentPagesExtra.searchingTutor")}</h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Менеджер уже отримав твою заявку. Якщо хочеш — заповни ще одну для іншого предмета.
+                  {t("studentPagesExtra.searchingTutorDesc")}
                 </p>
                 <Button className="mt-3" size="sm" onClick={() => setShowQuizAgain(true)}>
-                  Знайти репетитора
+                  {t("studentPagesExtra.findTutorBtn")}
                 </Button>
               </div>
             </div>

@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Video } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface Lesson {
   id: string;
@@ -22,12 +21,6 @@ interface Lesson {
   tutor_name?: string;
 }
 
-const statusLabel: Record<string, string> = {
-  scheduled: t("studentPages.statusScheduled"),
-  completed: t("studentPages.statusCompleted"),
-  cancelled: t("studentPages.statusCancelled"),
-  pending: t("studentPages.statusPending"),
-};
 const statusClass: Record<string, string> = {
   scheduled: "bg-primary/10 text-primary",
   completed: "bg-success/10 text-success",
@@ -36,9 +29,17 @@ const statusClass: Record<string, string> = {
 };
 
 export default function StudentSchedulePage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<Lesson[]>([]);
+
+  const statusLabel: Record<string, string> = {
+    scheduled: t("studentPages.statusScheduled"),
+    completed: t("studentPages.statusCompleted"),
+    cancelled: t("studentPages.statusCancelled"),
+    pending: t("studentPages.statusPending"),
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -84,7 +85,7 @@ export default function StudentSchedulePage() {
                       {statusLabel[l.status]}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{fmt(l.starts_at)} · {l.duration_minutes} хв · {l.tutor_name}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{fmt(l.starts_at)} · {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}</p>
                 </div>
                 {l.meeting_url && l.status === "scheduled" && (
                   <Button asChild size="sm">

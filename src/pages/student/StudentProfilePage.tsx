@@ -10,10 +10,10 @@ import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 export default function StudentProfilePage() {
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -63,7 +63,7 @@ export default function StudentProfilePage() {
           <Card className="space-y-4 p-5">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="fn">Ім'я</Label>
+                <Label htmlFor="fn">{t("common.name")}</Label>
                 <Input id="fn" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
               </div>
               <div className="space-y-1.5">
@@ -81,7 +81,7 @@ export default function StudentProfilePage() {
             </div>
             <Button onClick={save} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Зберегти
+              {t("common.save")}
             </Button>
           </Card>
         )}
@@ -90,7 +90,7 @@ export default function StudentProfilePage() {
         <GoogleCalendarCard />
 
         <Button variant="outline" onClick={signOut} className="w-full sm:w-auto">
-          Вийти
+          {t("common.logout")}
         </Button>
       </div>
     </StudentLayout>

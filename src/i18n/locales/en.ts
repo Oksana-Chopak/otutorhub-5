@@ -1433,6 +1433,8 @@ export const en: Translations = {
     statusCancelled: "Cancelled",
     statusPending: "Request",
     noScheduled: "No scheduled lessons",
+    upcomingLessonsTitle: "Upcoming lessons",
+    allLessonsLink: "All lessons →",
   },
   availabilityManager: {
     timeError: "Check time: end must be later than start",
@@ -2123,6 +2125,9 @@ export const en: Translations = {
   studentPagesExtra: {
     homeworkTitle: "Homework",
     searchingTutor: "Finding your tutor",
+    searchingTutorDesc: "The manager has received your request. If you want, fill in another for a different subject.",
+    findTutorBtn: "Find a tutor",
+    noHomework: "No homework yet",
     howToPay: "How to pay",
     noLessonsCard: "No lessons yet",
     paidStatus: "Paid",

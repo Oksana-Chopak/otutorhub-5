@@ -1424,6 +1424,8 @@ export const sv: Partial<Translations> = {
     statusCancelled: "Inställd",
     statusPending: "Förfrågan",
     noScheduled: "Inga planerade lektioner",
+    upcomingLessonsTitle: "Kommande lektioner",
+    allLessonsLink: "Alla lektioner →",
   },
   availabilityManager: {
     timeError: "Kontrollera tid: slut måste vara senare än start",
@@ -2114,6 +2116,9 @@ export const sv: Partial<Translations> = {
   studentPagesExtra: {
     homeworkTitle: "Läxor",
     searchingTutor: "Hittar din lärare",
+    searchingTutorDesc: "Handledaren har mottagit din ansökan. Om du vill, fyll i en till för ett annat ämne.",
+    findTutorBtn: "Hitta en lärare",
+    noHomework: "Inga läxor ännu",
     howToPay: "Hur man betalar",
     noLessonsCard: "Inga lektioner ännu",
     paidStatus: "Betald",
