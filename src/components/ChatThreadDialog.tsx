@@ -47,6 +47,7 @@ export function ChatThreadDialog({
   const myId = user?.id ?? null;
   const [threadId, setThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
