@@ -263,7 +263,12 @@ export function ChatThreadDialog({
                           })}
                         </div>
                       </div>
-                      <MessageReactions messageId={m.id} myId={myId} mine={mine} />
+                      <MessageReactions
+                        reactions={reactions[m.id] ?? []}
+                        myId={myId}
+                        onToggle={(emoji) => toggleReaction(m.id, emoji)}
+                        mine={mine}
+                      />
                     </li>
                   );
                 })}
