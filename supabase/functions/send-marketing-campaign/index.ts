@@ -132,6 +132,7 @@ Deno.serve(async (req) => {
     // Fire-and-forget background send
     const sendAll = async () => {
       let sent = 0, failed = 0;
+      const errors: Array<{ email: string; error: string; status?: number }> = [];
       for (const r of list) {
         try {
           // Get or create unsub token
@@ -179,6 +180,7 @@ Deno.serve(async (req) => {
             failed++;
             const txt = await resp.text().catch(() => "");
             console.error(`Send failed to ${r.email} [${resp.status}]: ${txt}`);
+            errors.push({ email: r.email, status: resp.status, error: txt.slice(0, 500) });
           }
           // Throttle: ~5 emails/sec to be safe
           await new Promise((r) => setTimeout(r, 200));
