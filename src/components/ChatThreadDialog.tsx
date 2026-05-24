@@ -129,6 +129,30 @@ export function ChatThreadDialog({
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chat_message_reactions" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const r = payload.new as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id] ?? [];
+              if (list.some((x) => x.user_id === r.user_id && x.emoji === r.emoji)) return prev;
+              return { ...prev, [r.message_id]: [...list, r] };
+            });
+          } else if (payload.eventType === "DELETE") {
+            const r = payload.old as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id];
+              if (!list) return prev;
+              return {
+                ...prev,
+                [r.message_id]: list.filter((x) => !(x.user_id === r.user_id && x.emoji === r.emoji)),
+              };
+            });
+          }
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
