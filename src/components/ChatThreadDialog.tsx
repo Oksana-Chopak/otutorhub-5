@@ -178,6 +178,32 @@ export function ChatThreadDialog({
     setDraft("");
   };
 
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!myId) return;
+    const list = reactions[messageId] ?? [];
+    const exists = list.some((r) => r.user_id === myId && r.emoji === emoji);
+    if (exists) {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: (prev[messageId] ?? []).filter((r) => !(r.user_id === myId && r.emoji === emoji)),
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", myId)
+        .eq("emoji", emoji);
+    } else {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: [...(prev[messageId] ?? []), { message_id: messageId, user_id: myId, emoji }],
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .insert({ message_id: messageId, user_id: myId, emoji });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md sm:max-w-md">
