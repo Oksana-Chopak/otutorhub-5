@@ -515,6 +515,30 @@ export default function ChatsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!myId) return;
+    const list = reactions[messageId] ?? [];
+    const exists = list.some((r) => r.user_id === myId && r.emoji === emoji);
+    if (exists) {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: (prev[messageId] ?? []).filter((r) => !(r.user_id === myId && r.emoji === emoji)),
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", myId)
+        .eq("emoji", emoji);
+    } else {
+      const optimistic: Reaction = { message_id: messageId, user_id: myId, emoji };
+      setReactions((prev) => ({ ...prev, [messageId]: [...(prev[messageId] ?? []), optimistic] }));
+      await supabase
+        .from("chat_message_reactions")
+        .insert({ message_id: messageId, user_id: myId, emoji });
+    }
+  };
+
   const counterpartName = (thread: Thread) => {
     const tutorFallback = t("shared.tutor");
     const studentFallback = t("shared.student");
