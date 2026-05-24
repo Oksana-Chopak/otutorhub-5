@@ -28,7 +28,7 @@ import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
-import { MessageReactions } from "@/components/MessageReactions";
+import { MessageReactions, type Reaction } from "@/components/MessageReactions";
 import { ChatContextPanel } from "@/components/ChatContextPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
