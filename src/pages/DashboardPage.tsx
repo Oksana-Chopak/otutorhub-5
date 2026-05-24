@@ -411,11 +411,11 @@ export default function DashboardPage() {
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
     if (newStatus === "completed") {
-      toast.success("✓ Урок проведено", {
+      toast.success(t("dashboardExtra.lessonCompletedToast"), {
         description: streak?.current_streak
-          ? `🔥 ${streak.current_streak} днів поспіль!`
-          : "Чудово!",
-        duration: 3000,
+          ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
+          : t("dashboardExtra.lessonCompletedGood"),
+        duration: 4000,
       });
       gamification.refresh();
     }
@@ -442,6 +442,20 @@ export default function DashboardPage() {
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
+    if (value === "paid" && field === "student_payment_status") {
+      const lesson = lessons.find((l) => l.id === lessonId);
+      if (lesson && lesson.student_price > 0) {
+        const firstName = profiles[lesson.student_id]?.split(" ")[0] ?? t("shared.student");
+        const currency = pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? "UAH";
+        toast.success(
+          t("dashboardExtra.paymentReceivedToast", {
+            amount: formatPrice(lesson.student_price, currency, { decimals: 0 }),
+            name: firstName,
+          }),
+          { duration: 4000 },
+        );
+      }
+    }
   };
 
   useEffect(() => {
@@ -865,8 +879,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Independent tutor: streak + pending payments first */}
-          {isIndependentTutor && streak && streak.current_streak > 0 && (
+          {/* Independent tutor: streak card — always visible so new tutors see "Почни сьогодні!" */}
+          {isIndependentTutor && streak && (
             <StreakCard streak={streak} />
           )}
           {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (

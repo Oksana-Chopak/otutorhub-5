@@ -1263,6 +1263,10 @@ export const sv: Partial<Translations> = {
     lessonsToday_one: "{{count}} lektion idag",
     lessonsToday_few: "{{count}} lektioner idag",
     lessonsToday_many: "{{count}} lektioner idag",
+    lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedStreak: "🔥 {{count}} dagar i rad!",
+    lessonCompletedGood: "Bra jobbat! 💪",
+    paymentReceivedToast: "💰 +{{amount}} från {{name}}!",
   },
   shared: {
     noName: "Okänt",

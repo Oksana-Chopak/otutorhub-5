@@ -1280,6 +1280,10 @@ export const uk = {
     lessonsToday_one: "{{count}} урок сьогодні",
     lessonsToday_few: "{{count}} уроки сьогодні",
     lessonsToday_many: "{{count}} уроків сьогодні",
+    lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedStreak: "🔥 {{count}} днів поспіль!",
+    lessonCompletedGood: "Чудово! 💪",
+    paymentReceivedToast: "💰 +{{amount}} від {{name}}!",
   },
   shared: {
     noName: "Без імені",

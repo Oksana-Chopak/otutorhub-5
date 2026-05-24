@@ -1272,6 +1272,10 @@ export const en: Translations = {
     lessonsToday_one: "{{count}} lesson today",
     lessonsToday_few: "{{count}} lessons today",
     lessonsToday_many: "{{count}} lessons today",
+    lessonCompletedToast: "+10 XP 🎯",
+    lessonCompletedStreak: "🔥 {{count}} days in a row!",
+    lessonCompletedGood: "Great job! 💪",
+    paymentReceivedToast: "💰 +{{amount}} from {{name}}!",
   },
   shared: {
     noName: "Unknown",
