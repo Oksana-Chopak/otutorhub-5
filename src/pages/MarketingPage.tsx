@@ -70,7 +70,7 @@ export default function MarketingPage() {
   const loadCampaigns = async () => {
     const { data } = await supabase
       .from("marketing_campaigns")
-      .select("id, subject, segment, recipients_total, recipients_sent, recipients_failed, status, created_at")
+      .select("id, subject, segment, html_body, recipients_total, recipients_sent, recipients_failed, status, created_at, errors")
       .order("created_at", { ascending: false })
       .limit(20);
     setCampaigns((data ?? []) as Campaign[]);
