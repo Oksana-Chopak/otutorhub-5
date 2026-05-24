@@ -173,7 +173,7 @@ export function ChatThreadDialog({
                   return (
                     <li
                       key={m.id}
-                      className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                      className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
                     >
                       <div
                         className={
