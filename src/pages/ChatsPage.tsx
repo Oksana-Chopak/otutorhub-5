@@ -109,6 +109,7 @@ export default function ChatsPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"recent" | "unread" | "name">("recent");
   const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showArchived, setShowArchived] = useState<Record<string, boolean>>({});
