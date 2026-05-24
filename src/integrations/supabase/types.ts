@@ -945,6 +945,7 @@ export type Database = {
           created_at: string
           created_by: string
           error_message: string | null
+          errors: Json
           html_body: string
           id: string
           recipients_failed: number
@@ -961,6 +962,7 @@ export type Database = {
           created_at?: string
           created_by: string
           error_message?: string | null
+          errors?: Json
           html_body: string
           id?: string
           recipients_failed?: number
@@ -977,6 +979,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           error_message?: string | null
+          errors?: Json
           html_body?: string
           id?: string
           recipients_failed?: number

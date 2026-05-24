@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Send, Eye, Users } from "lucide-react";
+import { Loader2, Send, Eye, Users, ChevronDown, ChevronRight } from "lucide-react";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -33,11 +33,13 @@ interface Campaign {
   id: string;
   subject: string;
   segment: string;
+  html_body: string;
   recipients_total: number;
   recipients_sent: number;
   recipients_failed: number;
   status: string;
   created_at: string;
+  errors: Array<{ email: string; error: string; status?: number }> | null;
 }
 
 export default function MarketingPage() {
@@ -48,6 +50,7 @@ export default function MarketingPage() {
   const [loadingCount, setLoadingCount] = useState(false);
   const [sending, setSending] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const previewHtml = useMemo(() => {
     // Convert plain newlines to <br> for preview display
@@ -67,7 +70,7 @@ export default function MarketingPage() {
   const loadCampaigns = async () => {
     const { data } = await supabase
       .from("marketing_campaigns")
-      .select("id, subject, segment, recipients_total, recipients_sent, recipients_failed, status, created_at")
+      .select("id, subject, segment, html_body, recipients_total, recipients_sent, recipients_failed, status, created_at, errors")
       .order("created_at", { ascending: false })
       .limit(20);
     setCampaigns((data ?? []) as Campaign[]);
@@ -211,23 +214,83 @@ export default function MarketingPage() {
               <p className="text-sm text-muted-foreground">Поки нічого не надсилали.</p>
             ) : (
               <div className="space-y-2">
-                {campaigns.map((c) => (
-                  <div key={c.id} className="flex items-center justify-between rounded-md border p-3 text-sm">
-                    <div>
-                      <div className="font-medium">{c.subject}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {new Date(c.created_at).toLocaleString("uk-UA")} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
-                      </div>
+                {campaigns.map((c) => {
+                  const isOpen = expandedId === c.id;
+                  const errs = c.errors ?? [];
+                  return (
+                    <div key={c.id} className="rounded-md border text-sm">
+                      <button
+                        type="button"
+                        onClick={() => setExpandedId(isOpen ? null : c.id)}
+                        className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-muted/40"
+                      >
+                        <div className="flex items-start gap-2 min-w-0">
+                          {isOpen ? <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" /> : <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />}
+                          <div className="min-w-0">
+                            <div className="font-medium truncate">{c.subject}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {new Date(c.created_at).toLocaleString("uk-UA")} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right text-xs shrink-0">
+                          <div className="font-semibold">
+                            {c.recipients_sent}/{c.recipients_total}
+                            {c.recipients_failed > 0 && <span className="text-destructive"> ({c.recipients_failed} помилок)</span>}
+                          </div>
+                          <div className="text-muted-foreground capitalize">{c.status}</div>
+                        </div>
+                      </button>
+
+                      {isOpen && (
+                        <div className="border-t bg-muted/20 p-3 space-y-3">
+                          <div>
+                            <div className="text-xs font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
+                            <iframe
+                              srcDoc={c.html_body}
+                              sandbox=""
+                              title={`Body of ${c.subject}`}
+                              className="w-full min-h-[300px] rounded border bg-white"
+                            />
+                          </div>
+
+                          <div>
+                            <div className="text-xs font-semibold text-muted-foreground mb-1">
+                              Помилки доставки ({errs.length})
+                            </div>
+                            {errs.length === 0 ? (
+                              c.recipients_failed > 0 ? (
+                                <p className="text-xs text-muted-foreground">
+                                  Деталі помилок не збережені для цієї розсилки (старі дані). Нові розсилки будуть писати деталі сюди.
+                                </p>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">Усі листи доставлено.</p>
+                              )
+                            ) : (
+                              <div className="space-y-1 max-h-64 overflow-auto">
+                                {errs.map((e, i) => (
+                                  <div key={i} className="rounded border bg-background p-2 text-xs">
+                                    <div className="flex items-center justify-between gap-2">
+                                      <span className="font-mono truncate">{e.email}</span>
+                                      {e.status != null && (
+                                        <span className="shrink-0 rounded bg-destructive/10 px-1.5 py-0.5 text-destructive font-semibold">
+                                          HTTP {e.status}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="mt-1 break-words text-muted-foreground whitespace-pre-wrap">
+                                      {e.error || "(без повідомлення)"}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div className="text-right text-xs">
-                      <div className="font-semibold">
-                        {c.recipients_sent}/{c.recipients_total}
-                        {c.recipients_failed > 0 && <span className="text-destructive"> ({c.recipients_failed} помилок)</span>}
-                      </div>
-                      <div className="text-muted-foreground capitalize">{c.status}</div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
