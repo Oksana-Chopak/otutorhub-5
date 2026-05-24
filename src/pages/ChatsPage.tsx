@@ -932,6 +932,10 @@ export default function ChatsPage() {
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
                         </div>
+                        <MessageReactions messageId={m.id} myId={myId} mine={mine} />
+                      </div>);
+                    })
+                        </div>
                       );
                     })
                   )}
