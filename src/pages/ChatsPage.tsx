@@ -997,7 +997,12 @@ export default function ChatsPage() {
                             )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
-                          <MessageReactions messageId={m.id} myId={myId} mine={mine} />
+                          <MessageReactions
+                            reactions={reactions[m.id] ?? []}
+                            myId={myId}
+                            onToggle={(emoji) => toggleReaction(m.id, emoji)}
+                            mine={mine}
+                          />
                         </div>
                       );
                     })
