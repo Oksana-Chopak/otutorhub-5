@@ -82,7 +82,25 @@ export function ChatThreadDialog({
       const { data: msgs } = await q.order("created_at", { ascending: true });
       if (cancelled) return;
       setThreadId(tid as string);
-      setMessages((msgs ?? []) as Message[]);
+      const list = (msgs ?? []) as Message[];
+      setMessages(list);
+      // Load reactions
+      if (list.length > 0) {
+        const { data: rx } = await supabase
+          .from("chat_message_reactions")
+          .select("message_id, user_id, emoji")
+          .in("message_id", list.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, Reaction[]> = {};
+          (rx ?? []).forEach((r: any) => {
+            if (!grouped[r.message_id]) grouped[r.message_id] = [];
+            grouped[r.message_id].push(r);
+          });
+          setReactions(grouped);
+        }
+      } else if (!cancelled) {
+        setReactions({});
+      }
       setLoading(false);
       if (myId) {
         await supabase
