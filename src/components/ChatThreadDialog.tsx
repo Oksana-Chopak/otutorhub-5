@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Send, MessageSquare } from "lucide-react";
-import { MessageReactions } from "@/components/MessageReactions";
+import { MessageReactions, type Reaction } from "@/components/MessageReactions";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -47,6 +47,7 @@ export function ChatThreadDialog({
   const myId = user?.id ?? null;
   const [threadId, setThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
@@ -81,7 +82,25 @@ export function ChatThreadDialog({
       const { data: msgs } = await q.order("created_at", { ascending: true });
       if (cancelled) return;
       setThreadId(tid as string);
-      setMessages((msgs ?? []) as Message[]);
+      const list = (msgs ?? []) as Message[];
+      setMessages(list);
+      // Load reactions
+      if (list.length > 0) {
+        const { data: rx } = await supabase
+          .from("chat_message_reactions")
+          .select("message_id, user_id, emoji")
+          .in("message_id", list.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, Reaction[]> = {};
+          (rx ?? []).forEach((r: any) => {
+            if (!grouped[r.message_id]) grouped[r.message_id] = [];
+            grouped[r.message_id].push(r);
+          });
+          setReactions(grouped);
+        }
+      } else if (!cancelled) {
+        setReactions({});
+      }
       setLoading(false);
       if (myId) {
         await supabase
@@ -110,6 +129,30 @@ export function ChatThreadDialog({
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chat_message_reactions" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const r = payload.new as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id] ?? [];
+              if (list.some((x) => x.user_id === r.user_id && x.emoji === r.emoji)) return prev;
+              return { ...prev, [r.message_id]: [...list, r] };
+            });
+          } else if (payload.eventType === "DELETE") {
+            const r = payload.old as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id];
+              if (!list) return prev;
+              return {
+                ...prev,
+                [r.message_id]: list.filter((x) => !(x.user_id === r.user_id && x.emoji === r.emoji)),
+              };
+            });
+          }
+        }
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -133,6 +176,32 @@ export function ChatThreadDialog({
       return;
     }
     setDraft("");
+  };
+
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!myId) return;
+    const list = reactions[messageId] ?? [];
+    const exists = list.some((r) => r.user_id === myId && r.emoji === emoji);
+    if (exists) {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: (prev[messageId] ?? []).filter((r) => !(r.user_id === myId && r.emoji === emoji)),
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", myId)
+        .eq("emoji", emoji);
+    } else {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: [...(prev[messageId] ?? []), { message_id: messageId, user_id: myId, emoji }],
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .insert({ message_id: messageId, user_id: myId, emoji });
+    }
   };
 
   return (
@@ -194,7 +263,12 @@ export function ChatThreadDialog({
                           })}
                         </div>
                       </div>
-                      <MessageReactions messageId={m.id} myId={myId} mine={mine} />
+                      <MessageReactions
+                        reactions={reactions[m.id] ?? []}
+                        myId={myId}
+                        onToggle={(emoji) => toggleReaction(m.id, emoji)}
+                        mine={mine}
+                      />
                     </li>
                   );
                 })}

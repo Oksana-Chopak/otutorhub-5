@@ -28,7 +28,7 @@ import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
-import { MessageReactions } from "@/components/MessageReactions";
+import { MessageReactions, type Reaction } from "@/components/MessageReactions";
 import { ChatContextPanel } from "@/components/ChatContextPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -109,6 +109,7 @@ export default function ChatsPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [sortMode, setSortMode] = useState<"recent" | "unread" | "name">("recent");
   const [attachments, setAttachments] = useState<Record<string, MessageAttachment[]>>({});
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [showArchived, setShowArchived] = useState<Record<string, boolean>>({});
@@ -352,6 +353,23 @@ export default function ChatsPage() {
       } else if (!cancelled) {
         setAttachments({});
       }
+      // Load reactions for these messages
+      if (msgs.length > 0) {
+        const { data: reactData } = await supabase
+          .from("chat_message_reactions")
+          .select("message_id, user_id, emoji")
+          .in("message_id", msgs.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, Reaction[]> = {};
+          (reactData ?? []).forEach((r: any) => {
+            if (!grouped[r.message_id]) grouped[r.message_id] = [];
+            grouped[r.message_id].push(r);
+          });
+          setReactions(grouped);
+        }
+      } else if (!cancelled) {
+        setReactions({});
+      }
       // Mark as read when opening
       markRead(selectedId);
     };
@@ -371,6 +389,30 @@ export default function ChatsPage() {
           });
           // Auto-mark read while viewing thread
           markRead(selectedId);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chat_message_reactions" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const r = payload.new as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id] ?? [];
+              if (list.some((x) => x.user_id === r.user_id && x.emoji === r.emoji)) return prev;
+              return { ...prev, [r.message_id]: [...list, r] };
+            });
+          } else if (payload.eventType === "DELETE") {
+            const r = payload.old as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id];
+              if (!list) return prev;
+              return {
+                ...prev,
+                [r.message_id]: list.filter((x) => !(x.user_id === r.user_id && x.emoji === r.emoji)),
+              };
+            });
+          }
         }
       )
       .subscribe();
@@ -471,6 +513,30 @@ export default function ChatsPage() {
     setDraft("");
     setPendingFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const toggleReaction = async (messageId: string, emoji: string) => {
+    if (!myId) return;
+    const list = reactions[messageId] ?? [];
+    const exists = list.some((r) => r.user_id === myId && r.emoji === emoji);
+    if (exists) {
+      setReactions((prev) => ({
+        ...prev,
+        [messageId]: (prev[messageId] ?? []).filter((r) => !(r.user_id === myId && r.emoji === emoji)),
+      }));
+      await supabase
+        .from("chat_message_reactions")
+        .delete()
+        .eq("message_id", messageId)
+        .eq("user_id", myId)
+        .eq("emoji", emoji);
+    } else {
+      const optimistic: Reaction = { message_id: messageId, user_id: myId, emoji };
+      setReactions((prev) => ({ ...prev, [messageId]: [...(prev[messageId] ?? []), optimistic] }));
+      await supabase
+        .from("chat_message_reactions")
+        .insert({ message_id: messageId, user_id: myId, emoji });
+    }
   };
 
   const counterpartName = (thread: Thread) => {
@@ -931,7 +997,12 @@ export default function ChatsPage() {
                             )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
-                          <MessageReactions messageId={m.id} myId={myId} mine={mine} />
+                          <MessageReactions
+                            reactions={reactions[m.id] ?? []}
+                            myId={myId}
+                            onToggle={(emoji) => toggleReaction(m.id, emoji)}
+                            mine={mine}
+                          />
                         </div>
                       );
                     })
