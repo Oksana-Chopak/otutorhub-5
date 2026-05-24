@@ -1124,7 +1124,7 @@ export default function ChatsPage() {
             <ChatContextPanel
               tutorId={selectedThread.tutor_id}
               studentId={selectedThread.student_id}
-              className="hidden lg:flex rounded-xl border border-border h-[calc(100vh-8rem)] lg:h-auto lg:max-h-[70vh]"
+              className="flex rounded-xl border border-border h-[calc(100vh-8rem)] lg:h-auto lg:max-h-[70vh] overflow-y-auto"
             />
           )}
         </div>
