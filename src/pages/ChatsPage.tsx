@@ -28,6 +28,7 @@ import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
+import { MessageReactions } from "@/components/MessageReactions";
 import { ChatContextPanel } from "@/components/ChatContextPanel";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
@@ -893,7 +894,7 @@ export default function ChatsPage() {
                       const senderIsManager = managerIds.has(m.sender_id);
                       const msgAttachments = attachments[m.id] ?? [];
                       return (
-                        <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
+                        <div key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
                           <div
                             className={cn(
                               "max-w-[85%] rounded-xl px-3 py-2 lg:max-w-[70%] lg:px-4 lg:py-2.5",
@@ -930,6 +931,7 @@ export default function ChatsPage() {
                             )}
                             <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
                           </div>
+                          <MessageReactions messageId={m.id} myId={myId} mine={mine} />
                         </div>
                       );
                     })

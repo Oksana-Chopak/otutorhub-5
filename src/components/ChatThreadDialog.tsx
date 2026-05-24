@@ -10,6 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Send, MessageSquare } from "lucide-react";
+import { MessageReactions } from "@/components/MessageReactions";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -172,7 +173,7 @@ export function ChatThreadDialog({
                   return (
                     <li
                       key={m.id}
-                      className={`flex ${mine ? "justify-end" : "justify-start"}`}
+                      className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
                     >
                       <div
                         className={
@@ -193,6 +194,7 @@ export function ChatThreadDialog({
                           })}
                         </div>
                       </div>
+                      <MessageReactions messageId={m.id} myId={myId} mine={mine} />
                     </li>
                   );
                 })}
