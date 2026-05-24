@@ -186,7 +186,9 @@ Deno.serve(async (req) => {
           await new Promise((r) => setTimeout(r, 200));
         } catch (e) {
           failed++;
+          const msg = e instanceof Error ? e.message : String(e);
           console.error("Send error:", e);
+          errors.push({ email: r.email, error: msg.slice(0, 500) });
         }
       }
       await admin.from("marketing_campaigns").update({
@@ -194,6 +196,7 @@ Deno.serve(async (req) => {
         recipients_failed: failed,
         status: failed > 0 && sent === 0 ? "failed" : "completed",
         completed_at: new Date().toISOString(),
+        errors: errors,
       }).eq("id", campaign.id);
     };
 
