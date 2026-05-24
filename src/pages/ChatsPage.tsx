@@ -776,7 +776,7 @@ export default function ChatsPage() {
         <div
           className={cn(
             "grid min-w-0 gap-4",
-            canShowContext && selectedId
+            canShowContext && selectedThread
               ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
               : "lg:grid-cols-[320px_minmax(0,1fr)]"
           )}
