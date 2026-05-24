@@ -878,8 +878,8 @@ export default function SchedulePage() {
             {isManager
               ? t("schedule.allLessons") ?? "Усі уроки школи"
               : isTutor
-              ? "Ваші уроки та робочий графік"
-              : "Ваші уроки та запити"}
+              ? t("schedule.tutorSubtitle")
+              : t("schedule.studentSubtitle")}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -1563,7 +1563,7 @@ export default function SchedulePage() {
                                 size="icon"
                                 className="h-8 w-8 text-muted-foreground hover:text-primary"
                                 onClick={() => openEdit(lesson)}
-                                title="Редагувати урок"
+                                title={t("schedule.editLesson")}
                               >
                                 <Pencil className="h-3.5 w-3.5" />
                               </Button>
@@ -1590,13 +1590,13 @@ export default function SchedulePage() {
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Цю дію не можна скасувати.
+                                      {t("schedulePageExtra.deleteConfirmDesc")}
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>{t("schedulePageExtra.cancelBtn")}</AlertDialogCancel>
                                     <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
-                                      Видалити
+                                      {t("schedulePageExtra.deleteBtn")}
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>

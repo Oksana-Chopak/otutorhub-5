@@ -502,6 +502,12 @@ export const uk = {
     copyLesson: "Копіювати урок",
     rescheduleLesson: "Перенести урок",
     markCompleted: "Позначити як проведений",
+    tutorSubtitle: "Ваші уроки та робочий графік",
+    studentSubtitle: "Ваші уроки та запити",
+    editLesson: "Редагувати урок",
+    noUpcomingCreateDesc: "Створіть урок — він з'явиться тут одразу після збереження.",
+    noUpcomingStudentDesc: "Дату й час нових уроків додає ваш репетитор.",
+    createLessonBtn: "Створити урок",
   },
 
   // Finances
@@ -659,6 +665,11 @@ export const uk = {
     insertTemplate: "Вставити шаблон",
     placeholderManager: "Написати від імені менеджера…",
     placeholderOther: "Напишіть повідомлення…",
+    empty: "Поки немає повідомлень",
+    emptyDesc: "Написати учню або репетитору можна прямо звідси.",
+    reactionRemove: "Прибрати реакцію",
+    reactionAdd: "Додати реакцію",
+    reactionTitle: "Реакція",
   },
 
   // Profile
@@ -1002,6 +1013,12 @@ export const uk = {
   availability: {
     title: "Доступні години",
     subtitle: "Вкажіть години, коли ви доступні для нових уроків. Учні зможуть бачити ці слоти при бронюванні.",
+    scheduleInfo: "Вкажіть, у які дні та години ви приймаєте уроки. Учні бачать ваш графік і можуть домовитись із вами в чаті. У Тижневому шаблоні налаштуйте регулярні робочі дні. У розділі Вихідні та зміни позначайте конкретні дні-винятки (відпустка, додаткові години).",
+  },
+
+  analytics: {
+    noData: "Даних ще недостатньо",
+    noDataDesc: "Статистика з'явиться після перших проведених уроків.",
   },
 
   myReferrals: {
@@ -1527,6 +1544,7 @@ export const uk = {
     weekFrom: "Тиждень з {{date}}",
   },
   pendingPayments: {
+    title: "Очікують оплати",
     updateFailed: "Не вдалося оновити",
     markedPaid_one: "Позначено як оплачено",
     markedPaid_few: "Позначено {{count}} уроки",
@@ -2315,6 +2333,8 @@ export const uk = {
     durationLabel: "Тривалість (хв)",
     tutorsHoursTitle: "Доступні години ваших репетиторів",
     deleteTitle: "Видалити урок?",
+    deleteConfirmDesc: "Цю дію не можна скасувати.",
+    deleteBtn: "Видалити",
     cancelBtn: "Скасувати",
   },
   myStudentsExtra: {

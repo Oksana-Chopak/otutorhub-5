@@ -272,6 +272,12 @@ export const sv: Partial<Translations> = {
     copyLesson: "Kopiera lektion",
     rescheduleLesson: "Omboka lektion",
     markCompleted: "Markera som genomförd",
+    tutorSubtitle: "Dina lektioner och arbetsschema",
+    studentSubtitle: "Dina lektioner och förfrågningar",
+    editLesson: "Redigera lektion",
+    noUpcomingCreateDesc: "Skapa en lektion — den visas här direkt efter att den sparats.",
+    noUpcomingStudentDesc: "Din lärare sätter datum och tid för nya lektioner.",
+    createLessonBtn: "Skapa lektion",
   },
   finances: {
     debtsBannerHint: "Visar lektioner med väntande betalning. Klicka på en rad för att markera.",
@@ -425,6 +431,11 @@ export const sv: Partial<Translations> = {
     insertTemplate: "Infoga mall",
     placeholderManager: "Skriv som chef…",
     placeholderOther: "Skriv ett meddelande…",
+    empty: "Inga meddelanden ännu",
+    emptyDesc: "Du kan skriva till en elev eller lärare direkt härifrån.",
+    reactionRemove: "Ta bort reaktion",
+    reactionAdd: "Lägg till reaktion",
+    reactionTitle: "Reaktion",
   },
   profile: {
     title: "Profil",
@@ -986,6 +997,12 @@ export const sv: Partial<Translations> = {
   availability: {
     title: "Tillgängliga timmar",
     subtitle: "Veckomall för lediga timmar och lediga dagar. Elever ser dina lediga platser för att boka en lektion i chatten.",
+    scheduleInfo: "Ange vilka dagar och tider du tar emot lektioner. Elever ser ditt schema och kan boka via chatten. I Veckoschemat anger du regelbundna arbetsdagar. Under Lediga dagar och ändringar markerar du specifika undantagsdagar (semester, extra timmar).",
+  },
+
+  analytics: {
+    noData: "Inte tillräckligt med data ännu",
+    noDataDesc: "Statistik visas efter de första genomförda lektionerna.",
   },
 
   myReferrals: {
@@ -1510,6 +1527,7 @@ export const sv: Partial<Translations> = {
     weekFrom: "Vecka {{date}}",
   },
   pendingPayments: {
+    title: "Väntar på betalning",
     updateFailed: "Kunde inte uppdatera",
     markedPaid_one: "Markerad som betald",
     markedPaid_few: "{{count}} lektioner markerade",
@@ -2298,6 +2316,8 @@ export const sv: Partial<Translations> = {
     durationLabel: "Varaktighet (min)",
     tutorsHoursTitle: "Dina lärares tillgängliga tider",
     deleteTitle: "Ta bort lektion?",
+    deleteConfirmDesc: "Den här åtgärden kan inte ångras.",
+    deleteBtn: "Ta bort",
     cancelBtn: "Avbryt",
   },
   myStudentsExtra: {

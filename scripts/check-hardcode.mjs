@@ -23,11 +23,12 @@ const SKIP_FILES = new Set([
   "LandingPage.tsx", "MarketingPage.tsx", "MarketingUnsubscribePage.tsx",
   "LandingTryDemo.tsx", "LandingFindTutorQuizDialog.tsx",
   "FeedbackPreviewPage.tsx",
+  "toasts.ts",
 ]);
 
 // Max allowed hardcoded strings per file before CI fails
 // (some files have intentional ones — dayAffirmations)
-const MAX_GLOBAL = 60; // BASELINE: ~50 real hardcoded strings. Decrease each sprint.
+const MAX_GLOBAL = 45; // toasts.ts excluded (intentional), decrease each sprint.
 
 function getAllFiles(dir) {
   const files = [];

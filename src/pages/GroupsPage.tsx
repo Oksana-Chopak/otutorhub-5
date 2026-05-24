@@ -363,7 +363,7 @@ function GroupDetailsDialog({
       setAvailable(
         (profs ?? []).map((p: any) => ({
           student_id: p.id,
-          name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
+          name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("shared.student"),
         }))
       );
     } else {

@@ -366,11 +366,7 @@ export function AvailabilityManager() {
     <div>
       <div className="mb-4 rounded-lg border border-border bg-muted/30 p-3 flex gap-2 text-xs text-muted-foreground">
         <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <p>
-          Вкажіть, у які дні та години ви приймаєте уроки. Учні бачать ваш графік і можуть домовитись із вами в чаті.
-          У <strong>Тижневому шаблоні</strong> налаштуйте регулярні робочі дні. У розділі <strong>Вихідні та зміни</strong>{" "}
-          позначайте конкретні дні-винятки (відпустка, додаткові години).
-        </p>
+        <p>{t("availability.scheduleInfo")}</p>
       </div>
 
       {isManager && (

@@ -498,6 +498,12 @@ export const en: Translations = {
     copyLesson: "Copy lesson",
     rescheduleLesson: "Reschedule lesson",
     markCompleted: "Mark as completed",
+    tutorSubtitle: "Your lessons and work schedule",
+    studentSubtitle: "Your lessons and requests",
+    editLesson: "Edit lesson",
+    noUpcomingCreateDesc: "Create a lesson — it will appear here right after saving.",
+    noUpcomingStudentDesc: "Your tutor sets the date and time of new lessons.",
+    createLessonBtn: "Create lesson",
   },
 
   finances: {
@@ -653,6 +659,11 @@ export const en: Translations = {
     insertTemplate: "Insert template",
     placeholderManager: "Write as manager…",
     placeholderOther: "Type a message…",
+    empty: "No messages yet",
+    emptyDesc: "You can write to a student or tutor right here.",
+    reactionRemove: "Remove reaction",
+    reactionAdd: "Add reaction",
+    reactionTitle: "Reaction",
   },
 
   profile: {
@@ -995,6 +1006,12 @@ export const en: Translations = {
   availability: {
     title: "Available hours",
     subtitle: "Weekly template of free hours and days off. Students see your free slots to arrange a lesson in chat.",
+    scheduleInfo: "Set the days and hours when you accept lessons. Students see your schedule and can arrange with you in chat. In the Weekly template, set up regular working days. In the Days off & changes section, mark specific exception days (vacation, extra hours).",
+  },
+
+  analytics: {
+    noData: "Not enough data yet",
+    noDataDesc: "Statistics will appear after your first completed lessons.",
   },
 
   myReferrals: {
@@ -1519,6 +1536,7 @@ export const en: Translations = {
     weekFrom: "Week of {{date}}",
   },
   pendingPayments: {
+    title: "Awaiting payment",
     updateFailed: "Failed to update",
     markedPaid_one: "Marked as paid",
     markedPaid_few: "{{count}} lessons marked",
@@ -2307,6 +2325,8 @@ export const en: Translations = {
     durationLabel: "Duration (min)",
     tutorsHoursTitle: "Your tutors' available hours",
     deleteTitle: "Delete lesson?",
+    deleteConfirmDesc: "This action cannot be undone.",
+    deleteBtn: "Delete",
     cancelBtn: "Cancel",
   },
   myStudentsExtra: {

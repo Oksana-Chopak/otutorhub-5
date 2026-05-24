@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { SmilePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 const EMOJI_PALETTE = ["👍", "❤️", "😂", "🎉", "🔥", "🙏", "👏", "😮"];
 
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function MessageReactions({ reactions, myId, onToggle, mine }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
   const grouped = reactions.reduce<Record<string, { count: number; mine: boolean }>>((acc, r) => {
@@ -50,7 +52,7 @@ export function MessageReactions({ reactions, myId, onToggle, mine }: Props) {
               ? "border-primary/40 bg-primary/10 text-foreground"
               : "border-border bg-background/60 text-foreground hover:border-primary/30"
           )}
-          title={info.mine ? "Прибрати реакцію" : "Додати реакцію"}
+          title={info.mine ? t("chats.reactionRemove") : t("chats.reactionAdd")}
         >
           <span className="text-sm leading-none">{emoji}</span>
           <span className="tabular-nums">{info.count}</span>
@@ -62,8 +64,8 @@ export function MessageReactions({ reactions, myId, onToggle, mine }: Props) {
             <button
               type="button"
               className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-              title="Реакція"
-              aria-label="Додати реакцію"
+              title={t("chats.reactionTitle")}
+              aria-label={t("chats.reactionAdd")}
             >
               <SmilePlus className="h-3.5 w-3.5" />
             </button>

@@ -152,10 +152,10 @@ EmptyState.UpcomingLessons = function EmptyStateUpcoming({
       title={t("schedule.noUpcoming") ?? "Наступних уроків немає"}
       description={
         isTutor
-          ? "Створіть урок — він з'явиться тут одразу після збереження."
-          : "Дату й час нових уроків додає ваш репетитор."
+          ? t("schedule.noUpcomingCreateDesc")
+          : t("schedule.noUpcomingStudentDesc")
       }
-      actionLabel={isTutor ? "Створити урок" : undefined}
+      actionLabel={isTutor ? t("schedule.createLessonBtn") : undefined}
       onAction={isTutor ? onSchedule : undefined}
     />
   );
