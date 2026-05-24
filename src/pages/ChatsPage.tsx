@@ -472,10 +472,21 @@ export default function ChatsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const counterpartName = (t: Thread) => {
-    if (isManager) return `${fullName(profiles[t.tutor_id])} ↔ ${fullName(profiles[t.student_id])}`;
-    const otherId = t.tutor_id === myId ? t.student_id : t.tutor_id;
-    return fullName(profiles[otherId]);
+  const counterpartName = (thread: Thread) => {
+    const tutorFallback = t("shared.tutor");
+    const studentFallback = t("shared.student");
+    const nameOr = (id: string, fallback: string) => {
+      const p = profiles[id];
+      if (!p) return fallback;
+      const full = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim();
+      return full || fallback;
+    };
+    if (isManager) {
+      return `${nameOr(thread.tutor_id, tutorFallback)} ↔ ${nameOr(thread.student_id, studentFallback)}`;
+    }
+    const otherId = thread.tutor_id === myId ? thread.student_id : thread.tutor_id;
+    const otherFallback = thread.tutor_id === myId ? studentFallback : tutorFallback;
+    return nameOr(otherId, otherFallback);
   };
 
   const isUnreadThread = (t: Thread) => {
