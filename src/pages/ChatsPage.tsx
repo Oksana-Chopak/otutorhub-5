@@ -353,6 +353,23 @@ export default function ChatsPage() {
       } else if (!cancelled) {
         setAttachments({});
       }
+      // Load reactions for these messages
+      if (msgs.length > 0) {
+        const { data: reactData } = await supabase
+          .from("chat_message_reactions")
+          .select("message_id, user_id, emoji")
+          .in("message_id", msgs.map((m) => m.id));
+        if (!cancelled) {
+          const grouped: Record<string, Reaction[]> = {};
+          (reactData ?? []).forEach((r: any) => {
+            if (!grouped[r.message_id]) grouped[r.message_id] = [];
+            grouped[r.message_id].push(r);
+          });
+          setReactions(grouped);
+        }
+      } else if (!cancelled) {
+        setReactions({});
+      }
       // Mark as read when opening
       markRead(selectedId);
     };
@@ -372,6 +389,30 @@ export default function ChatsPage() {
           });
           // Auto-mark read while viewing thread
           markRead(selectedId);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "chat_message_reactions" },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            const r = payload.new as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id] ?? [];
+              if (list.some((x) => x.user_id === r.user_id && x.emoji === r.emoji)) return prev;
+              return { ...prev, [r.message_id]: [...list, r] };
+            });
+          } else if (payload.eventType === "DELETE") {
+            const r = payload.old as Reaction;
+            setReactions((prev) => {
+              const list = prev[r.message_id];
+              if (!list) return prev;
+              return {
+                ...prev,
+                [r.message_id]: list.filter((x) => !(x.user_id === r.user_id && x.emoji === r.emoji)),
+              };
+            });
+          }
         }
       )
       .subscribe();
