@@ -50,6 +50,7 @@ export default function MarketingPage() {
   const [loadingCount, setLoadingCount] = useState(false);
   const [sending, setSending] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const previewHtml = useMemo(() => {
     // Convert plain newlines to <br> for preview display
