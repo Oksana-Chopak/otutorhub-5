@@ -33,11 +33,13 @@ interface Campaign {
   id: string;
   subject: string;
   segment: string;
+  html_body: string;
   recipients_total: number;
   recipients_sent: number;
   recipients_failed: number;
   status: string;
   created_at: string;
+  errors: Array<{ email: string; error: string; status?: number }> | null;
 }
 
 export default function MarketingPage() {
