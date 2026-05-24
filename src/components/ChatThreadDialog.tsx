@@ -194,6 +194,7 @@ export function ChatThreadDialog({
                           })}
                         </div>
                       </div>
+                      <MessageReactions messageId={m.id} myId={myId} mine={mine} />
                     </li>
                   );
                 })}
