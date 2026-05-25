@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -111,6 +112,23 @@ export function LessonWorkspace({
     setStatusLocal("completed");
     setJustCompleted(true);
     toast({ title: t("lessonWorkspace.markedCompleted") });
+
+    // Award emoji reward to student
+    if (studentId) {
+      const theme = ((settings?.reward_theme as RewardTheme | undefined) ?? "fruits") as RewardTheme;
+      const emoji = getRandomEmoji(theme);
+      const rewardsDb = supabase as unknown as typeof supabase & {
+        from(table: "student_rewards"): ReturnType<typeof supabase.from>;
+      };
+      rewardsDb.from("student_rewards").insert({
+        student_id: studentId,
+        lesson_id: lessonId,
+        tutor_id: tutorId,
+        emoji,
+        theme,
+      });
+    }
+
     onUpdated?.();
   };
 

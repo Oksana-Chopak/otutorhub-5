@@ -22,7 +22,7 @@ const LEVEL_COLORS: Record<string, string> = {
 export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }: Props) {
   const { t } = useTranslation();
   const prevLevelKey = useRef<string | null>(null);
-  const prevRecord = useRef<number>(weeklyRecord);
+  const prevRecord = useRef<number | null>(null);
 
   const { level, next, progress } = getLevelProgress(completedCount);
   const colorClass = LEVEL_COLORS[level.key] ?? "text-foreground";
@@ -41,8 +41,12 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
     }
   }, [level.key, t]);
 
-  // Personal record celebration
+  // Personal record celebration (skip first load)
   useEffect(() => {
+    if (prevRecord.current === null) {
+      prevRecord.current = weeklyRecord;
+      return;
+    }
     if (prevRecord.current < weeklyRecord && weeklyRecord > 0) {
       prevRecord.current = weeklyRecord;
       toast.success(t("studentRecord.weeklyNew"), { duration: 5000 });

@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
   if (window === "morning") {
     // ── 1. Trial ending in 3 days ─────────────────────────────────────────
     const { data: trialRows } = await db
-      .from("workspace_settings")
+      .from("tutor_workspace_settings")
       .select("tutor_id, trial_until")
       .eq("subscription_status", "trial")
       .gte("trial_until", new Date().toISOString())
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
     // ── 2. Onboarding incomplete after 3 days ────────────────────────────
     const cutoff = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
     const { data: onboardingRows } = await db
-      .from("workspace_settings")
+      .from("tutor_workspace_settings")
       .select("tutor_id")
       .eq("onboarding_completed", false)
       .lt("created_at", cutoff);

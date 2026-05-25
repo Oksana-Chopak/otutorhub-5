@@ -26,6 +26,7 @@ const TYPE_ICON: Record<string, string> = {
   trial_ending: "⏰",
   onboarding_incomplete: "👋",
   monthly_recap: "📊",
+  weekly_summary: "📈",
   streak_at_risk: "🔥",
   inactive: "👋",
 };
