@@ -38,6 +38,7 @@ import { QuickActionsCard } from "@/components/QuickActionsCard";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
+import { insertNotification } from "@/lib/notifications";
 import {
   CalendarDays,
   CalendarClock,
@@ -419,6 +420,17 @@ export default function DashboardPage() {
       });
       gamification.refresh();
     }
+    if (newStatus === "cancelled") {
+      const lesson = lessons.find((l) => l.id === lessonId);
+      if (lesson?.student_id) {
+        insertNotification({
+          userId: lesson.student_id,
+          type: "lesson_cancelled",
+          title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
+          link: "/student/schedule",
+        });
+      }
+    }
   };
 
   const updatePayment = async (
@@ -442,9 +454,9 @@ export default function DashboardPage() {
       return;
     }
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
-    if (value === "paid" && field === "student_payment_status") {
-      const lesson = lessons.find((l) => l.id === lessonId);
-      if (lesson && lesson.student_price > 0) {
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (value === "paid" && field === "student_payment_status" && lesson) {
+      if (lesson.student_price > 0) {
         const firstName = profiles[lesson.student_id]?.split(" ")[0] ?? t("shared.student");
         const currency = pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? "UAH";
         toast.success(
@@ -455,6 +467,16 @@ export default function DashboardPage() {
           { duration: 4000 },
         );
       }
+    }
+    if (value === "paid" && field === "tutor_payout_status" && lesson?.tutor_id) {
+      const currency = pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? "UAH";
+      const amount = formatPrice(lesson.tutor_payout, currency, { decimals: 0 });
+      insertNotification({
+        userId: lesson.tutor_id,
+        type: "payout_confirmed",
+        title: t("notifications.payoutConfirmedTitle", { amount }),
+        link: "/finances",
+      });
     }
   };
 

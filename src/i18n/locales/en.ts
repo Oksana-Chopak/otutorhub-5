@@ -1277,6 +1277,18 @@ export const en: Translations = {
     lessonCompletedGood: "Great job! 💪",
     paymentReceivedToast: "💰 +{{amount}} from {{name}}!",
   },
+  notifications: {
+    title: "Notifications",
+    markAllRead: "Mark all as read",
+    empty: "No notifications",
+    emptyDesc: "Updates about lessons, payments and achievements will appear here",
+    lessonRequestTitle: "{{name}} wants to reschedule a lesson",
+    lessonCancelTitle: "{{name}} wants to cancel a lesson",
+    payoutConfirmedTitle: "Payout confirmed: +{{amount}}",
+    badgeUnlockedTitle: "🏆 New badge: {{name}}!",
+    lessonCancelledTitle: "Lesson cancelled: {{subject}}",
+    proRequestTitle: "{{name}} wants Pro",
+  },
   shared: {
     noName: "Unknown",
     student: "Student",

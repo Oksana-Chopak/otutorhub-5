@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, CheckCircle2, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { insertNotification } from "@/lib/notifications";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -94,6 +95,20 @@ export function SubscriptionRequestDialog({
     }
     toast.success(t("subscriptionDialog.sent"), {
       description: t("subscriptionDialog.sentDesc"),
+    });
+    // Notify all managers about the Pro request
+    const { data: managerRoles } = await supabase
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "manager");
+    const tutorName = user?.email?.split("@")[0] ?? t("shared.tutor");
+    (managerRoles ?? []).forEach(({ user_id }) => {
+      insertNotification({
+        userId: user_id,
+        type: "pro_request",
+        title: t("notifications.proRequestTitle", { name: tutorName }),
+        link: "/subscription-requests",
+      });
     });
     setMessage("");
     onOpenChange(false);

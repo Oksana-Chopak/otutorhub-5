@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { BADGE_DEFS } from "@/lib/badges";
 import type { TutorBadge } from "@/hooks/useTutorGamification";
+import { useAuth } from "@/hooks/useAuth";
+import { insertNotification } from "@/lib/notifications";
 import i18n from "@/i18n";
 
 const t = i18n.t.bind(i18n);
@@ -16,6 +18,7 @@ const STORAGE_KEY = "seen_badge_keys_v1";
  * so refreshing the page doesn't re-trigger toasts for old badges.
  */
 export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
+  const { user } = useAuth();
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -56,6 +59,15 @@ export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
           className: "animate-pop",
         });
       }, i * 800);
+
+      if (user) {
+        insertNotification({
+          userId: user.id,
+          type: "badge_unlocked",
+          title: t("notifications.badgeUnlockedTitle", { name }),
+          link: "/achievements",
+        });
+      }
     });
 
     const next = Array.from(new Set([...Array.from(seen), ...newOnes.map((b) => b.badge_key)]));

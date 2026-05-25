@@ -18,6 +18,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
+import { insertNotification } from "@/lib/notifications";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -111,6 +112,12 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
     toast.success(t("studentLessonActions.cancelSent"), {
       description: t("studentLessonActions.cancelSentDesc"),
     });
+    insertNotification({
+      userId: tutorId,
+      type: "lesson_request",
+      title: t("notifications.lessonCancelTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
+      link: "/schedule",
+    });
     setReason("");
     setCancelOpen(false);
     load();
@@ -137,6 +144,12 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       return;
     }
     toast.success(t("studentLessonActionsExtra.rescheduleSent"));
+    insertNotification({
+      userId: tutorId,
+      type: "lesson_request",
+      title: t("notifications.lessonRequestTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
+      link: "/schedule",
+    });
     setReason("");
     setRescheduleOpen(false);
     load();

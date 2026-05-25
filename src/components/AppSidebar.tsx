@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/dialog";
 import { OnboardingDialog } from "@/components/OnboardingDialog";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
+import { NotificationBell } from "@/components/NotificationBell";
 
 type NavItem = {
   to: string;
@@ -294,6 +295,7 @@ export function AppSidebar() {
               <LogOut className="mr-2 h-4 w-4" />
               {t("common.logout")}
             </Button>
+            <NotificationBell className="h-9 w-9 shrink-0" />
             <Button
               variant="outline"
               size="icon"

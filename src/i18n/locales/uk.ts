@@ -1285,6 +1285,18 @@ export const uk = {
     lessonCompletedGood: "Чудово! 💪",
     paymentReceivedToast: "💰 +{{amount}} від {{name}}!",
   },
+  notifications: {
+    title: "Сповіщення",
+    markAllRead: "Позначити всі прочитаними",
+    empty: "Немає сповіщень",
+    emptyDesc: "Тут з'являться оновлення про уроки, оплати та досягнення",
+    lessonRequestTitle: "{{name}} просить перенести урок",
+    lessonCancelTitle: "{{name}} просить скасувати урок",
+    payoutConfirmedTitle: "Виплату підтверджено: +{{amount}}",
+    badgeUnlockedTitle: "🏆 Новий бейдж: {{name}}!",
+    lessonCancelledTitle: "Урок скасовано: {{subject}}",
+    proRequestTitle: "{{name}} хоче Pro",
+  },
   shared: {
     noName: "Без імені",
     student: "Учень",

@@ -1268,6 +1268,18 @@ export const sv: Partial<Translations> = {
     lessonCompletedGood: "Bra jobbat! 💪",
     paymentReceivedToast: "💰 +{{amount}} från {{name}}!",
   },
+  notifications: {
+    title: "Aviseringar",
+    markAllRead: "Markera alla som lästa",
+    empty: "Inga aviseringar",
+    emptyDesc: "Uppdateringar om lektioner, betalningar och prestationer visas här",
+    lessonRequestTitle: "{{name}} vill flytta en lektion",
+    lessonCancelTitle: "{{name}} vill avboka en lektion",
+    payoutConfirmedTitle: "Utbetalning bekräftad: +{{amount}}",
+    badgeUnlockedTitle: "🏆 Nytt märke: {{name}}!",
+    lessonCancelledTitle: "Lektion inställd: {{subject}}",
+    proRequestTitle: "{{name}} vill ha Pro",
+  },
   shared: {
     noName: "Okänt",
     student: "Elev",
