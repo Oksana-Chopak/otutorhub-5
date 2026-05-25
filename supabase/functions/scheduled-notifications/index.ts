@@ -21,6 +21,14 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
+  // Require shared-secret auth (service role key) — only trusted cron/internal callers.
+  const auth = req.headers.get("authorization") || req.headers.get("Authorization");
+  const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
+  const { data: expected } = await db.rpc("get_cron_shared_secret");
+  if (!provided || !expected || provided !== expected) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  }
+
   const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
   const window = (body as { window?: string }).window ?? "morning";
   const results: string[] = [];
