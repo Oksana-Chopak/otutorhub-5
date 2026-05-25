@@ -158,6 +158,17 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: "Missing config" }), { status: 500 });
   }
 
+  // Auth: require service-role key. This function is only invoked server-side
+  // by other edge functions and DB triggers — never directly by clients.
+  const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+  const provided = authHeader?.replace(/^Bearer\s+/i, "");
+  if (!provided || provided !== serviceKey) {
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
   const db = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
   let body: { userId?: string; title?: string; body?: string; link?: string } = {};
