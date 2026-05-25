@@ -35,21 +35,7 @@ export function useNotifications() {
 
   useEffect(() => {
     load();
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`notifications:${user.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
-        (payload) => {
-          setNotifications((prev) => [payload.new as AppNotification, ...prev].slice(0, 30));
-        },
-      )
-      .subscribe();
-
-    return () => { supabase.removeChannel(channel); };
-  }, [load, user?.id]);
+  }, [load]);
 
   const markRead = useCallback(async (id: string) => {
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, read: true } : n));
