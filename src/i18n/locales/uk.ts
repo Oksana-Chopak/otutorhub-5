@@ -2591,6 +2591,12 @@ export const uk = {
     unpaid: "⏳ Не оплачено",
     openBtn: "Контекст",
   },
+  time: {
+    justNow: "щойно",
+    minutesAgo: "{{count}} хв",
+    hoursAgo: "{{count}} год",
+    daysAgo: "{{count}} дн",
+  },
   pushNotif: {
     enable: "Увімкнути push-сповіщення",
     enabled: "Push увімкнено ✓",
@@ -2602,6 +2608,9 @@ export const uk = {
     dayClosedTap: "Натисни щоб закрити",
     topTutorTitle: "Ти в топ-{{pct}}% репетиторів цього місяця!",
     topTutorDesc: "Продовжуй у тому ж темпі — ти серед найактивніших",
+    streakDayToast: "Сьогодні день {{count}} твоєї серії!",
+    streakDayDesc: "Продовжуй — кожен день рахується",
+    streakDayDesc7plus: "Неймовірно! Тримай серію і далі 💪",
   },
   rewardThemes: {
     fruits: "🍎 Фрукти",

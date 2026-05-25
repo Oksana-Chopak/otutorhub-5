@@ -2583,6 +2583,12 @@ export const en: Translations = {
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
   },
+  time: {
+    justNow: "just now",
+    minutesAgo: "{{count}} min",
+    hoursAgo: "{{count}} h",
+    daysAgo: "{{count}} d",
+  },
   pushNotif: {
     enable: "Enable push notifications",
     enabled: "Push enabled ✓",
@@ -2594,6 +2600,9 @@ export const en: Translations = {
     dayClosedTap: "Tap to close",
     topTutorTitle: "You're in the top {{pct}}% of tutors this month!",
     topTutorDesc: "Keep going — you're among the most active tutors",
+    streakDayToast: "Today is day {{count}} of your streak!",
+    streakDayDesc: "Keep going — every day counts",
+    streakDayDesc7plus: "Amazing! Keep that streak alive 💪",
   },
   rewardThemes: {
     fruits: "🍎 Fruits",

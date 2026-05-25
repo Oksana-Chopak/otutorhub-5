@@ -38,7 +38,6 @@ export function useStudentRewards() {
 
   useEffect(() => {
     if (!user) return;
-    load();
 
     const channel = supabase
       .channel(`student_rewards:${user.id}`)
@@ -48,10 +47,7 @@ export function useStudentRewards() {
         (payload) => {
           const row = payload.new as StudentReward;
           setRewards((prev) => [row, ...prev]);
-
-          // Don't toast on first load
           if (!initialized.current) return;
-
           toast.success(t("rewardCollection.newReward"), {
             description: t("rewardCollection.newRewardDesc", { emoji: row.emoji }),
             duration: 6000,
@@ -61,7 +57,7 @@ export function useStudentRewards() {
       )
       .subscribe();
 
-    // Mark as initialized after first load
+    // Single load — mark initialized after it completes
     load().then(() => { initialized.current = true; });
 
     return () => { supabase.removeChannel(channel); };

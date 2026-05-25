@@ -10,11 +10,11 @@ import { useNotifications, type AppNotification } from "@/hooks/useNotifications
 function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60000);
-  if (min < 1) return "щойно";
-  if (min < 60) return `${min} хв`;
+  if (min < 1) return t("time.justNow");
+  if (min < 60) return t("time.minutesAgo", { count: min });
   const h = Math.floor(min / 60);
-  if (h < 24) return `${h} год`;
-  return `${Math.floor(h / 24)} дн`;
+  if (h < 24) return t("time.hoursAgo", { count: h });
+  return t("time.daysAgo", { count: Math.floor(h / 24) });
 }
 
 const TYPE_ICON: Record<string, string> = {

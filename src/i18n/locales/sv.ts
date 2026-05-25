@@ -2574,6 +2574,12 @@ export const sv: Partial<Translations> = {
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
   },
+  time: {
+    justNow: "just nu",
+    minutesAgo: "{{count}} min",
+    hoursAgo: "{{count}} h",
+    daysAgo: "{{count}} d",
+  },
   pushNotif: {
     enable: "Aktivera push-aviseringar",
     enabled: "Push aktiverat ✓",
@@ -2585,6 +2591,9 @@ export const sv: Partial<Translations> = {
     dayClosedTap: "Tryck för att stänga",
     topTutorTitle: "Du är i topp {{pct}}% av lärarna denna månad!",
     topTutorDesc: "Fortsätt — du är bland de mest aktiva lärarna",
+    streakDayToast: "Idag är dag {{count}} av din serie!",
+    streakDayDesc: "Fortsätt — varje dag räknas",
+    streakDayDesc7plus: "Fantastiskt! Håll serien igång 💪",
   },
   rewardThemes: {
     fruits: "🍎 Frukter",

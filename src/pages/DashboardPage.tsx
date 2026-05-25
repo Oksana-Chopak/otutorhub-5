@@ -246,6 +246,23 @@ export default function DashboardPage() {
   const gamification = useTutorGamification();
   const { badges, loading: gamificationLoading, streak } = gamification;
   useBadgeUnlockToasts(badges, gamificationLoading);
+
+  // "Сьогодні день X твоєї серії" — once per day greeting
+  useEffect(() => {
+    if (!streak || !user || !isTutor || gamificationLoading) return;
+    if ((streak.current_streak ?? 0) <= 0) return;
+    const todayKey = `streak_greeted_${user.id}_${new Date().toDateString()}`;
+    if (localStorage.getItem(todayKey)) return;
+    localStorage.setItem(todayKey, todayKey);
+    const count = streak.current_streak;
+    toast(t("tutorDelight.streakDayToast", { count }), {
+      description: count >= 7
+        ? t("tutorDelight.streakDayDesc7plus")
+        : t("tutorDelight.streakDayDesc"),
+      duration: 5000,
+      icon: "🔥",
+    });
+  }, [streak?.current_streak, user?.id, isTutor, gamificationLoading]);
   const [referralInvitedCount, setReferralInvitedCount] = useState(0);
   useEffect(() => {
     if (!user || !isIndependentTutor) return;
@@ -332,7 +349,6 @@ export default function DashboardPage() {
     });
     setPairCurrency(currencyMap);
 
-    console.log('[DashboardPage] lessons count:', (lessonsData ?? []).length, 'unique ids:', new Set((lessonsData ?? []).map((l: any) => l.id)).size);
 
     const profileMap: Record<string, string> = {};
     (profilesData as ProfileRow[] | null ?? []).forEach((profile) => {
@@ -407,36 +423,25 @@ export default function DashboardPage() {
       setMyStudentCount(count ?? 0);
     }
 
-    // Top-10% calculation (independent tutors only, fire-and-forget after load)
+    // Top-10% calculation — compare tutor's lesson count vs all tutors this month
     if (isTutor && !isManager) {
       const monthStart = new Date();
       monthStart.setDate(1);
       monthStart.setHours(0, 0, 0, 0);
       const iso = monthStart.toISOString();
-      const [{ count: myCount }, { count: totalTutors }] = await Promise.all([
+      const [{ count: myCount }, { count: totalTutors }, { data: topRows }] = await Promise.all([
         supabase.from("lessons").select("id", { count: "exact", head: true })
           .eq("tutor_id", user.id).eq("status", "completed").gte("starts_at", iso),
         supabase.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "tutor"),
+        supabase.from("lessons").select("tutor_id").eq("status", "completed").gte("starts_at", iso),
       ]);
-      if (myCount && myCount > 0 && totalTutors && totalTutors > 1) {
-        const { count: aboveMe } = await supabase.rpc("count_tutors_above", {
-          min_count: myCount,
-          month_start: iso,
-        }).single().then(() => ({ count: null as number | null })).catch(() => ({ count: null as number | null }));
-        // Fallback: compute via separate query if RPC doesn't exist
-        const { data: topRows } = await supabase
-          .from("lessons")
-          .select("tutor_id")
-          .eq("status", "completed")
-          .gte("starts_at", iso);
+      if (myCount && myCount > 0 && totalTutors && totalTutors > 1 && topRows) {
         const countByTutor: Record<string, number> = {};
-        (topRows ?? []).forEach((r: { tutor_id: string }) => {
+        (topRows as { tutor_id: string }[]).forEach((r) => {
           countByTutor[r.tutor_id] = (countByTutor[r.tutor_id] ?? 0) + 1;
         });
         const tutorsAbove = Object.values(countByTutor).filter((c) => c > myCount!).length;
-        const pct = (tutorsAbove / totalTutors!) * 100;
-        setTopPercentile(pct);
-        void aboveMe; // suppress unused warning
+        setTopPercentile((tutorsAbove / totalTutors!) * 100);
       }
     }
 

@@ -72,13 +72,15 @@ export function usePushNotifications() {
       }
 
       const json = sub.toJSON();
+      const p256dh = json.keys?.p256dh ?? "";
+      const auth = json.keys?.auth ?? "";
+      if (!p256dh || !auth) {
+        // Browser returned invalid subscription — abort silently
+        setLoading(false);
+        return;
+      }
       await db.from("push_subscriptions").upsert(
-        {
-          user_id: user.id,
-          endpoint: sub.endpoint,
-          p256dh: json.keys?.p256dh ?? "",
-          auth: json.keys?.auth ?? "",
-        },
+        { user_id: user.id, endpoint: sub.endpoint, p256dh, auth },
         { onConflict: "user_id,endpoint" }
       );
       setSubscribed(true);

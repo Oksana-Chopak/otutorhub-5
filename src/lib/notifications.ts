@@ -28,13 +28,15 @@ export async function insertNotification({ userId, type, title, body, link }: In
 
   if (existing) return;
 
-  await db.from("notifications").insert({
+  const { error } = await db.from("notifications").insert({
     user_id: userId,
     type,
     title,
     body: body ?? null,
     link: link ?? null,
   });
+
+  if (error) return; // don't push if insert failed
 
   // Fire-and-forget push notification (no await — never blocks UI)
   supabase.functions.invoke("send-push", {
