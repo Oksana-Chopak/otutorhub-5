@@ -1,6 +1,7 @@
-// VAPID public key — set VITE_VAPID_PUBLIC_KEY in your .env / Lovable project secrets
-// Generate a key pair with: node scripts/generate-vapid.mjs
-export const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY as string ?? "";
+// VAPID public key — safe to commit, it is public by design.
+// Corresponds to VAPID_PRIVATE_KEY secret in Supabase Edge Functions.
+export const VAPID_PUBLIC_KEY =
+  "BIuCP5SFeluDkT-vIZK9IXDjCN5f4_aTxWD6uJqj1Ul7cXaNwVA8CBhZ3Kmavnf7hESeTMyKNgWK6dHL_Vr67qs";
 
 export function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);

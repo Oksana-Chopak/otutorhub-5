@@ -1,0 +1,63 @@
+name: Scheduled Notifications
+
+# Runs twice a day to trigger proactive push notifications for tutors.
+# Requires GitHub Actions secrets:
+#   CRON_SECRET — same value as CRON_SECRET in Supabase Edge Function secrets
+#
+# How to set up:
+#   1. Generate a random secret: openssl rand -hex 32
+#   2. Add to GitHub: Settings → Secrets → Actions → New secret → CRON_SECRET
+#   3. Add to Lovable: Project Settings → Supabase → Edge Function Secrets → CRON_SECRET
+
+on:
+  schedule:
+    # Morning: 07:00 UTC = 09:00 Kyiv (UTC+2) / 08:00 Stockholm (UTC+1)
+    - cron: "0 7 * * *"
+    # Evening: 16:00 UTC = 18:00 Kyiv / 17:00 Stockholm
+    - cron: "0 16 * * *"
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      window:
+        description: "Notification window"
+        required: true
+        default: "morning"
+        type: choice
+        options: [morning, evening]
+
+jobs:
+  notify:
+    name: Trigger notifications
+    runs-on: ubuntu-latest
+    steps:
+      - name: Detect window
+        id: window
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "window=${{ inputs.window }}" >> $GITHUB_OUTPUT
+          else
+            HOUR=$(date -u +%H)
+            if [ "$HOUR" = "07" ]; then
+              echo "window=morning" >> $GITHUB_OUTPUT
+            else
+              echo "window=evening" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Call scheduled-notifications Edge Function
+        run: |
+          RESPONSE=$(curl -s -o /tmp/response.json -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}" \
+            -d '{"window":"${{ steps.window.outputs.window }}"}' \
+            "https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/scheduled-notifications")
+
+          echo "HTTP status: $RESPONSE"
+          echo "Response body:"
+          cat /tmp/response.json
+
+          if [ "$RESPONSE" != "200" ]; then
+            echo "::error::Edge Function returned HTTP $RESPONSE"
+            exit 1
+          fi

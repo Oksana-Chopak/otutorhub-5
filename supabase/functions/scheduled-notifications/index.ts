@@ -1,8 +1,10 @@
 // Scheduled proactive notifications for oTutorHub
-// Invoke via pg_cron (see migration comment for cron schedule setup).
+// Triggered by GitHub Actions cron (see .github/workflows/cron-notifications.yml).
 // POST body: { "window": "morning" | "evening" }
-//   morning (07:00 UTC ≈ 09:00 Kyiv): trial expiry, onboarding nudge, monthly recap
+//   morning (07:00 UTC ≈ 09:00 Kyiv): trial expiry, onboarding nudge, monthly recap, weekly summary
 //   evening (16:00 UTC ≈ 19:00 Kyiv): streak at risk, inactivity check
+//
+// Auth: set CRON_SECRET in Supabase Edge Function secrets + GitHub Actions secrets.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const UK_MONTHS = [
@@ -21,11 +23,17 @@ Deno.serve(async (req) => {
     auth: { persistSession: false },
   });
 
-  // Require shared-secret auth (service role key) — only trusted cron/internal callers.
+  // Auth: accept either the CRON_SECRET env var OR the legacy DB-stored secret.
   const auth = req.headers.get("authorization") || req.headers.get("Authorization");
   const provided = auth?.replace(/^Bearer\s+/i, "") || req.headers.get("x-cron-secret");
-  const { data: expected } = await db.rpc("get_cron_shared_secret");
-  if (!provided || !expected || provided !== expected) {
+  const envSecret = Deno.env.get("CRON_SECRET");
+  let authorized = envSecret && provided === envSecret;
+  if (!authorized) {
+    // Fallback: check DB-stored secret (set up by Lovable pg_cron integration)
+    const { data: dbSecret } = await db.rpc("get_cron_shared_secret").catch(() => ({ data: null }));
+    authorized = dbSecret && provided === dbSecret;
+  }
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
   }
 
