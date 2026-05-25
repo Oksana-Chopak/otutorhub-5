@@ -2574,5 +2574,36 @@ export const sv: Partial<Translations> = {
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
   },
+  rewardThemes: {
+    fruits: "🍎 Frukter",
+    stars: "⭐ Stjärnor",
+    medals: "🏅 Medaljer",
+    artifacts: "🔮 Artefakter",
+    nature: "🌿 Natur",
+    pickerTitle: "Belöningstema",
+    pickerDesc: "Elever får emoji-belöningar efter varje lektion",
+  },
+  rewardCollection: {
+    title: "Min samling",
+    newReward: "🎁 Belöning från din lärare!",
+    newRewardDesc: "Du fick {{emoji}} för din lektion!",
+    empty: "Lektioner väntar — belöningar med 🌟",
+    countSuffix: "belöningar",
+  },
+  studentProgress: {
+    level_novice: "Nybörjare",
+    level_student: "Elev",
+    level_expert: "Kunnig",
+    level_master: "Mästare",
+    level_legend: "Legend",
+    toNext: "till nästa nivå",
+    levelUp: "🎉 Ny nivå: {{level}}!",
+    progressTitle: "Min framsteg",
+  },
+  studentRecord: {
+    weeklyRecord: "Rekord: {{count}} lektioner/vecka 🏆",
+    weeklyNew: "🎉 Nytt personligt rekord!",
+    thisWeek: "Den här veckan: {{count}}",
+  },
 
 };

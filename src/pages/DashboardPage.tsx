@@ -39,6 +39,7 @@ import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import { insertNotification } from "@/lib/notifications";
+import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import {
   CalendarDays,
   CalendarClock,
@@ -419,6 +420,23 @@ export default function DashboardPage() {
         duration: 4000,
       });
       gamification.refresh();
+
+      // Award reward emoji to student
+      const lesson = lessons.find((l) => l.id === lessonId);
+      if (lesson?.student_id && user) {
+        const theme = ((settings?.reward_theme as RewardTheme | undefined) ?? "fruits") as RewardTheme;
+        const emoji = getRandomEmoji(theme);
+        const rewardsDb = supabase as unknown as typeof supabase & {
+          from(table: "student_rewards"): ReturnType<typeof supabase.from>;
+        };
+        rewardsDb.from("student_rewards").insert({
+          student_id: lesson.student_id,
+          lesson_id: lessonId,
+          tutor_id: user.id,
+          emoji,
+          theme,
+        });
+      }
     }
     if (newStatus === "cancelled") {
       const lesson = lessons.find((l) => l.id === lessonId);

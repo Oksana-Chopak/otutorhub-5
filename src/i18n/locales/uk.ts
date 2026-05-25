@@ -2591,6 +2591,37 @@ export const uk = {
     unpaid: "⏳ Не оплачено",
     openBtn: "Контекст",
   },
+  rewardThemes: {
+    fruits: "🍎 Фрукти",
+    stars: "⭐ Зірки",
+    medals: "🏅 Медалі",
+    artifacts: "🔮 Артефакти",
+    nature: "🌿 Природа",
+    pickerTitle: "Тема нагород",
+    pickerDesc: "Учні отримують емодзі-нагороди після кожного уроку",
+  },
+  rewardCollection: {
+    title: "Моя колекція",
+    newReward: "🎁 Нагорода від репетитора!",
+    newRewardDesc: "Ти отримав {{emoji}} за урок!",
+    empty: "Уроки ще попереду — нагороди теж 🌟",
+    countSuffix: "нагород",
+  },
+  studentProgress: {
+    level_novice: "Новачок",
+    level_student: "Учень",
+    level_expert: "Знавець",
+    level_master: "Майстер",
+    level_legend: "Легенда",
+    toNext: "до наступного рівня",
+    levelUp: "🎉 Новий рівень: {{level}}!",
+    progressTitle: "Мій прогрес",
+  },
+  studentRecord: {
+    weeklyRecord: "Рекорд: {{count}} уроків за тиждень 🏆",
+    weeklyNew: "🎉 Новий особистий рекорд!",
+    thisWeek: "Цього тижня: {{count}}",
+  },
 
 };
 

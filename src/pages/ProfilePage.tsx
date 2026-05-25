@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -66,7 +67,7 @@ export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, settings, updateSettings } = useWorkspaceSettings();
 
   const tutorGroups: SectionGroup[] = isTutor
     ? [
@@ -333,6 +334,35 @@ export default function ProfilePage() {
                 </div>
               </>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Reward theme picker */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>{t("rewardThemes.pickerTitle")}</CardTitle>
+            <CardDescription>{t("rewardThemes.pickerDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              {THEME_KEYS.map((themeKey) => {
+                const selected = (settings?.reward_theme ?? "fruits") === themeKey;
+                return (
+                  <button
+                    key={themeKey}
+                    type="button"
+                    onClick={() => updateSettings({ reward_theme: themeKey })}
+                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      selected
+                        ? "border-primary bg-primary/10 font-medium text-primary"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    {t(`rewardThemes.${themeKey}`)}
+                  </button>
+                );
+              })}
+            </div>
           </CardContent>
         </Card>
 

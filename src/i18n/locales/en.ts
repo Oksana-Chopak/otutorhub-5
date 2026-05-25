@@ -2583,5 +2583,36 @@ export const en: Translations = {
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
   },
+  rewardThemes: {
+    fruits: "🍎 Fruits",
+    stars: "⭐ Stars",
+    medals: "🏅 Medals",
+    artifacts: "🔮 Artifacts",
+    nature: "🌿 Nature",
+    pickerTitle: "Reward theme",
+    pickerDesc: "Students receive emoji rewards after each lesson",
+  },
+  rewardCollection: {
+    title: "My collection",
+    newReward: "🎁 Reward from your tutor!",
+    newRewardDesc: "You earned {{emoji}} for your lesson!",
+    empty: "Lessons ahead — rewards too 🌟",
+    countSuffix: "rewards",
+  },
+  studentProgress: {
+    level_novice: "Beginner",
+    level_student: "Student",
+    level_expert: "Expert",
+    level_master: "Master",
+    level_legend: "Legend",
+    toNext: "to next level",
+    levelUp: "🎉 New level: {{level}}!",
+    progressTitle: "My progress",
+  },
+  studentRecord: {
+    weeklyRecord: "Record: {{count}} lessons/week 🏆",
+    weeklyNew: "🎉 New personal record!",
+    thisWeek: "This week: {{count}}",
+  },
 
 };

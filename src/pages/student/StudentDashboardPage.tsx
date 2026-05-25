@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { StudentOnboarding } from "@/components/student/StudentOnboarding";
@@ -11,6 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
+import { useStudentRewards } from "@/hooks/useStudentRewards";
+import { RewardCollection } from "@/components/student/RewardCollection";
+import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 
 interface UpcomingLesson {
   id: string;
@@ -20,6 +23,17 @@ interface UpcomingLesson {
   meeting_url: string | null;
   tutor_id: string;
   tutor_name?: string;
+}
+
+interface CompletedLessonStat {
+  starts_at: string;
+}
+
+function getISOWeek(date: Date): string {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return `${d.getUTCFullYear()}-W${Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)}`;
 }
 
 export default function StudentDashboardPage() {
@@ -33,6 +47,22 @@ export default function StudentDashboardPage() {
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [homeworkCount, setHomeworkCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [completedLessons, setCompletedLessons] = useState<CompletedLessonStat[]>([]);
+
+  const { rewards, loading: rewardsLoading } = useStudentRewards();
+
+  const { completedCount, weeklyCount, weeklyRecord } = useMemo(() => {
+    const count = completedLessons.length;
+    const thisWeek = getISOWeek(new Date());
+    const byWeek: Record<string, number> = {};
+    for (const l of completedLessons) {
+      const wk = getISOWeek(new Date(l.starts_at));
+      byWeek[wk] = (byWeek[wk] ?? 0) + 1;
+    }
+    const wkCount = byWeek[thisWeek] ?? 0;
+    const record = Math.max(0, ...Object.values(byWeek));
+    return { completedCount: count, weeklyCount: wkCount, weeklyRecord: record };
+  }, [completedLessons]);
 
   useEffect(() => {
     if (!ctxLoading && !hasQuiz) setShowOnboarding(true);
@@ -42,7 +72,7 @@ export default function StudentDashboardPage() {
     if (!user) return;
     setLoading(true);
     const nowIso = new Date().toISOString();
-    const [{ data: lessons }, { data: details }] = await Promise.all([
+    const [{ data: lessons }, { data: details }, { data: completed }] = await Promise.all([
       supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status, student_payment_status")
@@ -55,7 +85,13 @@ export default function StudentDashboardPage() {
         .from("lesson_details")
         .select("lesson_id, homework, student_payment_status, lessons!inner(student_id)")
         .eq("lessons.student_id", user.id),
+      supabase
+        .from("lessons")
+        .select("starts_at")
+        .eq("student_id", user.id)
+        .eq("status", "completed"),
     ]);
+    setCompletedLessons((completed as CompletedLessonStat[] | null) ?? []);
 
     const tutorIds = Array.from(new Set((lessons ?? []).map((l: any) => l.tutor_id)));
     const { data: profiles } = tutorIds.length
@@ -193,7 +229,17 @@ export default function StudentDashboardPage() {
           </Link>
         </div>
 
-        {/* Block 4: Find tutor (only if no tutor yet) */}
+        {/* Block 4: Progress + personal record */}
+        <StudentProgressBar
+          completedCount={completedCount}
+          weeklyCount={weeklyCount}
+          weeklyRecord={weeklyRecord}
+        />
+
+        {/* Block 5: Reward collection */}
+        <RewardCollection rewards={rewards} loading={rewardsLoading} />
+
+        {/* Block 6: Find tutor (only if no tutor yet) */}
         {!hasTutor && (
           <Card className="border-primary/30 bg-primary/5 p-5">
             <div className="flex items-start gap-3">

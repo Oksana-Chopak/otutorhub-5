@@ -11,6 +11,7 @@ export interface WorkspaceSettings {
   onboarding_completed: boolean;
   onboarding_step: number;
   custom_currencies: string[];
+  reward_theme: string;
 }
 
 /**
