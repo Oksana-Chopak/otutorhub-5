@@ -127,6 +127,45 @@ Deno.serve(async (req) => {
       }
       results.push(`monthly_recap sent`);
     }
+
+    // ── 4. Weekly summary (every Monday) ────────────────────────────────
+    if (today.getDay() === 1) {
+      const weekEnd   = new Date(today); weekEnd.setHours(0, 0, 0, 0);
+      const weekStart = new Date(weekEnd.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+      const { data: tutorRolesW } = await db
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "tutor");
+
+      for (const { user_id } of tutorRolesW ?? []) {
+        const { data: wLessons } = await db
+          .from("lessons")
+          .select("id, student_price, student_payment_status, status")
+          .eq("tutor_id", user_id)
+          .gte("starts_at", weekStart.toISOString())
+          .lt("starts_at", weekEnd.toISOString());
+
+        const completed = (wLessons ?? []).filter((l: any) => l.status === "completed");
+        const count = completed.length;
+        if (count === 0) continue;
+
+        const income = completed
+          .filter((l: any) => l.student_payment_status === "paid")
+          .reduce((sum: number, l: any) => sum + Number(l.student_price ?? 0), 0);
+
+        await upsertNotif(
+          user_id,
+          "weekly_summary",
+          `📈 Підсумок тижня: ${count} уроків`,
+          income > 0
+            ? `Зароблено ${income.toFixed(0)} грн за минулий тиждень 💪`
+            : `${count} уроків проведено — гарний результат!`,
+          "/finances",
+        );
+      }
+      results.push(`weekly_summary: ${(tutorRolesW ?? []).length} tutors checked`);
+    }
   }
 
   if (window === "evening") {

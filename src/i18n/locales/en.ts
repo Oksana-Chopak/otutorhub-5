@@ -2588,6 +2588,13 @@ export const en: Translations = {
     enabled: "Push enabled ✓",
     denied: "Push blocked in browser",
   },
+  tutorDelight: {
+    dayClosedTitle: "Day complete! 🌟",
+    dayClosedDesc: "All {{count}} lessons done. Great work!",
+    dayClosedTap: "Tap to close",
+    topTutorTitle: "You're in the top {{pct}}% of tutors this month!",
+    topTutorDesc: "Keep going — you're among the most active tutors",
+  },
   rewardThemes: {
     fruits: "🍎 Fruits",
     stars: "⭐ Stars",

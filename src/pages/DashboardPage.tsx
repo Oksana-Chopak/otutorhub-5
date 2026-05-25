@@ -40,6 +40,8 @@ import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import { insertNotification } from "@/lib/notifications";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
+import { DayClosedCelebration } from "@/components/DayClosedCelebration";
+import { TopTutorBadge } from "@/components/TopTutorBadge";
 import {
   CalendarDays,
   CalendarClock,
@@ -233,6 +235,9 @@ export default function DashboardPage() {
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [quickLessonOpen, setQuickLessonOpen] = useState(false);
+  const [showDayClosed, setShowDayClosed] = useState(false);
+  const [dayClosedCount, setDayClosedCount] = useState(0);
+  const [topPercentile, setTopPercentile] = useState<number | null>(null);
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
@@ -402,6 +407,39 @@ export default function DashboardPage() {
       setMyStudentCount(count ?? 0);
     }
 
+    // Top-10% calculation (independent tutors only, fire-and-forget after load)
+    if (isTutor && !isManager) {
+      const monthStart = new Date();
+      monthStart.setDate(1);
+      monthStart.setHours(0, 0, 0, 0);
+      const iso = monthStart.toISOString();
+      const [{ count: myCount }, { count: totalTutors }] = await Promise.all([
+        supabase.from("lessons").select("id", { count: "exact", head: true })
+          .eq("tutor_id", user.id).eq("status", "completed").gte("starts_at", iso),
+        supabase.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "tutor"),
+      ]);
+      if (myCount && myCount > 0 && totalTutors && totalTutors > 1) {
+        const { count: aboveMe } = await supabase.rpc("count_tutors_above", {
+          min_count: myCount,
+          month_start: iso,
+        }).single().then(() => ({ count: null as number | null })).catch(() => ({ count: null as number | null }));
+        // Fallback: compute via separate query if RPC doesn't exist
+        const { data: topRows } = await supabase
+          .from("lessons")
+          .select("tutor_id")
+          .eq("status", "completed")
+          .gte("starts_at", iso);
+        const countByTutor: Record<string, number> = {};
+        (topRows ?? []).forEach((r: { tutor_id: string }) => {
+          countByTutor[r.tutor_id] = (countByTutor[r.tutor_id] ?? 0) + 1;
+        });
+        const tutorsAbove = Object.values(countByTutor).filter((c) => c > myCount!).length;
+        const pct = (tutorsAbove / totalTutors!) * 100;
+        setTopPercentile(pct);
+        void aboveMe; // suppress unused warning
+      }
+    }
+
     setLoading(false);
   };
 
@@ -411,7 +449,29 @@ export default function DashboardPage() {
       toast.error(t("dashboardExtra.statusChangeFailed"));
       return;
     }
-    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
+    const updatedLessons = lessons.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l));
+    setLessons(updatedLessons);
+
+    // Day-closed celebration — check if all today's lessons are done
+    if ((newStatus === "completed" || newStatus === "cancelled") && isTutor && user) {
+      const todayStr = new Date().toDateString();
+      const storageKey = `day_closed_${user.id}_${todayStr}`;
+      if (!localStorage.getItem(storageKey)) {
+        const todayLessons = updatedLessons.filter((l) => {
+          const lessonTutor = isTutor && !isManager ? l.tutor_id === user.id : true;
+          return new Date(l.starts_at).toDateString() === todayStr && lessonTutor;
+        });
+        const allDone =
+          todayLessons.length > 0 &&
+          todayLessons.every((l) => l.status === "completed" || l.status === "cancelled");
+        if (allDone) {
+          localStorage.setItem(storageKey, "1");
+          const completedCount = todayLessons.filter((l) => l.status === "completed").length;
+          setDayClosedCount(completedCount);
+          setShowDayClosed(true);
+        }
+      }
+    }
     if (newStatus === "completed") {
       toast.success(t("dashboardExtra.lessonCompletedToast"), {
         description: streak?.current_streak
@@ -922,6 +982,11 @@ export default function DashboardPage() {
           {/* Independent tutor: streak card — always visible so new tutors see "Почни сьогодні!" */}
           {isIndependentTutor && streak && (
             <StreakCard streak={streak} />
+          )}
+
+          {/* Top-10% badge */}
+          {isTutor && !isManager && topPercentile !== null && topPercentile < 10 && (
+            <TopTutorBadge percentile={topPercentile} />
           )}
           {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (
             <div className="flex items-start justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
@@ -1434,7 +1499,12 @@ export default function DashboardPage() {
         onOpenChange={(o) => { if (!o) setOpenLessonId(null); }}
         onUpdated={loadData}
       />
-      
+
+      <DayClosedCelebration
+        show={showDayClosed}
+        lessonCount={dayClosedCount}
+        onDone={() => setShowDayClosed(false)}
+      />
     </AppLayout>
   );
 }

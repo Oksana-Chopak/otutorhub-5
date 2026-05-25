@@ -2596,6 +2596,13 @@ export const uk = {
     enabled: "Push увімкнено ✓",
     denied: "Push заблоковано в браузері",
   },
+  tutorDelight: {
+    dayClosedTitle: "День закрито! 🌟",
+    dayClosedDesc: "Всі {{count}} уроків проведено. Чудова робота!",
+    dayClosedTap: "Натисни щоб закрити",
+    topTutorTitle: "Ти в топ-{{pct}}% репетиторів цього місяця!",
+    topTutorDesc: "Продовжуй у тому ж темпі — ти серед найактивніших",
+  },
   rewardThemes: {
     fruits: "🍎 Фрукти",
     stars: "⭐ Зірки",

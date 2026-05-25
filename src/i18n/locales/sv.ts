@@ -2579,6 +2579,13 @@ export const sv: Partial<Translations> = {
     enabled: "Push aktiverat ✓",
     denied: "Push blockerat i webbläsaren",
   },
+  tutorDelight: {
+    dayClosedTitle: "Dagen klar! 🌟",
+    dayClosedDesc: "Alla {{count}} lektioner klara. Bra jobbat!",
+    dayClosedTap: "Tryck för att stänga",
+    topTutorTitle: "Du är i topp {{pct}}% av lärarna denna månad!",
+    topTutorDesc: "Fortsätt — du är bland de mest aktiva lärarna",
+  },
   rewardThemes: {
     fruits: "🍎 Frukter",
     stars: "⭐ Stjärnor",
