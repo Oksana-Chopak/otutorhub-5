@@ -2574,6 +2574,11 @@ export const sv: Partial<Translations> = {
     unpaid: "⏳ Obetald",
     openBtn: "Kontext",
   },
+  pushNotif: {
+    enable: "Aktivera push-aviseringar",
+    enabled: "Push aktiverat ✓",
+    denied: "Push blockerat i webbläsaren",
+  },
   rewardThemes: {
     fruits: "🍎 Frukter",
     stars: "⭐ Stjärnor",

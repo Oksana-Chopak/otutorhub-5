@@ -35,4 +35,9 @@ export async function insertNotification({ userId, type, title, body, link }: In
     body: body ?? null,
     link: link ?? null,
   });
+
+  // Fire-and-forget push notification (no await — never blocks UI)
+  supabase.functions.invoke("send-push", {
+    body: { userId, title, body: body ?? "", link: link ?? "/" },
+  }).catch(() => { /* push is best-effort */ });
 }

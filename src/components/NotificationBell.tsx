@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 
@@ -124,6 +125,9 @@ export function NotificationBell({ className }: Props) {
               ))}
             </ul>
           )}
+        </div>
+        <div className="border-t border-border px-3 py-2">
+          <PushNotificationToggle />
         </div>
       </PopoverContent>
     </Popover>

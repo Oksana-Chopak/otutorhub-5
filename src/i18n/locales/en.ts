@@ -2583,6 +2583,11 @@ export const en: Translations = {
     unpaid: "⏳ Unpaid",
     openBtn: "Context",
   },
+  pushNotif: {
+    enable: "Enable push notifications",
+    enabled: "Push enabled ✓",
+    denied: "Push blocked in browser",
+  },
   rewardThemes: {
     fruits: "🍎 Fruits",
     stars: "⭐ Stars",

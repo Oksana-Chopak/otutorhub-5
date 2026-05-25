@@ -2591,6 +2591,11 @@ export const uk = {
     unpaid: "⏳ Не оплачено",
     openBtn: "Контекст",
   },
+  pushNotif: {
+    enable: "Увімкнути push-сповіщення",
+    enabled: "Push увімкнено ✓",
+    denied: "Push заблоковано в браузері",
+  },
   rewardThemes: {
     fruits: "🍎 Фрукти",
     stars: "⭐ Зірки",
