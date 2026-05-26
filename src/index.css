@@ -115,6 +115,21 @@
     font-family: var(--font-body);
   }
 
+  /* ── Design System 2.0 tokens ─────────────────────────────────────────── */
+  :root {
+    --teal: #2BBFAA;
+    --teal-d: #25a896;
+    --teal-l: #f0fdf9;
+    --dark: #0f0f1a;
+    --dark-m: #1a1a2e;
+    --ds-bg: #F5F4F0;
+    --ds-surface: #ffffff;
+    --ds-txt: #0f0f1a;
+    --ds-sub: #9398b0;
+    --ds-muted: #b0b4c8;
+    --ds-border: #f0f1f5;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
   }
@@ -190,3 +205,15 @@
 .animate-victory { animation: victory-slide-in 2s ease-in-out forwards; }
 .animate-checkmark-pop { animation: checkmark-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
 .animate-xp-float { animation: xp-float 1.2s ease-out forwards; }
+
+@keyframes confetti-pop {
+  0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.5); opacity: 0; }
+}
+
+@keyframes ds-pop {
+  0%   { transform: scale(0.92); opacity: 0; }
+  60%  { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.ds-pop-in { animation: ds-pop 0.25s cubic-bezier(0.34,1.56,0.64,1) forwards; }

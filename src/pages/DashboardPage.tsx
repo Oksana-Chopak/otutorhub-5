@@ -57,6 +57,8 @@ import {
   Plus,
   HandHeart,
   Clock,
+  ChevronRight,
+  UserCircle,
 } from "lucide-react";
 import {
   Select,
@@ -186,6 +188,34 @@ const dayAffirmations = [
   "Мій день має напрям, навіть якщо в ньому багато змін.",
   "Я справляюся — крок за кроком, урок за уроком.",
 ];
+
+function burstConfetti() {
+  const colors = ["#2BBFAA", "#22c55e", "#f59e0b", "#3b82f6", "#a855f7"];
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement("div");
+    const dx = (Math.random() - 0.5) * 220;
+    const dy = -(80 + Math.random() * 120);
+    const rot = Math.random() * 540;
+    el.style.cssText = [
+      "position:fixed",
+      "left:50%",
+      "top:45%",
+      "width:8px",
+      "height:8px",
+      "border-radius:2px",
+      `background:${colors[i % colors.length]}`,
+      "z-index:9999",
+      "pointer-events:none",
+      `--dx:${dx}px`,
+      `--dy:${dy}px`,
+      `--rot:${rot}deg`,
+      `animation:confetti-pop ${0.7 + Math.random() * 0.4}s ease-out forwards`,
+      `animation-delay:${i * 25}ms`,
+    ].join(";");
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1600);
+  }
+}
 
 type ProfitPeriod = "all" | "month" | "week";
 
@@ -478,6 +508,7 @@ export default function DashboardPage() {
       }
     }
     if (newStatus === "completed") {
+      burstConfetti();
       toast.success(t("dashboardExtra.lessonCompletedToast"), {
         description: streak?.current_streak
           ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
@@ -865,62 +896,74 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:mb-6">
-        <div className="min-w-0 flex-1">
-          <h1 className="truncate font-display text-xl font-bold text-foreground sm:text-2xl">
-            {greeting}{firstName ? `, ${firstName}` : ""} <span className="ml-0.5">{timeEmoji}</span>
-          </h1>
-          <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-            <Link
-              to="/schedule"
-              className="inline-flex items-center gap-1 rounded-md transition-colors hover:text-primary hover:underline"
-            >
-              <CalendarDays className="h-3 w-3 text-primary" />
-              {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
-            </Link>
-            {pendingPayments.length > 0 && (
-              <span className="inline-flex items-center gap-1 text-warning">
-                <Clock className="h-3 w-3" />
-                {t("pendingPayments.title") ?? `${pendingPayments.length} очікують оплати`}
-              </span>
-            )}
-          </p>
-          <p className="mt-1 line-clamp-2 text-[11px] italic text-muted-foreground/80 sm:text-xs">
-            ✨ {phraseOfDay}
-          </p>
-        </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {isManager && (
-              <>
-                <Button asChild variant="outline" size="sm"><Link to="/people">{t("dashboard.btnPeople")}</Link></Button>
-                <Button asChild size="icon" title={t("dashboard.btnPayments")} aria-label={t("dashboard.btnPayments")}>
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:-mx-8 lg:-mt-8 lg:mb-7">
+        <div
+          className="relative px-5 py-5 lg:px-8 lg:py-7"
+          style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h1 className="font-display text-[22px] font-extrabold leading-tight text-white sm:text-[26px] lg:text-[28px]">
+                {timeEmoji}{" "}
+                {greeting},{" "}
+                <span style={{ color: "var(--teal)" }}>{firstName}</span>
+              </h1>
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-slate-400">
+                <Link
+                  to="/schedule"
+                  className="inline-flex items-center gap-1 transition-colors hover:text-white"
+                >
+                  <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
+                  {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
+                </Link>
+                {pendingPayments.length > 0 && (
+                  <span className="inline-flex items-center gap-1 font-medium text-amber-400">
+                    <Clock className="h-3.5 w-3.5" />
+                    {t("pendingPayments.title")}
+                  </span>
+                )}
+              </p>
+              <p className="mt-3 line-clamp-2 text-[13px] italic" style={{ color: "#8892b0" }}>
+                ✨ {phraseOfDay}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 pt-0.5">
+              {isManager && (
+                <Button
+                  asChild
+                  size="sm"
+                  className="h-9 rounded-xl border-0 text-[13px] font-medium text-slate-300 hover:text-white"
+                  style={{ background: "rgba(255,255,255,0.1)" }}
+                >
                   <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
                 </Button>
-              </>
-            )}
-            {isTutor && !isManager && (
-              <QuickActionsFab
-                onChanged={loadData}
-                trigger={
-                  <Button size="sm" className="gap-1.5" aria-label={t("quickActions.title")}>
-                    <Plus className="h-4 w-4" />
-                    <span>Дія</span>
-                  </Button>
-                }
-              />
-            )}
-            {isStudent && !isTutor && !isManager && (
-              <FindTutorDialog
-                trigger={
-                  <Button size="sm">
-                    <HandHeart className="h-4 w-4" />
-                    {t("dashboard.btnRequestTutor")}
-                  </Button>
-                }
-              />
-            )}
+              )}
+              {isStudent && !isTutor && !isManager && (
+                <FindTutorDialog
+                  trigger={
+                    <Button
+                      size="sm"
+                      className="h-9 rounded-xl text-[13px]"
+                      style={{ background: "var(--teal)" }}
+                    >
+                      <HandHeart className="h-4 w-4" />
+                    </Button>
+                  }
+                />
+              )}
+              <Link
+                to="/profile"
+                aria-label={t("nav.profile")}
+                className="flex h-10 w-10 items-center justify-center rounded-[14px] text-slate-300 transition-colors hover:text-white"
+                style={{ background: "rgba(255,255,255,0.1)" }}
+              >
+                <UserCircle className="h-5 w-5" />
+              </Link>
+            </div>
           </div>
         </div>
+      </div>
 
 
 
@@ -1074,49 +1117,74 @@ export default function DashboardPage() {
             </section>
           )}
 
-          <div className="grid gap-6 lg:gap-8 xl:grid-cols-2">
-            <section>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-display text-lg font-semibold text-foreground">{t("dashboard.upcomingLessons")}</h2>
+          <div className="grid gap-5 md:grid-cols-5 md:gap-6">
+            <section className="md:col-span-3">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--ds-sub)" }}>
+                  {t("dashboard.upcomingLessons")}
+                </p>
                 {upcomingAll.length > todayPlusTomorrowLessons.length && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
+                  <button
+                    className="text-[12px] font-medium transition-colors hover:underline"
+                    style={{ color: "var(--teal)" }}
                     onClick={() => setShowAllUpcoming((v) => !v)}
                   >
                     {showAllUpcoming ? t("dashboard.hide") : t("dashboard.showAll", { count: upcomingAll.length })}
-                  </Button>
+                  </button>
                 )}
               </div>
-              <div className={`space-y-3 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
+              <div className={`space-y-2.5 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-border bg-card p-6 text-sm text-muted-foreground">
-                    {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
-                      <div className="space-y-2">
-                        <p className="font-medium text-foreground">{t("dashboardPageExtra.addFirstStudent")}</p>
-                        <p className="text-xs">{t("dashboardPageExtra.addFirstStudentHint")}</p>
-                        <Button size="sm" className="mt-1" onClick={() => setAddStudentOpen(true)}>
-                          <Plus className="h-4 w-4" />
-                          {t("onboardingContent.addStudentCta")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <>
-                        {t("dashboard.noUpcoming")}
-                        {isTutor && !isManager && (
-                          <Button asChild size="sm" className="ml-3">
-                            <Link to="/schedule">{t("dashboard.btnCreateLesson")}</Link>
+                  <div
+                    className="flex flex-col items-center gap-3 rounded-[18px] bg-white px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                  >
+                    <span className="text-3xl">☀️</span>
+                    <div>
+                      {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
+                        <>
+                          <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.addFirstStudent")}</p>
+                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardPageExtra.addFirstStudentHint")}</p>
+                          <Button
+                            size="sm"
+                            className="mt-3 rounded-xl"
+                            style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
+                            onClick={() => setAddStudentOpen(true)}
+                          >
+                            <Plus className="h-4 w-4" />
+                            {t("onboardingContent.addStudentCta")}
                           </Button>
-                        )}
-                        {isStudent && !isTutor && !isManager && (
-                          <span className="ml-3 inline-block">
-                            <FindTutorDialog
-                              trigger={<Button size="sm">{t("dashboard.btnRequestTutor")}</Button>}
-                            />
-                          </span>
-                        )}
-                      </>
-                    )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>
+                            {t("dashboard.noUpcoming")}
+                          </p>
+                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>Сьогодні вільний день</p>
+                          {isTutor && !isManager && (
+                            <Button
+                              size="sm"
+                              className="mt-3 rounded-xl"
+                              style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
+                              onClick={() => setQuickLessonOpen(true)}
+                            >
+                              <Plus className="h-4 w-4" />
+                              {t("dashboard.btnCreateLesson")}
+                            </Button>
+                          )}
+                          {isStudent && !isTutor && !isManager && (
+                            <div className="mt-3">
+                              <FindTutorDialog
+                                trigger={
+                                  <Button size="sm" className="rounded-xl" style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}>
+                                    {t("dashboard.btnRequestTutor")}
+                                  </Button>
+                                }
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </div>
                 ) : (
                   upcomingLessons.map((lesson) => {
@@ -1320,145 +1388,135 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section>
-              <h2 className="mb-5 font-display text-lg font-semibold text-foreground">{t("dashboard.nextSteps")}</h2>
+            <section className="md:col-span-2">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--ds-sub)" }}>
+                {t("dashboard.nextSteps")}
+              </p>
               {isManager ? (
-                <div className="space-y-4">
+                <div className="space-y-2.5">
                   {smartTasks.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border bg-card p-6 text-center">
-                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-success/10">
-                        <TrendingUp className="h-4 w-4 text-success" />
+                    <div
+                      className="rounded-[18px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                    >
+                      <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
+                        <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                       </div>
-                      <p className="text-sm font-medium text-foreground">{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        Немає термінових задач. Можна планувати наступний тиждень.
+                      <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
+                      <p className="mt-1 text-[12px]" style={{ color: "var(--ds-sub)" }}>
+                        Немає термінових задач.
                       </p>
                     </div>
                   ) : (
                     smartTasks.map((task) => {
                       const Icon = task.icon;
-                      const toneClass =
-                        task.tone === "destructive"
-                          ? "border-destructive/40 bg-destructive/5"
-                          : task.tone === "warning"
-                          ? "border-warning/40 bg-warning/5"
-                          : "border-primary/40 bg-primary/5";
-                      const iconClass =
-                        task.tone === "destructive"
-                          ? "bg-destructive/10 text-destructive"
-                          : task.tone === "warning"
-                          ? "bg-warning/10 text-warning"
-                          : "bg-primary/10 text-primary";
+                      const borderColor =
+                        task.tone === "destructive" ? "#3b82f6"
+                        : task.tone === "warning"    ? "#f59e0b"
+                        : "#d0d3e0";
+                      const iconBg =
+                        task.tone === "destructive" ? "rgba(59,130,246,0.12)"
+                        : task.tone === "warning"    ? "rgba(245,158,11,0.12)"
+                        : "rgba(208,211,224,0.25)";
+                      const iconColor =
+                        task.tone === "destructive" ? "#3b82f6"
+                        : task.tone === "warning"    ? "#f59e0b"
+                        : "#9398b0";
                       return (
-                        <div
-                          key={task.key}
-                          className={`flex items-start gap-3 rounded-2xl border p-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_-8px_hsl(var(--foreground)/0.12)] ${toneClass}`}
-                        >
-                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${iconClass}`}>
-                            <Icon className="h-4 w-4" />
+                        <Link key={task.key} to={task.to} className="block group">
+                          <div
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
+                            style={{ borderLeft: `3.5px solid ${borderColor}` }}
+                          >
+                            <div
+                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+                              style={{ background: iconBg }}
+                            >
+                              <Icon className="h-4 w-4" style={{ color: iconColor }} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>
+                                {task.title}
+                              </p>
+                              <p className="mt-0.5 text-[12px] leading-snug" style={{ color: "var(--ds-sub)" }}>
+                                {task.description}
+                              </p>
+                            </div>
+                            <ChevronRight className="ml-1 h-4 w-4 flex-shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium text-foreground">{task.title}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">{task.description}</p>
-                            <Button asChild size="sm" className="mt-3">
-                              <Link to={task.to}>{task.cta}</Link>
-                            </Button>
-                          </div>
-                        </div>
+                        </Link>
                       );
                     })
                   )}
                   <TelegramLinkCard />
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2.5">
                   {isStudent && (
                     <>
                       {studentTutorCount > 0 ? (
-                        <div className="rounded-xl border border-border bg-card p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                              <CalendarDays className="h-4 w-4 text-primary" />
+                        <Link to="/schedule" className="block group">
+                          <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #2BBFAA" }}>
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(43,191,170,0.12)" }}>
+                              <CalendarDays className="h-4 w-4" style={{ color: "var(--teal)" }} />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.tutorAssignsLessons")}</p>
-                              <p className="mt-0.5 text-xs text-muted-foreground">
-                                {t("studentPages.tutorScheduleHint") ?? "Дату й час нових уроків додає ваш репетитор або менеджер."}
-                              </p>
-                              <div className="mt-3 flex gap-2">
-                                <Button asChild size="sm" variant="outline"><Link to="/schedule">{t("dashboardPageExtra.toSchedule")}</Link></Button>
-                                <Button asChild size="sm" variant="ghost"><Link to="/chats">{t("dashboardPageExtra.toChats")}</Link></Button>
-                              </div>
+                              <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.tutorAssignsLessons")}</p>
+                              <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.tutorScheduleHint") ?? "Розклад"}</p>
                             </div>
+                            <ChevronRight className="h-4 w-4 text-slate-300" />
                           </div>
-                        </div>
+                        </Link>
                       ) : (
-                        <div className="rounded-xl border border-primary/40 bg-primary/5 p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                              <HandHeart className="h-4 w-4 text-primary" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findTutor")}</p>
-                              <p className="mt-0.5 text-xs text-muted-foreground">
-                                {t("studentPages.noTutorHint") ?? "У вас ще немає закріпленого репетитора."}
-                              </p>
-                              <div className="mt-3">
-                                <FindTutorDialog
-                                  trigger={<Button size="sm">{t("dashboardPageExtra.leaveRequest")}</Button>}
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {studentTutorCount > 0 && (
-                        <div className="rounded-xl border border-border bg-card p-4">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-warning/10">
-                              <Users className="h-4 w-4 text-warning" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.findNewTutor")}</p>
-                              <p className="mt-0.5 text-xs text-muted-foreground">
-                                {t("studentPages.findMoreHint") ?? "Шукаєте додаткового репетитора?"}
-                              </p>
-                              <div className="mt-3">
-                                <FindTutorDialog
-                                  trigger={<Button size="sm" variant="outline">{t("dashboardPageExtra.leaveRequest")}</Button>}
-                                />
-                              </div>
-                            </div>
+                        <div className="ds-pop-in rounded-[18px] bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #3b82f6" }}>
+                          <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.findTutor")}</p>
+                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
+                          <div className="mt-3">
+                            <FindTutorDialog trigger={
+                              <Button size="sm" className="rounded-xl h-9" style={{ background: "var(--teal)", color: "#fff" }}>
+                                {t("dashboardPageExtra.leaveRequest")}
+                              </Button>
+                            } />
                           </div>
                         </div>
                       )}
                     </>
                   )}
                   {(isTutor || isManager) && (
-                    <div className="rounded-xl border border-border bg-card p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                          <CalendarPlus className="h-4 w-4 text-primary" />
+                    <Link to="/availability" className="block group">
+                      <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #d0d3e0" }}>
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(208,211,224,0.25)" }}>
+                          <CalendarPlus className="h-4 w-4" style={{ color: "var(--ds-sub)" }} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-foreground">{t("dashboardPageExtra.updateHours")}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
-                            {t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним."}
-                          </p>
-                          <Button asChild size="sm" variant="outline" className="mt-3">
-                            <Link to="/availability">{t("dashboardPageExtra.openAvailability")}</Link>
-                          </Button>
+                          <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.updateHours")}</p>
+                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним"}</p>
                         </div>
+                        <ChevronRight className="h-4 w-4 text-slate-300" />
                       </div>
+                    </Link>
+                  )}
+                  <div className="mt-1">
+                    <TelegramLinkCard />
+                  </div>
+                  {/* Notes visible in right column on desktop */}
+                  {(isTutor || isManager) && (
+                    <div className="hidden md:block mt-1">
+                      <TutorNotesCard />
                     </div>
                   )}
-                  <TelegramLinkCard />
                 </div>
               )}
             </section>
           </div>
 
-          {/* Independent tutor: secondary stack moved BELOW upcoming + next steps */}
+          {/* Mobile: notes below the grid (desktop shows in right col) */}
+          {(isTutor || isManager) && !isIndependentTutor && (
+            <div className="mt-2 md:hidden">
+              <TutorNotesCard />
+            </div>
+          )}
+
+          {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
             <>
               <IndependentTutorStats />
@@ -1480,6 +1538,20 @@ export default function DashboardPage() {
           )}
         </div>
       )}
+
+      {/* ── FAB ───────────────────────────────────────────────────────────── */}
+      {isTutor && !isManager && (
+        <button
+          type="button"
+          className="fixed z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
+          style={{ bottom: "78px", right: "16px", background: "var(--teal)", boxShadow: "0 4px 20px rgba(43,191,170,0.45)" }}
+          onClick={() => setQuickLessonOpen(true)}
+          aria-label={t("quickActions.title")}
+        >
+          <Plus className="h-6 w-6" />
+        </button>
+      )}
+
       {isTutor && !isManager && <QuickPaymentFab />}
       {walletPair && (
         <WalletDialog

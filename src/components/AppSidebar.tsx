@@ -150,13 +150,14 @@ export function AppSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r border-border bg-card transition-transform duration-200 lg:static lg:translate-x-0",
+          "fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r transition-transform duration-200 lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ background: "var(--dark-m)", borderColor: "rgba(255,255,255,0.07)" }}
       >
-        <div className="flex items-center gap-2 border-b border-border px-6 py-5">
+        <div className="flex items-center gap-2 px-6 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
           <img src="/logo.png" alt="oTutorHub" className="h-8 w-8" />
-          <span className="font-display text-lg font-bold text-foreground">
+          <span className="font-display text-lg font-bold text-white">
             oTutorHub
           </span>
         </div>
@@ -182,10 +183,10 @@ export function AppSidebar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors lg:py-2.5 lg:text-sm",
+                    "flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
                     isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                      ? "bg-[rgba(43,191,170,0.13)] text-[#2BBFAA]"
+                      : "text-slate-400 hover:bg-white/5 hover:text-white"
                   )
                 }
                 end={item.to === "/"}
@@ -203,8 +204,8 @@ export function AppSidebar() {
         </nav>
 
         {showOnboardingHelp && (
-          <div className="border-t border-border px-3 py-3">
-            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+            <p className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
               {t("nav.help")}
             </p>
             <button
@@ -213,12 +214,12 @@ export function AppSidebar() {
                 setOpen(false);
                 navigate("/onboarding");
               }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
-                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-primary px-2 text-[10px] font-semibold text-primary-foreground animate-pulse">
+                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[10px] font-semibold text-white animate-pulse">
                   {t("nav.newBadge") || "Новий!"}
                 </span>
               )}
@@ -226,26 +227,26 @@ export function AppSidebar() {
           </div>
         )}
 
-        <div className="border-t border-border px-3 py-2">
+        <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
           <button
             type="button"
             onClick={() => {
               setOpen(false);
               setFeedbackOpen(true);
             }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span>{t("feedback.btn")}</span>
           </button>
         </div>
 
-        <div className="shrink-0 border-t border-border px-4 py-4 space-y-3" style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
+        <div className="shrink-0 px-4 py-4 space-y-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
           <div className="flex items-center gap-3">
             <Dialog open={avatarOpen} onOpenChange={setAvatarOpen}>
               <DialogTrigger asChild>
                 <button
-                  className="rounded-full ring-offset-background transition hover:ring-2 hover:ring-primary/40 hover:ring-offset-2"
+                  className="rounded-full ring-offset-background transition hover:ring-2 hover:ring-[#2BBFAA]/40 hover:ring-offset-2"
                   title={t("profile.changePhoto")}
                   aria-label={t("profile.changePhoto")}
                 >
@@ -275,38 +276,38 @@ export function AppSidebar() {
               </DialogContent>
             </Dialog>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">
+              <p className="truncate text-sm font-medium text-white">
                 {profile && (profile.first_name || profile.last_name)
                   ? `${profile.first_name} ${profile.last_name}`.trim()
                   : user?.email ?? "—"}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-slate-400">
                 {primaryRole ? t(roleLabelKey[primaryRole]) : t("roles.none")}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="flex-1 justify-start"
+              className="flex-1 justify-start text-slate-400 hover:bg-white/5 hover:text-white"
               onClick={signOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
               {t("common.logout")}
             </Button>
-            <NotificationBell className="h-9 w-9 shrink-0" />
+            <NotificationBell className="h-9 w-9 shrink-0 text-slate-400 hover:text-white" />
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0"
+              className="h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white"
               onClick={toggleTheme}
               title={theme === "dark" ? t("theme.light") : t("theme.dark")}
               aria-label={t("theme.toggle")}
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <LanguageSwitcher variant="outline" size="icon" showLabel={false} className="h-9 w-9 shrink-0" />
+            <LanguageSwitcher variant="ghost" size="icon" showLabel={false} className="h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white" />
           </div>
         </div>
       </aside>
