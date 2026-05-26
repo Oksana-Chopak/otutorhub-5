@@ -313,7 +313,7 @@ export function QuickLessonDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
         <DialogHeader>
           <DialogTitle>{t("quickLessonDialogExtra.title")}</DialogTitle>
           <DialogDescription>{timeLabel}</DialogDescription>
