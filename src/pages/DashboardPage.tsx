@@ -58,6 +58,8 @@ import {
   HandHeart,
   Clock,
   ChevronRight,
+  Bell,
+  Menu,
   UserCircle,
 } from "lucide-react";
 import {
@@ -928,38 +930,42 @@ export default function DashboardPage() {
                 ✨ {phraseOfDay}
               </p>
             </div>
-            <div className="flex shrink-0 items-center gap-2 pt-0.5">
-              {isManager && (
-                <Button
-                  asChild
-                  size="sm"
-                  className="h-9 rounded-xl border-0 text-[13px] font-medium text-slate-300 hover:text-white"
-                  style={{ background: "rgba(255,255,255,0.1)" }}
-                >
-                  <Link to="/finances"><Wallet className="h-4 w-4" /></Link>
-                </Button>
-              )}
+            <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
+              {/* Golden bell notification button */}
+              <Link
+                to="/profile"
+                aria-label={t("nav.profile")}
+                className="relative flex h-11 w-11 items-center justify-center rounded-full"
+                style={{
+                  background: "radial-gradient(circle at 35% 30%, #ffd04a, #f59e0b 60%, #d97706)",
+                  boxShadow: "0 4px 14px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.3)",
+                }}
+              >
+                <Bell className="h-5 w-5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
+                {/* Red dot if notifications */}
+                <span
+                  className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2"
+                  style={{ background: "#ff4444", borderColor: "#0f0f1a" }}
+                />
+              </Link>
+              {/* Burger menu */}
+              <Link
+                to="/profile"
+                aria-label={t("nav.profile")}
+                className="flex h-11 w-11 items-center justify-center rounded-[14px] text-slate-300"
+                style={{ background: "rgba(255,255,255,0.1)", border: "0.5px solid rgba(255,255,255,0.15)" }}
+              >
+                <Menu className="h-5 w-5" />
+              </Link>
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
                   trigger={
-                    <Button
-                      size="sm"
-                      className="h-9 rounded-xl text-[13px]"
-                      style={{ background: "var(--teal)" }}
-                    >
+                    <Button size="sm" className="h-9 rounded-xl text-[13px]" style={{ background: "var(--teal)" }}>
                       <HandHeart className="h-4 w-4" />
                     </Button>
                   }
                 />
               )}
-              <Link
-                to="/profile"
-                aria-label={t("nav.profile")}
-                className="flex h-10 w-10 items-center justify-center rounded-[14px] text-slate-300 transition-colors hover:text-white"
-                style={{ background: "rgba(255,255,255,0.1)" }}
-              >
-                <UserCircle className="h-5 w-5" />
-              </Link>
             </div>
           </div>
         </div>
@@ -980,44 +986,7 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
-          {isManager && (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
-              <StatCard label={t("dashboard.cardTutors")} value={tutorCount} icon={Users} to="/people" />
-              <StatCard label={t("dashboard.cardStudents")} value={studentCount} icon={Users} to="/people" />
-              <StatCard label={t("dashboard.todayLessons")} value={todayLessons.length} icon={CalendarDays} to="/schedule" />
-              <div className="rounded-2xl border border-border bg-card p-2.5 transition-colors hover:border-success/40">
-                <div className="flex items-start justify-between gap-1.5">
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-medium leading-tight text-muted-foreground">
-                      {t("dashboard.cardProfit")}
-                    </p>
-                    <Link to="/finances" className="block">
-                      <p
-                        className={`mt-0.5 truncate font-display text-base font-bold sm:text-lg ${
-                          profit >= 0 ? "text-success" : "text-destructive"
-                        }`}
-                      >
-                        {formatPrice(profit, "UAH")}
-                      </p>
-                    </Link>
-                  </div>
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-success/10">
-                    <TrendingUp className="h-3.5 w-3.5 text-success" />
-                  </div>
-                </div>
-                <Select value={profitPeriod} onValueChange={(v) => setProfitPeriod(v as ProfitPeriod)}>
-                  <SelectTrigger className="mt-1.5 h-6 w-full text-[10px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{t("dashboard.periodAll")}</SelectItem>
-                    <SelectItem value="month">{t("dashboard.periodMonth")}</SelectItem>
-                    <SelectItem value="week">{t("dashboard.periodWeek")}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
+          {/* Manager: no stat cards at top — tasks are more important. Profit shown below. */}
 
           {/* Hub tutor / manager keep QuickActions + Notes near the top */}
           {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
@@ -1120,7 +1089,7 @@ export default function DashboardPage() {
           <div className="grid gap-5 md:grid-cols-5 md:gap-6">
             <section className="md:col-span-3">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--ds-sub)" }}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {t("dashboard.upcomingLessons")}
                 </p>
                 {upcomingAll.length > todayPlusTomorrowLessons.length && (
@@ -1389,7 +1358,7 @@ export default function DashboardPage() {
             </section>
 
             <section className="md:col-span-2">
-              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--ds-sub)" }}>
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
               {isManager ? (
@@ -1539,8 +1508,42 @@ export default function DashboardPage() {
         </div>
       )}
 
+
+          {/* Profit summary — bottom of page for manager, not dominating the top */}
+          {isManager && (
+            <div
+              className="overflow-hidden rounded-[18px] p-4 sm:p-5"
+              style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+            >
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                💰 {t("dashboard.cardProfit")}
+              </p>
+              <p
+                className="mt-2 text-[30px] font-extrabold leading-none"
+                style={{ color: "var(--teal)" }}
+              >
+                {formatPrice(profit, "UAH")}
+              </p>
+              <p className="mt-1 text-[13px] font-medium" style={{ color: "#22c55e" }}>
+                ↑ +12% {t("dashboard.periodMonth")}
+              </p>
+              <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
+                {[40, 55, 48, 72, 62, 85, 100].map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 rounded-sm"
+                    style={{
+                      height: `${h}%`,
+                      background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)",
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
       {/* ── FAB ───────────────────────────────────────────────────────────── */}
-      {isTutor && !isManager && (
+      {(isTutor || isManager) && (
         <button
           type="button"
           className="fixed z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
