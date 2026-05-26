@@ -150,6 +150,7 @@ export default function PeoplePage() {
 
   // Add person dialog
   const [addOpen, setAddOpen] = useState(false);
+  const [activeRoleTab, setActiveRoleTab] = useState<"tutors" | "students" | "managers">("tutors");
   const [addForm, setAddForm] = useState({
     first_name: "",
     last_name: "",
@@ -839,7 +840,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
     return (
     <div
       key={u.id}
-      className={`rounded-lg border bg-card p-3 sm:p-4 ${
+      className={`overflow-hidden rounded-[16px] bg-white p-3 sm:p-3.5 transition-all ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -865,7 +866,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-10 w-10 lg:h-12 lg:w-12 ${
+                className={`h-[46px] w-[46px] ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
@@ -873,13 +874,13 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             {studentSt && (
               <span
                 title={studentSt.label}
-                className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${studentStatusDotClass[studentSt.status]}`}
+                className={`absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white ${studentStatusDotClass[studentSt.status]}`}
               />
             )}
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="max-w-full overflow-visible text-sm font-medium text-foreground lg:text-base lg:whitespace-normal lg:text-clip">
+              <p className="max-w-full overflow-visible text-[15px] font-semibold text-foreground">
                 {fullName(u)}
               </p>
               {u.is_pending && (
@@ -1247,20 +1248,19 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
   return (
     <AppLayout>
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <h1 className="hidden font-display text-2xl font-bold text-foreground lg:block">{t("people.title")}</h1>
-          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
-            {t("people.subtitle")}
-          </p>
-        </div>
+      {/* ── NEW HEADER: title + green burger ── */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("people.title")}</h1>
         {isManager && (
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="shrink-0">
-                <UserPlus className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{t("people.addPerson")}</span>
-              </Button>
+              <button
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white transition-opacity hover:opacity-90"
+                style={{ background: "var(--teal, #2BBFAA)" }}
+                aria-label={t("people.addPerson")}
+              >
+                <Menu className="h-5 w-5" />
+              </button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
@@ -1363,7 +1363,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             placeholder={t("people.searchPlaceholder")}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-9 min-w-0 flex-1"
+            className="h-11 min-w-0 flex-1 rounded-xl border-[0.5px] text-[15px]"
           />
           <MobileFilters
             compact
@@ -1406,6 +1406,59 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         </div>
       )}
 
+      {/* ── ROLE TABS ── */}
+      {!loading && (
+        <div
+          className="mb-1 flex gap-0 border-b"
+          style={{ borderColor: "var(--border, #f0f1f5)" }}
+        >
+          {(["tutors", "students", "managers"] as const).map((tab) => {
+            const counts = { tutors: tutors.length, students: students.length, managers: managers.length };
+            const labels = { tutors: t("roles.tutor"), students: t("roles.student"), managers: t("roles.manager") };
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveRoleTab(tab)}
+                className="flex-1 pb-2.5 pt-2 text-[13px] font-medium transition-colors"
+                style={{
+                  color: activeRoleTab === tab ? "var(--teal, #2BBFAA)" : "var(--sub, #9398b0)",
+                  borderBottom: activeRoleTab === tab ? "2px solid var(--teal, #2BBFAA)" : "2px solid transparent",
+                  fontWeight: activeRoleTab === tab ? 600 : 400,
+                }}
+              >
+                {labels[tab]} {counts[tab] > 0 && counts[tab]}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── STATUS PILLS ── */}
+      {!loading && (
+        <div className="mb-3 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+          {[
+            { value: "all", label: t("people.statusAll") },
+            { value: "active", label: "✅ " + t("people.statusActive") },
+            { value: "debt", label: "⚠️ Борг" },
+            { value: "pending", label: "⏳ " + t("people.statusPending") },
+            { value: "archived", label: "📦 " + t("people.statusArchived") },
+          ].map((pill) => (
+            <button
+              key={pill.value}
+              onClick={() => setStatusFilter(pill.value as typeof statusFilter)}
+              className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-all"
+              style={{
+                background: statusFilter === pill.value ? "#E1F5EE" : "var(--bg, #F5F4F0)",
+                border: `0.5px solid ${statusFilter === pill.value ? "var(--teal, #2BBFAA)" : "var(--border, #f0f1f5)"}`,
+                color: statusFilter === pill.value ? "#0F6E56" : "var(--sub, #9398b0)",
+              }}
+            >
+              {pill.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -1416,52 +1469,33 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             <p className="py-8 text-center text-sm text-muted-foreground">{t("people.nothingFound")}</p>
           )}
 
-          {noRole.length > 0 && (
-            <section className="mb-8">
-              <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                <UsersIcon className="h-5 w-5 text-warning" />
-                {t("people.sectionNoRole", { count: noRole.length })}
-              </h2>
-              <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-                {noRole.map((u) => renderUserCard(u))}
-              </div>
-            </section>
-          )}
-
-          {managers.length > 0 && (
-          <section className="mb-8">
-            <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <UsersIcon className="h-5 w-5 text-primary" />
-              {t("people.sectionManagers", { count: managers.length })}
-            </h2>
-            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-              {managers.map((u) => renderUserCard(u, "primary"))}
+          {/* TAB-BASED RENDERING */}
+          {activeRoleTab === "tutors" && (
+            <div className="space-y-2.5">
+              {[...tutors, ...(statusFilter === "all" ? noRole : [])].length === 0 ? (
+                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+              ) : (
+                [...tutors, ...(statusFilter === "all" ? noRole : [])].map((u) => renderUserCard(u, "primary"))
+              )}
             </div>
-          </section>
           )}
-
-          {tutors.length > 0 && (
-          <section className="mb-8">
-            <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-primary" />
-              {t("people.sectionTutors", { count: tutors.length })}
-            </h2>
-            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-              {tutors.map((u) => renderUserCard(u, "primary"))}
+          {activeRoleTab === "students" && (
+            <div className="space-y-2.5">
+              {students.length === 0 ? (
+                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+              ) : (
+                students.map((u) => renderUserCard(u))
+              )}
             </div>
-          </section>
           )}
-
-          {students.length > 0 && (
-          <section className="mb-8">
-            <h2 className="font-display text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
-              {t("people.sectionStudents", { count: students.length })}
-            </h2>
-            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4 xl:grid-cols-3">
-              {students.map((u) => renderUserCard(u))}
+          {activeRoleTab === "managers" && (
+            <div className="space-y-2.5">
+              {managers.length === 0 ? (
+                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+              ) : (
+                managers.map((u) => renderUserCard(u, "primary"))
+              )}
             </div>
-          </section>
           )}
         </>
       )}
