@@ -35,8 +35,8 @@ import { uk } from "date-fns/locale";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
-const PRO_PRICE_MONTHLY = 129;
-const PRO_PRICE_YEARLY_PER_MONTH = 99;
+const PRO_PRICE_MONTHLY = 249;
+const PRO_PRICE_YEARLY_PER_MONTH = 199;
 const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
 
 const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
@@ -138,7 +138,7 @@ export default function SubscriptionPage() {
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
-  const REGULAR_PRICE_MONTHLY = 129;
+  const REGULAR_PRICE_MONTHLY = 249;
   // Дедлайн акції — 14 днів від моменту першого відкриття. Зберігаємо в localStorage,
   // щоб у одного користувача таймер не «скакав» між заходами.
   const EARLY_BIRD_DURATION_MS = 14 * 24 * 60 * 60 * 1000;

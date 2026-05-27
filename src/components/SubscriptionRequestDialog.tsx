@@ -28,8 +28,8 @@ interface Props {
   defaultBilling?: Billing;
 }
 
-const PRICE_MONTHLY = 129;
-const PRICE_YEARLY_PER_MONTH = 99;
+const PRICE_MONTHLY = 249;
+const PRICE_YEARLY_PER_MONTH = 199;
 const PRICE_YEARLY_TOTAL = PRICE_YEARLY_PER_MONTH * 12;
 
 export function SubscriptionRequestDialog({
@@ -166,7 +166,7 @@ export function SubscriptionRequestDialog({
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-foreground">{t("subscriptionDialog.yearly")}</span>
                       <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
-                        −23%
+                        −20%
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground">

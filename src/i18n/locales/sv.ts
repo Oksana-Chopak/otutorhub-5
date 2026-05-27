@@ -937,7 +937,7 @@ export const sv: Partial<Translations> = {
 
   trial: {
     ended: "⏳ Provperioden avslutad. Anslut Pro för att fortsätta.",
-    connectPro: "Anslut för 129 ₴/mån",
+    connectPro: "Anslut för 249 ₴/mån",
     expiredBanner: "⏰ Provperioden slutade. Anslut Pro för att behålla åtkomst.",
     remaining: "🎁 Pro-provperiod: återstår",
     day_one: "{{count}} dag",
