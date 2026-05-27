@@ -1,4 +1,5 @@
 import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -1062,17 +1063,18 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("people.title")}</h1>
         <div className="flex items-center gap-2">
           <NotificationBell />
+          {/* Burger = profile menu, NOT add person */}
+          <Link
+            to="/profile"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--teal, #2BBFAA)" }}
+            aria-label="Меню"
+          >
+            <Menu className="h-5 w-5" />
+          </Link>
           {isManager && (
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger asChild>
-              <button
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white transition-opacity hover:opacity-90"
-                style={{ background: "var(--teal, #2BBFAA)" }}
-                aria-label={t("people.addPerson")}
-              >
-                <Menu className="h-5 w-5" />
-              </button>
-            </DialogTrigger>
+            <span />
             <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
@@ -1884,6 +1886,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           oldPrice={propagate.oldPrice}
           onDone={loadData}
         />
+      )}
+      {/* FAB — opens add person dialog */}
+      {isManager && (
+        <PageFAB onClick={() => setAddOpen(true)} label={t("people.addPerson")} />
       )}
     </AppLayout>
   );

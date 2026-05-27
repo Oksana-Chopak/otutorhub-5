@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
-import { AppLayout } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

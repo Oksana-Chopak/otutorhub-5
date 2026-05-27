@@ -693,13 +693,9 @@ export default function ChatsPage() {
           <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
             <Menu className="h-5 w-5" />
           </Link>
+          {/* Dialog for new chat — trigger moved to FAB */}
           <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
-                <Plus className="h-4 w-4" />
-                <span className="hidden sm:inline">{t("chats.createChatBtn")}</span>
-              </Button>
-            </DialogTrigger>
+            <span />
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
