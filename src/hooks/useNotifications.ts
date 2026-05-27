@@ -12,9 +12,7 @@ export interface AppNotification {
   created_at: string;
 }
 
-const db = supabase as unknown as typeof supabase & {
-  from(table: "notifications"): ReturnType<typeof supabase.from>;
-};
+const db: any = supabase;
 
 export function useNotifications() {
   const { user } = useAuth();
