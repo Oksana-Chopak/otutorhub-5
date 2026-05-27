@@ -1607,8 +1607,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         emailSent={invite.emailSent}
       />
 
-      {propagate && (
-        {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
+      {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
       <Sheet open={!!selectedPerson} onOpenChange={(open) => !open && setSelectedPerson(null)}>
         <SheetContent
           side="bottom"
@@ -1867,7 +1866,8 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         />
       )}
 
-      <RatePropagationDialog
+      {propagate && (
+        <RatePropagationDialog
           open={propagate.open}
           onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
           tutorId={propagate.tutorId}
