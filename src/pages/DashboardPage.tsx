@@ -986,7 +986,58 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
-          {/* Manager: no stat cards at top — tasks are more important. Profit shown below. */}
+          {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
+          {isManager && (
+            <>
+              {/* Profit card — always visible, top of page */}
+              <div
+                className="overflow-hidden rounded-[18px] p-4 sm:p-5"
+                style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+              >
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                  💰 {t("dashboard.cardProfit")}
+                </p>
+                <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
+                  {formatPrice(profit, "UAH")}
+                </p>
+                <p className="mt-1 text-[13px] font-medium" style={{ color: "#22c55e" }}>
+                  ↑ +12% {t("dashboard.periodMonth")}
+                </p>
+                <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
+                  {[40, 55, 48, 72, 62, 85, 100].map((h, i) => (
+                    <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
+                  ))}
+                </div>
+              </div>
+              {/* 3 stat cards — hidden on mobile, visible on desktop */}
+              <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3">
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
+                  </div>
+                  <span style={{ color: "var(--border,#f0f1f5)", fontSize: "20px" }}>›</span>
+                </Link>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub") || "активних"}</p>
+                  </div>
+                  <span style={{ color: "var(--border,#f0f1f5)", fontSize: "20px" }}>›</span>
+                </Link>
+                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
+                  </div>
+                  <span style={{ color: "var(--border,#f0f1f5)", fontSize: "20px" }}>›</span>
+                </Link>
+              </div>
+            </>
+          )}
 
           {/* Hub tutor: Notes only — QuickActionsCard replaced by FAB button */}
           {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
@@ -1133,6 +1184,70 @@ export default function DashboardPage() {
                         meetingUrl={meetingHref}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
+                        extraActions={
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
+                              onClick={() => setOpenLessonId(lesson.id)}
+                            >
+                              <CalendarClock className="h-4 w-4" />
+                              <span className="hidden sm:inline">{t("schedule.reschedule")}</span>
+                            </Button>
+                            <Select
+                              value={lesson.status}
+                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
+                            >
+                              <SelectTrigger className="h-11 w-[140px] text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(["scheduled", "completed", "cancelled"] as LessonStatus[]).map((s) => (
+                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </>
+                        }
+                        footer={
+                          <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
+                            <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                              <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                              </span>
+                              <Select
+                                value={lesson.student_payment_status}
+                                onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
+                              >
+                                <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                  <SelectItem value="paid">✓ Оплачено</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
+                              <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
+                                💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
+                              </span>
+                              <Select
+                                value={lesson.tutor_payout_status}
+                                onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
+                              >
+                                <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="unpaid">⏳ Очікує</SelectItem>
+                                  <SelectItem value="paid">✓ Виплачено</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        }
                       />
                     );
                   })}
@@ -1572,38 +1687,7 @@ export default function DashboardPage() {
       )}
 
 
-          {/* Profit summary — bottom of page for manager, not dominating the top */}
-          {isManager && (
-            <div
-              className="overflow-hidden rounded-[18px] p-4 sm:p-5"
-              style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
-            >
-              <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
-                💰 {t("dashboard.cardProfit")}
-              </p>
-              <p
-                className="mt-2 text-[30px] font-extrabold leading-none"
-                style={{ color: "var(--teal)" }}
-              >
-                {formatPrice(profit, "UAH")}
-              </p>
-              <p className="mt-1 text-[13px] font-medium" style={{ color: "#22c55e" }}>
-                ↑ +12% {t("dashboard.periodMonth")}
-              </p>
-              <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
-                {[40, 55, 48, 72, 62, 85, 100].map((h, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-sm"
-                    style={{
-                      height: `${h}%`,
-                      background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)",
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+
 
       {/* ── FAB ───────────────────────────────────────────────────────────── */}
       {(isTutor || isManager) && (
