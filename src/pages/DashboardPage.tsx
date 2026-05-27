@@ -1010,7 +1010,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               {/* 3 stat cards — hidden on mobile, visible on desktop */}
-              <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3">
+              <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3 lg:hidden">
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
