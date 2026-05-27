@@ -46,6 +46,7 @@ import {
   Copy,
   ChevronDown,
   MessageSquare,
+  Menu,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
