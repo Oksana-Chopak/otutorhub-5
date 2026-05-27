@@ -167,7 +167,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
           <DialogHeader>
             <DialogTitle>{t("quickAddStudent.title")}</DialogTitle>
             <DialogDescription>

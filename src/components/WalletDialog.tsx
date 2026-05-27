@@ -137,7 +137,7 @@ export function WalletDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Wallet className="h-5 w-5 text-primary" />
@@ -188,7 +188,7 @@ export function WalletDialog({
                 </TabsList>
 
                 <TabsContent value="lessons" className="space-y-2 pt-3">
-                  <Label className="text-xs">{t("walletDialogExtra.lessonsCountLabel")}</Label>
+                  <Label className="text-sm">{t("walletDialogExtra.lessonsCountLabel")}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -205,7 +205,7 @@ export function WalletDialog({
                 </TabsContent>
 
                 <TabsContent value="amount" className="space-y-2 pt-3">
-                  <Label className="text-xs">{t("walletDialogExtra.amountLabel")}</Label>
+                  <Label className="text-sm">{t("walletDialogExtra.amountLabel")}</Label>
                   <Input
                     type="number"
                     min="1"
@@ -224,7 +224,7 @@ export function WalletDialog({
               </Tabs>
 
               <div>
-                <Label className="text-xs">{t("walletDialogExtra.commentLabel")}</Label>
+                <Label className="text-sm">{t("walletDialogExtra.commentLabel")}</Label>
                 <Input
                   placeholder={t("walletDialogExtra.commentPlaceholder")}
                   value={note}

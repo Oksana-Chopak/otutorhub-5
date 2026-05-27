@@ -824,7 +824,7 @@ export default function MyStudentsPage() {
         open={dialog.open}
         onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
           <DialogHeader>
             <DialogTitle>
               {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
