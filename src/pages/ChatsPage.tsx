@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info   Menu,
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";

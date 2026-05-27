@@ -26,7 +26,7 @@ import { SubjectSelect } from "@/components/SubjectSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Users2, UserPlus, Archive   Menu,
+import { Loader2, Plus, Trash2, Users2, UserPlus, Archive, Menu,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
