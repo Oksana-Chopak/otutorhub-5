@@ -96,9 +96,9 @@ export function NotificationBell({ className, golden }: Props) {
         <div className="max-h-[400px] overflow-y-auto">
           {displayed.length === 0 ? (
             <div className="px-4 py-8 text-center">
-              <Bell className="mx-auto mb-2 h-8 w-8 opacity-20" />
-              <p className="text-sm font-medium text-foreground">{t("notifications.empty")}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{t("notifications.emptyDesc")}</p>
+              <div className="text-3xl mb-2">✨</div>
+              <p className="text-[15px] font-semibold text-foreground">{t("notifications.empty")}</p>
+              <p className="mt-1 text-[13px] text-muted-foreground">{t("notifications.emptyDesc")}</p>
             </div>
           ) : (
             <ul>
