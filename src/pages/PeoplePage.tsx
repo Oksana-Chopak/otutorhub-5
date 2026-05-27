@@ -47,9 +47,16 @@ import {
   ChevronDown,
   MessageSquare,
   Menu,
+  Mail,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
+import { WalletDialog } from "@/components/WalletDialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+} from "@/components/ui/sheet";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { SubjectMultiSelect } from "@/components/SubjectMultiSelect";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -191,6 +198,9 @@ export default function PeoplePage() {
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding">("all");
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
+  const [selectedPerson, setSelectedPerson] = useState<UserRow | null>(null);
+  const [walletOpen, setWalletOpen] = useState(false);
+  const [walletPerson, setWalletPerson] = useState<UserRow | null>(null);
   const navigate = useNavigate();
 
   const openChatWith = (userId: string) => {
@@ -836,26 +846,25 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       : null;
     const isExpanded = !!expandedCards[u.id];
     const canChat = !!currentUser && u.id !== currentUser.id && !u.is_pending && !u.archived_at;
-    const toggleExpanded = () =>
-      setExpandedCards((prev) => ({ ...prev, [u.id]: !prev[u.id] }));
+    const toggleExpanded = () => setSelectedPerson(u);
     return (
     <div
       key={u.id}
-      className={`overflow-hidden rounded-[16px] bg-white p-3 sm:p-3.5 transition-all ${
+      className={`overflow-hidden rounded-[16px] bg-white p-3 sm:p-3.5 transition-all cursor-pointer ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
             ? "border-warning/40 bg-warning/5"
             : "border-border"
       }`}
+      onClick={() => setSelectedPerson(u)}
     >
-      <div className={`flex items-start justify-between gap-2 lg:items-center ${isExpanded ? "mb-3" : ""}`}>
+      <div className="flex items-start justify-between gap-2 lg:items-center">
         <button
           type="button"
-          onClick={toggleExpanded}
+          onClick={(e) => { e.stopPropagation(); setSelectedPerson(u); }}
           className="flex min-w-0 flex-1 items-center gap-3 text-left lg:gap-4"
-          aria-expanded={isExpanded}
-          aria-label={isExpanded ? t("people.collapseCard") : t("people.expandCard")}
+          aria-label={t("people.expandCard")}
         >
           <div className="relative shrink-0">
             {u.is_pending ? (
@@ -1038,238 +1047,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         </div>
       </div>
 
-      {isExpanded && (<div>
-
-      {(u.telegram || u.messenger_url || u.facebook_url || u.instagram_url || u.bank_card_last4) && (
-        <div className="flex flex-wrap items-center gap-2 mb-3 text-muted-foreground">
-          {u.telegram && (
-            <a
-              href={`https://t.me/${u.telegram.replace(/^@/, "")}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
-              title={`Telegram: @${u.telegram.replace(/^@/, "")}`}
-            >
-              <Send className="h-3 w-3" />
-              <span className="truncate max-w-[80px]">@{u.telegram.replace(/^@/, "")}</span>
-            </a>
-          )}
-          {u.messenger_url && (
-            <a
-              href={safeHref(u.messenger_url)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
-              title="Messenger"
-            >
-              <MessageCircle className="h-3 w-3" />
-            </a>
-          )}
-          {u.facebook_url && (
-            <a
-              href={safeHref(u.facebook_url)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
-              title="Facebook"
-            >
-              <Facebook className="h-3 w-3" />
-            </a>
-          )}
-          {u.instagram_url && (
-            <a
-              href={safeHref(u.instagram_url)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs hover:text-primary transition-colors"
-              title="Instagram"
-            >
-              <Instagram className="h-3 w-3" />
-            </a>
-          )}
-          {u.bank_card_last4 && (
-            <span
-              className="inline-flex items-center gap-1 text-xs"
-              title={u.bank_name ? `${u.bank_name} •••• ${u.bank_card_last4}` : `${t("people.card")} •••• ${u.bank_card_last4}`}
-            >
-              <CreditCard className="h-3 w-3" />
-              <span className="font-mono">
-                {u.bank_name ? `${u.bank_name} ` : ""}•••• {u.bank_card_last4}
-              </span>
-            </span>
-          )}
-        </div>
-      )}
-      <div className="mb-2 flex min-w-0 items-center gap-2 lg:max-w-md">
-        <Label className="text-xs text-muted-foreground shrink-0">{t("people.roleLabel")}</Label>
-        <Select value={u.role ?? ""} onValueChange={(v) => changeRole(u.id, v as AppRole)}>
-          <SelectTrigger className="h-8 min-w-0 text-xs">
-            <SelectValue placeholder={t("people.noRoleOption")} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="manager">{t("roles.manager")}</SelectItem>
-            <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
-            <SelectItem value="student">{t("roles.student")}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {tutorProgress && (
-        <div className="mt-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("people.progressTitle", { done: tutorProgress.doneCount })}
-            </p>
-            <p className="text-[11px] text-muted-foreground">
-              {t("people.progressRegistered")}: {tutorProgress.fmt(u.created_at)}
-              {u.last_interaction_at && ` · ${t("people.progressActive")}: ${tutorProgress.fmt(u.last_interaction_at)}`}
-            </p>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            {tutorProgress.steps.map((s) => (
-              <div
-                key={s.label}
-                className={`flex min-w-0 items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs ${
-                  s.ok ? "bg-success/10 text-success" : "bg-background text-muted-foreground"
-                }`}
-              >
-                <span className="shrink-0 text-[11px]">{s.ok ? "✓" : "○"}</span>
-                <span className="truncate">{s.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {u.role === "tutor" && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full mt-2"
-          onClick={() => {
-            const subjects = u.subjects ?? [];
-            const rates: Record<string, string> = {};
-            subjects.forEach((s) => {
-              const r = tutorSubjectRates[u.id]?.[s];
-              rates[s] = r !== undefined ? String(r) : "";
-            });
-            setTutorDialog({
-              open: true,
-              userId: u.id,
-              subjects,
-              rates,
-            });
-          }}
-        >
-          <Settings className="h-3.5 w-3.5 mr-2" />
-          {t("people.tutorRateBtn")}
-        </Button>
-      )}
-
-      {u.role === "student" && (() => {
-        // Only show tutors that actually work with this student (have at least one rate set)
-        const linkedTutorIds = new Set(
-          studentRates.filter((r) => r.student_id === u.id).map((r) => r.tutor_id)
-        );
-        const linkedTutors = allTutors.filter((t) => linkedTutorIds.has(t.id));
-        const openAddTutor = () =>
-          setAddTutorToStudent({
-            open: true,
-            studentId: u.id,
-            studentName: fullName(u),
-            tutorId: "",
-            subject: "",
-            price: "",
-            currency: "UAH",
-          });
-        const hasAnyTutor = allTutors.length > 0;
-        return (
-          <div className="mt-3 pt-3 border-t border-border">
-            <div className="mb-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs text-muted-foreground">
-                {linkedTutors.length === 0
-                  ? t("people.noTutorAssigned")
-                  : t("people.priceByPair")}
-              </p>
-              {isManager && hasAnyTutor && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 w-full px-2 text-xs sm:w-auto"
-                  onClick={openAddTutor}
-                >
-                  <UserPlus className="h-3.5 w-3.5 mr-1" />
-                  {t("people.addTutorBtn")}
-                </Button>
-              )}
-            </div>
-            {linkedTutors.length === 0 ? (
-              !hasAnyTutor && (
-                <p className="text-xs text-muted-foreground italic">
-                  {t("people.addFirstTutor")}
-                </p>
-              )
-            ) : (
-              <div className="space-y-2">
-              {linkedTutors.map((tutor) => {
-                  const tSubjects = Array.from(
-                    new Set([
-                      ...(tutor.subjects ?? []),
-                      ...studentRates
-                        .filter((r) => r.tutor_id === tutor.id && r.student_id === u.id)
-                        .map((r) => r.subject),
-                    ].filter(Boolean)),
-                  );
-                  if (tSubjects.length === 0) return null;
-                  return (
-                    <div key={tutor.id} className="space-y-1">
-                      <p className="text-xs font-medium text-foreground lg:text-sm">{fullName(tutor)}</p>
-                      {tSubjects.map((subj) => {
-                        const rate = studentRates.find(
-                          (r) => r.tutor_id === tutor.id && r.student_id === u.id && r.subject === subj
-                        );
-                        return (
-                          <div key={subj} className="flex min-w-0 items-center justify-between gap-2 pl-2 text-xs">
-                            <span className="min-w-0 flex-1 break-words text-muted-foreground">{subj}</span>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="font-medium text-foreground">
-                                {rate ? formatPrice(rate.price_per_lesson, rate.currency) : <span className="text-muted-foreground italic">{t("people.notSet")}</span>}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 px-2 text-xs"
-                                onClick={() =>
-                                  setStudentDialog({
-                                    open: true,
-                                    studentId: u.id,
-                                    studentName: fullName(u),
-                                    tutorId: tutor.id,
-                                    tutorName: fullName(tutor),
-                                    subject: subj,
-                                    price: rate ? String(rate.price_per_lesson) : "",
-                                    currency: rate?.currency ?? "UAH",
-                                    existingId: rate?.id ?? null,
-                                  })
-                                }
-                              >
-                                {t("people.changeBtn")}
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-          {isManager && currentUser && <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />}
-      </div>)}
     </div>
     );
   };
@@ -1831,7 +1608,266 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       />
 
       {propagate && (
-        <RatePropagationDialog
+        {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
+      <Sheet open={!!selectedPerson} onOpenChange={(open) => !open && setSelectedPerson(null)}>
+        <SheetContent
+          side="bottom"
+          className="rounded-t-[20px] px-0 pb-6 pt-0 max-h-[90vh] overflow-y-auto"
+        >
+          {selectedPerson && (() => {
+            const u = selectedPerson;
+            const tutorProgress = isManager && u.role === "tutor" && !u.archived_at
+              ? (() => {
+                  const steps = [
+                    { ok: !!u.has_student, label: t("people.progressStudents") },
+                    { ok: !!u.has_lesson, label: t("people.progressLessons") },
+                    { ok: !!u.has_paid_lesson, label: t("people.progressPayments") },
+                  ];
+                  return { doneCount: steps.filter(s => s.ok).length, total: 9, steps };
+                })()
+              : null;
+            return (
+              <>
+                {/* Drag handle */}
+                <div className="mx-auto mt-2.5 mb-0 h-1 w-9 rounded-full bg-border" />
+
+                {/* Header: avatar + name + icons */}
+                <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                  <div className="relative shrink-0">
+                    {u.is_pending ? (
+                      <div className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-warning/20 text-warning">
+                        <Hourglass className="h-5 w-5" />
+                      </div>
+                    ) : (
+                      <UserAvatar
+                        url={u.avatar_url}
+                        firstName={u.first_name}
+                        lastName={u.last_name}
+                        className="h-[52px] w-[52px]"
+                      />
+                    )}
+                    <span
+                      className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
+                      style={{
+                        background: u.is_pending ? "#EF9F27" : u.archived_at ? "#888780"
+                          : "#1D9E75"
+                      }}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[18px] font-semibold leading-tight text-foreground truncate">
+                      {fullName(u)}
+                    </p>
+                    <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                      {u.role === "tutor" ? t("roles.tutor")
+                        : u.role === "manager" ? t("roles.manager")
+                        : t("roles.student")}
+                      {u.archived_at && " · " + t("people.archivedBadge")}
+                    </p>
+                  </div>
+                  {/* Action icons */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isManager && !u.archived_at && u.id !== currentUser?.id && (
+                      <button
+                        type="button"
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        style={{ color: "var(--sub,#9398b0)" }}
+                        onClick={() => archivePerson(u)}
+                        title={t("people.archiveBtn")}
+                      >
+                        <Archive className="h-4 w-4" />
+                      </button>
+                    )}
+                    {isManager && u.id !== currentUser?.id && (
+                      <button
+                        type="button"
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-50 transition-colors"
+                        style={{ color: "#E24B4A" }}
+                        onClick={() => purgePerson(u)}
+                        title={t("people.deleteBtn")}
+                      >
+                        <FlameKindling className="h-4 w-4" />
+                      </button>
+                    )}
+                    {isManager && (
+                      <button
+                        type="button"
+                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        style={{ color: "var(--sub,#9398b0)" }}
+                        onClick={() => setContactDialog({ open: true, user: u })}
+                        title={t("people.editContactsBtn")}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                      style={{ color: "var(--sub,#9398b0)" }}
+                      onClick={() => setSelectedPerson(null)}
+                      title={t("common.close")}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Contact rows */}
+                {u.phone && (
+                  <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                    <Phone className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#9398b0)" }} />
+                    <span className="flex-1 text-[14px] text-foreground">{u.phone}</span>
+                    <button
+                      type="button"
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                      style={{ color: "var(--sub,#9398b0)" }}
+                      onClick={() => navigator.clipboard.writeText(u.phone!)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+                {u.email && (
+                  <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                    <Mail className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#9398b0)" }} />
+                    <span className="flex-1 text-[14px] text-foreground truncate">{u.email}</span>
+                    <button
+                      type="button"
+                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                      style={{ color: "var(--sub,#9398b0)" }}
+                      onClick={() => navigator.clipboard.writeText(u.email!)}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Rate row — tutor subjects */}
+                {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
+                  <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+                    <Tag className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#9398b0)" }} />
+                    <div className="flex-1 min-w-0">
+                      {u.subjects.map((s) => {
+                        const r = tutorSubjectRates[u.id]?.[s];
+                        return (
+                          <p key={s} className="text-[14px] text-foreground">
+                            {s}{r && r > 0 ? ` · ${r} ₴` : ""}
+                          </p>
+                        );
+                      })}
+                      <p className="text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                        предмет · ставка · валюта
+                      </p>
+                    </div>
+                    {isManager && (
+                      <button
+                        type="button"
+                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        style={{ color: "var(--sub,#9398b0)" }}
+                        onClick={() => setRatePropDialog({ open: true, tutorId: u.id, tutorName: fullName(u) })}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Onboarding progress — tutor only */}
+                {tutorProgress && (
+                  <div className="px-4 py-3 border-b border-border">
+                    <div className="flex justify-between text-[12px] mb-1.5" style={{ color: "var(--sub,#9398b0)" }}>
+                      <span>{t("people.progressTitle", { done: tutorProgress.doneCount })}</span>
+                      <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount} з 9</span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border,#f0f1f5)" }}>
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${(tutorProgress.doneCount / 9) * 100}%`, background: "#1D9E75" }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Manager notes */}
+                {isManager && currentUser && (u.role === "tutor" || u.role === "student") && (
+                  <div className="px-4 py-3 border-b border-border">
+                    <ManagerNotes subjectUserId={u.id} currentUserId={currentUser.id} compact />
+                  </div>
+                )}
+
+                {/* Student actions: Репетитор / Гаманець / Ставка */}
+                {isManager && u.role === "student" && !u.archived_at && !u.is_pending && (
+                  <div className="grid grid-cols-3 gap-2 px-4 pt-3">
+                    <button
+                      type="button"
+                      className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors"
+                      style={{ background: "#E1F5EE", border: "0.5px solid #5DCAA5" }}
+                      onClick={() => navigate(`/people?assign=${u.id}`)}
+                    >
+                      <GraduationCap className="h-5 w-5" style={{ color: "#0F6E56" }} />
+                      <span className="text-[12px] font-medium" style={{ color: "#0F6E56" }}>Репетитор</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
+                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#f0f1f5)" }}
+                      onClick={() => { setWalletPerson(u); setWalletOpen(true); setSelectedPerson(null); }}
+                    >
+                      <Wallet className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
+                      <span className="text-[12px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Гаманець</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
+                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#f0f1f5)" }}
+                      onClick={() => setContactDialog({ open: true, user: u })}
+                    >
+                      <Tag className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
+                      <span className="text-[12px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Ставка</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Pending: Нагадати button */}
+                {u.is_pending && isManager && (
+                  <div className="px-4 pt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      className="h-11 rounded-[12px] text-[14px] font-semibold text-white"
+                      style={{ background: "var(--teal,#2BBFAA)" }}
+                      onClick={() => { setInviteDialog({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: u.role ?? "student", studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
+                    >
+                      Нагадати
+                    </button>
+                    <button
+                      type="button"
+                      className="h-11 rounded-[12px] text-[14px] font-semibold"
+                      style={{ background: "var(--bg,#F5F4F0)", color: "#E24B4A", border: "0.5px solid #F09595" }}
+                      onClick={() => { purgePerson(u); setSelectedPerson(null); }}
+                    >
+                      {t("people.deleteBtn")}
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </SheetContent>
+      </Sheet>
+
+      {/* WalletDialog for student actions */}
+      {walletPerson && (
+        <WalletDialog
+          open={walletOpen}
+          onOpenChange={(open) => { setWalletOpen(open); if (!open) setWalletPerson(null); }}
+          tutorId={walletPerson.id}
+          studentId={walletPerson.id}
+          tutorName={fullName(walletPerson)}
+          studentName={fullName(walletPerson)}
+        />
+      )}
+
+      <RatePropagationDialog
           open={propagate.open}
           onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
           tutorId={propagate.tutorId}
