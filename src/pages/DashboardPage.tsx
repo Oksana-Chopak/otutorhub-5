@@ -1086,7 +1086,7 @@ export default function DashboardPage() {
           )}
 
           <div className="grid gap-5 md:grid-cols-5 md:gap-6">
-            <section className="md:col-span-3">
+            <section className="order-2 md:order-1 md:col-span-3">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {t("dashboard.upcomingLessons")}
@@ -1356,7 +1356,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="md:col-span-2">
+            <section className="order-1 md:order-2 md:col-span-2">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
