@@ -385,6 +385,8 @@ export const en: Translations = {
     weekLessons: "This week",
     monthRevenue: "Revenue this month",
     activeStudents: "Active students",
+    allPaidTitle: "Keep it up!",
+    allPaidDesc: "All lessons are paid — everything is under control 🎉",
     upcomingLessons: "Upcoming lessons",
     noUpcoming: "No upcoming lessons.",
     noLessons: "No scheduled lessons",

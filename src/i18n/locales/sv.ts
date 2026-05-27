@@ -160,6 +160,8 @@ export const sv: Partial<Translations> = {
     weekLessons: "Den här veckan",
     monthRevenue: "Intäkt denna månad",
     activeStudents: "Aktiva elever",
+    allPaidTitle: "Fortsätt så!",
+    allPaidDesc: "Alla lektioner är betalda — allt är under kontroll 🎉",
     upcomingLessons: "Kommande lektioner",
     noUpcoming: "Inga kommande lektioner.",
     noLessons: "Inga inplanerade lektioner",

@@ -388,6 +388,8 @@ export const uk = {
     weekLessons: "За тиждень",
     monthRevenue: "Прибуток за місяць",
     activeStudents: "Активні учні",
+    allPaidTitle: "Так тримати!",
+    allPaidDesc: "Усі уроки оплачені — все під контролем 🎉",
     upcomingLessons: "Найближчі уроки",
     noUpcoming: "Найближчих уроків немає.",
     noLessons: "Немає запланованих уроків",

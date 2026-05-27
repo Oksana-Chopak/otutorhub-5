@@ -1085,6 +1085,71 @@ export default function DashboardPage() {
             </section>
           )}
 
+          {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
+          {isManager && (
+            <div className="mt-4">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #9398b0)" }}>
+                  💰 {t("pendingPayments.title")}
+                </p>
+                {pendingPayments.length > 0 && (
+                  <span className="text-[12px] font-semibold" style={{ color: "#f59e0b" }}>
+                    {pendingPayments.length} {pendingPayments.length === 1 ? t("lessonCard.lesson") : t("lessonCard.lessons")}
+                  </span>
+                )}
+              </div>
+
+              {pendingPayments.length === 0 ? (
+                /* Empty state — all paid */
+                <div
+                  className="flex flex-col items-center gap-3 rounded-[18px] bg-white px-5 py-7 text-center"
+                  style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
+                >
+                  <span className="text-3xl">☀️</span>
+                  <div>
+                    <p className="text-[15px] font-semibold" style={{ color: "var(--txt, #0f0f1a)" }}>
+                      {t("dashboard.allPaidTitle") || "Так тримати!"}
+                    </p>
+                    <p className="mt-1 text-[13px]" style={{ color: "var(--sub, #9398b0)" }}>
+                      {t("dashboard.allPaidDesc") || "Усі уроки оплачені — все під контролем 🎉"}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                /* Lesson cards — same style as schedule list */
+                <div className="space-y-2.5">
+                  {pendingPayments.slice(0, 5).map((lesson) => {
+                    const tutorName = profiles[lesson.tutor_id] ?? "—";
+                    const studentName = profiles[lesson.student_id] ?? "—";
+                    const meetingHref = effectiveMeetingUrl(lesson);
+                    return (
+                      <LessonCard
+                        key={lesson.id}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                        variant="schedule"
+                        studentName={studentName}
+                        tutorName={tutorName}
+                        showTutor
+                        meetingUrl={meetingHref}
+                        onContentClick={() => setOpenLessonId(lesson.id)}
+                        className={lessonSourceTint(lesson.source)}
+                      />
+                    );
+                  })}
+                  {pendingPayments.length > 5 && (
+                    <button
+                      className="w-full rounded-[14px] py-2.5 text-[13px] font-medium transition-colors"
+                      style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal, #2BBFAA)" }}
+                      onClick={() => window.location.href = "/finances"}
+                    >
+                      {t("dashboard.showAll", { count: pendingPayments.length })} →
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="grid gap-5 md:grid-cols-5 md:gap-6">
             <section className="order-2 md:order-1 md:col-span-3">
               <div className="mb-3 flex items-center justify-between">
