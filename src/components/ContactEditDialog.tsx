@@ -202,7 +202,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
           <DialogDescription>
@@ -304,11 +304,11 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.
           </p>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>
+        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end px-0">
+          <Button variant="outline" className="h-11 rounded-[12px] border-[0.5px]" onClick={() => onOpenChange(false)} disabled={saving}>
             Скасувати
           </Button>
-          <Button onClick={save} disabled={saving}>
+          <Button onClick={save} disabled={saving} className="h-11 w-full rounded-[12px] text-[15px] font-semibold sm:w-auto" style={{background:"var(--teal,#2BBFAA)",color:"#fff"}}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Зберегти
           </Button>

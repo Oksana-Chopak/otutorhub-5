@@ -112,7 +112,7 @@ export function InviteLinkDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0 gap-0">
+      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] flex flex-col p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
           <DialogTitle>🎉 {isTutor ? t("assignTutorExtra.assigned").replace(" 🎉","") : t("inviteLinkExtra.studentAdded").replace("🎉 ","").replace(" додано!","")} додано!</DialogTitle>
           <DialogDescription>
