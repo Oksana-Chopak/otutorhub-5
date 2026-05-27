@@ -27,7 +27,7 @@ import {
   Users2,
   CreditCard,
   MessageCircleHeart,
-  Mail,,
+  Mail,
   ChevronLeft,
   ChevronRight} from "lucide-react";
 import { useEffect, useState } from "react";
