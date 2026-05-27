@@ -899,19 +899,19 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:-mx-8 lg:-mt-8 lg:mb-7">
+      {/* Hero: dark on mobile, no dark bg on desktop */}
+      <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:mx-0 lg:mt-0 lg:mb-6 lg:rounded-[18px]">
         <div
-          className="relative px-5 py-5 lg:px-8 lg:py-7"
-          style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+          className="relative px-5 py-5 lg:px-0 lg:py-0"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-[22px] font-extrabold leading-tight text-white sm:text-[26px] lg:text-[28px]">
+              <h1 className="font-display text-[22px] font-extrabold leading-tight text-white lg:text-foreground sm:text-[26px] lg:text-[28px]">
                 {timeEmoji}{" "}
                 {greeting},{" "}
                 <span style={{ color: "var(--teal)" }}>{firstName}</span>
               </h1>
-              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-slate-400">
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-slate-400 lg:text-muted-foreground">
                 <Link
                   to="/schedule"
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
@@ -989,9 +989,9 @@ export default function DashboardPage() {
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
-              {/* Profit card — always visible, top of page */}
+              {/* Profit card — mobile/tablet only; lg uses 4-col grid */}
               <div
-                className="overflow-hidden rounded-[18px] p-4 sm:p-5"
+                className="overflow-hidden rounded-[18px] p-4 sm:p-5 lg:hidden"
                 style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
               >
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
@@ -1034,6 +1034,46 @@ export default function DashboardPage() {
                     <p className="mt-0.5 text-[12px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
                   </div>
                   <span style={{ color: "var(--border,#f0f1f5)", fontSize: "20px" }}>›</span>
+                </Link>
+              </div>
+              {/* Desktop lg: all 4 in one row */}
+              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
+                <div
+                  className="overflow-hidden rounded-[16px] p-4"
+                  style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+                >
+                  <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
+                  <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
+                  <p className="mt-0.5 text-[12px] font-medium" style={{ color: "#22c55e" }}>↑ +12%</p>
+                  <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
+                    {[40,55,48,72,62,85,100].map((h,i)=>(
+                      <div key={i} className="flex-1 rounded-sm" style={{height:`${h}%`,background:i===6?"var(--teal)":"rgba(43,191,170,0.2)"}} />
+                    ))}
+                  </div>
+                </div>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub")}</p>
+                  </div>
+                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
+                </Link>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub")}</p>
+                  </div>
+                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
+                </Link>
+                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#f0f1f5)" }}>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
+                    <p className="mt-0.5 text-[12px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
+                  </div>
+                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
                 </Link>
               </div>
             </>

@@ -27,8 +27,9 @@ import {
   Users2,
   CreditCard,
   MessageCircleHeart,
-  Mail,
-} from "lucide-react";
+  Mail,,
+  ChevronLeft,
+  ChevronRight} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,7 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
   const chatsBadge = useUnreadChats();
@@ -150,16 +152,20 @@ export function AppSidebar() {
 
       <aside
         className={cn(
-          "fixed left-0 top-0 z-40 flex h-full w-64 flex-col border-r transition-transform duration-200 lg:static lg:translate-x-0",
-          open ? "translate-x-0" : "-translate-x-full"
+          "fixed left-0 top-0 z-40 flex h-full flex-col border-r transition-all duration-200 lg:static lg:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full",
+          sidebarCollapsed ? "w-[68px]" : "w-64"
         )}
         style={{ background: "var(--dark-m)", borderColor: "rgba(255,255,255,0.07)" }}
       >
-        <div className="flex items-center gap-2 px-6 py-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-          <img src="/logo.png" alt="oTutorHub" className="h-8 w-8" />
-          <span className="font-display text-lg font-bold text-white">
-            oTutorHub
-          </span>
+        <div
+          className="flex items-center gap-2 py-4"
+          style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: sidebarCollapsed ? "16px 14px" : "16px 24px" }}
+        >
+          <img src="/logo.png" alt="oTutorHub" className="h-8 w-8 shrink-0" />
+          {!sidebarCollapsed && (
+            <span className="font-display text-lg font-bold text-white">oTutorHub</span>
+          )}
         </div>
 
         <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
@@ -183,7 +189,7 @@ export function AppSidebar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
+                    "relative flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
                     isActive
                       ? "bg-[rgba(43,191,170,0.13)] text-[#2BBFAA]"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -191,17 +197,43 @@ export function AppSidebar() {
                 }
                 end={item.to === "/"}
               >
-                <item.icon className="h-5 w-5 lg:h-4 lg:w-4" />
-                <span className="flex-1">{t(item.labelKey)}</span>
-                {badge > 0 && (
+                {/* Icon with volumetric box */}
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] transition-all"
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <item.icon className="h-[18px] w-[18px]" />
+                </div>
+                {!sidebarCollapsed && <span className="flex-1">{t(item.labelKey)}</span>}
+                {!sidebarCollapsed && badge > 0 && (
                   <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
                     {badge}
                   </span>
+                )}
+                {sidebarCollapsed && badge > 0 && (
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
                 )}
               </RouterNavLink>
             );
           })}
         </nav>
+
+        {/* Collapse toggle — desktop only */}
+        <div className="hidden lg:flex justify-center py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <button
+            type="button"
+            onClick={() => setSidebarCollapsed(prev => !prev)}
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            title={sidebarCollapsed ? "Розгорнути" : "Згорнути"}
+          >
+            {sidebarCollapsed
+              ? <ChevronRight className="h-4 w-4" />
+              : <ChevronLeft className="h-4 w-4" />
+            }
+          </button>
+        </div>
 
         {showOnboardingHelp && (
           <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
