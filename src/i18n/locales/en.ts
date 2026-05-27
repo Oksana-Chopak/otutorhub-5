@@ -946,7 +946,7 @@ export const en: Translations = {
 
   trial: {
     ended: "⏳ Trial ended. Connect Pro to continue working.",
-    connectPro: "Connect for 129 ₴/mo",
+    connectPro: "Connect for 249 ₴/mo",
     expiredBanner: "⏰ Trial expired. Connect Pro to keep access.",
     remaining: "🎁 Pro trial: remaining",
     day_one: "{{count}} day",

@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
-import { AppLayout } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,8 +26,9 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info   Menu,
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
@@ -688,10 +688,12 @@ export default function ChatsPage() {
               : t("chats.pageSubtitleOther")}
           </p>
         </div>
-        {          <NotificationBell />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
           <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
             <Menu className="h-5 w-5" />
-          </Link> onOpenChange={setNewChatOpen}>
+          </Link>
+          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
@@ -759,7 +761,7 @@ export default function ChatsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
+        </div>
       </div>
 
       {loading ? (

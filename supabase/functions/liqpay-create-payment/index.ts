@@ -8,8 +8,8 @@ const corsHeaders = {
 };
 
 const PLANS = {
-  monthly: { amount: 129, description: "TutorHub Pro — місячна підписка" },
-  yearly: { amount: 1188, description: "TutorHub Pro — річна підписка (99 грн/міс)" },
+  monthly: { amount: 249, description: "TutorHub Pro — місячна підписка" },
+  yearly: { amount: 2388, description: "TutorHub Pro — річна підписка (199 грн/міс)" },
 } as const;
 
 type Plan = keyof typeof PLANS;

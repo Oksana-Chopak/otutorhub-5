@@ -517,7 +517,7 @@ export default function LandingPage() {
     const lang = i18n.language || "uk";
     if (lang.startsWith("en")) return { free: "Free", pro: "$12", period: "/month" };
     if (lang.startsWith("sv")) return { free: "Gratis", pro: "120 kr", period: "/månad" };
-    return { free: "0 ₴", pro: "129 ₴", period: "/місяць" };
+    return { free: "0 ₴", pro: "249 ₴", period: "/місяць" };
   }, [i18n.language]);
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
