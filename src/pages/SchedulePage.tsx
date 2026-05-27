@@ -1,4 +1,6 @@
+import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
+import { PageFAB } from "@/components/PageFAB";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -883,6 +885,8 @@ export default function SchedulePage() {
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
+          <NotificationBell />
+          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white" style={{background:"var(--teal,#2BBFAA)"}}><Menu className="h-5 w-5" /></Link>
           <ScheduleFiltersSheet
             filters={filters}
             showTutorFilter={isManager}
@@ -914,13 +918,7 @@ export default function SchedulePage() {
               setCreateOpen(open);
               if (!open) setFormErrors({});
             }}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="h-10 gap-1.5 px-3">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">{t('schedule.createBtn')}</span>
-                  <span className="sm:hidden">{t('schedule.addLesson')}</span>
-                </Button>
-              </DialogTrigger>
+              {/* Trigger moved to FAB */}
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>{t('schedule.newLesson')}</DialogTitle>

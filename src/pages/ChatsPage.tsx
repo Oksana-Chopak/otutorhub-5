@@ -1,4 +1,7 @@
 import { useTranslation } from "react-i18next";
+import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
+import { AppLayout } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +27,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info   Menu,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
@@ -684,8 +688,10 @@ export default function ChatsPage() {
               : t("chats.pageSubtitleOther")}
           </p>
         </div>
-        {isManager && (
-          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
+        {          <NotificationBell />
+          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
+            <Menu className="h-5 w-5" />
+          </Link> onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
@@ -1145,6 +1151,9 @@ export default function ChatsPage() {
             />
           </SheetContent>
         </Sheet>
+      )}
+      {isManager && (
+        <PageFAB onClick={() => setNewChatOpen(true)} label={t("chats.createChatBtn")} />
       )}
     </AppLayout>
   );

@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
+import { AppLayout } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +26,8 @@ import { SubjectSelect } from "@/components/SubjectSelect";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Users2, UserPlus, Archive } from "lucide-react";
+import { Loader2, Plus, Trash2, Users2, UserPlus, Archive   Menu,
+} from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -121,10 +125,10 @@ export default function GroupsPage() {
               Об'єднуйте учнів у групи для парних та групових уроків
             </p>
           </div>
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Нова група
-          </Button>
+          <NotificationBell />
+          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
+            <Menu className="h-5 w-5" />
+          </Link>
         </div>
 
         {loading ? (
@@ -182,6 +186,7 @@ export default function GroupsPage() {
           />
         )}
       </div>
+      <PageFAB onClick={() => setCreateOpen(true)} label="Нова група" />
     </AppLayout>
   );
 }

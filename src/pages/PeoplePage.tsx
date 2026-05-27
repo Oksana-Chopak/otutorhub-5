@@ -1,3 +1,4 @@
+import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -1059,7 +1060,9 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {/* ── NEW HEADER: title + green burger ── */}
       <div className="mb-4 flex items-center justify-between gap-3">
         <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("people.title")}</h1>
-        {isManager && (
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          {isManager && (
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
               <button
@@ -1161,7 +1164,8 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Search + filters (filters collapse on mobile) */}

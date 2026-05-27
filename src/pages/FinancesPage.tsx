@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
+import { AppLayout } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -17,6 +20,7 @@ import {
   Plus,
   Wallet,
   Percent,
+  Menu,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -991,12 +995,11 @@ export default function FinancesPage() {
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          {canManagePrepay && (
-            <Button size="sm" onClick={() => setRecordOpen(true)} className="h-9 w-full sm:w-auto">
-              <Plus className="mr-1 h-4 w-4" />
-              {t("finances.recordPayment")}
-            </Button>
-          )}
+          <NotificationBell />
+          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
+            <Menu className="h-5 w-5" />
+          </Link>
+          {/* Record payment moved to FAB */}
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
@@ -1282,6 +1285,9 @@ export default function FinancesPage() {
           canTopUp={canManagePrepay}
           canDelete={isManager}
         />
+      )}
+      {canManagePrepay && (
+        <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
       )}
     </AppLayout>
   );
