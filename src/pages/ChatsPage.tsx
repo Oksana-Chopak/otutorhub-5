@@ -688,10 +688,12 @@ export default function ChatsPage() {
               : t("chats.pageSubtitleOther")}
           </p>
         </div>
-        {          <NotificationBell />
+        <div className="flex items-center gap-2">
+          <NotificationBell />
           <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
             <Menu className="h-5 w-5" />
-          </Link> onOpenChange={setNewChatOpen}>
+          </Link>
+          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
             <DialogTrigger asChild>
               <Button onClick={openNewChatDialog} size="sm" className="gap-2 lg:size-default">
                 <Plus className="h-4 w-4" />
@@ -759,7 +761,7 @@ export default function ChatsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        )}
+        </div>
       </div>
 
       {loading ? (
