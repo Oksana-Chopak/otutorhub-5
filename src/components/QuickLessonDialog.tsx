@@ -421,21 +421,28 @@ export function QuickLessonDialog({
             )}
           </div>
         )}
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          {/* "Деталі →" — secondary, only if full form available */}
           {startsAt && onWantFullForm && mode === "individual" && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              className="h-11 w-full rounded-[12px] border-[0.5px] text-[14px] sm:w-auto"
+              style={{ borderColor: "var(--teal,#2BBFAA)", color: "var(--teal,#2BBFAA)" }}
               onClick={() => {
                 onOpenChange(false);
                 onWantFullForm(startsAt);
               }}
             >
-              <Pencil className="mr-1 h-3.5 w-3.5" />
-              {t("quickLessonDialog.detailsBtn")}
+              {t("quickLessonDialog.detailsBtn")} →
             </Button>
           )}
-          <Button onClick={submit} disabled={!canSubmit}>
+          {/* "Створити" — primary, always visible */}
+          <Button
+            className="h-11 w-full rounded-[12px] text-[15px] font-semibold sm:w-auto"
+            style={{ background: "var(--teal,#2BBFAA)", color: "#fff" }}
+            onClick={submit}
+            disabled={!canSubmit}
+          >
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("quickLessonDialog.createBtn")}
           </Button>
