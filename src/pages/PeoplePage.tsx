@@ -1866,7 +1866,8 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         />
       )}
 
-      <RatePropagationDialog
+      {propagate && (
+        <RatePropagationDialog
           open={propagate.open}
           onOpenChange={(o) => setPropagate((p) => (p ? { ...p, open: o } : p))}
           tutorId={propagate.tutorId}
