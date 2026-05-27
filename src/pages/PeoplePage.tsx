@@ -872,12 +872,21 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 }`}
               />
             )}
-            {studentSt && (
-              <span
-                title={studentSt.label}
-                className={`absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white ${studentStatusDotClass[studentSt.status]}`}
-              />
-            )}
+            {/* Status dot on avatar — green=active, red=debt, gray=inactive, yellow=pending */}
+            <span
+              className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
+              style={{
+                background: u.is_pending
+                  ? "#EF9F27"
+                  : u.archived_at
+                    ? "#888780"
+                    : studentSt?.status === "debt"
+                      ? "#E24B4A"
+                      : studentSt?.status === "inactive"
+                        ? "#888780"
+                        : "#1D9E75"
+              }}
+            />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
@@ -907,41 +916,59 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 </Badge>
               )}
             </div>
-            {(u.email || u.phone) && (
-              <p className="break-words text-xs text-muted-foreground lg:text-sm">
-                {[u.email, u.phone].filter(Boolean).join(" · ")}
+            {/* Collapsed: show subject·rate for tutors, subject for students, email only for pending */}
+            {!isExpanded && (
+              <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub, #9398b0)" }}>
+                {u.is_pending
+                  ? (u.email || u.phone || "")
+                  : u.role === "tutor" && u.subjects && u.subjects.length > 0
+                    ? (() => {
+                        const s = u.subjects[0];
+                        const r = tutorSubjectRates[u.id]?.[s];
+                        return s + (r && r > 0 ? " · " + r + " ₴" : "");
+                      })()
+                  : u.role === "student" && u.subjects && u.subjects.length > 0
+                    ? u.subjects[0]
+                  : (u.email || u.phone || "")
+                }
               </p>
             )}
-            {isExpanded && u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
-              <div className="mt-1 space-y-0.5">
-                {u.subjects.map((s) => {
-                  const r = tutorSubjectRates[u.id]?.[s];
-                  return (
-                    <p key={s} className="break-words text-xs text-muted-foreground">
-                      <span className="text-foreground">{s}</span>
-                      {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
-                    </p>
-                  );
-                })}
-              </div>
+            {isExpanded && (
+              <>
+                {(u.email || u.phone) && (
+                  <p className="mt-0.5 break-words text-[12px]" style={{ color: "var(--sub, #9398b0)" }}>
+                    {[u.email, u.phone].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
+                  <div className="mt-1 space-y-0.5">
+                    {u.subjects.map((s) => {
+                      const r = tutorSubjectRates[u.id]?.[s];
+                      return (
+                        <p key={s} className="break-words text-xs text-muted-foreground">
+                          <span className="text-foreground">{s}</span>
+                          {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
+                        </p>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </button>
         <div className="flex items-center gap-1 shrink-0">
           {canChat && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-primary"
-              onClick={(e) => {
-                e.stopPropagation();
-                openChatWith(u.id);
-              }}
+            <button
+              type="button"
+              className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full transition-colors hover:opacity-80"
+              style={{ background: "var(--bg, #F5F4F0)", border: "0.5px solid var(--border, #f0f1f5)", color: "var(--sub, #9398b0)" }}
+              onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
               title={t("people.writeBtn")}
               aria-label={t("people.writeBtn")}
             >
-              <MessageSquare className="h-4 w-4" />
-            </Button>
+              <MessageSquare className="h-3.5 w-3.5" />
+            </button>
           )}
           {isExpanded && isManager && (
             <Button
