@@ -35,6 +35,7 @@ import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
@@ -931,23 +932,8 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
-              {/* Golden bell notification button */}
-              <Link
-                to="/profile"
-                aria-label={t("nav.profile")}
-                className="relative flex h-11 w-11 items-center justify-center rounded-full"
-                style={{
-                  background: "radial-gradient(circle at 35% 30%, #ffd04a, #f59e0b 60%, #d97706)",
-                  boxShadow: "0 4px 14px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.3)",
-                }}
-              >
-                <Bell className="h-5 w-5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
-                {/* Red dot if notifications */}
-                <span
-                  className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border-2"
-                  style={{ background: "#ff4444", borderColor: "#0f0f1a" }}
-                />
-              </Link>
+              {/* Golden bell — opens notification panel */}
+              <NotificationBell golden className="h-11 w-11 rounded-full" />
               {/* Burger menu */}
               <Link
                 to="/profile"
