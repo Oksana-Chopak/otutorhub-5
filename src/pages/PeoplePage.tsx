@@ -3,8 +3,7 @@ import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate   Link,
-} from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,7 @@ import {
   Phone,
   X,
   Wallet,
+  Tag,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
@@ -1773,7 +1773,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         type="button"
                         className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#9398b0)" }}
-                        onClick={() => setRatePropDialog({ open: true, tutorId: u.id, tutorName: fullName(u) })}
+                        onClick={() => setContactDialog({ open: true, user: u })}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
@@ -1844,7 +1844,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       type="button"
                       className="h-11 rounded-[12px] text-[14px] font-semibold text-white"
                       style={{ background: "var(--teal,#2BBFAA)" }}
-                      onClick={() => { setInviteDialog({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: u.role ?? "student", studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
+                      onClick={() => { setInvite({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: (u.role === "tutor" ? "tutor" : "student"), studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
                     >
                       Нагадати
                     </button>
@@ -1873,6 +1873,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           studentId={walletPerson.id}
           tutorName={fullName(walletPerson)}
           studentName={fullName(walletPerson)}
+          canTopUp={isManager}
         />
       )}
 
