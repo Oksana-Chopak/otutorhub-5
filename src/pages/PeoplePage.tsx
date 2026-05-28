@@ -1844,7 +1844,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       type="button"
                       className="h-11 rounded-[12px] text-[14px] font-semibold text-white"
                       style={{ background: "var(--teal,#2BBFAA)" }}
-                      onClick={() => { setInviteDialog({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: u.role ?? "student", studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
+                      onClick={() => { setInvite({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: (u.role === "tutor" ? "tutor" : "student"), studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
                     >
                       Нагадати
                     </button>
