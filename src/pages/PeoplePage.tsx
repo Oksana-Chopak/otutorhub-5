@@ -1773,7 +1773,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         type="button"
                         className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#9398b0)" }}
-                        onClick={() => setRatePropDialog({ open: true, tutorId: u.id, tutorName: fullName(u) })}
+                        onClick={() => setContactDialog({ open: true, user: u })}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
