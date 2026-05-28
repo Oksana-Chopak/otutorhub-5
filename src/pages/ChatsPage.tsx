@@ -693,70 +693,7 @@ export default function ChatsPage() {
           <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
             <Menu className="h-5 w-5" />
           </Link>
-          {/* Dialog for new chat — trigger moved to FAB */}
-          <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
-            <span />
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("chats.newChatDesc")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-2">
-                <Label>{t("chats.pairLabel")}</Label>
-                {pairsLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
-                  </div>
-                ) : availablePairs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("chats.noPairs")}
-                  </p>
-                ) : (
-                  <>
-                    <Select value={selectedPair} onValueChange={setSelectedPair}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availablePairs.map((p) => {
-                          const key = `${p.tutor_id}|${p.student_id}`;
-                          const exists = threads.some(
-                            (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
-                          );
-                          return (
-                            <SelectItem key={key} value={key}>
-                              {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
-                              {exists ? t("chats.chatAlreadyExistsTag") : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {selectedPair && (() => {
-                      const [tId, sId] = selectedPair.split("|");
-                      const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
-                      if (!existing) return null;
-                      return (
-                        <p className="text-xs text-warning">
-                          {t("chats.chatExistsWarning")}
-                        </p>
-                      );
-                    })()}
-                  </>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
-                  {t("common.cancel")}
-                </Button>
-                <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
-                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+
         </div>
       </div>
 
@@ -1153,6 +1090,69 @@ export default function ChatsPage() {
       {isManager && (
         <PageFAB onClick={() => setNewChatOpen(true)} label={t("chats.createChatBtn")} />
       )}
+      {/* New chat dialog — rendered at root, triggered by FAB */}
+      <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("chats.newChatDesc")}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2">
+                <Label>{t("chats.pairLabel")}</Label>
+                {pairsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
+                  </div>
+                ) : availablePairs.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    {t("chats.noPairs")}
+                  </p>
+                ) : (
+                  <>
+                    <Select value={selectedPair} onValueChange={setSelectedPair}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availablePairs.map((p) => {
+                          const key = `${p.tutor_id}|${p.student_id}`;
+                          const exists = threads.some(
+                            (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
+                          );
+                          return (
+                            <SelectItem key={key} value={key}>
+                              {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
+                              {exists ? t("chats.chatAlreadyExistsTag") : ""}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {selectedPair && (() => {
+                      const [tId, sId] = selectedPair.split("|");
+                      const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
+                      if (!existing) return null;
+                      return (
+                        <p className="text-xs text-warning">
+                          {t("chats.chatExistsWarning")}
+                        </p>
+                      );
+                    })()}
+                  </>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
+                  {t("common.cancel")}
+                </Button>
+                <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
+                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
     </AppLayout>
   );
 }

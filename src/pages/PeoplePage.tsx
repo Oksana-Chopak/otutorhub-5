@@ -3,7 +3,8 @@ import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
+import { useNavigate   Link,
+} from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -1072,101 +1073,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           >
             <Menu className="h-5 w-5" />
           </Link>
-          {isManager && (
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <span />
-            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-              <DialogHeader>
-                <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("people.dialogAddDesc")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
-                    <Input
-                      id="fn"
-                      value={addForm.first_name}
-                      onChange={(e) => setAddForm((f) => ({ ...f, first_name: e.target.value }))}
-                      maxLength={50}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="ln">{t("people.fieldLastName")}</Label>
-                    <Input
-                      id="ln"
-                      value={addForm.last_name}
-                      onChange={(e) => setAddForm((f) => ({ ...f, last_name: e.target.value }))}
-                      maxLength={50}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="em">{t("common.email")}</Label>
-                  <Input
-                    id="em"
-                    type="email"
-                    value={addForm.email}
-                    onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="napriklad@mail.com"
-                    maxLength={255}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="ph">{t("common.phone")}</Label>
-                  <Input
-                    id="ph"
-                    type="tel"
-                    value={addForm.phone}
-                    onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
-                    placeholder="+380..."
-                    maxLength={32}
-                  />
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {t("people.ghostHint")}
-                </p>
-                <div>
-                  <Label>{t("people.fieldRole")}</Label>
-                  <Select
-                    value={addForm.role}
-                    onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">{t("roles.student")}</SelectItem>
-                      <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
-                      <SelectItem value="manager">{t("roles.manager")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {addForm.role === "tutor" && (
-                  <div>
-                    <Label>{t("people.fieldSubjects")}</Label>
-                    <p className="text-xs text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
-                    <SubjectMultiSelect
-                      value={addForm.subjects}
-                      onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
-                    />
-                  </div>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
-                  {t("people.cancelBtn")}
-                </Button>
-                <Button onClick={addPerson} disabled={adding}>
-                  {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                  {t("people.addBtn")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          )}
+
         </div>
       </div>
 
@@ -1617,6 +1524,100 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       />
 
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
+      {isManager && (
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
+              <DialogHeader>
+                <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
+                <DialogDescription>
+                  {t("people.dialogAddDesc")}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
+                    <Input
+                      id="fn"
+                      value={addForm.first_name}
+                      onChange={(e) => setAddForm((f) => ({ ...f, first_name: e.target.value }))}
+                      maxLength={50}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="ln">{t("people.fieldLastName")}</Label>
+                    <Input
+                      id="ln"
+                      value={addForm.last_name}
+                      onChange={(e) => setAddForm((f) => ({ ...f, last_name: e.target.value }))}
+                      maxLength={50}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="em">{t("common.email")}</Label>
+                  <Input
+                    id="em"
+                    type="email"
+                    value={addForm.email}
+                    onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
+                    placeholder="napriklad@mail.com"
+                    maxLength={255}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ph">{t("common.phone")}</Label>
+                  <Input
+                    id="ph"
+                    type="tel"
+                    value={addForm.phone}
+                    onChange={(e) => setAddForm((f) => ({ ...f, phone: e.target.value }))}
+                    placeholder="+380..."
+                    maxLength={32}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("people.ghostHint")}
+                </p>
+                <div>
+                  <Label>{t("people.fieldRole")}</Label>
+                  <Select
+                    value={addForm.role}
+                    onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="student">{t("roles.student")}</SelectItem>
+                      <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
+                      <SelectItem value="manager">{t("roles.manager")}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {addForm.role === "tutor" && (
+                  <div>
+                    <Label>{t("people.fieldSubjects")}</Label>
+                    <p className="text-xs text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
+                    <SubjectMultiSelect
+                      value={addForm.subjects}
+                      onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
+                    />
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
+                  {t("people.cancelBtn")}
+                </Button>
+                <Button onClick={addPerson} disabled={adding}>
+                  {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                  {t("people.addBtn")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          )}
       <Sheet open={!!selectedPerson} onOpenChange={(open) => !open && setSelectedPerson(null)}>
         <SheetContent
           side="bottom"
