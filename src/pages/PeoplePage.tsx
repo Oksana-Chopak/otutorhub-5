@@ -1873,6 +1873,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           studentId={walletPerson.id}
           tutorName={fullName(walletPerson)}
           studentName={fullName(walletPerson)}
+          canTopUp={isManager}
         />
       )}
 
