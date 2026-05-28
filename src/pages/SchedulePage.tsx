@@ -1731,6 +1731,9 @@ export default function SchedulePage() {
           setCreateOpen(true);
         }}
       />
+      {canCreate && (
+        <PageFAB onClick={() => setCreateOpen(true)} label={t("schedule.createBtn")} />
+      )}
     </AppLayout>
   );
 }
