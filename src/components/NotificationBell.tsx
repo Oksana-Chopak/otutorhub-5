@@ -52,20 +52,18 @@ export function NotificationBell({ className, golden }: Props) {
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className={cn("relative h-9 w-9 shrink-0", className)}
+          className={cn("relative h-11 w-11 shrink-0 rounded-full border-none", className)}
           aria-label={t("notifications.title")}
-          style={golden ? {
+          style={{
             background: "radial-gradient(circle at 35% 30%, #ffd04a, #f59e0b 60%, #d97706)",
-            boxShadow: "0 4px 14px rgba(245,158,11,0.45), inset 0 1px 0 rgba(255,255,255,0.3)",
-            border: "none",
-            borderRadius: "50%",
-          } : undefined}
+            boxShadow: "0 4px 14px rgba(245,158,11,0.4), inset 0 1px 0 rgba(255,255,255,0.3)",
+          }}
         >
-          <Bell className={cn("h-4 w-4", golden && "text-white")} style={golden ? { filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))" } : undefined} />
+          <Bell className="h-5 w-5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" }} />
           {unreadCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white">
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white border-2 border-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}

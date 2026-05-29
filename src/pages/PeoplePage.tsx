@@ -1064,16 +1064,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("people.title")}</h1>
         <div className="flex items-center gap-2">
           <NotificationBell />
-          {/* Burger = profile menu, NOT add person */}
-          <Link
-            to="/profile"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white transition-opacity hover:opacity-90"
-            style={{ background: "var(--teal, #2BBFAA)" }}
-            aria-label="Меню"
-          >
-            <Menu className="h-5 w-5" />
-          </Link>
-
         </div>
       </div>
 

@@ -126,9 +126,6 @@ export default function GroupsPage() {
             </p>
           </div>
           <NotificationBell />
-          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
-            <Menu className="h-5 w-5" />
-          </Link>
         </div>
 
         {loading ? (

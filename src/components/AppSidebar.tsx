@@ -133,14 +133,14 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile FAB toggle — bottom-right, large tap target */}
+      {/* Mobile burger — top-right corner */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-40 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95 lg:hidden"
-        style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-[14px] text-white shadow-md transition-all active:scale-95 lg:hidden"
+        style={{ background: "var(--teal,#2BBFAA)" }}
         aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
       >
-        {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
+        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </button>
 
       {open && (

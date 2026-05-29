@@ -995,9 +995,6 @@ export default function FinancesPage() {
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <NotificationBell />
-          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white shrink-0" style={{background:"var(--teal,#2BBFAA)"}} aria-label="Меню">
-            <Menu className="h-5 w-5" />
-          </Link>
           {/* Record payment moved to FAB */}
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">

@@ -35,6 +35,7 @@ import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { PageFAB } from "@/components/PageFAB";
 import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
@@ -935,14 +936,6 @@ export default function DashboardPage() {
               {/* Golden bell — opens notification panel */}
               <NotificationBell golden className="h-11 w-11 rounded-full" />
               {/* Burger menu */}
-              <Link
-                to="/profile"
-                aria-label={t("nav.profile")}
-                className="flex h-11 w-11 items-center justify-center rounded-[14px] text-slate-300"
-                style={{ background: "rgba(255,255,255,0.1)", border: "0.5px solid rgba(255,255,255,0.15)" }}
-              >
-                <Menu className="h-5 w-5" />
-              </Link>
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
                   trigger={
@@ -1717,15 +1710,7 @@ export default function DashboardPage() {
 
       {/* ── FAB ───────────────────────────────────────────────────────────── */}
       {(isTutor || isManager) && (
-        <button
-          type="button"
-          className="fixed z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full text-white shadow-lg transition-all duration-200 hover:scale-105 active:scale-95"
-          style={{ bottom: "78px", right: "16px", background: "var(--teal)", boxShadow: "0 4px 20px rgba(43,191,170,0.45)" }}
-          onClick={() => setQuickLessonOpen(true)}
-          aria-label={t("quickActions.title")}
-        >
-          <Plus className="h-6 w-6" />
-        </button>
+        <PageFAB onClick={() => setQuickLessonOpen(true)} label={t("quickActions.title")} />
       )}
 
       {isTutor && !isManager && <QuickPaymentFab />}
