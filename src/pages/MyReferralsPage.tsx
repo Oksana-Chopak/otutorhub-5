@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { ReferralWidget } from "@/components/ReferralWidget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";

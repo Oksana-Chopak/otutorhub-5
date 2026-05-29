@@ -7,8 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Copy, Check, Share2, HandHeart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface ReferralRow {
   id: string;
@@ -18,6 +17,7 @@ interface ReferralRow {
 }
 
 export function ReferralWidget({ compact = false }: { compact?: boolean }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [code, setCode] = useState<string | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);
@@ -67,7 +67,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   };
 
   const handleShare = async () => {
-    const text = `Спробуй oTutorHub — застосунок для репетиторів. За моїм посиланням ти отримаєш +30 днів Pro безкоштовно: ${link}`;
+    const text = t("referralWidget.shareText", { link });
     if (navigator.share) {
       try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch {}
     } else {
@@ -77,7 +77,12 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   };
 
   if (loading) {
-    return <Card className="flex h-32 items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></Card>;
+    return (
+      <div className="space-y-2 animate-pulse">
+        <div className="h-12 rounded-[16px] bg-muted" />
+        <div className="h-8 rounded-xl bg-muted/60" />
+      </div>
+    );
   }
 
   return (

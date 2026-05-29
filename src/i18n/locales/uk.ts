@@ -991,7 +991,7 @@ export const uk = {
     inviteTitle: "{{name}} запрошує тебе",
     inviteSubtitle: "в oTutorHub — застосунок для репетиторів",
     bonusTitle: "Бонус за реєстрацію",
-    bonusDesc: "<strong>+7 днів Pro</strong> безкоштовно тобі. <strong>+7 днів</strong> також {{name}} як подяка.",
+    bonusDesc: "<strong>+30 днів Pro</strong> безкоштовно тобі. <strong>+30 днів</strong> також {{name}} як подяка 🎁",
     feature1: "📅 Зручний розклад уроків",
     feature2: "💰 Облік фінансів і нагадування про оплати",
     feature3: "💬 Чати з учнями",

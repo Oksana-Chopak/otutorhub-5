@@ -62,17 +62,17 @@ export default function JoinPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-4 py-8">
-      <Card className="w-full max-w-md overflow-hidden">
-        <div className="bg-gradient-to-br from-primary to-primary/70 p-6 text-primary-foreground">
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur">
-            <Gift className="h-7 w-7" />
+      <Card className="w-full max-w-md overflow-hidden rounded-[20px] shadow-xl border-0">
+        <div className="rounded-t-[20px] p-6 text-white" style={{background:"linear-gradient(135deg,#0f0f1a 0%,#1a1a3e 100%)"}}>
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl" style={{background:"var(--teal,#2BBFAA)"}}>
+            <Gift className="h-7 w-7 text-white" />
           </div>
-          <h1 className="mb-1 text-2xl font-bold">{t("join.inviteTitle", { name: referrerName })}</h1>
-          <p className="text-sm opacity-90">{t("join.inviteSubtitle")}</p>
+          <h1 className="mb-1 text-2xl font-extrabold">{t("join.inviteTitle", { name: referrerName })}</h1>
+          <p className="text-sm" style={{color:"#8892b0"}}>{t("join.inviteSubtitle")}</p>
         </div>
         <CardContent className="space-y-4 p-6">
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
-            <div className="mb-1 flex items-center gap-2 font-semibold text-primary">
+          <div className="rounded-[16px] border p-4" style={{background:"var(--teal-l,#f0fdf9)",borderColor:"#9FEBC7"}}>
+            <div className="mb-1 flex items-center gap-2 font-semibold" style={{color:"var(--teal,#2BBFAA)"}}>
               <Sparkles className="h-4 w-4" />
               {t("join.bonusTitle")}
             </div>
@@ -87,9 +87,9 @@ export default function JoinPage() {
             <p>{t("join.feature4")}</p>
           </div>
           <Button
-            onClick={() => navigate(`/auth?signup=1&role=tutor`)}
-            size="lg"
-            className="w-full"
+            onClick={() => navigate(`/auth?signup=1`)}
+            className="h-[52px] w-full rounded-[14px] text-[16px] font-semibold"
+            style={{background:"var(--teal,#2BBFAA)",color:"#fff"}}
           >
             {t("join.cta")}
           </Button>
