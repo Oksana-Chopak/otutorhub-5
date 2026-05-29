@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -570,12 +572,13 @@ export default function MyStudentsPage() {
     <AppLayout>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold text-foreground">{t("myStudents.title")}</h1>
+          <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("myStudents.title")}</h1>
           <p className="text-sm text-muted-foreground">
             {t("myStudents.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <NotificationBell />
           <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
             {t("myStudents.studentCount", { count: studentCount })}
           </span>
@@ -1039,6 +1042,7 @@ export default function MyStudentsPage() {
           }}
         />
       )}
+      <PageFAB onClick={() => setAddOpen(true)} label={t("myStudents.addStudent")} />
     </AppLayout>
   );
 }

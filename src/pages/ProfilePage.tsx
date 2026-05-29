@@ -45,9 +45,9 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
                 <Link
                   key={it.to}
                   to={it.to}
-                  className="group flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-secondary"
+                  className="group flex items-center gap-3 rounded-[16px] border border-border bg-card p-3 transition-colors hover:bg-secondary"
                 >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-primary/10 text-primary">
                     <it.icon className="h-5 w-5" />
                   </span>
                   <span className="flex-1 text-sm font-medium text-foreground">{it.label}</span>
@@ -262,7 +262,7 @@ export default function ProfilePage() {
                     return (
                       <Label
                         key={subject}
-                        className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm font-normal transition-colors hover:bg-secondary"
+                        className="flex cursor-pointer items-center gap-2 rounded-[16px] border border-border bg-card p-3 text-sm font-normal transition-colors hover:bg-secondary"
                       >
                         <Checkbox
                           checked={checked}
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                   })}
                 </div>
 
-                <div className="mt-6 space-y-3 rounded-lg border border-dashed border-border p-4">
+                <div className="mt-6 space-y-3 rounded-[16px] border border-dashed border-border p-4">
                   <div>
                     <p className="text-sm font-medium text-foreground">{t("profile.customSubjectsTitle")}</p>
                     <p className="text-xs text-muted-foreground">
@@ -352,7 +352,7 @@ export default function ProfilePage() {
                     key={themeKey}
                     type="button"
                     onClick={() => updateSettings({ reward_theme: themeKey })}
-                    className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    className={`flex items-center gap-2 rounded-[16px] border px-3 py-2 text-sm transition-colors ${
                       selected
                         ? "border-primary bg-primary/10 font-medium text-primary"
                         : "border-border hover:border-primary/40"

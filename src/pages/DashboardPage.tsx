@@ -939,7 +939,7 @@ export default function DashboardPage() {
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
                   trigger={
-                    <Button size="sm" className="h-9 rounded-xl text-[13px]" style={{ background: "var(--teal)" }}>
+                    <Button size="sm" className="h-11 rounded-xl text-[13px]" style={{ background: "var(--teal)" }}>
                       <HandHeart className="h-4 w-4" />
                     </Button>
                   }
@@ -1639,7 +1639,7 @@ export default function DashboardPage() {
                           <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
                           <div className="mt-3">
                             <FindTutorDialog trigger={
-                              <Button size="sm" className="rounded-xl h-9" style={{ background: "var(--teal)", color: "#fff" }}>
+                              <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#fff" }}>
                                 {t("dashboardPageExtra.leaveRequest")}
                               </Button>
                             } />

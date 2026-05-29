@@ -180,7 +180,7 @@ export function IndependentTutorStats() {
       {!isPro && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            <div className="flex h-11 w-9 shrink-0 items-center justify-center rounded-[16px] bg-primary/10">
               <Crown className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">

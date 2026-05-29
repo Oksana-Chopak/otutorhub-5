@@ -760,7 +760,7 @@ export default function ChatsPage() {
                   </Button>
                 )}
                 <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
-                  <SelectTrigger className="h-8 flex-1 text-xs">
+                  <SelectTrigger className="h-10 flex-1 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
