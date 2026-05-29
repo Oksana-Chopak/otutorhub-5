@@ -2642,4 +2642,8 @@ export const en: Translations = {
     thisWeek: "This week: {{count}}",
   },
 
+  offline: {
+    noConnection: "No connection — check your internet",
+    restored: "Connection restored ✅",
+  },
 };

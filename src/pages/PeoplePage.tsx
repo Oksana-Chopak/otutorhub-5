@@ -1,5 +1,6 @@
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
+import { PeopleSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -1171,9 +1172,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       )}
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <PeopleSkeleton />
       ) : (
         <>
           {visiblePeopleCount === 0 && (

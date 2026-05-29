@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useHaptic } from "@/hooks/useHaptic";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Clock, Loader2 } from "lucide-react";
@@ -34,8 +35,11 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
 
   if (items.length === 0) return null;
 
+  const { success: hapticSuccess } = useHaptic();
+
   const setStatus = async (id: string, status: "completed" | "cancelled") => {
     setBusyId(id);
+    if (status === "completed") hapticSuccess();
     const { error } = await supabase.from("lessons").update({ status }).eq("id", id);
     setBusyId(null);
     if (error) {

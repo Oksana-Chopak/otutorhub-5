@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
+import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -695,9 +696,7 @@ export default function ChatsPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        </div>
+        <ChatsSkeleton />
       ) : threads.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

@@ -36,6 +36,8 @@ import { QuickActionsFab } from "@/components/QuickActionsFab";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
 import { PageFAB } from "@/components/PageFAB";
+import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/SkeletonCard";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
@@ -226,7 +228,7 @@ type ProfitPeriod = "all" | "month" | "week";
 export default function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, roles } = useAuth();
+  const { user, roles, loading: authLoading } = useAuth();
   const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -279,6 +281,9 @@ export default function DashboardPage() {
   // Gamification: badge unlock toasts + streak card + referral nudge counters
   const gamification = useTutorGamification();
   const { badges, loading: gamificationLoading, streak } = gamification;
+
+  // Pull-to-refresh on mobile
+  const { isPulling, pullProgress } = usePullToRefresh(loadData);
   useBadgeUnlockToasts(badges, gamificationLoading);
 
   // "Сьогодні день X твоєї серії" — once per day greeting
@@ -337,7 +342,10 @@ export default function DashboardPage() {
 
 
   const loadData = async () => {
-    if (!user) return;
+    // Wait for auth to finish — prevents new users from seeing stale/other users' data
+    if (!user || authLoading) return;
+    // New user with no roles yet — don't load — show empty state
+    if (roles.length === 0) { setLoading(false); return; }
 
     const [
       { data: lessonsData, error: lessonsError },

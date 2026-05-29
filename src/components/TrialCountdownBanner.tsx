@@ -26,30 +26,13 @@ export function TrialCountdownBanner() {
   // Active paid Pro — no banner needed
   if (isPro && !isTrial) return null;
 
-  // No trial info → nothing to show
-  if (!trialUntil) {
-    if (settings.subscription_status === "free") {
-      return (
-        <div className="mb-4 rounded-xl border border-warning/40 bg-warning/5 px-4 py-3 text-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="font-medium text-foreground">
-              {t("trial.ended")}
-            </span>
-            <Button size="sm" asChild className="rounded-full">
-              <Link to="/subscription">
-                <Crown className="h-3.5 w-3.5" />
-                {t("trial.connectPro")}
-              </Link>
-            </Button>
-          </div>
-        </div>
-      );
-    }
-    return null;
-  }
+  // No trial info → user never had a trial (new registration) — show nothing
+  // Only show "trial ended" if trial_until was set in the past (actually expired)
+  if (!trialUntil) return null;
 
   const urgent = trialDaysLeft <= 3;
-  const expired = trialUntil.getTime() < Date.now();
+  // trialUntil is guaranteed non-null here (checked above)
+  const expired = trialUntil!.getTime() < Date.now();
 
   if (expired) {
     return (

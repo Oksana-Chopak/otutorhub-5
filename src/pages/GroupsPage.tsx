@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
+import { GroupsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,9 +130,7 @@ export default function GroupsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <GroupsSkeleton />
         ) : groups.length === 0 ? (
           <EmptyState
             icon={Users2}

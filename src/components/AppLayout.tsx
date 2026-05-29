@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";

@@ -2633,4 +2633,8 @@ export const sv: Partial<Translations> = {
     thisWeek: "Den här veckan: {{count}}",
   },
 
+  offline: {
+    noConnection: "Ingen anslutning — kontrollera internet",
+    restored: "Anslutning återställd ✅",
+  },
 };
