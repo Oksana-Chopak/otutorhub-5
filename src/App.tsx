@@ -36,6 +36,7 @@ import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MarketingPage from "./pages/MarketingPage";
 import MarketingUnsubscribePage from "./pages/MarketingUnsubscribePage";
+import LandingPage from "./pages/LandingPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
