@@ -331,6 +331,11 @@ export default function ChatsPage() {
     }
     let cancelled = false;
 
+    // Clear immediately so previous thread's messages don't flash while loading
+    setMessages([]);
+    setAttachments({});
+    setReactions({});
+
     const load = async () => {
       const includeArchived = showArchived[selectedId] === true;
       let query = supabase
