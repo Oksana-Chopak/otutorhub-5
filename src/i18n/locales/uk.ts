@@ -726,6 +726,7 @@ export const uk = {
     itemTutorRequests: "Запити на репетиторів",
     itemSubRequests: "Запити на підписку",
     itemPaywallMetrics: "Метрики paywall",
+    emailMarketing: "Email-розсилки",
     itemAudit: "Аудит",
   },
 
