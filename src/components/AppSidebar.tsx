@@ -158,15 +158,18 @@ export function AppSidebar() {
         )}
         style={{ background: "var(--dark-m)", borderColor: "rgba(255,255,255,0.07)" }}
       >
-        <div
-          className="flex items-center gap-2 py-4"
+        <Link
+          to="/"
+          onClick={() => setOpen(false)}
+          className="flex items-center gap-2 py-4 transition-opacity hover:opacity-80"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: sidebarCollapsed ? "16px 14px" : "16px 24px" }}
+          aria-label="oTutorHub"
         >
           <img src="/logo.png" alt="oTutorHub" className="h-8 w-8 shrink-0" />
           {!sidebarCollapsed && (
             <span className="font-display text-lg font-bold text-white">oTutorHub</span>
           )}
-        </div>
+        </Link>
 
         <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {navItems.map((item) => {
