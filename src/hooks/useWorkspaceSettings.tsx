@@ -46,7 +46,7 @@ export function useWorkspaceSettings() {
         .eq("tutor_id", user.id)
         .eq("source", "independent"),
     ]);
-    setSettings(ws as WorkspaceSettings | null);
+    setSettings(ws as unknown as WorkspaceSettings | null);
     const ids = new Set((rates ?? []).map((r: any) => r.student_id));
     setStudentCount(ids.size);
     setLoading(false);
@@ -58,7 +58,7 @@ export function useWorkspaceSettings() {
 
   const updateSettings = async (patch: Partial<WorkspaceSettings>) => {
     if (!user) return;
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from("tutor_workspace_settings")
       .upsert({ tutor_id: user.id, ...patch }, { onConflict: "tutor_id" });
     if (!error) await load();

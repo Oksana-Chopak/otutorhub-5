@@ -1042,7 +1042,7 @@ export default function MyStudentsPage() {
           }}
         />
       )}
-      <PageFAB onClick={() => setAddOpen(true)} label={t("myStudents.addStudent")} />
+      <PageFAB onClick={() => setDialog({ open: true, mode: "create", studentId: null })} label={t("myStudents.addStudent")} />
     </AppLayout>
   );
 }
