@@ -7,7 +7,7 @@ import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 
-function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
+function timeAgo(iso: string, t: (k: string, o?: object) => unknown): string {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60000);
   if (min < 1) return t("time.justNow");

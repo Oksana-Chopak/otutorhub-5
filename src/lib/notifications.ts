@@ -2,9 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Use any-cast since the notifications table is new and not yet in generated types.
 // Types will be regenerated automatically by Lovable after migration is applied.
-const db = supabase as unknown as typeof supabase & {
-  from(table: "notifications"): ReturnType<typeof supabase.from>;
-};
+const db = supabase as any;
 
 interface InsertNotification {
   userId: string;

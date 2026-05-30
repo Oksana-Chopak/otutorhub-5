@@ -31,7 +31,7 @@ export const STUDENT_LEVELS: StudentLevel[] = [
 ];
 
 export function getStudentLevel(completedCount: number): StudentLevel {
-  return STUDENT_LEVELS.findLast((l) => completedCount >= l.min) ?? STUDENT_LEVELS[0];
+  return [...STUDENT_LEVELS].reverse().find((l) => completedCount >= l.min) ?? STUDENT_LEVELS[0];
 }
 
 export function getLevelProgress(completedCount: number): { level: StudentLevel; next: StudentLevel | null; progress: number } {

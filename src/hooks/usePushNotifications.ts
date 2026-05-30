@@ -5,9 +5,7 @@ import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/pushConfig";
 
 type PermissionState = "default" | "granted" | "denied";
 
-const db = supabase as unknown as typeof supabase & {
-  from(table: "push_subscriptions"): ReturnType<typeof supabase.from>;
-};
+const db = supabase as any;
 
 export function usePushNotifications() {
   const { user } = useAuth();
@@ -67,7 +65,7 @@ export function usePushNotifications() {
       if (!sub) {
         sub = await reg.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as BufferSource,
         });
       }
 

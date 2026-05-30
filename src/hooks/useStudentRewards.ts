@@ -13,9 +13,7 @@ export interface StudentReward {
 }
 
 // Type-cast helper since student_rewards is not yet in generated types
-const db = supabase as unknown as typeof supabase & {
-  from(table: "student_rewards"): ReturnType<typeof supabase.from>;
-};
+const db = supabase as any;
 
 export function useStudentRewards() {
   const { user } = useAuth();
