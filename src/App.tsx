@@ -71,6 +71,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/" element={<Index />} />
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
       <Route
