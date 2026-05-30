@@ -1029,7 +1029,7 @@ export default function DashboardPage() {
                 >
                   <p className="text-[10px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
-                  <p className="mt-0.5 text-[12px] font-medium" style={{ color: "#22c55e" }}>↑ +12%</p>
+<p className="mt-0.5 text-[12px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {[40,55,48,72,62,85,100].map((h,i)=>(
                       <div key={i} className="flex-1 rounded-sm" style={{height:`${h}%`,background:i===6?"var(--teal)":"rgba(43,191,170,0.2)"}} />
