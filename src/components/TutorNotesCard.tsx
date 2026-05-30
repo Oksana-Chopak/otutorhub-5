@@ -78,6 +78,7 @@ export function TutorNotesCard() {
           placeholder={t("tutorNotes.placeholder")}
           className="min-h-[60px] text-sm"
           maxLength={500}
+          autoComplete="off"
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); add(); } }}
         />
         <Button
