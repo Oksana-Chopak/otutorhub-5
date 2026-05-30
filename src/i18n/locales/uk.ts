@@ -1393,8 +1393,8 @@ export const uk = {
   },
   groupsPage: {
     title: "Групи",
-    noGroups: "Поки немає груп",
-    noGroupsDesc: "Створіть першу групу щоб планувати парні або групові уроки",
+    noGroups: "Час зібрати першу групу! 🎓",
+    noGroupsDesc: "Об'єднайте учнів у групи для парних та групових уроків",
     createGroup: "Створити групу",
     createFailed: "Не вдалося створити групу",
     updateFailed: "Не вдалося оновити групу",
@@ -1464,6 +1464,7 @@ export const uk = {
     statusPending: "Запит",
     noScheduled: "Немає запланованих уроків",
     upcomingLessonsTitle: "Найближчі уроки",
+    allLessons: "Усі уроки школи",
     allLessonsLink: "Усі уроки →",
   },
   availabilityManager: {
