@@ -57,8 +57,8 @@ export const en: Translations = {
     people: "People",
     myStudents: "My students",
     groups: "Groups",
-    availability: "Availability"
-    emailMarketing: "Email campaigns",,
+    availability: "Availability",
+    emailMarketing: "Email campaigns",
     audit: "Audit log",
     referrals: "Tutor requests",
     myReferrals: "Referrals",
