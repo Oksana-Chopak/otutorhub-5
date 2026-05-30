@@ -36,6 +36,7 @@ import WalletsPage from "./pages/WalletsPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import MarketingPage from "./pages/MarketingPage";
 import MarketingUnsubscribePage from "./pages/MarketingUnsubscribePage";
+import LandingPage from "./pages/LandingPage";
 import TermsPage from "./pages/TermsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/join/:code" element={<JoinPage />} />
       <Route path="/" element={<Index />} />
+      <Route path="/landing" element={<LandingPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/schedule" element={<ProtectedRoute><SchedulePage /></ProtectedRoute>} />
       <Route
