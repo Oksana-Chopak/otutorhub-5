@@ -1376,8 +1376,8 @@ export const sv: Partial<Translations> = {
   },
   groupsPage: {
     title: "Grupper",
-    noGroups: "Inga grupper ännu",
-    noGroupsDesc: "Skapa din första grupp för att planera par- eller grupplektioner",
+    noGroups: "Dags att skapa din första grupp! 🎓",
+    noGroupsDesc: "Samla elever för par- och grupplektioner",
     createGroup: "Skapa grupp",
     createFailed: "Kunde inte skapa grupp",
     updateFailed: "Kunde inte uppdatera grupp",
@@ -1447,6 +1447,7 @@ export const sv: Partial<Translations> = {
     statusPending: "Förfrågan",
     noScheduled: "Inga planerade lektioner",
     upcomingLessonsTitle: "Kommande lektioner",
+    allLessons: "Alla skolans lektioner",
     allLessonsLink: "Alla lektioner →",
   },
   availabilityManager: {
