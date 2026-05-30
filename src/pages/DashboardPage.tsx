@@ -532,11 +532,9 @@ export default function DashboardPage() {
       // Award reward emoji to student
       const lesson = lessons.find((l) => l.id === lessonId);
       if (lesson?.student_id && user) {
-        const theme = ((settings?.reward_theme as RewardTheme | undefined) ?? "fruits") as RewardTheme;
+        const theme: RewardTheme = "fruits";
         const emoji = getRandomEmoji(theme);
-        const rewardsDb = supabase as unknown as typeof supabase & {
-          from(table: "student_rewards"): ReturnType<typeof supabase.from>;
-        };
+        const rewardsDb = supabase as any;
         rewardsDb.from("student_rewards").insert({
           student_id: lesson.student_id,
           lesson_id: lessonId,

@@ -7,14 +7,14 @@ import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
 
-function timeAgo(iso: string, t: (k: string, o?: object) => unknown): string {
+function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const min = Math.floor(diff / 60000);
-  if (min < 1) return t("time.justNow");
-  if (min < 60) return t("time.minutesAgo", { count: min });
+  if (min < 1) return t("time.justNow") as string;
+  if (min < 60) return t("time.minutesAgo", { count: min }) as string;
   const h = Math.floor(min / 60);
-  if (h < 24) return t("time.hoursAgo", { count: h });
-  return t("time.daysAgo", { count: Math.floor(h / 24) });
+  if (h < 24) return t("time.hoursAgo", { count: h }) as string;
+  return t("time.daysAgo", { count: Math.floor(h / 24) }) as string;
 }
 
 const TYPE_ICON: Record<string, string> = {
