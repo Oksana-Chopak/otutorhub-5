@@ -120,7 +120,7 @@ export function NotificationBell({ className, golden }: Props) {
                         <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{n.body}</p>
                       )}
                       <p className="mt-1 text-[10px] text-muted-foreground/70">
-                        {timeAgo(n.created_at, t)}
+                        {timeAgo(n.created_at, t as unknown as (k: string, o?: object) => string)}
                       </p>
                     </div>
                     {!n.read && (
