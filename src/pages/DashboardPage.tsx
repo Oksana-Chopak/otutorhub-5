@@ -916,8 +916,7 @@ export default function DashboardPage() {
             <div className="min-w-0 flex-1">
               <h1 className="font-display text-[22px] font-extrabold leading-tight text-white lg:text-foreground sm:text-[26px] lg:text-[28px]">
                 {timeEmoji}{" "}
-                {greeting},{" "}
-                <span style={{ color: "var(--teal)" }}>{firstName}</span>
+                {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal)" }}>{firstName}</span></> : "!"}
               </h1>
               <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[13px] text-slate-400 lg:text-muted-foreground">
                 <Link
