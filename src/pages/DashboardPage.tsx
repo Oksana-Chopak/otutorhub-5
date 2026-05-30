@@ -751,7 +751,7 @@ export default function DashboardPage() {
 
   const firstName = useMemo(() => {
     const fromProfile = user?.id ? profiles[user.id]?.split(" ")[0] : "";
-    return fromProfile || user?.email?.split("@")[0] || "";
+    return fromProfile || "";
   }, [profiles, user?.email, user?.id]);
 
   const greeting = useMemo(() => {
