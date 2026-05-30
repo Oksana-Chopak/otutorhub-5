@@ -1621,7 +1621,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     { ok: !!u.has_lesson, label: t("people.progressLessons") },
                     { ok: !!u.has_paid_lesson, label: t("people.progressPayments") },
                   ];
-                  return { doneCount: steps.filter(s => s.ok).length, total: 9, steps };
+                  return { doneCount: steps.filter(s => s.ok).length, total: 12, steps };
                 })()
               : null;
             return (
