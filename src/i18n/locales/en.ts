@@ -57,7 +57,8 @@ export const en: Translations = {
     people: "People",
     myStudents: "My students",
     groups: "Groups",
-    availability: "Availability",
+    availability: "Availability"
+    emailMarketing: "Email campaigns",,
     audit: "Audit log",
     referrals: "Tutor requests",
     myReferrals: "Referrals",
@@ -1385,8 +1386,8 @@ export const en: Translations = {
   },
   groupsPage: {
     title: "Groups",
-    noGroups: "No groups yet",
-    noGroupsDesc: "Create your first group to plan pair or group lessons",
+    noGroups: "Time to create your first group! 🎓",
+    noGroupsDesc: "Bring students together for pair and group lessons",
     createGroup: "Create group",
     createFailed: "Failed to create group",
     updateFailed: "Failed to update group",
@@ -1456,6 +1457,7 @@ export const en: Translations = {
     statusPending: "Request",
     noScheduled: "No scheduled lessons",
     upcomingLessonsTitle: "Upcoming lessons",
+    allLessons: "All school lessons",
     allLessonsLink: "All lessons →",
   },
   availabilityManager: {
