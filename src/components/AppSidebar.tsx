@@ -159,7 +159,7 @@ export function AppSidebar() {
         style={{ background: "var(--dark-m)", borderColor: "rgba(255,255,255,0.07)" }}
       >
         <Link
-          to="/"
+          to="/landing"
           onClick={() => setOpen(false)}
           className="flex items-center gap-2 py-4 transition-opacity hover:opacity-80"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: sidebarCollapsed ? "16px 14px" : "16px 24px" }}
