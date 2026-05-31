@@ -896,8 +896,10 @@ export default function FinancesPage() {
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">
                   <SortHeader
                     label={t("finances.colDate")}
+                    sublabel={t("finances.sortByLessonDate", { defaultValue: "за датою уроку" })}
                     active={sort?.key === "starts_at" ? sort.dir : null}
                     onClick={() => cycleSort("starts_at")}
+                    title={t("finances.sortByLessonDate", { defaultValue: "Сортувати за датою уроку" })}
                   />
                 </th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
@@ -906,9 +908,10 @@ export default function FinancesPage() {
                   <SortHeader
                     align="right"
                     label={t("finances.colIncome")}
+                    sublabel={t("finances.sortByPaidDateShort", { defaultValue: "за датою оплати" })}
                     active={sort?.key === "student_paid_at" ? sort.dir : null}
                     onClick={() => cycleSort("student_paid_at")}
-                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати" })}
+                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати від учня" })}
                   />
                 </th>
                 {!isIndependentTutor && (
@@ -919,9 +922,10 @@ export default function FinancesPage() {
                     <SortHeader
                       align="right"
                       label={t("finances.colPayout")}
+                      sublabel={t("finances.sortByPayoutDateShort", { defaultValue: "за датою виплати" })}
                       active={sort?.key === "tutor_paid_at" ? sort.dir : null}
                       onClick={() => cycleSort("tutor_paid_at")}
-                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати" })}
+                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати репетитору" })}
                     />
                   </th>
                 )}
