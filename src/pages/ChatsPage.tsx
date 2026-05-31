@@ -717,7 +717,7 @@ export default function ChatsPage() {
       ) : (
         <div
           className={cn(
-            "grid min-w-0 gap-4 lg:items-start",
+            "grid min-w-0 gap-4",
             canShowContext && selectedThread
               ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
               : "lg:grid-cols-[320px_minmax(0,1fr)]"
@@ -879,7 +879,7 @@ export default function ChatsPage() {
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:p-5">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:p-5 lg:min-h-[300px]">
                   {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
                     <div className="flex justify-center">
                       <Button
