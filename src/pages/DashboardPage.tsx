@@ -939,7 +939,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
               {/* Golden bell — opens notification panel */}
-              <NotificationBell golden className="h-11 w-11 rounded-full" />
+              <NotificationBell golden className="hidden h-11 w-11 rounded-full lg:flex" />
               {/* Burger menu */}
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
