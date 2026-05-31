@@ -70,8 +70,8 @@ export default function ReferralsPage() {
       .order("created_at", { ascending: false });
 
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.student_id)));
-    let profileMap = new Map<string, { name: string; avatar: string | null }>();
-    let contactMap = new Map<string, { email: string | null; phone: string | null; telegram: string | null }>();
+    const profileMap = new Map<string, { name: string; avatar: string | null }>();
+    const contactMap = new Map<string, { email: string | null; phone: string | null; telegram: string | null }>();
     if (ids.length > 0) {
       const [profilesRes, contactsRes] = await Promise.all([
         supabase.from("profiles").select("id, first_name, last_name, avatar_url").in("id", ids),
