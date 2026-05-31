@@ -33,9 +33,9 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
     });
   }, [lessons]);
 
-  if (items.length === 0) return null;
-
   const { success: hapticSuccess } = useHaptic();
+
+  if (items.length === 0) return null;
 
   const setStatus = async (id: string, status: "completed" | "cancelled") => {
     setBusyId(id);
