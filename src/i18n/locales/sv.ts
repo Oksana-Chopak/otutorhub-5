@@ -491,6 +491,7 @@ export const sv: Partial<Translations> = {
     itemSubRequests: "Prenumerationsförfrågningar",
     itemPaywallMetrics: "Paywall-mätvärden",
     itemAudit: "Granskning",
+    emailMarketing: "E-postkampanjer",
   },
   landing: {
     nav: {

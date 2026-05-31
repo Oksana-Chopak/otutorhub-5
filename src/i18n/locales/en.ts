@@ -722,6 +722,7 @@ export const en: Translations = {
     itemSubRequests: "Subscription requests",
     itemPaywallMetrics: "Paywall metrics",
     itemAudit: "Audit log",
+    emailMarketing: "Email campaigns",
   },
 
   people: {
