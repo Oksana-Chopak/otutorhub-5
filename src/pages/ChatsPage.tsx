@@ -719,8 +719,8 @@ export default function ChatsPage() {
           className={cn(
             "grid min-w-0 gap-4",
             canShowContext && selectedThread
-              ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
-              : "lg:grid-cols-[320px_minmax(0,1fr)]"
+              ? "lg:grid-cols-[280px_minmax(0,1fr)_220px]"
+              : "lg:grid-cols-[280px_minmax(0,1fr)]"
           )}
         >
           {/* Thread list — hidden on mobile when a chat is selected */}
