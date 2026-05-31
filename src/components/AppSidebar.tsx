@@ -331,7 +331,6 @@ export function AppSidebar() {
               <LogOut className="mr-2 h-4 w-4" />
               {t("common.logout")}
             </Button>
-            <NotificationBell className="h-9 w-9 shrink-0 text-slate-400 hover:text-white" />
             <Button
               variant="ghost"
               size="icon"
