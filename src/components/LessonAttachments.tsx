@@ -78,7 +78,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       return;
     }
     setUploading(true);
-    const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+    const safeName = file.name.replace(/[^\w.-]+/g, "_");
     const path = `${lessonId}/${crypto.randomUUID()}-${safeName}`;
 
     const { error: upErr } = await supabase.storage
