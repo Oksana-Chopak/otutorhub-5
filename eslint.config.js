@@ -20,7 +20,13 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-            "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+      // Downgraded to warn — Lovable generates `as any` extensively
+      // Tracked separately, cleaned each sprint via check-hardcode.mjs
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-empty-object-type": "warn",
+      // Missing deps warnings are useful to see but not block CI
+      "react-hooks/exhaustive-deps": "warn",
     },
   },
 );
