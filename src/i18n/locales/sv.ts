@@ -73,6 +73,7 @@ export const sv: Partial<Translations> = {
     openMenu: "Öppna meny",
     closeMenu: "Stäng meny",
     studentsShort: "Elever",
+    newBadge: "Ny!",
   },
   roles: {
     manager: "Chef",
