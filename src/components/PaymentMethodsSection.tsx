@@ -1,46 +1,32 @@
 /**
  * Minimal payment-methods strip for the site footer.
- * Follows LiqPay merchant requirements:
- *  https://www.liqpay.ua/information/requirements
- *
- *  - Shows LiqPay + Visa + Mastercard marks together
- *  - Original colors of LiqPay logo preserved (green wordmark on white plate)
- *  - Clear space ≥ height of "L"; min logo height 24px
- *  - No shadows, gradients, distortions, rotations
- *  - Works on dark footer background
+ * LiqPay requirements: https://www.liqpay.ua/information/requirements
+ * On a dark footer we use the white/monochrome versions of each mark
+ * (allowed by LiqPay brand book), no plates, no shadows, no distortions.
  */
 
-function LiqPayMark({ className = "" }: { className?: string }) {
-  // Official-style wordmark: black "Liq" + green "Pay" on white plate
+function LiqPayMark() {
   return (
-    <span
+    <svg
+      viewBox="0 0 72 18"
+      height="16"
+      role="img"
       aria-label="LiqPay"
-      className={
-        "inline-flex items-center rounded-md bg-white px-2.5 py-1.5 " +
-        className
-      }
-      style={{ minHeight: 24 }}
+      xmlns="http://www.w3.org/2000/svg"
+      style={{ display: "block" }}
     >
-      <svg
-        viewBox="0 0 96 24"
-        height="20"
-        role="img"
-        aria-hidden="true"
-        xmlns="http://www.w3.org/2000/svg"
+      <text
+        x="0"
+        y="14"
+        fontFamily="'Plus Jakarta Sans', 'Inter', system-ui, sans-serif"
+        fontWeight="800"
+        fontSize="16"
+        letterSpacing="-0.3"
+        fill="rgba(255,255,255,0.85)"
       >
-        <text
-          x="0"
-          y="18"
-          fontFamily="'Plus Jakarta Sans', 'Inter', system-ui, sans-serif"
-          fontWeight="800"
-          fontSize="20"
-          letterSpacing="-0.5"
-          fill="#0F0F1A"
-        >
-          Liq<tspan fill="#00B14F">Pay</tspan>
-        </text>
-      </svg>
-    </span>
+        LiqPay
+      </text>
+    </svg>
   );
 }
 
@@ -48,15 +34,14 @@ function VisaMark() {
   return (
     <span
       aria-label="Visa"
-      className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5"
-      style={{ minHeight: 24 }}
+      className="font-extrabold italic tracking-tight"
+      style={{
+        color: "rgba(255,255,255,0.85)",
+        fontSize: 14,
+        lineHeight: 1,
+      }}
     >
-      <span
-        className="font-extrabold italic tracking-tight"
-        style={{ color: "#1A1F71", fontSize: 14, lineHeight: 1 }}
-      >
-        VISA
-      </span>
+      VISA
     </span>
   );
 }
@@ -65,25 +50,27 @@ function MastercardMark() {
   return (
     <span
       aria-label="Mastercard"
-      className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5"
-      style={{ minHeight: 24 }}
+      className="relative inline-flex items-center"
+      style={{ height: 14 }}
     >
-      <span className="relative inline-flex items-center" style={{ height: 14 }}>
-        <span
-          className="inline-block rounded-full"
-          style={{ width: 14, height: 14, background: "#EB001B" }}
-        />
-        <span
-          className="inline-block rounded-full"
-          style={{
-            width: 14,
-            height: 14,
-            background: "#F79E1B",
-            marginLeft: -5,
-            mixBlendMode: "multiply",
-          }}
-        />
-      </span>
+      <span
+        className="inline-block rounded-full"
+        style={{
+          width: 14,
+          height: 14,
+          background: "rgba(255,255,255,0.85)",
+          opacity: 0.9,
+        }}
+      />
+      <span
+        className="inline-block rounded-full"
+        style={{
+          width: 14,
+          height: 14,
+          background: "rgba(255,255,255,0.55)",
+          marginLeft: -5,
+        }}
+      />
     </span>
   );
 }
@@ -91,10 +78,11 @@ function MastercardMark() {
 export function PaymentMethodsSection() {
   return (
     <div
-      className="flex items-center gap-2"
+      className="flex items-center gap-4"
       aria-label="Accepted payment methods"
     >
       <LiqPayMark />
+      <span style={{ width: 1, height: 12, background: "rgba(255,255,255,0.15)" }} />
       <VisaMark />
       <MastercardMark />
     </div>
