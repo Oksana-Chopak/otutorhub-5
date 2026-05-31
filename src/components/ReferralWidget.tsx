@@ -69,7 +69,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   const handleShare = async () => {
     const text = t("referralWidget.shareText", { link });
     if (navigator.share) {
-      try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch {}
+      try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch (_e) { /* share cancelled */ }
     } else {
       await navigator.clipboard.writeText(text);
       toast.success(t("referralWidget.textCopied"));
