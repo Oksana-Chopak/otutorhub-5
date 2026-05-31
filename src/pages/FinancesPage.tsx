@@ -872,15 +872,37 @@ export default function FinancesPage() {
                     aria-label={t("finances.selectAll")}
                   />
                 </th>
-                <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colDate")}</th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                  <SortHeader
+                    label={t("finances.colDate")}
+                    active={sort?.key === "starts_at" ? sort.dir : null}
+                    onClick={() => cycleSort("starts_at")}
+                  />
+                </th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colStudent")}</th>
-                <th className="px-3 py-3 text-right font-medium text-success">{t("finances.colIncome")}</th>
+                <th className="px-3 py-3 text-right font-medium text-success">
+                  <SortHeader
+                    align="right"
+                    label={t("finances.colIncome")}
+                    active={sort?.key === "student_paid_at" ? sort.dir : null}
+                    onClick={() => cycleSort("student_paid_at")}
+                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати" })}
+                  />
+                </th>
                 {!isIndependentTutor && (
                   <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colTutor")}</th>
                 )}
                 {!isIndependentTutor && (
-                  <th className="px-3 py-3 text-right font-medium text-destructive">{t("finances.colPayout")}</th>
+                  <th className="px-3 py-3 text-right font-medium text-destructive">
+                    <SortHeader
+                      align="right"
+                      label={t("finances.colPayout")}
+                      active={sort?.key === "tutor_paid_at" ? sort.dir : null}
+                      onClick={() => cycleSort("tutor_paid_at")}
+                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати" })}
+                    />
+                  </th>
                 )}
                 {!isIndependentTutor && (
                   <th className="px-3 py-3 text-right font-medium text-muted-foreground">{t("finances.colProfit")}</th>
