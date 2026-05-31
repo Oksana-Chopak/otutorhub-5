@@ -98,6 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     # Only run if credentials are configured
     if: ${{ secrets.TEST_TUTOR_EMAIL != '' }}
+    # Note: secrets ARE available, added 2026-05-31
     steps:
       - uses: actions/checkout@v4
 
