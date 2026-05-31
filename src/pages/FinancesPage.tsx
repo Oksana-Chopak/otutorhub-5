@@ -364,6 +364,25 @@ export default function FinancesPage() {
     return bd.localeCompare(ad); // newest first for past
   };
 
+  // Manual sort helper. Nulls (unpaid/no date) always go to the bottom.
+  const getSortVal = (row: Row, key: SortKey): string | null => {
+    if (row.type === "prepay") return row.tx.created_at;
+    const l = row.l;
+    if (key === "starts_at") return l.starts_at;
+    if (key === "student_paid_at") return l.student_paid_at;
+    return l.tutor_paid_at;
+  };
+  const manualSort = (a: Row, b: Row) => {
+    if (!sort) return 0;
+    const av = getSortVal(a, sort.key);
+    const bv = getSortVal(b, sort.key);
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return sort.dir === "desc" ? bv.localeCompare(av) : av.localeCompare(bv);
+  };
+  const activeSort = (a: Row, b: Row) => (sort ? manualSort(a, b) : smartSort(a, b));
+
   const incomeRows: Row[] = useMemo(() => {
     const lessonRows: Row[] = periodBillable
       .filter((l) => l.student_payment_status === "paid")
@@ -371,9 +390,9 @@ export default function FinancesPage() {
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
-    return [...lessonRows, ...prepayRows].sort(smartSort);
+    return [...lessonRows, ...prepayRows].sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, periodTopups, canManagePrepay]);
+  }, [periodBillable, periodTopups, canManagePrepay, sort]);
 
 
   const debtsRows: Row[] = useMemo(() => {
@@ -384,9 +403,9 @@ export default function FinancesPage() {
           || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
       )
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(smartSort);
+      .sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, isIndependentTutor]);
+  }, [periodBillable, isIndependentTutor, sort]);
 
   const rowsForActiveTab: Row[] =
     activeTab === "income" ? incomeRows : debtsRows;
