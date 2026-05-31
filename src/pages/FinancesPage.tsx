@@ -1076,8 +1076,6 @@ export default function FinancesPage() {
           </p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <NotificationBell />
-          {/* Record payment moved to FAB */}
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
@@ -1093,6 +1091,8 @@ export default function FinancesPage() {
               </Select>
             </div>
           )}
+          <NotificationBell />
+          {/* Record payment moved to FAB */}
         </div>
       </div>
 
