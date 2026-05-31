@@ -20,6 +20,9 @@ import {
   Wallet,
   Percent,
   Menu,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -162,6 +165,19 @@ export default function FinancesPage() {
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
   const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
+
+  // Column sort (Google-Sheets style). null = smart default sort.
+  type SortKey = "starts_at" | "student_paid_at" | "tutor_paid_at";
+  type SortDir = "asc" | "desc";
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
+  const cycleSort = (key: SortKey) => {
+    setSort((cur) => {
+      if (!cur || cur.key !== key) return { key, dir: "desc" };
+      if (cur.dir === "desc") return { key, dir: "asc" };
+      return null;
+    });
+  };
+
 
   // Sync tab to URL so the view is shareable/bookmarkable; clear legacy `filter`.
   const handleTabChange = (value: string) => {
@@ -348,6 +364,25 @@ export default function FinancesPage() {
     return bd.localeCompare(ad); // newest first for past
   };
 
+  // Manual sort helper. Nulls (unpaid/no date) always go to the bottom.
+  const getSortVal = (row: Row, key: SortKey): string | null => {
+    if (row.type === "prepay") return row.tx.created_at;
+    const l = row.l;
+    if (key === "starts_at") return l.starts_at;
+    if (key === "student_paid_at") return l.student_paid_at;
+    return l.tutor_paid_at;
+  };
+  const manualSort = (a: Row, b: Row) => {
+    if (!sort) return 0;
+    const av = getSortVal(a, sort.key);
+    const bv = getSortVal(b, sort.key);
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    return sort.dir === "desc" ? bv.localeCompare(av) : av.localeCompare(bv);
+  };
+  const activeSort = (a: Row, b: Row) => (sort ? manualSort(a, b) : smartSort(a, b));
+
   const incomeRows: Row[] = useMemo(() => {
     const lessonRows: Row[] = periodBillable
       .filter((l) => l.student_payment_status === "paid")
@@ -355,9 +390,9 @@ export default function FinancesPage() {
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
-    return [...lessonRows, ...prepayRows].sort(smartSort);
+    return [...lessonRows, ...prepayRows].sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, periodTopups, canManagePrepay]);
+  }, [periodBillable, periodTopups, canManagePrepay, sort]);
 
 
   const debtsRows: Row[] = useMemo(() => {
@@ -368,9 +403,9 @@ export default function FinancesPage() {
           || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
       )
       .map((l) => ({ type: "lesson" as const, l }))
-      .sort(smartSort);
+      .sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, isIndependentTutor]);
+  }, [periodBillable, isIndependentTutor, sort]);
 
   const rowsForActiveTab: Row[] =
     activeTab === "income" ? incomeRows : debtsRows;
@@ -691,6 +726,27 @@ export default function FinancesPage() {
     }
     return (
       <div className="overflow-hidden rounded-xl border border-border bg-card">
+        {/* Mobile sort controls */}
+        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[11px] lg:hidden">
+          <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
+          <MobileSortChip
+            label={t("finances.colDate")}
+            active={sort?.key === "starts_at" ? sort.dir : null}
+            onClick={() => cycleSort("starts_at")}
+          />
+          <MobileSortChip
+            label={t("finances.sortPaidShort", { defaultValue: "Оплата" })}
+            active={sort?.key === "student_paid_at" ? sort.dir : null}
+            onClick={() => cycleSort("student_paid_at")}
+          />
+          {!isIndependentTutor && (
+            <MobileSortChip
+              label={t("finances.sortPayoutShort", { defaultValue: "Виплата" })}
+              active={sort?.key === "tutor_paid_at" ? sort.dir : null}
+              onClick={() => cycleSort("tutor_paid_at")}
+            />
+          )}
+        </div>
         {/* Mobile cards */}
         <div className="divide-y divide-border lg:hidden">
           {rows.map((row) => {
@@ -837,15 +893,37 @@ export default function FinancesPage() {
                     aria-label={t("finances.selectAll")}
                   />
                 </th>
-                <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colDate")}</th>
+                <th className="px-3 py-3 text-left font-medium text-muted-foreground">
+                  <SortHeader
+                    label={t("finances.colDate")}
+                    active={sort?.key === "starts_at" ? sort.dir : null}
+                    onClick={() => cycleSort("starts_at")}
+                  />
+                </th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colStudent")}</th>
-                <th className="px-3 py-3 text-right font-medium text-success">{t("finances.colIncome")}</th>
+                <th className="px-3 py-3 text-right font-medium text-success">
+                  <SortHeader
+                    align="right"
+                    label={t("finances.colIncome")}
+                    active={sort?.key === "student_paid_at" ? sort.dir : null}
+                    onClick={() => cycleSort("student_paid_at")}
+                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати" })}
+                  />
+                </th>
                 {!isIndependentTutor && (
                   <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colTutor")}</th>
                 )}
                 {!isIndependentTutor && (
-                  <th className="px-3 py-3 text-right font-medium text-destructive">{t("finances.colPayout")}</th>
+                  <th className="px-3 py-3 text-right font-medium text-destructive">
+                    <SortHeader
+                      align="right"
+                      label={t("finances.colPayout")}
+                      active={sort?.key === "tutor_paid_at" ? sort.dir : null}
+                      onClick={() => cycleSort("tutor_paid_at")}
+                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати" })}
+                    />
+                  </th>
                 )}
                 {!isIndependentTutor && (
                   <th className="px-3 py-3 text-right font-medium text-muted-foreground">{t("finances.colProfit")}</th>
@@ -1322,3 +1400,68 @@ function SummaryStat({
     </div>
   );
 }
+
+/**
+ * Google-Sheets-style sortable column header. Click to toggle desc → asc → off.
+ */
+function SortHeader({
+  label,
+  active,
+  onClick,
+  align = "left",
+  title,
+}: {
+  label: string;
+  active: "asc" | "desc" | null;
+  onClick: () => void;
+  align?: "left" | "right";
+  title?: string;
+}) {
+  const Icon = active === "asc" ? ArrowUp : active === "desc" ? ArrowDown : ArrowUpDown;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60",
+        active ? "text-foreground" : "",
+        align === "right" && "flex-row-reverse",
+      )}
+    >
+      <span>{label}</span>
+      <Icon className={cn("h-3 w-3", active ? "opacity-100" : "opacity-40")} />
+    </button>
+  );
+}
+
+/**
+ * Mobile-friendly sort chip. Compact pill with arrow indicator.
+ */
+function MobileSortChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: "asc" | "desc" | null;
+  onClick: () => void;
+}) {
+  const Icon = active === "asc" ? ArrowUp : active === "desc" ? ArrowDown : ArrowUpDown;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 transition-colors",
+        active
+          ? "border-primary/40 bg-primary/10 text-primary"
+          : "border-border bg-background text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span>{label}</span>
+      <Icon className="h-3 w-3" />
+    </button>
+  );
+}
+
