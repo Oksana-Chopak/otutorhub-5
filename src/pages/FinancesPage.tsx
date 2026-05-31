@@ -1406,12 +1406,14 @@ function SummaryStat({
  */
 function SortHeader({
   label,
+  sublabel,
   active,
   onClick,
   align = "left",
   title,
 }: {
   label: string;
+  sublabel?: string;
   active: "asc" | "desc" | null;
   onClick: () => void;
   align?: "left" | "right";
@@ -1424,13 +1426,21 @@ function SortHeader({
       onClick={onClick}
       title={title}
       className={cn(
-        "inline-flex items-center gap-1 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60",
+        "inline-flex items-center gap-1.5 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60 cursor-pointer",
         active ? "text-foreground" : "",
         align === "right" && "flex-row-reverse",
       )}
     >
-      <span>{label}</span>
-      <Icon className={cn("h-3 w-3", active ? "opacity-100" : "opacity-40")} />
+      <span
+        className="inline-flex flex-col leading-tight"
+        style={{ alignItems: align === "right" ? "flex-end" : "flex-start" }}
+      >
+        <span>{label}</span>
+        {sublabel && (
+          <span className="text-[10px] font-normal text-muted-foreground normal-case">{sublabel}</span>
+        )}
+      </span>
+      <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100 text-primary" : "opacity-70")} />
     </button>
   );
 }
