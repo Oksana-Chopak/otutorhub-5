@@ -115,6 +115,16 @@ export default function ProfilePage() {
     : [];
 
   const [loading, setLoading] = useState(true);
+
+  // Scroll to anchor if hash is present (for onboarding deep-links)
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) {
+      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    }
+  }, []);
   const [saving, setSaving] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [newSubject, setNewSubject] = useState("");
@@ -367,12 +377,12 @@ export default function ProfilePage() {
         </Card>
 
         {isIndependent && (
-          <div className="mt-6">
+          <div id="rules" className="mt-6 scroll-mt-20">
             <ProRulesCard />
           </div>
         )}
-        {isIndependent && <AutoCompleteLessonsCard />}
-        <GoogleCalendarCard />
+        {isIndependent && <div id="automark" className="scroll-mt-20"><AutoCompleteLessonsCard /></div>}
+        <div id="calendar" className="scroll-mt-20"><GoogleCalendarCard /></div>
         <MoreSection title={t("profile.moreTitle")} groups={tutorGroups} />
       </div>
     </AppLayout>
