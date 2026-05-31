@@ -15,7 +15,7 @@ export function sanitizeHttpUrl(value: string | null | undefined): string | null
   if (!v) return null;
   // Reject anything containing a non-http(s) scheme prefix.
   // Match leading scheme like "javascript:", "data:", "vbscript:", "file:", etc.
-  const schemeMatch = v.match(/^([a-zA-Z][a-zA-Z0-9+.\-]*):/);
+  const schemeMatch = v.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):/);
   if (schemeMatch) {
     const scheme = schemeMatch[1].toLowerCase();
     if (scheme !== "http" && scheme !== "https") return null;
