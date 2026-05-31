@@ -193,7 +193,7 @@ export default function ChatsPage() {
     // Also include current user (manager) so own messages render with name
     if (myId) ids.add(myId);
 
-    let profileMap: Record<string, ProfileLite> = {};
+    const profileMap: Record<string, ProfileLite> = {};
     if (ids.size > 0) {
       const { data: profileRows } = await supabase
         .from("profiles")
@@ -212,7 +212,7 @@ export default function ChatsPage() {
     const mIds = new Set<string>((managerRoleRows ?? []).map((r: any) => r.user_id));
 
     // Load my read marks for these threads
-    let reads: Record<string, string> = {};
+    const reads: Record<string, string> = {};
     if (list.length > 0) {
       const { data: readRows } = await supabase
         .from("chat_reads")
