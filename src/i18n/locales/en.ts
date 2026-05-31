@@ -74,6 +74,7 @@ export const en: Translations = {
     openMenu: "Open menu",
     closeMenu: "Close menu",
     studentsShort: "Students",
+    newBadge: "New!",
   },
 
   roles: {
