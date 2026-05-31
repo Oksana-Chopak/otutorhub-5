@@ -719,7 +719,7 @@ export default function ChatsPage() {
           className={cn(
             "grid min-w-0 gap-4",
             canShowContext && selectedThread
-              ? "lg:grid-cols-[280px_minmax(0,1fr)_220px]"
+              ? "xl:grid-cols-[280px_minmax(0,1fr)_220px]"
               : "lg:grid-cols-[280px_minmax(0,1fr)]"
           )}
         >
@@ -1066,7 +1066,7 @@ export default function ChatsPage() {
             <ChatContextPanel
               tutorId={selectedThread.tutor_id}
               studentId={selectedThread.student_id}
-              className="flex rounded-xl border border-border h-[calc(100vh-8rem)] lg:h-auto lg:max-h-[70vh] overflow-y-auto"
+              className="flex rounded-xl border border-border h-[calc(100vh-8rem)] xl:h-auto xl:max-h-[calc(100vh-10rem)] overflow-y-auto hidden xl:flex"
             />
           )}
         </div>
