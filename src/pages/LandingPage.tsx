@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LandingTryDemo } from "@/components/LandingTryDemo";
 import { LandingFindTutorQuizDialog } from "@/components/LandingFindTutorQuizDialog";
+import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
