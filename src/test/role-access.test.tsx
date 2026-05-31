@@ -79,10 +79,12 @@ describe("ProtectedRoute — гість (неавторизований)", () =>
 });
 
 describe("ProtectedRoute — стан завантаження", () => {
-  it("показує лоадер, поки auth ще завантажується", () => {
+  it("показує skeleton (не контент), поки auth ще завантажується", () => {
     setAuth([], { loading: true, loggedIn: false });
     const { container } = renderRoute(undefined);
-    expect(container.querySelector(".animate-spin")).toBeTruthy();
+    // ProtectedRoute renders AppLoadingSkeleton (not spinner) during auth loading
+    // Skeleton has animate-pulse divs, no animate-spin
+    expect(container.querySelector(".animate-pulse")).toBeTruthy();
     expect(screen.queryByText("PROTECTED_CONTENT")).not.toBeInTheDocument();
   });
 });
