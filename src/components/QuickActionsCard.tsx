@@ -74,7 +74,7 @@ function ddmmyyyyFromIso(date: string) {
 }
 
 function isoFromDdmmyyyy(value: string): string | null {
-  const m = value.trim().match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
+  const m = value.trim().match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{4})$/);
   if (!m) return null;
   const day = Number(m[1]);
   const month = Number(m[2]);
