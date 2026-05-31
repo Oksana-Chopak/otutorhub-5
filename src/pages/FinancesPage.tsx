@@ -1400,3 +1400,68 @@ function SummaryStat({
     </div>
   );
 }
+
+/**
+ * Google-Sheets-style sortable column header. Click to toggle desc → asc → off.
+ */
+function SortHeader({
+  label,
+  active,
+  onClick,
+  align = "left",
+  title,
+}: {
+  label: string;
+  active: "asc" | "desc" | null;
+  onClick: () => void;
+  align?: "left" | "right";
+  title?: string;
+}) {
+  const Icon = active === "asc" ? ArrowUp : active === "desc" ? ArrowDown : ArrowUpDown;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={title}
+      className={cn(
+        "inline-flex items-center gap-1 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60",
+        active ? "text-foreground" : "",
+        align === "right" && "flex-row-reverse",
+      )}
+    >
+      <span>{label}</span>
+      <Icon className={cn("h-3 w-3", active ? "opacity-100" : "opacity-40")} />
+    </button>
+  );
+}
+
+/**
+ * Mobile-friendly sort chip. Compact pill with arrow indicator.
+ */
+function MobileSortChip({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: "asc" | "desc" | null;
+  onClick: () => void;
+}) {
+  const Icon = active === "asc" ? ArrowUp : active === "desc" ? ArrowDown : ArrowUpDown;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 transition-colors",
+        active
+          ? "border-primary/40 bg-primary/10 text-primary"
+          : "border-border bg-background text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span>{label}</span>
+      <Icon className="h-3 w-3" />
+    </button>
+  );
+}
+
