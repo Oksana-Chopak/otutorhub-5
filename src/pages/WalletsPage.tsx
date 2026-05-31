@@ -75,7 +75,7 @@ export default function WalletsPage() {
     );
 
     // 3. Balances
-    let balQ = supabase
+    const balQ = supabase
       .from("student_wallet_balances" as any)
       .select("*");
     const { data: balances } = await balQ;
