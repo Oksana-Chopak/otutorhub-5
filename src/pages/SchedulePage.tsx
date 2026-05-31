@@ -876,25 +876,13 @@ export default function SchedulePage() {
             <span>📅</span>
             <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
-            {isManager
-              ? t("schedule.allLessons") ?? "Усі уроки школи"
-              : isTutor
-              ? t("schedule.tutorSubtitle")
-              : t("schedule.studentSubtitle")}
-          </p>
+          {!isManager && (
+            <p className="text-xs text-muted-foreground sm:text-sm">
+              {isTutor ? t("schedule.tutorSubtitle") : t("schedule.studentSubtitle")}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <NotificationBell />
-          <Link to="/profile" className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white" style={{background:"var(--teal,#2BBFAA)"}}><Menu className="h-5 w-5" /></Link>
-          <ScheduleFiltersSheet
-            filters={filters}
-            showTutorFilter={isManager}
-            showStudentFilter={isManager || isTutor}
-            showSourceFilter={hasMixedSources}
-            tutors={tutors}
-            students={students}
-          />
           <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
               <List className="h-3.5 w-3.5" />{t('schedule.listView')}
@@ -903,6 +891,15 @@ export default function SchedulePage() {
               <CalendarRange className="h-3.5 w-3.5" />{t('schedule.weekView')}
             </Button>
           </div>
+          <ScheduleFiltersSheet
+            filters={filters}
+            showTutorFilter={isManager}
+            showStudentFilter={isManager || isTutor}
+            showSourceFilter={hasMixedSources}
+            tutors={tutors}
+            students={students}
+          />
+          <NotificationBell />
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
