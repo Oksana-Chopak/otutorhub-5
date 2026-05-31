@@ -894,6 +894,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* PAYMENT METHODS */}
+      <PaymentMethodsSection />
+
       {/* FOOTER */}
       <footer>
         <div className="footer-inner">
