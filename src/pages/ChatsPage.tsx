@@ -497,7 +497,7 @@ export default function ChatsPage() {
         setPendingFile(null);
         return;
       }
-      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const safeName = file.name.replace(/[^\w.-]+/g, "_");
       const path = `${myId}/${selectedThread.id}/${crypto.randomUUID()}-${safeName}`;
       const { error: upErr } = await supabase.storage
         .from("chat-attachments")
