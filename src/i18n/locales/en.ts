@@ -1862,7 +1862,7 @@ export const en: Translations = {
     referralCta: "Invite colleague",
     referralBadge: "Bonus",
     referralHint: "Invitation created ✓",
-    proRulesTitle: "Set up payment reminders (Pro)",
+    proRulesTitle: "Set up payment & cancellation rules",
     proRulesDesc: "Choose when students get payment reminders — prepay, before or after the lesson.",
     proRulesCta: "Go to Pro rules",
     proRulesHint: "Rules saved ✓",
