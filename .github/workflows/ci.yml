@@ -26,9 +26,11 @@ jobs:
         run: npx tsc --noEmit
         # If this fails → Lovable broke types
 
-      - name: ESLint — zero warnings
-        run: npx eslint src --ext .tsx,.ts --max-warnings 20
-        # 20 warnings allowed (some are acceptable), errors are 0
+      - name: ESLint — zero errors
+        run: npx eslint src --ext .tsx,.ts --quiet
+        # --quiet: only report errors (not warnings), fail only on errors
+        # Warnings from Lovable-generated code (no-explicit-any etc) are tracked
+        # separately and cleaned up each sprint via check-hardcode.mjs
         continue-on-error: false
 
       - name: Vite build
@@ -95,7 +97,7 @@ jobs:
     name: 🎭 E2E tests
     runs-on: ubuntu-latest
     # Only run if credentials are configured
-    if: vars.TEST_TUTOR_EMAIL != ''
+    if: ${{ secrets.TEST_TUTOR_EMAIL != '' }}
     steps:
       - uses: actions/checkout@v4
 
