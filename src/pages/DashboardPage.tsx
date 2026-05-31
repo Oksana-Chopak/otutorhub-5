@@ -1560,7 +1560,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="order-1 md:order-2 md:col-span-2">
+            <section className="order-1 md:order-2">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
