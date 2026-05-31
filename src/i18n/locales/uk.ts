@@ -73,6 +73,7 @@ export const uk = {
     openMenu: "Відкрити меню",
     closeMenu: "Закрити меню",
     studentsShort: "Учні",
+    newBadge: "Новий!",
   },
 
   roles: {
