@@ -2115,14 +2115,7 @@ export default function ChatsPage() {
             )}
           </div>
 
-          {/* Desktop context panel */}
-          {canShowContext && selectedThread && (
-            <ChatContextPanel
-              tutorId={selectedThread.tutor_id}
-              studentId={selectedThread.student_id}
-              className="flex rounded-xl border border-border h-[calc(100vh-8rem)] xl:h-auto xl:max-h-[calc(100vh-10rem)] overflow-y-auto hidden xl:flex"
-            />
-          )}
+          {/* Context available via Info button → Sheet */}
         </div>
       )}
 
