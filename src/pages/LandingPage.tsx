@@ -895,9 +895,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* PAYMENT METHODS */}
-      <PaymentMethodsSection />
-
       {/* FOOTER */}
       <footer>
         <div className="footer-inner">
@@ -908,6 +905,7 @@ export default function LandingPage() {
             <Link to="/privacy">{t("landing.footer.privacy")}</Link>
             <a href="mailto:hello@otutorhub.com">{t("landing.footer.contact")}</a>
           </div>
+          <PaymentMethodsSection />
           <div>{t("landing.footer.copyright")}</div>
         </div>
       </footer>
