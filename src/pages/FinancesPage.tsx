@@ -166,6 +166,19 @@ export default function FinancesPage() {
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
   const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
 
+  // Column sort (Google-Sheets style). null = smart default sort.
+  type SortKey = "starts_at" | "student_paid_at" | "tutor_paid_at";
+  type SortDir = "asc" | "desc";
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir } | null>(null);
+  const cycleSort = (key: SortKey) => {
+    setSort((cur) => {
+      if (!cur || cur.key !== key) return { key, dir: "desc" };
+      if (cur.dir === "desc") return { key, dir: "asc" };
+      return null;
+    });
+  };
+
+
   // Sync tab to URL so the view is shareable/bookmarkable; clear legacy `filter`.
   const handleTabChange = (value: string) => {
     const next = value as TabKey;
