@@ -717,7 +717,7 @@ export default function ChatsPage() {
       ) : (
         <div
           className={cn(
-            "grid min-w-0 gap-4",
+            "grid min-w-0 gap-4 lg:items-start",
             canShowContext && selectedThread
               ? "lg:grid-cols-[320px_minmax(0,1fr)_260px]"
               : "lg:grid-cols-[320px_minmax(0,1fr)]"
@@ -726,7 +726,7 @@ export default function ChatsPage() {
           {/* Thread list — hidden on mobile when a chat is selected */}
           <div
             className={cn(
-              "flex min-w-0 flex-col rounded-xl border border-border bg-card lg:max-h-[70vh]",
+              "flex min-w-0 flex-col rounded-xl border border-border bg-card lg:max-h-[calc(100vh-10rem)]",
               "h-[calc(100vh-12rem)] lg:h-auto",
               selectedId ? "hidden lg:flex" : "flex"
             )}
@@ -879,7 +879,7 @@ export default function ChatsPage() {
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:max-h-[55vh] lg:min-h-[300px] lg:p-5">
+                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:p-5">
                   {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
                     <div className="flex justify-center">
                       <Button
