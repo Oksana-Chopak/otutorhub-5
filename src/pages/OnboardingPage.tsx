@@ -20,10 +20,10 @@ export default function OnboardingPage() {
             size="sm"
             onClick={() => navigate(-1)}
             className="gap-1.5"
-            aria-label={t("nav.back") || "Back"}
+            aria-label={t("common.back") || "Back"}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("nav.back") || "Назад"}</span>
+            <span className="hidden sm:inline">{t("common.back") || "Назад"}</span>
           </Button>
           <div className="flex items-center gap-2">
             <img src="/logo.png" alt="oTutorHub" className="h-7 w-7" />
