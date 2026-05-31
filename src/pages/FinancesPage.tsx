@@ -896,8 +896,10 @@ export default function FinancesPage() {
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">
                   <SortHeader
                     label={t("finances.colDate")}
+                    sublabel={t("finances.sortByLessonDate", { defaultValue: "за датою уроку" })}
                     active={sort?.key === "starts_at" ? sort.dir : null}
                     onClick={() => cycleSort("starts_at")}
+                    title={t("finances.sortByLessonDate", { defaultValue: "Сортувати за датою уроку" })}
                   />
                 </th>
                 <th className="px-3 py-3 text-left font-medium text-muted-foreground">{t("finances.colLesson")}</th>
@@ -906,9 +908,10 @@ export default function FinancesPage() {
                   <SortHeader
                     align="right"
                     label={t("finances.colIncome")}
+                    sublabel={t("finances.sortByPaidDateShort", { defaultValue: "за датою оплати" })}
                     active={sort?.key === "student_paid_at" ? sort.dir : null}
                     onClick={() => cycleSort("student_paid_at")}
-                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати" })}
+                    title={t("finances.sortByPaidDate", { defaultValue: "Сортувати за датою оплати від учня" })}
                   />
                 </th>
                 {!isIndependentTutor && (
@@ -919,9 +922,10 @@ export default function FinancesPage() {
                     <SortHeader
                       align="right"
                       label={t("finances.colPayout")}
+                      sublabel={t("finances.sortByPayoutDateShort", { defaultValue: "за датою виплати" })}
                       active={sort?.key === "tutor_paid_at" ? sort.dir : null}
                       onClick={() => cycleSort("tutor_paid_at")}
-                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати" })}
+                      title={t("finances.sortByPayoutDate", { defaultValue: "Сортувати за датою виплати репетитору" })}
                     />
                   </th>
                 )}
@@ -1406,12 +1410,14 @@ function SummaryStat({
  */
 function SortHeader({
   label,
+  sublabel,
   active,
   onClick,
   align = "left",
   title,
 }: {
   label: string;
+  sublabel?: string;
   active: "asc" | "desc" | null;
   onClick: () => void;
   align?: "left" | "right";
@@ -1424,13 +1430,21 @@ function SortHeader({
       onClick={onClick}
       title={title}
       className={cn(
-        "inline-flex items-center gap-1 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60",
+        "inline-flex items-center gap-1.5 rounded px-1 -mx-1 py-0.5 transition-colors hover:bg-muted/60 cursor-pointer",
         active ? "text-foreground" : "",
         align === "right" && "flex-row-reverse",
       )}
     >
-      <span>{label}</span>
-      <Icon className={cn("h-3 w-3", active ? "opacity-100" : "opacity-40")} />
+      <span
+        className="inline-flex flex-col leading-tight"
+        style={{ alignItems: align === "right" ? "flex-end" : "flex-start" }}
+      >
+        <span>{label}</span>
+        {sublabel && (
+          <span className="text-[10px] font-normal text-muted-foreground normal-case">{sublabel}</span>
+        )}
+      </span>
+      <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100 text-primary" : "opacity-70")} />
     </button>
   );
 }
