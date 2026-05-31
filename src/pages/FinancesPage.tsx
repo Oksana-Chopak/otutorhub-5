@@ -726,6 +726,27 @@ export default function FinancesPage() {
     }
     return (
       <div className="overflow-hidden rounded-xl border border-border bg-card">
+        {/* Mobile sort controls */}
+        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[11px] lg:hidden">
+          <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
+          <MobileSortChip
+            label={t("finances.colDate")}
+            active={sort?.key === "starts_at" ? sort.dir : null}
+            onClick={() => cycleSort("starts_at")}
+          />
+          <MobileSortChip
+            label={t("finances.sortPaidShort", { defaultValue: "Оплата" })}
+            active={sort?.key === "student_paid_at" ? sort.dir : null}
+            onClick={() => cycleSort("student_paid_at")}
+          />
+          {!isIndependentTutor && (
+            <MobileSortChip
+              label={t("finances.sortPayoutShort", { defaultValue: "Виплата" })}
+              active={sort?.key === "tutor_paid_at" ? sort.dir : null}
+              onClick={() => cycleSort("tutor_paid_at")}
+            />
+          )}
+        </div>
         {/* Mobile cards */}
         <div className="divide-y divide-border lg:hidden">
           {rows.map((row) => {
