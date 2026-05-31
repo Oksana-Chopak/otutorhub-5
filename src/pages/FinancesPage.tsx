@@ -20,6 +20,9 @@ import {
   Wallet,
   Percent,
   Menu,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
