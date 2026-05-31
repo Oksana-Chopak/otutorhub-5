@@ -1849,6 +1849,7 @@ export type Database = {
           payment_due_mode: string
           payment_reminder_enabled: boolean
           payment_rules_configured: boolean
+          reward_theme: string
           subscription_status: string
           subscription_until: string | null
           trial_until: string | null
@@ -1874,6 +1875,7 @@ export type Database = {
           payment_due_mode?: string
           payment_reminder_enabled?: boolean
           payment_rules_configured?: boolean
+          reward_theme?: string
           subscription_status?: string
           subscription_until?: string | null
           trial_until?: string | null
@@ -1899,6 +1901,7 @@ export type Database = {
           payment_due_mode?: string
           payment_reminder_enabled?: boolean
           payment_rules_configured?: boolean
+          reward_theme?: string
           subscription_status?: string
           subscription_until?: string | null
           trial_until?: string | null

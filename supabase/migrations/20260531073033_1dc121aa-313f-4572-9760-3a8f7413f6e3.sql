@@ -1,0 +1,1 @@
+ALTER TABLE public.tutor_workspace_settings ADD COLUMN IF NOT EXISTS reward_theme TEXT NOT NULL DEFAULT 'fruits';
