@@ -141,7 +141,7 @@ export function QuickLessonDialog({
 
       // Load enrollments for groups
       const groupIds = (gs ?? []).map((g: any) => g.id);
-      let participantsByGroup = new Map<string, { student_id: string }[]>();
+      const participantsByGroup = new Map<string, { student_id: string }[]>();
       if (groupIds.length) {
         const { data: ens } = await supabase
           .from("group_enrollments")
