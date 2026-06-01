@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import confetti from "canvas-confetti";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   emoji: string;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function StepVictoryOverlay({ emoji, title, xp, isFinal, onDone }: Props) {
+  const { t } = useTranslation();
   useEffect(() => {
     if (isFinal) {
       confetti({
@@ -66,7 +68,7 @@ export function StepVictoryOverlay({ emoji, title, xp, isFinal, onDone }: Props)
         <div className="min-w-0">
           <p className="font-display text-lg font-bold text-foreground">{title}</p>
           <p className="text-sm text-muted-foreground">
-            {isFinal ? "Всі квести виконано! 🎉" : "Крок завершено!"}
+            {isFinal ? t("stepVictory.allDone") : t("stepVictory.stepDone")}
           </p>
         </div>
         <div className="relative">
