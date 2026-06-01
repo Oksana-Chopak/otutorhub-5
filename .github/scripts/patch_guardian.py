@@ -173,6 +173,34 @@ for locale_path, (old_key, new_block) in STEP_VICTORY_BLOCKS.items():
         f'i18n stepVictory keys — {locale_path.split("/")[-1]}'
     )
 
+
+# ── PATCH 6: FinancesPage — expensesRows useMemo with isIndependentTutor ─────
+def fix_finances_expenses_rows(c):
+    # expensesRows useMemo was deleted by Lovable — independent tutors saw wrong expenses
+    if 'expensesRows' in c:
+        return c  # already present
+    old = '  }, [periodBillable, periodTopups, canManagePrepay, sort]);\n\n  const debtsRows'
+    new = '''  }, [periodBillable, periodTopups, canManagePrepay, sort]);
+
+  const expensesRows: Row[] = useMemo(() => {
+    if (isIndependentTutor) return [];
+    return periodBillable
+      .filter((l) => l.tutor_payout_status === "paid")
+      .map((l) => ({ type: "lesson" as const, l }))
+      .sort(activeSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodBillable, isIndependentTutor, sort]);
+
+  const debtsRows'''
+    return c.replace(old, new) if old in c else c
+
+check_and_patch(
+    'src/pages/FinancesPage.tsx',
+    'expensesRows',
+    fix_finances_expenses_rows,
+    'FinancesPage — expensesRows data isolation'
+)
+
 # ── Output result ──────────────────────────────────────────────────────────────
 if patched:
     with open(os.environ.get('GITHUB_OUTPUT', '/tmp/gha_output'), 'a') as f:
