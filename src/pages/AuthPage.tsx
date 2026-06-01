@@ -309,8 +309,8 @@ export default function AuthPage() {
             )}
             <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); setSignInData(p => ({ ...p, password: "" })); setSignUpData(p => ({ ...p, password: "" })); }} className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg h-11">
-                <TabsTrigger value="signin" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-md data-[state=active]:bg-background data-[state=active]:shadow-sm">{t("auth.tabSignUp")}</TabsTrigger>
+                <TabsTrigger value="signin" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
