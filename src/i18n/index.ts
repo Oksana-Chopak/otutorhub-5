@@ -17,8 +17,15 @@ void i18n
     fallbackLng: "uk",
     supportedLngs: ["uk", "en", "sv"],
     interpolation: { escapeValue: false },
+    lng: (() => {
+      // Use stored preference, otherwise default to Ukrainian regardless of browser locale
+      const stored = typeof localStorage !== "undefined"
+        ? localStorage.getItem("otutorhub_lang")
+        : null;
+      return stored && ["uk", "en", "sv"].includes(stored) ? stored : "uk";
+    })(),
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       lookupLocalStorage: "otutorhub_lang",
       caches: ["localStorage"],
     },
