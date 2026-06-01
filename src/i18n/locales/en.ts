@@ -1900,6 +1900,10 @@ export const en: Translations = {
     whatThisMeans: "What does this mean?",
     questLevel: "🏆 Level {{count}}",
     questDone: "🎉 All achievements unlocked!",
+  stepVictory: {
+    stepDone: "Step complete!",
+    allDone: "All quests done! 🎉",
+  },
     closeBtn: "Close",
     finishBtn: "Finish onboarding",
     welcomeTitle: "Welcome!",
