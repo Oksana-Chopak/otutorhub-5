@@ -1907,6 +1907,10 @@ export const uk = {
     whatThisMeans: "Що це означає?",
     questLevel: "🏆 Рівень {{count}}",
     questDone: "🎉 Готово! Усі досягнення виконано",
+  stepVictory: {
+    stepDone: "Крок завершено!",
+    allDone: "Всі квести виконано! 🎉",
+  },
     closeBtn: "Закрити",
     finishBtn: "Завершити онбординг",
     welcomeTitle: "Ласкаво просимо!",
