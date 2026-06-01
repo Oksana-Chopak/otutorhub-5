@@ -124,7 +124,7 @@ test.describe("3. Onboarding page", () => {
 
     // Victory overlay or auto-complete sticker should appear
     await expect(
-      page.getByText(/виконано|✅|+25 XP|automatically/i).first()
+      page.getByText(/виконано|✅|\+25 XP|automatically/i).first()
     ).toBeVisible({ timeout: 8000 });
   });
 });
