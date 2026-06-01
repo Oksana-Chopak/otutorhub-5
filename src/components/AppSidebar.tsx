@@ -97,6 +97,13 @@ export function AppSidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+
+  // Listen for toggle event dispatched by AppLayout header burger
+  useEffect(() => {
+    const handler = () => setOpen((o) => !o);
+    window.addEventListener("toggleSidebar", handler);
+    return () => window.removeEventListener("toggleSidebar", handler);
+  }, []);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user, roles, signOut } = useAuth();
   const availabilityBadge = useAvailabilityRequestCount();
@@ -133,15 +140,7 @@ export function AppSidebar() {
 
   return (
     <>
-      {/* Mobile burger — top-right corner */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-[14px] text-white shadow-md transition-all active:scale-95 lg:hidden"
-        style={{ background: "var(--teal,#2BBFAA)" }}
-        aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
-      >
-        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </button>
+      {/* Mobile burger is in AppLayout header */}
 
       {open && (
         <div
