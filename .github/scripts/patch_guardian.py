@@ -201,6 +201,42 @@ check_and_patch(
     'FinancesPage — expensesRows data isolation'
 )
 
+
+# ── PATCH 7: i18n — default to Ukrainian, not browser locale ─────────────────
+def fix_i18n_default_lang(c):
+    old = '''    detection: {
+      order: ["localStorage", "navigator"],
+      lookupLocalStorage: "otutorhub_lang",
+      caches: ["localStorage"],
+    },'''
+    new = '''    lng: (() => {
+      const stored = typeof localStorage !== "undefined"
+        ? localStorage.getItem("otutorhub_lang")
+        : null;
+      return stored && ["uk", "en", "sv"].includes(stored) ? stored : "uk";
+    })(),
+    detection: {
+      order: ["localStorage"],
+      lookupLocalStorage: "otutorhub_lang",
+      caches: ["localStorage"],
+    },'''
+    return c.replace(old, new) if old in c else c
+
+check_and_patch(
+    'src/i18n/index.ts',
+    'return stored && ["uk", "en", "sv"].includes(stored)',
+    fix_i18n_default_lang,
+    'i18n — default Ukrainian, not browser locale'
+)
+
+# ── PATCH 8: DashboardPage — no hardcoded +12%, real MoM growth ──────────────
+check_and_patch(
+    'src/pages/DashboardPage.tsx',
+    'prevMonthProfit',
+    lambda c: c,  # complex patch — flag for manual fix if missing
+    'DashboardPage — real MoM profit growth (no hardcoded +12%)'
+)
+
 # ── Output result ──────────────────────────────────────────────────────────────
 if patched:
     with open(os.environ.get('GITHUB_OUTPUT', '/tmp/gha_output'), 'a') as f:
