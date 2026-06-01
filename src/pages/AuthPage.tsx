@@ -107,11 +107,20 @@ export default function AuthPage() {
       navigate("/", { replace: true });
       return;
     }
+    // No active session — auto-fill email so the user only needs to type password
+    const emailFromConfirm = searchParams.get("email");
+    if (emailFromConfirm) {
+      setSignInData((prev) => ({ ...prev, email: emailFromConfirm }));
+    }
     toast({
       title: t("authExtra.emailConfirmed"),
       description: t("authExtra.emailConfirmedDesc"),
     });
-  }, [isConfirmed, authLoading, user, navigate]);
+    // Move focus to password field so user can immediately type password
+    setTimeout(() => {
+      document.getElementById("signin-password")?.focus();
+    }, 300);
+  }, [isConfirmed, authLoading, user, navigate, searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
