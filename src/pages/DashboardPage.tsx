@@ -676,6 +676,48 @@ export default function DashboardPage() {
     .reduce((s, l) => s + Number(l.tutor_payout), 0);
   const profit = totalIncome - totalExpense;
 
+  // Real month-over-month growth — no more hardcoded +12%
+  const prevMonthProfit = useMemo(() => {
+    const now = new Date();
+    const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+    const prevEnd   = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const prev = lessons.filter((l) => {
+      if (l.status === "cancelled" || l.status === "pending") return false;
+      const ts = new Date(l.starts_at).getTime();
+      return ts >= prevStart && ts < prevEnd;
+    });
+    const inc = prev.filter((l) => l.student_payment_status === "paid")
+      .reduce((s, l) => s + Number(l.student_price), 0);
+    const exp = prev.filter((l) => l.tutor_payout_status === "paid")
+      .reduce((s, l) => s + Number(l.tutor_payout), 0);
+    return inc - exp;
+  }, [lessons]);
+
+  const profitGrowthPct = useMemo(() => {
+    if (profitPeriod !== "month") return null;
+    if (prevMonthProfit === 0) return null; // can't calculate % from 0 base
+    return Math.round(((profit - prevMonthProfit) / Math.abs(prevMonthProfit)) * 100);
+  }, [profit, prevMonthProfit, profitPeriod]);
+
+  // Real weekly income bars (last 7 weeks) for PROFIT card chart
+  const weeklyIncomeBars = useMemo(() => {
+    const now = new Date();
+    const bars = Array.from({ length: 7 }, (_, w) => {
+      const ws = new Date(now);
+      ws.setDate(ws.getDate() - ((ws.getDay() + 6) % 7) - (6 - w) * 7);
+      ws.setHours(0, 0, 0, 0);
+      const we = new Date(ws); we.setDate(ws.getDate() + 7);
+      return lessons
+        .filter((l) => {
+          const ts = new Date(l.starts_at).getTime();
+          return ts >= ws.getTime() && ts < we.getTime() && l.student_payment_status === "paid";
+        })
+        .reduce((s, l) => s + Number(l.student_price), 0);
+    });
+    const max = Math.max(...bars, 1);
+    return bars.map((v) => Math.round((v / max) * 100));
+  }, [lessons]);
+
   const pendingPayments = useMemo(
     () =>
       lessons.filter((l) => {
@@ -986,11 +1028,13 @@ export default function DashboardPage() {
                 <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
                   {formatPrice(profit, "UAH")}
                 </p>
-                <p className="mt-1 text-[13px] font-medium" style={{ color: "#22c55e" }}>
-                  ↑ +12% {t("dashboard.periodMonth")}
-                </p>
+                {profitGrowthPct !== null && (
+                  <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                    {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth")}
+                  </p>
+                )}
                 <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
-                  {[40, 55, 48, 72, 62, 85, 100].map((h, i) => (
+                  {weeklyIncomeBars.map((h, i) => (
                     <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                   ))}
                 </div>
