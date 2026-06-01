@@ -237,6 +237,51 @@ check_and_patch(
     'DashboardPage — real MoM profit growth (no hardcoded +12%)'
 )
 
+
+# ── PATCH 9: AppSidebar — no fixed burger, uses custom event ─────────────────
+def fix_sidebar_burger(c):
+    # Remove fixed burger button — it was overlapping with NotificationBell
+    old = '''      {/* Mobile burger — top-right corner */}
+      <button
+        onClick={() => setOpen(!open)}
+        className="fixed right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-[14px] text-white shadow-md transition-all active:scale-95 lg:hidden"
+        style={{ background: "var(--teal,#2BBFAA)" }}
+        aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")}
+      >
+        {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+      </button>'''
+    if old in c:
+        return c.replace(old, '      {/* Mobile burger is in AppLayout header */}')
+    return c
+
+check_and_patch(
+    'src/components/AppSidebar.tsx',
+    'Mobile burger is in AppLayout header',
+    fix_sidebar_burger,
+    'AppSidebar — remove fixed burger (now in AppLayout header)'
+)
+
+# ── PATCH 10: AppLayout — sidebar toggle in header ───────────────────────────
+check_and_patch(
+    'src/components/AppLayout.tsx',
+    'toggleSidebar',
+    lambda c: c,  # complex — flag if missing
+    'AppLayout — sidebar burger in header (bell + burger side by side)'
+)
+
+# ── PATCH 11: DashboardPage hero — dark bg on mobile ─────────────────────────
+def fix_hero_bg(c):
+    old = '  className="relative px-5 py-5 lg:px-0 lg:py-0"'
+    new = '  className="relative px-5 py-6 lg:px-0 lg:py-0"\n          style={{ background: "linear-gradient(160deg,#0f172a 0%,#1e293b 100%)" }}'
+    return c.replace(old, new) if old in c else c
+
+check_and_patch(
+    'src/pages/DashboardPage.tsx',
+    'linear-gradient(160deg,#0f172a',
+    fix_hero_bg,
+    'DashboardPage — dark hero background on mobile'
+)
+
 # ── Output result ──────────────────────────────────────────────────────────────
 if patched:
     with open(os.environ.get('GITHUB_OUTPUT', '/tmp/gha_output'), 'a') as f:
