@@ -49,7 +49,7 @@ test.describe("Dashboard — greeting quality", () => {
     await page.goto("/dashboard");
     await page.waitForLoadState("networkidle");
     // Golden bell has specific classes — count all notification bell buttons
-    const bells = page.locator("button").filter({ has: page.locator("svg") }).filter({ hasClass: /rounded-full/ });
+    const bells = page.locator("button.rounded-full").filter({ has: page.locator("svg") });
     // More lenient: check that page doesn't have two bell icons with notification functionality
     // Use aria or title hints
     const namedBells = page.locator("[aria-label*='повідомлен'], [title*='повідомлен']");
