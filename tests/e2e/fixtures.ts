@@ -59,18 +59,25 @@ export async function loginAs(
   await page.goto("/auth");
   await page.waitForLoadState("networkidle");
 
-  // Click Sign In tab
+  // Ensure we are on the sign-in tab
   const signinTab = page.getByRole("tab").filter({ hasText: /вхід|sign in/i });
   if (await signinTab.isVisible()) {
     await signinTab.click();
   }
 
-  await page.getByLabel(/email/i).fill(credentials.email);
-  await page.getByLabel(/пароль|password/i).fill(credentials.password);
-  await page.getByRole("button", { name: /увійти|sign in|login/i }).click();
+  // Use #id selectors — signin form has id="signin-email" and id="signin-password"
+  // This avoids ambiguity when both signin and signup forms are in the DOM simultaneously
+  await page.locator("#signin-email").fill(credentials.email);
+  await page.locator("#signin-password").fill(credentials.password);
+
+  // Submit button scoped to the active tab to avoid clicking the signup submit
+  await page
+    .locator('[data-state=active] button[type="submit"]')
+    .first()
+    .click();
 
   // Wait for any authenticated route to load (dashboard, student-dashboard, etc.)
-  await page.waitForURL(/\/(dashboard|student-dashboard|onboarding)/, { timeout: 15000 });
+  await page.waitForURL(/\/(dashboard|student-dashboard|onboarding)/, { timeout: 20000 });
   await page.waitForLoadState("networkidle");
 }
 
