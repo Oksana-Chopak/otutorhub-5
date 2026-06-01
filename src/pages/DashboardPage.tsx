@@ -955,15 +955,14 @@ export default function DashboardPage() {
       <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:mx-0 lg:mt-0 lg:mb-6 lg:rounded-[18px]">
         <div
           className="relative px-5 py-6 lg:px-0 lg:py-0"
-          style={{ background: "linear-gradient(160deg,#0f172a 0%,#1e293b 100%)" }}
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-[26px] font-extrabold leading-tight text-white lg:text-foreground lg:text-[28px]">
+              <h1 className="font-display text-[26px] font-extrabold leading-tight text-foreground lg:text-[28px]">
                 {timeEmoji}{" "}
                 {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal)" }}>{firstName}</span></> : "!"}
               </h1>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-slate-400 lg:text-muted-foreground">
+              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted-foreground">
                 <Link
                   to="/schedule"
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
@@ -978,7 +977,7 @@ export default function DashboardPage() {
                   </span>
                 )}
               </p>
-              <p className="mt-3 line-clamp-2 text-[14px] italic" style={{ color: "#94a3b8" }}>
+              <p className="mt-3 line-clamp-2 text-[14px] italic text-muted-foreground">
                 ✨ {phraseOfDay}
               </p>
             </div>
