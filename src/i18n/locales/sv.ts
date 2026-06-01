@@ -1890,6 +1890,10 @@ export const sv: Partial<Translations> = {
     whatThisMeans: "Vad betyder detta?",
     questLevel: "🏆 Nivå {{count}}",
     questDone: "🎉 Alla prestationer klara!",
+  stepVictory: {
+    stepDone: "Steg slutfört!",
+    allDone: "Alla uppdrag klara! 🎉",
+  },
     closeBtn: "Stäng",
     finishBtn: "Avsluta onboarding",
     welcomeTitle: "Välkommen!",
