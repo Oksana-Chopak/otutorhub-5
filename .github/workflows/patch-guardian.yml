@@ -6,7 +6,6 @@ on:
 
 jobs:
   patch-guardian:
-    # Only run after Lovable commits — skip our own guardian commits
     if: |
       (contains(github.event.head_commit.message, 'X-Lovable') ||
        contains(github.event.head_commit.author.name, 'lovable') ||
@@ -32,7 +31,8 @@ jobs:
           git config user.name "Patch Guardian"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
+          PATCH_LIST=$(cat .github/scripts/patch_log.txt 2>/dev/null || echo "- patches restored")
           git commit -m "chore(guardian): restore patches after Lovable deploy [skip guardian]
 
-$(cat .github/scripts/patch_log.txt 2>/dev/null || echo '- patches restored')"
+${PATCH_LIST}"
           git push
