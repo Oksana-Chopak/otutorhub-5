@@ -112,7 +112,7 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run E2E tests
-        run: npx playwright test
+        run: npx playwright test --reporter=line
         env:
           E2E_BASE_URL: https://otutorhub.com
           TEST_TUTOR_EMAIL: ${{ secrets.TEST_TUTOR_EMAIL }}
