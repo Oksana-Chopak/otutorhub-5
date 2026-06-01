@@ -1,11 +1,10 @@
 import { useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { AppSidebar } from "./AppSidebar";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { NotificationBell } from "./NotificationBell";
-import { UserCircle } from "lucide-react";
+import { Menu } from "lucide-react";
 
 const routeTitleKey: Record<string, string> = {
   "/": "nav.dashboard",
@@ -41,15 +40,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <h1 className="font-display text-sm font-semibold text-muted-foreground">
               {t(titleKey)}
             </h1>
-            <div className="flex items-center gap-1">
-              <NotificationBell className="h-8 w-8 border-0 bg-transparent hover:bg-secondary" />
-              <Link
-                to="/profile"
-                aria-label={t("nav.profile")}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+            <div className="flex items-center gap-2">
+              <NotificationBell className="h-9 w-9 border-0 bg-transparent hover:bg-secondary" />
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] text-white"
+                style={{ background: "var(--teal,#2BBFAA)" }}
+                aria-label={t("nav.openMenu")}
               >
-                <UserCircle className="h-5 w-5" />
-              </Link>
+                <Menu className="h-5 w-5" />
+              </button>
             </div>
           </header>
         )}
