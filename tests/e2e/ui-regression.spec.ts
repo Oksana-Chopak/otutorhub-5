@@ -5,6 +5,15 @@ import { test, expect } from "./fixtures";
 // Мета: жодного ручного клікання в браузері для перевірки відомих багів.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Skip authenticated tests if tutor/manager credentials are not configured
+test.skip(
+  !process.env.TEST_TUTOR_EMAIL ||
+    !process.env.TEST_TUTOR_PASSWORD ||
+    !process.env.TEST_MANAGER_EMAIL ||
+    !process.env.TEST_MANAGER_PASSWORD,
+  "Set TEST_TUTOR_* and TEST_MANAGER_* env vars to run UI regression tests"
+);
+
 // ── 1. i18n — жодних raw ключів на сторінках ────────────────────────────────
 
 test.describe("i18n — no raw keys on pages", () => {
