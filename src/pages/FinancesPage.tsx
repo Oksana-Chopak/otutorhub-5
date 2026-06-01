@@ -394,6 +394,14 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, periodTopups, canManagePrepay, sort]);
 
+  const expensesRows: Row[] = useMemo(() => {
+    if (isIndependentTutor) return [];
+    return periodBillable
+      .filter((l) => l.tutor_payout_status === "paid")
+      .map((l) => ({ type: "lesson" as const, l }))
+      .sort(activeSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodBillable, isIndependentTutor, sort]);
 
   const debtsRows: Row[] = useMemo(() => {
     return periodBillable
@@ -408,7 +416,7 @@ export default function FinancesPage() {
   }, [periodBillable, isIndependentTutor, sort]);
 
   const rowsForActiveTab: Row[] =
-    activeTab === "income" ? incomeRows : debtsRows;
+    activeTab === "income" ? incomeRows : activeTab === "expenses" ? expensesRows : debtsRows;
 
   const visibleLessons: LessonRow[] = useMemo(
     () => rowsForActiveTab.filter((r): r is { type: "lesson"; l: LessonRow } => r.type === "lesson").map((r) => r.l),
