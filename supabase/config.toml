@@ -43,3 +43,7 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.send-marketing-campaign]
     verify_jwt = true
+  [functions.fireflies-webhook]
+    verify_jwt = false
+  [functions.fireflies-start-recording]
+    verify_jwt = true

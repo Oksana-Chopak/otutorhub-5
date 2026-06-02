@@ -15,6 +15,7 @@ import { LessonAttachments } from "@/components/LessonAttachments";
 import { LessonFeedback } from "@/components/LessonFeedback";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { FirefliesPanel } from "@/components/FirefliesPanel";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
@@ -503,6 +504,15 @@ export function LessonWorkspace({
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
+
+      {/* 5a. Fireflies AI recording */}
+      <FirefliesPanel
+        lessonId={lessonId}
+        tutorId={tutorId}
+        meetingUrl={(meetingUrl && meetingUrl.trim()) || defaultUrl || null}
+        canRecord={isTutor}
+        canView={isTutor || isStudent || isManager}
+      />
 
       {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
       <LessonFeedback
