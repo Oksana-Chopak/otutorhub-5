@@ -506,6 +506,12 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
   const savedStep = settings?.onboarding_step ?? 0;
   const completed = settings?.onboarding_completed ?? false;
+  const requiredSteps = useMemo(() => steps.filter((s) => s.required), [steps]);
+  const optionalSteps = useMemo(() => steps.filter((s) => !s.required), [steps]);
+  const requiredDone = useMemo(
+    () => requiredSteps.every((s) => (s.autoKey ? progress[s.autoKey] : false)),
+    [requiredSteps, progress]
+  );
   const autoStepCount = useMemo(() => steps.filter((s) => s.autoKey).length, [steps]);
   const totalDone = completed
     ? autoStepCount
@@ -700,8 +706,20 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         </div>
       )}
 
+      {/* QuickLessonDialog for step 2 inline */}
+      <QuickLessonDialog
+        open={quickLessonOpen}
+        onOpenChange={setQuickLessonOpen}
+        startsAt={new Date()}
+        onCreated={() => {
+          setQuickLessonOpen(false);
+          setProgressReloadKey((k) => k + 1);
+        }}
+      />
+
+      {/* Mandatory steps */}
       <div className="space-y-3">
-        {steps.map((step) => {
+        {requiredSteps.map((step) => {
           const isAutoDone = step.autoKey ? progress[step.autoKey] : false;
           const isDone = isAutoDone || completed;
           const isCurrent = !isDone && savedStep === step.id;
@@ -816,6 +834,16 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                           {connectingCalendar && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
                           {step.cta}
                           {!connectingCalendar && <ArrowRight className="ml-1 h-3 w-3" />}
+                        </Button>
+                      ) : step.id === 2 ? (
+                        <Button
+                          size="sm"
+                          variant={isCurrent ? "default" : "outline"}
+                          className="rounded-full hover:scale-105 transition-transform"
+                          onClick={() => setQuickLessonOpen(true)}
+                        >
+                          {step.cta}
+                          <ArrowRight className="ml-1 h-3 w-3" />
                         </Button>
                       ) : (
                         <Button
