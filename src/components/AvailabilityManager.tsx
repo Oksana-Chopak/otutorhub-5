@@ -117,7 +117,7 @@ export function AvailabilityManager() {
   const loadProfiles = async () => {
     const [tutorRolesRes, profilesRes] = await Promise.all([
       supabase.from("user_roles").select("user_id").eq("role", "tutor"),
-      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("profiles").select("id, first_name, last_name").limit(200),
     ]);
     const tutorIds = new Set((tutorRolesRes.data ?? []).map((r) => r.user_id));
     const allProfiles = (profilesRes.data ?? []) as Profile[];
@@ -190,7 +190,7 @@ export function AvailabilityManager() {
         ? `tutor_id=eq.${user.id}`
         : `requester_id=eq.${user.id}`;
     const ch = supabase
-      .channel(`availability-requests-mgr:${user.id}:${Math.random().toString(36).slice(2, 8)}`)
+      .channel(`availability-requests-mgr:${user.id}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "availability_requests", ...(filter ? { filter } : {}) },

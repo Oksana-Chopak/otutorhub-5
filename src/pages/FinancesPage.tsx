@@ -200,17 +200,21 @@ export default function FinancesPage() {
       { data: ratesData },
     ] = await Promise.all([
       (() => {
+        const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select("id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)");
+          .select("id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)")
+          .gte("starts_at", oneYearAgo)
+          .limit(500);
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
-      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("profiles").select("id, first_name, last_name").limit(300),
       supabase
         .from("student_wallet_transactions" as any)
         .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
-        .order("created_at", { ascending: false }),
+        .order("created_at", { ascending: false })
+        .limit(500),
       supabase
         .from("student_wallet_balances" as any)
         .select("tutor_id, student_id, lessons_balance, amount_balance"),

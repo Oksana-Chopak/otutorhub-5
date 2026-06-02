@@ -387,7 +387,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
   // Real-time: re-fetch when ghost is merged or new profile/role appears
   useEffect(() => {
     const channel = supabase
-      .channel(`people-page-realtime-${Math.random().toString(36).slice(2, 8)}`)
+      .channel(`people-page-realtime-${user?.id ?? "anon"}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
       .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())

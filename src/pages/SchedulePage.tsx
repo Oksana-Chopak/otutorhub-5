@@ -309,8 +309,14 @@ export default function SchedulePage() {
     setLoading(true);
 
     const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
-      supabase.from("lessons_visible").select("*").order("starts_at", { ascending: false }),
-      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase
+        .from("lessons_visible")
+        .select("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout")
+        .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
+        .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
+        .order("starts_at", { ascending: false })
+        .limit(300),
+      supabase.from("profiles").select("id, first_name, last_name").limit(300),
       // RLS: non-managers only see their own row here. Used by managers/tutors for filters.
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_public_details").select("user_id, subjects"),

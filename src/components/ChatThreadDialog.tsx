@@ -120,7 +120,7 @@ export function ChatThreadDialog({
   useEffect(() => {
     if (!threadId) return;
     const channel = supabase
-      .channel(`chat-dlg-${threadId}-${Math.random().toString(36).slice(2, 8)}`)
+      .channel(`chat-dlg-${threadId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages", filter: `thread_id=eq.${threadId}` },

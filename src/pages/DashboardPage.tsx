@@ -361,11 +361,14 @@ export default function DashboardPage() {
       (() => {
         let q = supabase
           .from("lessons_visible")
-          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source");
+          .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, meeting_url, homework, summary, student_notes, source")
+          .gte("starts_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())  // last 30 days
+          .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())  // next 14 days
+          .limit(150);
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: true });
       })(),
-      supabase.from("profiles").select("id, first_name, last_name"),
+      supabase.from("profiles").select("id, first_name, last_name").limit(300),
       supabase.from("user_roles").select("user_id, role"),
       isManager
         ? supabase.from("availability_requests").select("id").eq("status", "open")
