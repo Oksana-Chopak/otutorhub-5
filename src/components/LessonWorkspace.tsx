@@ -15,6 +15,7 @@ import { LessonAttachments } from "@/components/LessonAttachments";
 import { LessonFeedback } from "@/components/LessonFeedback";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
+import { FirefliesPanel } from "@/components/FirefliesPanel";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
