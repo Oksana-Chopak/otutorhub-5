@@ -394,6 +394,15 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [periodBillable, periodTopups, canManagePrepay, sort]);
 
+  const expensesRows: Row[] = useMemo(() => {
+    if (isIndependentTutor) return [];
+    return periodBillable
+      .filter((l) => l.tutor_payout_status === "paid")
+      .map((l) => ({ type: "lesson" as const, l }))
+      .sort(activeSort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [periodBillable, isIndependentTutor, sort]);
+
   const debtsRows: Row[] = useMemo(() => {
     return periodBillable
       .filter(
