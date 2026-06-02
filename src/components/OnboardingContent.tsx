@@ -904,6 +904,53 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
         </Button>
       </div>
 
+      {/* Optional steps — shown after mandatory done, collapsed by default */}
+      {requiredDone && optionalSteps.length > 0 && (
+        <div className="mt-4 rounded-2xl border border-border/60 bg-card/50 overflow-hidden">
+          <button
+            className="flex w-full items-center justify-between px-4 py-3 text-left"
+            onClick={() => setOptionalExpanded((v) => !v)}
+          >
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                {t("onboardingExtra.optionalTitle") || "Налаштуй більше ✨"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("onboardingExtra.optionalSub") || "Необов'язково, але допоможе"}
+              </p>
+            </div>
+            {optionalExpanded
+              ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            }
+          </button>
+          {optionalExpanded && (
+            <div className="border-t border-border/40 px-4 pb-4 pt-3 space-y-3">
+              {optionalSteps.map((step) => {
+                const isAutoDone = step.autoKey ? progress[step.autoKey] : false;
+                const isDone = isAutoDone || completed;
+                return (
+                  <div key={step.id} className={cn("gamify-card overflow-hidden", isDone && "opacity-60")}>
+                    <div className="flex items-center gap-3 p-3">
+                      <span className="text-xl">{isDone ? "✅" : step.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground">{step.title}</p>
+                        <p className="text-xs text-muted-foreground line-clamp-1">{step.description}</p>
+                      </div>
+                      {!isDone && (
+                        <Button asChild size="sm" variant="outline" className="rounded-full shrink-0 text-xs" onClick={handleNav}>
+                          <Link to={step.to}>{step.cta}</Link>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}
