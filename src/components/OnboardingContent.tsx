@@ -45,6 +45,7 @@ interface Step {
   autoHint?: string;
   action?: "addStudent" | "editMeetingUrl";
   isNavigate?: boolean;
+  required?: boolean;
 }
 
 export interface StepProgress {
