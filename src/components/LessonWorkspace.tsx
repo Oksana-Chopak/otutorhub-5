@@ -505,6 +505,15 @@ export function LessonWorkspace({
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
+      {/* 5a. Fireflies AI recording */}
+      <FirefliesPanel
+        lessonId={lessonId}
+        tutorId={tutorId}
+        meetingUrl={(meetingUrl && meetingUrl.trim()) || defaultUrl || null}
+        canRecord={isTutor}
+        canView={isTutor || isStudent || isManager}
+      />
+
       {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
       <LessonFeedback
         lessonId={lessonId}
