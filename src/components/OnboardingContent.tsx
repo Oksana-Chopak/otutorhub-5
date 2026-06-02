@@ -30,6 +30,8 @@ import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { QuickLessonDialog } from "@/components/QuickLessonDialog";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface Step {
   id: number;
@@ -253,6 +255,8 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
   const [savingSubject, setSavingSubject] = useState(false);
   const [victoryStep, setVictoryStep] = useState<{ emoji: string; title: string; xp: number; isFinal: boolean } | null>(null);
   const [connectingCalendar, setConnectingCalendar] = useState(false);
+  const [quickLessonOpen, setQuickLessonOpen] = useState(false);
+  const [optionalExpanded, setOptionalExpanded] = useState(false);
   const prevCompletedIdsRef = useRef<Set<number> | null>(null);
 
   // Handle return from Google Calendar OAuth (full-page redirect back to onboarding).
