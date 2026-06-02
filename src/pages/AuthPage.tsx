@@ -56,6 +56,8 @@ export default function AuthPage() {
   const [pendingHint, setPendingHint] = useState<string | null>(null);
   const [showOptional, setShowOptional] = useState(false);
   const [confirmedNotice, setConfirmedNotice] = useState<boolean>(isConfirmed);
+  const [emailSent, setEmailSent] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
 
   const [signInData, setSignInData] = useState({
     email: searchParams.get("email") ?? "",
@@ -267,13 +269,127 @@ export default function AuthPage() {
         demoName = parsed?.student?.name || parsed?.lesson?.studentName || parsed?.payment?.studentName || null;
       }
     } catch { /* ignore */ }
-    toast({
-      title: t("auth.almostDone"),
-      description: demoName
-        ? t("authExtra.demoContinue", { name: demoName })
-        : t("auth.almostDoneDesc"),
-    });
+    setSentEmail(parsed.data.email);
+    setEmailSent(true);
   };
+
+  const resendConfirmation = async () => {
+    if (!sentEmail) return;
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: sentEmail,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(sentEmail)}`,
+      },
+    });
+    if (!error) {
+      toast({ title: t("authExtra.emailResent") || "Листа відправлено повторно" });
+    }
+  };
+
+  // ── Email sent screen ───────────────────────────────────────────────────────
+  if (emailSent) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+        <div className="w-full max-w-md text-center">
+          <div className="mb-6 flex items-center gap-2 justify-center">
+            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+          </div>
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-3xl">
+              ✉️
+            </div>
+            <div>
+              <h2 className="font-display text-xl font-bold text-foreground">
+                {t("authExtra.checkEmail") || "Перевір пошту"}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {t("authExtra.sentTo") || "Відправили посилання на"}{" "}
+                <span className="font-medium text-foreground">{sentEmail}</span>
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t("authExtra.clickLinkToContinue") || "Натисни на посилання в листі — і одразу потрапиш в застосунок"}
+              </p>
+            </div>
+            <div className="mt-2 flex flex-col gap-2 w-full">
+              <Button variant="outline" size="sm" className="w-full" onClick={resendConfirmation}>
+                {t("authExtra.resendEmail") || "Надіслати ще раз"}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full text-muted-foreground"
+                onClick={() => { setEmailSent(false); setSentEmail(""); }}
+              >
+                {t("authExtra.backToSignup") || "Назад"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Email confirmed — simple password entry ──────────────────────────────────
+  const emailFromUrl = searchParams.get("email") || "";
+  if (isConfirmed && !user && !authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+        <div className="w-full max-w-md">
+          <div className="mb-6 flex items-center gap-2 justify-center">
+            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+          </div>
+          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
+            <div className="flex flex-col items-center gap-2 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">
+                ✅
+              </div>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                {t("authExtra.emailConfirmed") || "Email підтверджено!"}
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                {emailFromUrl
+                  ? t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"
+                  : t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"}
+              </p>
+              {emailFromUrl && (
+                <span className="text-sm font-medium text-foreground">{emailFromUrl}</span>
+              )}
+            </div>
+            <form
+              onSubmit={handleSignIn}
+              className="flex flex-col gap-3"
+            >
+              {emailFromUrl && (
+                <input
+                  type="hidden"
+                  value={emailFromUrl}
+                  onChange={() => {}}
+                />
+              )}
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="confirmed-password">{t("auth.password") || "Пароль"}</Label>
+                <Input
+                  id="confirmed-password"
+                  type="password"
+                  autoFocus
+                  placeholder="••••••••"
+                  value={signInData.password}
+                  onChange={(e) => setSignInData((p) => ({ ...p, email: emailFromUrl, password: e.target.value }))}
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {t("auth.login") || "Увійти"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
