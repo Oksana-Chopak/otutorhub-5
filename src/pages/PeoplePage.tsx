@@ -384,19 +384,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
     loadData();
   }, []);
 
-  // Real-time: re-fetch when ghost is merged or new profile/role appears
+  // Refresh on window focus instead of realtime polling heavy tables
+  // (reduces PostgreSQL WAL I/O from realtime replication)
   useEffect(() => {
-    const channel = supabase
-      .channel(`people-page-realtime-${user?.id ?? "anon"}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => loadData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => loadData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "profile_contacts" }, () => loadData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "student_rates" }, () => loadData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "tutor_details" }, () => loadData())
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    const onFocus = () => loadData();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
   }, []);
 
   const changeRole = async (userId: string, newRole: AppRole) => {

@@ -26,7 +26,8 @@ export function useUnreadChats(): number {
       // We additionally request tutor_id/student_id so we can defensively re-check on the client.
       const { data: threads } = await supabase
         .from("chat_threads")
-        .select("id, tutor_id, student_id, last_message_at");
+        .select("id, tutor_id, student_id, last_message_at")
+        .limit(200);
       const threadList = (threads ?? []) as Array<{
         id: string;
         tutor_id: string;
@@ -63,9 +64,8 @@ export function useUnreadChats(): number {
     compute();
 
     // Realtime: any new message OR our own read update should refresh
-    const suffix = `${myId}-${Math.random().toString(36).slice(2, 8)}`;
     const messagesChannel = supabase
-      .channel(`unread-messages-${suffix}`)
+      .channel(`unread-messages-${myId}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
@@ -74,7 +74,7 @@ export function useUnreadChats(): number {
       .subscribe();
 
     const readsChannel = supabase
-      .channel(`unread-reads-${suffix}`)
+      .channel(`unread-reads-${myId}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_reads", filter: `user_id=eq.${myId}` },
