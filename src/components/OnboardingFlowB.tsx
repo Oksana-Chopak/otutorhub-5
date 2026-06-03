@@ -786,6 +786,3 @@ function BonusActionBody({ step, onComplete, onReload, navigate }: {
 
   return null;
 }
-ENDTSX
-
-echo "Lines: $(wc -l < /tmp/OnboardingFlowB.tsx)"
