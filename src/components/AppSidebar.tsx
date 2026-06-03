@@ -122,6 +122,7 @@ export function AppSidebar() {
   });
 
   const primaryRole = roles[0];
+  const queryClient = useQueryClient();
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
