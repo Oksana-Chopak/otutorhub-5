@@ -75,6 +75,10 @@ export const en: Translations = {
     closeMenu: "Close menu",
     studentsShort: "Students",
     newBadge: "New!",
+    skipForNow: "Skip for now",
+    toDashboard: "To dashboard →",
+    bonusLabel: "Boosters",
+    questDoneSubtitle: "Core is set. Here are a few boosters — add them when you have time.",
   },
 
   roles: {
