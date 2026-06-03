@@ -74,6 +74,10 @@ export const sv: Partial<Translations> = {
     closeMenu: "Stäng meny",
     studentsShort: "Elever",
     newBadge: "Ny!",
+    skipForNow: "Hoppa över för nu",
+    toDashboard: "Till instrumentpanelen →",
+    bonusLabel: "Boosters",
+    questDoneSubtitle: "Grunden är klar. Här är några boosters — lägg till när du har tid.",
   },
   roles: {
     manager: "Chef",
