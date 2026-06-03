@@ -243,21 +243,28 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
     const lessonIds = (recentLessons ?? []).map((l: any) => l.id);
     const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null }>();
     if (lessonIds.length > 0) {
-      // Chunk to avoid overly long IN clauses
+      // Chunk to avoid overly long IN clauses, but fire chunks in parallel.
       const chunkSize = 500;
+      const chunks: string[][] = [];
       for (let i = 0; i < lessonIds.length; i += chunkSize) {
-        const chunk = lessonIds.slice(i, i + chunkSize);
-        const { data: detailsData } = await supabase
-          .from("lesson_details")
-          .select("lesson_id, student_payment_status, student_price")
-          .in("lesson_id", chunk);
+        chunks.push(lessonIds.slice(i, i + chunkSize));
+      }
+      const chunkResults = await Promise.all(
+        chunks.map((chunk) =>
+          supabase
+            .from("lesson_details")
+            .select("lesson_id, student_payment_status, student_price")
+            .in("lesson_id", chunk)
+        )
+      );
+      chunkResults.forEach(({ data: detailsData }) => {
         (detailsData ?? []).forEach((d: any) => {
           detailsByLesson.set(d.lesson_id, {
             student_payment_status: d.student_payment_status,
             student_price: d.student_price,
           });
         });
-      }
+      });
     }
 
     const lastInteractionMap = new Map<string, string>();
