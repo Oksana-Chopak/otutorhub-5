@@ -47,7 +47,7 @@ interface StepDef {
   descKey: string;
   ctaKey: string;
   hintKey: string;
-  autoKey?: keyof StepProgress;
+  autoKey?: keyof StepProgress | "hasTelegramLink";
 }
 
 const STEPS: StepDef[] = [
