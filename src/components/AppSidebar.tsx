@@ -306,7 +306,10 @@ export function AppSidebar() {
                     firstName={profile?.first_name}
                     lastName={profile?.last_name}
                     onChanged={(url) =>
-                      setProfile((p) => (p ? { ...p, avatar_url: url } : p))
+                      queryClient.setQueryData<{ first_name: string; last_name: string; avatar_url: string | null } | null>(
+                        ["sidebar-profile", user?.id],
+                        (p) => (p ? { ...p, avatar_url: url } : p)
+                      )
                     }
                   />
                 )}
