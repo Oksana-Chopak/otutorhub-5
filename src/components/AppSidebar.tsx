@@ -121,22 +121,24 @@ export function AppSidebar() {
   });
 
   const primaryRole = roles[0];
-  const [profile, setProfile] = useState<{ first_name: string; last_name: string; avatar_url: string | null } | null>(null);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    supabase
-      .from("profiles")
-      .select("first_name, last_name, avatar_url")
-      .eq("id", user.id)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (data) setProfile(data);
-      });
-  }, [user?.id]);
+  // Cached across pages/mounts via react-query — sidebar mounts on every route.
+  const { data: profile = null } = useQuery({
+    queryKey: ["sidebar-profile", user?.id],
+    enabled: !!user?.id,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("first_name, last_name, avatar_url")
+        .eq("id", user!.id)
+        .maybeSingle();
+      return data as { first_name: string; last_name: string; avatar_url: string | null } | null;
+    },
+  });
 
   return (
     <>
