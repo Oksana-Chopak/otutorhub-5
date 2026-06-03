@@ -158,13 +158,16 @@ export default function ChatsPage() {
       collect(lessonsRes.data as any);
       collect(ratesRes.data as any);
 
-      for (const pair of counterpartIds) {
-        const [tutorId, studentId] = pair.split("|");
-        await supabase.rpc("get_or_create_chat_thread", {
-          _tutor_id: tutorId,
-          _student_id: studentId,
-        });
-      }
+      // Fire all thread bootstrap RPCs in parallel — they're independent.
+      await Promise.all(
+        Array.from(counterpartIds).map((pair) => {
+          const [tutorId, studentId] = pair.split("|");
+          return supabase.rpc("get_or_create_chat_thread", {
+            _tutor_id: tutorId,
+            _student_id: studentId,
+          });
+        })
+      );
     }
 
     const { data: threadRows, error } = await supabase

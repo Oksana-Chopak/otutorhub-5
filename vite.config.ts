@@ -18,4 +18,21 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Split heavy vendor deps into their own long-cacheable chunks.
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "supabase": ["@supabase/supabase-js"],
+          "query": ["@tanstack/react-query"],
+          "icons": ["lucide-react"],
+          "i18n": ["i18next", "react-i18next"],
+        },
+      },
+    },
+  },
 }));

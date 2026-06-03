@@ -23,7 +23,7 @@ export function useNotifications() {
     if (!user) { setLoading(false); return; }
     const { data } = await db
       .from("notifications")
-      .select("*")
+      .select("id, type, title, body, link, read, created_at")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .limit(30);
