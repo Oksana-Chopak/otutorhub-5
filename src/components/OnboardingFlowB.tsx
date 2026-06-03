@@ -102,8 +102,8 @@ function ProgressSegments({ total, active }: { total: number; active: number }) 
 // ── XP sticker ────────────────────────────────────────────────────────────────
 function XpSticker({ xp }: { xp: number }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ring-1"
-      style={{ background: "#fef9ec", color: "#92400e", ringColor: "#fbbf24" }}>
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ring-amber-300"
+      style={{ background: "#fef9ec", color: "#92400e" }}>
       ⭐ {xp} XP
     </span>
   );
