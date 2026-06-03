@@ -391,10 +391,15 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
     loadData();
   }, []);
 
-  // Refresh on window focus instead of realtime polling heavy tables
-  // (reduces PostgreSQL WAL I/O from realtime replication)
+  // Refresh on window focus, but throttle to avoid hammering Postgres on every alt-tab.
   useEffect(() => {
-    const onFocus = () => loadData();
+    let lastRun = Date.now();
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - lastRun < 60_000) return; // at most once per minute
+      lastRun = now;
+      loadData();
+    };
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, []);
