@@ -1926,6 +1926,16 @@ export const en: Translations = {
     zoomLongDesc: "Open the student card → \"Edit\" and paste a permanent Zoom or Meet link. The student will join with one click from every lesson.",
     referralLongDesc: "Share the link with another tutor — they get 21 days of trial, and you get a free month when they subscribe.",
     calendarLongDesc: "Lessons are automatically synced to your Google Calendar — both for you and for students who connect their account.",
+    onboardingTelegram: {
+      telegramStepTitle: "Connect Telegram notifications",
+      telegramStepDesc: "Daily and weekly digest — so no lesson slips by.",
+      telegramDailyTitle: "Daily digest",
+      telegramDailyDesc: "List of lessons for the day, who owes — every morning.",
+      telegramWeeklyTitle: "Weekly summary",
+      telegramWeeklyDesc: "How much you earned and how many lessons — every Monday.",
+      telegramConnectCta: "Connect Telegram",
+      telegramHint: "Telegram connected ✓",
+    },
   },
   lessonWorkspaceExtra: {
     aiGenerateFailed: "Failed to generate notes",
