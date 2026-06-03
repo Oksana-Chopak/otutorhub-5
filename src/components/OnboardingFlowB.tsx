@@ -279,7 +279,7 @@ export function OnboardingFlowB({ onFinish }: Props) {
       if (!cancelled) setProgressLoading(false);
 
       // Secondary checks
-      safe(supabase.from("tutor_details").select("subjects").eq("tutor_id", user.id).maybeSingle(), null as any).then((r: any) => {
+      safe((supabase.from("tutor_details") as any).select("subjects").eq("tutor_id", user.id).maybeSingle(), null as any).then((r: any) => {
         if (r?.data?.subjects?.length > 0) patch({ hasSubject: true });
       });
       safe(supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1), { data: [] } as any).then((r: any) => {
