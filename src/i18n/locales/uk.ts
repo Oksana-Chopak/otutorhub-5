@@ -74,7 +74,11 @@ export const uk = {
     closeMenu: "Закрити меню",
     studentsShort: "Учні",
     newBadge: "Новий!",
-  },
+  
+    skipForNow: "Пропустити поки що",
+    toDashboard: "На дашборд →",
+    bonusLabel: "Підсилювачі",
+    questDoneSubtitle: "Основне налаштовано. Ось ще кілька підсилювачів — додай, коли буде час.",},
 
   roles: {
     manager: "Менеджер",
@@ -1910,6 +1914,16 @@ export const uk = {
   stepVictory: {
     stepDone: "Крок завершено!",
     allDone: "Всі квести виконано! 🎉",
+  },
+  onboardingTelegram: {
+    telegramStepTitle: "Підключіть Telegram-сповіщення",
+    telegramStepDesc: "Щоденний та щотижневий дайджест — щоб жоден урок не пройшов повз увагу.",
+    telegramDailyTitle: "Щоденний дайджест",
+    telegramDailyDesc: "Список уроків на день, хто в боргах, твій todo — щоранку.",
+    telegramWeeklyTitle: "Щотижневий підсумок",
+    telegramWeeklyDesc: "Скільки заробив, проведено уроків, що перенести — щопонеділка.",
+    telegramConnectCta: "Підключити Telegram",
+    telegramHint: "Telegram підключено ✓",
   },
     closeBtn: "Закрити",
     finishBtn: "Завершити онбординг",
