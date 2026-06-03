@@ -1916,6 +1916,16 @@ export const sv: Partial<Translations> = {
     zoomLongDesc: "Öppna elevkortet → \"Redigera\" och klistra in en permanent Zoom- eller Meet-länk. Eleven ansluter med ett klick från varje lektion.",
     referralLongDesc: "Dela länken med en annan lärare — de får 21 dagars prövotid, och du får en gratis månad när de prenumererar.",
     calendarLongDesc: "Lektioner synkroniseras automatiskt till din Google Kalender — både för dig och för elever som kopplar sitt konto.",
+    onboardingTelegram: {
+      telegramStepTitle: "Anslut Telegram-aviseringar",
+      telegramStepDesc: "Dagligt och veckovis sammandrag — så att ingen lektion missas.",
+      telegramDailyTitle: "Dagligt sammandrag",
+      telegramDailyDesc: "Lista över dagens lektioner och vem som är skyldig — varje morgon.",
+      telegramWeeklyTitle: "Veckosammanfattning",
+      telegramWeeklyDesc: "Hur mycket du tjänat och antal lektioner — varje måndag.",
+      telegramConnectCta: "Anslut Telegram",
+      telegramHint: "Telegram anslutet ✓",
+    },
   },
   lessonWorkspaceExtra: {
     aiGenerateFailed: "Kunde inte generera anteckningar",
