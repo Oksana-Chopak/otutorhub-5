@@ -74,7 +74,11 @@ export const sv: Partial<Translations> = {
     closeMenu: "Stäng meny",
     studentsShort: "Elever",
     newBadge: "Ny!",
-  },
+  
+    skipForNow: "Hoppa över för nu",
+    toDashboard: "Till instrumentpanelen →",
+    bonusLabel: "Förstärkare",
+    questDoneSubtitle: "Grundinställningen klar. Här är några förstärkare — lägg till när du har tid.",},
   roles: {
     manager: "Chef",
     tutor: "Lärare",
@@ -1893,6 +1897,16 @@ export const sv: Partial<Translations> = {
   stepVictory: {
     stepDone: "Steg slutfört!",
     allDone: "Alla uppdrag klara! 🎉",
+  },
+  onboardingTelegram: {
+    telegramStepTitle: "Anslut Telegram-aviseringar",
+    telegramStepDesc: "Dagliga och veckovisa sammandrag — så ingen lektion missas.",
+    telegramDailyTitle: "Dagligt sammandrag",
+    telegramDailyDesc: "Dagens lektioner, skulder, att göra — varje morgon.",
+    telegramWeeklyTitle: "Veckosummering",
+    telegramWeeklyDesc: "Intäkter, lektionsantal, vad som ska planeras om — varje måndag.",
+    telegramConnectCta: "Anslut Telegram",
+    telegramHint: "Telegram anslutet ✓",
   },
     closeBtn: "Stäng",
     finishBtn: "Avsluta onboarding",
