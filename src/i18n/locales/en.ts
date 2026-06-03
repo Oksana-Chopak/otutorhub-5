@@ -75,7 +75,11 @@ export const en: Translations = {
     closeMenu: "Close menu",
     studentsShort: "Students",
     newBadge: "New!",
-  },
+  
+    skipForNow: "Skip for now",
+    toDashboard: "Go to dashboard →",
+    bonusLabel: "Power-ups",
+    questDoneSubtitle: "Core setup done. Here are a few power-ups — add when you have time.",},
 
   roles: {
     manager: "Manager",
@@ -1903,6 +1907,16 @@ export const en: Translations = {
   stepVictory: {
     stepDone: "Step complete!",
     allDone: "All quests done! 🎉",
+  },
+  onboardingTelegram: {
+    telegramStepTitle: "Connect Telegram notifications",
+    telegramStepDesc: "Daily and weekly digest — so no lesson goes unnoticed.",
+    telegramDailyTitle: "Daily digest",
+    telegramDailyDesc: "Today's lessons, who owes money, your todos — every morning.",
+    telegramWeeklyTitle: "Weekly summary",
+    telegramWeeklyDesc: "Earnings, lessons count, what to reschedule — every Monday.",
+    telegramConnectCta: "Connect Telegram",
+    telegramHint: "Telegram connected ✓",
   },
     closeBtn: "Close",
     finishBtn: "Finish onboarding",
