@@ -47,7 +47,7 @@ interface StepDef {
   descKey: string;
   ctaKey: string;
   hintKey: string;
-  autoKey?: keyof StepProgress;
+  autoKey?: keyof StepProgress | "hasTelegramLink";
 }
 
 const STEPS: StepDef[] = [
@@ -57,7 +57,7 @@ const STEPS: StepDef[] = [
   { id: 3,  emoji: "🔔", group: "setup",     action: "proRules",     xp: 75,  titleKey: "onboardingContent.proRulesTitle",       descKey: "onboardingContent.proRulesDesc",         ctaKey: "onboardingContent.proRulesCta",       hintKey: "onboardingContent.proRulesDone",     autoKey: "hasPaymentRules" },
   { id: 4,  emoji: "✅", group: "setup",     action: "autoMark",     xp: 50,  titleKey: "onboardingContent.autoMarkTitle",       descKey: "onboardingContent.autoMarkDesc",         ctaKey: "onboardingContent.autoMarkCta",       hintKey: "onboardingContent.autoMarkDone",     autoKey: "hasAutoCompleteChoice" },
   { id: 5,  emoji: "🕐", group: "setup",     action: "availability", xp: 75,  titleKey: "onboardingContent.availabilityTitle",   descKey: "onboardingContent.availabilityDesc",     ctaKey: "onboardingContent.availabilityCta",   hintKey: "onboardingContent.availabilityDone", autoKey: "hasAvailability" },
-  { id: 6,  emoji: "📲", group: "setup",     action: "telegram",     xp: 75,  titleKey: "onboardingTelegram.telegramStepTitle",  descKey: "onboardingTelegram.telegramStepDesc",    ctaKey: "onboardingTelegram.telegramConnectCta", hintKey: "onboardingTelegram.telegramHint" },
+  { id: 6,  emoji: "📲", group: "setup",     action: "telegram",     xp: 75,  titleKey: "onboardingTelegram.telegramStepTitle",  descKey: "onboardingTelegram.telegramStepDesc",    ctaKey: "onboardingTelegram.telegramConnectCta", hintKey: "onboardingTelegram.telegramHint", autoKey: "hasTelegramLink" },
   { id: 7,  emoji: "🎁", group: "bonus",     action: "referral",     xp: 100, titleKey: "onboardingContent.referralTitle",       descKey: "onboardingContent.referralDesc",         ctaKey: "onboardingContent.referralCta",       hintKey: "onboardingContent.referralDone",     autoKey: "hasReferral" },
   { id: 8,  emoji: "🎥", group: "bonus",     action: "zoom",         xp: 50,  titleKey: "onboardingContent.zoomTitle",           descKey: "onboardingContent.zoomDesc",             ctaKey: "onboardingContent.zoomCta",           hintKey: "onboardingContent.zoomDone",         autoKey: "hasMeetingUrl" },
   { id: 9,  emoji: "💬", group: "bonus",     action: "chat",         xp: 50,  titleKey: "onboardingContent.chatTitle",           descKey: "onboardingContent.chatDesc",             ctaKey: "onboardingContent.chatCta",           hintKey: "onboardingContent.chatDone",         autoKey: "hasChat" },
@@ -102,7 +102,7 @@ function ProgressSegments({ total, active }: { total: number; active: number }) 
 // ── XP sticker ────────────────────────────────────────────────────────────────
 function XpSticker({ xp }: { xp: number }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ring-1"
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ring-1 ring-amber-300"
       style={{ background: "#fef9ec", color: "#92400e" }}>
       ⭐ {xp} XP
     </span>
@@ -279,7 +279,7 @@ export function OnboardingFlowB({ onFinish }: Props) {
       if (!cancelled) setProgressLoading(false);
 
       // Secondary checks
-      safe((supabase.from("tutor_details") as any).select("subjects").eq("tutor_id", user.id).maybeSingle(), null as any).then((r: any) => {
+      safe(supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(), null as any).then((r: any) => {
         if (r?.data?.subjects?.length > 0) patch({ hasSubject: true });
       });
       safe(supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1), { data: [] } as any).then((r: any) => {
@@ -592,7 +592,7 @@ function CoreActionBody({ step, subjectDraft, setSubjectDraft, savingSubject, se
     const saveSubject = async () => {
       if (!user || !subjectDraft.trim()) return;
       setSavingSubject(true);
-      await (supabase.from("tutor_details") as any).upsert({ tutor_id: user.id, subjects: [subjectDraft] }, { onConflict: "tutor_id" });
+      await supabase.from("tutor_details").upsert({ tutor_id: user.id, subjects: [subjectDraft] } as any, { onConflict: "tutor_id" });
       setSavingSubject(false);
       onReload();
       onComplete();
