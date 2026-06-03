@@ -12,6 +12,20 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
+  // Verify webhook signature — only Fireflies should be able to invoke this.
+  const expectedSecret = Deno.env.get("FIREFLIES_WEBHOOK_SECRET");
+  if (!expectedSecret) {
+    console.error("FIREFLIES_WEBHOOK_SECRET not configured");
+    return new Response("Server misconfigured", { status: 500, headers: corsHeaders });
+  }
+  const providedSecret =
+    req.headers.get("x-fireflies-webhook-secret") ||
+    req.headers.get("x-webhook-secret");
+  if (providedSecret !== expectedSecret) {
+    return new Response("Forbidden", { status: 403, headers: corsHeaders });
+  }
+
+
   try {
     const payload = await req.json().catch(() => null);
     if (!payload || typeof payload !== "object") {
