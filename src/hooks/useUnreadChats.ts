@@ -63,9 +63,12 @@ export function useUnreadChats(): number {
 
     compute();
 
-    // Realtime: any new message OR our own read update should refresh
+    // Realtime: any new message OR our own read update should refresh.
+    // Unique suffix per mount prevents "cannot add callbacks after subscribe()"
+    // when React StrictMode (or fast refresh) re-runs the effect and reuses a cached channel.
+    const uniq = `${myId}-${Math.random().toString(36).slice(2, 10)}`;
     const messagesChannel = supabase
-      .channel(`unread-messages-${myId}`)
+      .channel(`unread-messages-${uniq}`)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
@@ -74,7 +77,7 @@ export function useUnreadChats(): number {
       .subscribe();
 
     const readsChannel = supabase
-      .channel(`unread-reads-${myId}`)
+      .channel(`unread-reads-${uniq}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "chat_reads", filter: `user_id=eq.${myId}` },
