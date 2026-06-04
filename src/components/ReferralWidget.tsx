@@ -67,12 +67,40 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   };
 
   const handleShare = async () => {
+    if (!link) {
+      toast.error("Посилання ще завантажується, спробуй ще раз");
+      return;
+    }
     const text = t("referralWidget.shareText", { link });
+
+    // Try Web Share API first (mobile + some desktops)
     if (navigator.share) {
-      try { await navigator.share({ title: "oTutorHub", text, url: link }); } catch (_e) { /* share cancelled */ }
-    } else {
-      await navigator.clipboard.writeText(text);
-      toast.success(t("referralWidget.textCopied"));
+      try {
+        await navigator.share({ title: "oTutorHub", text, url: link });
+        return; // success — no toast needed, OS showed dialog
+      } catch (_e) {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
+    // Clipboard with textarea fallback for browsers that block clipboard API
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success("Посилання скопійовано! 🎉");
+    } catch (_clipErr) {
+      // Last-resort fallback: textarea + execCommand
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = link;
+        ta.style.cssText = "position:fixed;top:-9999px;opacity:0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast.success("Посилання скопійовано! 🎉");
+      } catch (_) {
+        toast.error("Не вдалося скопіювати. Скопіюй вручну: " + link);
+      }
     }
   };
 
@@ -110,7 +138,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           <Button onClick={handleCopy} variant="outline" size="icon" className="shrink-0">
             {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
           </Button>
-          <Button onClick={handleShare} size="icon" className="shrink-0">
+          <Button onClick={handleShare} size="icon" className="shrink-0" disabled={!link}>
             <Share2 className="h-4 w-4" />
           </Button>
         </div>
