@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Plus, X, Crown, BarChart3, Trophy, HandHeart,
-  CalendarClock, ShieldAlert, ChevronRight,
+  CalendarClock, ShieldAlert, ChevronRight, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
@@ -73,7 +73,10 @@ export default function ProfilePage() {
     ? [
         {
           title: t("profile.groupScheduleAvail"),
-          items: [{ to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock }],
+          items: [
+            { to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock },
+            { to: "/onboarding", label: t("nav.setupGuide"), icon: Sparkles },
+          ],
         },
         {
           title: t("profile.groupAccount"),
@@ -94,7 +97,10 @@ export default function ProfilePage() {
     ? [
         {
           title: t("profile.groupScheduleAvail"),
-          items: [{ to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock }],
+          items: [
+            { to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock },
+            { to: "/onboarding", label: t("nav.setupGuide"), icon: Sparkles },
+          ],
         },
         {
           title: t("profile.groupStudentsRequests"),
