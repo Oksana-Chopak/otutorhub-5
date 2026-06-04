@@ -414,9 +414,9 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
   const [saving,  setSaving]  = useState(false);
 
   const MODES = [
-    { v: "prepaid"      as const, t: "Передоплата",  d: "Нагадування одразу після створення уроку." },
-    { v: "before_lesson"as const, t: "До уроку",     d: "Нагадування за вказану кількість днів до уроку." },
-    { v: "after_lesson" as const, t: "Після уроку",  d: "Нагадування через вказану кількість днів після уроку." },
+    { v: "prepaid"       as const, title: "Передоплата",  desc: "Нагадування одразу після створення уроку." },
+    { v: "before_lesson" as const, title: "До уроку",     desc: "Нагадування за вказану кількість днів до уроку." },
+    { v: "after_lesson"  as const, title: "Після уроку",  desc: "Нагадування через вказану кількість днів після уроку." },
   ];
 
   const RadioCard = ({ v, title, desc }: any) => (
