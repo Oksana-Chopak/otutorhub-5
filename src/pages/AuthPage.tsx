@@ -302,19 +302,19 @@ export default function AuthPage() {
             </div>
             <div>
               <h2 className="font-display text-xl font-bold text-foreground">
-                {t("authExtra.checkEmail") || "Перевір пошту"}
+                {t("authExtra.checkEmail", { defaultValue: "Перевір пошту 📬" })}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t("authExtra.sentTo") || "Відправили посилання на"}{" "}
+                {t("authExtra.sentTo", { defaultValue: "Ми надіслали посилання на" })}{" "}
                 <span className="font-medium text-foreground">{sentEmail}</span>
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {t("authExtra.clickLinkToContinue") || "Натисни на посилання в листі — і одразу потрапиш в застосунок"}
+                {t("authExtra.clickLinkToContinue", { defaultValue: "Натисни на посилання в листі — і одразу потрапиш у застосунок." })}
               </p>
             </div>
             <div className="mt-2 flex flex-col gap-2 w-full">
               <Button variant="outline" size="sm" className="w-full" onClick={resendConfirmation}>
-                {t("authExtra.resendEmail") || "Надіслати ще раз"}
+                {t("authExtra.resendEmail", { defaultValue: "Надіслати ще раз" })}
               </Button>
               <Button
                 variant="ghost"
@@ -322,7 +322,7 @@ export default function AuthPage() {
                 className="w-full text-muted-foreground"
                 onClick={() => { setEmailSent(false); setSentEmail(""); }}
               >
-                {t("authExtra.backToSignup") || "Назад"}
+                {t("authExtra.backToSignup", { defaultValue: "Назад до реєстрації" })}
               </Button>
             </div>
           </div>
