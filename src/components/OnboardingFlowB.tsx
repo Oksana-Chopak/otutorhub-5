@@ -277,16 +277,31 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
   onComplete: (lessonId: string) => void; user: any;
 }) {
   const today = new Date().toISOString().split("T")[0];
-  const [date,   setDate]   = useState(today);
-  const [time,   setTime]   = useState("");
-  const [repeat, setRepeat] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const ok = time.trim();
+  const [date,    setDate]    = useState(today);
+  const [hour,    setHour]    = useState("");
+  const [minute,  setMinute]  = useState("00");
+  const [repeat,  setRepeat]  = useState(true);
+  const [saving,  setSaving]  = useState(false);
 
-  const save = async () => {
+  const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+  const MINUTES = ["00", "15", "30", "45"];
+  const timeStr = hour ? `${hour}:${minute}` : "";
+  const ok = Boolean(hour);
+
+  const selStyle = (hasVal: boolean) => ({
+    height: 48, borderRadius: 12, border: `1px solid ${hasVal ? T.teal : T.border}`,
+    background: "#fbfbfc", padding: "0 12px", fontSize: 15, fontFamily: T.body,
+    color: hasVal ? T.txt : T.muted, cursor: "pointer", outline: "none",
+    appearance: "none" as const, WebkitAppearance: "none" as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239398b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+    backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center", paddingRight: 36,
+    width: "100%",
+  });
+
+  const saveLesson = async () => {
     if (!user || !ok) return;
     setSaving(true);
-    const startsAt = new Date(`${date}T${time}:00`);
+    const startsAt = new Date(`${date}T${hour}:${minute}:00`);
     const { data: created, error } = await supabase.from("lessons")
       .insert({
         tutor_id: user.id, student_id: studentId,
@@ -303,7 +318,6 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
         { onConflict: "lesson_id" }
       );
       if (repeat) {
-        // Schedule 3 more recurring lessons
         for (let w = 1; w <= 3; w++) {
           const next = new Date(startsAt);
           next.setDate(next.getDate() + 7 * w);
@@ -331,23 +345,46 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
 
   return (
     <div className="flex flex-col gap-3.5">
+      {/* Student pre-filled */}
       {studentName && (
-        <div className="h-12 rounded-xl border border-border bg-[#fbfbfc] flex items-center justify-between px-3 text-[15px]"
-          style={{ color: T.txt }}>
+        <div className="h-12 rounded-xl border flex items-center justify-between px-3 text-[15px]"
+          style={{ borderColor: T.border, background: "#fbfbfc", color: T.txt }}>
           <span>{studentName}{subject ? ` · ${subject}` : ""}</span>
-          <span style={{ color: T.muted }}>▾</span>
         </div>
       )}
-      <div className="flex gap-3">
-        <div className="flex-[1.3]">
-          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Дата</Label>
-          <Input type="date" value={date} onChange={e => setDate(e.target.value)} className="h-12 rounded-xl text-[15px]" />
-        </div>
-        <div className="flex-1">
-          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Час</Label>
-          <Input type="time" value={time} onChange={e => setTime(e.target.value)} className="h-12 rounded-xl text-[15px]" />
-        </div>
+
+      {/* Date */}
+      <div>
+        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Дата</Label>
+        <Input type="date" value={date} onChange={e => setDate(e.target.value)}
+          className="h-12 rounded-xl text-[15px]" />
       </div>
+
+      {/* Time — custom 24h selects */}
+      <div>
+        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>
+          Час {timeStr && <span style={{ color: T.tealD, fontWeight: 700 }}>· {timeStr}</span>}
+        </Label>
+        <div className="flex gap-2 items-center">
+          <select value={hour} onChange={e => setHour(e.target.value)} style={selStyle(Boolean(hour))}>
+            <option value="" disabled>Година</option>
+            {HOURS.map(h => (
+              <option key={h} value={h}>{h}:00</option>
+            ))}
+          </select>
+          <span className="text-xl font-bold flex-shrink-0" style={{ color: T.muted }}>:</span>
+          <select value={minute} onChange={e => setMinute(e.target.value)} style={selStyle(Boolean(hour))}>
+            {MINUTES.map(m => (
+              <option key={m} value={m}>{m}</option>
+            ))}
+          </select>
+        </div>
+        {!hour && (
+          <p className="text-xs mt-1.5" style={{ color: T.muted }}>Оберіть годину, потім хвилини</p>
+        )}
+      </div>
+
+      {/* Weekly repeat toggle */}
       <button onClick={() => setRepeat(v => !v)}
         className="flex items-center gap-2.5 text-sm font-medium py-1"
         style={{ background: "transparent", border: "none", cursor: "pointer", color: T.txt, fontFamily: T.body }}>
@@ -358,7 +395,8 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
         </span>
         Повторювати щотижня
       </button>
-      <Btn disabled={!ok || saving} onClick={save}>
+
+      <Btn disabled={!ok || saving} onClick={saveLesson}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Створити урок"}
       </Btn>
     </div>
