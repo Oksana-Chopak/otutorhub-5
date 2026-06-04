@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { insertNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
@@ -287,6 +288,20 @@ export function QuickLessonDialog({
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
     if (created) void syncLessonToGoogleCalendar(created.id, "upsert");
+    // Notify student that a new lesson has been scheduled
+    if (created && selected.student_id) {
+      const dateStr = startsAt.toLocaleString("uk-UA", {
+        weekday: "long", day: "numeric", month: "long",
+        hour: "2-digit", minute: "2-digit",
+      });
+      insertNotification({
+        userId: selected.student_id,
+        type: `lesson_scheduled_${created.id}`,
+        title: "📅 Новий урок у розкладі",
+        body: `Репетитор запланував урок — ${dateStr}`,
+        link: "/schedule",
+      });
+    }
     localStorage.setItem(LAST_MODE_KEY, "individual");
     toast.success(
       `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: startsAt.toLocaleTimeString("uk-UA", {
