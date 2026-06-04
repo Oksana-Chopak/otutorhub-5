@@ -55,7 +55,7 @@ const ALL_STEPS: StepDef[] = [
   { id:2, emoji:"📅", group:"essential", action:"lesson",       xp:75,  title:"Заплануйте перший урок",            desc:"Оберіть учня, дату і час. Можна повторювати щотижня.",          cta:"Створити урок",       hint:"Урок створено ✓",            autoKey:"hasLesson" },
   { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"Правила оплати та скасування",      desc:"Коли учень отримує нагадування про оплату, і % за пізнє скасування.", cta:"Зберегти правила", hint:"Правила збережено ✓",       autoKey:"hasPaymentRules" },
   { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"Як відмічати уроки проведеними",   desc:"Автоматично через годину після уроку — або вручну, як зручно.", cta:"Обрати режим",       hint:"Режим обрано ✓",             autoKey:"hasAutoCompleteChoice" },
-  { id:5, emoji:"🕐", group:"setup",     action:"availability", xp:75,  title:"Встанови доступні години",          desc:"Познач, коли ти вільний — учні бронюватимуть слоти самостійно.", cta:"Зберегти графік",   hint:"Доступність налаштовано ✓",  autoKey:"hasAvailability" },
+  { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"Встанови доступні години",          desc:"Познач, коли ти вільний — учні бронюватимуть слоти самостійно.", cta:"Зберегти графік",   hint:"Доступність налаштовано ✓",  autoKey:"hasAvailability" },
   { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"Підключіть Telegram-сповіщення",   desc:"Щоденний та щотижневий дайджест — щоб жоден урок не пройшов повз увагу.", cta:"Підключити Telegram", hint:"Telegram підключено ✓" },
   { id:7, emoji:"🎁", group:"bonus",     action:"referral",     xp:100, title:"Запроси колегу",                    desc:"Друг отримає 21 день тріалу, а ти — місяць Pro безкоштовно.",  cta:"Запросити колегу",   hint:"Запрошення створено ✓",      autoKey:"hasReferral" },
   { id:8, emoji:"🎥", group:"bonus",     action:"zoom",         xp:50,  title:"Підключіть Zoom або Meet",          desc:"Постійне посилання — учень підключається одним кліком.",        cta:"Зберегти посилання", hint:"Посилання збережено ✓",      autoKey:"hasMeetingUrl" },
@@ -258,9 +258,13 @@ function StudentAction({ defaultSubject, onComplete, user }: {
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ціна, ₴</Label>
-          <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
-            placeholder="500" inputMode="numeric" className="h-12 rounded-xl text-[15px]" />
+          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ціна</Label>
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>₴</span>
+            <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
+              placeholder="500" inputMode="numeric"
+              className="h-12 rounded-xl text-[15px] pl-7" />
+          </div>
         </div>
       </div>
       <p className="text-xs" style={{ color: T.muted }}>Учень отримає запрошення приєднатися до твого кабінету.</p>
@@ -605,9 +609,11 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 // ── Telegram inline action ────────────────────────────────────────────────────
 function TelegramAction({ onComplete, user }: { onComplete: () => void; user: any }) {
   const { updateSettings } = useWorkspaceSettings();
-  const [daily,   setDaily]   = useState(true);
-  const [weekly,  setWeekly]  = useState(true);
-  const [botUrl,  setBotUrl]  = useState("");
+  const [daily,      setDaily]      = useState(true);
+  const [weekly,     setWeekly]     = useState(true);
+  const [remind1h,   setRemind1h]   = useState(true);
+  const [remind15m,  setRemind15m]  = useState(true);
+  const [botUrl,     setBotUrl]     = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -623,7 +629,12 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
   }, [user?.id]);
 
   const openBot = async () => {
-    await updateSettings({ telegram_daily_digest: daily, telegram_weekly_digest: weekly } as any);
+    await updateSettings({
+      telegram_daily_digest:    daily,
+      telegram_weekly_digest:   weekly,
+      telegram_reminder_1h:     remind1h,
+      telegram_reminder_15m:    remind15m,
+    } as any);
     window.open(botUrl || `https://t.me/oTutorHubBot`, "_blank", "noopener");
   };
 
@@ -645,10 +656,14 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
         Підключи бота — і отримуй зведення прямо в Telegram. Жоден урок і жодна оплата не пройдуть повз.
       </p>
       <div className="flex flex-col gap-2.5">
-        <DigestRow on={daily} setOn={setDaily} emoji="🌅" title="Щоденний дайджест"
+        <DigestRow on={daily}     setOn={setDaily}     emoji="🌅" title="Щоденний дайджест"
           desc="Список уроків на день, хто в боргах, твій todo — щоранку." />
-        <DigestRow on={weekly} setOn={setWeekly} emoji="📊" title="Щотижневий підсумок"
+        <DigestRow on={weekly}    setOn={setWeekly}    emoji="📊" title="Щотижневий підсумок"
           desc="Скільки заробив, проведено уроків, що перенести — щопонеділка." />
+        <DigestRow on={remind1h}  setOn={setRemind1h}  emoji="🔔" title="Нагадування за годину"
+          desc="Прийде за 60 хвилин до уроку — встигнеш підготуватися." />
+        <DigestRow on={remind15m} setOn={setRemind15m} emoji="⏰" title="Нагадування за 15 хвилин"
+          desc="Фінальне нагадування — ні ти, ні учень не запізняться." />
       </div>
       {/* Telegram blue button with plane icon */}
       <button onClick={openBot}
@@ -667,8 +682,8 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
 }
 
 // ── Bonus: Finance (LessonCard anatomy) ───────────────────────────────────────
-function FinanceBonus({ lessonId, studentName, subject, onComplete }: {
-  lessonId: string | null; studentName: string; subject: string; onComplete: () => void;
+function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: {
+  lessonId: string | null; studentName: string; subject: string; onComplete: () => void; navigate: any;
 }) {
   const [paid, setPaid] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -731,9 +746,15 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete }: {
           </span>
         </button>
       </div>
-      <Btn disabled={!paid} onClick={onComplete}>
-        {paid ? "Готово" : "Натисни на рядок оплати ↑"}
-      </Btn>
+      {paid ? (
+        <Btn onClick={() => { onComplete(); navigate("/finances"); }}>
+          Перейти до Фінансів →
+        </Btn>
+      ) : (
+        <p className="text-center text-sm font-medium py-2" style={{ color: T.muted }}>
+          Натисни на рядок оплати ↑ щоб позначити
+        </p>
+      )}
     </div>
   );
 }
@@ -1140,7 +1161,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   {activeBonus.action === "referral"  && <ReferralBonus user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
                   {activeBonus.action === "zoom"      && <ZoomBonus    user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "chat"      && <ChatBonus studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
-                  {activeBonus.action === "finance"   && <FinanceBonus lessonId={createdLessonId} studentName={addedStudentName} subject={addedSubject} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
+                  {activeBonus.action === "finance"   && <FinanceBonus lessonId={createdLessonId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "calendar"  && <CalendarBonus user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "ai"        && <AiBonus onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
                 </div>
