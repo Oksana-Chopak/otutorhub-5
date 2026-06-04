@@ -2172,6 +2172,11 @@ export const uk = {
     userExists: "Користувач з таким email вже існує",
     signupRetry: "Не вдалося зареєструватися. Спробуйте ще раз.",
     demoContinue: "Ми вже зберегли {{name}} — продовжуй з наступного кроку 🎉",
+    checkEmail: "Перевір пошту 📬",
+    sentTo: "Ми надіслали посилання на",
+    clickLinkToContinue: "Натисни на посилання в листі — і одразу потрапиш у застосунок.",
+    resendEmail: "Надіслати ще раз",
+    backToSignup: "Назад до реєстрації",
   },
   studentPagesExtra: {
     homeworkTitle: "Домашні завдання",
