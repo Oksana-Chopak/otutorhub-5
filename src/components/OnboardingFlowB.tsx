@@ -756,8 +756,8 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("referral_codes" as any).select("code").eq("tutor_id", user.id).limit(1)
-      .then(({ data }) => {
+    (supabase.from("referral_codes") as any).select("code").eq("tutor_id", user.id).limit(1)
+      .then(({ data }: any) => {
         if (data?.[0]?.code) setLink(`${window.location.origin}/join/${data[0].code}`);
         else setLink(`${window.location.origin}/join`);
       });
