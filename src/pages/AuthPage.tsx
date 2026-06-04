@@ -37,6 +37,104 @@ const signInSchema = z.object({
 
 type SignUpRole = "student" | "tutor";
 
+// ── Isolated confirmed sign-in component — own state, no shared signInData ───
+function ConfirmedSignIn({
+  email,
+  onSuccess,
+  onResend,
+}: {
+  email: string;
+  onSuccess: () => void;
+  onResend: () => void;
+}) {
+  const { t } = useTranslation();
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    setLoading(true);
+    setError(null);
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (authError) {
+      if (authError.message === "Email not confirmed") {
+        setError(t("auth.emailNotConfirmed") || "Email ще не підтверджено. Перевір пошту і натисни на посилання.");
+      } else if (authError.message === "Invalid login credentials") {
+        setError(t("auth.invalidCreds") || "Невірний пароль. Спробуй ще раз.");
+      } else {
+        setError(authError.message);
+      }
+      return;
+    }
+    onSuccess();
+  };
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="w-full max-w-md">
+        <div className="mb-6 flex items-center gap-2 justify-center">
+          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+          <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+        </div>
+        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">✅</div>
+            <h2 className="font-display text-lg font-bold text-foreground">
+              {t("authExtra.emailConfirmed") || "Email підтверджено!"}
+            </h2>
+            {email && <span className="text-sm font-medium text-foreground">{email}</span>}
+            <p className="text-sm text-muted-foreground">
+              {t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"}
+            </p>
+          </div>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="confirmed-pw">{t("auth.password") || "Пароль"}</Label>
+              <Input
+                id="confirmed-pw"
+                type="password"
+                autoFocus
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+            {error && (
+              <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {error}
+                {error.includes("не підтверджено") || error.includes("not confirmed") ? (
+                  <button
+                    type="button"
+                    className="ml-2 underline font-medium"
+                    onClick={onResend}
+                  >
+                    {t("authExtra.resendEmail") || "Надіслати ще раз"}
+                  </button>
+                ) : null}
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={loading || !password}>
+              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {t("auth.login") || "Увійти"}
+            </Button>
+          </form>
+          <button
+            type="button"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            onClick={() => window.location.href = "/auth"}
+          >
+            {t("authExtra.backToSignup") || "← Повернутись до входу"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function AuthPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -331,63 +429,15 @@ export default function AuthPage() {
     );
   }
 
-  // ── Email confirmed — simple password entry ──────────────────────────────────
+  // ── Email confirmed — own isolated sign-in (no shared signInData state) ─────
   const emailFromUrl = searchParams.get("email") || "";
   if (isConfirmed && !user && !authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
-        <div className="w-full max-w-md">
-          <div className="mb-6 flex items-center gap-2 justify-center">
-            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
-            <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
-          </div>
-          <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
-            <div className="flex flex-col items-center gap-2 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">
-                ✅
-              </div>
-              <h2 className="font-display text-lg font-bold text-foreground">
-                {t("authExtra.emailConfirmed") || "Email підтверджено!"}
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                {emailFromUrl
-                  ? t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"
-                  : t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"}
-              </p>
-              {emailFromUrl && (
-                <span className="text-sm font-medium text-foreground">{emailFromUrl}</span>
-              )}
-            </div>
-            <form
-              onSubmit={handleSignIn}
-              className="flex flex-col gap-3"
-            >
-              {emailFromUrl && (
-                <input
-                  type="hidden"
-                  value={emailFromUrl}
-                  onChange={() => {}}
-                />
-              )}
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="confirmed-password">{t("auth.password") || "Пароль"}</Label>
-                <Input
-                  id="confirmed-password"
-                  type="password"
-                  autoFocus
-                  placeholder="••••••••"
-                  value={signInData.password}
-                  onChange={(e) => setSignInData((p) => ({ ...p, email: emailFromUrl, password: e.target.value }))}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {t("auth.login") || "Увійти"}
-              </Button>
-            </form>
-          </div>
-        </div>
-      </div>
+      <ConfirmedSignIn
+        email={emailFromUrl}
+        onSuccess={() => navigate("/", { replace: true })}
+        onResend={resendConfirmation}
+      />
     );
   }
 
