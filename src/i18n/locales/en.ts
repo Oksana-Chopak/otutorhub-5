@@ -2165,6 +2165,11 @@ export const en: Translations = {
     userExists: "User with this email already exists",
     signupRetry: "Failed to register. Please try again.",
     demoContinue: "We already saved {{name}} — continue from the next step 🎉",
+    checkEmail: "Check your email 📬",
+    sentTo: "We sent a link to",
+    clickLinkToContinue: "Click the link in the email to enter the app.",
+    resendEmail: "Resend email",
+    backToSignup: "Back to signup",
   },
   studentPagesExtra: {
     homeworkTitle: "Homework",
