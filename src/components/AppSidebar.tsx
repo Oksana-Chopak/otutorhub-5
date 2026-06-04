@@ -113,7 +113,8 @@ export function AppSidebar() {
   const { theme, toggleTheme } = useTheme();
   const { isIndependent, settings } = useWorkspaceSettings();
   const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
-  const showOnboardingHelp = isTutorRole && (!isIndependent || !settings?.onboarding_completed);
+  // Always show onboarding entry for tutors so they can revisit the setup guide at any time.
+  const showOnboardingHelp = isTutorRole;
 
   const navItems = allNavItems.filter((item) => {
     if (!item.roles.some((r) => roles.includes(r))) return false;
