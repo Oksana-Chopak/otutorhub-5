@@ -376,7 +376,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {isIndependent && (
+        {(isIndependent || isManager) && (
           <div id="rules" className="mt-6 scroll-mt-20">
             <ProRulesCard />
           </div>
