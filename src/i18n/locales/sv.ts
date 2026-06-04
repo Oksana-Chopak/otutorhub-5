@@ -2155,6 +2155,11 @@ export const sv: Partial<Translations> = {
     userExists: "En användare med denna e-post finns redan",
     signupRetry: "Registrering misslyckades. Försök igen.",
     demoContinue: "Vi sparade redan {{name}} — fortsätt från nästa steg 🎉",
+    checkEmail: "Kolla din e-post 📬",
+    sentTo: "Vi skickade en länk till",
+    clickLinkToContinue: "Klicka på länken i e-postmeddelandet för att komma in i appen.",
+    resendEmail: "Skicka igen",
+    backToSignup: "Tillbaka till registrering",
   },
   studentPagesExtra: {
     homeworkTitle: "Läxor",
