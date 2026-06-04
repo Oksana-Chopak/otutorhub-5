@@ -35,6 +35,7 @@ interface LessonWorkspaceProps {
 
 import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
 import i18nInstance from "@/i18n";
+import { insertNotification } from "@/lib/notifications";
 const t = i18nInstance.t.bind(i18nInstance);
 
 function normalizeUrl(value: string): string {
@@ -224,6 +225,20 @@ export function LessonWorkspace({
     }
     toast({ title: t("lessonWorkspaceExtra.saved") });
     onUpdated?.();
+
+    // Notify student when tutor adds homework or summary
+    if (studentId && (field === "homework" || field === "summary")) {
+      const isHomework = field === "homework";
+      insertNotification({
+        userId: studentId,
+        type: `${field}_added_${lessonId}`,
+        title: isHomework ? "🏠 Нове домашнє завдання" : "📝 Конспект уроку готовий",
+        body: isHomework
+          ? "Репетитор додав домашнє завдання до вашого уроку"
+          : "Репетитор додав конспект до вашого уроку",
+        link: `/schedule`,
+      });
+    }
   };
 
   const saveDefaultMeetingUrl = async () => {
