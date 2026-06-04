@@ -97,7 +97,10 @@ export default function ProfilePage() {
     ? [
         {
           title: t("profile.groupScheduleAvail"),
-          items: [{ to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock }],
+          items: [
+            { to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock },
+            { to: "/onboarding", label: t("nav.setupGuide"), icon: Sparkles },
+          ],
         },
         {
           title: t("profile.groupStudentsRequests"),
