@@ -1019,6 +1019,49 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
+
+          {/* ── INDEPENDENT TUTOR: two-card row mobile ──────────────── */}
+          {isIndependentTutor && (
+            <div className="grid grid-cols-2 gap-3 lg:hidden">
+              <div className="col-span-1 overflow-hidden rounded-[18px] p-4 relative"
+                style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                  💰 {t("dashboard.cardProfit") || "Твій дохід"}
+                </p>
+                <p className="mt-2 font-extrabold leading-none"
+                  style={{ fontSize: 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                  {formatPrice(profit, "UAH")}
+                </p>
+                {profitGrowthPct !== null && (
+                  <p className="mt-1 text-[12px] font-bold"
+                    style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                    {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth") || "за місяць"}
+                  </p>
+                )}
+                <div className="mt-2.5 flex items-end gap-0.5" style={{ height: 16 }}>
+                  {weeklyIncomeBars.map((h, i) => (
+                    <div key={i} className="flex-1 rounded-sm"
+                      style={{ height: `${h}%`, background: i === 6 ? "var(--teal,#2BBFAA)" : "rgba(43,191,170,0.2)" }} />
+                  ))}
+                </div>
+              </div>
+              <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-white p-4 hover:shadow-sm transition-shadow"
+                style={{ borderColor: "var(--border,#eceef3)" }}>
+                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
+                  style={{ background: "rgba(43,191,170,0.1)" }}>
+                  <GraduationCap className="h-4 w-4" style={{ color: "var(--teal,#2BBFAA)" }} />
+                </div>
+                <p className="font-extrabold leading-none"
+                  style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
+                  {studentCount}
+                </p>
+                <p className="mt-1 text-[12px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  {t("dashboard.cardStudents") || "учні"} · {t("dashboard.cardStudentsSub") || "активних"}
+                </p>
+              </Link>
+            </div>
+          )}
+
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
