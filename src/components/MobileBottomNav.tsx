@@ -19,7 +19,7 @@ const TABS = [
 
 export function MobileBottomNav() {
   const { t } = useTranslation();
-  const { unread } = useUnreadChats();
+  const unread = useUnreadChats();
   const location = useLocation();
 
   return (
