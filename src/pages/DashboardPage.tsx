@@ -1764,12 +1764,14 @@ export default function DashboardPage() {
 
 
 
-      {/* ── FAB ───────────────────────────────────────────────────────────── */}
+      {/* ── FAB: expandable + with Урок / Учня / Оплату ──────────────── */}
       {(isTutor || isManager) && (
-        <PageFAB onClick={() => setQuickLessonOpen(true)} label={t("quickActions.title")} />
+        <AddFab
+          onLesson={() => setQuickLessonOpen(true)}
+          onStudent={() => setAddStudentOpen(true)}
+          onPayment={() => setQuickLessonOpen(true)}
+        />
       )}
-
-      {isTutor && !isManager && <QuickPaymentFab />}
       {walletPair && (
         <WalletDialog
           open={!!walletPair}
