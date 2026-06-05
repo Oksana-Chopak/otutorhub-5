@@ -67,6 +67,7 @@ import {
   Bell,
   Menu,
   UserCircle,
+  GraduationCap,
 } from "lucide-react";
 import {
   Select,
