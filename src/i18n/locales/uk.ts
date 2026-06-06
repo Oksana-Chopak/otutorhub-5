@@ -313,7 +313,8 @@ export const uk = {
       contact: "Зв'язатись",
       copyright: "© 2026 oTutorHub",
   },
-};
+  },
+
 
 
   // Auth
