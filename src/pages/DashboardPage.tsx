@@ -1040,11 +1040,13 @@ export default function DashboardPage() {
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за місяць
                     </p>
                   )}
-                  <div className="mt-2 flex items-end gap-0.5" style={{ height: 14 }}>
-                    {weeklyIncomeBars.map((h, i) => (
-                      <div key={i} className="flex-1 rounded-sm"
-                        style={{ height: `${h}%`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.2)" }} />
-                    ))}
+                  <div className="mt-2 relative" style={{ height: 14 }}>
+                    <div className="absolute bottom-0 left-0 right-0 flex items-end gap-0.5" style={{ height: "100%" }}>
+                      {weeklyIncomeBars.map((h, i) => (
+                        <div key={i} className="flex-1 rounded-sm"
+                          style={{ height: `max(${h}%, 3px)`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.2)" }} />
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-4 hover:shadow-sm transition-shadow"
@@ -1081,11 +1083,20 @@ export default function DashboardPage() {
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за червень
                     </p>
                   )}
-                  <div className="mt-3 flex items-end gap-1" style={{ height: 28 }}>
-                    {weeklyIncomeBars.map((h, i) => (
-                      <div key={i} className="flex-1 rounded"
-                        style={{ height: `${h}%`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.22)" }} />
-                    ))}
+                  <div className="mt-3 relative" style={{ height: 28 }}>
+                    {/* Grid lines */}
+                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                      {[0,1,2].map(k => (
+                        <div key={k} className="w-full" style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+                      ))}
+                    </div>
+                    {/* Bars — min 4px so always visible */}
+                    <div className="absolute bottom-0 left-0 right-0 flex items-end gap-1" style={{ height: "100%" }}>
+                      {weeklyIncomeBars.map((h, i) => (
+                        <div key={i} className="flex-1 rounded transition-all duration-500"
+                          style={{ height: `max(${h}%, 4px)`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.22)" }} />
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -1192,8 +1203,9 @@ export default function DashboardPage() {
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
 <p className="mt-0.5 text-[12px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
-                    {[40,55,48,72,62,85,100].map((h,i)=>(
-                      <div key={i} className="flex-1 rounded-sm" style={{height:`${h}%`,background:i===6?"var(--teal)":"rgba(43,191,170,0.2)"}} />
+                    {weeklyIncomeBars.map((h, i) => (
+                      <div key={i} className="flex-1 rounded-sm"
+                        style={{ height: `max(${h}%, 3px)`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                     ))}
                   </div>
                 </div>
