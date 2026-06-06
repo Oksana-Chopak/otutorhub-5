@@ -1913,6 +1913,11 @@ export const en: Translations = {
   "quickAdd.lesson": "Lesson",
   "quickAdd.student": "Student",
   "quickAdd.payment": "Payment",
+  quickAdd: {
+    lesson: "Lesson",
+    student: "Student",
+    payment: "Payment",
+  },
   "lessonCard.paymentDetails": "Payment details",
   "lessonCard.studentAwaiting": "Awaiting payment from student",
   "lessonCard.studentPaid": "Paid by student",
