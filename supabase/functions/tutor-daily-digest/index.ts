@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
       // Manager: see ALL center lessons (source != independent)
       const myLessons = (todayLessons ?? []).filter((l: any) => l.source !== "independent");
       if (myLessons.length === 0) {
-        lines.push("\nСьогодні занять у центрі не заплановано. Можна відпочити 🌿");
+        lines.push("\nСьогодні в центрі занять немає — гарний день для планування чи відпочинку 🌿");
       } else {
         lines.push(`\n📅 Сьогодні в центрі <b>${myLessons.length} ${lessonWord(myLessons.length)}</b>:`);
         for (const l of myLessons.slice(0, 10)) {
@@ -191,13 +191,13 @@ Deno.serve(async (req) => {
       const debts = (unpaidLessons ?? []).filter((l: any) => l.source !== "independent");
       if (debts.length > 0) {
         const total = debts.reduce((s: number, l: any) => s + Number(l.lesson_details?.student_price ?? 0), 0);
-        lines.push(`\n💳 Борги учнів: <b>${total} ₴</b>`);
+        lines.push(`\n💳 Є незакриті оплати від учнів: <b>${total} ₴</b>`);
       }
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
       if (myLessons.length === 0) {
-        lines.push("\nСьогодні занять немає. Гарний день для підготовки 📚");
+        lines.push("\nСьогодні вільний день — балдій, заряджайся! 🌴");
       } else {
         lines.push(`\n📅 Сьогодні <b>${myLessons.length} ${lessonWord(myLessons.length)}</b>:`);
         for (const l of myLessons) {
@@ -215,11 +215,13 @@ Deno.serve(async (req) => {
       }
       if (myDebts.size > 0) {
         const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);
-        lines.push(`\n💳 Очікують оплати <b>${total} ₴</b>:`);
+        lines.push(`\n💳 Нагадай учням про оплату — загалом <b>${total} ₴</b>:`);
         for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
           lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
         }
         if (myDebts.size > 5) lines.push(`  ↳ ще ${myDebts.size - 5} учнів`);
+      } else {
+        lines.push("\n✅ Всі оплати закриті — так тримати! 🎉");
       }
     } else {
       continue; // Student — не відправляємо
