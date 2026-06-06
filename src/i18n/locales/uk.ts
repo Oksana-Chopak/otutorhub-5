@@ -1,5 +1,11 @@
 export const uk = {
+  quickAdd: {
+    lesson: "Урок",
+    student: "Учня",
+    payment: "Оплату",
+  },
   // Common
+
   common: {
     save: "Зберегти",
     cancel: "Скасувати",
