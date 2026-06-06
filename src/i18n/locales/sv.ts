@@ -2,6 +2,12 @@ import type { Translations } from "./uk";
 
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: Partial<Translations> = {
+  quickAdd: {
+    lesson: "Lektion",
+    student: "Elev",
+    payment: "Betalning",
+  },
+
   common: {
     save: "Spara",
     cancel: "Avbryt",
