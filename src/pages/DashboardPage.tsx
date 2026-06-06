@@ -1133,11 +1133,10 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* ── INDEPENDENT TUTOR: Notes + Streak (mobile, before lessons) ── */}
+          {/* ── INDEPENDENT TUTOR: Notes before lessons (mobile only) ── */}
           {isIndependentTutor && (
-            <div className="flex flex-col gap-3 lg:hidden">
+            <div className="lg:hidden">
               <TutorNotesCard />
-              {streak && <StreakCard streak={streak} />}
             </div>
           )}
 
@@ -1795,6 +1794,12 @@ export default function DashboardPage() {
           {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
             <>
+              {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
+              {streak && (
+                <div className="lg:hidden">
+                  <StreakCard streak={streak} />
+                </div>
+              )}
               <TutorWelcomeBanner />
             </>
           )}
