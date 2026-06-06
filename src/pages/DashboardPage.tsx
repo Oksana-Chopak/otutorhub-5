@@ -284,7 +284,7 @@ export default function DashboardPage() {
 
   // Gamification: badge unlock toasts + streak card + referral nudge counters
   const gamification = useTutorGamification();
-  const { badges, loading: gamificationLoading, streak } = gamification;
+  const { badges, loading: gamificationLoading, streak, level } = gamification;
 
   // Pull-to-refresh on mobile
   const { isPulling, pullProgress } = usePullToRefresh(() => loadData());
@@ -1020,46 +1020,106 @@ export default function DashboardPage() {
         <div className="space-y-6 sm:space-y-8">
           {isIndependentTutor && <TrialCountdownBanner />}
 
-          {/* ── INDEPENDENT TUTOR: two-card row mobile ──────────────── */}
+          {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
-            <div className="grid grid-cols-2 gap-3 lg:hidden">
-              <div className="col-span-1 overflow-hidden rounded-[18px] p-4 relative"
-                style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
-                <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
-                  💰 {t("dashboard.cardProfit") || "Твій дохід"}
-                </p>
-                <p className="mt-2 font-extrabold leading-none"
-                  style={{ fontSize: 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
-                  {formatPrice(profit, "UAH")}
-                </p>
-                {profitGrowthPct !== null && (
-                  <p className="mt-1 text-[12px] font-bold"
-                    style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
-                    {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth") || "за місяць"}
+            <>
+              {/* Mobile: Profit + Students side by side */}
+              <div className="grid grid-cols-2 gap-3 lg:hidden">
+                <div className="overflow-hidden rounded-[18px] p-4 relative"
+                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                    💰 {t("dashboard.cardProfit") || "Твій дохід"}
                   </p>
-                )}
-                <div className="mt-2.5 flex items-end gap-0.5" style={{ height: 16 }}>
-                  {weeklyIncomeBars.map((h, i) => (
-                    <div key={i} className="flex-1 rounded-sm"
-                      style={{ height: `${h}%`, background: i === 6 ? "var(--teal,#2BBFAA)" : "rgba(43,191,170,0.2)" }} />
-                  ))}
+                  <p className="mt-2 font-extrabold leading-none"
+                    style={{ fontSize: 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                    {formatPrice(profit, "UAH")}
+                  </p>
+                  {profitGrowthPct !== null && (
+                    <p className="mt-1 text-[12px] font-bold"
+                      style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за місяць
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-end gap-0.5" style={{ height: 14 }}>
+                    {weeklyIncomeBars.map((h, i) => (
+                      <div key={i} className="flex-1 rounded-sm"
+                        style={{ height: `${h}%`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.2)" }} />
+                    ))}
+                  </div>
+                </div>
+                <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-4 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)" }}>
+                  <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
+                    style={{ background: "rgba(43,191,170,0.1)" }}>
+                    <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
+                  </div>
+                  <p className="font-extrabold leading-none"
+                    style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
+                    {studentCount}
+                  </p>
+                  <p className="mt-1 text-[12px]" style={{ color: "var(--sub,#9398b0)" }}>
+                    {t("dashboard.cardStudents") || "учні"} · активних
+                  </p>
+                </Link>
+              </div>
+
+              {/* Desktop: Profit (wide) + Level + Streak — bento top row */}
+              <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4">
+                {/* Profit — spans 2 columns */}
+                <div className="col-span-2 overflow-hidden rounded-[20px] p-5 relative"
+                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                    💰 {t("dashboard.cardProfit") || "Твій дохід"}
+                  </p>
+                  <p className="mt-2 font-black leading-none"
+                    style={{ fontSize: 38, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.025em" }}>
+                    {formatPrice(profit, "UAH")}
+                  </p>
+                  {profitGrowthPct !== null && (
+                    <p className="mt-1.5 text-sm font-bold"
+                      style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за червень
+                    </p>
+                  )}
+                  <div className="mt-3 flex items-end gap-1" style={{ height: 28 }}>
+                    {weeklyIncomeBars.map((h, i) => (
+                      <div key={i} className="flex-1 rounded"
+                        style={{ height: `${h}%`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.22)" }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Level + Students stacked in 3rd column */}
+                <div className="flex flex-col gap-3">
+                  {level && (
+                    <div className="flex-1 rounded-[18px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
+                      <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: "var(--sub,#9398b0)" }}>
+                        🏅 Рівень
+                      </p>
+                      <p className="font-black text-[22px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
+                        {level.emoji} {level.name}
+                      </p>
+                      {level.next_threshold !== null && (
+                        <p className="text-[12px] mt-1" style={{ color: "var(--sub,#9398b0)" }}>
+                          ще {level.next_threshold - level.completed_lessons} уроків до наступного
+                        </p>
+                      )}
+                    </div>
+                  )}
+                  <Link to="/people" className="flex-1 rounded-[18px] border bg-white p-4 flex items-center gap-3 hover:shadow-sm transition-shadow"
+                    style={{ borderColor: "var(--border,#eceef3)" }}>
+                    <div className="w-10 h-10 rounded-[12px] flex items-center justify-center flex-shrink-0"
+                      style={{ background: "rgba(43,191,170,0.1)" }}>
+                      <GraduationCap className="h-5 w-5" style={{ color: "#2BBFAA" }} />
+                    </div>
+                    <div>
+                      <p className="font-black text-[26px] leading-none" style={{ fontFamily: "Inter, system-ui" }}>{studentCount}</p>
+                      <p className="text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>учнів активних</p>
+                    </div>
+                  </Link>
                 </div>
               </div>
-              <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-white p-4 hover:shadow-sm transition-shadow"
-                style={{ borderColor: "var(--border,#eceef3)" }}>
-                <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
-                  style={{ background: "rgba(43,191,170,0.1)" }}>
-                  <GraduationCap className="h-4 w-4" style={{ color: "var(--teal,#2BBFAA)" }} />
-                </div>
-                <p className="font-extrabold leading-none"
-                  style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
-                  {studentCount}
-                </p>
-                <p className="mt-1 text-[12px]" style={{ color: "var(--sub,#9398b0)" }}>
-                  {t("dashboard.cardStudents") || "учні"} · {t("dashboard.cardStudentsSub") || "активних"}
-                </p>
-              </Link>
-            </div>
+            </>
           )}
 
           {/* ── INDEPENDENT TUTOR: Notes + Streak (mobile, before lessons) ── */}
@@ -1723,16 +1783,7 @@ export default function DashboardPage() {
           {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
             <>
-              <AutoCompleteLessonsCard />
-              <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
-                <MonthlySummaryCard />
-                <ReferralWidget compact />
-              </div>
               <TutorWelcomeBanner />
-              <ReferralNudgeBanner
-                completedLessons={myCompletedLessonsCount}
-                invitedCount={referralInvitedCount}
-              />
             </>
           )}
         </div>
