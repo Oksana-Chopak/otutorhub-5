@@ -188,7 +188,7 @@ Deno.serve(async (req) => {
         }
       }
       lines.push("");
-      lines.push(`📅 Наступний тиждень: <b>${nLessons.length} уроків</b> заплановано`);
+      lines.push(`📅 Наступний тиждень: <b>${nLessons.length} уроків</b> — вперед! 💪`);
       lines.push("");
       lines.push(`Гарного тижня, ${esc(name)}! 💪`);
 
@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
         s + Number(l.lesson_details?.student_price ?? 0), 0);
       const debtStudents = new Set(myDebts.map((l: any) => l.student_id)).size;
 
-      if (wLessons.length === 0 && nLessons.length === 0) continue;
+      // Always send, even if no lessons
 
       lines.push(`🎉 <b>Тиждень ${label}</b> — завершено!`);
       lines.push("");
@@ -224,9 +224,9 @@ Deno.serve(async (req) => {
       }
       lines.push("");
       if (nLessons.length > 0) {
-        lines.push(`📅 Наступний тиждень: <b>${nLessons.length} уроків</b> заплановано`);
+        lines.push(`📅 Наступний тиждень: <b>${nLessons.length} уроків</b> — вперед! 💪`);
       } else {
-        lines.push(`📅 Наступного тижня уроків ще немає — саме час заповнити розклад!`);
+        lines.push(`📅 Наступного тижня поки порожньо — чудова нагода запланувати нове 🗓️`);
       }
       lines.push("");
       lines.push(`Гарного тижня, ${esc(name)}! 🌟`);
