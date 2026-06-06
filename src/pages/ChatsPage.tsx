@@ -680,145 +680,207 @@ export default function ChatsPage() {
     toast({ title: t("chats.chatCreated") });
   };
 
+  // ── Visual helpers (додано для редизайну, дані не чіпаємо) ────────────────
+  const AVATAR_GRADIENTS = [
+    "linear-gradient(135deg,#2BBFAA,#1d8f7e)",
+    "linear-gradient(135deg,#6366F1,#4f46e5)",
+    "linear-gradient(135deg,#F59E0B,#d97706)",
+    "linear-gradient(135deg,#EF4444,#dc2626)",
+    "linear-gradient(135deg,#EC4899,#db2777)",
+    "linear-gradient(135deg,#8B5CF6,#7c3aed)",
+    "linear-gradient(135deg,#14B8A6,#0d9488)",
+    "linear-gradient(135deg,#F97316,#ea580c)",
+  ] as const;
+
+  const avatarGradient = (name: string): string => {
+    const c = (name || "?").charCodeAt(0) + ((name || "?").charCodeAt(1) || 0);
+    return AVATAR_GRADIENTS[c % AVATAR_GRADIENTS.length];
+  };
+
+  const computeInitials = (name: string): string => {
+    if (name.includes("↔")) {
+      const left = name.split("↔")[0].trim();
+      const parts = left.split(" ");
+      return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? parts[0]?.[1] ?? "")).toUpperCase();
+    }
+    const parts = name.trim().split(" ");
+    return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+  };
+
+  const dateLabel = (iso: string): string => {
+    const d = new Date(iso);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (d.toDateString() === today.toDateString()) return "Сьогодні";
+    if (d.toDateString() === yesterday.toDateString()) return "Вчора";
+    return d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
+  };
+
   return (
     <AppLayout>
-      {/* Header — hidden on mobile when a chat is open to maximize chat space */}
-      <div
-        className={cn(
-          "mb-4 flex items-start justify-between gap-3 lg:mb-6 lg:flex",
-          selectedId ? "hidden lg:flex" : "flex"
-        )}
-      >
-        <div>
-          <h1 className="font-display text-xl font-bold text-foreground lg:text-2xl">{t("chats.title")}</h1>
-          <p className="text-xs text-muted-foreground lg:text-sm">
-            {isManager
-              ? t("chats.pageSubtitleManager")
-              : t("chats.pageSubtitleOther")}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-
-        </div>
-      </div>
-
       {loading ? (
         <ChatsSkeleton />
-      ) : threads.length === 0 ? (
+      ) : threads.length === 0 && !loading ? (
         <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
-            {isManager
-              ? t("chats.noChatsManager")
-              : t("chats.noChatsOther")}
+            {isManager ? t("chats.noChatsManager") : t("chats.noChatsOther")}
           </p>
         </div>
       ) : (
         <div
-          className="grid min-w-0 gap-4 lg:grid-cols-[300px_minmax(0,1fr)]"
+          className={cn(
+            "flex overflow-hidden rounded-xl border border-border",
+            "-mx-4 md:-mx-6",
+          )}
+          style={{ height: "calc(100vh - 120px)" }}
         >
-          {/* Thread list — hidden on mobile when a chat is selected */}
+          {/* ── Col 1: Thread list ──────────────────────────────────────────── */}
           <div
             className={cn(
-              "flex min-w-0 flex-col rounded-xl border border-border bg-card lg:max-h-[calc(100vh-10rem)]",
-              "h-[calc(100vh-12rem)] lg:h-auto",
+              "flex flex-col border-r border-border bg-white",
+              "w-full lg:w-[280px] lg:flex-shrink-0",
               selectedId ? "hidden lg:flex" : "flex"
             )}
           >
-            <div className="space-y-2 border-b border-border p-3">
-              <div className="flex items-center gap-2">
-                {searchOpen ? (
-                  <div className="relative flex-1">
-                    <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      autoFocus
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      placeholder={t("chats.searchPlaceholder")}
-                      className="h-8 pl-8 pr-8 text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => { setSearch(""); setSearchOpen(false); }}
-                      className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
-                      aria-label={t("chats.closeSearch")}
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    onClick={() => setSearchOpen(true)}
-                    aria-label={t("common.search")}
+            {/* List header */}
+            <div className="px-4 pt-4 pb-3 border-b border-border">
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div>
+                  <h1 className="font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
+                    {t("chats.title") || "Чати"}
+                  </h1>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                    {isManager
+                      ? `${threads.length} активних діалогів`
+                      : t("chats.pageSubtitleOther")}
+                  </p>
+                </div>
+                {isManager && (
+                  <button
+                    onClick={openNewChatDialog}
+                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full font-bold text-[13px] text-white flex-shrink-0 transition-opacity active:opacity-80"
+                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
                   >
-                    <Search className="h-4 w-4" />
-                  </Button>
+                    <Plus className="h-3.5 w-3.5" />
+                    {t("chats.new") || "Новий"}
+                  </button>
                 )}
-                <Select value={sortMode} onValueChange={(v) => setSortMode(v as "recent" | "unread" | "name")}>
-                  <SelectTrigger className="h-10 flex-1 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="recent">{t("chats.sortRecent")}</SelectItem>
-                    <SelectItem value="unread">{t("chats.sortUnread")}</SelectItem>
-                    <SelectItem value="name">{t("chats.sortName")}</SelectItem>
-                  </SelectContent>
-                </Select>
+                <NotificationBell />
+              </div>
+
+              {/* Search */}
+              <div className="relative">
+                <Search
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+                  style={{ color: "var(--muted,#b0b4c8)" }}
+                />
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder={t("chats.searchPlaceholder") || "Пошук за іменем або повідомленням…"}
+                  className="w-full pl-9 pr-3 h-9 rounded-xl text-[13.5px] outline-none"
+                  style={{ border: "1px solid var(--border,#eceef3)", background: "#fbfbfc" }}
+                />
+              </div>
+
+              {/* Segmented sort */}
+              <div
+                className="flex gap-0.5 mt-2.5 rounded-[10px] p-1"
+                style={{ background: "var(--bg,#F5F4F0)" }}
+              >
+                {(["recent", "unread", "name"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => setSortMode(mode)}
+                    className="flex-1 h-7 rounded-[8px] text-[12px] font-bold transition-all"
+                    style={
+                      sortMode === mode
+                        ? { background: "#fff", color: "var(--txt,#0f0f1a)", boxShadow: "0 1px 3px rgba(15,15,26,.1)", fontFamily: "Inter, system-ui" }
+                        : { background: "transparent", color: "var(--sub,#9398b0)", fontFamily: "Inter, system-ui" }
+                    }
+                  >
+                    {mode === "recent"
+                      ? t("chats.sortRecent") || "Нові"
+                      : mode === "unread"
+                      ? t("chats.sortUnread") || "Непрочитані"
+                      : t("chats.sortName") || "Ім'я"}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+
+            {/* Thread rows */}
+            <div className="flex-1 overflow-y-auto">
               {visibleThreads.length === 0 ? (
-                <p className="px-2 py-6 text-center text-xs text-muted-foreground">
+                <p className="px-4 py-8 text-center text-[13px]" style={{ color: "var(--sub,#9398b0)" }}>
                   {search ? t("chats.noResults") : t("chats.noChats")}
                 </p>
               ) : (
                 visibleThreads.map((thread) => {
-                  const isUnread = thread.id !== selectedId && isUnreadThread(thread);
+                  const isUnread = isUnreadThread(thread);
+                  const tName = counterpartName(thread);
                   return (
                     <button
                       key={thread.id}
                       onClick={() => setSelectedId(thread.id)}
                       className={cn(
-                        "w-full rounded-lg p-3 text-left transition-colors",
-                        selectedId === thread.id ? "bg-primary/10" : "hover:bg-secondary"
+                        "flex items-center gap-3 w-full text-left px-4 py-3 border-b border-border/40 transition-colors",
+                        selectedId === thread.id
+                          ? "bg-[rgba(43,191,170,0.08)]"
+                          : "hover:bg-gray-50/70"
                       )}
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p
-                          className={cn(
-                            "truncate text-sm text-foreground",
-                            isUnread ? "font-bold" : "font-medium"
-                          )}
-                        >
-                          {counterpartName(thread)}
-                        </p>
-                        <div className="flex shrink-0 items-center gap-1.5">
-                          <span className="text-xs text-muted-foreground">
+                      {/* Avatar */}
+                      <div
+                        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0 relative"
+                        style={{ background: avatarGradient(tName), fontFamily: "Inter, system-ui" }}
+                      >
+                        {computeInitials(tName)}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <p
+                            className="truncate text-[14.5px]"
+                            style={{
+                              fontWeight: isUnread ? 700 : 500,
+                              fontFamily: "Inter, system-ui",
+                              color: "var(--txt,#0f0f1a)",
+                            }}
+                          >
+                            {tName}
+                          </p>
+                          <span
+                            className="text-[11px] flex-shrink-0"
+                            style={{ color: "var(--muted,#b0b4c8)" }}
+                          >
                             {timeShort(thread.last_message_at)}
                           </span>
-                          {isUnread && (
-                            <span
-                              className="h-2 w-2 rounded-full bg-primary"
-                              aria-label={t("chats.unreadDot")}
-                            />
-                          )}
                         </div>
+                        <p
+                          className="text-[12.5px] truncate mt-0.5"
+                          style={{
+                            color: isUnread ? "var(--txt,#0f0f1a)" : "var(--sub,#9398b0)",
+                            fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
+                          }}
+                        >
+                          {thread.last_message_preview ?? t("chats.noMessagesLabel")}
+                        </p>
                       </div>
-                      <p
-                        className={cn(
-                          "mt-1 truncate text-xs",
-                          isUnread ? "text-foreground" : "text-muted-foreground"
-                        )}
-                      >
-                        {thread.last_message_preview ?? t("chats.noMessagesLabel")}
-                      </p>
+
+                      {isUnread && (
+                        <span
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
+                        >
+                          ●
+                        </span>
+                      )}
                     </button>
                   );
                 })
@@ -826,123 +888,237 @@ export default function ChatsPage() {
             </div>
           </div>
 
-          {/* Detail */}
+          {/* ── Col 2: Conversation ─────────────────────────────────────────── */}
           <div
             className={cn(
-              "flex min-w-0 flex-col rounded-xl border border-border bg-card",
-              "h-[calc(100vh-8rem)] lg:h-auto",
+              "flex flex-col flex-1 min-w-0",
               !selectedThread && "hidden lg:flex"
             )}
+            style={{ background: "#F5F4F0" }}
           >
             {selectedThread ? (
               <>
-                <div className="flex items-center gap-2 border-b border-border px-3 py-3 lg:px-5 lg:py-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 shrink-0 lg:hidden"
+                {/* Conversation header */}
+                <div
+                  className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
+                  style={{ background: "#fff", borderBottom: "1px solid var(--border,#eceef3)" }}
+                >
+                  <button
+                    className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
                     onClick={() => setSelectedId(null)}
                     aria-label={t("chats.backToList")}
                   >
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
-                      {counterpartName(selectedThread)}
-                    </p>
-                    {isManager && (
-                      <p className="truncate text-xs text-muted-foreground">
-                        {t("chats.tutorLabel")} {fullName(profiles[selectedThread.tutor_id])} · {t("chats.studentLabel")}{" "}
-                        {fullName(profiles[selectedThread.student_id])}
+                    <ArrowLeft className="h-5 w-5" style={{ color: "var(--txt,#0f0f1a)" }} />
+                  </button>
+
+                  <div
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[12px] flex-shrink-0"
+                    style={{ background: avatarGradient(counterpartName(selectedThread)), fontFamily: "Inter, system-ui" }}
+                  >
+                    {computeInitials(counterpartName(selectedThread))}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p
+                        className="font-bold text-[15px] truncate"
+                        style={{ fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)" }}
+                      >
+                        {counterpartName(selectedThread)}
+                      </p>
+                      {isManager && (
+                        <span
+                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
+                          style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
+                        >
+                          <ShieldCheck className="h-2.5 w-2.5" />
+                          {t("chats.centerBadge") || "Центр"}
+                        </span>
+                      )}
+                    </div>
+                    {isManager ? (
+                      <p className="text-[12px] truncate" style={{ color: "var(--sub,#9398b0)" }}>
+                        {fullName(profiles[selectedThread.tutor_id])} · тред центру
+                      </p>
+                    ) : (
+                      <p className="text-[12px]" style={{ color: "#22c55e" }}>
+                        {t("chats.online") || "у мережі"}
                       </p>
                     )}
                   </div>
-                  {isManager && (
-                    <Badge variant="secondary" className="shrink-0 gap-1">
-                      <ShieldCheck className="h-3 w-3" />
-                      <span className="hidden sm:inline">{t("chats.managerBadge")}</span>
-                    </Badge>
-                  )}
-                  {canShowContext && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 shrink-0 lg:hidden"
-                      onClick={() => setShowContextPanel(true)}
-                      title={t("chatContext.openBtn")}
-                      aria-label={t("chatContext.openBtn")}
-                    >
-                      <Info className="h-4 w-4" />
-                    </Button>
-                  )}
+
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {canShowContext && (
+                      <button
+                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 lg:hidden"
+                        onClick={() => setShowContextPanel(true)}
+                        aria-label={t("chatContext.openBtn")}
+                      >
+                        <Info className="h-4 w-4" style={{ color: "var(--sub,#9398b0)" }} />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="flex-1 space-y-3 overflow-y-auto p-3 lg:p-5 lg:min-h-[300px]">
+                {/* Messages scroll area */}
+                <div
+                  className="flex-1 overflow-y-auto px-3 py-4 lg:px-5"
+                  style={{
+                    background: "linear-gradient(160deg,#f8fafa 0%,#f0fdf9 50%,#f8fafa 100%)",
+                  }}
+                >
                   {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
-                    <div className="flex justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 text-xs text-muted-foreground"
+                    <div className="flex justify-center mb-4">
+                      <button
+                        className="px-3 py-1 rounded-full text-[12px] transition-colors hover:bg-black/5"
+                        style={{ color: "var(--sub,#9398b0)" }}
                         onClick={() =>
                           setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
                         }
                       >
                         {t("chats.showHistory")}
-                      </Button>
+                      </button>
                     </div>
                   )}
+
                   {messages.length === 0 ? (
-                    <p className="text-center text-xs text-muted-foreground">{t("chats.noMessagesYet")}</p>
+                    <p className="text-center text-[13px] py-8" style={{ color: "var(--sub,#9398b0)" }}>
+                      {t("chats.noMessagesYet")}
+                    </p>
                   ) : (
-                    messages.map((m) => {
+                    messages.map((m, idx) => {
                       const mine = m.sender_id === myId;
                       const senderIsManager = managerIds.has(m.sender_id);
                       const msgAttachments = attachments[m.id] ?? [];
+                      const prevMsg = idx > 0 ? messages[idx - 1] : null;
+                      const showDateSep =
+                        !prevMsg ||
+                        new Date(m.created_at).toDateString() !==
+                          new Date(prevMsg.created_at).toDateString();
+
                       return (
-                        <div key={m.id} className={cn("flex flex-col", mine ? "items-end" : "items-start")}>
+                        <div key={m.id}>
+                          {showDateSep && (
+                            <div className="flex justify-center my-4">
+                              <span
+                                className="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                style={{
+                                  background: "rgba(15,15,26,.08)",
+                                  color: "var(--sub,#9398b0)",
+                                  fontFamily: "Inter, system-ui",
+                                }}
+                              >
+                                {dateLabel(m.created_at)}
+                              </span>
+                            </div>
+                          )}
+
                           <div
                             className={cn(
-                              "max-w-[85%] rounded-xl px-3 py-2 lg:max-w-[70%] lg:px-4 lg:py-2.5",
-                              mine
-                                ? "bg-primary text-primary-foreground"
-                                : senderIsManager
-                                ? "bg-accent text-accent-foreground border border-primary/20"
-                                : "bg-secondary text-foreground"
+                              "flex flex-col mb-2",
+                              mine ? "items-end" : "items-start"
                             )}
                           >
-                            <p className="mb-1 flex items-center gap-1.5 text-xs font-medium opacity-80">
-                              {fullName(profiles[m.sender_id])}
-                              {senderIsManager && (
+                            {/* Sender name for manager threads (not mine) */}
+                            {!mine && isManager && (
+                              <p
+                                className="text-[11px] mb-1 px-3 truncate max-w-[75%]"
+                                style={{
+                                  color: senderIsManager ? "#b45309" : "var(--sub,#9398b0)",
+                                  fontFamily: "Inter, system-ui",
+                                  fontWeight: 600,
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
+                                {fullName(profiles[m.sender_id])}
+                              </p>
+                            )}
+
+                            <div
+                              className={cn("max-w-[75%] px-3.5 py-2.5 lg:max-w-[65%]")}
+                              style={{
+                                ...(mine
+                                  ? {
+                                      background: "linear-gradient(135deg,#2BBFAA,#25a896)",
+                                      color: "#fff",
+                                      borderRadius: "16px 16px 5px 16px",
+                                    }
+                                  : senderIsManager
+                                  ? {
+                                      background: "#fff7ed",
+                                      border: "1px solid rgba(245,158,11,.35)",
+                                      color: "var(--txt,#0f0f1a)",
+                                      borderRadius: "16px 16px 16px 5px",
+                                    }
+                                  : {
+                                      background: "#fff",
+                                      border: "1px solid var(--border,#eceef3)",
+                                      color: "var(--txt,#0f0f1a)",
+                                      borderRadius: "16px 16px 16px 5px",
+                                    }),
+                              }}
+                            >
+                              {/* ЦЕНТР badge for manager sender */}
+                              {!mine && senderIsManager && (
                                 <span
-                                  className={cn(
-                                    "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                                    mine
-                                      ? "bg-primary-foreground/20 text-primary-foreground"
-                                      : "bg-primary/15 text-primary"
-                                  )}
+                                  className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
+                                  style={{
+                                    background: "rgba(245,158,11,.18)",
+                                    color: "#b45309",
+                                    fontFamily: "Inter, system-ui",
+                                  }}
                                 >
                                   <ShieldCheck className="h-2.5 w-2.5" />
-                                  {t("chats.managerBadge")}
+                                  {t("chats.centerBadge") || "ЦЕНТР"}
                                 </span>
                               )}
-                            </p>
-                            {m.body && <p className="text-sm whitespace-pre-wrap break-words">{m.body}</p>}
-                            {msgAttachments.length > 0 && (
-                              <div className="mt-2 space-y-1.5">
-                                {msgAttachments.map((att) => (
-                                  <ChatAttachment key={att.id} attachment={att} mine={mine} />
-                                ))}
+
+                              {m.body && (
+                                <p
+                                  className="text-[14px] leading-relaxed whitespace-pre-wrap break-words"
+                                  style={{ fontFamily: "'Plus Jakarta Sans', system-ui" }}
+                                >
+                                  {m.body}
+                                </p>
+                              )}
+
+                              {msgAttachments.length > 0 && (
+                                <div className="mt-2 space-y-1.5">
+                                  {msgAttachments.map((att) => (
+                                    <ChatAttachment key={att.id} attachment={att} mine={mine} />
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex items-center justify-end gap-1 mt-1">
+                                <span
+                                  className="text-[10px]"
+                                  style={{ color: mine ? "rgba(255,255,255,0.6)" : "var(--muted,#b0b4c8)" }}
+                                >
+                                  {timeShort(m.created_at)}
+                                </span>
+                                {mine && (
+                                  <span
+                                    className="text-[11px]"
+                                    style={{ color: readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id]) ? "#bdfaee" : "rgba(255,255,255,0.5)" }}
+                                  >
+                                    {readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id])
+                                      ? "✓✓"
+                                      : "✓"}
+                                  </span>
+                                )}
                               </div>
-                            )}
-                            <p className="mt-1 text-right text-[10px] opacity-50">{timeShort(m.created_at)}</p>
+                            </div>
+
+                            <MessageReactions
+                              reactions={reactions[m.id] ?? []}
+                              myId={myId}
+                              onToggle={(emoji) => toggleReaction(m.id, emoji)}
+                              mine={mine}
+                            />
                           </div>
-                          <MessageReactions
-                            reactions={reactions[m.id] ?? []}
-                            myId={myId}
-                            onToggle={(emoji) => toggleReaction(m.id, emoji)}
-                            mine={mine}
-                          />
                         </div>
                       );
                     })
@@ -950,54 +1126,63 @@ export default function ChatsPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
+                {/* Quick replies — manager only */}
                 {isManager && (
-                  <div className="relative border-t border-border">
-                    <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1 lg:flex-wrap lg:overflow-visible lg:pb-2">
-                      {[
-                        t("chatsQuickReplies").split(",")[0],
-                        t("chatsQuickReplies").split(",")[1],
-                        t("chatsQuickReplies").split(",")[2],
-                        t("chatsQuickReplies").split(",")[3],
-                      ].map((tpl) => (
-                        <button
-                          key={tpl}
-                          type="button"
-                          onClick={() => setDraft(tpl)}
-                          className="shrink-0 whitespace-nowrap rounded-full border border-border bg-secondary/50 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-                          title={t("chats.insertTemplate")}
-                        >
-                          {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
-                        </button>
-                      ))}
+                  <div className="relative flex-shrink-0" style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}>
+                    <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1.5 lg:flex-wrap lg:overflow-visible lg:pb-2">
+                      {t("chatsQuickReplies")
+                        .split(",")
+                        .map((tpl) => (
+                          <button
+                            key={tpl}
+                            type="button"
+                            onClick={() => setDraft(tpl)}
+                            className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] transition-colors"
+                            style={{
+                              border: "1px solid var(--border,#eceef3)",
+                              background: "var(--bg,#F5F4F0)",
+                              color: "var(--sub,#9398b0)",
+                              fontFamily: "Inter, system-ui",
+                            }}
+                          >
+                            {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
+                          </button>
+                        ))}
                     </div>
-                    {/* Fade-out hint that the row is horizontally scrollable on mobile */}
                     <div
                       aria-hidden
-                      className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-card to-transparent lg:hidden"
+                      className="pointer-events-none absolute right-0 top-0 h-full w-8 lg:hidden"
+                      style={{ background: "linear-gradient(to left,#fff,transparent)" }}
                     />
                   </div>
                 )}
+
+                {/* Pending file preview */}
                 {pendingFile && (
-                  <div className="flex items-center gap-2 border-t border-border px-3 py-2 text-xs">
-                    <Paperclip className="h-3.5 w-3.5 text-primary shrink-0" />
-                    <span className="flex-1 truncate text-foreground">{pendingFile.name}</span>
-                    <span className="text-muted-foreground shrink-0">{formatBytes(pendingFile.size)}</span>
+                  <div
+                    className="flex items-center gap-2 px-3 py-2 text-[12px] flex-shrink-0"
+                    style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}
+                  >
+                    <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
+                    <span className="flex-1 truncate" style={{ color: "var(--txt,#0f0f1a)" }}>{pendingFile.name}</span>
+                    <span style={{ color: "var(--muted,#b0b4c8)" }}>{formatBytes(pendingFile.size)}</span>
                     <button
                       type="button"
                       onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                      className="rounded p-1 text-muted-foreground hover:text-destructive"
+                      className="rounded p-1 hover:text-destructive"
+                      style={{ color: "var(--muted,#b0b4c8)" }}
                       aria-label={t("chats.removeFile")}
                     >
                       <X className="h-3.5 w-3.5" />
                     </button>
                   </div>
                 )}
+
+                {/* Composer */}
                 <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    sendMessage();
-                  }}
-                  className="flex items-end gap-2 border-t border-border p-3"
+                  onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
+                  className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
+                  style={{ background: "#fff", borderTop: "1px solid var(--border,#eceef3)" }}
                 >
                   <input
                     ref={fileInputRef}
@@ -1016,135 +1201,185 @@ export default function ChatsPage() {
                       }
                     }}
                   />
-                  <Button
+                  <button
                     type="button"
-                    size="icon"
-                    variant="ghost"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={sending}
                     title={t("chats.attach")}
                     aria-label={t("chats.attach")}
-                    className="shrink-0"
+                    className="w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 flex-shrink-0"
+                    style={{ color: "var(--sub,#9398b0)" }}
                   >
                     <Paperclip className="h-4 w-4" />
-                  </Button>
+                  </button>
+
                   <Textarea
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        if (!sending && (draft.trim().length > 0 || pendingFile)) {
-                          sendMessage();
-                        }
+                        if (!sending && (draft.trim().length > 0 || pendingFile)) sendMessage();
                       }
                     }}
                     placeholder={
-                      isManager ? t("chats.placeholderManager") : t("chats.placeholderOther")
+                      isManager
+                        ? t("chats.placeholderManager")
+                        : t("chats.composerPlaceholder") || "Напишіть повідомлення…"
                     }
                     maxLength={4000}
                     disabled={sending}
-                    rows={3}
-                    className="min-h-[80px] resize-none flex-1"
+                    rows={1}
+                    className="flex-1 rounded-2xl border px-4 py-2.5 text-[14px] resize-none"
+                    style={{
+                      background: "#fbfbfc",
+                      borderColor: "var(--border,#eceef3)",
+                      minHeight: 42,
+                      maxHeight: 120,
+                      fontFamily: "'Plus Jakarta Sans', system-ui",
+                      outline: "none",
+                      boxShadow: "none",
+                    }}
                   />
-                  <Button type="submit" size="icon" disabled={sending || (draft.trim().length === 0 && !pendingFile)} className="shrink-0">
-                    {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
+
+                  <button
+                    type="submit"
+                    disabled={sending || (draft.trim().length === 0 && !pendingFile)}
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 transition-opacity disabled:opacity-40"
+                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 4px 14px -4px rgba(43,191,170,0.6)" }}
+                  >
+                    {sending
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <Send className="h-4 w-4" />}
+                  </button>
                 </form>
               </>
             ) : (
-              <div className="flex flex-1 items-center justify-center p-10 text-sm text-muted-foreground">
+              <div className="flex flex-1 items-center justify-center text-[13px]" style={{ color: "var(--sub,#9398b0)" }}>
                 {t("chats.selectChat")}
               </div>
             )}
           </div>
 
-          {/* Context available via Info button → Sheet */}
+          {/* ── Col 3: Context panel (desktop only, always visible) ─────────── */}
+          {canShowContext && (
+            <div
+              className="hidden lg:flex flex-col border-l border-border overflow-y-auto flex-shrink-0"
+              style={{ width: 260, background: "#fff" }}
+            >
+              {selectedThread ? (
+                <>
+                  <div
+                    className="px-4 py-3 flex-shrink-0"
+                    style={{ borderBottom: "1px solid var(--border,#eceef3)" }}
+                  >
+                    <p
+                      className="text-[11px] font-bold uppercase tracking-widest"
+                      style={{ color: "var(--sub,#9398b0)", fontFamily: "Inter, system-ui" }}
+                    >
+                      {t("chats.context") || "Контекст учня"}
+                    </p>
+                  </div>
+                  <ChatContextPanel
+                    tutorId={selectedThread.tutor_id}
+                    studentId={selectedThread.student_id}
+                    onClose={() => {}}
+                    className="border-none bg-transparent flex-1"
+                  />
+                </>
+              ) : (
+                <div
+                  className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[12px]"
+                  style={{ color: "var(--muted,#b0b4c8)" }}
+                >
+                  <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
+                  <p>Оберіть чат, щоб<br />бачити контекст учня</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* Mobile context sheet */}
       {canShowContext && (
         <Sheet open={showContextPanel} onOpenChange={setShowContextPanel}>
-          <SheetContent side="bottom" className="h-[70vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
-            <SheetHeader className="px-4 pt-4">
-              <SheetTitle className="text-left">{t("chatContext.title")}</SheetTitle>
+          <SheetContent side="bottom" className="h-[82vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
+            <div className="flex justify-center pt-2.5 pb-1 flex-shrink-0">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <SheetHeader className="px-4 pb-2 flex-shrink-0">
+              <SheetTitle className="text-left text-[16px]">
+                {t("chats.context") || "Контекст учня"}
+              </SheetTitle>
             </SheetHeader>
             <ChatContextPanel
               tutorId={selectedThread?.tutor_id ?? null}
               studentId={selectedThread?.student_id ?? null}
               onClose={() => setShowContextPanel(false)}
-              className="border-none bg-transparent pt-2 flex-1"
+              className="border-none bg-transparent pt-0 flex-1"
             />
           </SheetContent>
         </Sheet>
       )}
-      {isManager && (
-        <PageFAB onClick={() => setNewChatOpen(true)} label={t("chats.createChatBtn")} />
-      )}
-      {/* New chat dialog — rendered at root, triggered by FAB */}
+
+      {/* New chat dialog — manager only */}
       <Dialog open={newChatOpen} onOpenChange={setNewChatOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("chats.newChatDesc")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-2">
-                <Label>{t("chats.pairLabel")}</Label>
-                {pairsLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
-                  </div>
-                ) : availablePairs.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    {t("chats.noPairs")}
-                  </p>
-                ) : (
-                  <>
-                    <Select value={selectedPair} onValueChange={setSelectedPair}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availablePairs.map((p) => {
-                          const key = `${p.tutor_id}|${p.student_id}`;
-                          const exists = threads.some(
-                            (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
-                          );
-                          return (
-                            <SelectItem key={key} value={key}>
-                              {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
-                              {exists ? t("chats.chatAlreadyExistsTag") : ""}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                    {selectedPair && (() => {
-                      const [tId, sId] = selectedPair.split("|");
-                      const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
-                      if (!existing) return null;
-                      return (
-                        <p className="text-xs text-warning">
-                          {t("chats.chatExistsWarning")}
-                        </p>
-                      );
-                    })()}
-                  </>
-                )}
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("chats.newChatTitle")}</DialogTitle>
+            <DialogDescription>{t("chats.newChatDesc")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label>{t("chats.pairLabel")}</Label>
+            {pairsLoading ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> {t("chats.loadingPairs")}
               </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
-                  {t("common.cancel")}
-                </Button>
-                <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
-                  {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+            ) : availablePairs.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("chats.noPairs")}</p>
+            ) : (
+              <>
+                <Select value={selectedPair} onValueChange={setSelectedPair}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availablePairs.map((p) => {
+                      const key = `${p.tutor_id}|${p.student_id}`;
+                      const exists = threads.some(
+                        (t) => t.tutor_id === p.tutor_id && t.student_id === p.student_id
+                      );
+                      return (
+                        <SelectItem key={key} value={key}>
+                          {fullName(profiles[p.tutor_id])} ↔ {fullName(profiles[p.student_id])}
+                          {exists ? t("chats.chatAlreadyExistsTag") : ""}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {selectedPair && (() => {
+                  const [tId, sId] = selectedPair.split("|");
+                  const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
+                  if (!existing) return null;
+                  return (
+                    <p className="text-xs text-warning">{t("chats.chatExistsWarning")}</p>
+                  );
+                })()}
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNewChatOpen(false)}>
+              {t("common.cancel")}
+            </Button>
+            <Button onClick={createManagerThread} disabled={!selectedPair || creatingThread}>
+              {creatingThread ? <Loader2 className="h-4 w-4 animate-spin" /> : t("chats.createBtn")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
