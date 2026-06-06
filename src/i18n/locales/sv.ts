@@ -1903,11 +1903,6 @@ export const sv: Partial<Translations> = {
   "quickAdd.lesson": "Lektion",
   "quickAdd.student": "Elev",
   "quickAdd.payment": "Betalning",
-  quickAdd: {
-    lesson: "Lektion",
-    student: "Elev",
-    payment: "Betalning",
-  },
   "lessonCard.paymentDetails": "Betalningsdetaljer",
   "lessonCard.studentAwaiting": "Väntar på betalning",
   "lessonCard.studentPaid": "Betalat av elev",
