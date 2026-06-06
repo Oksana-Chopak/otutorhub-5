@@ -2720,6 +2720,7 @@ export const uk = {
     noConnection: "Немає зʼєднання — перевір інтернет",
     restored: "Зʼєднання відновлено ✅",
   },
-
+};
 
 export type Translations = typeof uk;
+
