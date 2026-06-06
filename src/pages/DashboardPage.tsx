@@ -1283,7 +1283,7 @@ export default function DashboardPage() {
               </Button>
             </div>
           )}
-          {isTutor && !isManager && (
+          {isTutor && !isManager && !isIndependentTutor && (
             <div className="mt-4">
               <PendingPaymentsCard />
             </div>
@@ -1460,7 +1460,7 @@ export default function DashboardPage() {
           )}
 
           <div className="grid gap-5 md:grid-cols-2 md:gap-6">
-            <section className="order-2 md:order-1">
+            <section className="order-1">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {isIndependentTutor
@@ -1657,7 +1657,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="order-1 md:order-2">
+            <section className="order-2">
               <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
