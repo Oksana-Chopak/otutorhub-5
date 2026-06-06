@@ -1925,11 +1925,6 @@ export const uk = {
   "quickAdd.lesson": "Урок",
   "quickAdd.student": "Учня",
   "quickAdd.payment": "Оплату",
-  quickAdd: {
-    lesson: "Урок",
-    student: "Учня",
-    payment: "Оплату",
-  },
   "lessonCard.paymentDetails": "Деталі оплати",
   "lessonCard.studentAwaiting": "Очікує оплати від учня",
   "lessonCard.studentPaid": "Оплачено учнем",
