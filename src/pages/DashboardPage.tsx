@@ -1062,6 +1062,14 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* ── INDEPENDENT TUTOR: Notes + Streak (mobile, before lessons) ── */}
+          {isIndependentTutor && (
+            <div className="flex flex-col gap-3 lg:hidden">
+              <TutorNotesCard />
+              {streak && <StreakCard streak={streak} />}
+            </div>
+          )}
+
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
@@ -1164,10 +1172,7 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Independent tutor: streak card — always visible so new tutors see "Почни сьогодні!" */}
-          {isIndependentTutor && streak && (
-            <StreakCard streak={streak} />
-          )}
+
 
           {/* Top-10% badge */}
           {isTutor && !isManager && topPercentile !== null && topPercentile < 10 && (
@@ -1387,17 +1392,17 @@ export default function DashboardPage() {
             <section className="order-2 md:order-1">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
-                  {t("dashboard.upcomingLessons")}
+                  {isIndependentTutor
+                    ? `🗓️ ${"Сьогодні"} · ${todayLessons.length} ${"урок".slice(0, todayLessons.length === 1 ? 5 : todayLessons.length < 5 ? 5 : 6)}`
+                    : t("dashboard.upcomingLessons")}
                 </p>
-                {upcomingAll.length > todayPlusTomorrowLessons.length && (
-                  <button
-                    className="text-[12px] font-medium transition-colors hover:underline"
-                    style={{ color: "var(--teal)" }}
-                    onClick={() => setShowAllUpcoming((v) => !v)}
-                  >
-                    {showAllUpcoming ? t("dashboard.hide") : t("dashboard.showAll", { count: upcomingAll.length })}
-                  </button>
-                )}
+                <button
+                  className="text-[12px] font-semibold transition-colors hover:underline"
+                  style={{ color: "var(--teal)" }}
+                  onClick={() => navigate("/schedule")}
+                >
+                  {t("nav.schedule") || "Розклад"} →
+                </button>
               </div>
               <div className={`space-y-2.5 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
@@ -1564,89 +1569,16 @@ export default function DashboardPage() {
                     const canEditStatus = isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
-                      <LessonCard
+                      <DashboardLessonCard
                         key={lesson.id}
-                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                        variant="schedule"
+                        lesson={lesson}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager}
-                        meetingUrl={meetingHref}
-                        chatPartnerId={partnerId}
-                        onContentClick={() => setOpenLessonId(lesson.id)}
-                        className={lessonSourceTint(lesson.source)}
-                        extraActions={
-                          canEditStatus ? (
-                            <>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => setOpenLessonId(lesson.id)}
-                                title={t("dashboardExtra.rescheduleLesson")}
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
-                              </Button>
-                              <Select
-                                value={lesson.status}
-                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                              >
-                                <SelectTrigger className="h-11 w-[140px] text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(isManager
-                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  ).map((s) => (
-                                    <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </>
-                          ) : null
-                        }
-                        footer={
-                          isManager ? (
-                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
-                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.student_payment_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Оплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
-                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.tutor_payout_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          ) : null
-                        }
+                        showPayout={isManager || lesson.source === "hub"}
+                        full={false}
+                        onStatusChange={(id, s) => updateStatus(id, s)}
+                        onPayChange={(id, field, v) => updatePayment(id, field, v)}
                       />
                     );
                   })
@@ -1764,6 +1696,12 @@ export default function DashboardPage() {
                   <div className="mt-1">
                     <TelegramLinkCard />
                   </div>
+                  {/* Desktop: Streak for independent tutor */}
+                  {isIndependentTutor && streak && (
+                    <div className="hidden lg:block mt-1">
+                      <StreakCard streak={streak} />
+                    </div>
+                  )}
                   {/* Notes visible in right column on desktop */}
                   {(isTutor || isManager) && (
                     <div className="hidden md:block mt-1">
@@ -1785,10 +1723,6 @@ export default function DashboardPage() {
           {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
             <>
-              <IndependentTutorStats />
-              <div className="mt-4 space-y-4">
-                <TutorNotesCard />
-              </div>
               <AutoCompleteLessonsCard />
               <div id="monthly-summary-anchor" className="mt-6 grid gap-4 lg:grid-cols-2">
                 <MonthlySummaryCard />
