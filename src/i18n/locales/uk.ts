@@ -312,8 +312,9 @@ export const uk = {
       privacy: "Політика конфіденційності",
       contact: "Зв'язатись",
       copyright: "© 2026 oTutorHub",
-    },
   },
+};
+
 
   // Auth
   auth: {
