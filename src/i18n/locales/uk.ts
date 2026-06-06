@@ -1913,7 +1913,8 @@ export const uk = {
     whatThisMeans: "Що це означає?",
     questLevel: "🏆 Рівень {{count}}",
     questDone: "🎉 Готово! Усі досягнення виконано",
-  },
+
+
 
 
   "nav.day": "Мій день",
