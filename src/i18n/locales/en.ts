@@ -1,6 +1,12 @@
 import type { Translations } from "./uk";
 
 export const en: Translations = {
+  quickAdd: {
+    lesson: "Lesson",
+    student: "Student",
+    payment: "Payment",
+  },
+
   common: {
     save: "Save",
     cancel: "Cancel",

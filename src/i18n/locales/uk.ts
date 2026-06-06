@@ -1,5 +1,11 @@
 export const uk = {
+  quickAdd: {
+    lesson: "Урок",
+    student: "Учня",
+    payment: "Оплату",
+  },
   // Common
+
   common: {
     save: "Зберегти",
     cancel: "Скасувати",
@@ -312,8 +318,10 @@ export const uk = {
       privacy: "Політика конфіденційності",
       contact: "Зв'язатись",
       copyright: "© 2026 oTutorHub",
-    },
   },
+  },
+
+
 
   // Auth
   auth: {
@@ -1912,6 +1920,9 @@ export const uk = {
     questLevel: "🏆 Рівень {{count}}",
     questDone: "🎉 Готово! Усі досягнення виконано",
 
+
+
+
   "nav.day": "Мій день",
   "nav.schedule": "Розклад",
   "nav.finance": "Фінанси",
@@ -2713,3 +2724,4 @@ export const uk = {
 };
 
 export type Translations = typeof uk;
+
