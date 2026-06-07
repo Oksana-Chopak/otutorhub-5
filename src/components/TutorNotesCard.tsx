@@ -63,7 +63,7 @@ export function TutorNotesCard() {
           placeholder={t("tutorNotes.placeholder")}
           maxLength={500}
           rows={2}
-          className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[15px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+          className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[16px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); add(); }
           }}
@@ -91,11 +91,11 @@ export function TutorNotesCard() {
           key={note.id}
           className="group flex items-start gap-2 px-1 py-1.5"
         >
-          <p className="flex-1 text-[15px] leading-snug text-foreground">{note.text}</p>
+          <p className="flex-1 text-[16px] leading-snug text-foreground">{note.text}</p>
           <button
             onClick={() => remove(note.id)}
             aria-label={t("tutorNotes.delete")}
-            className="mt-0.5 shrink-0 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 active:opacity-100"
+            className="mt-0.5 shrink-0 rounded-md p-1 text-muted-foreground/50 transition-colors hover:text-destructive hover:bg-destructive/10"
           >
             <X className="h-3.5 w-3.5" />
           </button>
