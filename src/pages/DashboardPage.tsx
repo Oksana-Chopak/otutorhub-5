@@ -1076,46 +1076,33 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Desktop bento: [Profit] [Students] [Level] [Streak] — 4 equal cols */}
-              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4">
+              {/* Desktop bento: [Profit] [Students] [Level] [Streak] — 4 equal cols (compact) */}
+              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
                 {/* 1. Profit card */}
-                <div className="overflow-hidden rounded-[20px] p-5 relative flex flex-col justify-between"
-                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 140 }}>
+                <div className="overflow-hidden rounded-[18px] p-4 relative flex flex-col justify-between"
+                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 112 }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.07em]" style={{ color: "#6b7a99" }}>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "#8a96b3" }}>
                       💰 {t("dashboard.cardProfit") || "Твій дохід"}
                     </p>
-                    <p className="mt-2 font-black leading-none"
-                      style={{ fontSize: 34, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.025em" }}>
+                    <p className="mt-1.5 font-black leading-none"
+                      style={{ fontSize: 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.025em" }}>
                       {formatPrice(profit, "UAH")}
                     </p>
                     {profitGrowthPct !== null && (
-                      <p className="mt-1.5 text-[13px] font-bold"
+                      <p className="mt-1 text-[14px] font-bold"
                         style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
                         {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за червень
                       </p>
                     )}
                   </div>
-                  <div className="mt-3 relative" style={{ height: 28 }}>
-                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                      {[0,1,2].map(k => (
-                        <div key={k} className="w-full" style={{ height: 1, background: "rgba(255,255,255,0.07)" }} />
-                      ))}
-                    </div>
-                    <div className="absolute bottom-0 left-0 right-0 flex items-end gap-1" style={{ height: "100%" }}>
-                      {weeklyIncomeBars.map((h, idx2) => (
-                        <div key={idx2} className="flex-1 rounded transition-all duration-500"
-                          style={{ height: `max(${h}%, 4px)`, background: idx2 === 6 ? "#2BBFAA" : "rgba(43,191,170,0.22)" }} />
-                      ))}
-                    </div>
-                  </div>
                 </div>
 
                 {/* 2. Students card */}
-                <Link to="/people" className="rounded-[20px] border bg-white p-5 flex flex-col justify-between hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
+                <Link to="/people" className="rounded-[18px] border bg-white p-4 flex flex-col justify-between hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }}>
                   <div className="flex items-center justify-between">
-                    <p className="text-[12px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
                       👥 {t("dashboard.cardStudents") || "Учні"}
                     </p>
                     <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
@@ -1124,11 +1111,11 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div>
-                    <p className="font-black leading-none mt-2"
-                      style={{ fontSize: 34, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.025em" }}>
+                    <p className="font-black leading-none mt-1.5"
+                      style={{ fontSize: 30, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.025em" }}>
                       {studentCount}
                     </p>
-                    <p className="text-[13px] mt-1.5" style={{ color: "var(--sub,#9398b0)" }}>
+                    <p className="text-[14px] mt-1" style={{ color: "var(--sub,#9398b0)" }}>
                       активних
                     </p>
                   </div>
@@ -1136,33 +1123,34 @@ export default function DashboardPage() {
 
                 {/* 3. Level card */}
                 {level ? (
-                  <div className="rounded-[20px] border bg-white p-5 flex flex-col justify-between"
-                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <div className="rounded-[18px] border bg-white p-4 flex flex-col justify-between"
+                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }}>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
                       🏅 Рівень
                     </p>
                     <div>
-                      <p className="font-black text-[26px] leading-tight mt-2" style={{ fontFamily: "Inter, system-ui" }}>
+                      <p className="font-black text-[22px] leading-tight mt-1.5" style={{ fontFamily: "Inter, system-ui" }}>
                         {level.emoji} {level.name}
                       </p>
                       {level.next_threshold !== null && (
-                        <p className="text-[13px] mt-1.5" style={{ color: "var(--sub,#9398b0)" }}>
-                          ще {level.next_threshold - level.completed_lessons} уроків до наступного
+                        <p className="text-[14px] mt-1" style={{ color: "var(--sub,#9398b0)" }}>
+                          ще {level.next_threshold - level.completed_lessons} уроків
                         </p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-[20px] border bg-white p-5" style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }} />
+                  <div className="rounded-[18px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }} />
                 )}
 
-                {/* 3. Streak card */}
+                {/* 4. Streak card */}
                 {streak ? (
                   <StreakCard streak={streak} />
                 ) : (
-                  <div className="rounded-[20px] border bg-white p-5" style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }} />
+                  <div className="rounded-[18px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }} />
                 )}
               </div>
+
             </>
           )}
 
