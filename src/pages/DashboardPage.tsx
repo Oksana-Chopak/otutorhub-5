@@ -11,6 +11,7 @@ import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
@@ -285,6 +286,17 @@ export default function DashboardPage() {
   // Gamification: badge unlock toasts + streak card + referral nudge counters
   const gamification = useTutorGamification();
   const { badges, loading: gamificationLoading, streak, level } = gamification;
+
+  // Onboarding bonus progress for "Що зробити далі" section
+  const obProgress = useOnboardingProgress();
+  const [skippedTasks, setSkippedTasks] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem("ob_skipped_dashboard") ?? "[]"); } catch { return []; }
+  });
+  const skipTask = (action: string) => {
+    const next = [...skippedTasks, action];
+    setSkippedTasks(next);
+    localStorage.setItem("ob_skipped_dashboard", JSON.stringify(next));
+  };
 
   // Pull-to-refresh on mobile
   const { isPulling, pullProgress } = usePullToRefresh(() => loadData());
@@ -825,6 +837,62 @@ export default function DashboardPage() {
   }, []);
 
   // Smart tasks list (manager-only)
+  // Onboarding bonus tasks shown in "Що зробити далі" for independent tutors
+  const TUTOR_BONUS_TASKS = [
+    {
+      action: "availability",
+      emoji: "🕐",
+      title: "Встанови доступні години",
+      desc:  "Учні бронюватимуть слоти самостійно, без дзвінків",
+      to:    "/profile#availability",
+      done:  obProgress.hasAvailability,
+    },
+    {
+      action: "zoom",
+      emoji: "🎥",
+      title: "Підключіть Zoom або Meet",
+      desc:  "Постійне посилання — учень підключиться одним кліком",
+      to:    "/profile#zoom",
+      done:  obProgress.hasMeetingUrl,
+    },
+    {
+      action: "telegram",
+      emoji: "📲",
+      title: "Підключіть Telegram-сповіщення",
+      desc:  "Щоденний дайджест і нагадування про уроки",
+      to:    "/profile#telegram",
+      done:  obProgress.hasTelegram,
+    },
+    {
+      action: "calendar",
+      emoji: "📆",
+      title: "Підключіть Google Calendar",
+      desc:  "Уроки автоматично з'являться у вашому Google Calendar",
+      to:    "/profile#calendar",
+      done:  obProgress.hasGoogleCalendar,
+    },
+    {
+      action: "referral",
+      emoji: "🎁",
+      title: "Запросіть колегу",
+      desc:  "249 грн в подарунок за кожного платного реферала",
+      to:    "/referrals",
+      done:  obProgress.hasReferral,
+    },
+    {
+      action: "ai",
+      emoji: "✨",
+      title: "AI-конспекти уроків",
+      desc:  "Fireflies запише урок, AI зробить підсумок автоматично",
+      to:    "/profile#ai",
+      done:  false, // always suggest until skipped
+    },
+  ] as const;
+
+  const pendingBonusTasks = TUTOR_BONUS_TASKS.filter(
+    (t) => !t.done && !skippedTasks.includes(t.action)
+  );
+
   const smartTasks = useMemo(() => {
     if (!isManager) return [] as Array<{
       key: string;
@@ -1779,15 +1847,58 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
-                  {(isTutor || isManager) && (
+                  {/* Independent tutor: dynamic onboarding bonus tasks */}
+                  {isIndependentTutor && !obProgress.loading && (
+                    <>
+                      {pendingBonusTasks.length === 0 ? (
+                        <div className="rounded-[18px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+                          <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
+                            <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
+                          </div>
+                          <p className="text-[15px] font-semibold" style={{ color: "var(--ds-txt)" }}>Кабінет налаштовано на 100% 🎉</p>
+                          <p className="mt-1 text-[13px]" style={{ color: "var(--ds-sub)" }}>Всі підсилювачі підключені. Чудова робота!</p>
+                        </div>
+                      ) : (
+                        pendingBonusTasks.map((task) => (
+                          <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[18px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                            style={{ borderLeft: "3.5px solid #2BBFAA" }}>
+                            <Link to={task.to} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0">
+                              <span className="text-xl flex-shrink-0">{task.emoji}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
+                                <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
+                              </div>
+                              <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                            </Link>
+                            <button
+                              onClick={() => skipTask(task.action)}
+                              className="flex-shrink-0 px-3 py-3.5 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
+                              title="Пропустити"
+                              aria-label="Пропустити"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))
+                      )}
+                      {pendingBonusTasks.length > 0 && (
+                        <Link to="/profile" className="flex items-center justify-center gap-1 mt-1 text-[13px] transition-colors hover:opacity-70"
+                          style={{ color: "var(--sub,#9398b0)" }}>
+                          Завжди можна підключити у Профілі →
+                        </Link>
+                      )}
+                    </>
+                  )}
+                  {/* Non-independent tutor: static availability task */}
+                  {(isTutor || isManager) && !isIndependentTutor && (
                     <Link to="/availability" className="block group">
                       <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #d0d3e0" }}>
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(208,211,224,0.25)" }}>
                           <CalendarPlus className="h-4 w-4" style={{ color: "var(--ds-sub)" }} />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.updateHours")}</p>
-                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним"}</p>
+                          <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.updateHours")}</p>
+                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним"}</p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-slate-300" />
                       </div>
