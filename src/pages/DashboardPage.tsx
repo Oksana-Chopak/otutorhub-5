@@ -1111,7 +1111,30 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* 2. Level card */}
+                {/* 2. Students card */}
+                <Link to="/people" className="rounded-[20px] border bg-white p-5 flex flex-col justify-between hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[12px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
+                      👥 {t("dashboard.cardStudents") || "Учні"}
+                    </p>
+                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
+                      style={{ background: "rgba(43,191,170,0.1)" }}>
+                      <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-black leading-none mt-2"
+                      style={{ fontSize: 34, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.025em" }}>
+                      {studentCount}
+                    </p>
+                    <p className="text-[13px] mt-1.5" style={{ color: "var(--sub,#9398b0)" }}>
+                      активних
+                    </p>
+                  </div>
+                </Link>
+
+                {/* 3. Level card */}
                 {level ? (
                   <div className="rounded-[20px] border bg-white p-5 flex flex-col justify-between"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
