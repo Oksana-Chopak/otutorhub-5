@@ -1280,22 +1280,11 @@ export default function ChatsPage() {
             >
               {selectedThread ? (
                 <>
-                  <div
-                    className="px-4 py-3 flex-shrink-0"
-                    style={{ borderBottom: "1px solid var(--border,#eceef3)" }}
-                  >
-                    <p
-                      className="text-[11px] font-bold uppercase tracking-widest"
-                      style={{ color: "var(--sub,#9398b0)", fontFamily: "Inter, system-ui" }}
-                    >
-                      {t("chats.context", "Контекст учня")}
-                    </p>
-                  </div>
                   <ChatContextPanel
                     tutorId={selectedThread.tutor_id}
                     studentId={selectedThread.student_id}
                     onClose={() => {}}
-                    className="border-none bg-transparent flex-1"
+                    className="flex-1 overflow-y-auto border-none bg-white"
                   />
                 </>
               ) : (
