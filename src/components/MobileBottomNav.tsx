@@ -10,9 +10,9 @@ import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { to: "/",          labelKey: "nav.day",      icon: Home },
+  { to: "/",          labelKey: "nav.dashboard", icon: Home },
   { to: "/schedule",  labelKey: "nav.schedule",  icon: CalendarDays },
-  { to: "/finances",  labelKey: "nav.finance",   icon: Wallet },
+  { to: "/finances",  labelKey: "nav.finances",  icon: Wallet },
   { to: "/chats",     labelKey: "nav.chats",     icon: MessageSquare },
   { to: "/people",    labelKey: "nav.people",    icon: Users },
 ] as const;
