@@ -967,7 +967,7 @@ export default function DashboardPage() {
                 {timeEmoji}{" "}
                 {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal)" }}>{firstName}</span></> : "!"}
               </h1>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted-foreground">
+              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[16px] text-muted-foreground">
                 <Link
                   to="/schedule"
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
@@ -982,23 +982,29 @@ export default function DashboardPage() {
                   </span>
                 )}
               </p>
-              <p className="mt-3 line-clamp-2 text-[14px] italic text-muted-foreground">
+              <p className="mt-3 line-clamp-2 text-[16px] italic text-muted-foreground">
                 ✨ {phraseOfDay}
               </p>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
-              {/* Desktop compact trial chip — between affirmation and bell */}
+              {/* Trial countdown — між афірмацією і кнопками, читабельно */}
               {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
                   to="/subscription"
-                  className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 hover:bg-white/20 transition"
-                  title={t("trial.connectPro")}
+                  className="mt-3 hidden lg:inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 text-[15px] font-semibold transition-opacity hover:opacity-80"
+                  style={{
+                    background: trialDaysLeft <= 3 ? "rgba(245,158,11,.15)" : "rgba(43,191,170,.12)",
+                    color: trialDaysLeft <= 3 ? "#b45309" : "#25a896",
+                    border: `1px solid ${trialDaysLeft <= 3 ? "rgba(245,158,11,.35)" : "rgba(43,191,170,.35)"}`,
+                  }}
                 >
-                  <Sparkles className="h-3 w-3" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
-                  {t("trial.day", { count: trialDaysLeft })}
+                  <Sparkles className="h-4 w-4" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
+                  🎁 Тріал Pro: залишилось{" "}
+                  <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}</strong>
+                  {" "}· Підключити за 249 ₴/міс →
                 </Link>
               )}
-              {/* Golden bell — opens notification panel */}
+            </div>
+            <div className="flex shrink-0 items-start gap-2 pt-0.5">
+              {/* Golden bell — top right, standalone */}
               <NotificationBell golden className="hidden h-11 w-11 rounded-full lg:flex" />
               {/* Burger menu */}
               {isStudent && !isTutor && !isManager && (
@@ -1484,7 +1490,7 @@ export default function DashboardPage() {
           <div className="grid gap-5 md:grid-cols-2 md:gap-6">
             <section className="order-1">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[13px] font-bold uppercase tracking-[0.06em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
+                <p className="text-[14px] font-bold uppercase tracking-[0.05em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {isIndependentTutor
                     ? `🗓️ ${"Сьогодні"} · ${todayLessons.length} ${"урок".slice(0, todayLessons.length === 1 ? 5 : todayLessons.length < 5 ? 5 : 6)}`
                     : t("dashboard.upcomingLessons")}
