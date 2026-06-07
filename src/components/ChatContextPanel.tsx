@@ -144,19 +144,22 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
         </div>
       ) : (
         <>
-          <div className="rounded-xl border border-border bg-card p-3">
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <p className="px-3 pt-3 pb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {t("chatContext.nextLesson")}
             </p>
             {nextLesson ? (
-              <>
+              <Link
+                to={`/schedule?lesson=${nextLesson.id}`}
+                className="block px-3 pb-3 hover:bg-muted/40 transition-colors"
+              >
                 <p className="text-sm font-semibold text-foreground">
                   {format(new Date(nextLesson.starts_at), "d MMM, HH:mm", { locale: dateLocale })}
                 </p>
                 {nextLesson.subject && (
                   <p className="text-xs text-muted-foreground">{nextLesson.subject}</p>
                 )}
-                <div className="mt-2 flex gap-1.5">
+                <div className="mt-2 flex items-center gap-1.5">
                   <span
                     className={cn(
                       "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
@@ -169,10 +172,13 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                       ? t("chatContext.paid")
                       : t("chatContext.unpaid")}
                   </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    Відкрити урок →
+                  </span>
                 </div>
-              </>
+              </Link>
             ) : (
-              <p className="text-xs text-muted-foreground">{t("chatContext.noUpcoming")}</p>
+              <p className="px-3 pb-3 text-xs text-muted-foreground">{t("chatContext.noUpcoming")}</p>
             )}
           </div>
 
@@ -194,18 +200,24 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
           )}
 
           {lastHomework && (
-            <div className="rounded-xl border border-border bg-card p-3">
+            <Link
+              to={`/schedule?lesson=${lastHomework.id}`}
+              className="block rounded-xl border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
+            >
               <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 {t("chatContext.lastHomework")}
               </p>
               <p className="text-xs text-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">
                 {lastHomework.homework}
               </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {format(new Date(lastHomework.starts_at), "d MMM", { locale: dateLocale })}
-                {lastHomework.subject && ` · ${lastHomework.subject}`}
+              <p className="mt-1 text-[11px] text-muted-foreground flex items-center justify-between">
+                <span>
+                  {format(new Date(lastHomework.starts_at), "d MMM", { locale: dateLocale })}
+                  {lastHomework.subject && ` · ${lastHomework.subject}`}
+                </span>
+                <span>Перейти →</span>
               </p>
-            </div>
+            </Link>
           )}
         </>
       )}
