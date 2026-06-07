@@ -988,7 +988,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
               {/* Desktop compact trial chip — between affirmation and bell */}
-              {isIndependentTutor && !isPro && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
+              {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
                   to="/subscription"
                   className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 hover:bg-white/20 transition"
@@ -1166,12 +1166,13 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* ── INDEPENDENT TUTOR: Notes before lessons (mobile only) ── */}
+          {/* ── INDEPENDENT TUTOR: Notes always above lessons ── */}
           {isIndependentTutor && (
-            <div className="lg:hidden">
+            <div>
               <TutorNotesCard />
             </div>
           )}
+
 
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
@@ -1691,25 +1692,10 @@ export default function DashboardPage() {
             </section>
 
             <section className="order-2">
-              {/* Students count — top of right column on desktop */}
-              {isIndependentTutor && (
-                <Link to="/people" className="hidden lg:flex items-center gap-4 rounded-[18px] border bg-white p-4 mb-4 hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)" }}>
-                  <div className="w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(43,191,170,0.1)" }}>
-                    <GraduationCap className="h-6 w-6" style={{ color: "#2BBFAA" }} />
-                  </div>
-                  <div>
-                    <p className="font-black leading-none" style={{ fontSize: 36, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
-                      {studentCount}
-                    </p>
-                    <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>учнів активних</p>
-                  </div>
-                </Link>
-              )}
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
+
               {isManager ? (
                 <div className="space-y-2.5">
                   {smartTasks.length === 0 ? (
@@ -1817,12 +1803,13 @@ export default function DashboardPage() {
                     <TelegramLinkCard />
                   </div>
 
-                  {/* Notes visible in right column on desktop */}
-                  {(isTutor || isManager) && (
+                  {/* Notes visible in right column on desktop (not for independent tutor — already shown above lessons) */}
+                  {(isTutor || isManager) && !isIndependentTutor && (
                     <div className="hidden md:block mt-1">
                       <TutorNotesCard />
                     </div>
                   )}
+
                 </div>
               )}
             </section>
