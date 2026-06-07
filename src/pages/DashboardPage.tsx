@@ -1029,7 +1029,7 @@ export default function DashboardPage() {
         <DashboardSkeleton />
       ) : (
         <div className="space-y-6 sm:space-y-8">
-          {isIndependentTutor && <TrialCountdownBanner />}
+          {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
