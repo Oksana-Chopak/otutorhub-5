@@ -1150,78 +1150,80 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Desktop bento: [Profit] [Students] [Level] [Streak] — 4 equal cols (compact) */}
+              {/* Desktop bento: 4 compact cards — height ~56px */}
               <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
-                {/* 1. Profit card */}
-                <div className="overflow-hidden rounded-[18px] p-4 relative flex flex-col justify-between"
-                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 112 }}>
-                  <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "#8a96b3" }}>
-                      💰 {t("dashboard.cardProfit") || "Твій дохід"}
+                {/* 1. Profit */}
+                <div className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3"
+                  style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
+                      💰 Дохід
                     </p>
-                    <p className="mt-1.5 font-black leading-none"
-                      style={{ fontSize: 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.025em" }}>
+                    <p className="font-black leading-none mt-0.5"
+                      style={{ fontSize: 20, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
                       {formatPrice(profit, "UAH")}
                     </p>
                     {profitGrowthPct !== null && (
-                      <p className="mt-1 text-[14px] font-bold"
+                      <p className="text-[11px] font-bold mt-0.5"
                         style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
-                        {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за червень
+                        {profitGrowthPct >= 0 ? "↑ +" : "↓ "}{profitGrowthPct}%
                       </p>
                     )}
                   </div>
                 </div>
 
-                {/* 2. Students card */}
-                <Link to="/people" className="rounded-[18px] border bg-white p-4 flex flex-col justify-between hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }}>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
-                      👥 {t("dashboard.cardStudents") || "Учні"}
-                    </p>
-                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
-                      style={{ background: "rgba(43,191,170,0.1)" }}>
-                      <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
-                    </div>
+                {/* 2. Students */}
+                <Link to="/people" className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
+                  <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
+                    style={{ background: "rgba(43,191,170,0.1)" }}>
+                    <GraduationCap className="h-3.5 w-3.5" style={{ color: "#2BBFAA" }} />
                   </div>
-                  <div>
-                    <p className="font-black leading-none mt-1.5"
-                      style={{ fontSize: 30, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.025em" }}>
-                      {studentCount}
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                      Учні
                     </p>
-                    <p className="text-[14px] mt-1" style={{ color: "var(--sub,#9398b0)" }}>
-                      активних
+                    <p className="font-black leading-none mt-0.5"
+                      style={{ fontSize: 20, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
+                      {studentCount}
                     </p>
                   </div>
                 </Link>
 
-                {/* 3. Level card */}
+                {/* 3. Level */}
                 {level ? (
-                  <div className="rounded-[18px] border bg-white p-4 flex flex-col justify-between"
-                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }}>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
-                      🏅 Рівень
-                    </p>
-                    <div>
-                      <p className="font-black text-[22px] leading-tight mt-1.5" style={{ fontFamily: "Inter, system-ui" }}>
+                  <div className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5"
+                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                        🏅 Рівень
+                      </p>
+                      <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
                         {level.emoji} {level.name}
                       </p>
-                      {level.next_threshold !== null && (
-                        <p className="text-[14px] mt-1" style={{ color: "var(--sub,#9398b0)" }}>
-                          ще {level.next_threshold - level.completed_lessons} уроків
-                        </p>
-                      )}
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-[18px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }} />
+                  <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
                 )}
 
-                {/* 4. Streak card */}
+                {/* 4. Streak */}
                 {streak ? (
-                  <StreakCard streak={streak} />
+                  <div className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5"
+                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 56,
+                             background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
+                    <span className="text-xl flex-shrink-0">🔥</span>
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                        Серія
+                      </p>
+                      <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
+                        {streak.current_streak} {streak.current_streak === 1 ? "день" : streak.current_streak < 5 ? "дні" : "днів"}
+                      </p>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="rounded-[18px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)", minHeight: 112 }} />
+                  <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
                 )}
               </div>
 
