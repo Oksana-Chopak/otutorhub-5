@@ -988,7 +988,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
               {/* Desktop compact trial chip — between affirmation and bell */}
-              {isIndependentTutor && !isPro && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
+              {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
                   to="/subscription"
                   className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 hover:bg-white/20 transition"
