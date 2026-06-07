@@ -1076,8 +1076,8 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Desktop bento: [Profit] [Level] [Streak] — 3 equal cols per design */}
-              <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4">
+              {/* Desktop bento: [Profit] [Students] [Level] [Streak] — 4 equal cols */}
+              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4">
                 {/* 1. Profit card */}
                 <div className="overflow-hidden rounded-[20px] p-5 relative flex flex-col justify-between"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 140 }}>
