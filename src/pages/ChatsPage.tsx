@@ -770,7 +770,6 @@ export default function ChatsPage() {
                     {t("chats.new") || "Новий"}
                   </button>
                 )}
-                <NotificationBell />
               </div>
 
               {/* Search */}
@@ -817,9 +816,21 @@ export default function ChatsPage() {
             {/* Thread rows */}
             <div className="flex-1 overflow-y-auto">
               {visibleThreads.length === 0 ? (
-                <p className="px-4 py-8 text-center text-[13px]" style={{ color: "var(--sub,#9398b0)" }}>
-                  {search ? t("chats.noResults") : t("chats.noChats")}
-                </p>
+                <div className="px-4 py-8 text-center space-y-2">
+                  <p className="text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                    {search ? t("chats.noResults") || "Нічого не знайдено" : t("chats.noChats") || "Немає чатів"}
+                  </p>
+                  {!search && !isManager && (
+                    <p className="text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>
+                      {t("chats.searchHint") || "Чати з'являться тут після того, як репетитор їх створить"}
+                    </p>
+                  )}
+                  {!search && isManager && (
+                    <p className="text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>
+                      Натисни «+ Новий» щоб розпочати перший чат
+                    </p>
+                  )}
+                </div>
               ) : (
                 visibleThreads.map((thread) => {
                   const isUnread = isUnreadThread(thread);
@@ -1277,7 +1288,7 @@ export default function ChatsPage() {
                       className="text-[11px] font-bold uppercase tracking-widest"
                       style={{ color: "var(--sub,#9398b0)", fontFamily: "Inter, system-ui" }}
                     >
-                      {t("chats.context") || "Контекст учня"}
+                      {t("chats.context", "Контекст учня")}
                     </p>
                   </div>
                   <ChatContextPanel
@@ -1310,7 +1321,7 @@ export default function ChatsPage() {
             </div>
             <SheetHeader className="px-4 pb-2 flex-shrink-0">
               <SheetTitle className="text-left text-[16px]">
-                {t("chats.context") || "Контекст учня"}
+                {t("chats.context", "Контекст учня")}
               </SheetTitle>
             </SheetHeader>
             <ChatContextPanel
