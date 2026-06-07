@@ -41,19 +41,19 @@ export function useOnboardingProgress(): OnboardingProgress {
     const [avail, meetUrl, referral, gcal] = await Promise.all([
       safe(
         supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1),
-        { data: [] }
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
         (supabase.from("tutor_student_defaults") as any).select("default_meeting_url").eq("tutor_id", user.id).limit(1),
-        { data: [] }
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
         (supabase.from("referral_codes") as any).select("id").eq("tutor_id", user.id).limit(1),
-        { data: [] }
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
         (supabase.from("google_calendar_tokens") as any).select("id").eq("user_id", user.id).limit(1),
-        { data: [] }
+        { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
     ]);
 
