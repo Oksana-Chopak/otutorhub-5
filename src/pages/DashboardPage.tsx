@@ -1844,6 +1844,10 @@ export default function DashboardPage() {
                   <StreakCard streak={streak} />
                 </div>
               )}
+              {/* Trial banner — mobile only, placed under Streak */}
+              <div className="lg:hidden">
+                <TrialCountdownBanner />
+              </div>
               <TutorWelcomeBanner />
             </>
           )}
