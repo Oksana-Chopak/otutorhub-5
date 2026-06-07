@@ -1166,12 +1166,13 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* ── INDEPENDENT TUTOR: Notes before lessons (mobile only) ── */}
+          {/* ── INDEPENDENT TUTOR: Notes always above lessons ── */}
           {isIndependentTutor && (
-            <div className="lg:hidden">
+            <div>
               <TutorNotesCard />
             </div>
           )}
+
 
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
