@@ -1134,7 +1134,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-4 hover:shadow-sm transition-shadow"
+                <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow"
                   style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
                     style={{ background: "rgba(43,191,170,0.1)" }}>
