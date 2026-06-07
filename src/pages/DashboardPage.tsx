@@ -987,6 +987,17 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
+              {/* Desktop compact trial chip — between affirmation and bell */}
+              {isIndependentTutor && !isPro && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
+                <Link
+                  to="/subscription"
+                  className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 hover:bg-white/20 transition"
+                  title={t("trial.connectPro")}
+                >
+                  <Sparkles className="h-3 w-3" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
+                  {t("trial.day", { count: trialDaysLeft })}
+                </Link>
+              )}
               {/* Golden bell — opens notification panel */}
               <NotificationBell golden className="hidden h-11 w-11 rounded-full lg:flex" />
               {/* Burger menu */}
