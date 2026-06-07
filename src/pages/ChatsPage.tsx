@@ -1284,7 +1284,7 @@ export default function ChatsPage() {
                     tutorId={selectedThread.tutor_id}
                     studentId={selectedThread.student_id}
                     onClose={() => {}}
-                    className="flex-1 overflow-y-auto border-none bg-white"
+                    className="flex-1 overflow-y-auto border-none"
                   />
                 </>
               ) : (
