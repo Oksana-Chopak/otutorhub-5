@@ -1691,25 +1691,10 @@ export default function DashboardPage() {
             </section>
 
             <section className="order-2">
-              {/* Students count — top of right column on desktop */}
-              {isIndependentTutor && (
-                <Link to="/people" className="hidden lg:flex items-center gap-4 rounded-[18px] border bg-white p-4 mb-4 hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)" }}>
-                  <div className="w-12 h-12 rounded-[14px] flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(43,191,170,0.1)" }}>
-                    <GraduationCap className="h-6 w-6" style={{ color: "#2BBFAA" }} />
-                  </div>
-                  <div>
-                    <p className="font-black leading-none" style={{ fontSize: 36, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
-                      {studentCount}
-                    </p>
-                    <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>учнів активних</p>
-                  </div>
-                </Link>
-              )}
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
+
               {isManager ? (
                 <div className="space-y-2.5">
                   {smartTasks.length === 0 ? (
