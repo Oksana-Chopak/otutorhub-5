@@ -231,7 +231,7 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles, loading: authLoading } = useAuth();
-  const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
