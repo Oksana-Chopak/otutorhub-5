@@ -1803,12 +1803,13 @@ export default function DashboardPage() {
                     <TelegramLinkCard />
                   </div>
 
-                  {/* Notes visible in right column on desktop */}
-                  {(isTutor || isManager) && (
+                  {/* Notes visible in right column on desktop (not for independent tutor — already shown above lessons) */}
+                  {(isTutor || isManager) && !isIndependentTutor && (
                     <div className="hidden md:block mt-1">
                       <TutorNotesCard />
                     </div>
                   )}
+
                 </div>
               )}
             </section>
