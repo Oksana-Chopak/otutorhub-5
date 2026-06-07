@@ -23,7 +23,7 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { Wallet, GraduationCap } from "lucide-react";
+import { Wallet, GraduationCap, Sparkles } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
@@ -231,7 +231,7 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles, loading: authLoading } = useAuth();
-  const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
@@ -987,6 +987,17 @@ export default function DashboardPage() {
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-2 pt-0.5">
+              {/* Desktop compact trial chip — between affirmation and bell */}
+              {isIndependentTutor && !isPro && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
+                <Link
+                  to="/subscription"
+                  className="hidden lg:inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/90 hover:bg-white/20 transition"
+                  title={t("trial.connectPro")}
+                >
+                  <Sparkles className="h-3 w-3" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
+                  {t("trial.day", { count: trialDaysLeft })}
+                </Link>
+              )}
               {/* Golden bell — opens notification panel */}
               <NotificationBell golden className="hidden h-11 w-11 rounded-full lg:flex" />
               {/* Burger menu */}
@@ -1018,7 +1029,7 @@ export default function DashboardPage() {
         <DashboardSkeleton />
       ) : (
         <div className="space-y-6 sm:space-y-8">
-          {isIndependentTutor && <TrialCountdownBanner />}
+          {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
@@ -1065,8 +1076,8 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Desktop bento: [Profit] [Level] [Streak] — 3 equal cols per design */}
-              <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4">
+              {/* Desktop bento: [Profit] [Students] [Level] [Streak] — 4 equal cols */}
+              <div className="hidden lg:grid lg:grid-cols-4 lg:gap-4">
                 {/* 1. Profit card */}
                 <div className="overflow-hidden rounded-[20px] p-5 relative flex flex-col justify-between"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 140 }}>
@@ -1100,7 +1111,30 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                {/* 2. Level card */}
+                {/* 2. Students card */}
+                <Link to="/people" className="rounded-[20px] border bg-white p-5 flex flex-col justify-between hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[12px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub,#9398b0)" }}>
+                      👥 {t("dashboard.cardStudents") || "Учні"}
+                    </p>
+                    <div className="w-8 h-8 rounded-[10px] flex items-center justify-center"
+                      style={{ background: "rgba(43,191,170,0.1)" }}>
+                      <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="font-black leading-none mt-2"
+                      style={{ fontSize: 34, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.025em" }}>
+                      {studentCount}
+                    </p>
+                    <p className="text-[13px] mt-1.5" style={{ color: "var(--sub,#9398b0)" }}>
+                      активних
+                    </p>
+                  </div>
+                </Link>
+
+                {/* 3. Level card */}
                 {level ? (
                   <div className="rounded-[20px] border bg-white p-5 flex flex-col justify-between"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 140 }}>
@@ -1810,6 +1844,10 @@ export default function DashboardPage() {
                   <StreakCard streak={streak} />
                 </div>
               )}
+              {/* Trial banner — mobile only, placed under Streak */}
+              <div className="lg:hidden">
+                <TrialCountdownBanner />
+              </div>
               <TutorWelcomeBanner />
             </>
           )}
