@@ -599,7 +599,7 @@ export default function MyStudentsPage() {
         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
         <input
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setSelectedStudentId(null); }}
           placeholder={t("myStudents.searchPlaceholder") || "Пошук за іменем, предметом…"}
           className="w-full h-10 pl-9 pr-3 rounded-[12px] text-[14px] outline-none"
           style={{ border: `1px solid ${T.border}`, background: "#fbfbfc", fontFamily: T.body }}
