@@ -733,6 +733,16 @@ export const sv: Partial<Translations> = {
   },
 
   people: {
+    onboardingPaid: "Fick första betalning",
+    onboardingLesson: "Genomförde första lektion",
+    onboardingStudent: "Lade till första elev",
+    recentActivity: "Senaste aktivitet",
+    lastActiveNever: "aldrig inloggad",
+    lastActive: "Senast aktiv",
+    joined: "Gick med",
+    copy: "Kopiera",
+    call: "Ring",
+    write: "Skriv",
     title: "Människor",
     subtitle: "Användare, roller, kontakter och taxor.",
     addPerson: "Lägg till person",
