@@ -568,261 +568,234 @@ export default function MyStudentsPage() {
   const statusOf = (s: MyStudent) => computeStudentStatus(s);
   const statusDotClass = studentStatusDotClass;
 
+  const T = {
+    teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
+    bg: "#F5F4F0", txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+
+  // Profile panel helper
+  const inactiveDaysOf = (s: MyStudent) => {
+    if (!s.last_lesson_at) return undefined;
+    return Math.round((Date.now() - new Date(s.last_lesson_at).getTime()) / 86400000);
+  };
+
   return (
     <AppLayout>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+      {/* ── Header ─────────────────────────────────────────────────────── */}
+      <div className="mb-5 flex items-center justify-between gap-3">
         <div>
-          <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("myStudents.title")}</h1>
-          <p className="text-sm text-muted-foreground">
-            {t("myStudents.subtitle")}
-          </p>
+          <h1 className="font-black text-[22px] leading-tight" style={{ fontFamily: T.display }}>{t("myStudents.title")}</h1>
+          <p className="text-[14px] mt-0.5" style={{ color: T.sub }}>{t("myStudents.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <span className="rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
-            {t("myStudents.studentCount", { count: studentCount })}
-          </span>
-          <Button onClick={openCreate}>
-            <UserPlus className="mr-2 h-4 w-4" />
-            {t("myStudents.addStudentBtn")}
-          </Button>
-        </div>
+        <Button onClick={openCreate} className="flex items-center gap-1.5 h-10 rounded-full">
+          <UserPlus className="h-4 w-4" />
+          {t("myStudents.addStudentBtn")}
+        </Button>
       </div>
 
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-1">
-        <button
-          type="button"
-          onClick={() => setView("active")}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            view === "active"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {t("myStudents.tabActive", { count: activeStudents.length })}
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("archived")}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-            view === "archived"
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          {t("myStudents.tabArchived", { count: archivedStudents.length })}
-        </button>
+      {/* ── Search ─────────────────────────────────────────────────────── */}
+      <div className="relative mb-4">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
+        <input
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          placeholder={t("myStudents.searchPlaceholder") || "Пошук за іменем, предметом…"}
+          className="w-full h-10 pl-9 pr-3 rounded-[12px] text-[14px] outline-none"
+          style={{ border: `1px solid ${T.border}`, background: "#fbfbfc", fontFamily: T.body }}
+        />
       </div>
 
-      {loading ? (
-        <StudentsSkeleton />
-      ) : visibleStudents.length === 0 ? (
+      {/* ── Tabs ───────────────────────────────────────────────────────── */}
+      <div className="flex gap-0.5 mb-4 rounded-[12px] p-1" style={{ background: T.bg, width: "fit-content" }}>
+        {([["active", t("myStudents.tabActive", { count: activeStudents.length })],
+           ["archived", t("myStudents.tabArchived", { count: archivedStudents.length })]] as const).map(([key, label]) => (
+          <button key={key} onClick={() => setView(key)}
+            className="px-4 h-8 rounded-[9px] text-[13px] font-bold transition-all"
+            style={view === key
+              ? { background: "#fff", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
+              : { background: "transparent", color: T.sub, fontFamily: T.display }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <StudentsSkeleton /> : visibleStudents.length === 0 ? (
         view === "active" ? (
-          <EmptyState
-            icon={UserPlus}
-            title={t("myStudents.emptyActiveTitle")}
-            description={t("myStudents.emptyActiveDesc")}
-            actionLabel={t("myStudents.addStudentBtn")}
-            onAction={openCreate}
-          />
+          <EmptyState icon={UserPlus} title={t("myStudents.emptyActiveTitle")}
+            description={t("myStudents.emptyActiveDesc")} actionLabel={t("myStudents.addStudentBtn")} onAction={openCreate} />
         ) : (
-          <EmptyState
-            icon={Archive}
-            title={t("myStudents.emptyArchiveTitle")}
-            description={t("myStudents.emptyArchiveDesc")}
-          />
+          <EmptyState icon={Archive} title={t("myStudents.emptyArchiveTitle")} description={t("myStudents.emptyArchiveDesc")} />
         )
       ) : (
-        <div className="space-y-3">
-          {visibleStudents.map((s) => {
+        /* ── Two-column desktop layout ─────────────────────────────────── */
+        <div className="flex gap-5 overflow-hidden" style={{ height: selectedStudent ? "calc(100vh - 220px)" : "auto" }}>
+          {/* Left: list */}
+          <div className={`flex flex-col gap-2.5 overflow-y-auto flex-shrink-0 ${selectedStudent ? "hidden lg:flex lg:w-[400px]" : "w-full"}`}>
+            {visibleStudents.map(s => {
+              const st = statusOf(s);
+              const inactiveDays = inactiveDaysOf(s);
+              const name = `${s.first_name} ${s.last_name}`.trim() || "—";
+              return (
+                <PersonCard
+                  key={s.id}
+                  id={s.id}
+                  name={name}
+                  avatarUrl={s.avatar_url}
+                  status={s.is_pending ? "pending" : st.status}
+                  subLine={`${s.subject} · ₴${s.price}/урок`}
+                  email={s.email}
+                  isPending={s.is_pending}
+                  inactiveDays={st.status === "inactive" ? inactiveDays : undefined}
+                  unpaidTotal={s.unpaid_total}
+                  kind="student"
+                  active={selectedStudentId === s.id}
+                  onOpen={() => setSelectedStudentId(s.id === selectedStudentId ? null : s.id)}
+                  onWrite={() => navigate(`/chats?with=${s.id}`)}
+                />
+              );
+            })}
+          </div>
+
+          {/* Right: profile panel (desktop always, mobile overlay) */}
+          {selectedStudent && (() => {
+            const s = selectedStudent;
             const st = statusOf(s);
+            const name = `${s.first_name} ${s.last_name}`.trim() || "—";
+            const nextLessonLabel = s.next_lesson_at
+              ? new Date(s.next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
+              : t("myStudents.noUpcoming") || "—";
+
             return (
-            <Card key={s.id} className={s.archived_at ? "opacity-70" : undefined}>
-              <CardContent className="flex items-start gap-4 p-4">
-                <div className="relative shrink-0">
-                  <UserAvatar
-                    url={s.avatar_url}
-                    firstName={s.first_name}
-                    lastName={s.last_name}
-                    className="h-10 w-10"
-                  />
-                  {!s.archived_at && (
-                    <span
-                      title={st.label}
-                      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${statusDotClass[st.status]}`}
-                    />
+              <div className="flex-1 min-w-0 overflow-y-auto rounded-[20px] border bg-white"
+                style={{ borderColor: T.border, boxShadow: "0 2px 12px rgba(15,15,26,.06)" }}>
+                {/* Back button (mobile only) */}
+                <button className="lg:hidden flex items-center gap-1.5 px-4 pt-4 pb-2 text-[14px] font-semibold"
+                  style={{ color: T.tealD, fontFamily: T.display }}
+                  onClick={() => setSelectedStudentId(null)}>
+                  ← Назад
+                </button>
+
+                {/* Hero */}
+                <div className="flex items-center gap-4 px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <PersonAva name={name} avatarUrl={s.avatar_url} status={s.is_pending ? "pending" : st.status} size={56} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-black text-[20px] leading-tight truncate" style={{ fontFamily: T.display, color: T.txt }}>{name}</p>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      <span className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full"
+                        style={{ background: st.status === "debt" ? "rgba(245,158,11,.12)" : st.status === "ok" ? "rgba(34,197,94,.12)" : "rgba(148,155,185,.12)",
+                                 color: st.status === "debt" ? "#b45309" : st.status === "ok" ? "#16a34a" : T.sub }}>
+                        {s.is_pending ? "⏳ Очікує входу" : st.label}
+                      </span>
+                      <span className="text-[13px]" style={{ color: T.sub }}>{s.subject}</span>
+                    </div>
+                  </div>
+                  <button className="p-2 rounded-full hover:bg-gray-50" onClick={() => openEdit(s)} title={t("common.edit")}>
+                    <Pencil size={16} style={{ color: T.muted }} />
+                  </button>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 px-5 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <button onClick={() => navigate(`/chats?with=${s.id}`)}
+                    className="flex-1 h-12 rounded-[14px] font-bold text-[15px] text-white flex items-center justify-center gap-2"
+                    style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display,
+                             boxShadow: "0 6px 18px -6px rgba(43,191,170,.6)" }}>
+                    <Send size={18} strokeWidth={2} /> {t("people.write") || "Написати"}
+                  </button>
+                  {s.phone && (
+                    <a href={`tel:${s.phone}`}
+                      className="flex-shrink-0 h-12 px-5 rounded-[14px] border font-bold text-[15px] flex items-center justify-center gap-2"
+                      style={{ borderColor: T.border, color: T.tealD, fontFamily: T.display, textDecoration: "none" }}>
+                      <Phone size={17} strokeWidth={2} /> {t("people.call") || "Подзвонити"}
+                    </a>
                   )}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-medium text-foreground">
-                      {`${s.first_name} ${s.last_name}`.trim() || t("common.noName")}
+
+                {/* Debt alert */}
+                {s.unpaid_total > 0 && (
+                  <div className="mx-5 my-3 rounded-[14px] flex items-center justify-between px-4 py-3"
+                    style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.3)" }}>
+                    <div>
+                      <p className="text-[13px] font-bold" style={{ color: "#b45309" }}>
+                        ⚠️ Заборгованість ₴{s.unpaid_total}
+                      </p>
+                      <p className="text-[12px]" style={{ color: "#b45309" }}>
+                        {s.unpaid_count} неоплачений{s.unpaid_count > 1 ? "х" : ""} урок{s.unpaid_count > 1 ? "ів" : ""}
+                      </p>
+                    </div>
+                    <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id,
+                        studentName: name, tutorName: t("common.you"), rate: s.price })}
+                      className="h-8 px-3 rounded-[9px] text-[12.5px] font-bold"
+                      style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)", fontFamily: T.display }}>
+                      Нагадати
+                    </button>
+                  </div>
+                )}
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 px-5 py-4" style={{ borderTop: s.unpaid_total > 0 ? "none" : `1px solid ${T.border}` }}>
+                  <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
+                    <p className="font-black text-[24px]" style={{ fontFamily: T.display, color: T.txt }}>{s.total_lessons ?? 0}</p>
+                    <p className="text-[13px]" style={{ color: T.sub }}>уроків разом</p>
+                  </div>
+                  <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
+                    <p className="font-black text-[18px]" style={{ fontFamily: T.display,
+                       color: s.next_lesson_at ? T.tealD : T.muted }}>
+                      {nextLessonLabel}
                     </p>
-                    {s.is_pending && !s.archived_at && (
-                      <span
-                        className="inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning"
-                        title={t("myStudents.pendingBadge")}
-                      >
-                        <Hourglass className="h-3 w-3" />
-                        {t("myStudents.pendingBadge")}
-                      </span>
-                    )}
-                    {!s.archived_at && (st.status === "debt" || st.status === "inactive") && (
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
-                          st.status === "debt"
-                            ? "bg-warning/15 text-warning"
-                            : "bg-destructive/15 text-destructive"
-                        }`}
-                      >
-                        {st.label}
-                      </span>
-                    )}
-                    {s.archived_at && (
-                      <span className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        <Archive className="h-3 w-3" />
-                        {t("myStudents.archivedBadge")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span>{s.subject}</span>
-                    <span className="inline-flex items-center gap-1">
-                      <Banknote className="h-3 w-3" />
-                      {formatPrice(s.price, s.currency)}{t("myStudents.perLesson")}
-                    </span>
-                    {s.phone && (
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        {s.phone}
-                      </span>
-                    )}
-                    {s.email && (
-                      <span className="inline-flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        {s.email}
-                      </span>
-                    )}
-                    {s.telegram && (
-                      <span className="inline-flex items-center gap-1">
-                        <Send className="h-3 w-3" />
-                        {s.telegram}
-                      </span>
-                    )}
-                    {s.facebook_url && (
-                      <a
-                        href={safeHref(s.facebook_url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 hover:text-foreground"
-                      >
-                        <Facebook className="h-3 w-3" />
-                        Facebook
-                      </a>
-                    )}
-                    {s.instagram_url && (
-                      <a
-                        href={safeHref(s.instagram_url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 hover:text-foreground"
-                      >
-                        <Instagram className="h-3 w-3" />
-                        Instagram
-                      </a>
-                    )}
-                    {s.default_meeting_url && (
-                      <a
-                        href={safeHref(s.default_meeting_url)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <Video className="h-3 w-3" />
-                        {t("myStudents.permanentRoom")}
-                      </a>
-                    )}
+                    <p className="text-[13px]" style={{ color: T.sub }}>наступний урок</p>
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1">
-                  {!s.archived_at && !s.is_pending && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        setChatDialog({
-                          open: true,
-                          studentId: s.id,
-                          studentName: `${s.first_name} ${s.last_name}`.trim() || t("common.noName"),
-                        })
-                      }
-                      title={t("chats.noChatsOther")}
-                    >
-                      <MessageSquare className="h-4 w-4 text-primary" />
-                    </Button>
-                  )}
-                  {!s.archived_at && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setLessonDialog({ open: true, studentId: s.id })}
-                      title={t("schedule.addLesson")}
-                    >
-                      <CalendarPlus className="h-4 w-4 text-primary" />
-                    </Button>
-                  )}
-                  {!s.archived_at && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        setWalletDialog({
-                          open: true,
-                          tutorId: user!.id,
-                          studentId: s.id,
-                          studentName: `${s.first_name} ${s.last_name}`.trim() || "—",
-                          tutorName: t("common.you"),
-                          rate: s.price,
-                        })
-                      }
-                      title={t("nav.wallets")}
-                    >
-                      <Wallet className="h-4 w-4 text-primary" />
-                    </Button>
-                  )}
-                  {!s.archived_at && (
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(s)} title={t("common.edit")}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {s.archived_at ? (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => unarchive(s)}
-                      title={t("people.unarchiveBtn")}
-                    >
-                      <ArchiveRestore className="h-4 w-4 text-primary" />
+
+                {/* Contacts */}
+                <div className="px-5 pb-4 flex flex-col gap-2.5" style={{ borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
+                  {[
+                    { icon: <Mail size={15} />, label: "Email",    value: s.email },
+                    { icon: <Phone size={15} />, label: "Телефон", value: s.phone },
+                    { icon: <Send size={15} />,  label: "Telegram", value: s.telegram },
+                    { icon: <Video size={15} />, label: "Постійна кімната", value: s.default_meeting_url },
+                  ].filter(c => c.value).map(({ icon, label, value }) => (
+                    <div key={label} className="flex items-center gap-3 rounded-[12px] px-3 py-2.5"
+                      style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
+                      <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[11px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
+                        <p className="text-[14px] truncate" style={{ color: T.txt, fontFamily: T.body }}>{value}</p>
+                      </div>
+                      {label === "Телефон" && (
+                        <a href={`tel:${value}`} className="p-1.5 rounded-full hover:bg-gray-100"
+                          style={{ color: T.tealD }}>
+                          <Phone size={15} />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Actions: edit / archive / wallet */}
+                <div className="flex gap-2 px-5 pb-5">
+                  <Button size="sm" variant="outline" onClick={() => openEdit(s)} className="flex-1">
+                    <Pencil className="h-3.5 w-3.5 mr-1" /> {t("common.edit")}
+                  </Button>
+                  {!s.archived_at ? (
+                    <Button size="sm" variant="outline" onClick={() => archive(s)}>
+                      <Archive className="h-3.5 w-3.5 mr-1" /> {t("people.archiveBtn")}
                     </Button>
                   ) : (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => archive(s)}
-                      title={t("people.archiveBtn")}
-                    >
-                      <Archive className="h-4 w-4 text-muted-foreground" />
+                    <Button size="sm" variant="outline" onClick={() => unarchive(s)}>
+                      <ArchiveRestore className="h-3.5 w-3.5 mr-1" /> {t("people.unarchiveBtn")}
                     </Button>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
             );
-          })}
+          })()}
         </div>
       )}
 
-      {/* Add/Edit Dialog */}
+
+            {/* Add/Edit Dialog */}
       <Dialog
         open={dialog.open}
         onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
