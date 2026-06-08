@@ -1304,7 +1304,7 @@ export default function ChatsPage() {
       {/* Mobile context sheet */}
       {canShowContext && (
         <Sheet open={showContextPanel} onOpenChange={setShowContextPanel}>
-          <SheetContent side="bottom" className="h-[82vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
+          <SheetContent side="bottom" className="max-h-[82vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
             <div className="flex justify-center pt-2.5 pb-1 flex-shrink-0">
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
