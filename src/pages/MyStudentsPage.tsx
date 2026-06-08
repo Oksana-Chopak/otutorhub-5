@@ -61,6 +61,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { CURRENCY_OPTIONS, formatPrice, currencySymbol } from "@/lib/currency";
+import { PersonCard, PersonAva } from "@/components/PersonCard";
 
 interface MyStudent {
   id: string;
@@ -84,6 +85,8 @@ interface MyStudent {
   unpaid_count: number;
   unpaid_total: number;
   last_lesson_at: string | null;
+  next_lesson_at?: string | null;
+  total_lessons?: number;
 }
 
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
@@ -669,8 +672,8 @@ export default function MyStudentsPage() {
             const s = selectedStudent;
             const st = statusOf(s);
             const name = `${s.first_name} ${s.last_name}`.trim() || "—";
-            const nextLessonLabel = s.next_lesson_at
-              ? new Date(s.next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
+            const nextLessonLabel = (s as any).next_lesson_at
+              ? new Date((s as any).next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
               : t("myStudents.noUpcoming") || "—";
 
             return (
@@ -743,12 +746,12 @@ export default function MyStudentsPage() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-3 px-5 py-4" style={{ borderTop: s.unpaid_total > 0 ? "none" : `1px solid ${T.border}` }}>
                   <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
-                    <p className="font-black text-[24px]" style={{ fontFamily: T.display, color: T.txt }}>{s.total_lessons ?? 0}</p>
+                    <p className="font-black text-[24px]" style={{ fontFamily: T.display, color: T.txt }}>{(s as any).total_lessons ?? 0}</p>
                     <p className="text-[13px]" style={{ color: T.sub }}>уроків разом</p>
                   </div>
                   <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
                     <p className="font-black text-[18px]" style={{ fontFamily: T.display,
-                       color: s.next_lesson_at ? T.tealD : T.muted }}>
+                       color: (s as any).next_lesson_at ? T.tealD : T.muted }}>
                       {nextLessonLabel}
                     </p>
                     <p className="text-[13px]" style={{ color: T.sub }}>наступний урок</p>
