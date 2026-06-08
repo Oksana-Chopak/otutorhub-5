@@ -253,148 +253,262 @@ export default function ProfilePage() {
     );
   }
 
+  // ── Design tokens ───────────────────────────────────────────────────────────
+  const P = {
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
+    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    display: "Inter, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+
+  // ── Computed values ──────────────────────────────────────────────────────────
+  const displayName = profile
+    ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
+    : user?.email?.split("@")[0] ?? "Репетитор";
+  const initials = ((displayName.split(" ")[0]?.[0] ?? "") + (displayName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
+
+  const payRuleVal = settings?.payment_due_mode === "prepaid" ? t("profile.valPrepaid")
+    : settings?.payment_due_mode === "after_lesson" ? t("profile.valAfterLesson")
+    : t("profile.valBeforeLesson");
+
+  const autoMarkVal = settings?.auto_complete_lessons ? t("profile.valAuto") : t("profile.valManual");
+
+  const subjectsVal = subjects.length === 0 ? "—"
+    : subjects.length === 1 ? subjects[0]
+    : `${subjects[0]} +${subjects.length - 1}`;
+
+  const calVal = calendarConnected ? t("profile.valCalConnected") : t("profile.valCalNone");
+
+  // ── Nav-row helper ───────────────────────────────────────────────────────────
+  type NavRowProps = {
+    icon: React.ReactNode;
+    label: string;
+    val?: string;
+    valColor?: string;
+    onClick: () => void;
+    noBorder?: boolean;
+  };
+  const NavRow = ({ icon, label, val, valColor, onClick, noBorder }: NavRowProps) => (
+    <button onClick={onClick} className="flex items-center gap-3 w-full text-left transition-colors hover:bg-gray-50/70 active:bg-gray-100"
+      style={{ height: 52, padding: "0 16px", borderBottom: noBorder ? "none" : `1px solid ${P.border}`, background: "transparent", border: "none", cursor: "pointer" }}>
+      <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        background: "rgba(43,191,170,.1)", color: P.tealD }}>
+        {icon}
+      </span>
+      <span style={{ flex: 1, fontFamily: P.body, fontWeight: 600, fontSize: 15.5, color: P.txt }}>{label}</span>
+      {val && (
+        <span style={{ fontFamily: P.body, fontWeight: 500, fontSize: 14, color: valColor ?? P.sub,
+          maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: 6 }}>
+          {val}
+        </span>
+      )}
+      <ChevronRight size={16} style={{ color: P.muted, flexShrink: 0 }} />
+    </button>
+  );
+
+  // ── Section card ─────────────────────────────────────────────────────────────
+  const Sec = ({ title, children }: { title?: string; children: React.ReactNode }) => (
+    <div className="rounded-[18px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+      {title && (
+        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 12, fontWeight: 700,
+          letterSpacing: "0.07em", textTransform: "uppercase" as const, color: P.muted }}>
+          {title}
+        </p>
+      )}
+      {children}
+    </div>
+  );
+
+  const THEMES: Array<{ key: string; emoji: string; label: string }> = [
+    { key: "fruits",  emoji: "🍎", label: "Фрукти" },
+    { key: "sports",  emoji: "⚽", label: "Спорт"  },
+    { key: "animals", emoji: "🐶", label: "Тварини" },
+    { key: "stars",   emoji: "⭐", label: "Зірки"   },
+  ];
+
   return (
     <AppLayout>
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-foreground">{t("profile.tutorTitle")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {t("profile.tutorSub")}
-          </p>
-        </div>
+      <div className="mx-auto max-w-[680px]">
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("profile.subjectsCardTitle")}</CardTitle>
-            <CardDescription>
-              {t("profile.subjectsCardDesc")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {SUBJECT_OPTIONS.map((subject) => {
-                    const checked = subjects.includes(subject);
-                    return (
-                      <Label
-                        key={subject}
-                        className="flex cursor-pointer items-center gap-2 rounded-[16px] border border-border bg-card p-3 text-sm font-normal transition-colors hover:bg-secondary"
-                      >
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={() => toggleSubject(subject)}
-                        />
-                        <span className="flex-1">{subject}</span>
-                      </Label>
-                    );
-                  })}
+        {/* ── Desktop grid layout ─────────────────────────────────────────── */}
+        <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
+
+          {/* ── Identity card ─────────────────────────────────────────────── */}
+          <div className="rounded-[20px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+            <div style={{ padding: "20px 18px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                {/* Avatar */}
+                <div style={{ position: "relative", flexShrink: 0 }}>
+                  <div style={{ width: 62, height: 62, borderRadius: Math.round(62 * 0.32),
+                    background: "linear-gradient(135deg,#2BBFAA,#0EA5A0)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 6px 18px -8px rgba(43,191,170,.55)" }}>
+                    <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 22, color: "#fff" }}>{initials}</span>
+                  </div>
                 </div>
+                {/* Name + role */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 19, color: P.txt, lineHeight: 1.2 }}>
+                    {displayName}
+                  </p>
+                  <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>
+                    Незалежний репетитор
+                  </p>
+                </div>
+                {/* Edit button */}
+                <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                  style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
+                  <Plus size={14} style={{ color: P.sub }} />
+                </button>
+              </div>
+              {/* Stats */}
+              <div style={{ display: "flex", gap: 16, marginTop: 14, paddingTop: 14, borderTop: `1px solid ${P.border}` }}>
+                {[
+                  { val: studentCount, label: t("profile.statsStudents") || "учнів" },
+                  { val: subjects.length, label: t("profile.statsSubjects") || "предметів" },
+                ].map(({ val, label }) => (
+                  <div key={label}>
+                    <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 20, color: P.txt }}>{val}</span>
+                    <span style={{ fontFamily: P.body, fontSize: 13, color: P.sub, marginLeft: 5 }}>{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-                <div className="mt-6 space-y-3 rounded-[16px] border border-dashed border-border p-4">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{t("profile.customSubjectsTitle")}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("profile.customSubjectsDesc")}
+          {/* ── Pro card ──────────────────────────────────────────────────── */}
+          {isIndependent && (
+            <Link to="/subscription" style={{ textDecoration: "none" }}>
+              <div className="rounded-[20px] cursor-pointer hover:opacity-90 transition-opacity"
+                style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1a2e)", boxShadow: "0 2px 10px -4px rgba(15,15,26,.25)", padding: "20px 18px", height: "100%" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  {/* Crown icon with glow */}
+                  <div style={{ width: 48, height: 48, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                    background: "radial-gradient(circle, rgba(245,181,68,.3) 0%, transparent 70%)", position: "relative" }}>
+                    <Crown size={26} style={{ color: "#F5B544" }} />
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 17, color: "#fff" }}>
+                      Pro підписка
+                    </p>
+                    <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
+                      {settings?.trial_ends_at ? `Тріал · до ${new Date(settings.trial_ends_at as string).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
                     </p>
                   </div>
-
-                  <div className="flex gap-2">
-                    <SubjectComboBox
-                      value=""
-                      onChange={(picked) => {
-                        const trimmed = picked.trim();
-                        if (!trimmed) return;
-                        if (trimmed.length > 60) {
-                          toast.error(t("profile.subjectNameTooLong"));
-                          return;
-                        }
-                        if (subjects.some((s) => s.toLowerCase() === trimmed.toLowerCase())) {
-                          toast.info(t("profile.subjectAlreadyExists"));
-                          return;
-                        }
-                        setSubjects((prev) => [...prev, trimmed]);
-                        setNewSubject("");
-                      }}
-                      className="flex-1"
-                    />
-                  </div>
-
-                  {customSubjects.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {customSubjects.map((subject) => (
-                        <Badge
-                          key={subject}
-                          variant="secondary"
-                          className="gap-1 py-1 pl-3 pr-1 text-sm font-normal"
-                        >
-                          {subject}
-                          <button
-                            type="button"
-                            onClick={() => removeCustomSubject(subject)}
-                            className="ml-1 rounded-full p-0.5 transition-colors hover:bg-background"
-                            aria-label={t("profile.removeAria", { name: subject })}
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+                  <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
                 </div>
+              </div>
+            </Link>
+          )}
 
-                <div className="mt-6 flex justify-end">
-                  <Button onClick={save} disabled={saving}>
-                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {t("common.save")}
-                  </Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+          {/* ── Account section ────────────────────────────────────────────── */}
+          <Sec>
+            <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
+              onClick={() => { window.location.href = "/achievements"; }} />
+            <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
+              val="+249 грн за друга" onClick={() => { window.location.href = "/my-referrals"; }} />
+            <NavRow icon={<BarChart3 size={18} />} label={t("profile.itemAnalytics") || "Аналітика"}
+              onClick={() => { window.location.href = "/analytics"; }} noBorder />
+          </Sec>
 
-        {/* Reward theme picker */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>{t("rewardThemes.pickerTitle")}</CardTitle>
-            <CardDescription>{t("rewardThemes.pickerDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {THEME_KEYS.map((themeKey) => {
-                const selected = (settings?.reward_theme ?? "fruits") === themeKey;
+          {/* ── Reward theme ───────────────────────────────────────────────── */}
+          <Sec title={t("profile.sectionRewards") || "СТИЛЬ НАГОРОД"}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, padding: "12px 12px 14px" }}>
+              {THEMES.map(({ key, emoji, label }) => {
+                const active = (settings?.reward_theme as string ?? "fruits") === key;
                 return (
-                  <button
-                    key={themeKey}
-                    type="button"
-                    onClick={() => updateSettings({ reward_theme: themeKey })}
-                    className={`flex items-center gap-2 rounded-[16px] border px-3 py-2 text-sm transition-colors ${
-                      selected
-                        ? "border-primary bg-primary/10 font-medium text-primary"
-                        : "border-border hover:border-primary/40"
-                    }`}
-                  >
-                    {t(`rewardThemes.${themeKey}`)}
+                  <button key={key}
+                    onClick={() => updateSettings({ reward_theme: key as RewardTheme })}
+                    style={{ height: 50, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
+                      border: active ? `1.5px solid ${P.teal}` : `1px solid ${P.border}`,
+                      background: active ? P.tealL : P.bg, cursor: "pointer",
+                      fontFamily: P.display, fontSize: 11.5, fontWeight: 700,
+                      color: active ? P.tealD : P.muted }}>
+                    <span style={{ fontSize: 20 }}>{emoji}</span>
+                    {label}
                   </button>
                 );
               })}
             </div>
-          </CardContent>
-        </Card>
+          </Sec>
 
-        {(isIndependent || isManager) && (
-          <div id="rules" className="mt-6 scroll-mt-20">
-            <ProRulesCard />
-          </div>
-        )}
-        {isIndependent && <div id="automark" className="scroll-mt-20"><AutoCompleteLessonsCard /></div>}
-        <div id="calendar" className="scroll-mt-20"><GoogleCalendarCard /></div>
-        <MoreSection title={t("profile.moreTitle")} groups={tutorGroups} />
+        </div>
+
+        {/* ── Settings section (full-width) ──────────────────────────────────── */}
+        <div className="mt-4">
+          <Sec title={t("profile.sectionSettings") || "НАЛАШТУВАННЯ"}>
+            <NavRow icon={<ShieldAlert size={18} />} label={t("profile.rowPayRules") || "Правила оплати"}
+              val={payRuleVal} onClick={() => setActiveSheet("rules")} />
+            <NavRow icon={<CheckCircle2 size={18} />} label={t("profile.rowAutoMark") || "Відмітка уроків"}
+              val={autoMarkVal} onClick={() => setActiveSheet("automark")} />
+            <NavRow icon={<BookOpen size={18} />} label={t("profile.rowSubjects") || "Предмети"}
+              val={subjectsVal} onClick={() => setActiveSheet("subjects")} />
+            <NavRow icon={<Calendar size={18} />} label={t("profile.rowCalendar") || "Google Calendar"}
+              val={calVal} valColor={calendarConnected ? P.tealD : undefined}
+              onClick={() => setActiveSheet("calendar")} />
+            <NavRow icon={<CalendarClock size={18} />} label={t("profile.rowAvailability") || "Доступність"}
+              onClick={() => { window.location.href = "/availability"; }} noBorder />
+          </Sec>
+        </div>
+
+        {/* ── Guide row ──────────────────────────────────────────────────────── */}
+        <div className="mt-4">
+          <Sec>
+            <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide") || "Гайд по налаштуванню"}
+              onClick={() => { window.location.href = "/onboarding"; }} noBorder />
+          </Sec>
+        </div>
+
+        {/* ── Sheets for settings components ─────────────────────────────────── */}
+        <Sheet open={activeSheet === "rules"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div id="rules"><ProRulesCard /></div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={activeSheet === "automark"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div id="automark"><AutoCompleteLessonsCard /></div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={activeSheet === "subjects"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div className="px-5 py-4">
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 16 }}>
+                Предмети
+              </p>
+              <SubjectComboBox
+                value={subjects.join(", ")}
+                onChange={(v) => {
+                  const arr = v ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
+                  setSubjects(arr);
+                }}
+                placeholder="Оберіть предмети…"
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={activeSheet === "calendar"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div id="calendar"><GoogleCalendarCard /></div>
+          </SheetContent>
+        </Sheet>
+
       </div>
     </AppLayout>
   );
