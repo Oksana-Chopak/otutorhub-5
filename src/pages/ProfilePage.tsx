@@ -394,7 +394,7 @@ export default function ProfilePage() {
                       Pro підписка
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
-                      {settings?.trial_until ? `Тріал · до ${new Date(settings.trial_until.toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
+                      {settings?.trial_until ? `Тріал · до ${new Date(settings.trial_until).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
                     </p>
                   </div>
                   <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
