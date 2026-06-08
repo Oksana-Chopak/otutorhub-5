@@ -751,6 +751,16 @@ export const uk = {
   },
 
   people: {
+    onboardingPaid: "Отримав першу оплату",
+    onboardingLesson: "Провів перший урок",
+    onboardingStudent: "Додав першого учня",
+    recentActivity: "Остання активність",
+    lastActiveNever: "ще не заходив",
+    lastActive: "Остання активність",
+    joined: "Приєднався",
+    copy: "Копіювати",
+    call: "Подзвонити",
+    write: "Написати",
     title: "Люди",
     subtitle: "Користувачі, ролі, контакти й ставки.",
     addPerson: "Додати людину",
