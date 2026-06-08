@@ -743,6 +743,16 @@ export const en: Translations = {
   },
 
   people: {
+    onboardingPaid: "Received first payment",
+    onboardingLesson: "Conducted first lesson",
+    onboardingStudent: "Added first student",
+    recentActivity: "Recent activity",
+    lastActiveNever: "never logged in",
+    lastActive: "Last active",
+    joined: "Joined",
+    copy: "Copy",
+    call: "Call",
+    write: "Message",
     title: "People",
     subtitle: "Users, roles, contacts and rates.",
     addPerson: "Add person",
