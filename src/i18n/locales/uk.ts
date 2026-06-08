@@ -2514,7 +2514,7 @@ export const uk = {
     studentNoSubject: "У учня не вказаний предмет — відкрийте повну форму",
     lessonCreateFailed: "Не вдалося створити урок",
     lessonCreated: "Урок створено · {{name}} · {{time}}",
-    title: "Швидкий урок",
+    title: "Новий урок",
     studentLabel: "Учень",
     groupLabel: "Група",
     selectGroup: "Виберіть групу",
