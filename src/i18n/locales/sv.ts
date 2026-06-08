@@ -1908,6 +1908,17 @@ export const sv: Partial<Translations> = {
     questLevel: "🏆 Nivå {{count}}",
     questDone: "🎉 Alla prestationer klara!",
 
+  "people.copy": "Kopiera",
+  "people.copied": "Klart",
+  "people.write": "Skriv",
+  "people.call": "Ring",
+  "people.onboardingStudent": "Lade till första elev",
+  "people.onboardingLesson": "Genomförde första lektion",
+  "people.onboardingPaid": "Fick första betalning",
+  "people.joined": "Gick med",
+  "people.lastActive": "Senast aktiv",
+  "people.lastActiveNever": "aldrig inloggad",
+  "people.recentActivity": "Senaste aktivitet",
   stepVictory: {
     stepDone: "Steg slutfört!",
     allDone: "Alla uppdrag klara! 🎉",
