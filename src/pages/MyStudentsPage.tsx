@@ -594,28 +594,48 @@ export default function MyStudentsPage() {
 
   return (
     <AppLayout>
-      {/* ── Header ─────────────────────────────────────────────────────── */}
+      {/* ── Header: назва + пошук-іконка (Додати учня — FAB внизу) ────── */}
       <div className="mb-5 flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <h1 className="font-black text-[22px] leading-tight" style={{ fontFamily: T.display }}>{t("myStudents.title")}</h1>
-          <p className="text-[14px] mt-0.5" style={{ color: T.sub }}>{t("myStudents.subtitle")}</p>
+          {!searchOpen && (
+            <p className="text-[14px] mt-0.5" style={{ color: T.sub }}>{t("myStudents.subtitle")}</p>
+          )}
         </div>
-        <Button onClick={openCreate} className="flex items-center gap-1.5 h-10 rounded-full">
-          <UserPlus className="h-4 w-4" />
-          {t("myStudents.addStudentBtn")}
-        </Button>
-      </div>
-
-      {/* ── Search ─────────────────────────────────────────────────────── */}
-      <div className="relative mb-4">
-        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
-        <input
-          value={searchQuery}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setSelectedStudentId(null); }}
-          placeholder={t("myStudents.searchPlaceholder") || "Пошук за іменем, предметом…"}
-          className="w-full h-10 pl-9 pr-3 rounded-[12px] text-[14px] outline-none"
-          style={{ border: `1px solid ${T.border}`, background: "#fbfbfc", fontFamily: T.body }}
-        />
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {searchOpen ? (
+            <>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
+                <input
+                  autoFocus
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    setSearchQuery(e.target.value);
+                    setSelectedStudentId(null);
+                  }}
+                  placeholder={t("myStudents.searchPlaceholder")}
+                  className="h-10 pl-9 pr-3 rounded-[12px] text-[14px] outline-none"
+                  style={{ width: 220, border: `1px solid ${T.border}`, background: "#fbfbfc", fontFamily: T.body }}
+                />
+              </div>
+              <button
+                onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100"
+                style={{ color: T.sub }}>
+                <X className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
+              title={t("myStudents.searchPlaceholder")}
+              style={{ color: T.sub }}>
+              <Mail className="h-5 w-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* ── Tabs ───────────────────────────────────────────────────────── */}
@@ -676,7 +696,7 @@ export default function MyStudentsPage() {
             const name = `${s.first_name} ${s.last_name}`.trim() || "—";
             const nextLessonLabel = (s as any).next_lesson_at
               ? new Date((s as any).next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
-              : t("myStudents.noUpcoming") || "—";
+              : t("myStudents.noUpcoming");
 
             return (
               <div className="flex-1 min-w-0 rounded-[20px] border bg-white"
@@ -713,13 +733,13 @@ export default function MyStudentsPage() {
                     className="flex-1 h-12 rounded-[14px] font-bold text-[15px] text-white flex items-center justify-center gap-2"
                     style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display,
                              boxShadow: "0 6px 18px -6px rgba(43,191,170,.6)" }}>
-                    <Send size={18} strokeWidth={2} /> {t("people.write") || "Написати"}
+                    <Send size={18} strokeWidth={2} /> {t("people.write")}
                   </button>
                   {s.phone && (
                     <a href={`tel:${s.phone}`}
                       className="flex-shrink-0 h-12 px-5 rounded-[14px] border font-bold text-[15px] flex items-center justify-center gap-2"
                       style={{ borderColor: T.border, color: T.tealD, fontFamily: T.display, textDecoration: "none" }}>
-                      <Phone size={17} strokeWidth={2} /> {t("people.call") || "Подзвонити"}
+                      <Phone size={17} strokeWidth={2} /> {t("people.call")}
                     </a>
                   )}
                 </div>
