@@ -700,7 +700,25 @@ export const uk = {
 
   // Profile
   profile: {
-    title: "Профіль",
+
+    valCalNone: "Не підключено",
+    valCalConnected: "Підключено ✓",
+    valAfterLesson: "Після уроку",
+    valBeforeLesson: "До уроку",
+    valPrepaid: "Передоплата",
+    valManual: "Вручну",
+    valAuto: "Авто",
+    rowGuide: "Гайд по налаштуванню",
+    rowAvailability: "Доступність",
+    rowCalendar: "Google Calendar",
+    rowAutoMark: "Відмітка уроків",
+    rowPayRules: "Правила оплати",
+    rowSubjects: "Предмети",
+    sectionSettings: "Налаштування",
+    sectionRewards: "Стиль нагород",
+    sectionAccount: "Досягнення та акаунт",
+    statsSubjects: "предметів",
+    statsStudents: "учнів",    title: "Профіль",
     avatar: "Аватар",
     uploadAvatar: "Завантажити фото",
     contacts: "Контакти",
