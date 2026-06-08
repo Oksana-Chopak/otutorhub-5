@@ -17,6 +17,8 @@ import {
   CalendarClock, ShieldAlert, ChevronRight, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video } from "lucide-react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
@@ -64,7 +66,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 
 export default function ProfilePage() {
   const { t } = useTranslation();
-  const { user, roles } = useAuth();
+  const { user, roles, profile } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
   const { isIndependent, settings, updateSettings } = useWorkspaceSettings();
@@ -132,6 +134,9 @@ export default function ProfilePage() {
     }
   }, []);
   const [saving, setSaving] = useState(false);
+  const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|null>(null);
+  const [studentCount, setStudentCount] = useState(0);
+  const [calendarConnected, setCalendarConnected] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
   const [newSubject, setNewSubject] = useState("");
 
