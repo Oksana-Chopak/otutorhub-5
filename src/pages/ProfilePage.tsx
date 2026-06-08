@@ -66,7 +66,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 
 export default function ProfilePage() {
   const { t } = useTranslation();
-  const { user, roles, profile } = useAuth();
+  const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
   const { isIndependent, settings, updateSettings } = useWorkspaceSettings();
@@ -135,6 +135,7 @@ export default function ProfilePage() {
   }, []);
   const [saving, setSaving] = useState(false);
   const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|null>(null);
+  const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
   const [studentCount, setStudentCount] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -263,16 +264,16 @@ export default function ProfilePage() {
   };
 
   // ── Computed values ──────────────────────────────────────────────────────────
-  const displayName = profile
-    ? [profile.first_name, profile.last_name].filter(Boolean).join(" ")
+  const displayName = (profileName.first || profileName.last)
+    ? [profileName.first, profileName.last].filter(Boolean).join(" ")
     : user?.email?.split("@")[0] ?? "Репетитор";
   const initials = ((displayName.split(" ")[0]?.[0] ?? "") + (displayName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
 
-  const payRuleVal = settings?.payment_due_mode === "prepaid" ? t("profile.valPrepaid")
-    : settings?.payment_due_mode === "after_lesson" ? t("profile.valAfterLesson")
+  const payRuleVal = (settings as any)?.payment_due_mode === "prepaid" ? t("profile.valPrepaid")
+    : (settings as any)?.payment_due_mode === "after_lesson" ? t("profile.valAfterLesson")
     : t("profile.valBeforeLesson");
 
-  const autoMarkVal = settings?.auto_complete_lessons ? t("profile.valAuto") : t("profile.valManual");
+  const autoMarkVal = (settings as any)?.auto_complete_lessons ? t("profile.valAuto") : t("profile.valManual");
 
   const subjectsVal = subjects.length === 0 ? "—"
     : subjects.length === 1 ? subjects[0]
@@ -393,7 +394,7 @@ export default function ProfilePage() {
                       Pro підписка
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
-                      {settings?.trial_ends_at ? `Тріал · до ${new Date(settings.trial_ends_at as string).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
+                      {settings?.trial_until ? `Тріал · до ${new Date(settings.trial_until.toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
                     </p>
                   </div>
                   <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
