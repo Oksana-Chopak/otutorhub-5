@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { NotificationBell } from "@/components/NotificationBell";
+
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -1103,8 +1103,7 @@ export default function FinancesPage() {
               </Select>
             </div>
           )}
-          <NotificationBell />
-          {/* Record payment moved to FAB */}
+          {/* Notification bell + record payment moved to global header / FAB */}
         </div>
       </div>
 
