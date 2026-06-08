@@ -1103,8 +1103,7 @@ export default function FinancesPage() {
               </Select>
             </div>
           )}
-          <NotificationBell />
-          {/* Record payment moved to FAB */}
+          {/* Notification bell + record payment moved to global header / FAB */}
         </div>
       </div>
 
