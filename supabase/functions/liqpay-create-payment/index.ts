@@ -74,6 +74,8 @@ Deno.serve(async (req) => {
       "https://www.otutorhub.com",
       "https://otutorhub.lovable.app",
       "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app",
+      "https://0aa51a41-1c1e-499c-b511-ba5e0d425456.lovableproject.com",
+      "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovableproject.com",
     ]);
     let safeResultUrl: string | undefined;
     if (body.result_url) {
