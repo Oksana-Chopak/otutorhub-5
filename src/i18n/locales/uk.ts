@@ -1930,6 +1930,17 @@ export const uk = {
 
 
 
+  "people.copy": "Копіювати",
+  "people.copied": "Готово",
+  "people.write": "Написати",
+  "people.call": "Подзвонити",
+  "people.onboardingStudent": "Додав першого учня",
+  "people.onboardingLesson": "Провів перший урок",
+  "people.onboardingPaid": "Отримав першу оплату",
+  "people.joined": "Приєднався",
+  "people.lastActive": "Остання активність",
+  "people.lastActiveNever": "ще не заходив",
+  "people.recentActivity": "Остання активність",
   stepVictory: {
     stepDone: "Крок завершено!",
     allDone: "Всі квести виконано! 🎉",
