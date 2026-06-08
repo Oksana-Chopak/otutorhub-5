@@ -561,9 +561,16 @@ export default function MyStudentsPage() {
     await Promise.all([load(), refresh()]);
   };
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+
   const activeStudents = students.filter((s) => !s.archived_at);
   const archivedStudents = students.filter((s) => !!s.archived_at);
-  const visibleStudents = view === "active" ? activeStudents : archivedStudents;
+  const baseList = view === "active" ? activeStudents : archivedStudents;
+  const visibleStudents = searchQuery
+    ? baseList.filter(s => `${s.first_name} ${s.last_name} ${s.subject}`.toLowerCase().includes(searchQuery.toLowerCase()))
+    : baseList;
+  const selectedStudent = visibleStudents.find(s => s.id === selectedStudentId) ?? null;
 
   const statusOf = (s: MyStudent) => computeStudentStatus(s);
   const statusDotClass = studentStatusDotClass;
