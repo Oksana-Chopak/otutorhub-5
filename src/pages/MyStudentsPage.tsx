@@ -30,6 +30,7 @@ import {
   Phone,
   Mail,
   Send,
+  X,
   Facebook,
   Instagram,
   Pencil,
@@ -565,6 +566,7 @@ export default function MyStudentsPage() {
   };
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   const activeStudents = students.filter((s) => !s.archived_at);
@@ -639,9 +641,9 @@ export default function MyStudentsPage() {
         )
       ) : (
         /* ── Two-column desktop layout ─────────────────────────────────── */
-        <div className="flex gap-5 overflow-hidden" style={{ height: selectedStudent ? "calc(100vh - 220px)" : "auto" }}>
+        <div className="flex gap-5 items-start">
           {/* Left: list */}
-          <div className={`flex flex-col gap-2.5 overflow-y-auto flex-shrink-0 ${selectedStudent ? "hidden lg:flex lg:w-[400px]" : "w-full"}`}>
+          <div className={`flex flex-col gap-2.5 flex-shrink-0 ${selectedStudent ? "hidden lg:flex lg:w-[400px]" : "w-full"}`}>
             {visibleStudents.map(s => {
               const st = statusOf(s);
               const inactiveDays = inactiveDaysOf(s);
@@ -677,7 +679,7 @@ export default function MyStudentsPage() {
               : t("myStudents.noUpcoming") || "—";
 
             return (
-              <div className="flex-1 min-w-0 overflow-y-auto rounded-[20px] border bg-white"
+              <div className="flex-1 min-w-0 rounded-[20px] border bg-white"
                 style={{ borderColor: T.border, boxShadow: "0 2px 12px rgba(15,15,26,.06)" }}>
                 {/* Back button (mobile only) */}
                 <button className="lg:hidden flex items-center gap-1.5 px-4 pt-4 pb-2 text-[14px] font-semibold"
