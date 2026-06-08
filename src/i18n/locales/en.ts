@@ -1918,6 +1918,17 @@ export const en: Translations = {
     questLevel: "🏆 Level {{count}}",
     questDone: "🎉 All achievements unlocked!",
 
+  "people.copy": "Copy",
+  "people.copied": "Done",
+  "people.write": "Message",
+  "people.call": "Call",
+  "people.onboardingStudent": "Added first student",
+  "people.onboardingLesson": "Conducted first lesson",
+  "people.onboardingPaid": "Received first payment",
+  "people.joined": "Joined",
+  "people.lastActive": "Last active",
+  "people.lastActiveNever": "never logged in",
+  "people.recentActivity": "Recent activity",
   stepVictory: {
     stepDone: "Step complete!",
     allDone: "All quests done! 🎉",
