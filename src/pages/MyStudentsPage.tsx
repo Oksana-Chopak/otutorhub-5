@@ -567,6 +567,7 @@ export default function MyStudentsPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [subjectOpen, setSubjectOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   const activeStudents = students.filter((s) => !s.archived_at);
@@ -827,162 +828,284 @@ export default function MyStudentsPage() {
       )}
 
 
-            {/* Add/Edit Dialog */}
+            {/* Add/Edit Dialog — redesigned per design_handoff_student_form */}
       <Dialog
         open={dialog.open}
         onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
       >
-        <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
-          <DialogHeader>
-            <DialogTitle>
-              {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
-            </DialogTitle>
-            <DialogDescription>
-              {t("myStudents.dialogDesc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldFirstName")}</Label>
-                <Input
-                  value={form.first_name}
-                  onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldLastName")}</Label>
-                <Input
-                  value={form.last_name}
-                  onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label>{t("myStudents.fieldSubject")}</Label>
-              <SubjectComboBox
-                value={form.subject}
-                onChange={(v) => setForm({ ...form, subject: v })}
-                placeholder={t("myStudents.subjectPlaceholder")}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldPrice", { currency: currencySymbol(form.currency) })}</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("myStudents.fieldCurrency")}</Label>
-                <CurrencyComboBox
-                  value={form.currency}
-                  onChange={(v) => setForm({ ...form, currency: v })}
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowMoreFields((v) => !v)}
-              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors w-full py-1"
-            >
-              {showMoreFields ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-              {showMoreFields ? t("myStudents.hideContacts") : t("myStudents.showContacts")}
-            </button>
-
-            {showMoreFields && (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label>{t("myStudents.fieldPhone")}</Label>
-                    <Input
-                      type="tel"
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label>{t("myStudents.fieldEmail")}</Label>
-                    <Input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label>{t("myStudents.fieldTelegram")}</Label>
-                  <Input
-                    placeholder={t("scheduleExtra.telegramPlaceholder")}
-                    value={form.telegram}
-                    onChange={(e) => setForm({ ...form, telegram: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label>{t("myStudents.fieldFacebook")}</Label>
-                    <Input
-                      placeholder="https://facebook.com/..."
-                      value={form.facebook_url}
-                      onChange={(e) => setForm({ ...form, facebook_url: e.target.value })}
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label>{t("myStudents.fieldInstagram")}</Label>
-                    <Input
-                      placeholder="https://instagram.com/..."
-                      value={form.instagram_url}
-                      onChange={(e) => setForm({ ...form, instagram_url: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label>{t("myStudents.fieldPaymentDetails")}</Label>
-                  <Textarea
-                    placeholder="Monobank 4441…, Revolut @name, Swish 070-123 45 67"
-                    value={form.payment_details}
-                    onChange={(e) => setForm({ ...form, payment_details: e.target.value })}
-                    rows={3}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t("myStudents.paymentDetailsDesc")}
-                  </p>
-                </div>
-                <div className="space-y-1">
-                  <Label className="flex items-center gap-1.5">
-                    <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                    {t("myStudents.fieldMeetingUrl")}
-                  </Label>
-                  <Input
-                    type="url"
-                    placeholder={t("scheduleExtra.meetingUrlPlaceholder")}
-                    value={form.default_meeting_url}
-                    onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t("myStudents.meetingUrlDesc")}
-                  </p>
-                </div>
-              </div>
-            )}
+        <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[86vh] overflow-y-auto">
+          {/* Drag handle (mobile) */}
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+            <div className="w-9 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
           </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
-            >
-              {t("myStudents.cancelBtn")}
-            </Button>
-            <Button onClick={submit} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
-            </Button>
-          </DialogFooter>
+          {(() => {
+            const F = {
+              border:  "#eceef3", bg: "#fbfbfc", teal: "#2BBFAA", tealD: "#25a896",
+              txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+              display: "Inter, system-ui, sans-serif",
+              body:    "'Plus Jakarta Sans', system-ui, sans-serif",
+            };
+            const fInitials = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
+            const SUBS = ["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"];
+            const subMatches = (() => {
+              const q = (form.subject || "").trim().toLowerCase();
+              return (q ? SUBS.filter(s => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : SUBS).slice(0, 6);
+            })();
+            const inp = (hasErr?: boolean): React.CSSProperties => ({
+              width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
+              fontSize: 15.5, fontFamily: F.body, color: F.txt, background: F.bg,
+              border: `1.5px solid ${hasErr ? "rgba(245,158,11,0.55)" : F.border}`,
+              outline: "none", boxSizing: "border-box",
+            });
+            const lbl: React.CSSProperties = {
+              fontFamily: F.display, fontSize: 14, fontWeight: 700,
+              color: F.sub, marginBottom: 7, display: "block",
+            };
+            return (
+              <div style={{ padding: "20px 22px 24px" }}>
+                {/* Title */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
+                  <div>
+                    <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 19, color: F.txt, lineHeight: 1.2 }}>
+                      {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
+                    </p>
+                    <p style={{ fontSize: 14, color: F.sub, marginTop: 4, fontFamily: F.body }}>
+                      {t("myStudents.dialogDesc")}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
+                    style={{ width: 32, height: 32, borderRadius: 999, border: `1px solid ${F.border}`,
+                      background: "#fff", cursor: "pointer", display: "flex", alignItems: "center",
+                      justifyContent: "center", flexShrink: 0, marginLeft: 12 }}>
+                    <X size={16} style={{ color: F.muted }} />
+                  </button>
+                </div>
+
+                {/* Avatar */}
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+                  <div style={{ position: "relative" }}>
+                    <div style={{
+                      width: 72, height: 72, borderRadius: 24,
+                      background: fInitials
+                        ? "linear-gradient(135deg,#2BBFAA,#25a896)"
+                        : "#fff",
+                      border: fInitials ? "none" : `1.5px solid ${F.border}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "transform .3s cubic-bezier(.34,1.56,.64,1)",
+                    }}>
+                      {fInitials ? (
+                        <span style={{ fontFamily: F.display, fontWeight: 800, fontSize: 26, color: "#fff" }}>
+                          {fInitials}
+                        </span>
+                      ) : (
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+                          <circle cx="12" cy="8" r="4" stroke="#b0b4c8" strokeWidth="1.8"/>
+                          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#b0b4c8" strokeWidth="1.8" strokeLinecap="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    {/* Camera badge */}
+                    <div style={{
+                      position: "absolute", right: -3, bottom: -3,
+                      width: 26, height: 26, borderRadius: 999,
+                      background: "linear-gradient(135deg,#2BBFAA,#25a896)",
+                      border: "2.5px solid #fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Core fields */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {/* Name row */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <span style={lbl}>{t("myStudents.fieldFirstName")} <span style={{ color: F.teal }}>*</span></span>
+                      <input
+                        style={inp(false)}
+                        placeholder="Анна"
+                        value={form.first_name}
+                        onChange={(e) => setForm({ ...form, first_name: e.target.value })}
+                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                      />
+                    </div>
+                    <div>
+                      <span style={lbl}>{t("myStudents.fieldLastName")} <span style={{ color: F.teal }}>*</span></span>
+                      <input
+                        style={inp(false)}
+                        placeholder="Іваненко"
+                        value={form.last_name}
+                        onChange={(e) => setForm({ ...form, last_name: e.target.value })}
+                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Subject combobox */}
+                  <div>
+                    <span style={lbl}>{t("myStudents.fieldSubject")} <span style={{ color: F.teal }}>*</span></span>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={inp(false)}
+                        placeholder="Англійська, математика…"
+                        value={form.subject}
+                        onChange={(e) => { setForm({ ...form, subject: e.target.value }); setSubjectOpen(true); }}
+                        onFocus={e => { setSubjectOpen(true); (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                        onBlur={e => { setTimeout(() => setSubjectOpen(false), 150); (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                      />
+                      {subjectOpen && subMatches.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 9 }}>
+                          {subMatches.map(s => (
+                            <button key={s}
+                              onMouseDown={e => { e.preventDefault(); setForm(f => ({ ...f, subject: s })); setSubjectOpen(false); }}
+                              style={{ height: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
+                                border: `1px solid ${F.border}`, background: "#fff", color: F.txt,
+                                fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Price + Currency */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <div>
+                      <span style={lbl}>{t("myStudents.fieldPrice", { currency: currencySymbol(form.currency) })} <span style={{ color: F.teal }}>*</span></span>
+                      <input
+                        type="number" min={0}
+                        style={inp(false)}
+                        placeholder="500"
+                        value={form.price}
+                        onChange={(e) => setForm({ ...form, price: e.target.value })}
+                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                      />
+                    </div>
+                    <div>
+                      <span style={lbl}>{t("myStudents.fieldCurrency")}</span>
+                      <CurrencyComboBox value={form.currency} onChange={(v) => setForm({ ...form, currency: v })} />
+                    </div>
+                  </div>
+
+                  {/* Expand toggle */}
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreFields(v => !v)}
+                    style={{ display: "flex", alignItems: "center", gap: 6, height: 36,
+                      background: "transparent", border: "none", cursor: "pointer",
+                      fontFamily: F.body, fontSize: 14.5, fontWeight: 600,
+                      color: F.tealD, padding: 0, width: "fit-content" }}>
+                    {showMoreFields
+                      ? <><ChevronUp size={15} strokeWidth={2.2} /> {t("myStudents.hideContacts")}</>
+                      : <><ChevronDown size={15} strokeWidth={2.2} /> {t("myStudents.showContacts")}</>}
+                  </button>
+
+                  {/* Expanded fields */}
+                  {showMoreFields && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                      {/* Phone + Email */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                        <div>
+                          <span style={lbl}>{t("myStudents.fieldPhone")}</span>
+                          <input type="tel" style={inp(false)} placeholder="+380 67 123 45 67"
+                            value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
+                            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                          />
+                        </div>
+                        <div>
+                          <span style={lbl}>{t("myStudents.fieldEmail")}</span>
+                          <input type="email" style={inp(false)} placeholder="anna@mail.com"
+                            value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
+                            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                          />
+                        </div>
+                      </div>
+                      {/* Telegram */}
+                      <div>
+                        <span style={lbl}>{t("myStudents.fieldTelegram")}</span>
+                        <input style={inp(false)} placeholder="@anna_iv"
+                          value={form.telegram} onChange={e => setForm({ ...form, telegram: e.target.value })}
+                          onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                          onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                        />
+                      </div>
+                      {/* Payment details */}
+                      <div>
+                        <span style={lbl}>{t("myStudents.fieldPaymentDetails")}</span>
+                        <textarea rows={2}
+                          style={{ ...inp(false), height: "auto", padding: "12px 14px", resize: "none", lineHeight: 1.5 }}
+                          placeholder="Monobank 4441…, Revolut @name"
+                          value={form.payment_details}
+                          onChange={e => setForm({ ...form, payment_details: e.target.value })}
+                          onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = F.teal; (e.target as HTMLTextAreaElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLTextAreaElement).style.background = "#fff"; }}
+                          onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = F.border; (e.target as HTMLTextAreaElement).style.boxShadow = "none"; (e.target as HTMLTextAreaElement).style.background = F.bg; }}
+                        />
+                      </div>
+                      {/* Meeting URL */}
+                      <div>
+                        <span style={{ ...lbl, display: "flex", alignItems: "center", gap: 6 }}>
+                          <Video size={14} style={{ color: F.muted }} />
+                          {t("myStudents.fieldMeetingUrl")}
+                        </span>
+                        <input type="url"
+                          style={inp(false)}
+                          placeholder="https://zoom.us/j/..."
+                          value={form.default_meeting_url}
+                          onChange={e => setForm({ ...form, default_meeting_url: e.target.value })}
+                          onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
+                          onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hint: email або телефон потрібен */}
+                  {showMoreFields && !form.email && !form.phone && (
+                    <p style={{ fontSize: 13.5, color: F.sub, fontFamily: F.body }}>
+                      ⓘ {t("myStudents.emailPhoneHint") || "Потрібен email або телефон — щоб учень міг приєднатися."}
+                    </p>
+                  )}
+
+                  {/* Buttons */}
+                  <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                    <button
+                      type="button"
+                      onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
+                      style={{ flex: 1, height: 50, borderRadius: 14, border: `1px solid ${F.border}`,
+                        background: "#fff", cursor: "pointer", fontFamily: F.display,
+                        fontWeight: 700, fontSize: 16, color: F.sub }}>
+                      {t("myStudents.cancelBtn")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={submit}
+                      disabled={submitting}
+                      style={{ flex: 2, height: 50, borderRadius: 14, border: "none",
+                        background: submitting ? F.muted : "linear-gradient(135deg,#2BBFAA,#25a896)",
+                        cursor: submitting ? "not-allowed" : "pointer",
+                        fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#fff",
+                        boxShadow: submitting ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
+                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      {submitting && <Loader2 size={18} className="animate-spin" />}
+                      {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
