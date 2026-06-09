@@ -23,7 +23,9 @@ interface RulesState {
   cancel_fee_percent: FeePercent;
 }
 
-export function ProRulesCard() {
+export function ProRulesCard()
+// @ts-ignore — Info state added below
+ {
   const { t } = useTranslation();
   const { settings, isPro, isTrial, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
@@ -89,13 +91,20 @@ export function ProRulesCard() {
           )}
         </div>
         <button
-          title={t("proRulesCard.description")}
-          onClick={() => alert(t("proRulesCard.description"))}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
-          type="button">
-          <Info className="h-3.5 w-3.5" />
-          {t("common.moreInfo") || "Детальніше"}
+          onClick={() => setInfoOpen(v => !v)}
+          className="flex items-center justify-center w-6 h-6 rounded-full hover:bg-gray-100 transition-colors mt-1"
+          type="button"
+          aria-label="Детальніше"
+          style={{ color: infoOpen ? "var(--teal,#2BBFAA)" : "var(--muted,#b0b4c8)" }}>
+          <Info className="h-4 w-4" />
         </button>
+        {infoOpen && (
+          <p className="mt-2 text-[13px] rounded-[10px] px-3 py-2 leading-relaxed"
+            style={{ background: "rgba(43,191,170,.07)", color: "var(--sub,#9398b0)",
+                     border: "1px solid rgba(43,191,170,.15)" }}>
+            {t("proRulesCard.description")}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Reminders enabled */}
