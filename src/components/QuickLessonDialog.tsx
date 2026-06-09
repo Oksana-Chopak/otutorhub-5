@@ -488,7 +488,7 @@ export function QuickLessonDialog({
                   <div style={{ display: "flex", gap: 7 }}>
                     {["30","45","60","90","120"].map(d => (
                       <button key={d} onClick={() => setDuration(d)}
-                        style={{ flex: 1, height: 44, borderRadius: 12, border: "none", cursor: "pointer",
+                        style={{ flex: 1, height: 44, borderRadius: 12, cursor: "pointer",
                           border: duration === d ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
                           background: duration === d ? F.tealL : F.surface,
                           fontFamily: F.display, fontWeight: 700, fontSize: 14,
