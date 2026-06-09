@@ -406,11 +406,11 @@ export function QuickLessonDialog({
                 {mode === "individual" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
                     {students.map(s => {
-                      const active = studentId === s.id;
+                      const active = studentId === s.student_id;
                       return (
-                        <button key={s.id} onClick={() => {
-                            setStudentId(s.id);
-                            localStorage.setItem(LAST_KEY, s.id);
+                        <button key={s.student_id} onClick={() => {
+                            setStudentId(s.student_id);
+                            localStorage.setItem(LAST_KEY, s.student_id);
                           }}
                           style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
                             borderRadius: 16, textAlign: "left", cursor: "pointer",
@@ -428,7 +428,7 @@ export function QuickLessonDialog({
                               {s.name}
                             </p>
                             <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
-                              {s.subject} · {s.price}{s.currency === "UAH" ? "₴" : s.currency === "USD" ? "$" : s.currency === "EUR" ? "€" : s.currency}/урок
+                              {s.subject} · {s.price}{"₴"}/урок
                             </p>
                           </div>
                           {active && (
@@ -507,7 +507,7 @@ export function QuickLessonDialog({
                       <>
                         ✓ {selected.name} · {selected.subject} · {duration} хв · {selected.price}
                         {selected.currency === "UAH" ? "₴" : selected.currency}
-                        {selected.meetingUrl ? " · Zoom ✓" : ""}
+                        {selected?.default_meeting_url ? " · Zoom ✓" : ""}
                       </>
                     )}
                     {mode === "group" && selectedGroup && (
