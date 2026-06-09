@@ -23,9 +23,7 @@ interface RulesState {
   cancel_fee_percent: FeePercent;
 }
 
-export function ProRulesCard()
-// @ts-ignore — Info state added below
- {
+export function ProRulesCard()  {
   const { t } = useTranslation();
   const { settings, isPro, isTrial, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
