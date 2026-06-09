@@ -54,6 +54,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const { user } = useAuth();
   const [form, setForm] = useState(empty);
   const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState<1|2>(1);
   const [invite, setInvite] = useState<{
     open: boolean;
     name: string;
@@ -165,102 +166,240 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   };
 
   return (
+  // ── helpers ──────────────────────────────────────────────────────────────────
+  const F = {
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+    border: "#eceef3", bg: "#fbfbfc", txt: "#0f0f1a",
+    sub: "#9398b0", muted: "#b0b4c8",
+    display: "Inter, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+  const fInitials = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
+  const SUBS = ["Англійська","Математика","Фізика","Хімія","Українська","Біологія","Інформатика","Немецька"];
+  const subMatches = (() => {
+    const q = (form.subject || "").trim().toLowerCase();
+    const selected = SUBS.filter(s => s.toLowerCase() === form.subject.toLowerCase());
+    return selected.length > 0 ? SUBS.filter(s => s !== form.subject) : (q ? SUBS.filter(s => s.toLowerCase().includes(q)) : SUBS);
+  })().slice(0, 6);
+  const inpSt = (): React.CSSProperties => ({
+    width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
+    fontSize: 15.5, fontFamily: F.body, color: F.txt, background: F.bg,
+    border: `1.5px solid ${F.border}`, outline: "none", boxSizing: "border-box" as const,
+  });
+  const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
+
+  return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
-          <DialogHeader>
-            <DialogTitle>{t("quickAddStudent.title")}</DialogTitle>
-            <DialogDescription>
-              {t("quickAddStudent.desc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.firstName")}</Label>
-                <Input value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.lastName")}</Label>
-                <Input value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.phone")}</Label>
-                <Input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.email")}</Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label>{t("quickAddStudent.telegram")}</Label>
-              <Input
-                placeholder={t("quickAddStudent.telegramPlaceholder")}
-                value={form.telegram}
-                onChange={(e) => setForm({ ...form, telegram: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.subject")}</Label>
-                <SubjectSelect
-                  value={form.subject}
-                  onValueChange={(name) => setForm({ ...form, subject: name })}
-                />
-              </div>
-              <div className="space-y-1">
-                <Label>{t("quickAddStudent.price", { symbol: currencySymbol(form.currency) })}</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-              </div>
-            </div>
-            <div className="space-y-1">
-              <Label>{t("quickAddStudent.currency")}</Label>
-              <Select value={form.currency} onValueChange={(currency) => setForm({ ...form, currency })}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CURRENCY_OPTIONS.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>{c.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1">
-              <Label className="flex items-center gap-1.5">
-                <Video className="h-3.5 w-3.5 text-muted-foreground" />
-                {t("quickAddStudent.meetingUrl")}
-              </Label>
-              <Input
-                type="url"
-                placeholder={t("quickAddStudent.meetingUrlPlaceholder")}
-                value={form.default_meeting_url}
-                onChange={(e) => setForm({ ...form, default_meeting_url: e.target.value })}
-              />
-            </div>
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { setStep(1); } onOpenChange(v); }}>
+        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div style={{ width: 38, height: 5, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              {t("quickAddStudent.cancelBtn")}
-            </Button>
-            <Button onClick={submit} disabled={submitting}>
-              {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("quickAddStudent.addBtn")}
-            </Button>
-          </DialogFooter>
+
+          {/* Step dots */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 4 }}>
+            {([1, 2] as const).map(n => (
+              <div key={n} style={{ width: step === n ? 28 : 8, height: 8, borderRadius: 999,
+                background: step === n ? F.teal : "rgba(15,15,26,.15)",
+                transition: "width .25s ease" }} />
+            ))}
+          </div>
+
+          <div style={{ padding: "16px 20px 24px" }}>
+            {/* Step header */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20 }}>
+              {fInitials ? (
+                <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontFamily: F.display, fontWeight: 800, fontSize: 18, color: "#fff",
+                  boxShadow: "0 4px 12px -4px rgba(43,191,170,.5)", transition: "all .3s" }}>
+                  {fInitials}
+                </div>
+              ) : (
+                <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0,
+                  background: "#fff", border: `1.5px solid ${F.border}`,
+                  display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="8" r="4" stroke="#b0b4c8" strokeWidth="1.8"/>
+                    <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#b0b4c8" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              )}
+              <div>
+                <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 19, color: F.txt, lineHeight: 1.2 }}>
+                  {step === 1 ? "Крок 1 · Учень" : "Крок 2 · Контакти"}
+                </p>
+                <p style={{ fontSize: 14, color: F.sub, marginTop: 3, fontFamily: F.body }}>
+                  {step === 1
+                    ? "Ім'я, предмет, ціна"
+                    : `${form.first_name} ${form.last_name} · ${form.subject} · ${form.price}₴`}
+                </p>
+              </div>
+            </div>
+
+            {/* ── STEP 1 ── */}
+            {step === 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Name row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <span style={lblSt}>Ім'я <span style={{ color: F.teal }}>*</span></span>
+                    <input style={inpSt()} placeholder="Анна"
+                      value={form.first_name}
+                      onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
+                      onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                      onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                    />
+                  </div>
+                  <div>
+                    <span style={lblSt}>Прізвище</span>
+                    <input style={inpSt()} placeholder="Іваненко"
+                      value={form.last_name}
+                      onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
+                      onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                      onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                    />
+                  </div>
+                </div>
+
+                {/* Subject */}
+                <div>
+                  <span style={lblSt}>Предмет <span style={{ color: F.teal }}>*</span></span>
+                  <input style={inpSt()} placeholder="Почніть вводити…"
+                    value={form.subject}
+                    onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
+                    onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                    onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                  />
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
+                    {subMatches.map(s => {
+                      const active = form.subject === s;
+                      return (
+                        <button key={s}
+                          onMouseDown={e => { e.preventDefault(); setForm(f => ({ ...f, subject: s })); }}
+                          style={{ height: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
+                            border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                            background: active ? F.tealL : "#fff",
+                            color: active ? F.tealD : F.txt,
+                            fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
+                          {s}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Price + Currency */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <div>
+                    <span style={lblSt}>Ціна за урок <span style={{ color: F.teal }}>*</span></span>
+                    <input type="number" min={0} style={inpSt()} placeholder="500"
+                      value={form.price}
+                      onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                      onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                      onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                    />
+                  </div>
+                  <div>
+                    <span style={lblSt}>Валюта</span>
+                    <div style={{ display: "flex", gap: 4, height: 48, alignItems: "center",
+                      background: F.bg, borderRadius: 13, padding: "4px 6px",
+                      border: `1.5px solid ${F.border}` }}>
+                      {(["UAH","USD","EUR","PLN"] as const).map(cur => (
+                        <button key={cur}
+                          onClick={() => setForm(f => ({ ...f, currency: cur }))}
+                          style={{ flex: 1, height: 36, borderRadius: 9, border: "none",
+                            background: form.currency === cur ? "#fff" : "transparent",
+                            boxShadow: form.currency === cur ? "0 1px 3px rgba(15,15,26,.12)" : "none",
+                            fontFamily: F.display, fontWeight: 700, fontSize: 12.5,
+                            color: form.currency === cur ? F.tealD : F.muted, cursor: "pointer" }}>
+                          {cur === "UAH" ? "₴" : cur === "USD" ? "$" : cur === "EUR" ? "€" : "zł"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Next button */}
+                <button
+                  onClick={() => {
+                    if (!form.first_name.trim()) return;
+                    if (!form.subject.trim()) return;
+                    setStep(2);
+                  }}
+                  style={{ width: "100%", height: 52, borderRadius: 14, border: "none", cursor: "pointer",
+                    background: form.first_name.trim() && form.subject.trim()
+                      ? "linear-gradient(135deg,#2BBFAA,#25a896)"
+                      : "rgba(43,191,170,.35)",
+                    color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                    boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)", marginTop: 4 }}>
+                  Далі → Контакти
+                </button>
+              </div>
+            )}
+
+            {/* ── STEP 2 ── */}
+            {step === 2 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Email / Telegram */}
+                <div>
+                  <span style={lblSt}>Email або Telegram <span style={{ color: F.teal }}>*</span></span>
+                  <input style={inpSt()} placeholder="anna@mail.com або @anna_iv"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                    onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <span style={lblSt}>Телефон</span>
+                  <input type="tel" style={inpSt()} placeholder="+380 67 123 45 67"
+                    value={form.phone}
+                    onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                    onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
+                    onBlur={e => { e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg; }}
+                  />
+                </div>
+
+                {/* Invite hint */}
+                <div style={{ padding: "12px 14px", borderRadius: 13, background: "rgba(43,191,170,.07)",
+                  border: "1px solid rgba(43,191,170,.2)", fontSize: 14, color: F.sub, fontFamily: F.body }}>
+                  📨 Надішлемо запрошення одразу після створення
+                </div>
+
+                {/* Submit */}
+                <button
+                  disabled={submitting || (!form.email.trim() && !form.phone.trim())}
+                  onClick={submit}
+                  style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
+                    cursor: submitting ? "not-allowed" : "pointer",
+                    background: "linear-gradient(135deg,#2BBFAA,#25a896)",
+                    color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                    boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  {submitting && <span className="animate-spin">⟳</span>}
+                  Додати учня
+                </button>
+
+                {/* Back */}
+                <button onClick={() => setStep(1)}
+                  style={{ width: "100%", height: 44, borderRadius: 12, cursor: "pointer",
+                    border: `1px solid ${F.border}`, background: "#fff",
+                    fontFamily: F.display, fontWeight: 600, fontSize: 15, color: F.sub }}>
+                  ← Назад
+                </button>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
-      {invite && (
-        <InviteLinkDialog
+      {/* InviteLinkDialog — незмінний */}
+              <InviteLinkDialog
           open={invite.open}
           onOpenChange={(v) => setInvite((p) => (p ? { ...p, open: v } : p))}
           personName={invite.name}
