@@ -1,4 +1,3 @@
-import { Info,
  useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -7,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
-import { Loader2, Save, Settings2, Lock } from "lucide-react";
+import { Loader2, Save, Settings2, Lock , Info } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
