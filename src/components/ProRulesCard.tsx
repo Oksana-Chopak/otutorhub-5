@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Info,
+ useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -88,9 +89,14 @@ export function ProRulesCard() {
             </span>
           )}
         </div>
-        <CardDescription>
-          {t("proRulesCard.description")}
-        </CardDescription>
+        <button
+          title={t("proRulesCard.description")}
+          onClick={() => alert(t("proRulesCard.description"))}
+          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors mt-1"
+          type="button">
+          <Info className="h-3.5 w-3.5" />
+          {t("common.moreInfo") || "Детальніше"}
+        </button>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Reminders enabled */}
