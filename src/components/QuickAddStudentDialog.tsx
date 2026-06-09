@@ -165,8 +165,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     onCreated?.();
   };
 
-  return (
-  // ── helpers ──────────────────────────────────────────────────────────────────
+  return (  // ── helpers ────────────────────────────────────────────────────────────────
   const F = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
     border: "#eceef3", bg: "#fbfbfc", txt: "#0f0f1a",
@@ -179,8 +178,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const subMatches = (() => {
     const q = (form.subject || "").trim().toLowerCase();
     const selected = SUBS.filter(s => s.toLowerCase() === form.subject.toLowerCase());
-    return selected.length > 0 ? SUBS.filter(s => s !== form.subject) : (q ? SUBS.filter(s => s.toLowerCase().includes(q)) : SUBS);
-  })().slice(0, 6);
+    return (selected.length > 0 ? SUBS.filter(s => s !== form.subject) : (q ? SUBS.filter(s => s.toLowerCase().includes(q)) : SUBS)).slice(0, 6);
+  })();
   const inpSt = (): React.CSSProperties => ({
     width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
     fontSize: 15.5, fontFamily: F.body, color: F.txt, background: F.bg,
@@ -189,6 +188,22 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
 
   return (
+    <>
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { setStep(1); } onOpenChange(v); }}>
+        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-1">
+            <div style={{ width: 38, height: 5, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          </div>
+
+          {/* Step dots */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, paddingBottom: 4 }}>
+            {([1, 2] as const).map(n => (
+              <div key={n} style={{ width: step === n ? 28 : 8, height: 8, borderRadius: 999,
+                background: step === n ? F.teal : "rgba(15,15,26,.15)",
+                transition: "width .25s ease" }} />
+            ))}
+          </div>
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v) { setStep(1); } onOpenChange(v); }}>
         <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
