@@ -506,7 +506,7 @@ export function QuickLessonDialog({
                     {mode === "individual" && selected && (
                       <>
                         ✓ {selected.name} · {selected.subject} · {duration} хв · {selected.price}
-                        {selected.currency === "UAH" ? "₴" : selected.currency}
+₴
                         {selected?.default_meeting_url ? " · Zoom ✓" : ""}
                       </>
                     )}
