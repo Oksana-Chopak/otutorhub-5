@@ -905,7 +905,6 @@ export default function SchedulePage() {
             tutors={tutors}
             students={students}
           />
-          <NotificationBell />
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
