@@ -1092,7 +1092,7 @@ export default function FinancesPage() {
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
+          <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-xs text-muted-foreground sm:text-sm">
             {isIndependentTutor ? t("finances.pageSubtitleTutor") : t("finances.pageSubtitleManager")}
           </p>
