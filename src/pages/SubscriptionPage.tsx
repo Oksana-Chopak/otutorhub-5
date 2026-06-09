@@ -271,7 +271,7 @@ export default function SubscriptionPage() {
     <AppLayout>
       <div className="mx-auto max-w-4xl">
         <div className="mb-6">
-          <h1 className="font-display text-2xl font-bold text-foreground">{t("subscriptionPage.title")}</h1>
+          <h1 className="hidden lg:block font-display text-[26px] font-black text-foreground">{t("subscriptionPage.title")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             30 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
             <br />
