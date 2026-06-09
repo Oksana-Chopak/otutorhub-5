@@ -135,195 +135,388 @@ export function WalletDialog({
     refresh();
   };
 
+  // ── Variant В: Unified tabs state ────────────────────────────────────────────
+  const [tab, setTab] = useState<"mark" | "topup" | "history">("mark");
+  const [unpaidLessons, setUnpaidLessons] = useState<Array<{
+    id: string; starts_at: string; subject: string; student_price: number; currency: string;
+  }>>([]);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  const [loadingUnpaid, setLoadingUnpaid] = useState(false);
+  const [marking, setMarking] = useState(false);
+
+  // Fetch unpaid lessons when tab = mark
+  useState(() => {
+    if (!open || !tutorId || !studentId) return;
+    setLoadingUnpaid(true);
+    supabase
+      .from("lessons")
+      .select("id, starts_at, subject, student_price, currency")
+      .eq("tutor_id", tutorId)
+      .eq("student_id", studentId)
+      .eq("student_payment_status", "unpaid")
+      .eq("status", "completed")
+      .order("starts_at", { ascending: false })
+      .then(({ data }) => {
+        setUnpaidLessons(data ?? []);
+        setCheckedIds(new Set((data ?? []).map((l: any) => l.id)));
+        setLoadingUnpaid(false);
+      });
+  });
+
+  const handleMarkPaid = async () => {
+    if (checkedIds.size === 0) return;
+    setMarking(true);
+    const { error } = await supabase
+      .from("lessons")
+      .update({ student_payment_status: "paid" })
+      .in("id", Array.from(checkedIds));
+    setMarking(false);
+    if (error) { toast.error("Помилка позначення"); return; }
+    toast.success(`✓ ${checkedIds.size} ${checkedIds.size === 1 ? "урок" : "уроки"} відмічено оплаченими`);
+    setUnpaidLessons(prev => prev.filter(l => !checkedIds.has(l.id)));
+    setCheckedIds(new Set());
+    refresh();
+  };
+
+  const toggleCheck = (id: string) => {
+    setCheckedIds(prev => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+  };
+
+  const checkedTotal = unpaidLessons
+    .filter(l => checkedIds.has(l.id))
+    .reduce((s, l) => s + (l.student_price ?? 0), 0);
+
+  // ── Design tokens ─────────────────────────────────────────────────────────────
+  const F = {
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
+    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    display: "Inter, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+
+  const GRADS = [
+    "linear-gradient(135deg,#2BBFAA,#1d8f7e)",
+    "linear-gradient(135deg,#6366F1,#4f46e5)",
+    "linear-gradient(135deg,#F59E0B,#d97706)",
+    "linear-gradient(135deg,#EF4444,#dc2626)",
+    "linear-gradient(135deg,#EC4899,#db2777)",
+    "linear-gradient(135deg,#8B5CF6,#7c3aed)",
+  ];
+  const ava = (name: string) => GRADS[((name.charCodeAt(0) || 0) + (name.charCodeAt(1) || 0)) % GRADS.length];
+  const ini = (name: string) => name.trim().split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
+
+  const fmt = (d: string) => new Date(d).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "short" });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            Гаманець
-            {studentName && <span className="text-muted-foreground font-normal">· {studentName}</span>}
-          </DialogTitle>
-          <DialogDescription>
-            {tutorName
-              ? t("walletDialogExtra.pairLabel", { student: studentName ?? t("shared.student"), tutor: tutorName })
-              : t("walletDialogExtra.pairLabelGeneric")}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-[420px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[88vh] overflow-hidden flex flex-col">
+        {/* Drag handle */}
+        <div className="flex justify-center pt-3 pb-0 flex-shrink-0">
+          <div style={{ width: 38, height: 5, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+        </div>
 
-        {/* Balance summary */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-lg border border-border bg-background/50 p-3 text-center">
-            <div className="text-xs text-muted-foreground">{t("walletDialogExtra.lessonsBalance")}</div>
-            <div className="mt-1 text-2xl font-semibold">
-              {loading ? "—" : balance.lessons_balance}
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 20px 10px", flexShrink: 0 }}>
+          <div>
+            <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 18, color: F.txt, lineHeight: 1.2 }}>
+              Оплата · {studentName ?? "Учень"}
+            </p>
+            <div style={{ display: "flex", gap: 14, marginTop: 5 }}>
+              {loading ? (
+                <span style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>…</span>
+              ) : (
+                <>
+                  <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
+                    <strong>{balance?.lessons_balance ?? 0}</strong>
+                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>уроки</span>
+                  </span>
+                  <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
+                    <strong style={{ color: (balance?.amount_balance ?? 0) > 0 ? F.tealD : F.txt }}>
+                      {balance?.amount_balance ?? 0}₴
+                    </strong>
+                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>— залишок</span>
+                  </span>
+                </>
+              )}
             </div>
           </div>
-          <div className="rounded-lg border border-border bg-background/50 p-3 text-center">
-            <div className="text-xs text-muted-foreground">{t("walletDialogExtra.moneyBalance")}</div>
-            <div className="mt-1 text-2xl font-semibold">
-              {loading ? "—" : `${balance.amount_balance.toFixed(0)} ₴`}
-            </div>
+          <div style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0,
+            background: ava(studentName ?? "?"), display: "flex", alignItems: "center",
+            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 16, color: "#fff" }}>
+            {ini(studentName ?? "?")}
           </div>
         </div>
 
-        <Tabs defaultValue={canTopUp ? "topup" : "history"}>
-          <TabsList className="grid w-full grid-cols-2">
-            {canTopUp && (
-              <TabsTrigger value="topup">
-                <Plus className="mr-1.5 h-4 w-4" /> Поповнити
-              </TabsTrigger>
-            )}
-            <TabsTrigger value="history">
-              <History className="mr-1.5 h-4 w-4" /> Історія
-            </TabsTrigger>
-          </TabsList>
+        {/* 3 tabs */}
+        <div style={{ display: "flex", gap: 2, margin: "0 20px 12px",
+          background: "rgba(15,15,26,.06)", borderRadius: 12, padding: 4, flexShrink: 0 }}>
+          {([["mark", "Відмітити"], ["topup", "Поповнити"], ["history", "Історія"]] as const).map(([key, label]) => (
+            <button key={key} onClick={() => setTab(key)}
+              style={{ flex: 1, height: 36, borderRadius: 9, border: "none", cursor: "pointer",
+                background: tab === key ? F.surface : "transparent",
+                boxShadow: tab === key ? "0 1px 4px rgba(15,15,26,.12)" : "none",
+                fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                color: tab === key ? F.tealD : F.muted }}>
+              {label}
+            </button>
+          ))}
+        </div>
 
-          {canTopUp && (
-            <TabsContent value="topup" className="space-y-3 pt-3">
-              <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="lessons">{t("walletDialogExtra.byLessons")}</TabsTrigger>
-                  <TabsTrigger value="amount">{t("walletDialogExtra.byAmount")}</TabsTrigger>
-                </TabsList>
+        {/* Tab content — scrollable */}
+        <div className="flex-1 overflow-y-auto" style={{ padding: "0 20px" }}>
 
-                <TabsContent value="lessons" className="space-y-2 pt-3">
-                  <Label className="text-sm">{t("walletDialogExtra.lessonsCountLabel")}</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder={t("walletDialogExtra.countPlaceholder")}
-                    value={lessonsCount}
-                    onChange={(e) => setLessonsCount(e.target.value)}
-                  />
-                  {ratePerLesson && lessonsCount && (
-                    <p className="text-xs text-muted-foreground">
-                      ≈ {(parseInt(lessonsCount, 10) * ratePerLesson).toFixed(0)} ₴ за поточною ставкою
-                      ({ratePerLesson} ₴/урок)
-                    </p>
-                  )}
-                </TabsContent>
-
-                <TabsContent value="amount" className="space-y-2 pt-3">
-                  <Label className="text-sm">{t("walletDialogExtra.amountLabel")}</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    step="0.01"
-                    placeholder={t("walletDialogExtra.amountPlaceholder")}
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                  {ratePerLesson && amount && (
-                    <p className="text-xs text-muted-foreground">
-                      ≈ {Math.floor(parseFloat(amount.replace(",", ".")) / ratePerLesson)} уроків
-                      за поточною ставкою
-                    </p>
-                  )}
-                </TabsContent>
-              </Tabs>
-
-              <div>
-                <Label className="text-sm">{t("walletDialogExtra.commentLabel")}</Label>
-                <Input
-                  placeholder={t("walletDialogExtra.commentPlaceholder")}
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                />
-              </div>
-
-              <Button onClick={handleTopUp} disabled={busy} className="w-full">
-                {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
-                Поповнити
-              </Button>
-            </TabsContent>
+          {/* ── ВІДМІТИТИ ───────────────────────────────────────────────────── */}
+          {tab === "mark" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 100 }}>
+              {loadingUnpaid ? (
+                <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
+                  Завантаження…
+                </p>
+              ) : unpaidLessons.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "28px 0" }}>
+                  <p style={{ fontSize: 28, marginBottom: 8 }}>🎉</p>
+                  <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 16, color: F.txt }}>
+                    Всі оплати закриті
+                  </p>
+                  <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body, marginTop: 4 }}>
+                    Неоплачених уроків немає
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <p style={{ fontSize: 13, fontFamily: F.display, fontWeight: 700,
+                    color: "#b45309", marginBottom: 4 }}>
+                    ⚠️ Неоплачені уроки · {unpaidLessons.length}
+                  </p>
+                  {unpaidLessons.map(lesson => {
+                    const checked = checkedIds.has(lesson.id);
+                    return (
+                      <button key={lesson.id} onClick={() => toggleCheck(lesson.id)}
+                        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
+                          borderRadius: 14, cursor: "pointer", textAlign: "left",
+                          border: checked ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                          background: checked ? F.tealL : F.surface,
+                          boxShadow: checked ? "0 0 0 1px rgba(43,191,170,.15)" : "0 1px 3px rgba(15,15,26,.05)" }}>
+                        {/* Checkbox */}
+                        <div style={{ width: 22, height: 22, borderRadius: 7, flexShrink: 0,
+                          background: checked ? F.teal : "transparent",
+                          border: checked ? "none" : `2px solid ${F.muted}`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: "#fff", fontSize: 13, fontWeight: 700 }}>
+                          {checked && "✓"}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt }}>
+                            {fmt(lesson.starts_at)}
+                          </p>
+                          <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
+                            {lesson.subject}
+                          </p>
+                        </div>
+                        <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 16,
+                          color: checked ? F.tealD : F.txt, flexShrink: 0 }}>
+                          {lesson.student_price}{lesson.currency === "UAH" ? "₴" : lesson.currency === "USD" ? "$" : "€"}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </>
+              )}
+            </div>
           )}
 
-          <TabsContent value="history" className="pt-3">
-            {loading ? (
-              <div className="flex justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          {/* ── ПОПОВНИТИ ───────────────────────────────────────────────────── */}
+          {tab === "topup" && canTopUp && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 100 }}>
+              {/* Mode toggle */}
+              <div style={{ display: "flex", gap: 2, background: "rgba(15,15,26,.06)",
+                borderRadius: 12, padding: 4 }}>
+                {(["lessons", "amount"] as const).map(m => (
+                  <button key={m} onClick={() => setMode(m)}
+                    style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
+                      background: mode === m ? F.surface : "transparent",
+                      boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.12)" : "none",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                      color: mode === m ? F.txt : F.muted }}>
+                    {m === "lessons" ? "Уроками" : "Сумою, ₴"}
+                  </button>
+                ))}
               </div>
-            ) : transactions.length === 0 ? (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                Поки що операцій немає.
-              </p>
-            ) : (
-              <ul className="max-h-72 space-y-2 overflow-y-auto pr-1">
-                {transactions.map((tx) => {
-                  const isPositive = tx.lessons_delta > 0 || tx.amount_delta > 0;
+
+              {mode === "lessons" ? (
+                <div>
+                  <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                    color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                    Кількість уроків
+                  </p>
+                  <input
+                    type="number" min={1} placeholder="1"
+                    value={lessonsCount}
+                    onChange={e => setLessonsCount(e.target.value)}
+                    style={{ width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
+                      fontSize: 20, fontFamily: F.display, fontWeight: 700, color: F.tealD,
+                      background: F.bg, border: `1.5px solid ${F.border}`, outline: "none",
+                      boxSizing: "border-box" as const }}
+                  />
+                  <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                    {[1, 5, 10].map(n => (
+                      <button key={n} onClick={() => setLessonsCount(c => String((parseInt(c)||0) + n))}
+                        style={{ flex: 1, height: 40, borderRadius: 11,
+                          border: `1.5px solid ${F.teal}`, background: F.tealL,
+                          color: F.tealD, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                        +{n}
+                      </button>
+                    ))}
+                  </div>
+                  {ratePerLesson && lessonsCount && parseInt(lessonsCount) > 0 && (
+                    <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body, marginTop: 8 }}>
+                      ≈ {parseInt(lessonsCount) * ratePerLesson}₴ за поточною ставкою {ratePerLesson}₴/урок
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                    color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                    Сума, ₴
+                  </p>
+                  <input
+                    type="number" min={0} placeholder="0"
+                    value={amount}
+                    onChange={e => setAmount(e.target.value)}
+                    style={{ width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
+                      fontSize: 20, fontFamily: F.display, fontWeight: 700, color: F.tealD,
+                      background: F.bg, border: `1.5px solid ${F.border}`, outline: "none",
+                      boxSizing: "border-box" as const }}
+                  />
+                </div>
+              )}
+
+              <div>
+                <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                  color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
+                  Коментар
+                </p>
+                <input
+                  placeholder="Оплата готівкою, 9 черв."
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  style={{ width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
+                    fontSize: 15, fontFamily: F.body, color: F.txt,
+                    background: F.bg, border: `1.5px solid ${F.border}`, outline: "none",
+                    boxSizing: "border-box" as const }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* ── ІСТОРІЯ ─────────────────────────────────────────────────────── */}
+          {tab === "history" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 100 }}>
+              {loading ? (
+                <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body }}>
+                  Завантаження…
+                </p>
+              ) : transactions.length === 0 ? (
+                <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
+                  Транзакцій ще немає
+                </p>
+              ) : (
+                transactions.map(tx => {
+                  const isPositive = (tx.lessons_delta ?? 0) > 0 || (tx.amount_delta ?? 0) > 0;
                   return (
-                    <li
-                      key={tx.id}
-                      className="flex items-start justify-between gap-2 rounded-md border border-border bg-background/40 p-2.5 text-sm"
-                    >
-                      <div className="flex items-start gap-2 min-w-0">
-                        {isPositive ? (
-                          <ArrowDownLeft className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                        ) : (
-                          <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 text-warning" />
-                        )}
-                        <div className="min-w-0">
-                          <div className="font-medium truncate">{KIND_LABEL[tx.kind] ?? tx.kind}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {formatDateTime(tx.created_at)}
-                          </div>
-                          {tx.note && (
-                            <div className="text-xs text-foreground/70 truncate">{tx.note}</div>
-                          )}
-                        </div>
+                    <div key={tx.id} style={{ display: "flex", alignItems: "center", gap: 12,
+                      padding: "10px 14px", borderRadius: 14, background: F.surface,
+                      border: `1px solid ${F.border}` }}>
+                      <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                        background: isPositive ? "rgba(43,191,170,.1)" : "rgba(239,68,68,.08)",
+                        display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 16 }}>{isPositive ? "↑" : "↓"}</span>
                       </div>
-                      <div className="flex items-start gap-2">
-                        <div className="text-right text-sm tabular-nums">
-                          {tx.lessons_delta !== 0 && (
-                            <div className={isPositive ? "text-success" : "text-warning"}>
-                              {tx.lessons_delta > 0 ? "+" : ""}
-                              {tx.lessons_delta} ур.
-                            </div>
-                          )}
-                          {Number(tx.amount_delta) !== 0 && (
-                            <div className={isPositive ? "text-success" : "text-warning"}>
-                              {tx.amount_delta > 0 ? "+" : ""}
-                              {Number(tx.amount_delta).toFixed(0)} ₴
-                            </div>
-                          )}
-                        </div>
-                        {canDelete && tx.kind !== "lesson_charge" && (
-                          <div className="flex flex-col gap-1">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6"
-                              title={t("walletDialogExtra.reverseTooltip")}
-                              disabled={deletingId === tx.id}
-                              onClick={() => handleDelete(tx.id, false)}
-                            >
-                              {deletingId === tx.id ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : (
-                                <Undo2 className="h-3 w-3" />
-                              )}
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              className="h-6 w-6 text-destructive hover:text-destructive"
-                              title={t("walletDialogExtra.hardDeleteTooltip")}
-                              disabled={deletingId === tx.id}
-                              onClick={() => handleDelete(tx.id, true)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: F.txt }}>
+                          {KIND_LABEL[tx.kind] ?? tx.kind}
+                        </p>
+                        {tx.note && <p style={{ fontSize: 12, color: F.sub, fontFamily: F.body }}>{tx.note}</p>}
+                        <p style={{ fontSize: 12, color: F.muted, fontFamily: F.body }}>
+                          {formatDateTime(tx.created_at)}
+                        </p>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        {(tx.lessons_delta ?? 0) !== 0 && (
+                          <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                            color: (tx.lessons_delta ?? 0) > 0 ? F.tealD : "#ef4444" }}>
+                            {(tx.lessons_delta ?? 0) > 0 ? "+" : ""}{tx.lessons_delta} ур.
+                          </p>
+                        )}
+                        {(tx.amount_delta ?? 0) !== 0 && (
+                          <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                            color: (tx.amount_delta ?? 0) > 0 ? F.tealD : "#ef4444" }}>
+                            {(tx.amount_delta ?? 0) > 0 ? "+" : ""}{tx.amount_delta}₴
+                          </p>
                         )}
                       </div>
-                    </li>
+                      {canDelete && (
+                        <button onClick={() => handleDelete(tx.id, false)}
+                          disabled={!!deletingId}
+                          style={{ width: 28, height: 28, borderRadius: 8, border: "none",
+                            background: "transparent", cursor: "pointer", flexShrink: 0,
+                            color: F.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Undo2 size={14} />
+                        </button>
+                      )}
+                    </div>
                   );
-                })}
-              </ul>
-            )}
-          </TabsContent>
-        </Tabs>
+                })
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sticky CTA */}
+        <div style={{ padding: "12px 20px 20px", flexShrink: 0, borderTop: `1px solid ${F.border}`,
+          background: F.surface }}>
+          {tab === "mark" && unpaidLessons.length > 0 && (
+            <button
+              disabled={marking || checkedIds.size === 0}
+              onClick={handleMarkPaid}
+              style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
+                cursor: checkedIds.size > 0 && !marking ? "pointer" : "not-allowed",
+                background: checkedIds.size > 0 ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
+                color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                boxShadow: checkedIds.size > 0 ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              {marking ? "…" : `Відмітити · ${checkedTotal}₴`}
+            </button>
+          )}
+
+          {tab === "topup" && canTopUp && (
+            <button
+              disabled={busy}
+              onClick={handleTopUp}
+              style={{ width: "100%", height: 52, borderRadius: 14, border: "none", cursor: "pointer",
+                background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              {busy ? "…" : "Поповнити"}
+            </button>
+          )}
+
+          {tab === "history" && (
+            <button onClick={() => { setTab("mark"); }}
+              style={{ width: "100%", height: 44, borderRadius: 12, border: `1px solid ${F.border}`,
+                background: F.surface, cursor: "pointer", color: F.sub,
+                fontFamily: F.display, fontWeight: 600, fontSize: 15 }}>
+              ← Назад до оплати
+            </button>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
