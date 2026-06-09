@@ -127,6 +127,7 @@ export default function FinancesPage() {
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
   const canManagePrepay = isManager || isIndependentTutor;
+  const [studentFilter, setStudentFilter] = useState("all");
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -274,6 +275,15 @@ export default function FinancesPage() {
     if (!p) return "—";
     return `${p.first_name} ${p.last_name}`.trim() || t("common.noName");
   };
+
+  const studentOptions = useMemo(() => {
+    const seen = new Set<string>();
+    return lessons
+      .filter((l) => !seen.has(l.student_id) && seen.add(l.student_id))
+      .map((l) => ({ id: l.student_id, name: nameOf(l.student_id) }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons, profiles]);
 
   const tutorOptions = useMemo(() => {
     const ids = Array.from(new Set(lessons.map((l) => l.tutor_id)));
@@ -1098,6 +1108,22 @@ export default function FinancesPage() {
                   <SelectItem value="all">{t("finances.allTutors")}</SelectItem>
                   {tutorOptions.map((tu) => (
                     <SelectItem key={tu.id} value={tu.id}>{tu.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {/* Student filter — tutor view */}
+          {isIndependentTutor && studentOptions.length > 1 && (
+            <div className="w-full sm:w-44">
+              <Select value={studentFilter} onValueChange={setStudentFilter}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Всі учні" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Всі учні</SelectItem>
+                  {studentOptions.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
