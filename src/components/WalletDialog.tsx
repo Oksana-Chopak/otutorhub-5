@@ -148,17 +148,17 @@ export function WalletDialog({
   useState(() => {
     if (!open || !tutorId || !studentId) return;
     setLoadingUnpaid(true);
-    supabase
-      .from("lessons")
-      .select("id, starts_at, subject, student_price, currency")
+    (supabase as any)
+      .from("lesson_details")
+      .select("lesson_id, starts_at, subject, student_price, currency")
       .eq("tutor_id", tutorId)
       .eq("student_id", studentId)
       .eq("student_payment_status", "unpaid")
-      .eq("status", "completed")
       .order("starts_at", { ascending: false })
-      .then(({ data }) => {
-        setUnpaidLessons(data ?? []);
-        setCheckedIds(new Set((data ?? []).map((l: any) => l.id)));
+      .then(({ data }: { data: any[] | null }) => {
+        const rows = (data ?? []).map((l: any) => ({ ...l, id: l.lesson_id }));
+        setUnpaidLessons(rows);
+        setCheckedIds(new Set(rows.map((l: any) => l.id)));
         setLoadingUnpaid(false);
       });
   });
@@ -166,10 +166,13 @@ export function WalletDialog({
   const handleMarkPaid = async () => {
     if (checkedIds.size === 0) return;
     setMarking(true);
-    const { error } = await supabase
-      .from("lessons")
-      .update({ student_payment_status: "paid" })
-      .in("id", Array.from(checkedIds));
+    const upsertRows = Array.from(checkedIds).map(lid => ({
+      lesson_id: lid,
+      student_payment_status: "paid",
+    }));
+    const { error } = await (supabase as any)
+      .from("lesson_details")
+      .upsert(upsertRows, { onConflict: "lesson_id" });
     setMarking(false);
     if (error) { toast.error("Помилка позначення"); return; }
     toast.success(`✓ ${checkedIds.size} ${checkedIds.size === 1 ? "урок" : "уроки"} відмічено оплаченими`);
