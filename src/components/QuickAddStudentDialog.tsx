@@ -414,7 +414,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       </Dialog>
 
       {/* InviteLinkDialog — незмінний */}
-              <InviteLinkDialog
+      {invite && (
+        <InviteLinkDialog
           open={invite.open}
           onOpenChange={(v) => setInvite((p) => (p ? { ...p, open: v } : p))}
           personName={invite.name}
