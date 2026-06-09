@@ -326,151 +326,231 @@ export function QuickLessonDialog({
   const canSubmit =
     !submitting && (mode === "individual" ? !!selected : !!selectedGroup);
 
+  // ── Design tokens ─────────────────────────────────────────────────────────────
+  const F = {
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
+    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    display: "Inter, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+  const GRADIENTS = [
+    "linear-gradient(135deg,#2BBFAA,#1d8f7e)",
+    "linear-gradient(135deg,#6366F1,#4f46e5)",
+    "linear-gradient(135deg,#F59E0B,#d97706)",
+    "linear-gradient(135deg,#EF4444,#dc2626)",
+    "linear-gradient(135deg,#EC4899,#db2777)",
+    "linear-gradient(135deg,#8B5CF6,#7c3aed)",
+    "linear-gradient(135deg,#F97316,#ea580c)",
+    "linear-gradient(135deg,#14B8A6,#0d9488)",
+  ];
+  const ava = (name: string) => GRADIENTS[(name.charCodeAt(0) + (name.charCodeAt(1)||0)) % GRADIENTS.length];
+  const initials = (name: string) => (name.trim().split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase());
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%]">
-        <DialogHeader>
-          <DialogTitle>{t("quickLessonDialogExtra.title")}</DialogTitle>
-          <DialogDescription>{timeLabel}</DialogDescription>
-        </DialogHeader>
-        {loading ? (
-          <div className="flex items-center justify-center py-6">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
+          {/* Drag handle */}
+          <div className="flex justify-center pt-3 pb-0">
+            <div style={{ width: 38, height: 5, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
           </div>
-        ) : students.length === 0 && groups.length === 0 ? (
-          <div className="space-y-3 py-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              {t("quickLessonDialog.noStudentsHint")}
-            </p>
-            <Button size="sm" onClick={() => setAddStudentOpen(true)}>
-              <Plus className="mr-1 h-3.5 w-3.5" />
-              {t("quickLessonDialog.addStudentBtn")}
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Type toggle */}
-            <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-1">
-              <button
-                type="button"
-                onClick={() => setMode("individual")}
-                className={cn(
-                  "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
-                  mode === "individual"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                )}
-              >
-                <User className="h-3.5 w-3.5" />
-                {t("quickLessonDialog.modeIndividual")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("group")}
-                disabled={groups.length === 0}
-                className={cn(
-                  "inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
-                  mode === "group"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground"
-                )}
-              >
-                <Users2 className="h-3.5 w-3.5" />
-                {t("quickLessonDialog.modeGroup")}
-              </button>
+
+          <div style={{ padding: "14px 20px 24px" }}>
+            {/* Hero: date + time */}
+            <div style={{ marginBottom: 18 }}>
+              <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, color: F.txt, lineHeight: 1.2 }}>
+                {timeLabel ?? "Новий урок"}
+              </p>
+              <p style={{ fontSize: 14, color: F.sub, marginTop: 3, fontFamily: F.body }}>
+                Оберіть учня та тривалість
+              </p>
             </div>
 
-            {mode === "individual" ? (
-              <div className="space-y-1">
-                <Label>{t("quickLessonDialogExtra.studentLabel")}</Label>
-                <Select value={studentId} onValueChange={setStudentId}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {students.map((s) => (
-                      <SelectItem key={s.student_id} value={s.student_id}>
-                        {s.name} {s.subject ? `· ${s.subject}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {loading ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="animate-spin text-2xl">⟳</div>
+              </div>
+            ) : students.length === 0 && groups.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "20px 0" }}>
+                <p style={{ fontSize: 14, color: F.sub, marginBottom: 12, fontFamily: F.body }}>
+                  {t("quickLessonDialog.noStudentsHint")}
+                </p>
+                <button onClick={() => setAddStudentOpen(true)}
+                  style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
+                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                    fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
+                  + {t("quickLessonDialog.addStudentBtn")}
+                </button>
               </div>
             ) : (
-              <div className="space-y-1">
-                <Label>{t("quickLessonDialogExtra.groupLabel")}</Label>
-                <Select value={groupId} onValueChange={setGroupId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder={t("quickLessonDialogExtra.selectGroup")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {groups.map((g) => (
-                      <SelectItem key={g.id} value={g.id}>
-                        {g.name} · {t("quickLessonDialog.participantsCount", { count: g.participants.length })}
-                      </SelectItem>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Mode toggle */}
+                {groups.length > 0 && (
+                  <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 13,
+                    background: "rgba(15,15,26,.06)" }}>
+                    {(["individual", "group"] as const).map(m => (
+                      <button key={m} onClick={() => setMode(m)}
+                        style={{ flex: 1, height: 38, borderRadius: 10, border: "none", cursor: "pointer",
+                          background: mode === m ? F.surface : "transparent",
+                          boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.12)" : "none",
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                          color: mode === m ? F.tealD : F.muted }}>
+                        {m === "individual" ? "👤 Індивідуальний" : "👥 Груповий"}
+                      </button>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
+
+                {/* Student cards */}
+                {mode === "individual" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+                    {students.map(s => {
+                      const active = studentId === s.id;
+                      return (
+                        <button key={s.id} onClick={() => {
+                            setStudentId(s.id);
+                            localStorage.setItem(LAST_KEY, s.id);
+                          }}
+                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                            borderRadius: 16, textAlign: "left", cursor: "pointer",
+                            border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                            background: active ? F.tealL : F.surface,
+                            boxShadow: active ? "0 0 0 1px rgba(43,191,170,.2)" : "0 1px 3px rgba(15,15,26,.05)" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                            background: ava(s.name), display: "flex", alignItems: "center",
+                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 14, color: "#fff" }}>
+                            {initials(s.name)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt,
+                              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {s.name}
+                            </p>
+                            <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
+                              {s.subject} · {s.price}{s.currency === "UAH" ? "₴" : s.currency === "USD" ? "$" : s.currency === "EUR" ? "€" : s.currency}/урок
+                            </p>
+                          </div>
+                          {active && (
+                            <div style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+                              background: F.teal, display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</div>
+                          )}
+                        </button>
+                      );
+                    })}
+                    <button onClick={() => setAddStudentOpen(true)}
+                      style={{ height: 40, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
+                        background: "transparent", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
+                      + {t("quickLessonDialog.addStudentBtn")}
+                    </button>
+                  </div>
+                )}
+
+                {/* Group cards */}
+                {mode === "group" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {groups.map(g => {
+                      const active = groupId === g.id;
+                      return (
+                        <button key={g.id} onClick={() => setGroupId(g.id)}
+                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                            borderRadius: 16, textAlign: "left", cursor: "pointer",
+                            border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                            background: active ? F.tealL : F.surface }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                            background: ava(g.name), display: "flex", alignItems: "center",
+                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 14, color: "#fff" }}>
+                            {initials(g.name)}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt }}>
+                              {g.name}
+                            </p>
+                            <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
+                              {g.subject} · {g.participants.length} уч.
+                            </p>
+                          </div>
+                          {active && <div style={{ width: 22, height: 22, borderRadius: 999, background: F.teal,
+                            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Duration chips */}
+                <div>
+                  <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub,
+                    textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>
+                    Тривалість
+                  </p>
+                  <div style={{ display: "flex", gap: 7 }}>
+                    {["30","45","60","90","120"].map(d => (
+                      <button key={d} onClick={() => setDuration(d)}
+                        style={{ flex: 1, height: 44, borderRadius: 12, border: "none", cursor: "pointer",
+                          border: duration === d ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                          background: duration === d ? F.tealL : F.surface,
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14,
+                          color: duration === d ? F.tealD : F.sub }}>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary line */}
+                {(selected || selectedGroup) && (
+                  <div style={{ padding: "10px 14px", borderRadius: 12, background: F.bg,
+                    border: `1px solid ${F.border}`, fontSize: 14, color: F.sub, fontFamily: F.body }}>
+                    {mode === "individual" && selected && (
+                      <>
+                        ✓ {selected.name} · {selected.subject} · {duration} хв · {selected.price}
+                        {selected.currency === "UAH" ? "₴" : selected.currency}
+                        {selected.meetingUrl ? " · Zoom ✓" : ""}
+                      </>
+                    )}
+                    {mode === "group" && selectedGroup && (
+                      <>{selectedGroup.name} · {selectedGroup.subject} · {duration} хв · {selectedGroup.participants.length} уч.</>
+                    )}
+                  </div>
+                )}
+
+                {/* Submit + Open editor */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <button
+                    disabled={submitting || !canSubmit}
+                    onClick={submit}
+                    style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
+                      cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
+                      background: canSubmit ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
+                      color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                      boxShadow: canSubmit ? "0 8px 20px -8px rgba(43,191,170,.55)" : "none",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {submitting && <span className="animate-spin">⟳</span>}
+                    Створити урок
+                  </button>
+
+                  {startsAt && onWantFullForm && mode === "individual" && (
+                    <button onClick={() => { onOpenChange(false); onWantFullForm!(startsAt!); }}
+                      style={{ width: "100%", height: 44, borderRadius: 12, cursor: "pointer",
+                        border: `1px solid ${F.border}`, background: F.surface,
+                        fontFamily: F.display, fontWeight: 600, fontSize: 14, color: F.muted }}>
+                      Відкрити повний редактор →
+                    </button>
+                  )}
+                </div>
               </div>
             )}
-            <div className="space-y-1">
-              <Label>{t("quickLessonDialogExtra.durationLabel")}</Label>
-              <Input
-                type="number"
-                min={15}
-                step={15}
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-              />
-            </div>
-            {mode === "individual" && selected && (
-              <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
-                {selected.subject || t("quickLessonDialogExtra.noSubject")} · {selected.price || 0} ₴
-                {selected.default_meeting_url ? " · Zoom/Meet ✓" : ""}
-              </p>
-            )}
-            {mode === "group" && selectedGroup && (
-              <p className="rounded-lg bg-muted/50 p-2 text-xs text-muted-foreground">
-                {selectedGroup.subject || t("quickLessonDialogExtra.noSubject")} · {selectedGroup.participants.length} учасників
-              </p>
-            )}
           </div>
-        )}
-        <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          {/* "Деталі →" — secondary, only if full form available */}
-          {startsAt && onWantFullForm && mode === "individual" && (
-            <Button
-              variant="outline"
-              className="h-11 w-full rounded-[12px] border-[0.5px] text-[14px] sm:w-auto"
-              style={{ borderColor: "var(--teal,#2BBFAA)", color: "var(--teal,#2BBFAA)" }}
-              onClick={() => {
-                onOpenChange(false);
-                onWantFullForm(startsAt);
-              }}
-            >
-              {t("quickLessonDialog.detailsBtn")} →
-            </Button>
-          )}
-          {/* "Створити" — primary, always visible */}
-          <Button
-            className="h-11 w-full rounded-[12px] text-[15px] font-semibold sm:w-auto"
-            style={{ background: "var(--teal,#2BBFAA)", color: "#fff" }}
-            onClick={submit}
-            disabled={!canSubmit}
-          >
-            {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {t("quickLessonDialog.createBtn")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
+        </DialogContent>
+      </Dialog>
+
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}
-        onCreated={() => {
-          setAddStudentOpen(false);
-          setReloadTrigger((n) => n + 1);
-        }}
+        onCreated={() => setReloadTrigger(n => n + 1)}
       />
-    </Dialog>
+    </>
   );
 }
