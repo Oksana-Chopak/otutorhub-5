@@ -1956,7 +1956,7 @@ export default function DashboardPage() {
         <AddFab
           onLesson={() => setQuickLessonOpen(true)}
           onStudent={() => setAddStudentOpen(true)}
-          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else setQuickLessonOpen(true); }}
+          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else navigate("/finances"); }}
         />
       )}
       {walletPair && (
