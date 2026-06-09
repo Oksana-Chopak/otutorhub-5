@@ -19,7 +19,7 @@ import {
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
-import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video } from "lucide-react";
+import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video, Pencil, X } from "lucide-react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
