@@ -188,8 +188,6 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
 
   return (
-
-  return (
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v) { setStep(1); } onOpenChange(v); }}>
         <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
