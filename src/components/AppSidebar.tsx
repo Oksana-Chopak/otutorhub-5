@@ -7,7 +7,6 @@ import {
   CalendarDays,
   DollarSign,
   MessageSquare,
-  Users,
   Menu,
   X,
   LogOut,
