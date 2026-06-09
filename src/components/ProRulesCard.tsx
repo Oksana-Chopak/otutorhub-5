@@ -28,6 +28,7 @@ export function ProRulesCard()  {
   const { settings, isPro, isTrial, updateSettings, loading } = useWorkspaceSettings();
   const [state, setState] = useState<RulesState | null>(null);
   const [saving, setSaving] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   useEffect(() => {
     if (!settings) return;
