@@ -489,14 +489,66 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 16 }}>
                 Предмети
               </p>
-              <SubjectComboBox
-                value={subjects.join(", ")}
-                onChange={(v) => {
-                  const arr = v ? v.split(",").map(s => s.trim()).filter(Boolean) : [];
-                  setSubjects(arr);
+              {/* Subject chips — existing subjects */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+                {subjects.map(s => (
+                  <span key={s} style={{ display: "flex", alignItems: "center", gap: 5,
+                    padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
+                    background: "rgba(43,191,170,.1)", color: "#25a896",
+                    border: "1px solid rgba(43,191,170,.3)" }}>
+                    {s}
+                    <button onClick={() => setSubjects(prev => prev.filter(x => x !== s))}
+                      style={{ background: "none", border: "none", cursor: "pointer",
+                        color: "#25a896", padding: 0, lineHeight: 1, fontSize: 16 }}>×</button>
+                  </span>
+                ))}
+              </div>
+              {/* Add from predefined list */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                {["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"]
+                  .filter(s => !subjects.includes(s))
+                  .map(s => (
+                    <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
+                      style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
+                        background: "transparent", border: "1px solid #eceef3", cursor: "pointer",
+                        color: "#9398b0" }}>
+                      + {s}
+                    </button>
+                  ))}
+              </div>
+              {/* Add custom subject */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  placeholder="Інший предмет…"
+                  style={{ flex: 1, height: 42, borderRadius: 11, padding: "0 12px",
+                    fontSize: 14.5, border: "1.5px solid #eceef3", outline: "none",
+                    fontFamily: "'Plus Jakarta Sans', system-ui" }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      const v = (e.target as HTMLInputElement).value.trim();
+                      if (v && !subjects.includes(v)) {
+                        setSubjects(prev => [...prev, v]);
+                        (e.target as HTMLInputElement).value = "";
+                      }
+                    }
+                  }}
+                />
+              </div>
+              {/* Save button */}
+              <button
+                onClick={async () => {
+                  if (!user) return;
+                  await supabase.from("tutor_details")
+                    .upsert({ user_id: user.id, subjects }, { onConflict: "user_id" });
+                  setActiveSheet(null);
+                  toast.success("Предмети збережено");
                 }}
-                placeholder="Оберіть предмети…"
-              />
+                style={{ marginTop: 16, width: "100%", height: 48, borderRadius: 13,
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
+                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  fontSize: 16, cursor: "pointer" }}>
+                Зберегти
+              </button>
             </div>
           </SheetContent>
         </Sheet>
