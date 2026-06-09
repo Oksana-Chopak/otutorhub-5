@@ -878,7 +878,7 @@ export default function SchedulePage() {
     <AppLayout>
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
+          <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
             <span>📅</span>
             <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
