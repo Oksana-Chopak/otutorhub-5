@@ -360,7 +360,7 @@ export default function ProfilePage() {
                 {/* Edit button */}
                 <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
                   style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
-                  <Plus size={14} style={{ color: P.sub }} />
+                  <Pencil size={14} style={{ color: P.sub }} />
                 </button>
               </div>
               {/* Stats */}
