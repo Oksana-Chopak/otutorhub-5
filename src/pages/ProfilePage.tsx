@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video } from "lucide-react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
@@ -134,7 +135,7 @@ export default function ProfilePage() {
     }
   }, []);
   const [saving, setSaving] = useState(false);
-  const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|null>(null);
+  const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|"availability"|null>(null);
   const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
   const [studentCount, setStudentCount] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
@@ -449,7 +450,7 @@ export default function ProfilePage() {
               val={calVal} valColor={calendarConnected ? P.tealD : undefined}
               onClick={() => setActiveSheet("calendar")} />
             <NavRow icon={<CalendarClock size={18} />} label={t("profile.rowAvailability") || "Доступність"}
-              onClick={() => { window.location.href = "/availability"; }} noBorder />
+              onClick={() => setActiveSheet("availability")} noBorder />
           </Sec>
         </div>
 
@@ -559,6 +560,26 @@ export default function ProfilePage() {
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="calendar"><GoogleCalendarCard /></div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Availability sheet — slides up, X to close */}
+        <Sheet open={activeSheet === "availability"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
+              style={{ borderColor: "var(--border,#eceef3)" }}>
+              <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>
+                Доступні години
+              </p>
+              <button onClick={() => setActiveSheet(null)}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                style={{ color: "var(--muted,#b0b4c8)", border: "1px solid var(--border,#eceef3)" }}>
+                <X size={16} />
+              </button>
+            </div>
+            <div className="px-4 py-4">
+              <AvailabilityManager />
+            </div>
           </SheetContent>
         </Sheet>
 
