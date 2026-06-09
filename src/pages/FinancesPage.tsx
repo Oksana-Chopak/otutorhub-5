@@ -1210,6 +1210,56 @@ export default function FinancesPage() {
             </div>
           )}
 
+          {/* === Debt alert — shows when there are unpaid lessons === */}
+          {totalDebt > 0 && (
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-[14px] px-4 py-3"
+              style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.35)" }}>
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">⚠️</span>
+                <div>
+                  <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
+                    Заборгованість {totalDebt} ₴
+                  </p>
+                  <p className="text-[13px]" style={{ color: "#b45309", opacity: 0.8 }}>
+                    {debtsRows.length} {debtsRows.length === 1 ? "урок" : debtsRows.length < 5 ? "уроки" : "уроків"} очікують оплати
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => handleTabChange("debts")}
+                className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[13px] font-bold transition-opacity hover:opacity-80"
+                style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
+                Нагадати
+              </button>
+            </div>
+          )}
+
+          {/* === Pie chart — income by student === */}
+          {incomeByStudent.length > 0 && (
+            <div className="mb-4 rounded-[14px] border border-border bg-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[14px] font-bold text-foreground">По учнях</p>
+                <span className="text-[12px] text-muted-foreground">
+                  {period === "week" ? "Цей тиждень" : period === "month" ? "Цей місяць" : "Весь час"}
+                </span>
+              </div>
+              <IncomeByStudentPie data={incomeByStudent} />
+            </div>
+          )}
+
+          {/* === Tabs header with CSV download === */}
+          <div className="flex items-center justify-between mb-0">
+            <div className="flex-1" />
+            <button
+              onClick={exportCsv}
+              className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-gray-100"
+              style={{ color: "var(--sub,#9398b0)", border: "1px solid var(--border,#eceef3)" }}
+              title="Скачати CSV">
+              <Download className="h-3.5 w-3.5" />
+              CSV
+            </button>
+          </div>
+
           {/* === Main tabs: Income / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,#f0f1f5)"}}>
