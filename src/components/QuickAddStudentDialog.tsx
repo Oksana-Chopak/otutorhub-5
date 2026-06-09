@@ -165,7 +165,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     onCreated?.();
   };
 
-  return (  // ── helpers ────────────────────────────────────────────────────────────────
+  // ── helpers ────────────────────────────────────────────────────────────────
   const F = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
     border: "#eceef3", bg: "#fbfbfc", txt: "#0f0f1a",
@@ -186,6 +186,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     border: `1.5px solid ${F.border}`, outline: "none", boxSizing: "border-box" as const,
   });
   const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
+
+  return (
 
   return (
     <>
