@@ -751,10 +751,10 @@ export default function ChatsPage() {
             <div className="px-4 pt-4 pb-3 border-b border-border">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
-                  <p className="font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
+                  <p className="hidden lg:block font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
                     {t("chats.title") || "Чати"}
                   </p>
-                  <p className="text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="hidden lg:block text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
                     {isManager
                       ? `${threads.length} активних діалогів`
                       : t("chats.pageSubtitleOther")}
