@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, ChevronDown, Check, Pencil, Copy, Trash2, MoreVertical, Video, Users2, Wallet } from "lucide-react";
+import { MessageCircle, ChevronDown, Check, Pencil, Copy, Trash2, MoreVertical, Video, Users2, Wallet, Sparkles } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -63,6 +63,7 @@ interface LessonCardProps {
   onCopy?: () => void;
   onDelete?: () => void;
   onWallet?: () => void;
+  onAiNotes?: () => void;
   /** Pure-student self-service actions (cancel / reschedule request). */
   studentActions?: ReactNode;
   className?: string;
@@ -120,6 +121,7 @@ export function LessonCard({
   onCopy,
   onDelete,
   onWallet,
+  onAiNotes,
   studentActions,
   className,
 }: LessonCardProps) {
@@ -157,6 +159,7 @@ export function LessonCard({
 
   const tap = onContentClick ?? onEdit;
   const overflowItems = [
+    onAiNotes ? { ic: Sparkles, t: t("lessonCard.aiNotes", "AI-конспект"), fn: onAiNotes } : null,
     onEdit && canEdit ? { ic: Pencil, t: t("lessonCard.edit", "Редагувати"), fn: onEdit } : null,
     onCopy && canCopy ? { ic: Copy, t: t("lessonCard.copy", "Копіювати"), fn: onCopy } : null,
     onWallet ? { ic: Wallet, t: t("lessonCard.topUp", "Поповнити гаманець"), fn: onWallet } : null,

@@ -973,6 +973,7 @@ export const en: Translations = {
   },
 
   lessonCard: {
+    aiNotes: "AI notes",
     todayShort: "Today",
     tomorrowShort: "Tomorrow",
     edit: "Edit",

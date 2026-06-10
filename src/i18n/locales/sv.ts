@@ -963,6 +963,7 @@ export const sv: Partial<Translations> = {
   },
 
   lessonCard: {
+    aiNotes: "AI-anteckningar",
     todayShort: "Idag",
     tomorrowShort: "Imorgon",
     edit: "Redigera",

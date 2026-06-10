@@ -17,6 +17,7 @@ import { RequestReviewButton } from "@/components/RequestReviewButton";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { FirefliesPanel } from "@/components/FirefliesPanel";
+import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 
 interface LessonWorkspaceProps {
@@ -60,7 +61,7 @@ export function LessonWorkspace({
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
   const navigate = useNavigate();
-  const { isPro, isIndependent } = useWorkspaceSettings();
+  const { isPro, isIndependent, settings } = useWorkspaceSettings();
   const { trackPaywallClick } = usePaywallTracking();
   const isTutor = user?.id === tutorId;
   const isStudent = user?.id === studentId;
@@ -187,6 +188,18 @@ export function LessonWorkspace({
   }, [tutorId, studentId]);
 
   const effectiveMeetingUrl = (meetingUrl && meetingUrl.trim()) || defaultUrl || "";
+
+  const handleJoinClick = () => {
+    if (!isTutor || !aiAllowed) return;
+    maybeAutoStartFireflies(lessonId, effectiveMeetingUrl).then((started) => {
+      if (started) {
+        toast({
+          title: t("lessonWorkspaceExtra.aiAutoStarted", "✨ AI-конспект"),
+          description: t("lessonWorkspaceExtra.aiAutoStartedDesc", "Запис цього уроку розпочато автоматично."),
+        });
+      }
+    });
+  };
 
   const updateLessonField = async (field: "meeting_url" | "homework" | "summary" | "student_notes", value: string) => {
     setSaving(field);
@@ -480,6 +493,14 @@ export function LessonWorkspace({
             )
           )}
         </div>
+        {aiAllowed && settings?.ai_notes_auto && (
+          <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-xs text-foreground/80">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+            <p>
+              <span className="font-medium text-foreground">Авто-конспект увімкнено.</span> Запис стартує, щойно ти приєднаєшся до дзвінка{settings?.ai_notes_auto_send ? ", а готовий конспект піде учню автоматично" : ""}.
+            </p>
+          </div>
+        )}
         {canEditTutorFields ? (
           <>
             {aiAllowed && (
@@ -564,7 +585,7 @@ export function LessonWorkspace({
               <div className="flex items-center gap-2">
                 {effectiveMeetingUrl && (
                   <Button asChild size="sm" variant="outline">
-                    <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
+                    <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}>
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Відкрити
                     </a>
@@ -633,7 +654,7 @@ export function LessonWorkspace({
             <div className="flex items-center gap-2">
               {effectiveMeetingUrl ? (
                 <Button asChild size="sm" variant="outline">
-                  <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer">
+                  <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}>
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Приєднатися
                   </a>

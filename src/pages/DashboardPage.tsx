@@ -21,6 +21,7 @@ import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
+import { AiNotesDialog } from "@/components/AiNotesDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
@@ -262,6 +263,7 @@ export default function DashboardPage() {
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
+  const [aiNotesOpen, setAiNotesOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [paymentPairs, setPaymentPairs] = useState<PairOption[]>([]);
   const [paymentUnpaid, setPaymentUnpaid] = useState<UnpaidLessonOption[]>([]);
@@ -1485,6 +1487,7 @@ export default function DashboardPage() {
                     studentName={profiles[lesson.student_id] ?? '—'}
                     chatPartnerId={lesson.student_id}
                     onContentClick={() => setOpenLessonId(lesson.id)}
+                    onAiNotes={() => setOpenLessonId(lesson.id)}
                     className={lessonSourceTint(lesson.source)}
                     canEditStatus
                     onStatusChange={(s) => updateStatus(lesson.id, s)}
@@ -1543,6 +1546,7 @@ export default function DashboardPage() {
                         meetingUrl={meetingHref}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
+                        onAiNotes={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
                         canEditStatus
                         statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
@@ -1654,6 +1658,7 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
+                          onAiNotes={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus={canEditStatus}
                           statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
@@ -1677,9 +1682,10 @@ export default function DashboardPage() {
                         showPayout={isManager || lesson.source === "hub"}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
-                        canEditStatus
+                        onAiNotes={() => setOpenLessonId(lesson.id)}
+                        canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
-                        onStatusChange={(s) => updateStatus(lesson.id, s)}
+                        onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
                         onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
                       />
                     );
@@ -1797,6 +1803,16 @@ export default function DashboardPage() {
                         pendingBonusTasks.map((task) => (
                           <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[18px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: "3.5px solid #2BBFAA" }}>
+                            {task.action === "ai" ? (
+                              <button type="button" onClick={() => setAiNotesOpen(true)} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0 text-left">
+                                <span className="text-xl flex-shrink-0">{task.emoji}</span>
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
+                                  <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
+                                </div>
+                                <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
+                              </button>
+                            ) : (
                             <Link to={task.to} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0">
                               <span className="text-xl flex-shrink-0">{task.emoji}</span>
                               <div className="min-w-0 flex-1">
@@ -1805,6 +1821,7 @@ export default function DashboardPage() {
                               </div>
                               <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
                             </Link>
+                            )}
                             <button
                               onClick={() => skipTask(task.action)}
                               className="flex-shrink-0 px-3 py-3.5 text-muted-foreground/40 hover:text-muted-foreground transition-colors"
@@ -1904,6 +1921,7 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <AiNotesDialog open={aiNotesOpen} onOpenChange={setAiNotesOpen} />
       <RecordPaymentSheet
         open={paymentSheetOpen}
         onOpenChange={setPaymentSheetOpen}

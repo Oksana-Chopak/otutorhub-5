@@ -981,6 +981,7 @@ export const uk = {
   },
 
   lessonCard: {
+    aiNotes: "AI-конспект",
     todayShort: "Сьогодні",
     tomorrowShort: "Завтра",
     edit: "Редагувати",
