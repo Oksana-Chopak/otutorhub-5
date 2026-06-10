@@ -1259,7 +1259,7 @@ export default function FinancesPage() {
                   {avgLesson.toLocaleString("uk-UA")} ₴
                 </p>
                 <p style={{ fontFamily:F.body, fontSize:12, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
-                  {lessons} уроків
+                  {paidLessonsCount} уроків
                 </p>
               </div>
             </div>
