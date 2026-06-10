@@ -13,18 +13,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Loader2, Plus, X, Crown, BarChart3, Trophy, HandHeart,
+  Loader2, Plus, Crown, BarChart3, Trophy, HandHeart,
   CalendarClock, ShieldAlert, ChevronRight, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
-import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video, Pencil } from "lucide-react";
+import { BookOpen, Settings, Calendar, CheckCircle2, Star, Users, Video, Pencil, Mail, ChevronRight } from "lucide-react";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
+import { AvatarUploader } from "@/components/AvatarUploader";
+import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
@@ -70,7 +72,7 @@ export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
-  const { isIndependent, settings, updateSettings } = useWorkspaceSettings();
+  const { isIndependent, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
 
   const tutorGroups: SectionGroup[] = isTutor
     ? [
@@ -87,9 +89,8 @@ export default function ProfilePage() {
             { to: "/subscription", label: t("profile.itemSubscription"), icon: Crown },
             { to: "/achievements", label: t("profile.itemAchievements"), icon: Trophy },
             { to: "/my-referrals", label: t("profile.itemReferrals"), icon: HandHeart },
-            { to: "/analytics", label: t("profile.itemAnalytics"), icon: BarChart3 },
           ].filter((it) => {
-            if (!isIndependent && ["/subscription", "/analytics", "/achievements", "/my-referrals"].includes(it.to)) return false;
+            if (!isIndependent && ["/subscription", "/achievements", "/my-referrals"].includes(it.to)) return false;
             return true;
           }),
         },
@@ -140,6 +141,10 @@ export default function ProfilePage() {
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [contacts, setContacts] = useState<ContactFields>({ email: "", phone: "", telegram: "", messenger_url: "", facebook_url: "", instagram_url: "" });
+  const [contactDialogOpen, setContactDialogOpen] = useState(false);
+  const [reviews, setReviews] = useState<Array<{ rating: number; comment: string | null; created_at: string }>>([]);
   const [studentCount, setStudentCount] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -151,17 +156,30 @@ export default function ProfilePage() {
       return;
     }
     (async () => {
-      const [detailsRes, lessonsRes, ratesRes, profileRes] = await Promise.all([
+      const [detailsRes, lessonsRes, ratesRes, profileRes, contactsRes, feedbackRes] = await Promise.all([
         supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("subject").eq("tutor_id", user.id),
         supabase.from("student_rates").select("subject").eq("tutor_id", user.id),
-        supabase.from("profiles").select("first_name, last_name").eq("id", user.id).maybeSingle(),
+        supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
+        supabase.from("profile_contacts").select("email, phone, telegram, messenger_url, facebook_url, instagram_url").eq("user_id", user.id).maybeSingle(),
+        supabase.from("lesson_feedback").select("rating, comment, created_at, student_id").eq("tutor_id", user.id).order("created_at", { ascending: false }).limit(20),
       ]);
 
       setProfileName({
         first: profileRes.data?.first_name ?? "",
         last: profileRes.data?.last_name ?? "",
       });
+      setAvatarUrl((profileRes.data as { avatar_url?: string | null } | null)?.avatar_url ?? null);
+      setContacts({
+        email: contactsRes.data?.email ?? user.email ?? "",
+        phone: contactsRes.data?.phone ?? "",
+        telegram: contactsRes.data?.telegram ?? "",
+        messenger_url: contactsRes.data?.messenger_url ?? "",
+        facebook_url: contactsRes.data?.facebook_url ?? "",
+        instagram_url: contactsRes.data?.instagram_url ?? "",
+      });
+      const fb = (feedbackRes.data ?? []) as Array<{ rating: number; comment: string | null; created_at: string }>;
+      setReviews(fb);
 
       const stored = (detailsRes.data?.subjects as string[] | null) ?? [];
       const fromLessons = (lessonsRes.data ?? [])
@@ -383,9 +401,13 @@ export default function ProfilePage() {
                 <div style={{ position: "relative", flexShrink: 0 }}>
                   <div style={{ width: 62, height: 62, borderRadius: Math.round(62 * 0.32),
                     background: "linear-gradient(135deg,#2BBFAA,#0EA5A0)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
                     boxShadow: "0 6px 18px -8px rgba(43,191,170,.55)" }}>
-                    <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 22, color: "#fff" }}>{initials}</span>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={displayName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 22, color: "#fff" }}>{initials}</span>
+                    )}
                   </div>
                 </div>
                 {/* Name + role */}
@@ -451,9 +473,7 @@ export default function ProfilePage() {
             <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
               onClick={() => { window.location.href = "/achievements"; }} />
             <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
-              val="+249 грн за друга" onClick={() => { window.location.href = "/my-referrals"; }} />
-            <NavRow icon={<BarChart3 size={18} />} label={t("profile.itemAnalytics") || "Аналітика"}
-              onClick={() => { window.location.href = "/analytics"; }} noBorder />
+              val="+249 грн за друга" onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
           </Sec>
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
@@ -505,7 +525,7 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Sheets for settings components ─────────────────────────────────── */}
-        <Sheet open={activeSheet === "rules"} onOpenChange={o => !o && setActiveSheet(null)}>
+        <Sheet open={activeSheet === "rules"} onOpenChange={o => { if (!o) { setActiveSheet(null); refreshSettings(); } }}>
           <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
@@ -535,6 +555,15 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#9398b0", marginBottom: 16 }}>
                 {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
               </p>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+                <AvatarUploader
+                  userId={user?.id ?? ""}
+                  currentUrl={avatarUrl}
+                  firstName={profileName.first}
+                  lastName={profileName.last}
+                  onChanged={(url) => setAvatarUrl(url)}
+                />
+              </div>
               <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
@@ -567,6 +596,63 @@ export default function ProfilePage() {
                   boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
               </button>
+
+              {/* Contact details */}
+              <button
+                onClick={() => setContactDialogOpen(true)}
+                className="hover:bg-gray-50"
+                style={{ marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                  gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid #eceef3",
+                  background: "#fff", cursor: "pointer" }}>
+                <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <Mail size={18} style={{ color: "#9398b0" }} />
+                  <span style={{ textAlign: "left" }}>
+                    <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
+                      {t("profile.editContacts") || "Контактні дані"}
+                    </span>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 12.5, color: "#9398b0" }}>
+                      {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight size={18} style={{ color: "#d0d3e0" }} />
+              </button>
+
+              {/* Student reviews */}
+              <div style={{ marginTop: 18 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                  <span style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
+                    {t("profile.reviewsTitle") || "Відгуки учнів"}
+                  </span>
+                  {reviews.length > 0 && (
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "#0f0f1a" }}>
+                      <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
+                      {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
+                      <span style={{ color: "#9398b0", fontWeight: 600 }}>({reviews.length})</span>
+                    </span>
+                  )}
+                </div>
+                {reviews.length === 0 ? (
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#9398b0", padding: "10px 0" }}>
+                    {t("profile.reviewsEmpty") || "Поки що немає відгуків. Вони з'являться, коли учні оцінять твої уроки 🌟"}
+                  </p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {reviews.filter(r => r.comment).slice(0, 5).map((r, i) => (
+                      <div key={i} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eceef3", background: "#fafafa" }}>
+                        <div style={{ display: "flex", gap: 2, marginBottom: 4 }}>
+                          {Array.from({ length: 5 }).map((_, s) => (
+                            <Star key={s} size={12} style={{ color: s < r.rating ? "#F5B400" : "#e5e7eb", fill: s < r.rating ? "#F5B400" : "#e5e7eb" }} />
+                          ))}
+                        </div>
+                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#0f0f1a", lineHeight: 1.5 }}>
+                          {r.comment}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -661,17 +747,38 @@ export default function ProfilePage() {
               <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>
                 Доступні години
               </p>
-              <button onClick={() => setActiveSheet(null)}
-                className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
-                style={{ color: "var(--muted,#b0b4c8)", border: "1px solid var(--border,#eceef3)" }}>
-                <X size={16} />
-              </button>
             </div>
             <div className="px-4 py-4">
               <AvailabilityManager />
             </div>
           </SheetContent>
         </Sheet>
+
+        <ContactEditDialog
+          open={contactDialogOpen}
+          onOpenChange={setContactDialogOpen}
+          userId={user?.id ?? ""}
+          userName={displayName}
+          initial={contacts}
+          onSaved={() => {
+            if (!user) return;
+            supabase
+              .from("profile_contacts")
+              .select("email, phone, telegram, messenger_url, facebook_url, instagram_url")
+              .eq("user_id", user.id)
+              .maybeSingle()
+              .then(({ data }) => {
+                if (data) setContacts({
+                  email: data.email ?? "",
+                  phone: data.phone ?? "",
+                  telegram: data.telegram ?? "",
+                  messenger_url: data.messenger_url ?? "",
+                  facebook_url: data.facebook_url ?? "",
+                  instagram_url: data.instagram_url ?? "",
+                });
+              });
+          }}
+        />
 
       </div>
     </AppLayout>

@@ -398,7 +398,7 @@ export default function PremiumAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
-      <BackToProfile />
+      <BackToProfile to="/finances" />
     </AppLayout>
   );
 }

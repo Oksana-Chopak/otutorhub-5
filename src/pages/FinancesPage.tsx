@@ -23,6 +23,8 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
+  BarChart3,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1422,6 +1424,19 @@ export default function FinancesPage() {
               {/* ── ANALYTICS tab ─────────────────────────────────────────────── */}
               {finTab === "analytics" && (
                 <div style={{ padding:"16px 16px 20px" }}>
+                  <Link
+                    to="/analytics"
+                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
+                      gap:8, textDecoration:"none", marginBottom:16, padding:"12px 14px",
+                      borderRadius:14, border:`1px solid ${F.teal}33`, background:`${F.teal}0d` }}>
+                    <span style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <BarChart3 size={18} style={{ color:F.teal }} />
+                      <span style={{ fontFamily:F.display, fontSize:14, fontWeight:700, color:F.txt }}>
+                        {t("finances.detailedAnalytics") || "Детальна аналітика"}
+                      </span>
+                    </span>
+                    <ChevronRight size={18} style={{ color:F.teal }} />
+                  </Link>
                   {/* 6-month stacked bar chart */}
                   <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted,
                     textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>

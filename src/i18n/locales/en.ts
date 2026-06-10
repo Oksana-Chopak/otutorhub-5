@@ -526,6 +526,8 @@ export const en: Translations = {
   },
 
   finances: {
+    detailedAnalytics: "Detailed analytics",
+    backToFinances: "Back to Finances",
     debtsBannerHint: "Showing lessons awaiting payment. Click a row to mark it.",
     showAll: "Show all",
     title: "Finances",
@@ -714,6 +716,10 @@ export const en: Translations = {
     editSaved: "Profile updated",
     editSaveFailed: "Could not save",
     editNameRequired: "Enter a name",
+    editContacts: "Contact details",
+    editContactsHint: "Email, phone, Telegram, socials",
+    reviewsTitle: "Student reviews",
+    reviewsEmpty: "No reviews yet. They will appear once students rate your lessons 🌟",
     rowSubjects: "Subjects",
     sectionSettings: "Settings",
     sectionRewards: "Reward style",

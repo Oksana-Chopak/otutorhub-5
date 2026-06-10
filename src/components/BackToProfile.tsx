@@ -8,9 +8,12 @@ import { useTranslation } from "react-i18next";
  * relying on the browser back button. Uses the design-system ghost style:
  * hairline pill, teal-on-hover, spring press.
  */
-export function BackToProfile({ to = "/profile" }: { to?: string }) {
+export function BackToProfile({ to = "/profile", label }: { to?: string; label?: string }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const autoLabel = to === "/finances"
+    ? (t("common.backToFinances") || "Назад до Фінансів")
+    : (t("common.backToProfile") || "Назад до профілю");
   return (
     <div className="mt-8 mb-2 flex justify-center">
       <button
@@ -20,7 +23,7 @@ export function BackToProfile({ to = "/profile" }: { to?: string }) {
         style={{ fontFamily: "Inter, system-ui" }}
       >
         <ArrowLeft className="h-4 w-4" />
-        {t("common.backToProfile") || "Назад до профілю"}
+        {label || autoLabel}
       </button>
     </div>
   );

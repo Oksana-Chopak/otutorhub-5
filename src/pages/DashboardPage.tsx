@@ -37,8 +37,7 @@ import { StreakCard } from "@/components/StreakCard";
 import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
-import { QuickActionsCard } from "@/components/QuickActionsCard";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
 import { PageFAB } from "@/components/PageFAB";
 import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/SkeletonCard";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -273,6 +272,8 @@ export default function DashboardPage() {
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
+  const [paymentPairs, setPaymentPairs] = useState<PairOption[]>([]);
+  const [paymentUnpaid, setPaymentUnpaid] = useState<UnpaidLessonOption[]>([]);
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
@@ -358,6 +359,81 @@ export default function DashboardPage() {
   }, [user?.id, isIndependentTutor]);
 
 
+
+  const openPaymentSheet = async () => {
+    if (!user) return;
+    setPaymentSheetOpen(true);
+    // Load the tutor's student pairs (all sources) + unpaid billable lessons.
+    const [{ data: rates }, { data: details }] = await Promise.all([
+      supabase
+        .from("student_rates")
+        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .eq("tutor_id", user.id),
+      supabase
+        .from("lesson_details")
+        .select("lesson_id, student_price, lessons!inner(id, starts_at, subject, student_id, tutor_id, status)")
+        .eq("student_payment_status", "unpaid")
+        .eq("lessons.tutor_id", user.id)
+        .neq("lessons.status", "cancelled")
+        .neq("lessons.status", "pending")
+        .limit(200),
+    ]);
+
+    const activeRates = (rates ?? []).filter((r: { archived_at: string | null }) => !r.archived_at);
+    const studentIds = Array.from(new Set(activeRates.map((r: { student_id: string }) => r.student_id)));
+    // Fetch any names we don't already have cached in `profiles`.
+    const missing = studentIds.filter((id) => !profiles[id]);
+    const nameOf: Record<string, string> = { ...profiles };
+    if (missing.length) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name")
+        .in("id", missing);
+      (profs ?? []).forEach((p: { id: string; first_name: string | null; last_name: string | null }) => {
+        nameOf[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "—";
+      });
+    }
+
+    const rateByStudent = new Map<string, number>();
+    activeRates.forEach((r: { student_id: string; price_per_lesson: number | null }) => {
+      if (!rateByStudent.has(r.student_id)) rateByStudent.set(r.student_id, Number(r.price_per_lesson ?? 0));
+    });
+
+    const pairs: PairOption[] = studentIds
+      .map((sid) => ({
+        tutor_id: user.id,
+        student_id: sid,
+        tutor_name: nameOf[user.id] ?? "",
+        student_name: nameOf[sid] ?? "—",
+        rate: rateByStudent.get(sid),
+      }))
+      .sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
+    setPaymentPairs(pairs);
+
+    const unpaid: UnpaidLessonOption[] = ((details ?? []) as Array<{
+      student_price: number | null;
+      lessons: { id: string; starts_at: string; subject: string; student_id: string; tutor_id: string };
+    }>).map((d) => ({
+      id: d.lessons.id,
+      subject: d.lessons.subject,
+      starts_at: d.lessons.starts_at,
+      student_price: Number(d.student_price ?? 0),
+      student_id: d.lessons.student_id,
+      tutor_id: d.lessons.tutor_id,
+    }));
+    setPaymentUnpaid(unpaid);
+  };
+
+  const markPaymentLessonPaid = async (lessonId: string) => {
+    await supabase
+      .from("lesson_details")
+      .upsert(
+        { lesson_id: lessonId, student_payment_status: "paid", student_paid_at: new Date().toISOString() } as never,
+        { onConflict: "lesson_id" },
+      );
+    setPaymentUnpaid((prev) => prev.filter((l) => l.id !== lessonId));
+    loadData();
+  };
 
   const loadData = async () => {
     // Wait for auth to finish — prevents new users from seeing stale/other users' data
@@ -1958,7 +2034,7 @@ export default function DashboardPage() {
         <AddFab
           onLesson={() => setQuickLessonOpen(true)}
           onStudent={() => setAddStudentOpen(true)}
-          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else setPaymentSheetOpen(true); }}
+          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else openPaymentSheet(); }}
         />
       )}
       {walletPair && (
@@ -1973,16 +2049,14 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
-      <Sheet open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen}>
-        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{t("quickActionsCard.addPayment")}</SheetTitle>
-          </SheetHeader>
-          <div className="mt-3">
-            <QuickActionsCard onChanged={() => { loadData(); setPaymentSheetOpen(false); }} />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <RecordPaymentSheet
+        open={paymentSheetOpen}
+        onOpenChange={setPaymentSheetOpen}
+        pairs={paymentPairs}
+        unpaidLessons={paymentUnpaid}
+        onMarkLessonPaid={markPaymentLessonPaid}
+        onWalletTopUp={() => loadData()}
+      />
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}

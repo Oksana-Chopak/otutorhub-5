@@ -532,6 +532,8 @@ export const uk = {
 
   // Finances
   finances: {
+    detailedAnalytics: "Детальна аналітика",
+    backToFinances: "Назад до Фінансів",
     debtsBannerHint: "Показано уроки з очікуваною оплатою. Натисніть на рядок щоб відмітити.",
     showAll: "Показати все",
     title: "Фінанси",
@@ -722,6 +724,10 @@ export const uk = {
     editSaved: "Профіль оновлено",
     editSaveFailed: "Не вдалося зберегти",
     editNameRequired: "Введіть ім'я",
+    editContacts: "Контактні дані",
+    editContactsHint: "Email, телефон, Telegram, соцмережі",
+    reviewsTitle: "Відгуки учнів",
+    reviewsEmpty: "Поки що немає відгуків. Вони з'являться, коли учні оцінять твої уроки 🌟",
     rowSubjects: "Предмети",
     sectionSettings: "Налаштування",
     sectionRewards: "Стиль нагород",
