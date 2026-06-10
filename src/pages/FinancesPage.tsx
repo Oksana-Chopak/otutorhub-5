@@ -1150,6 +1150,402 @@ export default function FinancesPage() {
   }, [incomeByStudent]);
 
 
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // INDEPENDENT TUTOR: Cockpit (Variant Б)
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isIndependentTutor) {
+    const F = {
+      teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
+      warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
+      border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
+      txt:"#0f0f1a", sub:"#9398b0", muted:"#b0b4c8",
+      display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
+    };
+
+    const pill = (p: Period) => (
+      <button key={p} onClick={() => setPeriod(p)}
+        style={{
+          height:34, padding:"0 16px", borderRadius:999, border:"none", cursor:"pointer",
+          fontFamily:F.display, fontWeight:700, fontSize:14,
+          background: period===p ? F.teal : F.bg,
+          color: period===p ? "#fff" : F.sub,
+          boxShadow: period===p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
+          transition:"all .15s",
+        }}>
+        {p==="week"?"Тиждень":p==="month"?"Місяць":"Весь час"}
+      </button>
+    );
+
+    const Tab = ({ id, label, count }: { id: typeof finTab; label: string; count?: number }) => (
+      <button onClick={() => setFinTab(id)}
+        style={{
+          flex:1, height:44, border:"none", cursor:"pointer", background:"transparent",
+          fontFamily:F.display, fontWeight:700, fontSize:15,
+          color: finTab===id ? F.teal : F.muted,
+          borderBottom: `2.5px solid ${finTab===id ? F.teal : "transparent"}`,
+          display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+        }}>
+        {label}
+        {count !== undefined && count > 0 && (
+          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize:11,
+            fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
+            {count}
+          </span>
+        )}
+      </button>
+    );
+
+    return (
+      <AppLayout>
+        {/* Period pills */}
+        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+          {(["week","month","all"] as Period[]).map(pill)}
+        </div>
+
+        {/* ── Desktop 2-col layout ─────────────────────────────────────────── */}
+        <div className="flex flex-col lg:flex-row gap-5">
+
+          {/* LEFT column */}
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+
+            {/* Stats row */}
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+              {/* Earned — dark gradient */}
+              <div style={{ gridColumn:"1/-1", borderRadius:20, padding:"18px 20px",
+                background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)", position:"relative", overflow:"hidden" }}>
+                <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100,
+                  borderRadius:"50%", background:"radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
+                <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:"rgba(255,255,255,.5)",
+                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
+                  💰 Отримано
+                </p>
+                <p style={{ fontFamily:F.display, fontWeight:900, fontSize:38, color:F.teal,
+                  letterSpacing:"-0.025em", lineHeight:1 }}>
+                  {totalIncome.toLocaleString("uk-UA")} ₴
+                </p>
+                {pendingIncome > 0 && (
+                  <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.45)", marginTop:6 }}>
+                    + {pendingIncome.toLocaleString("uk-UA")} ₴ очікує
+                  </p>
+                )}
+              </div>
+
+              {/* Pending — warn */}
+              <div style={{ borderRadius:16, padding:"14px 16px",
+                background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
+                <p style={{ fontFamily:F.display, fontSize:11, fontWeight:700, color:F.warnD,
+                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
+                  ⏳ Очікує
+                </p>
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
+                  {pendingIncome.toLocaleString("uk-UA")} ₴
+                </p>
+                <p style={{ fontFamily:F.body, fontSize:12, color:F.warnD, opacity:0.7, marginTop:2 }}>
+                  {debtList.length} уроків
+                </p>
+              </div>
+
+              {/* Avg */}
+              <div style={{ borderRadius:16, padding:"14px 16px",
+                background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
+                <p style={{ fontFamily:F.display, fontSize:11, fontWeight:700, color:"#7c3aed",
+                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
+                  📊 Середній урок
+                </p>
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
+                  {avgLesson.toLocaleString("uk-UA")} ₴
+                </p>
+                <p style={{ fontFamily:F.body, fontSize:12, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
+                  {lessons} уроків
+                </p>
+              </div>
+            </div>
+
+            {/* 3 tabs */}
+            <div style={{ borderRadius:18, background:F.surface, border:`1px solid ${F.border}`,
+              overflow:"hidden", boxShadow:"0 2px 10px -4px rgba(15,15,26,.06)" }}>
+              {/* Tab header */}
+              <div style={{ display:"flex", borderBottom:`1px solid ${F.border}` }}>
+                <Tab id="ops" label="Операції" />
+                <Tab id="debts" label="Борги" count={debtList.length} />
+                <Tab id="analytics" label="Аналітика" />
+              </div>
+
+              {/* ── OPS tab ──────────────────────────────────────────────────── */}
+              {finTab === "ops" && (
+                <div style={{ padding:"16px 16px 20px" }}>
+                  {/* Mini weekly bar chart */}
+                  <div style={{ display:"flex", alignItems:"flex-end", gap:5, height:48, marginBottom:16 }}>
+                    {weekBars.map(bar => (
+                      <div key={bar.label} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
+                        <div style={{ width:"100%", borderRadius:6,
+                          height:`${bar.pct}%`, minHeight:4,
+                          background: bar.isToday ? F.teal : bar.amt>0 ? "rgba(43,191,170,.3)" : F.border,
+                          transition:"height .3s" }} />
+                        <span style={{ fontFamily:F.display, fontSize:10, fontWeight:700,
+                          color: bar.isToday ? F.teal : F.muted }}>{bar.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Transaction list */}
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    {filteredLessons.slice(0, 20).map(l => {
+                      const paid = l.student_payment_status === "paid";
+                      return (
+                        <div key={l.id} style={{ display:"flex", alignItems:"center", gap:12,
+                          padding:"10px 12px", borderRadius:14,
+                          background: paid ? "rgba(34,197,94,.05)" : F.warnBg,
+                          border: `1px solid ${paid ? "rgba(34,197,94,.15)" : F.warnBorder}` }}>
+                          <div style={{ width:34, height:34, borderRadius:10, flexShrink:0,
+                            background: paid ? "rgba(34,197,94,.1)" : F.warnBg,
+                            display:"flex", alignItems:"center", justifyContent:"center", fontSize:16 }}>
+                            {paid ? "✓" : "⏳"}
+                          </div>
+                          <div style={{ flex:1, minWidth:0 }}>
+                            <p style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt,
+                              whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                              {nameOf(l.student_id)}
+                            </p>
+                            <p style={{ fontFamily:F.body, fontSize:12, color:F.sub }}>
+                              {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
+                            </p>
+                          </div>
+                          <div style={{ textAlign:"right", flexShrink:0 }}>
+                            <p style={{ fontFamily:F.display, fontWeight:800, fontSize:15,
+                              color: paid ? "#16a34a" : F.warnD }}>
+                              {paid ? "+" : ""}{Number(l.student_price).toLocaleString("uk-UA")} ₴
+                            </p>
+                            <button onClick={() => togglePayment(l, "student_payment_status")}
+                              style={{ fontFamily:F.display, fontWeight:700, fontSize:11,
+                                background: paid ? "rgba(34,197,94,.15)" : F.warnBg,
+                                color: paid ? "#16a34a" : F.warnD,
+                                border:`1px solid ${paid?"rgba(34,197,94,.3)":F.warnBorder}`,
+                                borderRadius:999, padding:"2px 8px", cursor:"pointer", marginTop:3 }}>
+                              {paid ? "Оплачено ✓" : "Очікує →"}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {filteredLessons.length === 0 && (
+                      <p style={{ textAlign:"center", padding:"20px 0", color:F.muted, fontFamily:F.body, fontSize:14 }}>
+                        Немає операцій за цей період
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── DEBTS tab ─────────────────────────────────────────────────── */}
+              {finTab === "debts" && (
+                <div style={{ padding:"16px 16px 20px" }}>
+                  {debtList.length === 0 ? (
+                    <div style={{ textAlign:"center", padding:"32px 0" }}>
+                      <p style={{ fontSize:36, marginBottom:8 }}>☀️</p>
+                      <p style={{ fontFamily:F.display, fontWeight:700, fontSize:17, color:F.txt }}>
+                        Всі розраховані!
+                      </p>
+                      <p style={{ fontFamily:F.body, fontSize:14, color:F.sub, marginTop:4 }}>
+                        Жодних боргів — ти молодець 🎉
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Summary warning */}
+                      <div style={{ borderRadius:14, padding:"12px 14px", marginBottom:14,
+                        background:F.warnBg, border:`1px solid ${F.warnBorder}`,
+                        display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                        <div>
+                          <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD }}>
+                            ⚠️ {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                          </p>
+                          <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
+                            {debtList.length} уроків без оплати
+                          </p>
+                        </div>
+                        <button
+                          onClick={async () => {
+                            const ids = debtList.map(l => l.id);
+                            await Promise.all(ids.map(id =>
+                              supabase.from("lesson_details").update({student_payment_status:"paid"}).eq("lesson_id",id)
+                            ));
+                            setLessons(prev => prev.map(l =>
+                              ids.includes(l.id) ? {...l, student_payment_status:"paid"} : l
+                            ));
+                            toast.success("Всіх відмічено оплаченими ✓");
+                          }}
+                          style={{ height:38, padding:"0 14px", borderRadius:10, border:"none",
+                            background:"rgba(245,158,11,.25)", color:F.warnD,
+                            fontFamily:F.display, fontWeight:700, fontSize:13, cursor:"pointer",
+                            whiteSpace:"nowrap" }}>
+                          Відмітити всіх
+                        </button>
+                      </div>
+                      {/* Per-lesson debt cards */}
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {debtList.map(l => (
+                          <div key={l.id} style={{ display:"flex", alignItems:"center", gap:12,
+                            padding:"11px 13px", borderRadius:14,
+                            background:F.surface, border:`1px solid ${F.border}` }}>
+                            <div style={{ flex:1, minWidth:0 }}>
+                              <p style={{ fontFamily:F.display, fontWeight:700, fontSize:15, color:F.txt,
+                                whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                                {nameOf(l.student_id)}
+                              </p>
+                              <p style={{ fontFamily:F.body, fontSize:12, color:F.sub }}>
+                                {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
+                              </p>
+                            </div>
+                            <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16,
+                              color:F.warnD, flexShrink:0 }}>
+                              {Number(l.student_price).toLocaleString("uk-UA")} ₴
+                            </p>
+                            <button
+                              onClick={() => togglePayment(l, "student_payment_status")}
+                              style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
+                                background:"rgba(245,158,11,.18)", color:F.warnD,
+                                fontFamily:F.display, fontWeight:700, fontSize:12.5, cursor:"pointer",
+                                flexShrink:0 }}>
+                              Нагадати
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* ── ANALYTICS tab ─────────────────────────────────────────────── */}
+              {finTab === "analytics" && (
+                <div style={{ padding:"16px 16px 20px" }}>
+                  {/* 6-month stacked bar chart */}
+                  <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted,
+                    textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>
+                    За 6 місяців
+                  </p>
+                  <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:80, marginBottom:20 }}>
+                    {sixMonthBars.map(bar => (
+                      <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column",
+                        alignItems:"center", gap:4 }}>
+                        <div style={{ width:"100%", display:"flex", flexDirection:"column",
+                          justifyContent:"flex-end", height:60, gap:2 }}>
+                          {bar.pendingPct > 0 && (
+                            <div style={{ width:"100%", borderRadius:"3px 3px 0 0",
+                              height:`${bar.pendingPct}%`, minHeight:3,
+                              background:"rgba(245,158,11,.35)" }} />
+                          )}
+                          {bar.earnedPct > 0 && (
+                            <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0",
+                              height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0,
+                              background:F.teal }} />
+                          )}
+                        </div>
+                        <span style={{ fontFamily:F.display, fontSize:10, fontWeight:700, color:F.muted }}>
+                          {bar.month}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Per-student breakdown */}
+                  {byStudentCockpit.length > 0 && (
+                    <>
+                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted,
+                        textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>
+                        По учнях
+                      </p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {byStudentCockpit.map(s => {
+                          const maxAmt = byStudentCockpit[0]?.amount ?? 1;
+                          const pct = Math.max((s.amount / maxAmt) * 100, 4);
+                          return (
+                            <div key={s.student_id}>
+                              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+                                <span style={{ fontFamily:F.body, fontSize:13, color:F.txt }}>{s.name}</span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>
+                                  {s.amount.toLocaleString("uk-UA")} ₴
+                                </span>
+                              </div>
+                              <div style={{ height:7, borderRadius:999, background:F.border }}>
+                                <div style={{ height:"100%", borderRadius:999,
+                                  width:`${pct}%`, background:s.color,
+                                  transition:"width .4s ease" }} />
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Pro nudge — soft, non-blocking */}
+                  <div style={{ marginTop:20, borderRadius:16, padding:"16px 18px",
+                    background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)" }}>
+                    <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16, color:"#fff",
+                      marginBottom:4 }}>
+                      ✨ Pro-аналітика
+                    </p>
+                    <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.5)",
+                      marginBottom:12 }}>
+                      CSV-звіти, прогнози, найкращий студент
+                    </p>
+                    <a href="/subscription" style={{ display:"inline-block", height:36,
+                      padding:"0 16px", borderRadius:10, lineHeight:"36px",
+                      background:"rgba(245,181,68,.25)", color:"#F5B544",
+                      fontFamily:F.display, fontWeight:700, fontSize:14,
+                      textDecoration:"none" }}>
+                      Активувати Pro →
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT sidebar — desktop only */}
+          <div className="hidden lg:flex flex-col gap-4" style={{ width:300, flexShrink:0 }}>
+            {/* Debt summary */}
+            {debtList.length > 0 && (
+              <div style={{ borderRadius:18, padding:"16px 18px",
+                background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
+                <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD, marginBottom:4 }}>
+                  ⚠️ {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                </p>
+                <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
+                  {debtList.length} уроків без оплати
+                </p>
+              </div>
+            )}
+            {/* Pie chart */}
+            {incomeByStudent.length > 0 && (
+              <div style={{ borderRadius:18, padding:"16px 18px",
+                background:F.surface, border:`1px solid ${F.border}` }}>
+                <p style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt, marginBottom:12 }}>
+                  По учнях
+                </p>
+                <IncomeByStudentPie data={incomeByStudent} />
+              </div>
+            )}
+            {/* Export */}
+            <button onClick={exportCsv}
+              style={{ height:44, borderRadius:14, border:`1px solid ${F.border}`,
+                background:F.surface, cursor:"pointer", fontFamily:F.display,
+                fontWeight:700, fontSize:14, color:F.sub,
+                display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
+              <Download className="h-4 w-4" /> Скачати CSV
+            </button>
+          </div>
+
+        </div>
+      </AppLayout>
+    );
+  }
+  // ─────────────────────────────────────────────────────────────────────────────
+  // END INDEPENDENT TUTOR COCKPIT
+  // ─────────────────────────────────────────────────────────────────────────────
+
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
