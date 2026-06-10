@@ -7,23 +7,17 @@ import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Crown,
   Loader2,
-  Sparkles,
-  Users,
-  Infinity as InfinityIcon,
   Clock,
   CheckCircle2,
   XCircle,
-  MessageCircle,
   BellRing,
   CalendarX2,
   BarChart3,
   FileDown,
-  Gift,
   UserPlus,
   Headset,
 } from "lucide-react";
@@ -126,40 +120,16 @@ export default function SubscriptionPage() {
     settings,
     loading,
     isIndependent,
-    studentCount,
-    isPro,
     isTrial,
     trialUntil,
     trialDaysLeft,
   } = useWorkspaceSettings();
-  const subscriptionUntil = settings?.subscription_until ? new Date(settings.subscription_until) : null;
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
-  const REGULAR_PRICE_MONTHLY = 249;
-  // Дедлайн акції — 14 днів від моменту першого відкриття. Зберігаємо в localStorage,
-  // щоб у одного користувача таймер не «скакав» між заходами.
-  const EARLY_BIRD_DURATION_MS = 14 * 24 * 60 * 60 * 1000;
-  const [now, setNow] = useState(() => Date.now());
-  const [earlyBirdDeadline] = useState<number>(() => {
-    if (typeof window === "undefined") return Date.now() + EARLY_BIRD_DURATION_MS;
-    const key = "early_bird_deadline_v1";
-    const stored = window.localStorage.getItem(key);
-    if (stored) {
-      const n = Number(stored);
-      if (Number.isFinite(n) && n > Date.now()) return n;
-    }
-    const next = Date.now() + EARLY_BIRD_DURATION_MS;
-    window.localStorage.setItem(key, String(next));
-    return next;
-  });
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, []);
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
@@ -268,372 +238,171 @@ export default function SubscriptionPage() {
 
   const proPrice = billing === "yearly" ? PRO_PRICE_YEARLY_PER_MONTH : PRO_PRICE_MONTHLY;
 
+  const earlyBirdLeft =
+    eligibleForTrial && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
+      ? EARLY_BIRD_LIMIT - earlyBirdCount
+      : null;
+
+  const S = {
+    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
+    teal: "#2BBFAA", tealD: "#1f8e7e", successD: "#16a34a",
+    gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
+    gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
+    shadowTeal: "0 8px 20px -8px rgba(43,191,170,.6)",
+    shadowSm: "0 1px 4px rgba(15,15,26,.05)",
+    display: "Inter, system-ui, sans-serif",
+    body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+
+  const pendingRequest =
+    latestRequest && (latestRequest.status === "new" || latestRequest.status === "in_progress");
+
   return (
     <AppLayout>
-      <div className="mx-auto max-w-4xl">
-        <div className="mb-6">
-          <h1 className="hidden lg:block font-display text-[26px] font-black text-foreground">{t("subscriptionPage.title")}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            30 днів безкоштовного тріалу — без картки. Після — {PRO_PRICE_MONTHLY} ₴/місяць.
-            <br />
-            Перші {EARLY_BIRD_LIMIT} репетиторів отримують Pro безкоштовно на пів року.
-          </p>
+      <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
+        {/* Desktop-only title; mobile title comes from AppLayout */}
+        <div className="mb-4 hidden lg:block">
+          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>
+            {t("subscriptionPage.kicker") || "Підписка"}
+          </div>
+          <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>oTutorHub Pro</h1>
         </div>
 
-        {/* Early-bird спотлайт-банер */}
-        {eligibleForTrial && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT && (
-          <Card className="mb-4 border-primary/50 bg-gradient-to-r from-primary/[0.10] to-primary/[0.04]">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <p className="text-sm font-semibold text-foreground">
-                🔥 Залишилось {EARLY_BIRD_LIMIT - earlyBirdCount} безкоштовних місць з {EARLY_BIRD_LIMIT} — займи своє!
-              </p>
-              <Badge variant="default" className="gap-1">
-                <Sparkles className="h-3 w-3" /> Early bird
-              </Badge>
-            </CardContent>
-          </Card>
-        )}
+        {/* ── Hero ──────────────────────────────────────────────────────────── */}
+        <div style={{ position: "relative", overflow: "hidden", borderRadius: 22, padding: 22, background: S.gradIncome, color: "#fff", boxShadow: "0 18px 44px -22px rgba(15,15,26,.7)" }}>
+          {earlyBirdLeft !== null && (
+            <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 12, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
+              🔥 ще {earlyBirdLeft} {earlyBirdLeft === 1 ? "місце" : earlyBirdLeft < 5 ? "місця" : "місць"}
+            </div>
+          )}
 
-        {/* Early-bird акція */}
-        {eligibleForTrial && (() => {
-          const taken = earlyBirdCount ?? 0;
-          const left = Math.max(0, EARLY_BIRD_LIMIT - taken);
-          const progress = Math.min(100, (taken / EARLY_BIRD_LIMIT) * 100);
-          const soldOut = left === 0;
-          return (
-            <Card className="mb-4 overflow-hidden border-primary/40 bg-gradient-to-br from-primary/[0.08] via-primary/[0.04] to-transparent">
-              <CardContent className="p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary text-xl">
-                      🎁
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-display text-base font-bold text-foreground">
-                          30 днів безкоштовно — спробуй без картки
-                        </p>
-                        {!soldOut && (
-                          <Badge variant="default" className="gap-1">
-                            <Sparkles className="h-3 w-3" /> Early bird
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Після тріалу —{" "}
-                        <span className="font-semibold text-foreground">
-                          {PRO_PRICE_YEARLY_PER_MONTH} ₴/міс
-                        </span>{" "}
-                        для перших {EARLY_BIRD_LIMIT} репетиторів{" "}
-                        <span className="text-muted-foreground">
-                          (потім {REGULAR_PRICE_MONTHLY} ₴/міс)
-                        </span>
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <div style={{ width: 52, height: 52, borderRadius: 16, background: S.gradTeal, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal }}>
+            <Crown size={26} color="#fff" />
+          </div>
 
-                {/* Live countdown — створює реальне відчуття терміновості */}
-                {(() => {
-                  const msLeft = Math.max(0, earlyBirdDeadline - now);
-                  const totalSec = Math.floor(msLeft / 1000);
-                  const days = Math.floor(totalSec / 86400);
-                  const hours = Math.floor((totalSec % 86400) / 3600);
-                  const minutes = Math.floor((totalSec % 3600) / 60);
-                  const seconds = totalSec % 60;
-                  const Cell = ({ n, label }: { n: number; label: string }) => (
-                    <div className="flex flex-col items-center rounded-lg bg-background/80 px-2.5 py-1.5 ring-1 ring-border min-w-[44px]">
-                      <span className="font-display text-base font-bold tabular-nums text-foreground leading-none">
-                        {String(n).padStart(2, "0")}
-                      </span>
-                      <span className="mt-0.5 text-[9px] uppercase tracking-wide text-muted-foreground">
-                        {label}
-                      </span>
-                    </div>
-                  );
+          <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 25, letterSpacing: "-.02em", marginTop: 14 }}>
+            {isActive ? "Pro активний" : isTrial ? "Ти на Pro-тріалі" : "Усе, щоб рости"}
+          </div>
+          <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.65)", marginTop: 4, lineHeight: 1.45 }}>
+            {isActive
+              ? "Дякуємо, що з нами 💚 Усі Pro-функції відкриті."
+              : isTrial && trialUntil
+                ? `Залишилось ${trialDaysLeft} дн · до ${format(trialUntil, "d MMMM, HH:mm", { locale: uk })}`
+                : "30 днів повного Pro безкоштовно — без картки."}
+          </div>
+
+          {!isActive && (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 16 }}>
+                <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 42, letterSpacing: "-.02em", color: S.teal, lineHeight: 1 }}>{proPrice}</span>
+                <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 18 }}>₴</span>
+                <span style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>/ міс</span>
+                {billing === "yearly" && (
+                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,.45)", marginLeft: 2 }}>· {PRO_PRICE_YEARLY_TOTAL} ₴ на рік</span>
+                )}
+              </div>
+
+              {/* Billing toggle */}
+              <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(255,255,255,.1)", margin: "16px 0" }}>
+                {([
+                  { v: "monthly" as const, l: "Щомісяця" },
+                  { v: "yearly" as const, l: "Щороку −23%" },
+                ]).map((o) => {
+                  const on = billing === o.v;
                   return (
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-                        <Clock className="h-3.5 w-3.5 text-primary" />
-                        До кінця акції:
-                      </span>
-                      <div className="flex items-center gap-1.5">
-                        <Cell n={days} label={t("subscriptionPageExtra.daysLabel")} />
-                        <Cell n={hours} label={t("subscriptionPageExtra.hoursLabel")} />
-                        <Cell n={minutes} label="хв" />
-                        <Cell n={seconds} label={t("subscriptionPageExtra.secondsLabel")} />
-                      </div>
-                    </div>
+                    <button key={o.v} onClick={() => setBilling(o.v)}
+                      style={{ border: "none", cursor: "pointer", padding: "8px 14px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, whiteSpace: "nowrap",
+                        background: on ? "#fff" : "transparent", color: on ? S.txt : "rgba(255,255,255,.7)", boxShadow: on ? S.shadowSm : "none" }}>
+                      {o.l}
+                    </button>
                   );
-                })()}
+                })}
+              </div>
+            </>
+          )}
 
-                <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      {soldOut
-                        ? t("subscriptionPageExtra.spotsLeft")
-                        : t("subscriptionPageExtra.spotsTaken", { taken, limit: EARLY_BIRD_LIMIT })}
-                    </span>
-                    {!soldOut && (
-                      <span className="font-semibold text-primary">
-                        ще {left}{" "}
-                        {left === 1
-                          ? t("subscriptionPageExtra.oneSpot")
-                          : left >= 2 && left <= 4
-                          ? t("subscriptionPageExtra.fewSpots")
-                          : t("subscriptionPageExtra.manySpots")}
-                      </span>
-                    )}
-                  </div>
-                  <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
+          {/* CTA */}
+          <div style={{ marginTop: isActive ? 16 : 0 }}>
+            {isActive ? (
+              <Button className="w-full" disabled>Підписка активна</Button>
+            ) : (
+              <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
+            )}
+          </div>
+          {!isActive && (
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "center", marginTop: 8 }}>
+              Без картки · скасування в один клік
+            </div>
+          )}
+        </div>
+
+        {/* ── Що входить ────────────────────────────────────────────────────── */}
+        <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "18px 2px 8px" }}>
+          {t("subscriptionPage.whatsIncluded") || "Що входить"}
+        </div>
+        <div style={{ background: "#fff", border: `1px solid ${S.border}`, borderRadius: 18, boxShadow: S.shadowSm, padding: 14 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+            {proPerks.map(({ icon: PerkIcon, title, desc }) => (
+              <div key={title} style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: "rgba(43,191,170,.1)", color: S.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <PerkIcon size={17} />
                 </div>
-              </CardContent>
-            </Card>
-          );
-        })()}
-        {isTrial && trialUntil && (
-          <Card className="mb-4 border-primary/40 bg-primary/[0.04]">
-            <CardContent className="flex flex-wrap items-center justify-between gap-3 p-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Gift className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="font-medium text-foreground">
-                    Ви на безкоштовному Pro-тріалі
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Залишилось {trialDaysLeft}{" "}
-                    {trialDaysLeft === 1
-                      ? t("subscriptionPageExtra.daysLabel")
-                      : trialDaysLeft >= 2 && trialDaysLeft <= 4
-                      ? t("subscriptionPageExtra.daysLabel")
-                      : t("subscriptionPageExtra.daysLabel")}{" "}
-                    · до{" "}
-                    {format(trialUntil, "d MMMM, HH:mm", { locale: uk })}
-                  </p>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14 }}>{title}</div>
+                  <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.45, marginTop: 1 }}>{desc}</div>
                 </div>
               </div>
-              <Badge variant="default" className="gap-1">
-                <Sparkles className="h-3 w-3" /> Pro доступний
-              </Badge>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Current plan card removed — top status banners above already convey Pro state */}
-
-        {/* Latest subscription request status — moved below pricing */}
-
-        {/* Billing toggle */}
-        <div className="mb-4 flex justify-center">
-          <div className="inline-flex rounded-full border border-border bg-muted/40 p-1">
-            <button
-              type="button"
-              onClick={() => setBilling("monthly")}
-              className={cn(
-                "rounded-full px-4 py-1.5 text-sm font-medium transition",
-                billing === "monthly"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Щомісяця
-            </button>
-            <button
-              type="button"
-              onClick={() => setBilling("yearly")}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-medium transition",
-                billing === "yearly"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Щороку
-              <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
-                −23%
-              </span>
-            </button>
+            ))}
           </div>
         </div>
 
-        {/* Plan */}
-        <div className="mx-auto max-w-2xl">
-          {/* Pro */}
-          <Card className={cn("relative", isPro ? "border-primary" : "border-primary/40")}>
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-              <Badge className="gap-1">
-                <Sparkles className="h-3 w-3" /> Рекомендовано
-              </Badge>
-            </div>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Pro</CardTitle>
-                {isActive && <Badge>{t("subscriptionPageExtra.currentBadge")}</Badge>}
-                {isTrial && !isActive && <Badge variant="secondary">{t("subscriptionPageExtra.trialBadge")}</Badge>}
-              </div>
-              <CardDescription>
-                30 днів повного Pro безкоштовно — без картки.
-              </CardDescription>
-              <div className="mt-2 flex items-baseline gap-2">
-                <p className="font-display text-3xl font-bold text-foreground">
-                  {proPrice} ₴
-                </p>
-                <span className="text-sm text-muted-foreground">{t("subscriptionPageExtra.perMonth")}</span>
-                {billing === "yearly" && (
-                  <span className="text-xs text-muted-foreground">
-                    · {PRO_PRICE_YEARLY_TOTAL} ₴ на рік
-                  </span>
-                )}
-              </div>
-              {billing === "monthly" && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Або {PRO_PRICE_YEARLY_PER_MONTH} ₴/міс при оплаті за рік
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ul className="space-y-3 text-sm">
-                {proPerks.map(({ icon: Icon, title, desc }) => (
-                  <li key={title} className="flex items-start gap-2.5">
-                    <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-foreground">{title}</p>
-                      <p className="text-xs text-muted-foreground">{desc}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {(() => {
-                const hasPending =
-                  latestRequest &&
-                  (latestRequest.status === "new" || latestRequest.status === "in_progress");
-                if (isActive) {
-                  return (
-                    <Button className="w-full" disabled>
-                      Підписка активна
-                    </Button>
-                  );
-                }
-                return (
-                  <LiqPayPayButton
-                    plan={billing}
-                    recurring
-                    className="w-full"
-                    label={t("subscriptionPageExtra.payBtn")}
-                  />
-                );
-              })()}
-              <p className="text-center text-xs text-muted-foreground">
-                Оплата карткою через LiqPay — доступ активується автоматично за кілька секунд.{" "}
-                {billing === "yearly"
-                  ? t("subscriptionPageExtra.autoRenewYearly")
-                  : t("subscriptionPageExtra.autoRenewMonthly")}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* ── Manager fallback ──────────────────────────────────────────────── */}
+        {!isActive && (
+          <div style={{ textAlign: "center", fontSize: 12.5, color: S.sub, marginTop: 16 }}>
+            Потрібен інший спосіб оплати?{" "}
+            <button onClick={handleUpgrade} disabled={!!pendingRequest}
+              style={{ border: "none", background: "transparent", cursor: pendingRequest ? "default" : "pointer", color: S.tealD, fontWeight: 700, fontFamily: S.display, opacity: pendingRequest ? 0.6 : 1 }}>
+              {pendingRequest ? t("subscriptionPageExtra.requestPending") : "Написати менеджеру →"}
+            </button>
+          </div>
+        )}
 
-
-        {/* Alternative payment via manager — placed below pricing as a fallback */}
-        {!isActive && (() => {
-          const hasPending =
-            latestRequest &&
-            (latestRequest.status === "new" || latestRequest.status === "in_progress");
-          const meta = latestRequest ? statusMeta[latestRequest.status] : null;
-          const StatusIcon = meta?.icon;
+        {/* Latest request status (compact) */}
+        {!requestLoading && latestRequest && !isActive && (() => {
+          const meta = statusMeta[latestRequest.status];
+          if (!meta) return null;
+          const StatusIcon = meta.icon;
           return (
-            <Card className="mt-6 border-dashed">
-              <CardHeader>
-                <CardTitle className="text-base">{t("subscriptionPageExtra.liqpayAlternative")}</CardTitle>
-                <CardDescription>
-                  Залиште запит — менеджер зв'яжеться і допоможе оплатити іншим зручним способом
-                  (банк, переказ, рахунок-фактура тощо).
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  onClick={handleUpgrade}
-                  variant="outline"
-                  className="w-full"
-                  disabled={!!hasPending}
-                >
-                  {hasPending ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
+            <div style={{ marginTop: 14, borderRadius: 16, border: `1px solid ${S.border}`, background: "#fff", padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: meta.description ? 8 : 0 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
+                  <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13.5 }}>{t("subscriptionPageExtra.yourRequest")}</span>
+                </span>
+                <Badge variant={meta.tone}>{meta.label}</Badge>
+              </div>
+              {meta.description && <p style={{ fontSize: 13, color: S.sub, lineHeight: 1.45 }}>{meta.description}</p>}
+              {latestRequest.manager_response && (
+                <div style={{ marginTop: 10, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
+                  <div style={{ fontSize: 11.5, color: S.sub, marginBottom: 2 }}>Відповідь менеджера</div>
+                  <p style={{ fontSize: 13, color: S.txt }}>{latestRequest.manager_response}</p>
+                </div>
+              )}
+              {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (
+                <Button size="sm" variant="outline" className="mt-3" onClick={() => setRequestOpen(true)}>
+                  Надіслати новий запит
                 </Button>
-
-                {!requestLoading && latestRequest && meta && StatusIcon && (
-                  <div className="rounded-lg border border-primary/30 bg-primary/[0.03] p-4 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <StatusIcon
-                            className={cn(
-                              "h-4 w-4",
-                              latestRequest.status === "in_progress" && "animate-spin"
-                            )}
-                          />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground">{t("subscriptionPageExtra.yourRequest")}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Надіслано{" "}
-                            {format(new Date(latestRequest.created_at), "d MMM, HH:mm", {
-                              locale: uk,
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant={meta.tone}>{meta.label}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{meta.description}</p>
-                    {latestRequest.message && (
-                      <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                        <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                          <MessageCircle className="h-3.5 w-3.5" /> Ваше повідомлення
-                        </div>
-                        <p className="text-foreground">{latestRequest.message}</p>
-                      </div>
-                    )}
-                    {latestRequest.manager_response && (
-                      <div className="rounded-lg border border-border p-3 text-sm">
-                        <div className="mb-1 text-xs text-muted-foreground">
-                          Відповідь менеджера
-                        </div>
-                        <p className="text-foreground">{latestRequest.manager_response}</p>
-                      </div>
-                    )}
-                    {(latestRequest.status === "completed" ||
-                      latestRequest.status === "rejected") && (
-                      <Button size="sm" variant="outline" onClick={() => setRequestOpen(true)}>
-                        Надіслати новий запит
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              )}
+            </div>
           );
         })()}
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          Тріал не вимагає картки. Після завершення — {PRO_PRICE_MONTHLY} ₴/міс.
-          <br />
-          Скасування в один клік. Перші {EARLY_BIRD_LIMIT} репетиторів — безкоштовно на пів року.
+        <p style={{ marginTop: 18, textAlign: "center", fontSize: 11.5, color: S.muted, lineHeight: 1.5 }}>
+          Тріал без картки. Після — {PRO_PRICE_MONTHLY} ₴/міс. Скасування в один клік.
         </p>
       </div>
-      <SubscriptionRequestDialog
-        open={requestOpen}
-        onOpenChange={setRequestOpen}
-        defaultBilling={billing}
-      />
+
+      <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
       <BackToProfile />
     </AppLayout>
   );
