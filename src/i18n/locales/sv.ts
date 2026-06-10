@@ -1091,6 +1091,18 @@ export const sv: Partial<Translations> = {
   },
 
   myReferrals: {
+    kicker: "Värvningsprogram",
+    heroTitle: "Bjud in en kollega",
+    yourLinkTitle: "Din länk",
+    yourLinkSub: "Dela den — och tjäna månader av Pro",
+    thisMonth: "Denna månad",
+    invitedLabel: "Inbjudna",
+    savedLabel: "Sparat",
+    yourInvitees: "Dina inbjudna",
+    inviteesEmpty: "Ingen ännu — dela din länk så dyker inbjudna upp här 🌱",
+    noteJoinedPro: "Gick med · uppgraderade till Pro",
+    noteJoinedTrial: "Gick med · på testperiod",
+    summaryLine: "Totalt inbjudna: {{total}} · med Pro: {{pro}}",
     leaderboardTitle: "Månadens toppreferenter",
     leaderboardDesc: "Toppreferentpriser: 🥇 +6 mån · 🥈🥉 +3 mån · Plats 4–10 — +1 mån Pro",
     noReferrals: "Ingen har bjudit in vänner den här månaden ännu. Var den förste! 🚀",
@@ -1666,6 +1678,9 @@ export const sv: Partial<Translations> = {
     byCash: "Per belopp",
   },
   referralWidget: {
+    linkLoading: "Länken laddas fortfarande, försök igen",
+    copy: "Kopiera",
+    share: "Dela",
     linkCopied: "Länk kopierad!",
     textCopied: "Inbjudningstext kopierad!",
     title: "Bjud in en kollega — spara på Pro",

@@ -1,15 +1,55 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
-import { ReferralWidget } from "@/components/ReferralWidget";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Trophy, Medal } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Link2, Copy, Check, Share2, Heart, Trophy } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
+// ── Design tokens (oTutorHub DS — variant C "Запроси колегу") ─────────────────
+const R = {
+  bg: "#F5F4F0",
+  surface: "#FFFFFF",
+  surface2: "#f6f5f1",
+  txt: "#0f0f1a",
+  sub: "#9398b0",
+  muted: "#b0b4c8",
+  border: "#eceef3",
+  teal: "#2BBFAA",
+  tealD: "#1f8e7e",
+  tealRing: "rgba(43,191,170,.28)",
+  gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
+  shadowTeal: "0 8px 20px -8px rgba(43,191,170,.6)",
+  shadowSm: "0 1px 4px rgba(15,15,26,.05)",
+  successD: "#16a34a",
+  display: "Inter, system-ui, sans-serif",
+  body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+const AVATAR_GRADS = [
+  "linear-gradient(135deg,#2BBFAA,#25a896)",
+  "linear-gradient(135deg,#5b6bf5,#4f46e5)",
+  "linear-gradient(135deg,#FF7A59,#f43f5e)",
+  "linear-gradient(135deg,#f59e0b,#d97706)",
+  "linear-gradient(135deg,#8b5cf6,#7c3aed)",
+];
+function avatarGrad(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_GRADS[h % AVATAR_GRADS.length];
+}
+function initials(name: string) {
+  return name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+}
+
+interface ReferralRow {
+  id: string;
+  referred_id: string;
+  signed_up_at: string;
+  upgraded_to_pro_at: string | null;
+}
 interface LeaderRow {
   referrer_id: string;
   first_name: string | null;
@@ -18,108 +58,316 @@ interface LeaderRow {
   total_signups: number;
 }
 
+const STEPS = [
+  { e: "🔗", n: "1", title: "Поділись посиланням", desc: "Надішли колезі-репетитору в Telegram чи будь-де." },
+  { e: "🎓", n: "2", title: "Друг реєструється", desc: "Отримує 21 день Pro-тріалу безкоштовно." },
+  { e: "🎁", n: "3", title: "Ти отримуєш Pro", desc: "Місяць Pro за кожного, хто залишиться. 3 оплати → +3 міс." },
+];
+
 export default function MyReferralsPage() {
   const { t } = useTranslation();
-  const RANK_REWARDS = [t("myReferrals.rankReward1"), t("myReferrals.rankReward2"), t("myReferrals.rankReward3")];
   const { user } = useAuth();
+
+  const [code, setCode] = useState<string | null>(null);
+  const [referrals, setReferrals] = useState<ReferralRow[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [savedUah, setSavedUah] = useState(0);
   const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copied, setCopied] = useState(false);
+
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
 
   useEffect(() => {
-    setLoading(true);
-    supabase
-      .rpc("get_referral_leaderboard", { _year: year, _month: month })
-      .then(({ data }) => {
-        setLeaderboard((data as LeaderRow[]) ?? []);
-        setLoading(false);
-      });
-  }, [year, month]);
+    if (!user) return;
+    (async () => {
+      setLoading(true);
+
+      let codeVal: string | null = null;
+      const { data: codeRow } = await supabase
+        .from("referral_codes").select("code").eq("tutor_id", user.id).maybeSingle();
+      if (codeRow?.code) {
+        codeVal = codeRow.code as string;
+      } else {
+        const { data: newCode } = await supabase.rpc("generate_referral_code", { _tutor_id: user.id });
+        codeVal = (newCode as string) ?? null;
+      }
+      setCode(codeVal);
+
+      const [{ data: refs }, { data: saved }, { data: board }] = await Promise.all([
+        supabase
+          .from("referrals")
+          .select("id, referred_id, signed_up_at, upgraded_to_pro_at")
+          .eq("referrer_id", user.id)
+          .order("signed_up_at", { ascending: false }),
+        supabase.rpc("get_referral_savings_uah", { _tutor_id: user.id }),
+        supabase.rpc("get_referral_leaderboard", { _year: year, _month: month }),
+      ]);
+
+      const refRows = (refs ?? []) as ReferralRow[];
+      setReferrals(refRows);
+      setSavedUah(Number(saved ?? 0));
+      setLeaderboard((board as LeaderRow[]) ?? []);
+
+      const ids = Array.from(new Set(refRows.map((r) => r.referred_id)));
+      if (ids.length) {
+        const { data: profs } = await supabase
+          .from("profiles").select("id, first_name, last_name").in("id", ids);
+        const map: Record<string, string> = {};
+        (profs ?? []).forEach((p: { id: string; first_name: string | null; last_name: string | null }) => {
+          map[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("myReferrals.you");
+        });
+        setNames(map);
+      }
+      setLoading(false);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, year, month]);
+
+  const link = code ? `${window.location.origin}/join/${code}` : "";
+  const linkLabel = code ? `${window.location.host}/join/${code}` : "";
+  const proUpgrades = referrals.filter((r) => r.upgraded_to_pro_at).length;
+  const monthly = useMemo(
+    () => referrals.filter((r) => {
+      if (!r.upgraded_to_pro_at) return false;
+      const d = new Date(r.upgraded_to_pro_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).length,
+    [referrals, now]
+  );
+  const toBigBonus = Math.max(0, 3 - monthly);
+  const progress = Math.min(100, (monthly / 3) * 100);
+
+  const handleCopy = async () => {
+    if (!link) { toast.error(t("referralWidget.linkLoading") || "Посилання ще завантажується"); return; }
+    await navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast.success(t("referralWidget.linkCopied"));
+    setTimeout(() => setCopied(false), 1600);
+  };
+
+  const handleShare = async () => {
+    if (!link) { toast.error(t("referralWidget.linkLoading") || "Посилання ще завантажується"); return; }
+    const text = t("referralWidget.shareText", { link });
+    if (navigator.share) {
+      try { await navigator.share({ title: "oTutorHub", text, url: link }); return; } catch { /* fall through */ }
+    }
+    try {
+      await navigator.clipboard.writeText(link);
+      toast.success(t("referralWidget.linkCopied"));
+    } catch {
+      toast.error("Не вдалося скопіювати. Скопіюй вручну: " + link);
+    }
+  };
+
+  // ── UI helpers ──────────────────────────────────────────────────────────────
+  const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
+    <div style={{ background: R.surface, border: `1px solid ${R.border}`, borderRadius: 18, boxShadow: R.shadowSm, ...style }}>
+      {children}
+    </div>
+  );
+  const Label = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub, margin: "2px 2px" }}>
+      {children}
+    </div>
+  );
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        <ReferralWidget />
+      <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: R.body, color: R.txt }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+          <div>
+            <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
+              {t("myReferrals.kicker") || "Реферальна програма"}
+            </div>
+            <h1 style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>
+              {t("myReferrals.heroTitle") || "Запроси колегу"}
+            </h1>
+          </div>
+          <NotificationBell golden />
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-warning" />
-              {t("myReferrals.leaderboardTitle")}
-            </CardTitle>
-            <CardDescription>
-              {t("myReferrals.leaderboardDesc")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex h-24 items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        {loading ? (
+          <div className="animate-pulse" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ height: 150, borderRadius: 18, background: "rgba(15,15,26,.05)" }} />
+            <div style={{ height: 110, borderRadius: 18, background: "rgba(15,15,26,.05)" }} />
+            <div style={{ height: 70, borderRadius: 18, background: "rgba(15,15,26,.05)" }} />
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Як це працює */}
+            <Card style={{ padding: 6 }}>
+              {STEPS.map((s, i) => (
+                <div key={i} style={{ display: "flex", gap: 13, padding: "13px 10px", borderBottom: i < STEPS.length - 1 ? `1px solid ${R.border}` : "none" }}>
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{s.e}</div>
+                    <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 11, boxShadow: R.shadowTeal }}>{s.n}</div>
+                  </div>
+                  <div style={{ flex: 1, paddingTop: 2 }}>
+                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 15 }}>{s.title}</div>
+                    <div style={{ fontSize: 12.5, color: R.sub, lineHeight: 1.45, marginTop: 2 }}>{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+
+            {/* Твоє посилання */}
+            <Card style={{ padding: 18, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${R.tealRing}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 14 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 13, background: R.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: R.shadowTeal }}>
+                  <Heart size={21} />
+                </div>
+                <div>
+                  <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 16 }}>{t("myReferrals.yourLinkTitle") || "Твоє посилання"}</div>
+                  <div style={{ fontSize: 12, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці Pro"}</div>
+                </div>
               </div>
-            ) : leaderboard.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t("myReferrals.noReferrals")}
-              </p>
-            ) : (
-              <ul className="space-y-2">
-                {leaderboard.slice(0, 10).map((row, idx) => {
-                  const isMe = row.referrer_id === user?.id;
-                  const name = `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "—";
-                  return (
-                    <li
-                      key={row.referrer_id}
-                      className={`flex items-center gap-3 rounded-xl border p-3 ${
-                        isMe ? "border-primary/40 bg-primary/5" : "border-border"
-                      }`}
-                    >
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-foreground">
-                        {idx + 1}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium text-foreground">
-                          {isMe ? `${name} ${t("myReferrals.you")}` : name}
+
+              {/* Invite box */}
+              <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, height: 46, padding: "0 14px", borderRadius: 12, background: R.surface2, border: `1px solid ${R.border}`, minWidth: 0 }}>
+                  <Link2 size={16} style={{ color: R.muted, flexShrink: 0 }} />
+                  <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {linkLabel || "…"}
+                  </span>
+                </div>
+                <button onClick={handleCopy} aria-label={t("referralWidget.copy") || "Копіювати"}
+                  style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: "pointer",
+                    background: copied ? "rgba(34,197,94,.16)" : R.surface, color: copied ? R.successD : R.txt,
+                    boxShadow: `inset 0 0 0 1px ${R.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {copied ? <Check size={18} /> : <Copy size={18} />}
+                </button>
+                <button onClick={handleShare} disabled={!link} aria-label={t("referralWidget.share") || "Поділитися"}
+                  style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: link ? "pointer" : "default",
+                    background: R.gradTeal, color: "#fff", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Share2 size={18} />
+                </button>
+              </div>
+
+              {/* Reward line */}
+              <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", padding: "11px 13px", borderRadius: 12, background: "rgba(43,191,170,.08)", border: `1px solid ${R.tealRing}` }}>
+                <span style={{ fontSize: 20 }}>🎁</span>
+                <div style={{ fontSize: 12.5, lineHeight: 1.45 }}>
+                  Друг отримає <b>21 день Pro-тріалу</b>, а ти — <b>місяць Pro безкоштовно</b> за кожного, хто залишиться.
+                </div>
+              </div>
+            </Card>
+
+            {/* Цього місяця */}
+            <div>
+              <Label>{t("myReferrals.thisMonth") || "Цього місяця"}</Label>
+              <Card style={{ padding: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
+                  <span style={{ color: R.sub }}>
+                    Цього місяця: <b style={{ color: R.txt }}>{monthly} з 3</b> оплат → +3 міс бонус 🔥
+                  </span>
+                  <span style={{ fontFamily: R.display, fontWeight: 700, color: R.tealD }}>{Math.round(progress)}%</span>
+                </div>
+                <div style={{ height: 8, borderRadius: 999, background: "rgba(15,15,26,.07)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${progress}%`, borderRadius: 999, background: R.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
+                </div>
+                <div style={{ fontSize: 11, color: R.muted, marginTop: 5 }}>
+                  {toBigBonus > 0 ? `Ще ${toBigBonus} ${toBigBonus === 1 ? "оплата" : "оплати"} → +3 місяці Pro` : "Бонус відкрито — +3 місяці Pro 🎉"}
+                </div>
+              </Card>
+            </div>
+
+            {/* Bubbles */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <Card style={{ padding: 14 }}>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em", color: R.sub, fontFamily: R.display, fontWeight: 700 }}>
+                  {t("myReferrals.invitedLabel") || "Запрошено"}
+                </div>
+                <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 28, marginTop: 4 }}>{referrals.length}</div>
+              </Card>
+              <Card style={{ padding: 14, background: "rgba(34,197,94,.07)", border: "1px solid rgba(34,197,94,.25)" }}>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em", color: R.successD, fontFamily: R.display, fontWeight: 700 }}>
+                  {t("myReferrals.savedLabel") || "Заощаджено"}
+                </div>
+                <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, marginTop: 4, color: R.successD }}>
+                  {savedUah.toLocaleString("uk-UA")} ₴
+                </div>
+              </Card>
+            </div>
+
+            {/* Твої запрошені */}
+            <div>
+              <Label>{t("myReferrals.yourInvitees") || "Твої запрошені"}</Label>
+              <Card style={{ padding: referrals.length ? 6 : 18 }}>
+                {referrals.length === 0 ? (
+                  <p style={{ fontSize: 13.5, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
+                    {t("myReferrals.inviteesEmpty") || "Ще нікого — поділись посиланням, і запрошені з'являться тут 🌱"}
+                  </p>
+                ) : (
+                  referrals.map((r, i) => {
+                    const name = names[r.referred_id] ?? t("myReferrals.you");
+                    const isPro = !!r.upgraded_to_pro_at;
+                    const pill = isPro
+                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: "✓ Pro" }
+                      : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: "Тріал" };
+                    const note = isPro
+                      ? (t("myReferrals.noteJoinedPro") || "Приєднав(ла)ся · оформив(ла) Pro")
+                      : (t("myReferrals.noteJoinedTrial") || "Приєднав(ла)ся · на тріалі");
+                    return (
+                      <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderBottom: i < referrals.length - 1 ? `1px solid ${R.border}` : "none" }}>
+                        <div style={{ width: 38, height: 38, borderRadius: 999, background: avatarGrad(name), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
+                          {initials(name)}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {t("myReferrals.signupsProLabel", { signups: row.total_signups, pro: row.pro_upgrades })}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</div>
+                          <div style={{ fontSize: 12, color: R.sub }}>{note}</div>
                         </div>
+                        <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: R.display, fontWeight: 700, fontSize: 12, background: pill.bg, color: pill.fg, boxShadow: `inset 0 0 0 1px ${pill.ring}`, whiteSpace: "nowrap" }}>
+                          {pill.label}
+                        </span>
                       </div>
-                      {idx < 3 && (
-                        <Badge variant="secondary" className="shrink-0 text-[10px]">
-                          {RANK_REWARDS[idx]}
-                        </Badge>
-                      )}
-                      {idx >= 3 && idx < 10 && (
-                        <Badge variant="outline" className="shrink-0 text-[10px]">{t("myReferrals.rankReward4to10")}</Badge>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
+                    );
+                  })
+                )}
+              </Card>
+              {referrals.length > 0 && (
+                <div style={{ fontSize: 11.5, color: R.muted, marginTop: 8, paddingLeft: 2 }}>
+                  {t("myReferrals.summaryLine", { total: referrals.length, pro: proUpgrades }) ||
+                    `Усього запрошень: ${referrals.length} · з Pro: ${proUpgrades}`}
+                </div>
+              )}
+            </div>
+
+            {/* Leaderboard */}
+            {leaderboard.length > 0 && (
+              <div>
+                <Label>{t("myReferrals.leaderboardTitle") || "Рейтинг місяця"}</Label>
+                <Card style={{ padding: 6 }}>
+                  {leaderboard.slice(0, 10).map((row, idx) => {
+                    const isMe = row.referrer_id === user?.id;
+                    const name = `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || "—";
+                    const medal = idx === 0 ? "#F5B400" : idx === 1 ? "#9ca3af" : idx === 2 ? "#cd7f32" : null;
+                    return (
+                      <div key={row.referrer_id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderRadius: 12, background: isMe ? "rgba(43,191,170,.07)" : "transparent", borderBottom: idx < Math.min(10, leaderboard.length) - 1 ? `1px solid ${R.border}` : "none" }}>
+                        <div style={{ width: 26, height: 26, borderRadius: 999, background: medal ? medal : "rgba(15,15,26,.06)", color: medal ? "#fff" : R.sub, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 12, flexShrink: 0 }}>
+                          {idx + 1}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {isMe ? `${name} ${t("myReferrals.you")}` : name}
+                          </div>
+                          <div style={{ fontSize: 12, color: R.sub }}>
+                            {t("myReferrals.signupsProLabel", { signups: row.total_signups, pro: row.pro_upgrades })}
+                          </div>
+                        </div>
+                        {idx < 3 && <Trophy size={16} style={{ color: medal ?? R.muted, flexShrink: 0 }} />}
+                      </div>
+                    );
+                  })}
+                </Card>
+              </div>
             )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("myReferrals.rulesTitle")}</CardTitle>
-            <CardDescription>{t("myReferrals.rulesDesc")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm text-foreground">
-            <div className="flex gap-3"><span className="text-xl">1️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule1") }} /></div>
-            <div className="flex gap-3"><span className="text-xl">2️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule2") }} /></div>
-            <div className="flex gap-3"><span className="text-xl">3️⃣</span><span dangerouslySetInnerHTML={{ __html: t("myReferrals.rule3") }} /></div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="space-y-2 p-5 text-sm">
-            <p className="font-semibold text-foreground">{t("myReferrals.shareTitle")}</p>
-            <p className="text-muted-foreground">{t("myReferrals.shareText1")}</p>
-            <p className="text-muted-foreground">{t("myReferrals.shareText2")}</p>
-          </CardContent>
-        </Card>
+          </div>
+        )}
       </div>
       <BackToProfile />
     </AppLayout>

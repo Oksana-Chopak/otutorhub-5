@@ -1101,6 +1101,18 @@ export const en: Translations = {
   },
 
   myReferrals: {
+    kicker: "Referral program",
+    heroTitle: "Invite a colleague",
+    yourLinkTitle: "Your link",
+    yourLinkSub: "Share it — and earn months of Pro",
+    thisMonth: "This month",
+    invitedLabel: "Invited",
+    savedLabel: "Saved",
+    yourInvitees: "Your invitees",
+    inviteesEmpty: "No one yet — share your link and invitees will appear here 🌱",
+    noteJoinedPro: "Joined · upgraded to Pro",
+    noteJoinedTrial: "Joined · on trial",
+    summaryLine: "Total invites: {{total}} · with Pro: {{pro}}",
     leaderboardTitle: "Top referrers this month",
     leaderboardDesc: "Top referrer prizes: 🥇 +6 mo · 🥈🥉 +3 mo · Rank 4–10 — +1 mo Pro",
     noReferrals: "Nobody has invited friends this month yet. Be the first! 🚀",
@@ -1676,6 +1688,9 @@ export const en: Translations = {
     byCash: "By amount",
   },
   referralWidget: {
+    linkLoading: "The link is still loading, try again",
+    copy: "Copy",
+    share: "Share",
     linkCopied: "Link copied!",
     textCopied: "Invitation text copied!",
     title: "Invite a colleague — save on Pro",

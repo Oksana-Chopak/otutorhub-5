@@ -1109,6 +1109,18 @@ export const uk = {
   },
 
   myReferrals: {
+    kicker: "Реферальна програма",
+    heroTitle: "Запроси колегу",
+    yourLinkTitle: "Твоє посилання",
+    yourLinkSub: "Поділись — і отримуй місяці Pro",
+    thisMonth: "Цього місяця",
+    invitedLabel: "Запрошено",
+    savedLabel: "Заощаджено",
+    yourInvitees: "Твої запрошені",
+    inviteesEmpty: "Ще нікого — поділись посиланням, і запрошені з'являться тут 🌱",
+    noteJoinedPro: "Приєднав(ла)ся · оформив(ла) Pro",
+    noteJoinedTrial: "Приєднав(ла)ся · на тріалі",
+    summaryLine: "Усього запрошень: {{total}} · з Pro: {{pro}}",
     leaderboardTitle: "Топ рефереїв місяця",
     leaderboardDesc: "Призи топ-рефереру: 🥇 +6 міс · 🥈🥉 +3 міс · 4–10 місце — +1 міс Pro",
     noReferrals: "Поки що ніхто не запросив друзів цього місяця. Будь першим! 🚀",
@@ -1685,6 +1697,9 @@ export const uk = {
     byCash: "Грошима",
   },
   referralWidget: {
+    linkLoading: "Посилання ще завантажується, спробуй ще раз",
+    copy: "Копіювати",
+    share: "Поділитися",
     linkCopied: "Посилання скопійовано!",
     textCopied: "Текст запрошення скопійовано!",
     title: "Запроси колегу — економ на Pro",
