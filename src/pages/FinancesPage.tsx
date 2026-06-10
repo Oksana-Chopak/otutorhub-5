@@ -1136,12 +1136,14 @@ export default function FinancesPage() {
 
   // Debt list: completed + unpaid, with student name
   const debtList = useMemo(() =>
-    filteredLessons
+    visibleLessons
       .filter(l => l.student_payment_status === "unpaid" && l.status === "completed")
       .sort((a,b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()),
-  [filteredLessons]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [visibleLessons]);
 
-  const avgLesson = lessons > 0 ? Math.round(totalIncome / lessons) : 0;
+  const paidLessonsCount = periodBillable.filter(l => l.student_payment_status === "paid").length;
+  const avgLesson = paidLessonsCount > 0 ? Math.round(totalIncome / paidLessonsCount) : 0;
 
   // By-student for Cockpit analytics
   const byStudentCockpit = useMemo(() => {
@@ -1290,7 +1292,7 @@ export default function FinancesPage() {
                   </div>
                   {/* Transaction list */}
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {filteredLessons.slice(0, 20).map(l => {
+                    {visibleLessons.slice(0, 20).map(l => {
                       const paid = l.student_payment_status === "paid";
                       return (
                         <div key={l.id} style={{ display:"flex", alignItems:"center", gap:12,
@@ -1328,7 +1330,7 @@ export default function FinancesPage() {
                         </div>
                       );
                     })}
-                    {filteredLessons.length === 0 && (
+                    {visibleLessons.length === 0 && (
                       <p style={{ textAlign:"center", padding:"20px 0", color:F.muted, fontFamily:F.body, fontSize:14 }}>
                         Немає операцій за цей період
                       </p>
