@@ -1487,7 +1487,6 @@ export default function DashboardPage() {
                     studentName={profiles[lesson.student_id] ?? '—'}
                     chatPartnerId={lesson.student_id}
                     onContentClick={() => setOpenLessonId(lesson.id)}
-                    onAiNotes={() => setOpenLessonId(lesson.id)}
                     className={lessonSourceTint(lesson.source)}
                     canEditStatus
                     onStatusChange={(s) => updateStatus(lesson.id, s)}
@@ -1546,7 +1545,6 @@ export default function DashboardPage() {
                         meetingUrl={meetingHref}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
-                        onAiNotes={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
                         canEditStatus
                         statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
@@ -1658,7 +1656,6 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
-                          onAiNotes={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
                           canEditStatus={canEditStatus}
                           statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
@@ -1682,7 +1679,6 @@ export default function DashboardPage() {
                         showPayout={isManager || lesson.source === "hub"}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
-                        onAiNotes={() => setOpenLessonId(lesson.id)}
                         canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
