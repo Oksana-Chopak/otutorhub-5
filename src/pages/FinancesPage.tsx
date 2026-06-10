@@ -1088,7 +1088,7 @@ export default function FinancesPage() {
       ? t("finances.periodMonth", { defaultValue: "Цей місяць" })
       : t("finances.periodAll", { defaultValue: "Весь час" });
 
-  return (
+
   // ── Independent Tutor Cockpit computed values ─────────────────────────────
   const [finTab, setFinTab] = useState<"ops"|"debts"|"analytics">("ops");
 
@@ -1543,9 +1543,8 @@ export default function FinancesPage() {
     );
   }
   // ─────────────────────────────────────────────────────────────────────────────
-  // END INDEPENDENT TUTOR COCKPIT
-  // ─────────────────────────────────────────────────────────────────────────────
 
+  return (
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
