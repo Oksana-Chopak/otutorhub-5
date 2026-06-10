@@ -11,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -30,6 +29,7 @@ import {
   Check,
   Copy,
   CalendarOff,
+  CalendarClock,
   Info,
 } from "lucide-react";
 import {
@@ -79,6 +79,19 @@ interface Profile {
 }
 
 const fullName = (p?: Profile) => (p ? `${p.first_name} ${p.last_name}`.trim() || "—" : "—");
+
+// ── Design tokens (DS — variant B "Доступні години") ──────────────────────────
+const A = {
+  txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  surface: "#FFFFFF", teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9",
+  tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", coral: "#e0552f", warning: "#d97706",
+  gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
+  gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
+  shadowSm: "0 1px 4px rgba(15,15,26,.05)",
+  display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+// Monday-first order over JS getDay() indices (0=Sun…6=Sat)
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 export function AvailabilityManager() {
   const { user, roles } = useAuth();
@@ -253,6 +266,23 @@ export function AvailabilityManager() {
     loadAvailability();
   };
 
+  // Quick action: turn a day ON by seeding a default slot (tutor then edits/adds)
+  const enableWeekday = async (day: number) => {
+    if (!canEdit) return;
+    const { error } = await supabase.from("tutor_availability_weekly").insert({
+      tutor_id: tutorId,
+      weekday: day,
+      start_minute: 16 * 60,
+      end_minute: 20 * 60,
+    });
+    if (error) {
+      console.error(error);
+      toast.error(t("availabilityManager.saveFailed"));
+      return;
+    }
+    loadAvailability();
+  };
+
   const addOverride = async () => {
     if (!overrideDialog.date) {
       toast.error(t("availabilityManagerExtra.dateRequired"));
@@ -364,283 +394,218 @@ export function AvailabilityManager() {
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <button
-          type="button"
-          onClick={() => setShowHint((v) => !v)}
-          aria-expanded={showHint}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground active:scale-[0.98]"
-        >
-          <Info className="h-3.5 w-3.5 text-primary" />
-          {t("availability.howItWorks")}
+    <div style={{ fontFamily: A.body, color: A.txt }}>
+      {/* How it works (collapsible) */}
+      <div style={{ marginBottom: 14 }}>
+        <button type="button" onClick={() => setShowHint((v) => !v)} aria-expanded={showHint}
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", borderRadius: 999, padding: "7px 13px", cursor: "pointer", fontFamily: A.display, fontWeight: 700, fontSize: 12, color: A.sub }}>
+          <Info className="h-3.5 w-3.5" style={{ color: A.tealD }} /> {t("availability.howItWorks")}
         </button>
         {showHint && (
-          <div className="mt-2 rounded-[14px] border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground animate-in fade-in slide-in-from-top-1">
+          <div style={{ marginTop: 8, borderRadius: 14, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", padding: 13, fontSize: 12.5, lineHeight: 1.5, color: A.sub }}>
             {t("availability.scheduleInfo")}
           </div>
         )}
       </div>
 
+      {/* Manager: tutor selector */}
       {isManager && (
-        <div className="mb-6 flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <Label className="text-sm shrink-0">{t("availabilityManagerExtra.tutorLabel")}</Label>
           <Select value={selectedTutorId} onValueChange={setSelectedTutorId}>
-            <SelectTrigger className="max-w-xs">
-              <SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} />
-            </SelectTrigger>
+            <SelectTrigger className="max-w-xs"><SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} /></SelectTrigger>
             <SelectContent>
-              {tutors.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {fullName(t)}
-                </SelectItem>
-              ))}
+              {tutors.map((tt) => (<SelectItem key={tt.id} value={tt.id}>{fullName(tt)}</SelectItem>))}
             </SelectContent>
           </Select>
         </div>
       )}
 
+      {/* Requests banner */}
       {requests.length > 0 && (
-        <section className="mb-8 rounded-xl border border-warning/40 bg-warning/5 p-4">
-          <h2 className="font-display text-base font-semibold text-foreground flex items-center gap-2 mb-3">
-            <Bell className="h-4 w-4 text-warning" />
-            Запити на проставлення годин ({requests.length})
-          </h2>
-          <div className="space-y-2">
+        <div style={{ marginBottom: 14, borderRadius: 16, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.4)", padding: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <Bell className="h-4 w-4" style={{ color: A.warning }} />
+            <span style={{ fontFamily: A.display, fontWeight: 800, fontSize: 14.5 }}>Запити на проставлення годин ({requests.length})</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {requests.map((r) => {
               const requester = profiles.get(r.requester_id);
               const tutorProfile = profiles.get(r.tutor_id);
               return (
-                <div key={r.id} className="flex items-start justify-between gap-3 bg-card rounded-lg border border-border p-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-foreground">
-                      <span className="font-medium">{fullName(requester)}</span>
-                      <span className="text-muted-foreground"> {t("availabilityManagerExtra.requestsHours")} </span>
-                      <span className="font-medium">{fullName(tutorProfile)}</span>
-                    </p>
-                    {r.message && <p className="text-xs text-muted-foreground mt-1">{r.message}</p>}
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {new Date(r.created_at).toLocaleString("uk-UA")}
-                    </p>
+                <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, background: A.surface, border: `1px solid ${A.border}`, borderRadius: 12, padding: "10px 12px" }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 13.5 }}>
+                      <b style={{ fontFamily: A.display }}>{fullName(requester)}</b>
+                      <span style={{ color: A.sub }}> {t("availabilityManagerExtra.requestsHours")} </span>
+                      <b style={{ fontFamily: A.display }}>{fullName(tutorProfile)}</b>
+                    </div>
+                    {r.message && <div style={{ fontSize: 12, color: A.sub, marginTop: 2 }}>{r.message}</div>}
+                    <div style={{ fontSize: 11, color: A.muted, marginTop: 2 }}>{new Date(r.created_at).toLocaleString("uk-UA")}</div>
                   </div>
                   {(isManager || (isTutor && r.tutor_id === user?.id)) && (
                     <Button size="sm" variant="outline" onClick={() => acknowledgeRequest(r.id)}>
-                      <Check className="h-3.5 w-3.5 mr-1" />
-                      Закрити
+                      <Check className="h-3.5 w-3.5 mr-1" /> Закрити
                     </Button>
                   )}
                 </div>
               );
             })}
           </div>
-        </section>
+        </div>
       )}
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div style={{ display: "flex", justifyContent: "center", padding: "48px 0" }}>
+          <Loader2 className="h-6 w-6 animate-spin" style={{ color: A.muted }} />
         </div>
       ) : !tutorId ? (
-        <p className="text-sm text-muted-foreground">{t("availabilityManagerExtra.noTutorSelected")}</p>
+        <p style={{ fontSize: 14, color: A.sub }}>{t("availabilityManagerExtra.noTutorSelected")}</p>
       ) : (
-        <>
-          {/* WEEKLY */}
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div className="flex items-center gap-3">
-                <h2 className="font-display text-lg font-semibold text-foreground">{t("availabilityManagerExtra.weeklyTemplate")}</h2>
-                {totalWeeklyMinutes > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {totalWeeklyHours} год/тиждень
-                  </Badge>
-                )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Summary (dark) */}
+          <div style={{ borderRadius: 18, padding: 16, background: A.gradIncome, color: "#fff", boxShadow: "0 14px 32px -18px rgba(15,15,26,.6)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: A.display, fontWeight: 700 }}>Цього тижня відкрито</div>
+                <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 30, color: A.teal, marginTop: 4 }}>
+                  {totalWeeklyHours} <span style={{ fontSize: 15, color: "#fff" }}>год</span>
+                </div>
               </div>
-              {canEdit && (
-                <Button size="sm" onClick={() => setWeeklyDialog((s) => ({ ...s, open: true }))}>
-                  <Plus className="h-4 w-4 mr-1" />
-                  Додати години
-                </Button>
-              )}
+              <div style={{ width: 46, height: 46, borderRadius: 999, background: "rgba(255,255,255,.12)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <CalendarClock className="h-[22px] w-[22px]" />
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              Натисніть на день, щоб додати години. День без жодного слоту = вихідний.
-            </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {WEEKDAYS_UK.map((_, day) => {
-                const items = groupedWeekly.get(day) ?? [];
-                const isDayOff = items.length === 0;
-                const openAdd = () => {
-                  if (!canEdit) return;
-                  setWeeklyDialog({ open: true, weekday: day, from: "16:00", to: "20:00" });
-                };
-                return (
-                  <div
-                    key={day}
-                    className={`rounded-xl border bg-card p-3 transition-colors ${
-                      isDayOff ? "border-dashed border-border/60" : "border-border"
-                    } ${canEdit ? "cursor-pointer hover:border-primary/50 hover:bg-accent/30" : ""}`}
-                    onClick={canEdit ? openAdd : undefined}
-                    role={canEdit ? "button" : undefined}
-                    tabIndex={canEdit ? 0 : undefined}
-                    onKeyDown={(e) => {
-                      if (canEdit && (e.key === "Enter" || e.key === " ")) {
-                        e.preventDefault();
-                        openAdd();
-                      }
-                    }}
-                    aria-label={canEdit ? t("availabilityManagerExtra.addHoursAria", { day: WEEKDAYS_FULL_UK[day] }) : undefined}
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-sm font-semibold text-foreground">{WEEKDAYS_FULL_UK[day]}</p>
-                      <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                        {canEdit && !isDayOff && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                            title={t("availabilityManagerExtra.makeHoliday")}
-                            onClick={() => clearWeekday(day)}
-                          >
-                            <CalendarOff className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
-                        {canEdit && groupedWeekly.size > 0 && isDayOff && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                                title={t("availabilityManagerExtra.copyFromDay")}
-                              >
-                                <Copy className="h-3 w-3" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {Array.from(groupedWeekly.entries())
-                                .filter(([d, list]) => d !== day && list.length > 0)
-                                .map(([d]) => (
-                                  <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>
-                                    Скопіювати з {WEEKDAYS_FULL_UK[d]}
-                                  </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                        {canEdit && <Plus className="h-4 w-4 text-muted-foreground" />}
-                      </div>
-                    </div>
-                    {isDayOff ? (
-                      <p className="text-xs italic text-muted-foreground">
-                        {canEdit ? t("availabilityManagerExtra.clickToAdd") : t("availabilityManagerExtra.holiday")}
-                      </p>
+          </div>
+
+          {/* Weekly template */}
+          <div style={{ fontFamily: A.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: A.sub, margin: "4px 2px -2px" }}>
+            {t("availabilityManagerExtra.weeklyTemplate")}
+          </div>
+          <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 18, boxShadow: A.shadowSm, padding: 6 }}>
+            {DAY_ORDER.map((day, idx) => {
+              const items = groupedWeekly.get(day) ?? [];
+              const off = items.length === 0;
+              const canCopy = canEdit && off && Array.from(groupedWeekly.values()).some((l) => l.length > 0);
+              return (
+                <div key={day} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 8px", borderBottom: idx < DAY_ORDER.length - 1 ? `1px solid ${A.border}` : "none" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: A.display, fontWeight: 800, fontSize: 13,
+                    background: off ? "rgba(147,152,176,.14)" : A.tealL, color: off ? A.muted : A.tealD }}>
+                    {WEEKDAYS_UK[day]}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {off ? (
+                      <span style={{ fontSize: 13, color: A.muted, fontStyle: "italic" }}>{t("availabilityManagerExtra.holiday")}</span>
                     ) : (
-                      <div className="space-y-1.5">
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {items.map((w) => (
-                          <div
-                            key={w.id}
-                            className="flex items-center justify-between rounded bg-muted/40 px-2 py-1 text-xs"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span className="font-mono text-foreground">
-                              {minutesToHHMM(w.start_minute)} — {minutesToHHMM(w.end_minute)}
+                          <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: canEdit ? "0 4px 0 9px" : "0 9px", borderRadius: 999, background: A.tealL, boxShadow: `inset 0 0 0 1px ${A.tealRing}` }}>
+                            <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 12, color: A.tealD, fontVariantNumeric: "tabular-nums" }}>
+                              {minutesToHHMM(w.start_minute)}–{minutesToHHMM(w.end_minute)}
                             </span>
                             {canEdit && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5 text-muted-foreground hover:text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeWeekly(w.id);
-                                }}
-                              >
+                              <button onClick={() => removeWeekly(w.id)} aria-label="Видалити"
+                                style={{ width: 18, height: 18, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(43,191,170,.18)", color: A.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <Trash2 className="h-3 w-3" />
-                              </Button>
+                              </button>
                             )}
-                          </div>
+                          </span>
                         ))}
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          </section>
 
-          {/* OVERRIDES (renamed: Вихідні та зміни на дати) */}
-          <section className="mb-8">
-            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
-              <div>
-                <h2 className="font-display text-lg font-semibold text-foreground">
-                  Вихідні та зміни на конкретні дати
-                </h2>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Тут позначайте відпустку, лікарняний або додаткові години, що виходять за рамки тижневого шаблону.
-                </p>
-              </div>
-              {canEdit && (
-                <div className="flex flex-wrap gap-2">
-                  <Button size="sm" variant="outline" onClick={openDayOffDialog}>
-                    <CalendarOff className="h-4 w-4 mr-1" />
-                    Позначити вихідний
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={openExtraHoursDialog}>
-                    <CalendarPlus className="h-4 w-4 mr-1" />
-                    Додаткові години
-                  </Button>
+                  {canCopy && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button title={t("availabilityManagerExtra.copyFromDay")}
+                          style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(15,15,26,.05)", color: A.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {Array.from(groupedWeekly.entries()).filter(([d, list]) => d !== day && list.length > 0).map(([d]) => (
+                          <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>Скопіювати з {WEEKDAYS_FULL_UK[d]}</DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
+                  {canEdit && !off && (
+                    <button onClick={() => setWeeklyDialog({ open: true, weekday: day, from: "16:00", to: "20:00" })} aria-label={t("availabilityManagerExtra.addHoursAria", { day: WEEKDAYS_FULL_UK[day] })}
+                      style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: A.tealL, color: A.tealD, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  )}
+
+                  {canEdit && (
+                    <button onClick={() => (off ? enableWeekday(day) : clearWeekday(day))} role="switch" aria-checked={!off}
+                      aria-label={WEEKDAYS_FULL_UK[day]}
+                      style={{ width: 43, height: 24, flexShrink: 0, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", position: "relative", transition: "background .25s", background: off ? "rgba(15,15,26,.12)" : A.gradTeal }}>
+                      <span style={{ position: "absolute", top: 3, left: off ? 3 : 22, width: 18, height: 18, borderRadius: 999, background: "#fff", boxShadow: "0 2px 5px rgba(15,15,26,.25)", transition: "left .25s cubic-bezier(.34,1.56,.64,1)" }} />
+                    </button>
+                  )}
                 </div>
-              )}
+              );
+            })}
+          </div>
+
+          {/* Overrides */}
+          <div style={{ marginTop: 4 }}>
+            <div style={{ margin: "2px 2px 4px" }}>
+              <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 16 }}>Винятки на дати</div>
+              <div style={{ fontSize: 12, color: A.sub, marginTop: 1, lineHeight: 1.4 }}>Відпустка, лікарняний або додаткові години поза шаблоном.</div>
             </div>
+            {canEdit && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "10px 0 12px" }}>
+                <Button size="sm" variant="outline" onClick={openDayOffDialog}>
+                  <CalendarOff className="h-4 w-4 mr-1" /> Позначити вихідний
+                </Button>
+                <Button size="sm" variant="outline" onClick={openExtraHoursDialog}>
+                  <CalendarPlus className="h-4 w-4 mr-1" /> Додаткові години
+                </Button>
+              </div>
+            )}
             {overrides.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t("availabilityManagerExtra.noExceptions")}</p>
+              <p style={{ fontSize: 14, color: A.sub }}>{t("availabilityManagerExtra.noExceptions")}</p>
             ) : (
-              <div className="space-y-2">
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {overrides.map((o) => {
                   const isFullDay = o.start_minute === 0 && o.end_minute >= 24 * 60 - 1;
+                  const extra = o.is_available;
                   return (
-                    <div key={o.id} className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card p-3">
-                      <div className="flex items-center gap-3 min-w-0 flex-1 flex-wrap">
-                        <Badge
-                          variant="outline"
-                          className={
-                            o.is_available
-                              ? "border-success/40 text-success"
-                              : "border-destructive/40 text-destructive"
-                          }
-                        >
-                          {o.is_available ? t("availabilityManagerExtra.extraHours") : t("availabilityManagerExtra.holiday")}
-                        </Badge>
-                        <span className="text-sm text-foreground">
-                          {new Date(o.slot_date + "T00:00:00").toLocaleDateString("uk-UA", {
-                            day: "2-digit",
-                            month: "long",
-                            weekday: "short",
-                          })}
-                        </span>
-                        <span className="font-mono text-sm text-muted-foreground">
-                          {isFullDay
-                            ? t("availabilityManagerExtra.allDay")
-                            : `${minutesToHHMM(o.start_minute)} — ${minutesToHHMM(o.end_minute)}`}
-                        </span>
+                    <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 11, borderRadius: 12, border: `1px solid ${A.border}`, background: A.surface, padding: "11px 12px" }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                        background: extra ? "rgba(34,197,94,.12)" : "rgba(255,122,89,.13)", color: extra ? A.successD : A.coral }}>
+                        {extra ? <CalendarPlus className="h-[18px] w-[18px]" /> : <CalendarOff className="h-[18px] w-[18px]" />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13.5 }}>
+                            {new Date(o.slot_date + "T00:00:00").toLocaleDateString("uk-UA", { day: "2-digit", month: "long", weekday: "short" })}
+                          </span>
+                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: A.display, fontWeight: 700, fontSize: 11.5,
+                            background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral }}>
+                            {extra ? t("availabilityManagerExtra.extraHours") : t("availabilityManagerExtra.holiday")}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 12, color: A.sub, fontVariantNumeric: "tabular-nums", marginTop: 1 }}>
+                          {isFullDay ? t("availabilityManagerExtra.allDay") : `${minutesToHHMM(o.start_minute)}–${minutesToHHMM(o.end_minute)}`}
+                        </div>
                       </div>
                       {canEdit && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeOverride(o.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <button onClick={() => removeOverride(o.id)} aria-label="Видалити"
+                          style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: A.muted, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       )}
                     </div>
                   );
                 })}
               </div>
             )}
-          </section>
-        </>
+          </div>
+        </div>
       )}
 
       {/* Weekly add dialog */}
