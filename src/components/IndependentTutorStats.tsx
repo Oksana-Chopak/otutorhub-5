@@ -165,7 +165,7 @@ export function IndependentTutorStats() {
           value={loading ? "…" : `${totalIncome} ₴`}
           icon={ArrowDownLeft}
           variant="success"
-          to={isPro ? "/analytics" : undefined}
+          to="/finances"
           trendDelta={loading ? undefined : incomeDelta}
         />
         <StatCard
@@ -173,7 +173,7 @@ export function IndependentTutorStats() {
           value={loading ? "…" : `${pendingIncome} ₴`}
           icon={TrendingUp}
           variant={pendingIncome > 0 ? "warning" : "default"}
-          to={isPro ? "/analytics" : undefined}
+          to="/finances"
         />
       </div>
 

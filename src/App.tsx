@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -35,7 +35,6 @@ const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
 const SubscriptionRequestsPage = lazy(() => import("./pages/SubscriptionRequestsPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const FeedbackPreviewPage = lazy(() => import("./pages/FeedbackPreviewPage"));
-const PremiumAnalyticsPage = lazy(() => import("./pages/PremiumAnalyticsPage"));
 const PaywallMetricsPage = lazy(() => import("./pages/PaywallMetricsPage"));
 const WalletsPage = lazy(() => import("./pages/WalletsPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
@@ -192,14 +191,8 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/analytics"
-            element={
-              <ProtectedRoute allowedRoles={["tutor"]}>
-                <PremiumAnalyticsPage />
-              </ProtectedRoute>
-            }
-          />
+          {/* Analytics is now merged into Finances — keep the path as a redirect. */}
+          <Route path="/analytics" element={<Navigate to="/finances" replace />} />
           <Route
             path="/subscription-requests"
             element={

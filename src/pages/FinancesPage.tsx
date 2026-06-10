@@ -23,8 +23,6 @@ import {
   ArrowUp,
   ArrowDown,
   ArrowUpDown,
-  BarChart3,
-  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -1153,6 +1151,31 @@ export default function FinancesPage() {
     return incomeByStudent.map((s,i) => ({ ...s, color: COLORS[i % COLORS.length] }));
   }, [incomeByStudent]);
 
+  // Merged analytics — current-month earnings, month-over-month, booked forecast,
+  // average lesson value and money lost to cancellations. Uses raw scoped lessons.
+  const analyticsStats = useMemo(() => {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+    let thisMonth = 0, lastMonth = 0, projected = 0, completedSum = 0, completedCount = 0, cancelledLost = 0;
+    tutorScoped.forEach((l) => {
+      const ts = new Date(l.starts_at).getTime();
+      const price = Number(l.student_price) || 0;
+      const paid = l.student_payment_status === "paid";
+      if (ts >= monthStart) {
+        if (paid) thisMonth += price;
+        if (l.status === "cancelled") cancelledLost += price;
+        else if (l.status !== "pending") projected += price; // booked total this month
+        if (l.status === "completed") { completedSum += price; completedCount += 1; }
+      } else if (ts >= prevStart) {
+        if (paid) lastMonth += price;
+      }
+    });
+    const momPct = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : null;
+    const avgLesson = completedCount > 0 ? Math.round(completedSum / completedCount) : 0;
+    return { thisMonth, lastMonth, momPct, projected, completedCount, avgLesson, cancelledLost };
+  }, [tutorScoped]);
+
 
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1423,56 +1446,84 @@ export default function FinancesPage() {
 
               {/* ── ANALYTICS tab ─────────────────────────────────────────────── */}
               {finTab === "analytics" && (
-                <div style={{ padding:"16px 16px 20px" }}>
-                  <Link
-                    to="/analytics"
-                    style={{ display:"flex", alignItems:"center", justifyContent:"space-between",
-                      gap:8, textDecoration:"none", marginBottom:16, padding:"12px 14px",
-                      borderRadius:14, border:`1px solid ${F.teal}33`, background:`${F.teal}0d` }}>
-                    <span style={{ display:"flex", alignItems:"center", gap:8 }}>
-                      <BarChart3 size={18} style={{ color:F.teal }} />
-                      <span style={{ fontFamily:F.display, fontSize:14, fontWeight:700, color:F.txt }}>
-                        {t("finances.detailedAnalytics") || "Детальна аналітика"}
+                <div style={{ padding:"16px 16px 22px", display:"flex", flexDirection:"column", gap:20 }}>
+
+                  {/* This month + month-over-month */}
+                  <div>
+                    <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Цей місяць</p>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
+                      <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
+                        {analyticsStats.thisMonth.toLocaleString("uk-UA")} ₴
                       </span>
-                    </span>
-                    <ChevronRight size={18} style={{ color:F.teal }} />
-                  </Link>
-                  {/* 6-month stacked bar chart */}
-                  <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted,
-                    textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>
-                    За 6 місяців
-                  </p>
-                  <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:80, marginBottom:20 }}>
-                    {sixMonthBars.map(bar => (
-                      <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column",
-                        alignItems:"center", gap:4 }}>
-                        <div style={{ width:"100%", display:"flex", flexDirection:"column",
-                          justifyContent:"flex-end", height:60, gap:2 }}>
-                          {bar.pendingPct > 0 && (
-                            <div style={{ width:"100%", borderRadius:"3px 3px 0 0",
-                              height:`${bar.pendingPct}%`, minHeight:3,
-                              background:"rgba(245,158,11,.35)" }} />
-                          )}
-                          {bar.earnedPct > 0 && (
-                            <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0",
-                              height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0,
-                              background:F.teal }} />
-                          )}
-                        </div>
-                        <span style={{ fontFamily:F.display, fontSize:10, fontWeight:700, color:F.muted }}>
-                          {bar.month}
+                      {analyticsStats.momPct !== null && (
+                        <span style={{ display:"inline-flex", alignItems:"center", gap:4, borderRadius:999, padding:"4px 10px",
+                          fontFamily:F.display, fontWeight:700, fontSize:12.5,
+                          background: analyticsStats.momPct >= 0 ? "rgba(34,197,94,.12)" : "rgba(245,158,11,.14)",
+                          color: analyticsStats.momPct >= 0 ? "#16a34a" : F.warnD }}>
+                          {analyticsStats.momPct >= 0 ? "▲" : "▼"} {Math.abs(analyticsStats.momPct)}% до минулого
                         </span>
-                      </div>
-                    ))}
+                      )}
+                    </div>
+                    {analyticsStats.projected > analyticsStats.thisMonth && (
+                      <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:7, lineHeight:1.45 }}>
+                        Прогноз на місяць: <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString("uk-UA")} ₴</b> з урахуванням уже заброньованих уроків.
+                      </p>
+                    )}
                   </div>
 
-                  {/* Per-student breakdown */}
+                  {/* Not received */}
+                  {pendingIncome > 0 && (
+                    <div style={{ borderRadius:16, padding:"14px 16px", background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
+                      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
+                        <div>
+                          <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
+                            {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                          </p>
+                          <p style={{ fontFamily:F.body, fontSize:12.5, color:F.warnD, opacity:0.85, marginTop:1 }}>
+                            {debtList.length} {debtList.length === 1 ? "урок очікує оплати" : "уроків очікують оплати"}
+                          </p>
+                        </div>
+                        <button onClick={() => setFinTab("debts")}
+                          style={{ flexShrink:0, height:36, padding:"0 14px", borderRadius:10, border:"none", cursor:"pointer",
+                            background:"rgba(245,158,11,.18)", color:F.warnD, fontFamily:F.display, fontWeight:700, fontSize:13 }}>
+                          Хто винен →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 6-month trend */}
+                  <div>
+                    <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>Дохід за 6 місяців</p>
+                    <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:84 }}>
+                      {sixMonthBars.map(bar => (
+                        <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                          <div style={{ width:"100%", display:"flex", flexDirection:"column", justifyContent:"flex-end", height:64, gap:2 }}>
+                            {bar.pendingPct > 0 && (
+                              <div style={{ width:"100%", borderRadius:"3px 3px 0 0", height:`${bar.pendingPct}%`, minHeight:3, background:"rgba(245,158,11,.35)" }} />
+                            )}
+                            {bar.earnedPct > 0 && (
+                              <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0", height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0, background:F.teal }} />
+                            )}
+                          </div>
+                          <span style={{ fontFamily:F.display, fontSize:10.5, fontWeight:700, color:F.muted }}>{bar.month}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display:"flex", gap:14, marginTop:10 }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize:11.5, color:F.sub }}>
+                        <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> Отримано
+                      </span>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize:11.5, color:F.sub }}>
+                        <span style={{ width:9, height:9, borderRadius:2, background:"rgba(245,158,11,.55)" }} /> Очікує
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Top students */}
                   {byStudentCockpit.length > 0 && (
-                    <>
-                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted,
-                        textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>
-                        По учнях
-                      </p>
+                    <div>
+                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>Топ-учні за доходом</p>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {byStudentCockpit.map(s => {
                           const maxAmt = byStudentCockpit[0]?.amount ?? 1;
@@ -1481,41 +1532,47 @@ export default function FinancesPage() {
                             <div key={s.student_id}>
                               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                                 <span style={{ fontFamily:F.body, fontSize:13, color:F.txt }}>{s.name}</span>
-                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>
-                                  {s.amount.toLocaleString("uk-UA")} ₴
-                                </span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>{s.amount.toLocaleString("uk-UA")} ₴</span>
                               </div>
                               <div style={{ height:7, borderRadius:999, background:F.border }}>
-                                <div style={{ height:"100%", borderRadius:999,
-                                  width:`${pct}%`, background:s.color,
-                                  transition:"width .4s ease" }} />
+                                <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:s.color, transition:"width .4s ease" }} />
                               </div>
                             </div>
                           );
                         })}
                       </div>
-                    </>
+                    </div>
                   )}
 
-                  {/* Pro nudge — soft, non-blocking */}
-                  <div style={{ marginTop:20, borderRadius:16, padding:"16px 18px",
-                    background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)" }}>
-                    <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16, color:"#fff",
-                      marginBottom:4 }}>
-                      ✨ Pro-аналітика
-                    </p>
-                    <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.5)",
-                      marginBottom:12 }}>
-                      CSV-звіти, прогнози, найкращий студент
-                    </p>
-                    <a href="/subscription" style={{ display:"inline-block", height:36,
-                      padding:"0 16px", borderRadius:10, lineHeight:"36px",
-                      background:"rgba(245,181,68,.25)", color:"#F5B544",
-                      fontFamily:F.display, fontWeight:700, fontSize:14,
-                      textDecoration:"none" }}>
-                      Активувати Pro →
-                    </a>
+                  {/* Stats */}
+                  <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+                    <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
+                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Уроків цей місяць</p>
+                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.completedCount}</p>
+                    </div>
+                    <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
+                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Середній урок</p>
+                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString("uk-UA")} ₴</p>
+                    </div>
                   </div>
+
+                  {/* Cancellations */}
+                  {analyticsStats.cancelledLost > 0 && (
+                    <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
+                      <span style={{ fontSize:18 }}>🚫</span>
+                      <p style={{ fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.4 }}>
+                        Скасування цього місяця — недоотримано <b>{analyticsStats.cancelledLost.toLocaleString("uk-UA")} ₴</b>.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Export */}
+                  <button onClick={exportCsv}
+                    style={{ height:46, borderRadius:14, border:`1px solid ${F.border}`, background:F.surface, cursor:"pointer",
+                      fontFamily:F.display, fontWeight:700, fontSize:14, color:F.sub,
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+                    <Download className="h-4 w-4" /> Скачати CSV
+                  </button>
                 </div>
               )}
             </div>
