@@ -9,63 +9,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Crown,
   Loader2,
   Clock,
   CheckCircle2,
   XCircle,
-  BellRing,
-  CalendarX2,
-  BarChart3,
-  FileDown,
-  UserPlus,
   Headset,
+  Heart,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SubscriptionRequestDialog } from "@/components/SubscriptionRequestDialog";
 import { LiqPayPayButton } from "@/components/LiqPayPayButton";
 
-import { format } from "date-fns";
-import { uk } from "date-fns/locale";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 const PRO_PRICE_MONTHLY = 249;
 const PRO_PRICE_YEARLY_PER_MONTH = 199;
 const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
-
-const proPerks: { icon: typeof BellRing; title: string; desc: string }[] = [
-  {
-    icon: BellRing,
-    title: t("subscriptionPage.autoReminder"),
-    desc: "Учень отримує нагадування у Telegram. Ви обираєте: передоплата, за день до уроку чи за N днів після.",
-  },
-  {
-    icon: CalendarX2,
-    title: t("subscriptionPage.cancelPolicy"),
-    desc: t("subscriptionPage.cancelPolicyDesc"),
-  },
-  {
-    icon: BarChart3,
-    title: t("subscriptionPage.premiumAnalytics"),
-    desc: t("subscriptionPage.premiumAnalyticsDesc"),
-  },
-  {
-    icon: FileDown,
-    title: t("subscriptionPageExtra.detailedReports"),
-    desc: t("subscriptionPageExtra.detailedReportsDesc"),
-  },
-  {
-    icon: UserPlus,
-    title: t("subscriptionPageExtra.moreStudents"),
-    desc: t("subscriptionPageExtra.moreStudentsDesc"),
-  },
-  {
-    icon: Headset,
-    title: t("subscriptionPageExtra.personalManager"),
-    desc: t("subscriptionPageExtra.personalManagerDesc"),
-  },
-];
 
 interface RequestRow {
   id: string;
@@ -121,7 +82,6 @@ export default function SubscriptionPage() {
     loading,
     isIndependent,
     isTrial,
-    trialUntil,
     trialDaysLeft,
   } = useWorkspaceSettings();
   const [requestOpen, setRequestOpen] = useState(false);
@@ -257,153 +217,188 @@ export default function SubscriptionPage() {
   const pendingRequest =
     latestRequest && (latestRequest.status === "new" || latestRequest.status === "in_progress");
 
+  const trialTotal = 30;
+  const trialPct = Math.max(0, Math.min(100, ((trialTotal - (trialDaysLeft ?? 0)) / trialTotal) * 100));
+
+  const BENEFITS: { e: string; t: string; d: string }[] = [
+    { e: "🌅", t: "Спокій з самого ранку", d: "Прокидаєшся — а план дня вже зібраний. Ранкова адженда показує, хто сьогодні, о котрій і що проходили минулого разу." },
+    { e: "💸", t: "Жодної ніяковості з грошима", d: "Не ти випрошуєш оплату — система сама нагадує учню про неоплачений урок. Стосунки теплі, баланс закритий." },
+    { e: "📎", t: "Нічого не загубиться", d: "Zoom-посилання, домашка й нотатки прикріплені до уроку, а не плавають у 50 повідомленнях Telegram." },
+    { e: "📊", t: "Контроль над грошима", d: "Відкриваєш Фінанси — і бачиш точну цифру: отримано, очікується, борги по кожному учню." },
+    { e: "✨", t: "Гордість за свій рівень", d: "Учні отримують AI-конспект після кожного уроку — структурований, з прикладами. Ти виглядаєш як сервіс." },
+    { e: "🗓️", t: "Свобода від рутини", d: "Уроки самі підтягуються в Google Calendar, нагадування йдуть автоматично. Ти не диспетчер — ти репетитор." },
+    { e: "⏰", t: "Менше скасувань і запізнень", d: "Учням приходить нагадування про урок — менше «ой, забув», більше проведених занять." },
+    { e: "📈", t: "Відчуття зростання", d: "Аналітика показує, де ти недооцінюєш свою роботу й де точки росту — не здогадки, а цифри." },
+    { e: "🎮", t: "Учні, що повертаються самі", d: "Гейміфікація — рівні й досягнення — та власний прогрес у кабінеті тримають мотивацію." },
+    { e: "🌴", t: "Спокій під час відпустки", d: "Заблокував дати в розкладі — учні бачать, питань немає. Відпочиваєш без хаосу на повернення." },
+  ];
+
+  const tealRing = "rgba(43,191,170,.28)";
+  const Label = ({ children }: { children: React.ReactNode }) => (
+    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
+  );
+
   return (
     <AppLayout>
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
-        {/* Desktop-only title; mobile title comes from AppLayout */}
+        {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
-          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>
-            {t("subscriptionPage.kicker") || "Підписка"}
-          </div>
+          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
           <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>oTutorHub Pro</h1>
         </div>
 
-        {/* ── Hero ──────────────────────────────────────────────────────────── */}
-        <div style={{ position: "relative", overflow: "hidden", borderRadius: 22, padding: 22, background: S.gradIncome, color: "#fff", boxShadow: "0 18px 44px -22px rgba(15,15,26,.7)" }}>
-          {earlyBirdLeft !== null && (
-            <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 12, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
-              🔥 ще {earlyBirdLeft} {earlyBirdLeft === 1 ? "місце" : earlyBirdLeft < 5 ? "місця" : "місць"}
-            </div>
-          )}
-
-          <div style={{ width: 52, height: 52, borderRadius: 16, background: S.gradTeal, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal }}>
-            <Crown size={26} color="#fff" />
-          </div>
-
-          <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 25, letterSpacing: "-.02em", marginTop: 14 }}>
-            {isActive ? "Pro активний" : isTrial ? "Ти на Pro-тріалі" : "Усе, щоб рости"}
-          </div>
-          <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.65)", marginTop: 4, lineHeight: 1.45 }}>
-            {isActive
-              ? "Дякуємо, що з нами 💚 Усі Pro-функції відкриті."
-              : isTrial && trialUntil
-                ? `Залишилось ${trialDaysLeft} дн · до ${format(trialUntil, "d MMMM, HH:mm", { locale: uk })}`
-                : "30 днів повного Pro безкоштовно — без картки."}
-          </div>
-
-          {!isActive && (
-            <>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 16 }}>
-                <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 42, letterSpacing: "-.02em", color: S.teal, lineHeight: 1 }}>{proPrice}</span>
-                <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 18 }}>₴</span>
-                <span style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>/ міс</span>
-                {billing === "yearly" && (
-                  <span style={{ fontSize: 11.5, color: "rgba(255,255,255,.45)", marginLeft: 2 }}>· {PRO_PRICE_YEARLY_TOTAL} ₴ на рік</span>
-                )}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* ── Trial hero (dark) ─────────────────────────────────────────── */}
+          <div style={{ position: "relative", overflow: "hidden", borderRadius: 22, padding: 22, background: S.gradIncome, color: "#fff", boxShadow: "0 18px 44px -22px rgba(15,15,26,.7)" }}>
+            {earlyBirdLeft !== null && (
+              <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 12, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
+                🔥 ще {earlyBirdLeft} {earlyBirdLeft === 1 ? "місце" : earlyBirdLeft < 5 ? "місця" : "місць"}
               </div>
+            )}
+            {isActive ? (
+              <>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
+                <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>Pro активний 💚</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>Усі функції відкриті. Дякуємо, що з нами!</div>
+              </>
+            ) : isTrial ? (
+              <>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Твій тріал</div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
+                  <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 40, letterSpacing: "-.02em", color: S.teal }}>{Math.max(0, trialDaysLeft ?? 0)}</span>
+                  <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 17, color: "#fff" }}>днів Pro</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>залишилось</span>
+                </div>
+                <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
+                </div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>Далі Pro — {PRO_PRICE_MONTHLY} ₴/міс. Лишись на Pro вже зараз 👇</div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
+                <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>Усе, щоб рости</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>Обери Pro — і веди всю практику в одному місці. {PRO_PRICE_MONTHLY} ₴/міс, скасування в один клік.</div>
+              </>
+            )}
+          </div>
 
-              {/* Billing toggle */}
-              <div style={{ display: "inline-flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(255,255,255,.1)", margin: "16px 0" }}>
-                {([
-                  { v: "monthly" as const, l: "Щомісяця" },
-                  { v: "yearly" as const, l: "Щороку −23%" },
-                ]).map((o) => {
+          {/* ── Path 1 — pay ─────────────────────────────────────────────── */}
+          {!isActive && (
+            <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити Pro</span>
+                <span>
+                  <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 28, color: S.tealD }}>{proPrice}</span>
+                  <span style={{ fontSize: 13, color: S.sub }}> ₴/міс</span>
+                </span>
+              </div>
+              {billing === "yearly" && (
+                <div style={{ fontSize: 12, color: S.sub, marginTop: 2 }}>{PRO_PRICE_YEARLY_TOTAL} ₴ на рік · економія 23%</div>
+              )}
+              <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
+                {([{ v: "monthly" as const, l: "Щомісяця" }, { v: "yearly" as const, l: "Щороку −23%" }]).map((o) => {
                   const on = billing === o.v;
                   return (
-                    <button key={o.v} onClick={() => setBilling(o.v)}
-                      style={{ border: "none", cursor: "pointer", padding: "8px 14px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, whiteSpace: "nowrap",
-                        background: on ? "#fff" : "transparent", color: on ? S.txt : "rgba(255,255,255,.7)", boxShadow: on ? S.shadowSm : "none" }}>
-                      {o.l}
-                    </button>
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, whiteSpace: "nowrap", background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
                   );
                 })}
               </div>
-            </>
-          )}
-
-          {/* CTA */}
-          <div style={{ marginTop: isActive ? 16 : 0 }}>
-            {isActive ? (
-              <Button className="w-full" disabled>Підписка активна</Button>
-            ) : (
               <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
-            )}
-          </div>
-          {!isActive && (
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,.5)", textAlign: "center", marginTop: 8 }}>
-              Без картки · скасування в один клік
+              <div style={{ fontSize: 11, color: S.muted, textAlign: "center", marginTop: 8 }}>LiqPay · скасування в один клік</div>
             </div>
           )}
-        </div>
 
-        {/* ── Що входить ────────────────────────────────────────────────────── */}
-        <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "18px 2px 8px" }}>
-          {t("subscriptionPage.whatsIncluded") || "Що входить"}
-        </div>
-        <div style={{ background: "#fff", border: `1px solid ${S.border}`, borderRadius: 18, boxShadow: S.shadowSm, padding: 14 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-            {proPerks.map(({ icon: PerkIcon, title, desc }) => (
-              <div key={title} style={{ display: "flex", alignItems: "flex-start", gap: 11 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, background: "rgba(43,191,170,.1)", color: S.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <PerkIcon size={17} />
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14 }}>{title}</div>
-                  <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.45, marginTop: 1 }}>{desc}</div>
-                </div>
+          {/* ── або не плати ─────────────────────────────────────────────── */}
+          {!isActive && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
+              <div style={{ flex: 1, height: 1, background: S.border }} />
+              <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 12, color: S.muted }}>або не плати</span>
+              <div style={{ flex: 1, height: 1, background: S.border }} />
+            </div>
+          )}
+
+          {/* ── Path 2 — invite ──────────────────────────────────────────── */}
+          <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${tealRing}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, background: S.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal, flexShrink: 0 }}>
+                <Heart size={21} />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── Manager fallback ──────────────────────────────────────────────── */}
-        {!isActive && (
-          <div style={{ textAlign: "center", fontSize: 12.5, color: S.sub, marginTop: 16 }}>
-            Потрібен інший спосіб оплати?{" "}
-            <button onClick={handleUpgrade} disabled={!!pendingRequest}
-              style={{ border: "none", background: "transparent", cursor: pendingRequest ? "default" : "pointer", color: S.tealD, fontWeight: 700, fontFamily: S.display, opacity: pendingRequest ? 0.6 : 1 }}>
-              {pendingRequest ? t("subscriptionPageExtra.requestPending") : "Написати менеджеру →"}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>Запроси друга — не плати</div>
+                <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>Місяць Pro безкоштовно за кожного, хто залишиться. Це <b style={{ color: S.tealD }}>−{PRO_PRICE_MONTHLY} ₴/міс</b>.</div>
+              </div>
+            </div>
+            <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 46, borderRadius: 13, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <Share2 size={18} /> Запросити друга
             </button>
           </div>
-        )}
 
-        {/* Latest request status (compact) */}
-        {!requestLoading && latestRequest && !isActive && (() => {
-          const meta = statusMeta[latestRequest.status];
-          if (!meta) return null;
-          const StatusIcon = meta.icon;
-          return (
-            <div style={{ marginTop: 14, borderRadius: 16, border: `1px solid ${S.border}`, background: "#fff", padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: meta.description ? 8 : 0 }}>
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
-                  <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13.5 }}>{t("subscriptionPageExtra.yourRequest")}</span>
-                </span>
-                <Badge variant={meta.tone}>{meta.label}</Badge>
-              </div>
-              {meta.description && <p style={{ fontSize: 13, color: S.sub, lineHeight: 1.45 }}>{meta.description}</p>}
-              {latestRequest.manager_response && (
-                <div style={{ marginTop: 10, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
-                  <div style={{ fontSize: 11.5, color: S.sub, marginBottom: 2 }}>Відповідь менеджера</div>
-                  <p style={{ fontSize: 13, color: S.txt }}>{latestRequest.manager_response}</p>
+          {/* ── Benefits ─────────────────────────────────────────────────── */}
+          <div>
+            <Label>Що ти відчуєш на Pro</Label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {BENEFITS.map((b, i) => (
+                <div key={i} style={{ background: "#fff", border: `1px solid ${S.border}`, borderRadius: 16, boxShadow: S.shadowSm, padding: 14 }}>
+                  <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{b.e}</div>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14.5 }}>{b.t}</div>
+                      <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
+                    </div>
+                  </div>
                 </div>
-              )}
-              {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (
-                <Button size="sm" variant="outline" className="mt-3" onClick={() => setRequestOpen(true)}>
-                  Надіслати новий запит
-                </Button>
-              )}
+              ))}
             </div>
-          );
-        })()}
+          </div>
 
-        <p style={{ marginTop: 18, textAlign: "center", fontSize: 11.5, color: S.muted, lineHeight: 1.5 }}>
-          Тріал без картки. Після — {PRO_PRICE_MONTHLY} ₴/міс. Скасування в один клік.
-        </p>
+          {/* ── Manager fallback ─────────────────────────────────────────── */}
+          {!isActive && (
+            <div style={{ borderRadius: 18, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Headset size={18} />
+                </div>
+                <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>Не підходить оплата картою?</div></div>
+              </div>
+              <div style={{ fontSize: 12.5, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>Якщо LiqPay не підходить — залиш запит, і менеджер допоможе оплатити банком, переказом чи рахунком-фактурою.</div>
+              <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 46, borderRadius: 13, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : "Звʼязатися з менеджером"}
+              </button>
+
+              {!requestLoading && latestRequest && (() => {
+                const meta = statusMeta[latestRequest.status];
+                if (!meta) return null;
+                const StatusIcon = meta.icon;
+                return (
+                  <div style={{ marginTop: 12, borderRadius: 12, border: `1px solid ${S.border}`, padding: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
+                        <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13 }}>{t("subscriptionPageExtra.yourRequest")}</span>
+                      </span>
+                      <Badge variant={meta.tone}>{meta.label}</Badge>
+                    </div>
+                    {meta.description && <p style={{ fontSize: 12.5, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
+                    {latestRequest.manager_response && (
+                      <div style={{ marginTop: 8, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
+                        <div style={{ fontSize: 11, color: S.sub, marginBottom: 2 }}>Відповідь менеджера</div>
+                        <p style={{ fontSize: 12.5, color: S.txt }}>{latestRequest.manager_response}</p>
+                      </div>
+                    )}
+                    {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (
+                      <Button size="sm" variant="outline" className="mt-3" onClick={() => setRequestOpen(true)}>Надіслати новий запит</Button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
+
+        <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
+        <BackToProfile />
       </div>
-
-      <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
-      <BackToProfile />
     </AppLayout>
   );
 }
