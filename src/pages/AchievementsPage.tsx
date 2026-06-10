@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { BackToProfile } from "@/components/BackToProfile";
 import { LevelBadge } from "@/components/LevelBadge";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { StreakCard } from "@/components/StreakCard";
@@ -40,6 +41,7 @@ export default function AchievementsPage() {
 
         <MonthlySummaryCard />
       </div>
+      <BackToProfile />
     </AppLayout>
   );
 }

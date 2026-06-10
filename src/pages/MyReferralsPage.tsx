@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
+import { BackToProfile } from "@/components/BackToProfile";
 import { ReferralWidget } from "@/components/ReferralWidget";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,6 +121,7 @@ export default function MyReferralsPage() {
           </CardContent>
         </Card>
       </div>
+      <BackToProfile />
     </AppLayout>
   );
 }

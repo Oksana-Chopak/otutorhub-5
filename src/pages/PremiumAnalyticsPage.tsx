@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { BackToProfile } from "@/components/BackToProfile";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useAuth } from "@/hooks/useAuth";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
@@ -397,6 +398,7 @@ export default function PremiumAnalyticsPage() {
           </CardContent>
         </Card>
       </div>
+      <BackToProfile />
     </AppLayout>
   );
 }

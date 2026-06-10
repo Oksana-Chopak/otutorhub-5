@@ -9,6 +9,7 @@ export const sv: Partial<Translations> = {
   },
 
   common: {
+    backToProfile: "Tillbaka till profilen",
     save: "Spara",
     cancel: "Avbryt",
     delete: "Ta bort",
@@ -473,7 +474,15 @@ export const sv: Partial<Translations> = {
     rowAvailability: "Tillgänglighet",
     rowCalendar: "Google Kalender",
     rowAutoMark: "Lektionsmarkering",
-    rowPayRules: "Betalningsregler",
+    rowPayRules: "Avbokningsregler",
+    editTitle: "Redigera profil",
+    editSubtitle: "Uppdatera ditt namn — elever ser det i chatten och schemat.",
+    editFirstName: "Förnamn",
+    editLastName: "Efternamn",
+    editSave: "Spara",
+    editSaved: "Profilen uppdaterad",
+    editSaveFailed: "Kunde inte spara",
+    editNameRequired: "Ange ett namn",
     rowSubjects: "Ämnen",
     sectionSettings: "Inställningar",
     sectionRewards: "Belöningsstil",
@@ -1051,6 +1060,7 @@ export const sv: Partial<Translations> = {
     title: "Tillgängliga timmar",
     subtitle: "Veckomall för lediga timmar och lediga dagar. Elever ser dina lediga platser för att boka en lektion i chatten.",
     scheduleInfo: "Ange vilka dagar och tider du tar emot lektioner. Elever ser ditt schema och kan boka via chatten. I Veckoschemat anger du regelbundna arbetsdagar. Under Lediga dagar och ändringar markerar du specifika undantagsdagar (semester, extra timmar).",
+    howItWorks: "Hur fungerar det?",
   },
 
   analytics: {
@@ -1249,7 +1259,7 @@ export const sv: Partial<Translations> = {
 
   proRulesCard: {
     saveFailed: "Kunde inte spara",
-    saveSuccess: "Pro-regler uppdaterade",
+    saveSuccess: "Avbokningsregler uppdaterade",
     title: "Avbokningsregler för lektioner",
     availableInPro: "Tillgängligt i Pro",
     description: "Automatiska betalningspåminnelser och avbokningsregler för elever.",

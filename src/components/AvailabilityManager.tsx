@@ -92,6 +92,7 @@ export function AvailabilityManager() {
   const [overrides, setOverrides] = useState<OverrideRow[]>([]);
   const [requests, setRequests] = useState<AvailabilityRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showHint, setShowHint] = useState(false);
 
   // Dialogs
   const [weeklyDialog, setWeeklyDialog] = useState<{ open: boolean; weekday: number; from: string; to: string }>({
@@ -364,9 +365,21 @@ export function AvailabilityManager() {
 
   return (
     <div>
-      <div className="mb-4 rounded-lg border border-border bg-muted/30 p-3 flex gap-2 text-xs text-muted-foreground">
-        <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-        <p>{t("availability.scheduleInfo")}</p>
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setShowHint((v) => !v)}
+          aria-expanded={showHint}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground active:scale-[0.98]"
+        >
+          <Info className="h-3.5 w-3.5 text-primary" />
+          {t("availability.howItWorks")}
+        </button>
+        {showHint && (
+          <div className="mt-2 rounded-[14px] border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground animate-in fade-in slide-in-from-top-1">
+            {t("availability.scheduleInfo")}
+          </div>
+        )}
       </div>
 
       {isManager && (

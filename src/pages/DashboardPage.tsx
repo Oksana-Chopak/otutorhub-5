@@ -38,6 +38,7 @@ import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { QuickActionsCard } from "@/components/QuickActionsCard";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PageFAB } from "@/components/PageFAB";
 import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/SkeletonCard";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
@@ -271,6 +272,7 @@ export default function DashboardPage() {
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
+  const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
@@ -1956,7 +1958,7 @@ export default function DashboardPage() {
         <AddFab
           onLesson={() => setQuickLessonOpen(true)}
           onStudent={() => setAddStudentOpen(true)}
-          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else navigate("/finances"); }}
+          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else setPaymentSheetOpen(true); }}
         />
       )}
       {walletPair && (
@@ -1971,6 +1973,16 @@ export default function DashboardPage() {
           canDelete={isManager}
         />
       )}
+      <Sheet open={paymentSheetOpen} onOpenChange={setPaymentSheetOpen}>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{t("quickActionsCard.addPayment")}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-3">
+            <QuickActionsCard onChanged={() => { loadData(); setPaymentSheetOpen(false); }} />
+          </div>
+        </SheetContent>
+      </Sheet>
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}

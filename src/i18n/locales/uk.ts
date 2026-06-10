@@ -7,6 +7,7 @@ export const uk = {
   // Common
 
   common: {
+    backToProfile: "Назад до профілю",
     save: "Зберегти",
     cancel: "Скасувати",
     delete: "Видалити",
@@ -712,7 +713,15 @@ export const uk = {
     rowAvailability: "Доступність",
     rowCalendar: "Google Calendar",
     rowAutoMark: "Відмітка уроків",
-    rowPayRules: "Правила оплати",
+    rowPayRules: "Правила скасування уроків",
+    editTitle: "Редагувати профіль",
+    editSubtitle: "Онови своє ім'я — учні бачать його в чаті та розкладі.",
+    editFirstName: "Ім'я",
+    editLastName: "Прізвище",
+    editSave: "Зберегти",
+    editSaved: "Профіль оновлено",
+    editSaveFailed: "Не вдалося зберегти",
+    editNameRequired: "Введіть ім'я",
     rowSubjects: "Предмети",
     sectionSettings: "Налаштування",
     sectionRewards: "Стиль нагород",
@@ -1069,6 +1078,7 @@ export const uk = {
     title: "Доступні години",
     subtitle: "Вкажіть години, коли ви доступні для нових уроків. Учні зможуть бачити ці слоти при бронюванні.",
     scheduleInfo: "Вкажіть, у які дні та години ви приймаєте уроки. Учні бачать ваш графік і можуть домовитись із вами в чаті. У Тижневому шаблоні налаштуйте регулярні робочі дні. У розділі Вихідні та зміни позначайте конкретні дні-винятки (відпустка, додаткові години).",
+    howItWorks: "Як це працює?",
   },
 
   analytics: {
@@ -1267,7 +1277,7 @@ export const uk = {
 
   proRulesCard: {
     saveFailed: "Не вдалося зберегти",
-    saveSuccess: "Правила Pro оновлено",
+    saveSuccess: "Правила скасування уроків оновлено",
     title: "Правила скасування уроків",
     availableInPro: "Доступно у Pro",
     description: "Автоматичні нагадування про оплату та правила скасування уроків учнем.",

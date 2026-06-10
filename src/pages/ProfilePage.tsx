@@ -135,8 +135,11 @@ export default function ProfilePage() {
     }
   }, []);
   const [saving, setSaving] = useState(false);
-  const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|"availability"|null>(null);
+  const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|"availability"|"editProfile"|null>(null);
   const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
+  const [editFirst, setEditFirst] = useState("");
+  const [editLast, setEditLast] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
   const [studentCount, setStudentCount] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -148,11 +151,17 @@ export default function ProfilePage() {
       return;
     }
     (async () => {
-      const [detailsRes, lessonsRes, ratesRes] = await Promise.all([
+      const [detailsRes, lessonsRes, ratesRes, profileRes] = await Promise.all([
         supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("subject").eq("tutor_id", user.id),
         supabase.from("student_rates").select("subject").eq("tutor_id", user.id),
+        supabase.from("profiles").select("first_name, last_name").eq("id", user.id).maybeSingle(),
       ]);
+
+      setProfileName({
+        first: profileRes.data?.first_name ?? "",
+        last: profileRes.data?.last_name ?? "",
+      });
 
       const stored = (detailsRes.data?.subjects as string[] | null) ?? [];
       const fromLessons = (lessonsRes.data ?? [])
@@ -229,6 +238,36 @@ export default function ProfilePage() {
       return;
     }
     toast.success(t("profile.subjectsSaved"));
+  };
+
+  const openEditProfile = () => {
+    setEditFirst(profileName.first);
+    setEditLast(profileName.last);
+    setActiveSheet("editProfile");
+  };
+
+  const saveProfile = async () => {
+    if (!user) return;
+    const first = editFirst.trim();
+    const last = editLast.trim();
+    if (!first && !last) {
+      toast.error(t("profile.editNameRequired") || "Введіть ім'я");
+      return;
+    }
+    setSavingProfile(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ first_name: first, last_name: last })
+      .eq("id", user.id);
+    setSavingProfile(false);
+    if (error) {
+      console.error(error);
+      toast.error(t("profile.editSaveFailed") || "Не вдалося зберегти");
+      return;
+    }
+    setProfileName({ first, last });
+    setActiveSheet(null);
+    toast.success(t("profile.editSaved") || "Профіль оновлено");
   };
 
   if (!isTutor) {
@@ -359,7 +398,10 @@ export default function ProfilePage() {
                   </p>
                 </div>
                 {/* Edit button */}
-                <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                <button
+                  onClick={openEditProfile}
+                  aria-label={t("profile.editTitle") || "Редагувати профіль"}
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
                   style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                   <Pencil size={14} style={{ color: P.sub }} />
                 </button>
@@ -478,6 +520,54 @@ export default function ProfilePage() {
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="automark"><AutoCompleteLessonsCard /></div>
+          </SheetContent>
+        </Sheet>
+
+        <Sheet open={activeSheet === "editProfile"} onOpenChange={o => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div className="px-5 py-4">
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
+                {t("profile.editTitle") || "Редагувати профіль"}
+              </p>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#9398b0", marginBottom: 16 }}>
+                {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
+              </p>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                  {t("profile.editFirstName") || "Ім'я"}
+                </label>
+                <Input
+                  value={editFirst}
+                  onChange={(e) => setEditFirst(e.target.value)}
+                  placeholder={t("profile.editFirstName") || "Ім'я"}
+                  className="h-12 rounded-[12px]"
+                />
+              </div>
+              <div style={{ marginBottom: 4 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                  {t("profile.editLastName") || "Прізвище"}
+                </label>
+                <Input
+                  value={editLast}
+                  onChange={(e) => setEditLast(e.target.value)}
+                  placeholder={t("profile.editLastName") || "Прізвище"}
+                  className="h-12 rounded-[12px]"
+                />
+              </div>
+              <button
+                onClick={saveProfile}
+                disabled={savingProfile}
+                style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
+                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
+                  boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
+              </button>
+            </div>
           </SheetContent>
         </Sheet>
 

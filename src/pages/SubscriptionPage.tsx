@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
@@ -633,6 +634,7 @@ export default function SubscriptionPage() {
         onOpenChange={setRequestOpen}
         defaultBilling={billing}
       />
+      <BackToProfile />
     </AppLayout>
   );
 }

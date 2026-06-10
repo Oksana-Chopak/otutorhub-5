@@ -8,6 +8,7 @@ export const en: Translations = {
   },
 
   common: {
+    backToProfile: "Back to profile",
     save: "Save",
     cancel: "Cancel",
     delete: "Delete",
@@ -704,7 +705,15 @@ export const en: Translations = {
     rowAvailability: "Availability",
     rowCalendar: "Google Calendar",
     rowAutoMark: "Lesson marking",
-    rowPayRules: "Payment rules",
+    rowPayRules: "Cancellation rules",
+    editTitle: "Edit profile",
+    editSubtitle: "Update your name — students see it in chat and the schedule.",
+    editFirstName: "First name",
+    editLastName: "Last name",
+    editSave: "Save",
+    editSaved: "Profile updated",
+    editSaveFailed: "Could not save",
+    editNameRequired: "Enter a name",
     rowSubjects: "Subjects",
     sectionSettings: "Settings",
     sectionRewards: "Reward style",
@@ -1061,6 +1070,7 @@ export const en: Translations = {
     title: "Available hours",
     subtitle: "Weekly template of free hours and days off. Students see your free slots to arrange a lesson in chat.",
     scheduleInfo: "Set the days and hours when you accept lessons. Students see your schedule and can arrange with you in chat. In the Weekly template, set up regular working days. In the Days off & changes section, mark specific exception days (vacation, extra hours).",
+    howItWorks: "How it works?",
   },
 
   analytics: {
@@ -1259,7 +1269,7 @@ export const en: Translations = {
 
   proRulesCard: {
     saveFailed: "Failed to save",
-    saveSuccess: "Pro rules updated",
+    saveSuccess: "Cancellation rules updated",
     title: "Lesson cancellation rules",
     availableInPro: "Available in Pro",
     description: "Automatic payment reminders and cancellation rules for students.",
