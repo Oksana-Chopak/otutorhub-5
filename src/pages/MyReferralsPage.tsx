@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -194,17 +193,15 @@ export default function MyReferralsPage() {
   return (
     <AppLayout>
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: R.body, color: R.txt }}>
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
-          <div>
-            <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
-              {t("myReferrals.kicker") || "Реферальна програма"}
-            </div>
-            <h1 style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>
-              {t("myReferrals.heroTitle") || "Запроси колегу"}
-            </h1>
+        {/* Header — desktop only. On mobile AppLayout already renders the title + bell + menu;
+            on desktop the bell lives in the sidebar. So this page must NOT add its own bell. */}
+        <div className="mb-4 hidden lg:block">
+          <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
+            {t("myReferrals.kicker") || "Реферальна програма"}
           </div>
-          <NotificationBell golden />
+          <h1 style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>
+            {t("myReferrals.heroTitle") || "Запроси колегу"}
+          </h1>
         </div>
 
         {loading ? (
