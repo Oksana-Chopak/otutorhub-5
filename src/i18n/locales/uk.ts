@@ -981,6 +981,17 @@ export const uk = {
   },
 
   lessonCard: {
+    todayShort: "Сьогодні",
+    tomorrowShort: "Завтра",
+    edit: "Редагувати",
+    copy: "Копіювати",
+    delete: "Видалити",
+    topUp: "Поповнити гаманець",
+    actions: "Дії",
+    paid: "Оплачено",
+    pending: "Очікує",
+    paidOut: "Виплачено",
+    toPayout: "До виплати",
     today: "Сьогодні · {{time}}",
     tomorrow: "Завтра · {{time}}",
     statusPending: "Запит",

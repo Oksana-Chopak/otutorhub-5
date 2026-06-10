@@ -24,12 +24,11 @@ import { WalletDialog } from "@/components/WalletDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { Wallet, GraduationCap, Sparkles, X } from "lucide-react";
+import { GraduationCap, Sparkles, X } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
-import { DashboardLessonCard } from "@/components/DashboardLessonCard";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
@@ -51,7 +50,6 @@ import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
 import {
   CalendarDays,
-  CalendarClock,
   Users,
   TrendingUp,
   Loader2,
@@ -69,13 +67,6 @@ import {
   Menu,
   UserCircle,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "paid" | "unpaid";
@@ -881,12 +872,6 @@ export default function DashboardPage() {
     week: t("dashboardExtra.periodWeek"),
   };
 
-  const statusLabel: Record<LessonStatus, string> = {
-    pending: t("dashboardExtra.statusPending"),
-    scheduled: t("dashboardExtra.statusScheduled"),
-    completed: t("dashboardExtra.statusCompleted"),
-    cancelled: t("dashboardExtra.statusCancelled"),
-  };
 
   const firstName = useMemo(() => {
     const fromProfile = user?.id ? profiles[user.id]?.split(" ")[0] : "";
@@ -1495,11 +1480,15 @@ export default function DashboardPage() {
                 {needsMarkLessons.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] ?? 'UAH' }}
-                    variant="schedule"
+                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                    role="tutor"
                     studentName={profiles[lesson.student_id] ?? '—'}
+                    chatPartnerId={lesson.student_id}
                     onContentClick={() => setOpenLessonId(lesson.id)}
                     className={lessonSourceTint(lesson.source)}
+                    canEditStatus
+                    onStatusChange={(s) => updateStatus(lesson.id, s)}
+                    onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
                   />
                 ))}
               </div>
@@ -1547,77 +1536,18 @@ export default function DashboardPage() {
                       <LessonCard
                         key={lesson.id}
                         lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                        variant="schedule"
+                        role={isManager ? "manager" : "tutor"}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor
                         meetingUrl={meetingHref}
+                        chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         onContentClick={() => setOpenLessonId(lesson.id)}
                         className={lessonSourceTint(lesson.source)}
-                        extraActions={
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
-                              onClick={() => setOpenLessonId(lesson.id)}
-                            >
-                              <CalendarClock className="h-4 w-4" />
-                              <span className="hidden sm:inline">{t("schedule.reschedule")}</span>
-                            </Button>
-                            <Select
-                              value={lesson.status}
-                              onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                            >
-                              <SelectTrigger className="h-11 w-[140px] text-xs">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {(["scheduled", "completed", "cancelled"] as LessonStatus[]).map((s) => (
-                                  <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </>
-                        }
-                        footer={
-                          <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
-                            <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                              <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                              </span>
-                              <Select
-                                value={lesson.student_payment_status}
-                                onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                              >
-                                <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                  <SelectItem value="paid">✓ Оплачено</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                              <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                              </span>
-                              <Select
-                                value={lesson.tutor_payout_status}
-                                onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                              >
-                                <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                  <SelectItem value="paid">✓ Виплачено</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        }
+                        canEditStatus
+                        statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
+                        onStatusChange={(s) => updateStatus(lesson.id, s)}
+                        onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
                       />
                     );
                   })}
@@ -1717,115 +1647,40 @@ export default function DashboardPage() {
                         <LessonCard
                           key={lesson.id}
                           lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                          variant="schedule"
+                          role={isManager ? "manager" : "tutor"}
                           studentName={studentName}
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
+                          chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
-                          extraActions={
-                            <>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="min-h-[44px]"
-                                onClick={() => setOpenLessonId(lesson.id)}
-                                title={t("dashboardExtra.rescheduleLesson")}
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t("dashboardPageExtra.rescheduleBtn")}</span>
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                title={t("dashboardExtra.topUpWallet")}
-                                onClick={() =>
-                                  setWalletPair({
-                                    tutor_id: lesson.tutor_id,
-                                    student_id: lesson.student_id,
-                                    tutor_name: tutorName,
-                                    student_name: studentName,
-                                  })
-                                }
-                              >
-                                <Wallet className="h-4 w-4" />
-                              </Button>
-                              {canEditStatus ? (
-                                <Select
-                                  value={lesson.status}
-                                  onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                                >
-                                  <SelectTrigger className="h-11 w-[140px] text-xs">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {(["pending", "scheduled", "completed", "cancelled"] as LessonStatus[]).map((s) => (
-                                      <SelectItem key={s} value={s}>{statusLabel[s]}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : null}
-                            </>
-                          }
-                          footer={
-                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
-                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.student_payment_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Оплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="whitespace-nowrap text-[11px] font-medium text-foreground">
-                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.tutor_payout_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === "paid" ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          }
+                          canEditStatus={canEditStatus}
+                          statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
+                          onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
+                          onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
+                          onWallet={() => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id, tutor_name: tutorName, student_name: studentName })}
                         />
                       );
                     }
 
-                    const partnerId =
-                      user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id;
                     const canEditStatus = isManager || (isTutor && lesson.tutor_id === user?.id);
 
                     return (
-                      <DashboardLessonCard
+                      <LessonCard
                         key={lesson.id}
-                        lesson={lesson}
+                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                        role={isManager ? "manager" : "tutor"}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager}
                         showPayout={isManager || lesson.source === "hub"}
-                        full={false}
-                        onStatusChange={(id, s) => updateStatus(id, s)}
-                        onPayChange={(id, field, v) => updatePayment(id, field, v)}
+                        chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
+                        onContentClick={() => setOpenLessonId(lesson.id)}
+                        canEditStatus
+                        statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
+                        onStatusChange={(s) => updateStatus(lesson.id, s)}
+                        onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
                       />
                     );
                   })

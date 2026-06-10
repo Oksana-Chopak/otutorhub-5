@@ -37,10 +37,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Clock, Plus, Loader2, Trash2, Copy, ChevronDown, ChevronUp, CheckCircle2, Circle, List, CalendarRange, HandHeart, Video, Pencil, CalendarClock, CalendarDays , Menu } from "lucide-react";
+import { Clock, Plus, Loader2, ChevronDown, ChevronUp, Circle, List, CalendarRange, HandHeart, Video, CalendarDays , Menu } from "lucide-react";
 import { TutorAvailabilityView } from "@/components/TutorAvailabilityView";
 import { WeekCalendar } from "@/components/WeekCalendar";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -113,12 +112,6 @@ function formatTime(iso: string) {
 export default function SchedulePage() {
   const { t } = useTranslation();
   const [step, setStep] = useState<1 | 2>(1);
-  const statusLabel: Record<LessonStatus, string> = {
-    pending: t('schedule.statusPending'),
-    scheduled: t('schedule.statusScheduled'),
-    completed: t('schedule.statusCompleted'),
-    cancelled: t('schedule.statusCancelled'),
-  };
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
@@ -168,6 +161,7 @@ export default function SchedulePage() {
 
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
@@ -1534,169 +1528,43 @@ export default function SchedulePage() {
                       <LessonCard
                         key={lesson.id}
                         lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                        variant="schedule"
+                        role={isManager ? "manager" : (isPureStudent && lesson.student_id === user?.id) ? "student" : "tutor"}
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}
                         meetingUrl={lesson.meeting_url}
-                        chatPartnerId={
-                          user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id
-                        }
-                        onTogglePayment={
+                        chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
+                        className={lessonSourceTint(lesson.source)}
+                        canEditStatus={canEditStatus}
+                        statusOptions={isManager
+                          ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
+                          : (["scheduled", "completed", "cancelled"] as LessonStatus[])}
+                        onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
+                        onPayChange={
                           (isManager || (isTutor && lesson.tutor_id === user?.id))
-                            ? () =>
+                            ? (field, paid) =>
                                 updatePayment(
                                   lesson.id,
-                                  "student_payment_status",
-                                  (lesson.student_payment_status === "paid" ? "unpaid" : "paid") as PaymentStatus,
+                                  field === "student" ? "student_payment_status" : "tutor_payout_status",
+                                  (paid ? "paid" : "unpaid") as PaymentStatus,
                                 )
                             : undefined
                         }
-                        className={lessonSourceTint(lesson.source)}
-                        topRightActions={
-                          <>
-                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => openEdit(lesson)}
-                                title={t("schedule.editLesson")}
-                              >
-                                <Pencil className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                            {canCopy && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-muted-foreground hover:text-primary"
-                                onClick={() => openCopy(lesson)}
-                                title={t('schedule.copyLesson')}
-                              >
-                                <Copy className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                            {canDelete && (
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive">
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                  </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      {t("schedulePageExtra.deleteConfirmDesc")}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>{t("schedulePageExtra.cancelBtn")}</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => deleteLesson(lesson.id)}>
-                                      {t("schedulePageExtra.deleteBtn")}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            )}
-                          </>
-                        }
-                        extraActions={
-                          <>
-                            {(isManager || (isTutor && lesson.tutor_id === user?.id)) && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 gap-1.5 px-2 text-xs text-muted-foreground hover:text-primary"
-                                onClick={() => openEdit(lesson)}
-                                title={t('schedule.rescheduleLesson')}
-                              >
-                                <CalendarClock className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t('schedule.reschedule')}</span>
-                              </Button>
-                            )}
-                            {canEditStatus && lesson.status === "scheduled" && (
-                              <Button
-                                size="sm"
-                                variant="default"
-                                className="h-11 gap-1.5"
-                                onClick={() => updateStatus(lesson.id, "completed")}
-                                title={t('schedule.markCompleted')}
-                              >
-                                <CheckCircle2 className="h-4 w-4" />
-                                <span className="hidden sm:inline">{t('schedule.statusCompleted')}</span>
-                              </Button>
-                            )}
-                            {canEditStatus ? (
-                              <Select
-                                value={lesson.status}
-                                onValueChange={(v) => updateStatus(lesson.id, v as LessonStatus)}
-                              >
-                                <SelectTrigger className="h-11 w-[140px] text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {(isManager
-                                    ? (["pending", "scheduled", "completed", "cancelled"] as LessonStatus[])
-                                    : (["scheduled", "completed", "cancelled"] as LessonStatus[])
-                                  ).map((s) => (
-                                    <SelectItem key={s} value={s}>
-                                      {statusLabel[s]}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            ) : null}
-                            {isPureStudent && lesson.student_id === user?.id && (
-                              <StudentLessonActions
-                                lessonId={lesson.id}
-                                tutorId={lesson.tutor_id}
-                                startsAt={lesson.starts_at}
-                                status={lesson.status}
-                              />
-                            )}
-                          </>
-                        }
-                        footer={
-                          isManager ? (
-                            <div className="mt-2 grid grid-cols-1 gap-1.5 xs:grid-cols-2">
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  🎓 {formatPrice(lesson.student_price, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.student_payment_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "student_payment_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.student_payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Оплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="flex items-center justify-between gap-2 rounded-md bg-muted/50 px-2 py-1">
-                                <span className="text-[11px] font-medium text-foreground whitespace-nowrap">
-                                  💼 {formatPrice(lesson.tutor_payout, pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`])}
-                                </span>
-                                <Select
-                                  value={lesson.tutor_payout_status}
-                                  onValueChange={(v) => updatePayment(lesson.id, "tutor_payout_status", v as PaymentStatus)}
-                                >
-                                  <SelectTrigger className={`h-6 min-w-0 flex-1 border-0 px-2 text-[11px] font-medium ${lesson.tutor_payout_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'}`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unpaid">⏳ Очікує</SelectItem>
-                                    <SelectItem value="paid">✓ Виплачено</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          ) : null
+                        onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => openEdit(lesson) : undefined}
+                        canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
+                        onCopy={canCopy ? () => openCopy(lesson) : undefined}
+                        canCopy={canCopy}
+                        onDelete={canDelete ? () => setPendingDelete(lesson.id) : undefined}
+                        canDelete={canDelete}
+                        studentActions={
+                          isPureStudent && lesson.student_id === user?.id ? (
+                            <StudentLessonActions
+                              lessonId={lesson.id}
+                              tutorId={lesson.tutor_id}
+                              startsAt={lesson.starts_at}
+                              status={lesson.status}
+                            />
+                          ) : undefined
                         }
                       />
                     );
@@ -1734,6 +1602,25 @@ export default function SchedulePage() {
       {canCreate && (
         <PageFAB onClick={() => setCreateOpen(true)} label={t("schedule.createBtn")} />
       )}
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("schedulePageExtra.deleteConfirmDesc")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("schedulePageExtra.cancelBtn")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDelete) deleteLesson(pendingDelete);
+                setPendingDelete(null);
+              }}
+            >
+              {t("schedulePageExtra.deleteBtn")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

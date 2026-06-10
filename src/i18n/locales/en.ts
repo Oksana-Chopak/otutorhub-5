@@ -973,6 +973,17 @@ export const en: Translations = {
   },
 
   lessonCard: {
+    todayShort: "Today",
+    tomorrowShort: "Tomorrow",
+    edit: "Edit",
+    copy: "Duplicate",
+    delete: "Delete",
+    topUp: "Top up wallet",
+    actions: "Actions",
+    paid: "Paid",
+    pending: "Pending",
+    paidOut: "Paid out",
+    toPayout: "To pay out",
     today: "Today · {{time}}",
     tomorrow: "Tomorrow · {{time}}",
     statusPending: "Request",

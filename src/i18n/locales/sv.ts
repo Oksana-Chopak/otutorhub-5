@@ -963,6 +963,17 @@ export const sv: Partial<Translations> = {
   },
 
   lessonCard: {
+    todayShort: "Idag",
+    tomorrowShort: "Imorgon",
+    edit: "Redigera",
+    copy: "Duplicera",
+    delete: "Ta bort",
+    topUp: "Fyll på plånbok",
+    actions: "Åtgärder",
+    paid: "Betald",
+    pending: "Väntar",
+    paidOut: "Utbetald",
+    toPayout: "Att betala ut",
     today: "Idag · {{time}}",
     tomorrow: "Imorgon · {{time}}",
     statusPending: "Förfrågan",
