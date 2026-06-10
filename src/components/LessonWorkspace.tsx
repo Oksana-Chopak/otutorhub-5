@@ -45,6 +45,23 @@ function normalizeUrl(value: string): string {
   return sanitizeHttpUrl(value) ?? "";
 }
 
+const PLATFORMS: { k: string; label: string; ph: string }[] = [
+  { k: "zoom", label: "Zoom", ph: "https://us02web.zoom.us/j/…" },
+  { k: "meet", label: "Google Meet", ph: "https://meet.google.com/…" },
+  { k: "telegram", label: "Telegram", ph: "https://t.me/…" },
+  { k: "viber", label: "Viber", ph: "viber://chat?number=…" },
+  { k: "other", label: "Інше", ph: "https://…" },
+];
+function inferPlatform(url: string): string {
+  const u = (url || "").toLowerCase();
+  if (!u) return "meet";
+  if (u.includes("zoom.")) return "zoom";
+  if (u.includes("meet.google")) return "meet";
+  if (u.includes("t.me") || u.includes("telegram")) return "telegram";
+  if (u.includes("viber")) return "viber";
+  return "other";
+}
+
 export function LessonWorkspace({
   lessonId,
   tutorId,
@@ -141,6 +158,11 @@ export function LessonWorkspace({
   const [defaultUrl, setDefaultUrl] = useState<string>("");
   const [saving, setSaving] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [privateNotesDraft, setPrivateNotesDraft] = useState("");
+  const [privateNotesSaved, setPrivateNotesSaved] = useState("");
+  const [openRow, setOpenRow] = useState<string | null>(null);
+  const [platform, setPlatform] = useState("meet");
+  const [linkMode, setLinkMode] = useState<"permanent" | "once">("permanent");
 
   const generateAiSummary = async () => {
     setAiLoading(true);
@@ -188,6 +210,53 @@ export function LessonWorkspace({
   }, [tutorId, studentId]);
 
   const effectiveMeetingUrl = (meetingUrl && meetingUrl.trim()) || defaultUrl || "";
+
+  // Load private per-lesson tutor notes (tutor-only table); resilient if not migrated yet.
+  useEffect(() => {
+    if (!isTutor) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await (supabase as any)
+          .from("lesson_tutor_notes")
+          .select("notes")
+          .eq("lesson_id", lessonId)
+          .maybeSingle();
+        if (!cancelled) {
+          const v = (data?.notes as string | null) ?? "";
+          setPrivateNotesDraft(v);
+          setPrivateNotesSaved(v);
+        }
+      } catch {
+        /* table may not exist yet */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [lessonId, isTutor]);
+
+  // Initialise the meeting platform + permanent/once mode from current data.
+  useEffect(() => {
+    const perLesson = (meetingUrl && meetingUrl.trim()) || "";
+    setLinkMode(perLesson ? "once" : "permanent");
+    setPlatform(inferPlatform(perLesson || defaultUrl || ""));
+  }, [lessonId, meetingUrl, defaultUrl]);
+
+  const savePrivateNotes = async () => {
+    setSaving("private_notes");
+    const { error } = await (supabase as any)
+      .from("lesson_tutor_notes")
+      .upsert(
+        { lesson_id: lessonId, tutor_id: tutorId, notes: privateNotesDraft.trim() || null },
+        { onConflict: "lesson_id" }
+      );
+    setSaving(null);
+    if (error) {
+      toast({ title: t("lessonWorkspaceExtra.saveFailed"), description: error.message, variant: "destructive" });
+      return;
+    }
+    setPrivateNotesSaved(privateNotesDraft);
+    toast({ title: t("lessonWorkspaceExtra.saved") });
+  };
 
   const handleJoinClick = () => {
     if (!isTutor || !aiAllowed) return;
@@ -290,6 +359,38 @@ export function LessonWorkspace({
   const canEditTutorFields = isTutor;
   const canEditStudentNotes = isStudent;
 
+  // Design tokens + helpers for the redesigned tutor edit block
+  const L = {
+    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
+    sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
+    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+  const fieldCss: React.CSSProperties = {
+    width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 15.5,
+    fontFamily: L.body, color: L.txt, background: L.bg, outline: "none",
+    border: `1.5px solid ${L.border}`, boxSizing: "border-box", resize: "none", lineHeight: 1.5,
+  };
+  const toggleRow = (k: string) => setOpenRow((v) => (v === k ? null : k));
+  const Row = ({ emoji, tint, title, preview, k, last, children }: {
+    emoji: string; tint: string; title: string; preview: string; k: string; last?: boolean; children: React.ReactNode;
+  }) => {
+    const open = openRow === k;
+    return (
+      <div style={{ borderBottom: last ? "none" : `1px solid ${L.border}` }}>
+        <button type="button" onClick={() => toggleRow(k)}
+          style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", padding: "13px 14px", border: "none", background: "transparent", cursor: "pointer" }}>
+          <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>{title}</span>
+            {!open && preview && <span style={{ display: "block", fontSize: 12.5, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
+          </span>
+          <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+        </button>
+        {open && <div style={{ padding: "0 14px 14px" }}>{children}</div>}
+      </div>
+    );
+  };
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {/* 0. Primary CTA — mark lesson as completed */}
@@ -384,7 +485,132 @@ export function LessonWorkspace({
         </section>
       )}
 
-      {/* 2. Homework */}
+      {/* TUTOR EDIT — private notes + accordion (homework / summary / meeting) */}
+      {canEditTutorFields && (
+        <section className="md:col-span-2" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* 🔒 Private per-lesson notes */}
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
+              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🔒</span>
+              <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
+            </div>
+            <textarea rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
+              placeholder={t("lessonWorkspaceExtra.privateNotesPlaceholder")}
+              style={{ ...fieldCss, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)" }} />
+            {privateNotesDraft !== privateNotesSaved && (
+              <button type="button" onClick={savePrivateNotes} disabled={saving === "private_notes"}
+                style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                {saving === "private_notes" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {t("lessonWorkspaceExtra.saveBtn")}
+              </button>
+            )}
+          </div>
+
+          {/* Accordion */}
+          <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "#fff" }}>
+            {/* 📚 Homework */}
+            <Row emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
+              preview={homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
+              <textarea rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
+                placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
+              {homeworkDraft !== (homework ?? "") && (
+                <button type="button" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
+                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                  {saving === "homework" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {t("lessonWorkspaceExtra.saveBtn")}
+                </button>
+              )}
+            </Row>
+
+            {/* ✨ Summary + AI */}
+            <Row emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}
+              preview={summaryDraft ? summaryDraft.split("\n")[0] : t("lessonWorkspaceExtra.summaryEmptyPreview")} k="ai">
+              {aiAllowed && settings?.ai_notes_auto && (
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 13, color: L.txt, lineHeight: 1.45 }}>
+                  <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: L.teal }} />
+                  <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
+                </div>
+              )}
+              <textarea rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
+                placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 9, alignItems: "center" }}>
+                {aiAllowed ? (
+                  <button type="button" onClick={generateAiSummary} disabled={aiLoading}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
+                    {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                    {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
+                  </button>
+                )}
+                {summaryDraft !== (summary ?? "") && (
+                  <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    {t("lessonWorkspaceExtra.saveBtn")}
+                  </button>
+                )}
+              </div>
+            </Row>
+
+            {/* 🎥 Meeting link */}
+            <Row emoji="🎥" tint="rgba(59,130,246,.1)" title={t("lessonWorkspaceExtra.meetingTitle")}
+              preview={`${(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).label} · ${linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentShort") : t("lessonWorkspaceExtra.onceShort")}`}
+              k="link" last>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
+                {PLATFORMS.map((p) => {
+                  const on = p.k === platform;
+                  return (
+                    <button key={p.k} type="button" onClick={() => setPlatform(p.k)}
+                      style={{ height: 34, padding: "0 12px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 13 }}>
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  value={linkMode === "once" ? meetingDraft : defaultUrl}
+                  onChange={(e) => (linkMode === "once" ? setMeetingDraft(e.target.value) : setDefaultUrl(e.target.value))}
+                  placeholder={(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).ph}
+                  style={{ ...fieldCss, height: 48, padding: "0 14px", flex: 1 }} />
+                <button type="button"
+                  disabled={saving === "meeting_url" || saving === "default"}
+                  onClick={() => (linkMode === "once" ? updateLessonField("meeting_url", meetingDraft) : saveDefaultMeetingUrl())}
+                  style={{ width: 48, height: 48, flexShrink: 0, borderRadius: 13, border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {saving === "meeting_url" || saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.06)", marginTop: 10 }}>
+                {([["permanent", t("lessonWorkspaceExtra.permanent")], ["once", t("lessonWorkspaceExtra.once")]] as const).map(([k, l]) => {
+                  const on = k === linkMode;
+                  return (
+                    <button key={k} type="button" onClick={() => setLinkMode(k as "permanent" | "once")}
+                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
+                      {l}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 13, color: L.muted, marginTop: 7, lineHeight: 1.4 }}>
+                {linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentHint") : t("lessonWorkspaceExtra.onceHint")}
+              </div>
+              {effectiveMeetingUrl && (
+                <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
+                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                  <ExternalLink className="h-4 w-4" /> {t("lessonWorkspaceExtra.joinBtn")}
+                </a>
+              )}
+            </Row>
+          </div>
+        </section>
+      )}
+
+      {/* 2. Homework — read-only for non-tutors (tutors edit in the accordion above) */}
+      {!canEditTutorFields && (
       <section className="rounded-lg border border-border bg-background/50 p-4">
         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
           <BookOpen className="h-4 w-4 text-primary" />
@@ -415,6 +641,7 @@ export function LessonWorkspace({
           <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
         )}
       </section>
+      )}
 
       {/* 3. Student personal notes (compact slot — second column on top row) */}
       {(canEditStudentNotes || (isManager && studentNotes)) ? (
@@ -451,7 +678,8 @@ export function LessonWorkspace({
         <div className="hidden md:block" />
       )}
 
-      {/* 4. Lesson summary */}
+      {/* 4. Lesson summary — read-only for non-tutors */}
+      {!canEditTutorFields && (
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -536,6 +764,7 @@ export function LessonWorkspace({
           <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
         )}
       </section>
+      )}
 
       {/* 5. Attachments */}
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
@@ -567,8 +796,8 @@ export function LessonWorkspace({
         lessonStatus={lessonStatus ?? ""}
       />
 
-      {/* 6. Meeting link — moved to the bottom (low priority, rarely edited).
-             Tutors get a collapsible editor; non-editors see only a compact link row. */}
+      {/* 6. Meeting link — read-only compact row for non-tutors (tutors edit in the accordion) */}
+      {!canEditTutorFields && (
       <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
         {canEditTutorFields ? (
           <Collapsible>
@@ -677,6 +906,7 @@ export function LessonWorkspace({
           </div>
         )}
       </section>
+      )}
 
       {canOpenWallet && (
         <WalletDialog
