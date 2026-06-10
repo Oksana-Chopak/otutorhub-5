@@ -1089,6 +1089,67 @@ export default function FinancesPage() {
       : t("finances.periodAll", { defaultValue: "Весь час" });
 
   return (
+  // ── Independent Tutor Cockpit computed values ─────────────────────────────
+  const [finTab, setFinTab] = useState<"ops"|"debts"|"analytics">("ops");
+
+  // Week bars: earned per day of week (Пн–Нд)
+  const weekBars = useMemo(() => {
+    const days = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+    const sums = [0,0,0,0,0,0,0];
+    const today = (new Date().getDay() + 6) % 7;
+    periodBillable
+      .filter(l => l.student_payment_status === "paid")
+      .forEach(l => {
+        const d = (new Date(l.starts_at).getDay() + 6) % 7;
+        sums[d] += Number(l.student_price);
+      });
+    const maxVal = Math.max(...sums, 1);
+    return days.map((label, i) => ({
+      label, amt: sums[i], pct: Math.max(sums[i] / maxVal * 100, 4),
+      isToday: i === today,
+    }));
+  }, [periodBillable]);
+
+  // 6-month stacked bars
+  const sixMonthBars = useMemo(() => {
+    const map = new Map<string, { earned: number; pending: number }>();
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = d.toLocaleDateString("uk-UA", { month: "short" });
+      map.set(key, { earned: 0, pending: 0 });
+    }
+    billable.forEach(l => {
+      const d = new Date(l.starts_at);
+      if ((now.getTime() - d.getTime()) > 6 * 30 * 86400 * 1000) return;
+      const key = d.toLocaleDateString("uk-UA", { month: "short" });
+      if (!map.has(key)) return;
+      const entry = map.get(key)!;
+      if (l.student_payment_status === "paid") entry.earned += Number(l.student_price);
+      else if (l.status === "completed") entry.pending += Number(l.student_price);
+    });
+    const rows = Array.from(map.entries()).map(([month, v]) => ({ month, ...v }));
+    const maxVal = Math.max(...rows.map(r => r.earned + r.pending), 1);
+    return rows.map(r => ({ ...r, earnedPct: r.earned/maxVal*100, pendingPct: r.pending/maxVal*100 }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [billable]);
+
+  // Debt list: completed + unpaid, with student name
+  const debtList = useMemo(() =>
+    filteredLessons
+      .filter(l => l.student_payment_status === "unpaid" && l.status === "completed")
+      .sort((a,b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()),
+  [filteredLessons]);
+
+  const avgLesson = lessons > 0 ? Math.round(totalIncome / lessons) : 0;
+
+  // By-student for Cockpit analytics
+  const byStudentCockpit = useMemo(() => {
+    const COLORS = ["#2BBFAA","#6366f1","#f59e0b","#ef4444","#ec4899","#8b5cf6"];
+    return incomeByStudent.map((s,i) => ({ ...s, color: COLORS[i % COLORS.length] }));
+  }, [incomeByStudent]);
+
+
     <AppLayout>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
