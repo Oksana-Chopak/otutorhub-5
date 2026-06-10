@@ -2,6 +2,22 @@ import type { Translations } from "./uk";
 
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: Partial<Translations> = {
+  reviewPrompt: {
+    title: "Hur var din lektion med {{tutor}}?",
+    commentPlaceholder: "Lägg till några ord (valfritt)…",
+    submit: "Skicka omdöme",
+    thanks: "Tack för ditt omdöme! 🌟",
+    saveFailed: "Kunde inte skicka omdömet",
+    skip: "Hoppa över",
+  },
+  requestReview: {
+    cta: "Be om omdöme",
+    tutorHint: "Be eleven lämna ett omdöme för denna lektion 🌟",
+    message: "Tack för lektionen! 🌟 Om du har en minut, betygsätt den gärna i appen. Det hjälper verkligen 🙏",
+    sent: "Begäran om omdöme skickad 🌟",
+    sentShort: "Skickat",
+    failed: "Kunde inte skicka begäran",
+  },
   quickAdd: {
     lesson: "Lektion",
     student: "Elev",

@@ -1,6 +1,22 @@
 import type { Translations } from "./uk";
 
 export const en: Translations = {
+  reviewPrompt: {
+    title: "How was your lesson with {{tutor}}?",
+    commentPlaceholder: "Add a few words (optional)…",
+    submit: "Send review",
+    thanks: "Thanks for your review! 🌟",
+    saveFailed: "Could not send the review",
+    skip: "Skip",
+  },
+  requestReview: {
+    cta: "Request a review",
+    tutorHint: "Ask the student to leave a review for this lesson 🌟",
+    message: "Thanks for the lesson! 🌟 If you have a minute, please rate it in the app. It really helps 🙏",
+    sent: "Review request sent 🌟",
+    sentShort: "Sent",
+    failed: "Could not send the request",
+  },
   quickAdd: {
     lesson: "Lesson",
     student: "Student",

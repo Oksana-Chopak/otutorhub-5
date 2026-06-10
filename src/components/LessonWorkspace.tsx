@@ -13,6 +13,7 @@ import { toast } from "@/hooks/use-toast";
 import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock, Wallet, MessageSquare } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 import { LessonFeedback } from "@/components/LessonFeedback";
+import { RequestReviewButton } from "@/components/RequestReviewButton";
 import { WalletDialog } from "@/components/WalletDialog";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { FirefliesPanel } from "@/components/FirefliesPanel";
@@ -530,6 +531,14 @@ export function LessonWorkspace({
       />
 
       {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
+      {isTutor && statusLocal === "completed" && (
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+          <p className="text-sm text-muted-foreground">
+            {t("requestReview.tutorHint") || "Попросіть учня залишити відгук про цей урок 🌟"}
+          </p>
+          <RequestReviewButton tutorId={tutorId} studentId={studentId} />
+        </section>
+      )}
       <LessonFeedback
         lessonId={lessonId}
         tutorId={tutorId}

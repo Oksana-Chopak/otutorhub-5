@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { RewardCollection } from "@/components/student/RewardCollection";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
+import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 
 interface UpcomingLesson {
   id: string;
@@ -159,6 +160,9 @@ export default function StudentDashboardPage() {
           <h1 className="text-2xl font-bold text-foreground">{t("studentPages.greeting")}</h1>
           <p className="text-sm text-muted-foreground">{t("studentPages.greetingSub")}</p>
         </div>
+
+        {/* Review prompt — invites a rating for the most recent unrated completed lesson */}
+        <ReviewPromptCard />
 
         {/* Block 1: Upcoming lessons */}
         <Card className="p-5">
