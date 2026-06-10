@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Mic, FileText, Sparkles, Lock, ArrowRight } from "lucide-react";
 import {
@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 const C = {
-  txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
+  txt: "#0f0f1a", ink2: "#4b5163", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
   teal: "#2BBFAA", tealD: "#1f8e7e", tealRing: "rgba(43,191,170,.28)",
   warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)", warnD: "#b4740b",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -31,8 +31,12 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
   const [autoSend, setAutoSend] = useState(!!settings?.ai_notes_auto_send);
   const [busy, setBusy] = useState(false);
 
-  // keep local state in sync when settings load/change
-  if (settings && auto !== !!settings.ai_notes_auto && !busy) setAuto(!!settings.ai_notes_auto);
+  // Reflect saved settings whenever they load/change (unless we're mid-write).
+  useEffect(() => {
+    if (busy) return;
+    setAuto(!!settings?.ai_notes_auto);
+    setAutoSend(!!settings?.ai_notes_auto_send);
+  }, [settings?.ai_notes_auto, settings?.ai_notes_auto_send, busy]);
 
   const setFlag = async (patch: { ai_notes_auto?: boolean; ai_notes_auto_send?: boolean }) => {
     setBusy(true);
@@ -49,7 +53,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 12.5, color: C.sub, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
+        <div style={{ fontSize: 13.5, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
       </div>
     </div>
   );
@@ -57,8 +61,8 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
   const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onChange: (v: boolean) => void; title: string; desc: string; disabled?: boolean }) => (
     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "#fff", opacity: disabled ? 0.5 : 1 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 12, color: C.sub, lineHeight: 1.45, marginTop: 1 }}>{desc}</div>
+        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
+        <div style={{ fontSize: 13, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
       </div>
       <Switch checked={on} onCheckedChange={onChange} disabled={disabled} />
     </div>
@@ -79,7 +83,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         <div style={{ padding: "8px 20px 20px", fontFamily: C.body }}>
-          <p style={{ fontSize: 13.5, color: C.sub, lineHeight: 1.5, margin: "4px 0 8px" }}>
+          <p style={{ fontSize: 14.5, color: C.ink2, lineHeight: 1.55, margin: "4px 0 10px" }}>
             Після уроку учень отримує структурований конспект — а ти не витрачаєш на це час. Два способи:
           </p>
 
@@ -122,7 +126,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
             Спробувати на уроці <ArrowRight size={18} />
           </button>
-          <p style={{ fontSize: 11.5, color: C.muted, textAlign: "center", marginTop: 8, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
             Відкрий будь-який урок → блок «AI-конспект». Для запису потрібне посилання на Zoom / Meet.
           </p>
         </div>

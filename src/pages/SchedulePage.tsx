@@ -50,6 +50,7 @@ import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { TutorChangeRequestsCard } from "@/components/TutorChangeRequestsCard";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { LessonCard } from "@/components/LessonCard";
+import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
@@ -162,6 +163,7 @@ export default function SchedulePage() {
   // Edit dialog state (quick edit from calendar / list)
   const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
+  const [detailsLessonId, setDetailsLessonId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     subject: "",
     starts_at: "",
@@ -1550,6 +1552,7 @@ export default function SchedulePage() {
                                 )
                             : undefined
                         }
+                        onAiNotes={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => setDetailsLessonId(lesson.id) : undefined}
                         onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => openEdit(lesson) : undefined}
                         canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
                         onCopy={canCopy ? () => openCopy(lesson) : undefined}
@@ -1621,6 +1624,12 @@ export default function SchedulePage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <LessonDetailsDialog
+        lessonId={detailsLessonId}
+        open={!!detailsLessonId}
+        onOpenChange={(o) => { if (!o) setDetailsLessonId(null); }}
+        onUpdated={loadAll}
+      />
     </AppLayout>
   );
 }
