@@ -1688,6 +1688,10 @@ export const en: Translations = {
     byCash: "By amount",
   },
   referralWidget: {
+    inviteText: "Join oTutorHub — the app that runs your whole tutoring practice in one place. Get 21 days of Pro free via my link 👇",
+    shareVia: "Share via",
+    copyLink: "Copy link",
+    moreApps: "More…",
     linkLoading: "The link is still loading, try again",
     copy: "Copy",
     share: "Share",

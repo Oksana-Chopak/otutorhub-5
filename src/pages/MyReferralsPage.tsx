@@ -5,6 +5,7 @@ import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Link2, Copy, Check, Share2, Heart, Trophy } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -75,6 +76,7 @@ export default function MyReferralsPage() {
   const [leaderboard, setLeaderboard] = useState<LeaderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   const now = new Date();
   const year = now.getFullYear();
@@ -148,18 +150,33 @@ export default function MyReferralsPage() {
     setTimeout(() => setCopied(false), 1600);
   };
 
-  const handleShare = async () => {
-    if (!link) { toast.error(t("referralWidget.linkLoading") || "Посилання ще завантажується"); return; }
-    const text = t("referralWidget.shareText", { link });
-    if (navigator.share) {
-      try { await navigator.share({ title: "oTutorHub", text, url: link }); return; } catch { /* fall through */ }
-    }
+  const inviteText = t("referralWidget.inviteText") ||
+    "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день Pro безкоштовно за моїм посиланням 👇";
+
+  const openExternal = (href: string) => {
+    window.open(href, "_blank", "noopener,noreferrer");
+    setShareOpen(false);
+  };
+
+  const nativeShare = async () => {
+    if (!link) return;
     try {
-      await navigator.clipboard.writeText(link);
-      toast.success(t("referralWidget.linkCopied"));
-    } catch {
-      toast.error("Не вдалося скопіювати. Скопіюй вручну: " + link);
-    }
+      await navigator.share({ title: "oTutorHub", text: inviteText, url: link });
+    } catch { /* user cancelled — ignore */ }
+    setShareOpen(false);
+  };
+
+  const shareTargets = () => {
+    const u = encodeURIComponent(link);
+    const txt = encodeURIComponent(inviteText);
+    const txtWithLink = encodeURIComponent(`${inviteText} ${link}`);
+    return [
+      { key: "telegram", label: "Telegram", color: "#229ED9", glyph: "✈", href: `https://t.me/share/url?url=${u}&text=${txt}` },
+      { key: "whatsapp", label: "WhatsApp", color: "#25D366", glyph: "✆", href: `https://api.whatsapp.com/send?text=${txtWithLink}` },
+      { key: "viber", label: "Viber", color: "#7360F2", glyph: "◷", href: `viber://forward?text=${txtWithLink}` },
+      { key: "facebook", label: "Facebook", color: "#1877F2", glyph: "f", href: `https://www.facebook.com/sharer/sharer.php?u=${u}` },
+      { key: "x", label: "X", color: "#0f0f1a", glyph: "𝕏", href: `https://twitter.com/intent/tweet?text=${txt}&url=${u}` },
+    ];
   };
 
   // ── UI helpers ──────────────────────────────────────────────────────────────
@@ -240,12 +257,44 @@ export default function MyReferralsPage() {
                     boxShadow: `inset 0 0 0 1px ${R.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   {copied ? <Check size={18} /> : <Copy size={18} />}
                 </button>
-                <button onClick={handleShare} disabled={!link} aria-label={t("referralWidget.share") || "Поділитися"}
-                  style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: link ? "pointer" : "default",
-                    background: R.gradTeal, color: "#fff", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Share2 size={18} />
-                </button>
+                <Popover open={shareOpen} onOpenChange={setShareOpen}>
+                  <PopoverTrigger asChild>
+                    <button disabled={!link} aria-label={t("referralWidget.share") || "Поділитися"}
+                      style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: link ? "pointer" : "default",
+                        background: R.gradTeal, color: "#fff", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
+                        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Share2 size={18} />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-60 p-2" style={{ borderRadius: 16 }}>
+                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 12, color: R.sub, padding: "4px 8px 8px", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                      {t("referralWidget.shareVia") || "Поділитися через"}
+                    </div>
+                    {shareTargets().map((s) => (
+                      <button key={s.key} onClick={() => openExternal(s.href)}
+                        className="hover:bg-black/[0.04]"
+                        style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
+                        <span style={{ width: 32, height: 32, borderRadius: 999, background: s.color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 16, flexShrink: 0 }}>{s.glyph}</span>
+                        <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{s.label}</span>
+                      </button>
+                    ))}
+                    <div style={{ height: 1, background: R.border, margin: "6px 4px" }} />
+                    <button onClick={() => { handleCopy(); setShareOpen(false); }}
+                      className="hover:bg-black/[0.04]"
+                      style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
+                      <span style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(43,191,170,.12)", color: R.tealD, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Copy size={16} /></span>
+                      <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.copyLink") || "Скопіювати посилання"}</span>
+                    </button>
+                    {typeof navigator !== "undefined" && "share" in navigator && (
+                      <button onClick={nativeShare}
+                        className="hover:bg-black/[0.04]"
+                        style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
+                        <span style={{ width: 32, height: 32, borderRadius: 999, background: "rgba(15,15,26,.06)", color: R.txt, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Share2 size={16} /></span>
+                        <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, color: R.txt }}>{t("referralWidget.moreApps") || "Інше…"}</span>
+                      </button>
+                    )}
+                  </PopoverContent>
+                </Popover>
               </div>
 
               {/* Reward line */}

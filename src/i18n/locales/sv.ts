@@ -1678,6 +1678,10 @@ export const sv: Partial<Translations> = {
     byCash: "Per belopp",
   },
   referralWidget: {
+    inviteText: "Gå med i oTutorHub — appen som sköter hela din verksamhet på ett ställe. Få 21 dagar Pro gratis via min länk 👇",
+    shareVia: "Dela via",
+    copyLink: "Kopiera länk",
+    moreApps: "Mer…",
     linkLoading: "Länken laddas fortfarande, försök igen",
     copy: "Kopiera",
     share: "Dela",
