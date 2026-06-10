@@ -1173,7 +1173,7 @@ export default function DashboardPage() {
             <>
               {/* Mobile: Profit + Students side by side */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
-                <div className="overflow-hidden rounded-[18px] p-4 relative"
+                <Link to="/finances" className="block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
                   <p className="text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit") || "Твій дохід"}
@@ -1196,7 +1196,7 @@ export default function DashboardPage() {
                       ))}
                     </div>
                   </div>
-                </div>
+                </Link>
                 <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow"
                   style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
@@ -1216,7 +1216,7 @@ export default function DashboardPage() {
               {/* Desktop bento: 4 compact cards — height ~56px */}
               <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
                 {/* 1. Profit */}
-                <div className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3"
+                <Link to="/finances" className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
@@ -1233,7 +1233,7 @@ export default function DashboardPage() {
                       </p>
                     )}
                   </div>
-                </div>
+                </Link>
 
                 {/* 2. Students */}
                 <Link to="/people" className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
