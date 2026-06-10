@@ -47,11 +47,11 @@ export function ProRulesCard() {
   useEffect(() => {
     if (!settings) return;
     setState({
-      payment_reminder_enabled: (settings as Record<string, unknown>).payment_reminder_enabled as boolean ?? true,
-      payment_due_mode: ((settings as Record<string, unknown>).payment_due_mode as PaymentMode) ?? "before_lesson",
-      payment_due_days: (settings as Record<string, unknown>).payment_due_days as number ?? 1,
-      cancel_free_hours: (settings as Record<string, unknown>).cancel_free_hours as number ?? 24,
-      cancel_fee_percent: ((settings as Record<string, unknown>).cancel_fee_percent as FeePercent) ?? 0,
+      payment_reminder_enabled: (settings as unknown as Record<string, unknown>).payment_reminder_enabled as boolean ?? true,
+      payment_due_mode: ((settings as unknown as Record<string, unknown>).payment_due_mode as PaymentMode) ?? "before_lesson",
+      payment_due_days: (settings as unknown as Record<string, unknown>).payment_due_days as number ?? 1,
+      cancel_free_hours: (settings as unknown as Record<string, unknown>).cancel_free_hours as number ?? 24,
+      cancel_fee_percent: ((settings as unknown as Record<string, unknown>).cancel_fee_percent as FeePercent) ?? 0,
     });
   }, [settings]);
 

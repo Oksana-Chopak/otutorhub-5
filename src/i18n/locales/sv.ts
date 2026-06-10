@@ -902,6 +902,14 @@ export const sv: Partial<Translations> = {
   },
 
   myStudents: {
+    subjectsLabel: "Ämnen",
+    addSubjectBtn: "Ämne",
+    subjectDraftPlaceholder: "Ämnesnamn…",
+    priceCardTitle: "Pris per lektion",
+    contactsLabel: "Kontakter",
+    notesLabel: "Anteckningar — bara du ser dem",
+    notesPlaceholder: "Mål, nivå, viktiga detaljer…",
+    photoFromProfileHint: "Fotot hämtas från elevens profil när hen går med i oTutorHub.",
     showContacts: "Lägg till kontakter & detaljer ↓",
     hideContacts: "Dölj valfria fält ↑",
     title: "Mina elever",

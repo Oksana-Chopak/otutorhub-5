@@ -26,6 +26,7 @@ import { studentToasts } from "@/lib/toasts";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import {
   UserPlus,
+  Plus,
   Loader2,
   Phone,
   Mail,
@@ -43,10 +44,9 @@ import {
   MessageSquare,
   CalendarPlus,
   ChevronDown,
-  ChevronUp,
+  Check,
 } from "lucide-react";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
-import { CurrencyComboBox } from "@/components/CurrencyComboBox";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
@@ -63,6 +63,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CURRENCY_OPTIONS, formatPrice, currencySymbol } from "@/lib/currency";
 import { PersonCard, PersonAva } from "@/components/PersonCard";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MyStudent {
   id: string;
@@ -82,6 +83,7 @@ interface MyStudent {
   archived_at: string | null;
   currency: string;
   payment_details: string | null;
+  tutor_notes: string | null;
   // Activity / payment status
   unpaid_count: number;
   unpaid_total: number;
@@ -105,6 +107,7 @@ interface FormData {
   default_meeting_url: string;
   currency: string;
   payment_details: string;
+  tutor_notes: string;
 }
 
 const emptyForm: FormData = {
@@ -120,6 +123,7 @@ const emptyForm: FormData = {
   default_meeting_url: "",
   currency: "UAH",
   payment_details: "",
+  tutor_notes: "",
 };
 
 export default function MyStudentsPage() {
@@ -138,7 +142,8 @@ export default function MyStudentsPage() {
   );
   const [form, setForm] = useState<FormData>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
-  const [showMoreFields, setShowMoreFields] = useState(false);
+  const [subjectDraft, setSubjectDraft] = useState("");
+  const [curOpen, setCurOpen] = useState(false);
   const [invite, setInvite] = useState<{
     open: boolean;
     name: string;
@@ -188,7 +193,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }, { data: tnotes }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -207,12 +212,20 @@ export default function MyStudentsPage() {
         .select("student_id, starts_at, status, student_payment_status, student_price")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
+      (supabase as any)
+        .from("tutor_student_notes")
+        .select("student_id, notes")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
     const contactMap = new Map((contacts ?? []).map((c: any) => [c.user_id, c]));
     const defaultsMap = new Map(
       (defaults ?? []).map((d: any) => [d.student_id, d.default_meeting_url])
+    );
+    const notesMap = new Map(
+      ((tnotes ?? []) as any[]).map((n: any) => [n.student_id, n.notes as string | null])
     );
 
     // Aggregate lesson stats per student
@@ -266,6 +279,7 @@ export default function MyStudentsPage() {
         archived_at: (r as any)?.archived_at ?? null,
         currency: (r as any)?.currency ?? "UAH",
         payment_details: (r as any)?.payment_details ?? null,
+        tutor_notes: (notesMap.get(id) as string | null) ?? null,
         unpaid_count: stats.unpaid_count,
         unpaid_total: stats.unpaid_total,
         last_lesson_at: stats.last_lesson_at,
@@ -298,7 +312,6 @@ export default function MyStudentsPage() {
 
   const openCreate = () => {
     setForm(emptyForm);
-    setShowMoreFields(false);
     setDialog({ open: true, mode: "create", studentId: null });
   };
 
@@ -316,8 +329,8 @@ export default function MyStudentsPage() {
       default_meeting_url: s.default_meeting_url ?? "",
       currency: s.currency || "UAH",
       payment_details: s.payment_details ?? "",
+      tutor_notes: s.tutor_notes ?? "",
     });
-    setShowMoreFields(true);
     setDialog({ open: true, mode: "edit", studentId: s.id });
   };
 
@@ -438,6 +451,15 @@ export default function MyStudentsPage() {
         );
       }
 
+      // 7. Private tutor notes — tutor-only RLS table, the student can never read these
+      const notesVal = form.tutor_notes.trim();
+      if (notesVal) {
+        await (supabase as any).from("tutor_student_notes").upsert(
+          { tutor_id: user.id, student_id: newId, notes: notesVal },
+          { onConflict: "tutor_id,student_id" }
+        );
+      }
+
       toast.success(t("myStudents.studentAdded"));
 
       // Auto-send email invite if we have an email
@@ -522,6 +544,12 @@ export default function MyStudentsPage() {
           student_id: dialog.studentId,
           default_meeting_url: meetingUrl || null,
         },
+        { onConflict: "tutor_id,student_id" }
+      );
+
+      // Private tutor notes — upsert (null clears)
+      await (supabase as any).from("tutor_student_notes").upsert(
+        { tutor_id: user.id, student_id: dialog.studentId, notes: form.tutor_notes.trim() || null },
         { onConflict: "tutor_id,student_id" }
       );
 
@@ -828,282 +856,251 @@ export default function MyStudentsPage() {
       )}
 
 
-            {/* Add/Edit Dialog — redesigned per design_handoff_student_form */}
+      {/* Add/Edit Dialog — design-system SF_A «Один потік» */}
       <Dialog
         open={dialog.open}
         onOpenChange={(v) => !v && setDialog({ open: false, mode: "create", studentId: null })}
       >
-        <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[86vh] overflow-y-auto">
+        <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
           {/* Drag handle (mobile) */}
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
             <div className="w-9 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
           </div>
           {(() => {
             const F = {
-              border:  "#eceef3", bg: "#fbfbfc", teal: "#2BBFAA", tealD: "#25a896",
-              txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+              border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
+              txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", gold: "#9a6a12",
               display: "Inter, system-ui, sans-serif",
-              body:    "'Plus Jakarta Sans', system-ui, sans-serif",
+              body: "'Plus Jakarta Sans', system-ui, sans-serif",
             };
-            const fInitials = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
-            const SUBS = ["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"];
-            const subMatches = (() => {
-              const q = (form.subject || "").trim().toLowerCase();
-              return (q ? SUBS.filter(s => s.toLowerCase().includes(q) && s.toLowerCase() !== q) : SUBS).slice(0, 6);
-            })();
-            const inp = (hasErr?: boolean): React.CSSProperties => ({
-              width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
-              fontSize: 15.5, fontFamily: F.body, color: F.txt, background: F.bg,
-              border: `1.5px solid ${hasErr ? "rgba(245,158,11,0.55)" : F.border}`,
-              outline: "none", boxSizing: "border-box",
+            const inp = (big?: boolean): React.CSSProperties => ({
+              width: "100%", height: big ? 56 : 50, borderRadius: 13, padding: "0 14px",
+              fontSize: big ? 18 : 16, fontWeight: big ? 700 : 500,
+              fontFamily: big ? F.display : F.body, color: F.txt, background: F.bg,
+              border: `1.5px solid ${F.border}`, outline: "none", boxSizing: "border-box",
+              transition: "all .15s",
             });
-            const lbl: React.CSSProperties = {
-              fontFamily: F.display, fontSize: 14, fontWeight: 700,
-              color: F.sub, marginBottom: 7, display: "block",
+            const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              e.target.style.borderColor = F.teal;
+              e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)";
+              e.target.style.background = "#fff";
             };
+            const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+              e.target.style.borderColor = F.border;
+              e.target.style.boxShadow = "none";
+              e.target.style.background = F.bg;
+            };
+            const lbl: React.CSSProperties = {
+              fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub,
+              marginBottom: 7, display: "block",
+            };
+            const close = () => setDialog({ open: false, mode: "create", studentId: null });
+
+            // Subjects ↔ the existing single `subject` string (comma-joined, queries untouched)
+            const subjList = form.subject.split(",").map((s) => s.trim()).filter(Boolean);
+            const setSubjects = (arr: string[]) => setForm((f) => ({ ...f, subject: arr.join(", ") }));
+            const addSubject = (s: string) => {
+              const v = s.trim();
+              if (v && !subjList.some((x) => x.toLowerCase() === v.toLowerCase())) setSubjects([...subjList, v]);
+              setSubjectDraft("");
+              setSubjectOpen(false);
+            };
+            const SUBS = ["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"];
+            const subMatches = SUBS.filter(
+              (s) => !subjList.some((v) => v.toLowerCase() === s.toLowerCase()) &&
+                (!subjectDraft || s.toLowerCase().includes(subjectDraft.trim().toLowerCase()))
+            ).slice(0, 6);
+            const draftIsCustom = !!subjectDraft.trim() &&
+              !SUBS.some((s) => s.toLowerCase() === subjectDraft.trim().toLowerCase());
+
+            const fInit = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
+            const filled = !!(form.first_name || form.last_name);
+
             return (
-              <div style={{ padding: "20px 22px 24px" }}>
-                {/* Title */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 16 }}>
-                  <div>
-                    <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 19, color: F.txt, lineHeight: 1.2 }}>
-                      {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
-                    </p>
-                    <p style={{ fontSize: 14, color: F.sub, marginTop: 4, fontFamily: F.body }}>
-                      {t("myStudents.dialogDesc")}
-                    </p>
+              <>
+                {/* ── Header ── */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 12px", flexShrink: 0 }}>
+                  <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: F.txt }}>
+                    {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
                   </div>
-                  <button
-                    onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
-                    style={{ width: 32, height: 32, borderRadius: 999, border: `1px solid ${F.border}`,
-                      background: "#fff", cursor: "pointer", display: "flex", alignItems: "center",
-                      justifyContent: "center", flexShrink: 0, marginLeft: 12 }}>
-                    <X size={16} style={{ color: F.muted }} />
+                  <button onClick={close} aria-label={t("myStudents.cancelBtn")}
+                    style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <X size={18} />
                   </button>
                 </div>
 
-                {/* Avatar */}
-                <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
-                  <div style={{ position: "relative" }}>
-                    <div style={{
-                      width: 72, height: 72, borderRadius: 24,
-                      background: fInitials
-                        ? "linear-gradient(135deg,#2BBFAA,#25a896)"
-                        : "#fff",
-                      border: fInitials ? "none" : `1.5px solid ${F.border}`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      transition: "transform .3s cubic-bezier(.34,1.56,.64,1)",
-                    }}>
-                      {fInitials ? (
-                        <span style={{ fontFamily: F.display, fontWeight: 800, fontSize: 26, color: "#fff" }}>
-                          {fInitials}
-                        </span>
-                      ) : (
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                          <circle cx="12" cy="8" r="4" stroke="#b0b4c8" strokeWidth="1.8"/>
-                          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#b0b4c8" strokeWidth="1.8" strokeLinecap="round"/>
-                        </svg>
-                      )}
-                    </div>
-                    {/* Camera badge */}
-                    <div style={{
-                      position: "absolute", right: -3, bottom: -3,
-                      width: 26, height: 26, borderRadius: 999,
-                      background: "linear-gradient(135deg,#2BBFAA,#25a896)",
-                      border: "2.5px solid #fff",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <circle cx="12" cy="13" r="4" stroke="#fff" strokeWidth="2"/>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Core fields */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                  {/* Name row */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <div>
-                      <span style={lbl}>{t("myStudents.fieldFirstName")} <span style={{ color: F.teal }}>*</span></span>
-                      <input
-                        style={inp(false)}
-                        placeholder="Анна"
-                        value={form.first_name}
-                        onChange={(e) => setForm({ ...form, first_name: e.target.value })}
-                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                      />
-                    </div>
-                    <div>
-                      <span style={lbl}>{t("myStudents.fieldLastName")} <span style={{ color: F.teal }}>*</span></span>
-                      <input
-                        style={inp(false)}
-                        placeholder="Іваненко"
-                        value={form.last_name}
-                        onChange={(e) => setForm({ ...form, last_name: e.target.value })}
-                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                      />
+                {/* ── Body (scroll) ── */}
+                <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
+                  {/* Avatar + name */}
+                  <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button type="button" aria-label="Фото учня"
+                          style={{ position: "relative", width: 60, height: 60, borderRadius: 20, flexShrink: 0, padding: 0, cursor: "pointer",
+                            border: "none",
+                            background: filled ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "#fff",
+                            color: filled ? "#fff" : F.muted,
+                            boxShadow: filled ? "0 8px 20px -8px rgba(43,191,170,.55)" : `inset 0 0 0 1.5px ${F.border}`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontFamily: F.display, fontWeight: 800, fontSize: 22,
+                            transition: "all .3s cubic-bezier(.34,1.4,.64,1)" }}>
+                          {filled ? fInit : (
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="8" r="4" /><path d="M5 20a7 7 0 0114 0" />
+                            </svg>
+                          )}
+                          <span style={{ position: "absolute", right: -2, bottom: -2, width: 22, height: 22, borderRadius: 999,
+                            background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 0 0 2.5px #fff",
+                            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 8.5A1.5 1.5 0 014.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0121 8.5v10A1.5 1.5 0 0119.5 20h-15A1.5 1.5 0 013 18.5z" /><circle cx="12" cy="13" r="3.2" />
+                            </svg>
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent side="bottom" align="start" className="w-64 text-[13.5px] leading-relaxed" style={{ fontFamily: F.body, color: F.txt }}>
+                        {t("myStudents.photoFromProfileHint")}
+                      </PopoverContent>
+                    </Popover>
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <input style={inp(true)} placeholder={t("myStudents.fieldFirstName")} value={form.first_name}
+                        onChange={(e) => setForm({ ...form, first_name: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
+                      <input style={inp(false)} placeholder={t("myStudents.fieldLastName")} value={form.last_name}
+                        onChange={(e) => setForm({ ...form, last_name: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
                     </div>
                   </div>
 
-                  {/* Subject combobox */}
+                  {/* Subjects — chips */}
                   <div>
-                    <span style={lbl}>{t("myStudents.fieldSubject")} <span style={{ color: F.teal }}>*</span></span>
-                    <div style={{ position: "relative" }}>
-                      <input
-                        style={inp(false)}
-                        placeholder="Англійська, математика…"
-                        value={form.subject}
-                        onChange={(e) => { setForm({ ...form, subject: e.target.value }); setSubjectOpen(true); }}
-                        onFocus={e => { setSubjectOpen(true); (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                        onBlur={e => { setTimeout(() => setSubjectOpen(false), 150); (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                      />
-                      {subjectOpen && subMatches.length > 0 && (
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 9 }}>
-                          {subMatches.map(s => (
-                            <button key={s}
-                              onMouseDown={e => { e.preventDefault(); setForm(f => ({ ...f, subject: s })); setSubjectOpen(false); }}
-                              style={{ height: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
-                                border: `1px solid ${F.border}`, background: "#fff", color: F.txt,
-                                fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
+                    <span style={lbl}>{t("myStudents.subjectsLabel")} <span style={{ color: F.teal }}>*</span></span>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+                      {subjList.map((s) => (
+                        <span key={s} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 8px 0 14px", borderRadius: 999,
+                          background: "#f0fdf9", color: F.tealD, boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)",
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
+                          {s}
+                          <button type="button" onClick={() => setSubjects(subjList.filter((x) => x !== s))} aria-label="✕"
+                            style={{ width: 20, height: 20, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(43,191,170,.18)", color: F.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <X size={12} strokeWidth={2.4} />
+                          </button>
+                        </span>
+                      ))}
+                      <button type="button" onClick={() => { setSubjectOpen((v) => !v); setSubjectDraft(""); }}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 5, height: 38, padding: subjList.length ? "0 12px" : "0 15px 0 12px", borderRadius: 999, cursor: "pointer",
+                          border: `1.5px ${subjectOpen ? "solid" : "dashed"} ${subjectOpen ? F.teal : F.border}`,
+                          background: subjectOpen ? "#f0fdf9" : "#fff", color: subjectOpen ? F.tealD : F.sub,
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
+                        <Plus size={15} strokeWidth={2.4} />{subjList.length ? "" : t("myStudents.addSubjectBtn")}
+                      </button>
+                    </div>
+                    {subjectOpen && (
+                      <div style={{ marginTop: 10, padding: 12, borderRadius: 14, background: F.bg, border: `1px solid ${F.border}` }}>
+                        <input autoFocus value={subjectDraft} onChange={(e) => setSubjectDraft(e.target.value)}
+                          placeholder={t("myStudents.subjectDraftPlaceholder")}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSubject(subjectDraft); } }}
+                          style={{ ...inp(false), background: "#fff", borderColor: F.teal, boxShadow: "0 0 0 3px rgba(43,191,170,.12)" }} />
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
+                          {subMatches.map((s) => (
+                            <button key={s} type="button" onClick={() => addSubject(s)}
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 13.5 }}>
                               {s}
                             </button>
                           ))}
+                          {draftIsCustom && (
+                            <button type="button" onClick={() => addSubject(subjectDraft)}
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
+                              + «{subjectDraft.trim()}»
+                            </button>
+                          )}
                         </div>
-                      )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 💛 Price card */}
+                  <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
+                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")}</div>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <div style={{ flex: 1 }}>
+                        <input inputMode="decimal" placeholder="500" value={form.price}
+                          onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })}
+                          onFocus={focusOn} onBlur={focusOff} style={{ ...inp(true), background: "#fff" }} />
+                      </div>
+                      <div style={{ position: "relative", flexShrink: 0 }}>
+                        <button type="button" onClick={() => setCurOpen((v) => !v)}
+                          style={{ ...inp(false), width: "auto", display: "flex", alignItems: "center", gap: 5, padding: "0 12px", cursor: "pointer", fontFamily: F.display, fontWeight: 800, background: "#fff" }}>
+                          <span style={{ color: F.tealD }}>{currencySymbol(form.currency)}</span>{form.currency}
+                          <ChevronDown size={15} style={{ color: F.muted, marginLeft: 2 }} />
+                        </button>
+                        {curOpen && (
+                          <>
+                            <div onClick={() => setCurOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 60 }} />
+                            <div style={{ position: "absolute", top: 56, right: 0, zIndex: 61, background: "#fff", borderRadius: 12, border: `1px solid ${F.border}`, boxShadow: "0 8px 24px -8px rgba(15,15,26,.25)", padding: 5, minWidth: 124 }}>
+                              {CURRENCY_OPTIONS.map((c) => (
+                                <button key={c.code} type="button" onClick={() => { setForm({ ...form, currency: c.code }); setCurOpen(false); }}
+                                  style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", height: 40, padding: "0 11px", borderRadius: 9, border: "none", cursor: "pointer", textAlign: "left",
+                                    background: c.code === form.currency ? "#f0fdf9" : "transparent",
+                                    color: c.code === form.currency ? F.tealD : F.txt,
+                                    fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
+                                  <span style={{ width: 20 }}>{c.symbol}</span>{c.code}
+                                  {c.code === form.currency && <Check size={14} strokeWidth={2.4} style={{ marginLeft: "auto", color: F.tealD }} />}
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Price + Currency */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <div>
-                      <span style={lbl}>{t("myStudents.fieldPrice", { currency: currencySymbol(form.currency) })} <span style={{ color: F.teal }}>*</span></span>
-                      <input
-                        type="number" min={0}
-                        style={inp(false)}
-                        placeholder="500"
-                        value={form.price}
-                        onChange={(e) => setForm({ ...form, price: e.target.value })}
-                        onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                        onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                      />
-                    </div>
-                    <div>
-                      <span style={lbl}>{t("myStudents.fieldCurrency")}</span>
-                      <CurrencyComboBox value={form.currency} onChange={(v) => setForm({ ...form, currency: v })} />
+                  {/* Divider */}
+                  <div style={{ height: 1, background: F.border }} />
+
+                  {/* Contacts — placeholders only; email-or-phone validated on submit */}
+                  <div>
+                    <span style={lbl}>{t("myStudents.contactsLabel")}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <input type="tel" style={inp(false)} placeholder={t("myStudents.fieldPhone")} value={form.phone}
+                        onChange={(e) => setForm({ ...form, phone: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
+                      <input type="email" style={inp(false)} placeholder="Email" value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
+                      <input style={inp(false)} placeholder="Telegram @username" value={form.telegram}
+                        onChange={(e) => setForm({ ...form, telegram: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
                     </div>
                   </div>
 
-                  {/* Expand toggle */}
-                  <button
-                    type="button"
-                    onClick={() => setShowMoreFields(v => !v)}
-                    style={{ display: "flex", alignItems: "center", gap: 6, height: 36,
-                      background: "transparent", border: "none", cursor: "pointer",
-                      fontFamily: F.body, fontSize: 14.5, fontWeight: 600,
-                      color: F.tealD, padding: 0, width: "fit-content" }}>
-                    {showMoreFields
-                      ? <><ChevronUp size={15} strokeWidth={2.2} /> {t("myStudents.hideContacts")}</>
-                      : <><ChevronDown size={15} strokeWidth={2.2} /> {t("myStudents.showContacts")}</>}
-                  </button>
-
-                  {/* Expanded fields */}
-                  {showMoreFields && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                      {/* Phone + Email */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                        <div>
-                          <span style={lbl}>{t("myStudents.fieldPhone")}</span>
-                          <input type="tel" style={inp(false)} placeholder="+380 67 123 45 67"
-                            value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })}
-                            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                          />
-                        </div>
-                        <div>
-                          <span style={lbl}>{t("myStudents.fieldEmail")}</span>
-                          <input type="email" style={inp(false)} placeholder="anna@mail.com"
-                            value={form.email} onChange={e => setForm({ ...form, email: e.target.value })}
-                            onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                            onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                          />
-                        </div>
-                      </div>
-                      {/* Telegram */}
-                      <div>
-                        <span style={lbl}>{t("myStudents.fieldTelegram")}</span>
-                        <input style={inp(false)} placeholder="@anna_iv"
-                          value={form.telegram} onChange={e => setForm({ ...form, telegram: e.target.value })}
-                          onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                          onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                        />
-                      </div>
-                      {/* Payment details */}
-                      <div>
-                        <span style={lbl}>{t("myStudents.fieldPaymentDetails")}</span>
-                        <textarea rows={2}
-                          style={{ ...inp(false), height: "auto", padding: "12px 14px", resize: "none", lineHeight: 1.5 }}
-                          placeholder="Monobank 4441…, Revolut @name"
-                          value={form.payment_details}
-                          onChange={e => setForm({ ...form, payment_details: e.target.value })}
-                          onFocus={e => { (e.target as HTMLTextAreaElement).style.borderColor = F.teal; (e.target as HTMLTextAreaElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLTextAreaElement).style.background = "#fff"; }}
-                          onBlur={e => { (e.target as HTMLTextAreaElement).style.borderColor = F.border; (e.target as HTMLTextAreaElement).style.boxShadow = "none"; (e.target as HTMLTextAreaElement).style.background = F.bg; }}
-                        />
-                      </div>
-                      {/* Meeting URL */}
-                      <div>
-                        <span style={{ ...lbl, display: "flex", alignItems: "center", gap: 6 }}>
-                          <Video size={14} style={{ color: F.muted }} />
-                          {t("myStudents.fieldMeetingUrl")}
-                        </span>
-                        <input type="url"
-                          style={inp(false)}
-                          placeholder="https://zoom.us/j/..."
-                          value={form.default_meeting_url}
-                          onChange={e => setForm({ ...form, default_meeting_url: e.target.value })}
-                          onFocus={e => { (e.target as HTMLInputElement).style.borderColor = F.teal; (e.target as HTMLInputElement).style.boxShadow = "0 0 0 3px rgba(43,191,170,0.12)"; (e.target as HTMLInputElement).style.background = "#fff"; }}
-                          onBlur={e => { (e.target as HTMLInputElement).style.borderColor = F.border; (e.target as HTMLInputElement).style.boxShadow = "none"; (e.target as HTMLInputElement).style.background = F.bg; }}
-                        />
-                      </div>
+                  {/* 🔒 Private notes */}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
+                      <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🔒</span>
+                      <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub }}>{t("myStudents.notesLabel")}</span>
                     </div>
-                  )}
-
-                  {/* Hint: email або телефон потрібен */}
-                  {showMoreFields && !form.email && !form.phone && (
-                    <p style={{ fontSize: 13.5, color: F.sub, fontFamily: F.body }}>
-                      ⓘ {t("myStudents.emailPhoneHint") || "Потрібен email або телефон — щоб учень міг приєднатися."}
-                    </p>
-                  )}
-
-                  {/* Buttons */}
-                  <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                    <button
-                      type="button"
-                      onClick={() => setDialog({ open: false, mode: "create", studentId: null })}
-                      style={{ flex: 1, height: 50, borderRadius: 14, border: `1px solid ${F.border}`,
-                        background: "#fff", cursor: "pointer", fontFamily: F.display,
-                        fontWeight: 700, fontSize: 16, color: F.sub }}>
-                      {t("myStudents.cancelBtn")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={submit}
-                      disabled={submitting}
-                      style={{ flex: 2, height: 50, borderRadius: 14, border: "none",
-                        background: submitting ? F.muted : "linear-gradient(135deg,#2BBFAA,#25a896)",
-                        cursor: submitting ? "not-allowed" : "pointer",
-                        fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#fff",
-                        boxShadow: submitting ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
-                        display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                      {submitting && <Loader2 size={18} className="animate-spin" />}
-                      {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
-                    </button>
+                    <textarea rows={3} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}
+                      onChange={(e) => setForm({ ...form, tutor_notes: e.target.value })}
+                      onFocus={(e) => { e.target.style.borderColor = "#F5B544"; e.target.style.boxShadow = "0 0 0 3px rgba(245,181,68,.16)"; e.target.style.background = "#fff"; }}
+                      onBlur={(e) => { e.target.style.borderColor = "rgba(245,181,68,.35)"; e.target.style.boxShadow = "none"; e.target.style.background = "#FFFCF4"; }}
+                      style={{ width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 15.5, fontFamily: F.body, color: F.txt, boxSizing: "border-box", outline: "none", resize: "none", lineHeight: 1.5, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)", transition: "all .15s" }} />
                   </div>
                 </div>
-              </div>
+
+                {/* ── Footer ── */}
+                <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 10 }}>
+                  <button type="button" onClick={close}
+                    style={{ height: 52, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                    {t("myStudents.cancelBtn")}
+                  </button>
+                  <button type="button" onClick={submit} disabled={submitting}
+                    style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
+                      background: submitting ? F.muted : "linear-gradient(135deg,#2BBFAA,#25a896)",
+                      cursor: submitting ? "not-allowed" : "pointer",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#fff",
+                      boxShadow: submitting ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    {submitting && <Loader2 size={18} className="animate-spin" />}
+                    {dialog.mode === "create" ? t("myStudents.addBtn") : t("myStudents.saveBtn")}
+                  </button>
+                </div>
+              </>
             );
           })()}
         </DialogContent>

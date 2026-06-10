@@ -920,6 +920,14 @@ export const uk = {
   },
 
   myStudents: {
+    subjectsLabel: "Предмети",
+    addSubjectBtn: "Предмет",
+    subjectDraftPlaceholder: "Назва предмета…",
+    priceCardTitle: "Ціна за урок",
+    contactsLabel: "Контакти",
+    notesLabel: "Нотатки — бачиш лише ти",
+    notesPlaceholder: "Цілі, рівень, важливі деталі…",
+    photoFromProfileHint: "Фото підтягнеться з профілю учня, щойно він приєднається до oTutorHub.",
     showContacts: "Додати контакти та деталі ↓",
     hideContacts: "Сховати необов'язкові поля ↑",
     title: "Мої учні",

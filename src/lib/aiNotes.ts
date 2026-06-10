@@ -32,7 +32,7 @@ export async function maybeAutoStartFireflies(
       .select("fireflies_status")
       .eq("lesson_id", lessonId)
       .maybeSingle();
-    const status = (ld as Record<string, unknown> | null)?.fireflies_status as string | undefined;
+    const status = (ld as unknown as Record<string, unknown> | null)?.fireflies_status as string | undefined;
     if (status) return false; // requested / recording / done — don't double-start
 
     const { error } = await supabase.functions.invoke("fireflies-start-recording", {

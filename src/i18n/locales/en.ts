@@ -912,6 +912,14 @@ export const en: Translations = {
   },
 
   myStudents: {
+    subjectsLabel: "Subjects",
+    addSubjectBtn: "Subject",
+    subjectDraftPlaceholder: "Subject name…",
+    priceCardTitle: "Price per lesson",
+    contactsLabel: "Contacts",
+    notesLabel: "Notes — only you can see them",
+    notesPlaceholder: "Goals, level, important details…",
+    photoFromProfileHint: "The photo will be pulled from the student's profile once they join oTutorHub.",
     showContacts: "Add contacts & details ↓",
     hideContacts: "Hide optional fields ↑",
     title: "My students",
