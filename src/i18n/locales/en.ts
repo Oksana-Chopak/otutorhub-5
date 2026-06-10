@@ -2574,6 +2574,11 @@ export const en: Translations = {
     detailsLink: "Details",
   },
   quickLessonDialog: {
+    newLessonTitle: "New lesson",
+    cancelBtn: "Cancel",
+    createLessonBtn: "Create lesson",
+    studentsShort: "st.",
+    openFullEditor: "Open full editor",
     addStudentFirst: "Add a student first",
     noStudentsHint: "Add your first student to create a lesson",
     addStudentBtn: "Add student",

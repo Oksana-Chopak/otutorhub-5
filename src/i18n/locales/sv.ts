@@ -2564,6 +2564,11 @@ export const sv: Partial<Translations> = {
     detailsLink: "Detaljer",
   },
   quickLessonDialog: {
+    newLessonTitle: "Ny lektion",
+    cancelBtn: "Avbryt",
+    createLessonBtn: "Skapa lektion",
+    studentsShort: "el.",
+    openFullEditor: "Öppna fullständig redigerare",
     addStudentFirst: "Lägg till en elev först",
     noStudentsHint: "Lägg till din första elev för att skapa en lektion",
     addStudentBtn: "Lägg till elev",

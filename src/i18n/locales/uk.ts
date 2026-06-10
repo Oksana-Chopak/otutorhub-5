@@ -2586,6 +2586,11 @@ export const uk = {
     detailsLink: "Деталі",
   },
   quickLessonDialog: {
+    newLessonTitle: "Новий урок",
+    cancelBtn: "Скасувати",
+    createLessonBtn: "Створити урок",
+    studentsShort: "уч.",
+    openFullEditor: "Відкрити повний редактор",
     addStudentFirst: "Спочатку додайте учня",
     noStudentsHint: "Спочатку додайте першого учня, щоб створити урок",
     addStudentBtn: "Додати учня",

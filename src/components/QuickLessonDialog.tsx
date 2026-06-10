@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, User, Users2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -313,18 +313,16 @@ export function QuickLessonDialog({
     onCreated?.();
   };
 
-  const timeLabel = startsAt
-    ? startsAt.toLocaleString("uk-UA", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "";
-
   const canSubmit =
     !submitting && (mode === "individual" ? !!selected : !!selectedGroup);
+
+  const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+  const heroDate = startsAt
+    ? cap(startsAt.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" }))
+    : "";
+  const heroTime = startsAt
+    ? startsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
+    : "";
 
   // ── Design tokens ─────────────────────────────────────────────────────────────
   const F = {
@@ -350,53 +348,77 @@ export function QuickLessonDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[86vh] overflow-y-auto">
+        <DialogContent className="max-w-[440px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
           {/* Drag handle */}
-          <div className="flex justify-center pt-3 pb-0">
-            <div style={{ width: 38, height: 5, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          <div className="flex justify-center pt-2.5 pb-1 flex-shrink-0 sm:hidden">
+            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
           </div>
 
-          <div style={{ padding: "14px 20px 24px" }}>
-            {/* Hero: date + time */}
-            <div style={{ marginBottom: 18 }}>
-              <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, color: F.txt, lineHeight: 1.2 }}>
-                {timeLabel ?? "Новий урок"}
-              </p>
-              <p style={{ fontSize: 14, color: F.sub, marginTop: 3, fontFamily: F.body }}>
-                Оберіть учня та тривалість
-              </p>
+          {/* Header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 22px 10px", flexShrink: 0 }}>
+            <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, color: F.txt, letterSpacing: "-.01em" }}>
+              {t("quickLessonDialog.newLessonTitle")}
             </div>
+            <button onClick={() => onOpenChange(false)} aria-label={t("quickLessonDialog.cancelBtn")}
+              style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: F.bg, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} />
+            </button>
+          </div>
 
+          {/* Body */}
+          <div style={{ flex: 1, overflowY: "auto", padding: "4px 22px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
             {loading ? (
               <div className="flex items-center justify-center py-10">
-                <div className="animate-spin text-2xl">⟳</div>
+                <Loader2 className="h-6 w-6 animate-spin" style={{ color: F.muted }} />
               </div>
             ) : students.length === 0 && groups.length === 0 ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <p style={{ fontSize: 14, color: F.sub, marginBottom: 12, fontFamily: F.body }}>
+                <p style={{ fontSize: 14.5, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
                   {t("quickLessonDialog.noStudentsHint")}
                 </p>
                 <button onClick={() => setAddStudentOpen(true)}
-                  style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
+                  style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
                     background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
-                    fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
+                    fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
                   + {t("quickLessonDialog.addStudentBtn")}
                 </button>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {/* Mode toggle */}
-                {groups.length > 0 && (
-                  <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 13,
-                    background: "rgba(15,15,26,.06)" }}>
-                    {(["individual", "group"] as const).map(m => (
-                      <button key={m} onClick={() => setMode(m)}
-                        style={{ flex: 1, height: 38, borderRadius: 10, border: "none", cursor: "pointer",
-                          background: mode === m ? F.surface : "transparent",
-                          boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.12)" : "none",
+              <>
+                {/* Time hero */}
+                <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
+                  <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 30, letterSpacing: "-.02em", marginTop: 2 }}>{heroTime}</div>
+                </div>
+
+                {/* Duration chips */}
+                <div style={{ display: "flex", gap: 8 }}>
+                  {["30","45","60","90","120"].map(d => {
+                    const on = duration === d;
+                    return (
+                      <button key={d} onClick={() => setDuration(d)}
+                        style={{ flex: 1, height: 44, borderRadius: 12, cursor: "pointer",
+                          border: `1.5px solid ${on ? F.teal : F.border}`,
+                          background: on ? F.tealL : F.surface,
                           fontFamily: F.display, fontWeight: 700, fontSize: 14,
-                          color: mode === m ? F.tealD : F.muted }}>
-                        {m === "individual" ? "👤 Індивідуальний" : "👥 Груповий"}
+                          color: on ? F.tealD : F.txt }}>
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Mode toggle (only when groups exist) */}
+                {groups.length > 0 && (
+                  <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.06)" }}>
+                    {([["individual","👤 " + t("quickLessonDialog.modeIndividual")], ["group","👥 " + t("quickLessonDialog.modeGroup")]] as const).map(([m, l]) => (
+                      <button key={m} onClick={() => setMode(m as Mode)}
+                        style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
+                          background: mode === m ? F.surface : "transparent",
+                          boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.06)" : "none",
+                          fontFamily: F.display, fontWeight: 700, fontSize: 13.5,
+                          color: mode === m ? F.txt : F.sub }}>
+                        {l}
                       </button>
                     ))}
                   </div>
@@ -404,44 +426,36 @@ export function QuickLessonDialog({
 
                 {/* Student cards */}
                 {mode === "individual" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 240, overflowY: "auto" }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 280, overflowY: "auto" }}>
                     {students.map(s => {
                       const active = studentId === s.student_id;
                       return (
-                        <button key={s.student_id} onClick={() => {
-                            setStudentId(s.student_id);
-                            localStorage.setItem(LAST_KEY, s.student_id);
-                          }}
-                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                        <button key={s.student_id} onClick={() => { setStudentId(s.student_id); localStorage.setItem(LAST_KEY, s.student_id); }}
+                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
                             borderRadius: 16, textAlign: "left", cursor: "pointer",
-                            border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
+                            border: `1.5px solid ${active ? F.teal : F.border}`,
                             background: active ? F.tealL : F.surface,
-                            boxShadow: active ? "0 0 0 1px rgba(43,191,170,.2)" : "0 1px 3px rgba(15,15,26,.05)" }}>
-                          <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                            boxShadow: active ? "0 8px 20px -10px rgba(43,191,170,.5)" : "none" }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 999, flexShrink: 0,
                             background: ava(s.name), display: "flex", alignItems: "center",
-                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 14, color: "#fff" }}>
+                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 15, color: "#fff" }}>
                             {initials(s.name)}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt,
-                              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {s.name}
-                            </p>
-                            <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
-                              {s.subject} · {s.price}{"₴"}/урок
-                            </p>
+                            <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt,
+                              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
+                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{s.subject} · {s.price}₴</div>
                           </div>
-                          {active && (
-                            <div style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
-                              background: F.teal, display: "flex", alignItems: "center", justifyContent: "center",
-                              color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</div>
-                          )}
+                          <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+                            border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {active && <span style={{ width: 11, height: 11, borderRadius: 999, background: F.teal }} />}
+                          </span>
                         </button>
                       );
                     })}
                     <button onClick={() => setAddStudentOpen(true)}
-                      style={{ height: 40, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
-                        background: "transparent", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
+                      style={{ height: 42, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
+                        background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
                       + {t("quickLessonDialog.addStudentBtn")}
                     </button>
                   </div>
@@ -454,95 +468,62 @@ export function QuickLessonDialog({
                       const active = groupId === g.id;
                       return (
                         <button key={g.id} onClick={() => setGroupId(g.id)}
-                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+                          style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px",
                             borderRadius: 16, textAlign: "left", cursor: "pointer",
-                            border: active ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
-                            background: active ? F.tealL : F.surface }}>
-                          <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                            border: `1.5px solid ${active ? F.teal : F.border}`,
+                            background: active ? F.tealL : F.surface,
+                            boxShadow: active ? "0 8px 20px -10px rgba(43,191,170,.5)" : "none" }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 999, flexShrink: 0,
                             background: ava(g.name), display: "flex", alignItems: "center",
-                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 14, color: "#fff" }}>
+                            justifyContent: "center", fontFamily: F.display, fontWeight: 800, fontSize: 15, color: "#fff" }}>
                             {initials(g.name)}
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt }}>
-                              {g.name}
-                            </p>
-                            <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
-                              {g.subject} · {g.participants.length} уч.
-                            </p>
+                            <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt }}>{g.name}</div>
+                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{g.subject} · {g.participants.length} {t("quickLessonDialog.studentsShort")}</div>
                           </div>
-                          {active && <div style={{ width: 22, height: 22, borderRadius: 999, background: F.teal,
-                            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 13, fontWeight: 700 }}>✓</div>}
+                          <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+                            border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {active && <span style={{ width: 11, height: 11, borderRadius: 999, background: F.teal }} />}
+                          </span>
                         </button>
                       );
                     })}
                   </div>
                 )}
 
-                {/* Duration chips */}
-                <div>
-                  <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub,
-                    textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 8 }}>
-                    Тривалість
-                  </p>
-                  <div style={{ display: "flex", gap: 7 }}>
-                    {["30","45","60","90","120"].map(d => (
-                      <button key={d} onClick={() => setDuration(d)}
-                        style={{ flex: 1, height: 44, borderRadius: 12, cursor: "pointer",
-                          border: duration === d ? `1.5px solid ${F.teal}` : `1px solid ${F.border}`,
-                          background: duration === d ? F.tealL : F.surface,
-                          fontFamily: F.display, fontWeight: 700, fontSize: 14,
-                          color: duration === d ? F.tealD : F.sub }}>
-                        {d}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Summary line */}
-                {(selected || selectedGroup) && (
-                  <div style={{ padding: "10px 14px", borderRadius: 12, background: F.bg,
-                    border: `1px solid ${F.border}`, fontSize: 14, color: F.sub, fontFamily: F.body }}>
-                    {mode === "individual" && selected && (
-                      <>
-                        ✓ {selected.name} · {selected.subject} · {duration} хв · {selected.price}
-₴
-                        {selected?.default_meeting_url ? " · Zoom ✓" : ""}
-                      </>
-                    )}
-                    {mode === "group" && selectedGroup && (
-                      <>{selectedGroup.name} · {selectedGroup.subject} · {duration} хв · {selectedGroup.participants.length} уч.</>
-                    )}
-                  </div>
-                )}
-
-                {/* Submit + Open editor */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <button
-                    disabled={submitting || !canSubmit}
-                    onClick={submit}
-                    style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
-                      cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
-                      background: canSubmit ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
-                      color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
-                      boxShadow: canSubmit ? "0 8px 20px -8px rgba(43,191,170,.55)" : "none",
-                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    {submitting && <span className="animate-spin">⟳</span>}
-                    Створити урок
+                {/* Full editor link */}
+                {startsAt && onWantFullForm && mode === "individual" && (
+                  <button onClick={() => { onOpenChange(false); onWantFullForm!(startsAt!); }}
+                    style={{ alignSelf: "center", background: "transparent", border: "none", cursor: "pointer",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 13.5, color: F.sub, padding: "2px 8px" }}>
+                    {t("quickLessonDialog.openFullEditor")} →
                   </button>
-
-                  {startsAt && onWantFullForm && mode === "individual" && (
-                    <button onClick={() => { onOpenChange(false); onWantFullForm!(startsAt!); }}
-                      style={{ width: "100%", height: 44, borderRadius: 12, cursor: "pointer",
-                        border: `1px solid ${F.border}`, background: F.surface,
-                        fontFamily: F.display, fontWeight: 600, fontSize: 14, color: F.muted }}>
-                      Відкрити повний редактор →
-                    </button>
-                  )}
-                </div>
-              </div>
+                )}
+              </>
             )}
           </div>
+
+          {/* Footer */}
+          {!loading && (students.length > 0 || groups.length > 0) && (
+            <div style={{ flexShrink: 0, padding: "14px 22px 22px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 11 }}>
+              <button onClick={() => onOpenChange(false)}
+                style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${F.border}`,
+                  background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+                {t("quickLessonDialog.cancelBtn")}
+              </button>
+              <button disabled={submitting || !canSubmit} onClick={submit}
+                style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
+                  cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
+                  background: canSubmit ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
+                  color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                  boxShadow: canSubmit ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                {submitting && <Loader2 className="h-[18px] w-[18px] animate-spin" />}
+                {t("quickLessonDialog.createLessonBtn")}
+              </button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 
