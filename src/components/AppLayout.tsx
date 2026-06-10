@@ -17,7 +17,7 @@ const routeTitleKey: Record<string, string> = {
   "/finances": "nav.finances",
   "/chats": "nav.chats",
   "/referrals": "nav.referrals",
-  "/my-referrals": "nav.myReferrals",
+  "/my-referrals": "myReferrals.heroTitle",
   "/achievements": "nav.achievements",
   "/subscription-requests": "nav.subscriptionRequests",
   "/people": "nav.people",
