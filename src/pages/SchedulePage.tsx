@@ -729,7 +729,18 @@ export default function SchedulePage() {
       setLessons(prev);
       return;
     }
-    toast.success(t('schedule.statusUpdated'));
+    const lsn = prev.find((l) => l.id === lessonId);
+    const canMarkPay = newStatus === "completed" && !!lsn && lsn.student_payment_status !== "paid" &&
+      (isManager || (isTutor && lsn.tutor_id === user?.id));
+    if (canMarkPay) {
+      toast.success(t('schedule.statusUpdated'), {
+        description: "Учень оплатив?",
+        duration: 6000,
+        action: { label: "Оплачено ✓", onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) },
+      });
+    } else {
+      toast.success(t('schedule.statusUpdated'));
+    }
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 

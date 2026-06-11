@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { insertNotification } from "@/lib/notifications";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -1429,12 +1430,30 @@ export default function FinancesPage() {
                               {Number(l.student_price).toLocaleString("uk-UA")} ₴
                             </p>
                             <button
-                              onClick={() => togglePayment(l, "student_payment_status")}
+                              onClick={() => {
+                                insertNotification({
+                                  userId: l.student_id,
+                                  type: `payment_reminder_${l.id}_${Date.now()}`,
+                                  title: "💳 Нагадування про оплату",
+                                  body: `Урок ${new Date(l.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} — ${Number(l.student_price).toLocaleString("uk-UA")} ₴ очікує оплати`,
+                                  link: "/schedule",
+                                });
+                                toast.success("Нагадування надіслано", { description: nameOf(l.student_id) });
+                              }}
                               style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
                                 background:"rgba(245,158,11,.18)", color:F.warnD,
                                 fontFamily:F.display, fontWeight:700, fontSize:12.5, cursor:"pointer",
                                 flexShrink:0 }}>
                               Нагадати
+                            </button>
+                            <button
+                              onClick={() => togglePayment(l, "student_payment_status")}
+                              aria-label="Оплачено"
+                              style={{ width:32, height:32, borderRadius:9, border:"1.5px solid rgba(43,191,170,.4)",
+                                background:"#f0fdf9", color:"#1f8e7e", cursor:"pointer", flexShrink:0,
+                                display:"flex", alignItems:"center", justifyContent:"center",
+                                fontWeight:800, fontSize:14 }}>
+                              ✓
                             </button>
                           </div>
                         ))}

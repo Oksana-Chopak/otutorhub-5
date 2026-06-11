@@ -22,6 +22,7 @@ import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
 import { AiNotesDialog } from "@/components/AiNotesDialog";
+import { CloseDayDialog, type CloseDayRow } from "@/components/CloseDayDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
@@ -264,6 +265,7 @@ export default function DashboardPage() {
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [walletPair, setWalletPair] = useState<{ tutor_id: string; student_id: string; tutor_name: string; student_name: string } | null>(null);
   const [aiNotesOpen, setAiNotesOpen] = useState(false);
+  const [closeDayOpen, setCloseDayOpen] = useState(false);
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [paymentPairs, setPaymentPairs] = useState<PairOption[]>([]);
   const [paymentUnpaid, setPaymentUnpaid] = useState<UnpaidLessonOption[]>([]);
@@ -611,16 +613,22 @@ export default function DashboardPage() {
     }
     if (newStatus === "completed") {
       burstConfetti();
+      const lesson = lessons.find((l) => l.id === lessonId);
+      const canMarkPay = !!lesson && lesson.student_payment_status !== "paid" && (isManager || lesson.tutor_id === user?.id);
       toast.success(t("dashboardExtra.lessonCompletedToast"), {
-        description: streak?.current_streak
-          ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
-          : t("dashboardExtra.lessonCompletedGood"),
-        duration: 4000,
+        description: canMarkPay
+          ? "Учень оплатив?"
+          : streak?.current_streak
+            ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
+            : t("dashboardExtra.lessonCompletedGood"),
+        duration: canMarkPay ? 6000 : 4000,
+        action: canMarkPay
+          ? { label: "Оплачено ✓", onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) }
+          : undefined,
       });
       gamification.refresh();
 
       // Award reward emoji to student
-      const lesson = lessons.find((l) => l.id === lessonId);
       if (lesson?.student_id && user) {
         const theme: RewardTheme = "fruits";
         const emoji = getRandomEmoji(theme);
@@ -706,6 +714,28 @@ export default function DashboardPage() {
   const todayLessons = useMemo(
     () => lessons.filter((lesson) => lesson.starts_at.slice(0, 10) === todayKey),
     [lessons, todayKey]
+  );
+
+  // «Закрити день»: сьогоднішні минулі уроки, що досі в статусі "заплановано"
+  const closeDayRows: CloseDayRow[] = useMemo(
+    () =>
+      todayLessons
+        .filter(
+          (l) =>
+            l.status === "scheduled" &&
+            new Date(l.starts_at).getTime() <= nowMs &&
+            (isManager || l.tutor_id === user?.id)
+        )
+        .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
+        .map((l) => ({
+          id: l.id,
+          name: profiles[l.student_id] ?? "Учень",
+          time: new Date(l.starts_at).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }),
+          price: Number(l.student_price) || 0,
+          currency: pairCurrency[`${l.tutor_id}:${l.student_id}`],
+          paid: l.student_payment_status === "paid",
+        })),
+    [todayLessons, nowMs, isManager, user?.id, profiles, pairCurrency]
   );
 
   const upcomingAll = useMemo(
@@ -1169,6 +1199,28 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
+
+          {/* ── Закрити день — вечірній батч ── */}
+          {closeDayRows.length > 0 && (
+            <button onClick={() => setCloseDayOpen(true)}
+              className="mb-4 w-full text-left"
+              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 18,
+                background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", border: "none", cursor: "pointer",
+                boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)" }}>
+              <span style={{ fontSize: 26 }}>🌙</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16.5, color: "#fff" }}>
+                  Закрити день
+                </span>
+                <span style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,.65)", marginTop: 1 }}>
+                  {closeDayRows.length} {closeDayRows.length === 1 ? "урок чекає" : closeDayRows.length < 5 ? "уроки чекають" : "уроків чекають"} відмітки «проведено + оплачено»
+                </span>
+              </span>
+              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+                Одним рухом
+              </span>
+            </button>
+          )}
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
@@ -1918,6 +1970,7 @@ export default function DashboardPage() {
         />
       )}
       <AiNotesDialog open={aiNotesOpen} onOpenChange={setAiNotesOpen} />
+      <CloseDayDialog open={closeDayOpen} onOpenChange={setCloseDayOpen} rows={closeDayRows} onDone={() => loadData()} />
       <RecordPaymentSheet
         open={paymentSheetOpen}
         onOpenChange={setPaymentSheetOpen}
