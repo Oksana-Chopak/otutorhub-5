@@ -28,6 +28,7 @@ import {
   MessageCircleHeart,
   Mail,
   ChevronLeft,
+  UserRound,
   ChevronRight} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -74,6 +75,7 @@ const allNavItems: NavItem[] = [
   // Manager
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager"] },
   { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["manager"], badgeKey: "availability" },
+  { to: "/people", labelKey: "nav.people", icon: UserRound, roles: ["manager"] },
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["manager"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },

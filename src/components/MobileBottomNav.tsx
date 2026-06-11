@@ -1,23 +1,72 @@
 /**
- * MobileBottomNav — 4 icons, no labels, large touch targets.
- * Tabs are role-aware: /finances is tutor/manager-only (the route is guarded),
- * so pure students get Achievements there instead of a dead tab.
+ * MobileBottomNav — нижня навігація для сторінок усередині AppLayout.
+ * - tutor/manager: 4 великі іконки без підписів.
+ * - чистий студент: ДЗЕРКАЛО мобільного меню StudentLayout (ті самі пункти,
+ *   іконки й підписи), щоб перехід на /chats чи /achievements не «перемикав»
+ *   нижнє меню.
  */
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, CalendarDays, Wallet, MessageSquare, Trophy } from "lucide-react";
+import { Home, CalendarDays, Wallet, MessageSquare } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useAuth } from "@/hooks/useAuth";
+import { STUDENT_NAV_DEFS } from "@/components/student/StudentLayout";
+import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {
   const unread = useUnreadChats();
   const location = useLocation();
   const { roles } = useAuth();
-  const canSeeFinances = roles.includes("tutor") || roles.includes("manager");
+  const { t } = useTranslation();
+  const isPureStudent =
+    roles.includes("student") && !roles.includes("tutor") && !roles.includes("manager");
 
+  // ── Студент: точна копія мобільного меню StudentLayout ──────────────────────
+  if (isPureStudent) {
+    const mobileItems = STUDENT_NAV_DEFS.filter((i) => i.to !== "/student/profile").slice(0, 5);
+    return (
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
+        <ul className="flex items-stretch justify-around">
+          {mobileItems.map((item) => {
+            const badge = item.badgeKey === "chats" ? unread : 0;
+            return (
+              <li key={item.to} className="flex-1">
+                <NavLink
+                  to={item.to}
+                  end={item.to === "/student-dashboard"}
+                  className={({ isActive }) =>
+                    cn(
+                      "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[12px] font-medium transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )
+                  }
+                >
+                  <span className="relative">
+                    <item.icon className="h-6 w-6" />
+                    {badge > 0 && (
+                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[12px] font-semibold text-primary-foreground">
+                        {badge > 9 ? "9+" : badge}
+                      </span>
+                    )}
+                  </span>
+                  <span className="truncate leading-tight">{t(item.labelKey)}</span>
+                </NavLink>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    );
+  }
+
+  // ── Tutor / manager: 4 іконки без підписів ──────────────────────────────────
   const tabs = [
     { to: "/", icon: Home },
     { to: "/schedule", icon: CalendarDays },
-    canSeeFinances ? { to: "/finances", icon: Wallet } : { to: "/achievements", icon: Trophy },
+    { to: "/finances", icon: Wallet },
     { to: "/chats", icon: MessageSquare },
   ] as const;
 

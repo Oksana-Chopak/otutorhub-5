@@ -92,10 +92,13 @@ describe("MobileBottomNav — пункти за ролями", () => {
     expect(hrefs(container)).toContain("/finances");
   });
 
-  it("STUDENT не бачить Фінансів — замість них Досягнення", () => {
+  it("STUDENT бачить дзеркало меню StudentLayout (без Фінансів)", () => {
     setRoles(["student"]);
     const { container } = renderNav();
-    expect(hrefs(container)).not.toContain("/finances");
-    expect(hrefs(container)).toContain("/achievements");
+    const h = hrefs(container);
+    expect(h).not.toContain("/finances");
+    expect(h).toContain("/student-dashboard");
+    expect(h).toContain("/student/schedule");
+    expect(h).toContain("/chats");
   });
 });

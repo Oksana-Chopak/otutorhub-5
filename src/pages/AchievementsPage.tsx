@@ -10,6 +10,7 @@ import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { StudentRewardsShelf } from "@/components/StudentRewardsShelf";
+import { StudentLayout } from "@/components/student/StudentLayout";
 
 export default function AchievementsPage() {
   const { t } = useTranslation();
@@ -19,9 +20,9 @@ export default function AchievementsPage() {
 
   if (isPureStudent) {
     return (
-      <AppLayout>
+      <StudentLayout>
         <StudentRewardsShelf />
-      </AppLayout>
+      </StudentLayout>
     );
   }
 

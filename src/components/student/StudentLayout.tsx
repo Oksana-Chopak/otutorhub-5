@@ -10,7 +10,7 @@ import { Sun, Moon, LogOut } from "lucide-react";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 
-const NAV_DEFS = [
+export const STUDENT_NAV_DEFS = [
   { to: "/student-dashboard", labelKey: "studentNav.dashboard", titleKey: "studentNav.myDashboard", icon: LayoutDashboard },
   { to: "/student/schedule", labelKey: "studentNav.schedule", titleKey: "studentNav.schedule", icon: CalendarDays },
   { to: "/student/payments", labelKey: "studentNav.payments", titleKey: "studentNav.payments", icon: DollarSign },
@@ -26,9 +26,9 @@ export function StudentLayout({ children }: { children: ReactNode }) {
   const { signOut, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  const items = NAV_DEFS.map((d) => ({ ...d, label: t(d.labelKey) }));
+  const items = STUDENT_NAV_DEFS.map((d) => ({ ...d, label: t(d.labelKey) }));
   const mobileItems = items.filter((i) => i.to !== "/student/profile").slice(0, 5);
-  const titleDef = NAV_DEFS.find((d) => d.to === pathname);
+  const titleDef = STUDENT_NAV_DEFS.find((d) => d.to === pathname);
   const title = titleDef ? t(titleDef.titleKey) : undefined;
 
   return (
