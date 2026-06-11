@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
+import { isNativeApp } from "@/lib/platform";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -480,6 +481,9 @@ export default function AuthPage() {
               </TabsList>
 
               <div className="mt-4 space-y-3">
+                {/* Google OAuth заборонений Google всередині webview (disallowed_useragent),
+                    тож у нативних збірках показуємо лише email-вхід. */}
+                {!isNativeApp() && (
                 <Button
                   type="button"
                   variant="outline"
@@ -495,12 +499,15 @@ export default function AuthPage() {
                   </svg>
                   {t("auth.googleSignIn")}
                 </Button>
+                )}
+                {!isNativeApp() && (
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground">{t("common.or")}</span>
                   </div>
                 </div>
+                )}
               </div>
 
               <TabsContent value="signin">

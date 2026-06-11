@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { isIosApp } from "@/lib/platform";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -74,6 +75,8 @@ const statusMeta: Record<
 
 export default function SubscriptionPage() {
   const navigate = useNavigate();
+  // App Store 3.1.1: в iOS-збірці не показуємо ціни та зовнішні оплати
+  const iosApp = isIosApp();
   const [searchParams] = useSearchParams();
   const { user, roles } = useAuth();
   const { trackPaywallClick } = usePaywallTracking();
@@ -272,19 +275,19 @@ export default function SubscriptionPage() {
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>Далі Pro — {PRO_PRICE_MONTHLY} ₴/міс. Лишись на Pro вже зараз 👇</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{iosApp ? "Користуйся всім на повну — тріал активний 💪" : `Далі Pro — ${PRO_PRICE_MONTHLY} ₴/міс. Лишись на Pro вже зараз 👇`}</div>
               </>
             ) : (
               <>
                 <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>Усе, щоб рости</div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>Обери Pro — і веди всю практику в одному місці. {PRO_PRICE_MONTHLY} ₴/міс, скасування в один клік.</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{iosApp ? "Pro відкриває всі можливості для твоєї практики." : `Обери Pro — і веди всю практику в одному місці. ${PRO_PRICE_MONTHLY} ₴/міс, скасування в один клік.`}</div>
               </>
             )}
           </div>
 
-          {/* ── Path 1 — pay ─────────────────────────────────────────────── */}
-          {!isActive && (
+          {/* ── Path 1 — pay (прихована в iOS-збірці: App Store 3.1.1) ──── */}
+          {!isActive && !iosApp && (
             <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                 <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити Pro</span>
@@ -310,7 +313,7 @@ export default function SubscriptionPage() {
           )}
 
           {/* ── або не плати ─────────────────────────────────────────────── */}
-          {!isActive && (
+          {!isActive && !iosApp && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
               <div style={{ flex: 1, height: 1, background: S.border }} />
               <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 12, color: S.muted }}>або не плати</span>
@@ -326,7 +329,7 @@ export default function SubscriptionPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>Запроси друга — не плати</div>
-                <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>Місяць Pro безкоштовно за кожного, хто залишиться. Це <b style={{ color: S.tealD }}>−{PRO_PRICE_MONTHLY} ₴/міс</b>.</div>
+                <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>Місяць Pro безкоштовно за кожного, хто залишиться{iosApp ? "." : <>. Це <b style={{ color: S.tealD }}>−{PRO_PRICE_MONTHLY} ₴/міс</b>.</>}</div>
               </div>
             </div>
             <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 46, borderRadius: 13, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -352,8 +355,8 @@ export default function SubscriptionPage() {
             </div>
           </div>
 
-          {/* ── Manager fallback ─────────────────────────────────────────── */}
-          {!isActive && (
+          {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
+          {!isActive && !iosApp && (
             <div style={{ borderRadius: 18, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
