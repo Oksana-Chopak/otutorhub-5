@@ -153,6 +153,8 @@ export function LessonWorkspace({
   const [defaultUrl, setDefaultUrl] = useState<string>("");
   const [saving, setSaving] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [prevLesson, setPrevLesson] = useState<{ starts_at: string; summary: string | null; homework: string | null } | null>(null);
+  const [prevOpen, setPrevOpen] = useState(false);
   const [privateNotesDraft, setPrivateNotesDraft] = useState("");
   const [privateNotesSaved, setPrivateNotesSaved] = useState("");
   const [openRow, setOpenRow] = useState<string | null>(null);
@@ -205,6 +207,38 @@ export function LessonWorkspace({
   }, [tutorId, studentId]);
 
   const effectiveMeetingUrl = (meetingUrl && meetingUrl.trim()) || defaultUrl || "";
+
+  // 🧠 «Памʼять учня» lite: останній завершений урок цієї пари перед поточним
+  useEffect(() => {
+    if (!isTutor) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: prev } = await supabase
+          .from("lessons")
+          .select("id, starts_at")
+          .eq("tutor_id", tutorId)
+          .eq("student_id", studentId)
+          .eq("status", "completed")
+          .neq("id", lessonId)
+          .order("starts_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!prev || cancelled) { if (!cancelled) setPrevLesson(null); return; }
+        const { data: det } = await supabase
+          .from("lesson_details")
+          .select("summary, homework")
+          .eq("lesson_id", prev.id)
+          .maybeSingle();
+        if (!cancelled) {
+          const summary = (det?.summary as string | null) ?? null;
+          const homework = (det?.homework as string | null) ?? null;
+          setPrevLesson(summary || homework ? { starts_at: prev.starts_at, summary, homework } : null);
+        }
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [lessonId, tutorId, studentId, isTutor]);
 
   // Load private per-lesson tutor notes (tutor-only table); resilient if not migrated yet.
   useEffect(() => {
@@ -483,6 +517,43 @@ export function LessonWorkspace({
       {/* TUTOR EDIT — private notes + accordion (homework / summary / meeting) */}
       {canEditTutorFields && (
         <section className="md:col-span-2" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* 🧠 Минулий урок — контекст перед заняттям */}
+          {prevLesson && (
+            <div style={{ borderRadius: 14, border: "1px solid rgba(99,102,241,.25)", background: "rgba(99,102,241,.06)", overflow: "hidden" }}>
+              <button type="button" onClick={() => setPrevOpen((v) => !v)}
+                style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", padding: "11px 13px", border: "none", background: "transparent", cursor: "pointer" }}>
+                <span style={{ fontSize: 16 }}>🧠</span>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, color: L.txt }}>
+                    Минулий урок · {new Date(prevLesson.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}
+                  </span>
+                  {!prevOpen && (
+                    <span style={{ display: "block", fontSize: 12.5, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                      {(prevLesson.summary || prevLesson.homework || "").split("\n")[0]}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown size={15} style={{ color: L.muted, flexShrink: 0, transform: prevOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+              </button>
+              {prevOpen && (
+                <div style={{ padding: "0 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
+                  {prevLesson.summary && (
+                    <div>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 11.5, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Що пройшли</div>
+                      <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
+                    </div>
+                  )}
+                  {prevLesson.homework && (
+                    <div>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 11.5, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Домашка була</div>
+                      <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* 🔒 Private per-lesson notes */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
