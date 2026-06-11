@@ -5,9 +5,6 @@ import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
@@ -148,88 +145,101 @@ export default function StudentDashboardPage() {
     );
   }
 
-  const fmtDate = (iso: string) => {
-    const d = new Date(iso);
-    return d.toLocaleString("uk-UA", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const DS = {
+    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "#0f0f1a",
+    sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
+    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
   return (
     <StudentLayout>
-      <div className="space-y-6">
+      <div className="space-y-5" style={{ fontFamily: DS.body, color: DS.txt }}>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{t("studentPages.greeting")}</h1>
-          <p className="text-sm text-muted-foreground">{t("studentPages.greetingSub")}</p>
+          <h1 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1.15 }}>{t("studentPages.greeting")}</h1>
+          <p style={{ fontSize: 15, color: DS.sub, marginTop: 4 }}>{t("studentPages.greetingSub")}</p>
         </div>
 
         {/* Review prompt — invites a rating for the most recent unrated completed lesson */}
         <ReviewPromptCard />
 
-        {/* Block 1: Upcoming lessons */}
-        <Card className="p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 font-semibold text-foreground">
-              <CalendarDays className="h-4 w-4 text-primary" /> {t("studentPages.upcomingLessonsTitle")}
+        {/* Block 1: Upcoming lessons — DS cards with dark time rail */}
+        <div style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+            <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: DS.display, fontWeight: 700, fontSize: 15.5 }}>
+              <CalendarDays className="h-4 w-4" style={{ color: DS.teal }} /> {t("studentPages.upcomingLessonsTitle")}
             </h2>
-            <Link to="/student/schedule" className="text-xs text-primary hover:underline">
-              {t("studentPages.allLessonsLink")}
+            <Link to="/student/schedule" style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 13, color: DS.tealD, textDecoration: "none" }}>
+              {t("studentPages.allLessonsLink")} →
             </Link>
           </div>
           {loading ? (
             <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
           ) : upcoming.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("studentPages.noLessons")}</p>
+            <p style={{ fontSize: 14, color: DS.sub }}>{t("studentPages.noLessons")}</p>
           ) : (
-            <ul className="space-y-3">
-              {upcoming.map((l) => (
-                <li key={l.id} className="flex flex-col gap-2 rounded-lg border border-border p-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{l.subject}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {fmtDate(l.starts_at)} · {l.tutor_name}
-                    </p>
-                  </div>
-                  {l.meeting_url ? (
-                    <Button asChild size="sm" variant="default">
-                      <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer">
-                        <Video className="mr-1 h-3.5 w-3.5" /> Zoom
-                      </a>
-                    </Button>
-                  ) : (
-                    <Badge variant="outline" className="w-fit text-xs">{t("studentPages.noMeetingLink")}</Badge>
-                  )}
-                </li>
-              ))}
+            <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+              {upcoming.map((l) => {
+                const d = new Date(l.starts_at);
+                const isToday = d.toDateString() === new Date().toDateString();
+                return (
+                  <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "#fff" }}>
+                    <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
+                      <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                        {isToday ? "Сьогодні" : d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
+                      </span>
+                      {!isToday && (
+                        <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 12.5 }}>
+                          {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
+                        </span>
+                      )}
+                      <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 20, letterSpacing: "-.02em", color: DS.teal, marginTop: 3 }}>
+                        {d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                        <p style={{ fontSize: 13, color: DS.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.tutor_name}</p>
+                      </div>
+                      {l.meeting_url ? (
+                        <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
+                          style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                          <Video size={20} />
+                        </a>
+                      ) : (
+                        <span style={{ flexShrink: 0, fontSize: 12, color: DS.muted, fontFamily: DS.body }}>{t("studentPages.noMeetingLink")}</span>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
-        </Card>
+        </div>
 
-        {/* Block 2 & 3: Quick stats */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Link to="/student/payments">
-            <Card className="p-5 transition-shadow hover:shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-warning/10">
-                  <DollarSign className="h-5 w-5 text-warning" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t("studentPages.awaitingPayment")}</p>
-                  <p className="text-xl font-bold text-foreground">{pendingPaymentsCount}</p>
-                </div>
+        {/* Block 2 & 3: Quick stats — DS bubbles */}
+        <div className="grid grid-cols-2 gap-3">
+          <Link to="/student/payments" style={{ textDecoration: "none" }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(245,181,68,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <DollarSign className="h-5 w-5" style={{ color: "#b4740b" }} />
               </div>
-            </Card>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 12, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.awaitingPayment")}</p>
+                <p style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 24, color: DS.txt, lineHeight: 1.1 }}>{pendingPaymentsCount}</p>
+              </div>
+            </div>
           </Link>
-          <Link to="/student/homework">
-            <Card className="p-5 transition-shadow hover:shadow-md">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">{t("studentPagesExtra.homeworkTitle")}</p>
-                  <p className="text-xl font-bold text-foreground">{homeworkCount}</p>
-                </div>
+          <Link to="/student/homework" style={{ textDecoration: "none" }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <BookOpen className="h-5 w-5" style={{ color: DS.tealD }} />
               </div>
-            </Card>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: 12, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPagesExtra.homeworkTitle")}</p>
+                <p style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 24, color: DS.txt, lineHeight: 1.1 }}>{homeworkCount}</p>
+              </div>
+            </div>
           </Link>
         </div>
 
@@ -245,20 +255,25 @@ export default function StudentDashboardPage() {
 
         {/* Block 6: Find tutor (only if no tutor yet) */}
         {!hasTutor && (
-          <Card className="border-primary/30 bg-primary/5 p-5">
-            <div className="flex items-start gap-3">
-              <Sparkles className="h-5 w-5 shrink-0 text-primary" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground">{t("studentPagesExtra.searchingTutor")}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
+          <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: "1px solid rgba(43,191,170,.28)" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                <Sparkles size={20} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 15.5 }}>{t("studentPagesExtra.searchingTutor")}</h3>
+                <p style={{ fontSize: 13.5, color: DS.sub, marginTop: 3, lineHeight: 1.5 }}>
                   {t("studentPagesExtra.searchingTutorDesc")}
                 </p>
-                <Button className="mt-3" size="sm" onClick={() => setShowQuizAgain(true)}>
+                <button onClick={() => setShowQuizAgain(true)}
+                  style={{ marginTop: 12, height: 42, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer",
+                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                    fontFamily: DS.display, fontWeight: 700, fontSize: 14, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                   {t("studentPagesExtra.findTutorBtn")}
-                </Button>
+                </button>
               </div>
             </div>
-          </Card>
+          </div>
         )}
       </div>
     </StudentLayout>
