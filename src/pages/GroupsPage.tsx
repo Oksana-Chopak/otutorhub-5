@@ -145,19 +145,22 @@ export default function GroupsPage() {
               <button
                 key={g.id}
                 onClick={() => setDetailGroupId(g.id)}
-                className="rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-primary/40"
+                className="text-left transition-shadow hover:shadow-md"
+                style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 14, cursor: "pointer" }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-semibold text-foreground">{g.name}</h3>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 46, height: 46, borderRadius: 999, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Users2 size={22} />
+                  </div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
                     {g.subject && (
-                      <p className="mt-0.5 truncate text-sm text-muted-foreground">{g.subject}</p>
+                      <p style={{ fontSize: 13.5, color: "#9398b0", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
                     )}
                   </div>
-                  <Users2 className="h-5 w-5 shrink-0 text-muted-foreground" />
                 </div>
-                <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-foreground">
-                  {enrollCountFor(g.id)} учнів
+                <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 12px", borderRadius: 999, background: "#f0fdf9", color: "#1f8e7e", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
+                  👥 {enrollCountFor(g.id)} учнів
                 </div>
               </button>
             ))}
