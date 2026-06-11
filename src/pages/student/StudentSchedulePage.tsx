@@ -2,9 +2,6 @@ import { useEffect, useState } from "react";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Loader2, Video } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
@@ -21,11 +18,11 @@ interface Lesson {
   tutor_name?: string;
 }
 
-const statusClass: Record<string, string> = {
-  scheduled: "bg-primary/10 text-primary",
-  completed: "bg-success/10 text-success",
-  cancelled: "bg-destructive/10 text-destructive",
-  pending: "bg-warning/10 text-warning",
+const STATUS_META: Record<string, { accent: string; bg: string; fg: string }> = {
+  pending:   { accent: "#f59e0b", bg: "rgba(245,158,11,.16)",  fg: "#b4740b" },
+  scheduled: { accent: "#2BBFAA", bg: "rgba(43,191,170,.14)",  fg: "#1f8e7e" },
+  completed: { accent: "#4ade80", bg: "rgba(34,197,94,.16)",   fg: "#16a34a" },
+  cancelled: { accent: "#9aa0b4", bg: "rgba(147,152,176,.18)", fg: "#7b8198" },
 };
 
 export default function StudentSchedulePage() {
@@ -66,38 +63,52 @@ export default function StudentSchedulePage() {
   const upcoming = lessons.filter((l) => new Date(l.starts_at).getTime() >= now);
   const past = lessons.filter((l) => new Date(l.starts_at).getTime() < now);
 
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleString("uk-UA", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-
+  const D = "Inter, system-ui, sans-serif";
   const renderList = (items: Lesson[]) => {
     if (loading) return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
     if (items.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsInTab")}</p>;
     return (
-      <ul className="space-y-3">
-        {items.map((l) => (
-          <li key={l.id}>
-            <Card className="p-4">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-foreground">{l.subject}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[12px] font-semibold ${statusClass[l.status]}`}>
+      <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+        {items.map((l) => {
+          const sm = STATUS_META[l.status] ?? STATUS_META.scheduled;
+          const d = new Date(l.starts_at);
+          const isCancelled = l.status === "cancelled";
+          return (
+            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "1px solid #eceef3", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
+              <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
+                <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
+                <span style={{ fontFamily: D, fontWeight: 700, fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                  {d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
+                </span>
+                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 12.5 }}>
+                  {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
+                </span>
+                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 19, letterSpacing: "-.02em", color: sm.accent, marginTop: 2 }}>
+                  {d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+              </div>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                    <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 12, background: sm.bg, color: sm.fg }}>
                       {statusLabel[l.status]}
                     </span>
                   </div>
-                  <p className="mt-0.5 text-xs text-muted-foreground">{fmt(l.starts_at)} · {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}</p>
+                  <p style={{ fontSize: 13, color: "#9398b0", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
+                  </p>
                 </div>
                 {l.meeting_url && l.status === "scheduled" && (
-                  <Button asChild size="sm">
-                    <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer">
-                      <Video className="mr-1 h-3.5 w-3.5" /> Zoom
-                    </a>
-                  </Button>
+                  <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
+                    style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                    <Video size={20} />
+                  </a>
                 )}
               </div>
-            </Card>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ul>
     );
   };
