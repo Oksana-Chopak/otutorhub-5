@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, X, Check } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 
 export interface CloseDayRow {
   id: string;
+  student_id?: string;
   name: string;
   time: string; // "18:00"
   price: number;
@@ -30,8 +32,29 @@ const C = {
 
 /** Evening batch: mark today's past lessons completed + paid in one move. */
 export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
+  const { user } = useAuth();
   const [state, setState] = useState<Record<string, { done: boolean; paid: boolean }>>({});
   const [busy, setBusy] = useState(false);
+  const [packMap, setPackMap] = useState<Record<string, number>>({});
+
+  // 📦 Залишок передплачених пакетів — інформаційно
+  useEffect(() => {
+    if (!open || !user) return;
+    const ids = Array.from(new Set(rows.map((r) => r.student_id).filter(Boolean))) as string[];
+    if (!ids.length) { setPackMap({}); return; }
+    (async () => {
+      try {
+        const { data } = await (supabase as any)
+          .from("student_wallet_balances")
+          .select("student_id, lessons_balance")
+          .eq("tutor_id", user.id)
+          .in("student_id", ids);
+        const m: Record<string, number> = {};
+        ((data ?? []) as any[]).forEach((b: any) => { m[b.student_id] = Number(b.lessons_balance ?? 0); });
+        setPackMap(m);
+      } catch { setPackMap({}); }
+    })();
+  }, [open, user, rows]);
 
   useEffect(() => {
     if (open) {
@@ -112,7 +135,12 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {r.time} · {r.name}
                   </div>
-                  <div style={{ fontSize: 12.5, color: C.sub, marginTop: 1 }}>{formatPrice(r.price, r.currency)}</div>
+                  <div style={{ fontSize: 12.5, color: C.sub, marginTop: 1 }}>
+                    {formatPrice(r.price, r.currency)}
+                    {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
+                      <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>📦 пакет: {packMap[r.student_id]}</span>
+                    )}
+                  </div>
                 </div>
                 <Pill on={st.done} label="Провів" onClick={() => setState((s) => ({ ...s, [r.id]: { ...st, done: !st.done } }))} />
                 <Pill on={st.done && (st.paid || r.paid)} gold label="₴"

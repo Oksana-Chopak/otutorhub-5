@@ -748,6 +748,7 @@ export default function DashboardPage() {
         .sort((a, b) => a.starts_at.localeCompare(b.starts_at))
         .map((l) => ({
           id: l.id,
+          student_id: l.student_id,
           name: profiles[l.student_id] ?? "Учень",
           time: new Date(l.starts_at).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }),
           price: Number(l.student_price) || 0,

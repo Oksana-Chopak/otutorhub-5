@@ -84,6 +84,7 @@ interface MyStudent {
   currency: string;
   payment_details: string | null;
   tutor_notes: string | null;
+  wallet_lessons?: number;
   // Activity / payment status
   unpaid_count: number;
   unpaid_total: number;
@@ -193,7 +194,7 @@ export default function MyStudentsPage() {
       return;
     }
 
-    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }, { data: tnotes }] = await Promise.all([
+    const [{ data: profiles }, { data: contacts }, { data: defaults }, { data: lessonsAgg }, { data: tnotes }, { data: walletBal }] = await Promise.all([
       supabase
         .from("profiles")
         .select("id, first_name, last_name, is_pending, avatar_url")
@@ -217,6 +218,11 @@ export default function MyStudentsPage() {
         .select("student_id, notes")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
+      (supabase as any)
+        .from("student_wallet_balances")
+        .select("student_id, lessons_balance")
+        .eq("tutor_id", user.id)
+        .in("student_id", ids),
     ]);
 
     const profileMap = new Map((profiles ?? []).map((p: any) => [p.id, p]));
@@ -226,6 +232,9 @@ export default function MyStudentsPage() {
     );
     const notesMap = new Map(
       ((tnotes ?? []) as any[]).map((n: any) => [n.student_id, n.notes as string | null])
+    );
+    const walletMap = new Map(
+      ((walletBal ?? []) as any[]).map((b: any) => [b.student_id, Number(b.lessons_balance ?? 0)])
     );
 
     // Aggregate lesson stats per student
@@ -280,6 +289,7 @@ export default function MyStudentsPage() {
         currency: (r as any)?.currency ?? "UAH",
         payment_details: (r as any)?.payment_details ?? null,
         tutor_notes: (notesMap.get(id) as string | null) ?? null,
+        wallet_lessons: walletMap.get(id) ?? 0,
         unpaid_count: stats.unpaid_count,
         unpaid_total: stats.unpaid_total,
         last_lesson_at: stats.last_lesson_at,
@@ -715,7 +725,7 @@ export default function MyStudentsPage() {
                   name={name}
                   avatarUrl={s.avatar_url}
                   status={s.is_pending ? "pending" : st.status}
-                  subLine={`${s.subject} · ₴${s.price}/урок`}
+                  subLine={`${s.subject} · ${formatPrice(s.price, s.currency)}/урок${(s.wallet_lessons ?? 0) > 0 ? ` · 📦 ${s.wallet_lessons} ур.` : ""}`}
                   email={s.email}
                   isPending={s.is_pending}
                   inactiveDays={st.status === "inactive" ? inactiveDays : undefined}
