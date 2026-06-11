@@ -1164,9 +1164,11 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 onClick={() => setActiveRoleTab(tab)}
                 className="flex-1 pb-2.5 pt-2 text-[13px] font-medium transition-colors"
                 style={{
-                  color: activeRoleTab === tab ? "var(--teal, #2BBFAA)" : "var(--sub, #9398b0)",
-                  borderBottom: activeRoleTab === tab ? "2px solid var(--teal, #2BBFAA)" : "2px solid transparent",
-                  fontWeight: activeRoleTab === tab ? 600 : 400,
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  fontSize: 14,
+                  color: activeRoleTab === tab ? "#1f8e7e" : "#9398b0",
+                  borderBottom: activeRoleTab === tab ? "2px solid #2BBFAA" : "2px solid transparent",
+                  fontWeight: activeRoleTab === tab ? 700 : 600,
                 }}
               >
                 {labels[tab]} {counts[tab] > 0 && counts[tab]}
@@ -1189,11 +1191,15 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             <button
               key={pill.value}
               onClick={() => setStatusFilter(pill.value as typeof statusFilter)}
-              className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-all"
+              className="shrink-0 rounded-full px-3.5 transition-all"
               style={{
-                background: statusFilter === pill.value ? "#E1F5EE" : "var(--bg, #F5F4F0)",
-                border: `0.5px solid ${statusFilter === pill.value ? "var(--teal, #2BBFAA)" : "var(--border, #eceef3)"}`,
-                color: statusFilter === pill.value ? "#0F6E56" : "var(--sub, #9398b0)",
+                height: 34,
+                fontFamily: "Inter, system-ui, sans-serif",
+                fontWeight: 700,
+                fontSize: 13,
+                background: statusFilter === pill.value ? "#f0fdf9" : "#fff",
+                border: `1.5px solid ${statusFilter === pill.value ? "#2BBFAA" : "#eceef3"}`,
+                color: statusFilter === pill.value ? "#1f8e7e" : "#9398b0",
               }}
             >
               {pill.label}
@@ -1243,14 +1249,21 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-h-[90vh] flex flex-col">
-          <DialogHeader>
-            <DialogTitle>{t("people.dialogTutorRateTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("people.dialogTutorRateDesc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogTutorRateTitle")}</div>
+              <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogTutorRateDesc")}</div>
+            </div>
+            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))} aria-label="✕"
+              style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} />
+            </button>
+          </div>
+          <div className="space-y-4 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
             <div>
               <Label>{t("people.fieldSubjects")}</Label>
               <p className="text-xs text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
@@ -1300,25 +1313,36 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               </div>
             )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}>
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
-            </Button>
-            <Button onClick={saveTutorRate}>{t("people.saveBtn")}</Button>
-          </DialogFooter>
+            </button>
+            <button type="button" onClick={saveTutorRate}
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              {t("people.saveBtn")}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Student price dialog */}
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("people.dialogStudentPriceTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("people.dialogStudentPriceDesc")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogStudentPriceTitle")}</div>
+              <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogStudentPriceDesc")}</div>
+            </div>
+            <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))} aria-label="✕"
+              style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} />
+            </button>
+          </div>
+          <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
             <div className="text-sm text-muted-foreground space-y-1">
               <p>{t("people.labelStudent")} <span className="font-medium text-foreground">{studentDialog.studentName}</span></p>
               <p>{t("people.labelTutor")} <span className="font-medium text-foreground">{studentDialog.tutorName}</span></p>
@@ -1335,8 +1359,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 return null;
               })()}
             </div>
-            <div>
-              <Label htmlFor="price">{t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}</Label>
+            <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "#9a6a12", marginBottom: 8 }}>
+                {t("people.pricePerLesson", { currency: currencySymbol(studentDialog.currency) })}
+              </div>
               <div className="grid grid-cols-[1fr_8rem] gap-2">
                 <Input
                   id="price"
@@ -1346,12 +1372,14 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   value={studentDialog.price}
                   onChange={(e) => setStudentDialog((s) => ({ ...s, price: e.target.value }))}
                   placeholder={t("people.pricePlaceholder")}
+                  className="h-[52px] bg-white text-[18px] font-bold rounded-[13px]"
+                  style={{ fontFamily: "Inter, system-ui, sans-serif" }}
                 />
                 <Select
                   value={studentDialog.currency}
                   onValueChange={(v) => setStudentDialog((s) => ({ ...s, currency: v }))}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-[52px] bg-white rounded-[13px] font-bold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1363,12 +1391,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}>
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+            <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
-            </Button>
-            <Button onClick={saveStudentPrice}>{t("people.saveBtn")}</Button>
-          </DialogFooter>
+            </button>
+            <button type="button" onClick={saveStudentPrice}
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              {t("people.saveBtn")}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1377,14 +1409,21 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         open={addTutorToStudent.open}
         onOpenChange={(o) => setAddTutorToStudent((s) => ({ ...s, open: o }))}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("people.dialogAddTutorTitle")}</DialogTitle>
-            <DialogDescription>
-              {t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+          <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogAddTutorTitle")}</div>
+              <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}</div>
+            </div>
+            <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))} aria-label="✕"
+              style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={18} />
+            </button>
+          </div>
+          <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
             <div>
               <Label>{t("roles.tutor")}</Label>
               <Select
@@ -1500,15 +1539,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               );
             })()}
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
-            >
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+            <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
+              style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
-            </Button>
-            <Button onClick={saveAddTutorToStudent}>{t("people.addBtn")}</Button>
-          </DialogFooter>
+            </button>
+            <button type="button" onClick={saveAddTutorToStudent}
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              {t("people.addBtn")}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
