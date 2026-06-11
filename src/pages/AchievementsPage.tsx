@@ -8,10 +8,22 @@ import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
+import { StudentRewardsShelf } from "@/components/StudentRewardsShelf";
 
 export default function AchievementsPage() {
   const { t } = useTranslation();
+  const { roles } = useAuth();
+  const isPureStudent = roles.includes("student") && !roles.includes("tutor") && !roles.includes("manager");
   const { level, streak, badges, loading } = useTutorGamification();
+
+  if (isPureStudent) {
+    return (
+      <AppLayout>
+        <StudentRewardsShelf />
+      </AppLayout>
+    );
+  }
 
   if (loading) {
     return (

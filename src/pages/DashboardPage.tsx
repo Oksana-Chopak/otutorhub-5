@@ -716,6 +716,25 @@ export default function DashboardPage() {
     [lessons, todayKey]
   );
 
+  // Кінець тріалу: персональні цифри місяця для банера
+  const trialStats = useMemo(() => {
+    const now = new Date();
+    const mStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    let done = 0, earned = 0;
+    lessons.forEach((l) => {
+      const ts = new Date(l.starts_at).getTime();
+      if (ts < mStart) return;
+      if (l.status === "completed") done += 1;
+      if (l.student_payment_status === "paid") earned += Number(l.student_price) || 0;
+    });
+    return { done, earned };
+  }, [lessons]);
+  const [trialBannerHidden, setTrialBannerHidden] = useState(false);
+  const trialBannerKey = user ? `trial_banner_${user.id}_${todayKey}` : "";
+  const showTrialBanner =
+    isIndependent && isTrial && trialDaysLeft <= 5 && !trialBannerHidden &&
+    !!trialBannerKey && !localStorage.getItem(trialBannerKey);
+
   // «Закрити день»: сьогоднішні минулі уроки, що досі в статусі "заплановано"
   const closeDayRows: CloseDayRow[] = useMemo(
     () =>
@@ -1199,6 +1218,29 @@ export default function DashboardPage() {
       ) : (
         <div className="space-y-6 sm:space-y-8">
           {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
+
+          {/* ── Тріал закінчується — персональні цифри ── */}
+          {showTrialBanner && (
+            <div className="mb-4" style={{ position: "relative", borderRadius: 18, padding: "14px 44px 14px 16px",
+              background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.45)" }}>
+              <button onClick={() => { setTrialBannerHidden(true); if (trialBannerKey) localStorage.setItem(trialBannerKey, "1"); }}
+                aria-label="✕" style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: 9,
+                  border: "none", background: "rgba(154,106,18,.12)", color: "#9a6a12", cursor: "pointer" }}>✕</button>
+              <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15.5, color: "#7a5a14" }}>
+                ⏳ Pro закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
+              </p>
+              <p style={{ fontSize: 13.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
+                Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString("uk-UA")} ₴</b> зафіксовано. Лишись на Pro — нічого не загубиться.
+              </p>
+              <button onClick={() => navigate("/subscription")}
+                style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
+                  boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+                Залишитись на Pro →
+              </button>
+            </div>
+          )}
 
           {/* ── Закрити день — вечірній батч ── */}
           {closeDayRows.length > 0 && (

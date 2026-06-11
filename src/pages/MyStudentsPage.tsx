@@ -461,6 +461,16 @@ export default function MyStudentsPage() {
       }
 
       toast.success(t("myStudents.studentAdded"));
+      {
+        const newName = `${form.first_name} ${form.last_name}`.trim();
+        window.setTimeout(() => {
+          toast("🎯 Перший крок зроблено!", {
+            description: newName ? `Створи перший урок з ${newName}` : "Створи перший урок у розкладі",
+            action: { label: "Створити урок", onClick: () => navigate("/schedule") },
+            duration: 8000,
+          });
+        }, 600);
+      }
 
       // Auto-send email invite if we have an email
       let inviteSent = false;

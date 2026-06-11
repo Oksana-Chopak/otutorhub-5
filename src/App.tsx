@@ -170,7 +170,7 @@ function AppRoutes() {
           <Route
             path="/achievements"
             element={
-              <ProtectedRoute allowedRoles={["tutor"]}>
+              <ProtectedRoute allowedRoles={["tutor", "student"]}>
                 <AchievementsPage />
               </ProtectedRoute>
             }
