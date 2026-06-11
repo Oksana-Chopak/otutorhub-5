@@ -121,7 +121,7 @@ export default function PaywallMetricsPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
+            <h1 className="hidden lg:flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               <BarChart3 className="h-6 w-6 text-primary" /> Метрики paywall
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -155,7 +155,7 @@ export default function PaywallMetricsPage() {
 
         {/* Totals */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
+          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <MousePointerClick className="h-3.5 w-3.5" /> Кліків по фічах
@@ -163,7 +163,7 @@ export default function PaywallMetricsPage() {
               <CardTitle className="text-3xl">{totals.allClicks}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" /> Унікальних користувачів
@@ -171,7 +171,7 @@ export default function PaywallMetricsPage() {
               <CardTitle className="text-3xl">{totals.uniqueUsers}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <TrendingUp className="h-3.5 w-3.5" /> Візитів /subscription
@@ -182,7 +182,7 @@ export default function PaywallMetricsPage() {
         </div>
 
         {/* Bar chart */}
-        <Card>
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg">{t("paywallMetricsExtra.topFeatures")}</CardTitle>
             <CardDescription>
@@ -235,7 +235,7 @@ export default function PaywallMetricsPage() {
         </Card>
 
         {/* Per-feature breakdown */}
-        <Card>
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg">{t("paywallMetricsExtra.details")}</CardTitle>
           </CardHeader>
@@ -305,7 +305,7 @@ export default function PaywallMetricsPage() {
         </Card>
 
         {/* Recent events */}
-        <Card>
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg">{t("paywallMetricsExtra.recentEvents")}</CardTitle>
             <CardDescription>{t("paywallMetricsExtra.recentEventsDesc")}</CardDescription>

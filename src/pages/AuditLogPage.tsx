@@ -223,7 +223,7 @@ export default function AuditLogPage() {
           <div className="flex items-center gap-3">
             <ShieldAlert className="h-7 w-7 text-primary" />
             <div>
-              <h1 className="font-display text-2xl font-bold text-foreground">
+              <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
                 Журнал аудиту
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -330,7 +330,7 @@ export default function AuditLogPage() {
               const isOpen = openIds.has(e.id);
               const diff = hasPayload ? computeDiff(e.before, e.after) : [];
               return (
-                <Card key={e.id} className="p-4">
+                <Card key={e.id} className="p-4 rounded-[18px] border-[#eceef3] shadow-none">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">

@@ -36,9 +36,9 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
   const nonEmpty = groups.filter((g) => g.items.length > 0);
   if (nonEmpty.length === 0) return null;
   return (
-    <Card className="mt-6">
+    <Card className="mt-6 rounded-[18px] border-[#eceef3] shadow-none">
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
+        <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{title}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         {nonEmpty.map((group) => (
@@ -51,7 +51,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
                 <Link
                   key={it.to}
                   to={it.to}
-                  className="group flex items-center gap-3 rounded-[16px] border border-border bg-card p-3 transition-colors hover:bg-secondary"
+                  className="group flex items-center gap-3 rounded-[16px] border border-[#eceef3] bg-white p-3 transition-colors hover:bg-[#f0fdf9]"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-primary/10 text-primary">
                     <it.icon className="h-5 w-5" />
@@ -293,16 +293,16 @@ export default function ProfilePage() {
     return (
       <AppLayout>
         <div className="mx-auto max-w-2xl">
-          <div className="mb-6">
-            <h1 className="font-display text-2xl font-bold text-foreground">{t("profile.managerTitle")}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+          <div className="mb-6 hidden lg:block">
+            <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("profile.managerTitle")}</h1>
+            <p className="mt-1 text-sm" style={{ color: "#9398b0" }}>
               {t("profile.managerSub")}
             </p>
           </div>
           <GoogleCalendarCard />
           <MoreSection title={t("profile.sectionsTitle")} groups={managerGroups} />
           {managerGroups.every((g) => g.items.length === 0) && (
-            <Card>
+            <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
               <CardContent className="py-8 text-center text-sm text-muted-foreground">
                 {t("profile.noExtraSettings")}
               </CardContent>
