@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { toast } from "@/hooks/use-toast";
-import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock, Wallet, MessageSquare } from "lucide-react";
+import { Video, BookOpen, FileText, NotebookPen, Save, ExternalLink, Loader2, Sparkles, Check, Banknote, ChevronDown, Lightbulb, Lock, Wallet, MessageSquare, Share2 } from "lucide-react";
 import { LessonAttachments } from "@/components/LessonAttachments";
 import { LessonFeedback } from "@/components/LessonFeedback";
 import { RequestReviewButton } from "@/components/RequestReviewButton";
@@ -169,7 +169,7 @@ export function LessonWorkspace({
       const generated = (data as any)?.summary;
       if (!generated) throw new Error(t("lessonWorkspace.aiEmpty"));
       setSummaryDraft(generated);
-      toast({ title: t("lessonWorkspace.aiReady"), description: t("lessonWorkspace.aiReadyDesc") });
+      toast({ title: t("lessonWorkspace.aiReady"), description: "Перевір текст — і натисни «Зберегти й надіслати учню» ✉️" });
     } catch (e: any) {
       toast({
         title: t("lessonWorkspaceExtra.aiGenerateFailed"),
@@ -543,9 +543,22 @@ export function LessonWorkspace({
                 )}
                 {summaryDraft !== (summary ?? "") && (
                   <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                     {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    {t("lessonWorkspaceExtra.saveBtn")}
+                    Зберегти й надіслати учню
+                  </button>
+                )}
+                {!!summaryDraft.trim() && (
+                  <button type="button"
+                    onClick={async () => {
+                      const text = summaryDraft.trim();
+                      try {
+                        if (navigator.share) await navigator.share({ title: "Конспект уроку · oTutorHub", text });
+                        else { await navigator.clipboard.writeText(text); toast({ title: "Скопійовано", description: "Конспект у буфері обміну" }); }
+                      } catch { /* user cancelled */ }
+                    }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    <Share2 className="h-4 w-4" /> Поділитися
                   </button>
                 )}
               </div>

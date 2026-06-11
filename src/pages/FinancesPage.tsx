@@ -1380,6 +1380,16 @@ export default function FinancesPage() {
                     </div>
                   ) : (
                     <>
+                      {/* Auto-reminder hint */}
+                      <Link to="/profile" style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12,
+                        padding:"10px 13px", borderRadius:12, textDecoration:"none",
+                        background:"rgba(43,191,170,.07)", border:"1px solid rgba(43,191,170,.25)" }}>
+                        <span style={{ fontSize:15 }}>🔔</span>
+                        <span style={{ flex:1, fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.35 }}>
+                          Втомилась нагадувати вручну? Увімкни <b>авто-нагадування про оплату</b> в правилах.
+                        </span>
+                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:"#1f8e7e", flexShrink:0 }}>Налаштувати →</span>
+                      </Link>
                       {/* Summary warning */}
                       <div style={{ borderRadius:14, padding:"12px 14px", marginBottom:14,
                         background:F.warnBg, border:`1px solid ${F.warnBorder}`,
