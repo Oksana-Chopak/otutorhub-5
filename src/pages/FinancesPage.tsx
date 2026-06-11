@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -38,10 +38,10 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/EmptyState";
-import { FinanceWeeklyChart } from "@/components/FinanceWeeklyChart";
+const FinanceWeeklyChart = lazy(() => import("@/components/FinanceWeeklyChart").then((m) => ({ default: m.FinanceWeeklyChart })));
 import { FinancesSkeleton } from "@/components/PageSkeletons";
-import { IncomeByStudentPie } from "@/components/IncomeByStudentPie";
-import { ProfitSparkline } from "@/components/ProfitSparkline";
+const IncomeByStudentPie = lazy(() => import("@/components/IncomeByStudentPie").then((m) => ({ default: m.IncomeByStudentPie })));
+const ProfitSparkline = lazy(() => import("@/components/ProfitSparkline").then((m) => ({ default: m.ProfitSparkline })));
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
 import { WalletDialog } from "@/components/WalletDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -1628,7 +1628,7 @@ export default function FinancesPage() {
                 <p style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt, marginBottom:12 }}>
                   По учнях
                 </p>
-                <IncomeByStudentPie data={incomeByStudent} />
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
               </div>
             )}
             {/* Export */}
@@ -1802,7 +1802,7 @@ export default function FinancesPage() {
                   {period === "week" ? "Цей тиждень" : period === "month" ? "Цей місяць" : "Весь час"}
                 </span>
               </div>
-              <IncomeByStudentPie data={incomeByStudent} />
+              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
             </div>
           )}
 
@@ -1890,14 +1890,14 @@ export default function FinancesPage() {
                     {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
                   </span>
                 </div>
-                <ProfitSparkline data={profitSparkline} />
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline data={profitSparkline} /></Suspense>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}</h2>
                   <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
                 </div>
-                <IncomeByStudentPie data={incomeByStudent} />
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
               </div>
             </div>
           )}
@@ -1947,7 +1947,7 @@ export default function FinancesPage() {
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
                 <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
-              <FinanceWeeklyChart
+              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart
                 tutorNames={Object.fromEntries(
                   Object.values(profiles).map((p) => [
                     p.id,
@@ -1963,7 +1963,7 @@ export default function FinancesPage() {
                   student_payment_status: l.student_payment_status,
                   tutor_payout_status: l.tutor_payout_status,
                 }))}
-              />
+              /></Suspense>
             </div>
           )}
         </>
