@@ -901,6 +901,14 @@ export const sv: Partial<Translations> = {
     card: "Kort",
   },
 
+  iap: {
+    purchaseDone: "Pro aktiverat 💚",
+    purchaseDoneDesc: "Tack! Alla funktioner upplåsta.",
+    purchaseFailed: "Köpet misslyckades",
+    restoreDone: "Köp återställda",
+    restoreNone: "Inga aktiva köp hittades",
+    restoreFailed: "Återställning misslyckades",
+  },
   accountDeletion: {
     title: "Riskzon",
     desc: "Att radera kontot är permanent: profil, kontakter och inställningar raderas. Lektionshistorik hos dina motparter finns kvar.",

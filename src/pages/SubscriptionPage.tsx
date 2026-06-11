@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isIosApp } from "@/lib/platform";
+import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
+import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -86,13 +88,60 @@ export default function SubscriptionPage() {
     isIndependent,
     isTrial,
     trialDaysLeft,
+    refresh,
   } = useWorkspaceSettings();
+  const { toast } = useToast();
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
   const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
+
+  // ── IAP (iOS StoreKit через RevenueCat) ────────────────────────────────────
+  const [iapOffer, setIapOffer] = useState<IapOffer>({});
+  const [iapBusy, setIapBusy] = useState<null | "buy" | "restore">(null);
+  useEffect(() => {
+    if (!iosApp || !user) return;
+    let alive = true;
+    (async () => {
+      await configureIap(user.id);
+      const offer = await getIapOffer();
+      if (alive) setIapOffer(offer);
+    })();
+    return () => { alive = false; };
+  }, [iosApp, user]);
+
+  const handleIapPurchase = async () => {
+    setIapBusy("buy");
+    try {
+      const ok = await purchaseIap(billing);
+      if (ok) {
+        toast({ title: t("iap.purchaseDone"), description: t("iap.purchaseDoneDesc") });
+        await refresh?.();
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      // Скасування покупки користувачем — не помилка.
+      if (!/cancel/i.test(msg)) toast({ title: t("iap.purchaseFailed"), description: msg, variant: "destructive" });
+    } finally {
+      setIapBusy(null);
+    }
+  };
+
+  const handleIapRestore = async () => {
+    setIapBusy("restore");
+    try {
+      const ok = await restoreIap();
+      toast({ title: ok ? t("iap.restoreDone") : t("iap.restoreNone") });
+      if (ok) await refresh?.();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      toast({ title: t("iap.restoreFailed"), description: msg, variant: "destructive" });
+    } finally {
+      setIapBusy(null);
+    }
+  };
 
   useEffect(() => {
     if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
@@ -285,6 +334,38 @@ export default function SubscriptionPage() {
               </>
             )}
           </div>
+
+          {/* ── iOS StoreKit (App Store IAP через RevenueCat) ───────────── */}
+          {!isActive && iosApp && (
+            <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+              <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити Pro</div>
+              <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
+                {([{ v: "monthly" as const, l: "Щомісяця" }, { v: "yearly" as const, l: "Щороку" }]).map((o) => {
+                  const on = billing === o.v;
+                  const price = o.v === "yearly" ? iapOffer.yearlyPrice : iapOffer.monthlyPrice;
+                  return (
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, lineHeight: 1.25, background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
+                      <div>{o.l}</div>
+                      {price && <div style={{ fontSize: 11.5, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={handleIapPurchase} disabled={iapBusy !== null}
+                style={{ width: "100%", height: 50, borderRadius: 14, border: "none", cursor: iapBusy ? "default" : "pointer", background: S.gradTeal, color: "#fff", fontFamily: S.display, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                {iapBusy === "buy" && <Loader2 size={18} className="animate-spin" />}
+                Оформити Pro
+              </button>
+              <button onClick={handleIapRestore} disabled={iapBusy !== null}
+                style={{ width: "100%", height: 40, marginTop: 8, borderRadius: 11, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                {iapBusy === "restore" && <Loader2 size={15} className="animate-spin" />}
+                Відновити покупки
+              </button>
+              <div style={{ fontSize: 11, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
+                Оплата через App Store · автоподовження, скасування в Налаштуваннях Apple ID
+              </div>
+            </div>
+          )}
 
           {/* ── Path 1 — pay (прихована в iOS-збірці: App Store 3.1.1) ──── */}
           {!isActive && !iosApp && (

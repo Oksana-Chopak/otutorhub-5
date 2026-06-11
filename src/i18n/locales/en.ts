@@ -911,6 +911,14 @@ export const en: Translations = {
     card: "Card",
   },
 
+  iap: {
+    purchaseDone: "Pro activated 💚",
+    purchaseDoneDesc: "Thank you! All features unlocked.",
+    purchaseFailed: "Purchase failed",
+    restoreDone: "Purchases restored",
+    restoreNone: "No active purchases found",
+    restoreFailed: "Restore failed",
+  },
   accountDeletion: {
     title: "Danger zone",
     desc: "Deleting your account is permanent: profile, contacts and settings will be erased. Lesson history kept by your counterparts remains.",
