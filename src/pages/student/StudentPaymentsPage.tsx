@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
 import { Loader2, Check, Clock, Wallet } from "lucide-react";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import i18nInstance from "@/i18n";
@@ -157,85 +156,83 @@ export default function StudentPaymentsPage() {
         )}
 
         {currencyEntries.length === 0 ? (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card className="p-4">
-              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
-              <p className="mt-1 text-xl font-bold text-warning">0</p>
-            </Card>
-            <Card className="p-4">
-              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
-              <p className="mt-1 text-xl font-bold text-success">0</p>
-            </Card>
+          <div className="grid grid-cols-2 gap-3">
+            <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
+              <p style={{ fontSize: 12, color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#b4740b" }}>0</p>
+            </div>
+            <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
+              <p style={{ fontSize: 12, color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#16a34a" }}>0</p>
+            </div>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Card className="p-4">
-              <p className="text-xs text-muted-foreground">{t("studentPages.toPay")}</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
+              <p style={{ fontSize: 12, color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
-                  <p key={c} className="text-xl font-bold text-warning">
+                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#b4740b" }}>
                     {formatPrice(v.unpaid, c, { decimals: 0 })}
                   </p>
                 ))}
               </div>
-            </Card>
-            <Card className="p-4">
-              <p className="text-xs text-muted-foreground">{t("studentPages.paid")}</p>
+            </div>
+            <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
+              <p style={{ fontSize: 12, color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
-                  <p key={c} className="text-xl font-bold text-success">
+                  <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#16a34a" }}>
                     {formatPrice(v.paid, c, { decimals: 0 })}
                   </p>
                 ))}
               </div>
-            </Card>
+            </div>
           </div>
         )}
 
         {tutorsWithDetails.length > 0 && (
-          <Card className="border-primary/30 bg-primary/5 p-4">
+          <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
             <div className="mb-2 flex items-center gap-2">
-              <Wallet className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">{t("studentPagesExtra.howToPay")}</h2>
+              <Wallet className="h-4 w-4" style={{ color: "#9a6a12" }} />
+              <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14.5, color: "#7a5a14" }}>{t("studentPagesExtra.howToPay")}</h2>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2">
               {tutorsWithDetails.map((t) => (
-                <li key={t.tutor_id} className="rounded-md bg-card/60 p-3">
-                  <p className="text-xs font-medium text-muted-foreground">
+                <li key={t.tutor_id} style={{ borderRadius: 12, background: "rgba(255,255,255,.6)", padding: "11px 13px" }}>
+                  <p style={{ fontSize: 12, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
                     {t.tutor_name} · {currencySymbol(t.currency)} {t.currency}
                   </p>
-                  <p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground">
+                  <p style={{ marginTop: 4, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 14, color: "#0f0f1a" }}>
                     {t.payment_details}
                   </p>
                 </li>
               ))}
             </ul>
-          </Card>
+          </div>
         )}
 
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : rows.length === 0 ? (
-          <Card className="p-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsCard")}</Card>
+          <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff", fontSize: 14, color: "#9398b0" }}>{t("studentPagesExtra.noLessonsCard")}</div>
         ) : (
-          <ul className="space-y-2">
+          <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {rows.map((r) => {
               const paid = r.student_payment_status === "paid";
               return (
-                <li key={r.id}>
-                  <Card className="flex items-center justify-between p-3">
+                <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "11px 13px" }}>
                     <div className="min-w-0">
-                      <p className="font-medium text-foreground">{r.subject}</p>
-                      <p className="text-xs text-muted-foreground">{fmt(r.starts_at)} · {r.tutor_name}</p>
+                      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
+                      <p style={{ fontSize: 12.5, color: "#9398b0", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-foreground">{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
-                      <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold ${paid ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                      <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
+                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, background: paid ? "rgba(34,197,94,.16)" : "rgba(245,158,11,.16)", color: paid ? "#16a34a" : "#b4740b" }}>
                         {paid ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>
                     </div>
-                  </Card>
                 </li>
               );
             })}

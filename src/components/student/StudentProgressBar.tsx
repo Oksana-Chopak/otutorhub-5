@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getLevelProgress } from "@/lib/rewardThemes";
 
@@ -54,36 +53,36 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
   }, [weeklyRecord, t]);
 
   return (
-    <Card className="p-5 space-y-4">
+    <div style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 16, display: "flex", flexDirection: "column", gap: 14 }}>
       {/* Level + progress */}
       <div>
-        <div className="mb-1.5 flex items-center justify-between">
-          <span className={`font-semibold ${colorClass}`}>
+        <div className="mb-2 flex items-center justify-between">
+          <span className={`${colorClass}`} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16, letterSpacing: "-.01em" }}>
             {t(`studentProgress.level_${level.key}`)}
           </span>
           {next && (
-            <span className="text-xs text-muted-foreground">
+            <span style={{ fontSize: 12.5, color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600 }}>
               {next.min - completedCount} {t("studentProgress.toNext")}
             </span>
           )}
         </div>
-        <Progress value={progress} className="h-2" />
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("studentProgress.progressTitle")}: {completedCount}{next ? ` / ${next.min}` : ""}
+        <Progress value={progress} className="h-2.5" />
+        <p style={{ marginTop: 6, fontSize: 12.5, color: "#9398b0" }}>
+          {t("studentProgress.progressTitle")}: <span style={{ color: "#0f0f1a", fontWeight: 700 }}>{completedCount}</span>{next ? ` / ${next.min}` : ""}
         </p>
       </div>
 
       {/* Weekly record */}
       {weeklyRecord > 0 && (
-        <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
-          <span className="text-sm text-foreground">
-            {t("studentRecord.weeklyRecord", { count: weeklyRecord })}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 13, padding: "10px 13px", background: "linear-gradient(135deg, rgba(245,181,68,.14), rgba(245,181,68,.05))", border: "1px solid rgba(245,181,68,.3)" }}>
+          <span style={{ fontSize: 13.5, color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+            🏆 {t("studentRecord.weeklyRecord", { count: weeklyRecord })}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span style={{ fontSize: 12.5, color: "#9a6a12", fontWeight: 600 }}>
             {t("studentRecord.thisWeek", { count: weeklyCount })}
           </span>
         </div>
       )}
-    </Card>
+    </div>
   );
 }
