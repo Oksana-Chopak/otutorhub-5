@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
@@ -87,6 +87,13 @@ export function QuickLessonDialog({
   const [groupId, setGroupId] = useState<string>("");
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [reloadTrigger, setReloadTrigger] = useState(0);
+  const [whenLocal, setWhenLocal] = useState<Date | null>(null);
+  const [timeEditOpen, setTimeEditOpen] = useState(false);
+  const [repeatWeeks, setRepeatWeeks] = useState(0);
+
+  useEffect(() => {
+    if (open) { setWhenLocal(null); setTimeEditOpen(false); setRepeatWeeks(0); }
+  }, [open, startsAt]);
 
   useEffect(() => {
     if (!open || !user) return;
@@ -194,8 +201,10 @@ export function QuickLessonDialog({
     [students, studentId]
   );
 
+  const effStartsAt = whenLocal ?? startsAt;
+
   const submit = async () => {
-    if (!user || !startsAt) return;
+    if (!user || !effStartsAt) return;
 
     if (mode === "individual" && students.length === 0) {
       toast.error(t("quickLessonDialog.addStudentFirst"));
@@ -219,7 +228,7 @@ export function QuickLessonDialog({
           group_id: selectedGroup.id,
           lesson_type: lessonType,
           subject: subj,
-          starts_at: startsAt.toISOString(),
+          starts_at: effStartsAt.toISOString(),
           duration_minutes: parseInt(duration) || 60,
           status: "scheduled" as const,
           created_by: user.id,
@@ -257,29 +266,37 @@ export function QuickLessonDialog({
       return;
     }
     setSubmitting(true);
-    const lessonPayload = {
+    const seriesCount = repeatWeeks > 0 ? repeatWeeks : 1;
+    const basePayload = {
       tutor_id: user.id,
       student_id: selected.student_id,
       subject: selected.subject,
-      starts_at: startsAt.toISOString(),
       duration_minutes: parseInt(duration) || 60,
       status: "scheduled" as const,
       created_by: user.id,
       source: "independent",
       meeting_url: selected.default_meeting_url || null,
     };
-    const { data: created, error } = await supabase
+    const payloads = Array.from({ length: seriesCount }, (_, i) => ({
+      ...basePayload,
+      starts_at: new Date(effStartsAt.getTime() + i * 7 * 86400000).toISOString(),
+    }));
+    const { data: createdRows, error } = await supabase
       .from("lessons")
-      .insert(lessonPayload)
-      .select("id")
-      .single();
-    if (!error && created) {
-      await supabase
-        .from("lesson_details")
-        .upsert(
-          { lesson_id: created.id, student_price: selected.price || 0, tutor_payout: 0 } as any,
-          { onConflict: "lesson_id" }
-        );
+      .insert(payloads)
+      .select("id");
+    const created = createdRows?.[0] ?? null;
+    if (!error && createdRows?.length) {
+      await Promise.all(
+        createdRows.map((r) =>
+          supabase
+            .from("lesson_details")
+            .upsert(
+              { lesson_id: r.id, student_price: selected.price || 0, tutor_payout: 0 } as any,
+              { onConflict: "lesson_id" }
+            )
+        )
+      );
     }
     setSubmitting(false);
     if (error) {
@@ -288,10 +305,10 @@ export function QuickLessonDialog({
       return;
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
-    if (created) void syncLessonToGoogleCalendar(created.id, "upsert");
+    createdRows?.forEach((r) => void syncLessonToGoogleCalendar(r.id, "upsert"));
     // Notify student that a new lesson has been scheduled
     if (created && selected.student_id) {
-      const dateStr = startsAt.toLocaleString("uk-UA", {
+      const dateStr = effStartsAt.toLocaleString("uk-UA", {
         weekday: "long", day: "numeric", month: "long",
         hour: "2-digit", minute: "2-digit",
       });
@@ -299,16 +316,16 @@ export function QuickLessonDialog({
         userId: selected.student_id,
         type: `lesson_scheduled_${created.id}`,
         title: "📅 Новий урок у розкладі",
-        body: `Репетитор запланував урок — ${dateStr}`,
+        body: seriesCount > 1 ? `Репетитор запланував серію уроків (щотижня, ${seriesCount}) — перший ${dateStr}` : `Репетитор запланував урок — ${dateStr}`,
         link: "/schedule",
       });
     }
     localStorage.setItem(LAST_MODE_KEY, "individual");
+    const timeStr = effStartsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
     toast.success(
-      `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: startsAt.toLocaleTimeString("uk-UA", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }) })}`
+      seriesCount > 1
+        ? `🔁 Серію створено: ${seriesCount} уроків щотижня — ${selected.name}, ${timeStr}`
+        : `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: timeStr })}`
     );
     onOpenChange(false);
     onCreated?.();
@@ -318,12 +335,25 @@ export function QuickLessonDialog({
     !submitting && (mode === "individual" ? !!selected : !!selectedGroup);
 
   const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-  const heroDate = startsAt
-    ? cap(startsAt.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" }))
+  const heroDate = effStartsAt
+    ? cap(effStartsAt.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" }))
     : "";
-  const heroTime = startsAt
-    ? startsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
+  const heroTime = effStartsAt
+    ? effStartsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
     : "";
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  const ymd = effStartsAt ? `${effStartsAt.getFullYear()}-${pad2(effStartsAt.getMonth() + 1)}-${pad2(effStartsAt.getDate())}` : "";
+  const hm = effStartsAt ? `${pad2(effStartsAt.getHours())}:${pad2(effStartsAt.getMinutes())}` : "";
+  const setDatePart = (v: string) => {
+    if (!effStartsAt || !v) return;
+    const [y, m, d] = v.split("-").map(Number);
+    const next = new Date(effStartsAt); next.setFullYear(y, m - 1, d); setWhenLocal(next);
+  };
+  const setTimePart = (v: string) => {
+    if (!effStartsAt || !v) return;
+    const [h, mi] = v.split(":").map(Number);
+    const next = new Date(effStartsAt); next.setHours(h, mi, 0, 0); setWhenLocal(next);
+  };
 
   // ── Design tokens ─────────────────────────────────────────────────────────────
   const F = {
@@ -388,8 +418,30 @@ export function QuickLessonDialog({
               <>
                 {/* Time hero */}
                 <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
-                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
-                  <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 30, letterSpacing: "-.02em", marginTop: 2 }}>{heroTime}</div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
+                      <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 30, letterSpacing: "-.02em", marginTop: 2 }}>{heroTime}</div>
+                    </div>
+                    <button type="button" onClick={() => setTimeEditOpen((v) => !v)}
+                      style={{ height: 40, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", flexShrink: 0,
+                        background: timeEditOpen ? "rgba(43,191,170,.35)" : "rgba(255,255,255,.14)", color: "#fff",
+                        fontFamily: F.display, fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <Clock size={16} /> Змінити
+                    </button>
+                  </div>
+                  {timeEditOpen && (
+                    <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                      <input type="date" value={ymd} onChange={(e) => setDatePart(e.target.value)}
+                        style={{ flex: 1, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
+                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 14.5,
+                          outline: "none", colorScheme: "dark" }} />
+                      <input type="time" value={hm} onChange={(e) => setTimePart(e.target.value)}
+                        style={{ width: 110, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
+                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 14.5,
+                          outline: "none", colorScheme: "dark", flexShrink: 0 }} />
+                    </div>
+                  )}
                 </div>
 
                 {/* Duration chips */}
@@ -408,6 +460,36 @@ export function QuickLessonDialog({
                     );
                   })}
                 </div>
+
+                {/* Repeat weekly (individual only) */}
+                {mode === "individual" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <button type="button" onClick={() => setRepeatWeeks((v) => (v > 0 ? 0 : 4))}
+                      style={{ height: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
+                        border: `1.5px solid ${repeatWeeks > 0 ? F.teal : F.border}`,
+                        background: repeatWeeks > 0 ? F.tealL : F.surface,
+                        color: repeatWeeks > 0 ? F.tealD : F.sub,
+                        fontFamily: F.display, fontWeight: 700, fontSize: 13.5,
+                        display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      🔁 Щотижня
+                    </button>
+                    {repeatWeeks > 0 && [4, 8, 12].map((n) => (
+                      <button key={n} type="button" onClick={() => setRepeatWeeks(n)}
+                        style={{ height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
+                          border: `1.5px solid ${repeatWeeks === n ? F.teal : F.border}`,
+                          background: repeatWeeks === n ? F.tealL : F.surface,
+                          color: repeatWeeks === n ? F.tealD : F.txt,
+                          fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
+                        ×{n}
+                      </button>
+                    ))}
+                    {repeatWeeks > 0 && (
+                      <span style={{ fontSize: 12.5, color: F.muted, fontFamily: F.body }}>
+                        {repeatWeeks} тижнів поспіль о цій годині
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Mode toggle (only when groups exist) */}
                 {groups.length > 0 && (
@@ -494,8 +576,8 @@ export function QuickLessonDialog({
                 )}
 
                 {/* Full editor link */}
-                {startsAt && onWantFullForm && mode === "individual" && (
-                  <button onClick={() => { onOpenChange(false); onWantFullForm!(startsAt!); }}
+                {effStartsAt && onWantFullForm && mode === "individual" && (
+                  <button onClick={() => { onOpenChange(false); onWantFullForm!(effStartsAt!); }}
                     style={{ alignSelf: "center", background: "transparent", border: "none", cursor: "pointer",
                       fontFamily: F.display, fontWeight: 700, fontSize: 13.5, color: F.sub, padding: "2px 8px" }}>
                     {t("quickLessonDialog.openFullEditor")} →
