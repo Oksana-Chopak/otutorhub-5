@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Send, MessageSquare } from "lucide-react";
+import { Loader2, Send, MessageSquare, X } from "lucide-react";
 import { MessageReactions, type Reaction } from "@/components/MessageReactions";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
@@ -206,15 +206,28 @@ export function ChatThreadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Чат{counterpartName ? ` · ${counterpartName}` : ""}
-          </DialogTitle>
-        </DialogHeader>
-        <div className="flex h-[55vh] flex-col gap-2">
-          <div className="flex-1 overflow-y-auto rounded-md border border-border bg-background/40 p-2">
+      <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto flex flex-col [&>button.absolute]:hidden">
+        <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 18px 10px", flexShrink: 0, borderBottom: "1px solid #eceef3" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+            <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "#f0fdf9", boxShadow: "inset 0 0 0 1.5px rgba(43,191,170,.35)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <MessageSquare size={18} />
+            </span>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {counterpartName || "Чат"}
+              </div>
+            </div>
+          </div>
+          <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
+            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <X size={18} />
+          </button>
+        </div>
+        <div className="flex h-[60vh] flex-col gap-2" style={{ padding: "10px 14px 14px" }}>
+          <div className="flex-1 overflow-y-auto rounded-[14px] p-2" style={{ background: "#F5F4F0" }}>
             {loading ? (
               <div className="flex h-full items-center justify-center">
                 <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -247,14 +260,15 @@ export function ChatThreadDialog({
                       <div
                         className={
                           mine
-                            ? "max-w-[80%] rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground"
-                            : "max-w-[80%] rounded-lg bg-muted px-3 py-1.5 text-sm text-foreground"
+                            ? "max-w-[80%] rounded-[14px] rounded-br-[4px] px-3 py-2 text-[14.5px] text-white shadow-sm"
+                            : "max-w-[80%] rounded-[14px] rounded-bl-[4px] bg-white px-3 py-2 text-[14.5px] text-[#0f0f1a] shadow-sm"
                         }
+                        style={mine ? { background: "linear-gradient(135deg,#2BBFAA,#25a896)" } : undefined}
                       >
                         <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
                           className={`mt-0.5 text-[12px] ${
-                            mine ? "text-primary-foreground/70" : "text-muted-foreground"
+                            mine ? "text-white/70" : "text-[#9398b0]"
                           }`}
                         >
                           {new Date(m.created_at).toLocaleTimeString("uk-UA", {
@@ -278,6 +292,7 @@ export function ChatThreadDialog({
           </div>
           <div className="flex gap-2">
             <Input
+              className="h-12 rounded-[13px] text-[15px]"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
@@ -289,7 +304,8 @@ export function ChatThreadDialog({
               placeholder={t("chatThread.placeholder")}
               disabled={!threadId || sending}
             />
-            <Button onClick={send} disabled={!draft.trim() || !threadId || sending}>
+            <Button onClick={send} disabled={!draft.trim() || !threadId || sending}
+              className="h-12 w-12 rounded-[13px] p-0 shadow-[0_6px_16px_-6px_rgba(43,191,170,.7)]">
               {sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
