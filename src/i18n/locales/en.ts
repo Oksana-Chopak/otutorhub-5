@@ -911,6 +911,17 @@ export const en: Translations = {
     card: "Card",
   },
 
+  accountDeletion: {
+    title: "Danger zone",
+    desc: "Deleting your account is permanent: profile, contacts and settings will be erased. Lesson history kept by your counterparts remains.",
+    btn: "Delete account",
+    confirmTitle: "Delete account forever?",
+    confirmBody: "This cannot be undone. All your personal data will be removed and you won't be able to sign in.",
+    cancel: "Cancel",
+    confirmBtn: "Yes, delete",
+    done: "Account deleted",
+    failed: "Couldn't delete the account",
+  },
   myStudents: {
     subjectsLabel: "Subjects",
     addSubjectBtn: "Subject",

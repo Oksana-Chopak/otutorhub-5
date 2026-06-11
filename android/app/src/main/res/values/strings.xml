@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">oTutorHub</string>
+    <string name="title_activity_main">oTutorHub</string>
+    <string name="package_name">ua.otutorhub.app</string>
+    <string name="custom_url_scheme">ua.otutorhub.app</string>
+</resources>

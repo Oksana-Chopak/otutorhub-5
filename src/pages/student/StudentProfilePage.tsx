@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { StudentLayout } from "@/components/student/StudentLayout";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
@@ -92,6 +93,8 @@ export default function StudentProfilePage() {
         <Button variant="outline" onClick={signOut} className="w-full sm:w-auto">
           {t("common.logout")}
         </Button>
+
+        <DeleteAccountSection />
       </div>
     </StudentLayout>
   );

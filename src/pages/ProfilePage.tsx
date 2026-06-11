@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
+import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
@@ -779,6 +780,8 @@ export default function ProfilePage() {
               });
           }}
         />
+
+        <DeleteAccountSection />
 
       </div>
     </AppLayout>

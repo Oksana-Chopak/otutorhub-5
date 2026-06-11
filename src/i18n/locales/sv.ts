@@ -901,6 +901,17 @@ export const sv: Partial<Translations> = {
     card: "Kort",
   },
 
+  accountDeletion: {
+    title: "Riskzon",
+    desc: "Att radera kontot är permanent: profil, kontakter och inställningar raderas. Lektionshistorik hos dina motparter finns kvar.",
+    btn: "Radera konto",
+    confirmTitle: "Radera kontot för alltid?",
+    confirmBody: "Detta kan inte ångras. All din personliga data raderas och du kan inte längre logga in.",
+    cancel: "Avbryt",
+    confirmBtn: "Ja, radera",
+    done: "Kontot raderat",
+    failed: "Kunde inte radera kontot",
+  },
   myStudents: {
     subjectsLabel: "Ämnen",
     addSubjectBtn: "Ämne",
