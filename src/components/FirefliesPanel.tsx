@@ -1,6 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mic, ExternalLink, AlertCircle, ListChecks, FileAudio } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
@@ -124,61 +123,69 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
   const isProcessing = state.status === "requested" && !state.summary && !state.transcript?.length;
   const isReady = !!(state.summary || state.transcript?.length || state.recordingUrl);
 
+  const L = {
+    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "#0f0f1a",
+    sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
+    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  };
+  const label: React.CSSProperties = {
+    fontFamily: L.display, fontWeight: 700, fontSize: 12, letterSpacing: ".07em",
+    textTransform: "uppercase", color: L.sub, marginBottom: 6,
+  };
+
   return (
-    <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <Mic className="h-4 w-4 text-primary" />
-          AI session recording
+    <section className="md:col-span-2" style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "#fff", padding: 14, fontFamily: L.body, color: L.txt }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: state.status || canRecord ? 10 : 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(59,130,246,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>🎙</span>
+          <div>
+            <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>Запис уроку</div>
+            <div style={{ fontSize: 12.5, color: L.muted }}>Fireflies · конспект із дзвінка</div>
+          </div>
         </div>
         {canRecord && !isReady && (
-          <Button size="sm" onClick={startRecording} disabled={starting || isProcessing}>
-            {starting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Mic className="mr-2 h-4 w-4" />
-            )}
-            🎙 Record this session
-          </Button>
+          <button type="button" onClick={startRecording} disabled={starting || isProcessing}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 15px", borderRadius: 12,
+              border: "none", cursor: starting || isProcessing ? "default" : "pointer",
+              background: starting || isProcessing ? "rgba(43,191,170,.35)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
+              color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 13.5,
+              boxShadow: starting || isProcessing ? "none" : "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+            {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
+            Записати цей урок
+          </button>
         )}
       </div>
 
       {canRecord && !isReady && !isProcessing && (
-        <div className="mb-3 flex items-start gap-2 rounded-md border border-warning/30 bg-warning/5 p-2.5 text-xs text-foreground/80">
-          <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
-          <p>
-            This session will be recorded and transcribed. Both participants will see the
-            Fireflies bot in the call.
-          </p>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(245,181,68,.35)", background: "rgba(245,181,68,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 13, lineHeight: 1.45, color: L.txt }}>
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#b4740b" }} />
+          <p>Урок буде записано і транскрибовано. Обидва учасники побачать бота Fireflies у дзвінку.</p>
         </div>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Loader2 className="h-3 w-3 animate-spin" /> Loading…
+        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: L.muted }}>
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Завантаження…
         </div>
       ) : isProcessing ? (
-        <div className="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm text-foreground/80">
-          ⏳ Preparing your session notes… This usually takes a few minutes after the call ends.
+        <div style={{ borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "12px 14px", fontSize: 13.5, lineHeight: 1.5 }}>
+          ⏳ Готуємо конспект уроку… Зазвичай це займає кілька хвилин після завершення дзвінка.
         </div>
       ) : isReady ? (
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {state.summary && (
-            <div className="rounded-md border border-border bg-card p-3">
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Summary
-              </div>
-              <p className="whitespace-pre-wrap text-sm text-foreground">{state.summary}</p>
+            <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
+              <div style={label}>Конспект</div>
+              <p style={{ whiteSpace: "pre-wrap", fontSize: 14.5, lineHeight: 1.55 }}>{state.summary}</p>
             </div>
           )}
 
           {state.actionItems && state.actionItems.length > 0 && (
-            <div className="rounded-md border border-border bg-card p-3">
-              <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <ListChecks className="h-3.5 w-3.5" />
-                Action items
+            <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
+              <div style={{ ...label, display: "flex", alignItems: "center", gap: 6 }}>
+                <ListChecks className="h-3.5 w-3.5" /> Завдання з уроку
               </div>
-              <ul className="list-disc space-y-1 pl-5 text-sm text-foreground">
+              <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4, fontSize: 14.5, lineHeight: 1.5 }}>
                 {state.actionItems.map((it, i) => (
                   <li key={i}>{it}</li>
                 ))}
@@ -187,38 +194,34 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           )}
 
           {(state.recordingUrl || state.audioUrl) && (
-            <div className="flex flex-wrap gap-2">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {state.recordingUrl && (
-                <Button asChild size="sm" variant="outline">
-                  <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    Open recording
-                  </a>
-                </Button>
+                <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                  <ExternalLink className="h-4 w-4" /> Відкрити запис
+                </a>
               )}
               {state.audioUrl && (
-                <Button asChild size="sm" variant="outline">
-                  <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer">
-                    <FileAudio className="mr-2 h-4 w-4" />
-                    Audio
-                  </a>
-                </Button>
+                <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                  <FileAudio className="h-4 w-4" /> Аудіо
+                </a>
               )}
             </div>
           )}
 
           {state.transcript && state.transcript.length > 0 && (
-            <details className="rounded-md border border-border bg-card p-3">
-              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Full transcript ({state.transcript.length} lines)
+            <details style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
+              <summary style={{ ...label, marginBottom: 0, cursor: "pointer" }}>
+                Повний транскрипт ({state.transcript.length})
               </summary>
-              <div className="mt-3 max-h-96 space-y-2 overflow-y-auto pr-2">
+              <div style={{ marginTop: 10, maxHeight: 380, overflowY: "auto", paddingRight: 8, display: "flex", flexDirection: "column", gap: 7 }}>
                 {state.transcript.map((s, i) => (
-                  <div key={s.index ?? i} className="text-sm">
-                    <span className="mr-2 font-semibold text-primary">
-                      {s.speaker_name || "Speaker"}:
+                  <div key={s.index ?? i} style={{ fontSize: 14 }}>
+                    <span style={{ marginRight: 7, fontFamily: L.display, fontWeight: 700, color: L.tealD }}>
+                      {s.speaker_name || "Спікер"}:
                     </span>
-                    <span className="text-foreground">{s.text}</span>
+                    <span>{s.text}</span>
                   </div>
                 ))}
               </div>
@@ -226,8 +229,8 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           )}
         </div>
       ) : (
-        <p className="text-xs text-muted-foreground">
-          No recording yet. {canRecord ? "Tap the button above to send the bot to the call." : "The tutor can start a recording from this page."}
+        <p style={{ fontSize: 13, color: L.muted, lineHeight: 1.5 }}>
+          Запису ще немає. {canRecord ? "Натисни кнопку вище — бот приєднається до дзвінка." : "Репетитор може запустити запис з цієї сторінки."}
         </p>
       )}
     </section>
