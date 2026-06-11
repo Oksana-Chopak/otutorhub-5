@@ -124,12 +124,12 @@ export default function MarketingPage() {
     <AppLayout>
       <div className="container mx-auto max-w-6xl space-y-6 py-6">
         <div>
-          <h1 className="text-2xl font-bold">Email-розсилки</h1>
+          <h1 className="" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>Email-розсилки</h1>
           <p className="text-sm text-muted-foreground">Анонси та новини для самостійних репетиторів</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card>
+          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
               <CardTitle>Нова розсилка</CardTitle>
             </CardHeader>
@@ -184,7 +184,7 @@ export default function MarketingPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Eye className="h-4 w-4" /> Прев'ю</CardTitle>
             </CardHeader>
@@ -205,7 +205,7 @@ export default function MarketingPage() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
             <CardTitle>Історія розсилок</CardTitle>
           </CardHeader>

@@ -141,11 +141,11 @@ export default function WalletsPage() {
     <AppLayout>
       <div className="space-y-6">
         <header className="space-y-2">
-          <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">{t("walletsPage.title")}</h1>
+            <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("walletsPage.title")}</h1>
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm" style={{ color: "#9398b0" }}>
             Передоплати учнів за майбутні уроки. Списання відбувається автоматично, як тільки створюється новий урок.
           </p>
         </header>
@@ -188,7 +188,7 @@ export default function WalletsPage() {
             {/* Mobile: cards */}
             <div className="grid gap-3 md:hidden">
               {filtered.map((r) => (
-                <Card key={`${r.tutor_id}:${r.student_id}`}>
+                <Card key={`${r.tutor_id}:${r.student_id}`} className="rounded-[18px] border-[#eceef3] shadow-none">
                   <CardContent className="p-4 space-y-3">
                     <div>
                       <div className="font-medium text-foreground">{r.student_name}</div>

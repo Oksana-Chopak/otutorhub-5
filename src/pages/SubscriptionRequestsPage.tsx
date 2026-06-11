@@ -134,7 +134,7 @@ export default function SubscriptionRequestsPage() {
             <Crown className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
+            <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               Запити на підписку
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -148,7 +148,7 @@ export default function SubscriptionRequestsPage() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : requests.length === 0 ? (
-          <Card>
+          <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
               Поки що немає жодного запиту на підписку.
             </CardContent>
@@ -161,7 +161,7 @@ export default function SubscriptionRequestsPage() {
                 t("subscriptionRequestsExtra.tutorFallback");
               const meta = statusMeta[r.status];
               return (
-                <Card key={r.id}>
+                <Card key={r.id} className="rounded-[18px] border-[#eceef3] shadow-none">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>

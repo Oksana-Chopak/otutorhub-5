@@ -28,7 +28,7 @@ export function MonthlySummaryCard() {
 
   if (loading) {
     return (
-      <Card className="flex h-40 items-center justify-center">
+      <Card className="flex h-40 items-center justify-center rounded-[18px] border-[#eceef3] shadow-none">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </Card>
     );
@@ -77,7 +77,7 @@ export function MonthlySummaryCard() {
   };
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden rounded-[18px] border-[#eceef3] shadow-none">
       <div
         ref={cardRef}
         className="relative bg-gradient-to-br from-primary via-primary to-primary/70 p-6 text-primary-foreground"

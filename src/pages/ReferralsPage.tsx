@@ -159,7 +159,7 @@ export default function ReferralsPage() {
   return (
     <AppLayout>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-foreground">
+        <h1 className="" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
           Запити на репетиторів
         </h1>
         <p className="text-sm text-muted-foreground">

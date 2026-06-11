@@ -42,9 +42,9 @@ export default function AchievementsPage() {
           <StreakCard streak={streak} />
         </div>
 
-        <Card>
+        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle>{t("achievements.title")}</CardTitle>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>{t("achievements.title")}</CardTitle>
             <CardDescription>{t("achievements.badgesCollected", { count: badges.length })}</CardDescription>
           </CardHeader>
           <CardContent>

@@ -14,6 +14,7 @@ const routeTitleKey: Record<string, string> = {
   "/profile": "nav.profile",
   "/subscription": "nav.subscription",
   "/finances": "nav.finances",
+  "/wallets": "walletsPage.title",
   "/chats": "nav.chats",
   "/groups": "groupsPage.title",
   "/referrals": "nav.referrals",

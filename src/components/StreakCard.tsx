@@ -19,7 +19,7 @@ export function StreakCard({ streak, className }: Props) {
   const toNextBonus = current >= 30 ? 0 : 30 - current;
 
   return (
-    <div className={cn("rounded-2xl border border-border bg-gradient-to-br from-orange-500/10 to-rose-500/5 p-4", className)}>
+    <div className={cn("rounded-[18px] border border-[#eceef3] bg-gradient-to-br from-orange-500/10 to-rose-500/5 p-4", className)}>
       <div className="flex items-center gap-3">
         <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 text-white">
           <Flame className="h-7 w-7" />
