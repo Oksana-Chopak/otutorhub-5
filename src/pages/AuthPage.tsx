@@ -74,11 +74,11 @@ function ConfirmedSignIn({
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center gap-2 justify-center">
-          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
-          <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
+          <img src="/logo.png" alt="oTutorHub" className="h-11 w-11" />
+          <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", color: "#0f0f1a" }}>oTutorHub</span>
         </div>
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="flex flex-col items-center gap-2 text-center">
@@ -117,7 +117,7 @@ function ConfirmedSignIn({
                 ) : null}
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading || !password}>
+            <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading || !password}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {t("auth.login") || "Увійти"}
             </Button>
@@ -389,7 +389,7 @@ export default function AuthPage() {
   // ── Email sent screen ───────────────────────────────────────────────────────
   if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
         <div className="w-full max-w-md text-center">
           <div className="mb-6 flex items-center gap-2 justify-center">
             <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
@@ -443,7 +443,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -453,10 +453,10 @@ export default function AuthPage() {
           <LanguageSwitcher variant="ghost" size="sm" />
         </div>
 
-        <Card>
+        <Card className="rounded-[20px] border-[#eceef3] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
           <CardHeader>
-            <CardTitle>{t("auth.welcome")}</CardTitle>
-            <CardDescription>{t("auth.welcomeSub")}</CardDescription>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 23, letterSpacing: "-.01em" }}>{t("auth.welcome")}</CardTitle>
+            <CardDescription className="text-[14px]">{t("auth.welcomeSub")}</CardDescription>
           </CardHeader>
           <CardContent>
             {pendingHint && (
@@ -475,9 +475,9 @@ export default function AuthPage() {
               </div>
             )}
             <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); setSignInData(p => ({ ...p, password: "" })); setSignUpData(p => ({ ...p, password: "" })); }} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-muted p-1 rounded-lg h-11">
-                <TabsTrigger value="signin" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignUp")}</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 p-1 rounded-[12px] h-12" style={{ background: "rgba(15,15,26,.06)" }}>
+                <TabsTrigger value="signin" className="rounded-[9px] font-bold text-[14px] data-[state=active]:bg-white data-[state=active]:text-[#0f0f1a] data-[state=active]:shadow-sm data-[state=inactive]:text-[#9398b0]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-[9px] font-bold text-[14px] data-[state=active]:bg-white data-[state=active]:text-[#0f0f1a] data-[state=active]:shadow-sm data-[state=inactive]:text-[#9398b0]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">
@@ -549,7 +549,7 @@ export default function AuthPage() {
                       {t("auth.rememberMe")}
                     </label>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("auth.login")}
                   </Button>
@@ -664,7 +664,7 @@ export default function AuthPage() {
                     />
                     <p className="text-xs text-muted-foreground">{t("auth.minPasswordHint")}</p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("auth.createAccount")}
                   </Button>

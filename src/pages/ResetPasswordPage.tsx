@@ -60,15 +60,15 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
           <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
         </div>
-        <Card>
+        <Card className="rounded-[20px] border-[#eceef3] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
           <CardHeader>
-            <CardTitle>{t("resetPassword.title")}</CardTitle>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22 }}>{t("resetPassword.title")}</CardTitle>
             <CardDescription>
               {hasRecoverySession
                 ? t("resetPassword.descHasSession")
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
                 />
                 <p className="text-xs text-muted-foreground">{t("resetPassword.hint")}</p>
               </div>
-              <Button type="submit" className="w-full" disabled={loading || !hasRecoverySession}>
+              <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading || !hasRecoverySession}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t("resetPassword.saveBtn")}
               </Button>
