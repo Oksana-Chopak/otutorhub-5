@@ -1,3 +1,4 @@
+import "@/styles/landing-fonts.css";
 import { Link } from "react-router-dom";
 import { ReactNode } from "react";
 import i18nInstance from "@/i18n";

@@ -867,7 +867,7 @@ export default function ChatsPage() {
                             {tName}
                           </p>
                           <span
-                            className="text-[11px] flex-shrink-0"
+                            className="text-[12px] flex-shrink-0"
                             style={{ color: "var(--muted,#b0b4c8)" }}
                           >
                             {timeShort(thread.last_message_at)}
@@ -886,7 +886,7 @@ export default function ChatsPage() {
 
                       {isUnread && (
                         <span
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0"
                           style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
                         >
                           ●
@@ -939,7 +939,7 @@ export default function ChatsPage() {
                       </p>
                       {isManager && (
                         <span
-                          className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
+                          className="inline-flex items-center gap-1 text-[12px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
                         >
                           <ShieldCheck className="h-2.5 w-2.5" />
@@ -1012,7 +1012,7 @@ export default function ChatsPage() {
                           {showDateSep && (
                             <div className="flex justify-center my-4">
                               <span
-                                className="px-3 py-1 rounded-full text-[11px] font-semibold"
+                                className="px-3 py-1 rounded-full text-[12px] font-semibold"
                                 style={{
                                   background: "rgba(15,15,26,.08)",
                                   color: "var(--sub,#9398b0)",
@@ -1033,7 +1033,7 @@ export default function ChatsPage() {
                             {/* Sender name for manager threads (not mine) */}
                             {!mine && isManager && (
                               <p
-                                className="text-[11px] mb-1 px-3 truncate max-w-[75%]"
+                                className="text-[12px] mb-1 px-3 truncate max-w-[75%]"
                                 style={{
                                   color: senderIsManager ? "#b45309" : "var(--sub,#9398b0)",
                                   fontFamily: "Inter, system-ui",
@@ -1105,14 +1105,14 @@ export default function ChatsPage() {
 
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span
-                                  className="text-[10px]"
+                                  className="text-[12px]"
                                   style={{ color: mine ? "rgba(255,255,255,0.6)" : "var(--muted,#b0b4c8)" }}
                                 >
                                   {timeShort(m.created_at)}
                                 </span>
                                 {mine && (
                                   <span
-                                    className="text-[11px]"
+                                    className="text-[12px]"
                                     style={{ color: readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id]) ? "#bdfaee" : "rgba(255,255,255,0.5)" }}
                                   >
                                     {readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id])

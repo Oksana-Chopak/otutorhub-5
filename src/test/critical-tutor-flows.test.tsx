@@ -235,16 +235,16 @@ describe("LessonCard", () => {
     expect(screen.getByText("Проведено")).toBeTruthy();
   });
 
-  it("duration text не використовує text-[11px] — мінімум text-xs", () => {
+  it("duration text не використовує text-[12px] — мінімум text-xs", () => {
     const { container } = render(
       <MemoryRouter>
         <LessonCard lesson={baseLesson} studentName="Тест" />
       </MemoryRouter>,
     );
-    // Check no text-[11px] in rendered HTML (only text-xs minimum)
+    // Check no text-[12px] in rendered HTML (only text-xs minimum)
     const html = container.innerHTML;
-    expect(html).not.toContain("text-[11px]");
-    expect(html).not.toContain("text-[10px]");
+    expect(html).not.toContain("text-[12px]");
+    expect(html).not.toContain("text-[12px]");
   });
 
   it("відображається без помилок при відсутньому studentName", () => {

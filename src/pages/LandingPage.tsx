@@ -1,3 +1,4 @@
+import "@/styles/landing-fonts.css";
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";

@@ -196,7 +196,7 @@ export function TelegramLinkCard() {
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <p className="mt-2 text-[11px] text-muted-foreground">
+              <p className="mt-2 text-[12px] text-muted-foreground">
                 Код діє 30 хвилин. Якщо протермінувався — згенеруйте новий.
               </p>
               <Button size="sm" variant="outline" className="mt-2" onClick={generate} disabled={generating}>

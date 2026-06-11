@@ -749,7 +749,7 @@ export default function FinancesPage() {
     return (
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {/* Mobile sort controls */}
-        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[11px] lg:hidden">
+        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[12px] lg:hidden">
           <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
           <MobileSortChip
             label={t("finances.colDate")}
@@ -790,7 +790,7 @@ export default function FinancesPage() {
                         {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                       </p>
                       {tx.note && (
-                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{tx.note}</p>
+                        <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{tx.note}</p>
                       )}
                     </div>
                     <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
@@ -835,7 +835,7 @@ export default function FinancesPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
                       {l.student_paid_at && (
-                        <p className="truncate text-[11px] text-muted-foreground">
+                        <p className="truncate text-[12px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                         </p>
                       )}
@@ -852,8 +852,8 @@ export default function FinancesPage() {
                         <Badge
                           className={
                             l.student_payment_status === "paid"
-                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
-                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[12px]"
+                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[12px]"
                           }
                         >
                           {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
@@ -870,7 +870,7 @@ export default function FinancesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
                         {l.tutor_paid_at && (
-                          <p className="truncate text-[11px] text-muted-foreground">
+                          <p className="truncate text-[12px] text-muted-foreground">
                             {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                           </p>
                         )}
@@ -887,8 +887,8 @@ export default function FinancesPage() {
                           <Badge
                             className={
                               l.tutor_payout_status === "paid"
-                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[10px]"
-                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[10px]"
+                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[12px]"
+                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[12px]"
                             }
                           >
                             {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
@@ -1679,7 +1679,7 @@ export default function FinancesPage() {
                       type="button"
                       onClick={() => setPeriod(p)}
                       className={cn(
-                        "px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors",
+                        "px-2.5 py-1 text-[12px] font-medium rounded-md transition-colors",
                         period === p
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground",
@@ -1792,18 +1792,18 @@ export default function FinancesPage() {
 
           {/* === Main tabs: Income / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,#f0f1f5)"}}>
+            <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,#eceef3)"}}>
               <TabsTrigger value="income" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
                 <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
-                <span className="ml-1 text-[10px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
+                <span className="ml-1 text-[12px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
               </TabsTrigger>
               <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
                 <span className="sm:hidden">{t("finances.debtsTabShort", { defaultValue: "Борги" })}</span>
-                <span className="ml-1 text-[10px] text-muted-foreground">({debtsRows.length})</span>
+                <span className="ml-1 text-[12px] text-muted-foreground">({debtsRows.length})</span>
               </TabsTrigger>
             </TabsList>
 
@@ -2011,7 +2011,7 @@ function SummaryStat({
       : "text-foreground";
   return (
     <div className="min-w-0 rounded-lg bg-secondary/40 px-2.5 py-2">
-      <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground sm:text-[11px]">
+      <div className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground sm:text-[12px]">
         <Icon className="h-3 w-3" />
         <span className="truncate">{label}</span>
       </div>
@@ -2058,7 +2058,7 @@ function SortHeader({
       >
         <span>{label}</span>
         {sublabel && (
-          <span className="text-[10px] font-normal text-muted-foreground normal-case">{sublabel}</span>
+          <span className="text-[12px] font-normal text-muted-foreground normal-case">{sublabel}</span>
         )}
       </span>
       <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100 text-primary" : "opacity-70")} />

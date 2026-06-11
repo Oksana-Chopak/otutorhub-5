@@ -70,7 +70,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
           {loading || !url ? (
             <div className="flex aspect-video w-full max-w-[240px] items-center justify-center bg-muted/40">
               {error ? (
-                <span className="text-[11px] text-destructive px-2 text-center">{error}</span>
+                <span className="text-[12px] text-destructive px-2 text-center">{error}</span>
               ) : (
                 <Loader2 className="h-4 w-4 animate-spin opacity-60" />
               )}

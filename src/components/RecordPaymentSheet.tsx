@@ -371,7 +371,7 @@ function PairPicker({
                   </span>
                 </span>
                 {p.rate ? (
-                  <Badge variant="outline" className="shrink-0 text-[10px]">
+                  <Badge variant="outline" className="shrink-0 text-[12px]">
                     {p.rate} ₴/ур.
                   </Badge>
                 ) : null}

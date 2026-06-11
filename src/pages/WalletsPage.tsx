@@ -210,7 +210,7 @@ export default function WalletsPage() {
                         Поповнити
                       </Button>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-[12px] text-muted-foreground">
                       Остання операція: {fmtDate(r.last_transaction_at)}
                     </div>
                   </CardContent>

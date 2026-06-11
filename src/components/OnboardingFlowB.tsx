@@ -721,7 +721,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
           <div className="flex flex-col justify-center" style={{ minWidth: 88 }}>
             <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>Сьогодні</span>
             <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>18:00</span>
-            <span className="text-[11px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>60 хв</span>
+            <span className="text-[12px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>60 хв</span>
           </div>
           {/* Divider */}
           <div className="w-px mx-3.5" style={{ background: T.border }} />
@@ -1098,7 +1098,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               </div>
             </div>
 
-            <p className="text-[11px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
+            <p className="text-[12px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
               ПІДСИЛЮВАЧІ · {bonusDone}/{BONUS.length}
             </p>
 

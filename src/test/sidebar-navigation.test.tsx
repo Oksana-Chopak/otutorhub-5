@@ -75,27 +75,27 @@ describe("MobileBottomNav — пункти за ролями", () => {
     expect(container.querySelector("nav")).toBeNull();
   });
 
-  it("MANAGER бачить 'Люди' та 'Фінанси'", () => {
+  // Нав тепер icon-only (без підписів) — перевіряємо за href вкладок.
+  const hrefs = (c: HTMLElement) =>
+    Array.from(c.querySelectorAll("a")).map((a) => a.getAttribute("href"));
+
+  it("MANAGER бачить вкладку Фінансів (іконка гаманця)", () => {
     setRoles(["manager"]);
-    renderNav();
-    expect(screen.queryByText(/Люди/i)).toBeTruthy();
-    expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
-    // Manager не бачить "Учні" (це tutor-специфічний пункт)
-    expect(screen.queryByText(/^Учні$/i)).toBeNull();
+    const { container } = renderNav();
+    expect(hrefs(container)).toContain("/finances");
+    expect(hrefs(container)).not.toContain("/achievements");
   });
 
-  it("TUTOR бачить 'Учні', 'Фінанси' і НЕ бачить 'Люди'", () => {
+  it("TUTOR бачить вкладку Фінансів", () => {
     setRoles(["tutor"]);
-    renderNav();
-    expect(screen.queryByText(/^Учні$/i)).toBeTruthy();
-    expect(screen.queryByText(/Фінанси/i)).toBeTruthy();
-    expect(screen.queryByText(/Люди/i)).toBeNull();
+    const { container } = renderNav();
+    expect(hrefs(container)).toContain("/finances");
   });
 
-  it("STUDENT не бачить 'Фінанси' і 'Люди'", () => {
+  it("STUDENT не бачить Фінансів — замість них Досягнення", () => {
     setRoles(["student"]);
-    renderNav();
-    expect(screen.queryByText(/Фінанси/i)).toBeNull();
-    expect(screen.queryByText(/Люди/i)).toBeNull();
+    const { container } = renderNav();
+    expect(hrefs(container)).not.toContain("/finances");
+    expect(hrefs(container)).toContain("/achievements");
   });
 });

@@ -35,7 +35,7 @@ export function StreakCard({ streak, className }: Props) {
             {/* Streak freeze indicator (Duolingo-style) */}
             <div
               className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium",
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-medium",
                 freezes > 0
                   ? "bg-sky-500/15 text-sky-600 dark:text-sky-400"
                   : "bg-muted text-muted-foreground"

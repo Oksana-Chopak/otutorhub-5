@@ -161,7 +161,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
                   isToday ? "border-primary/40 bg-primary/5" : "border-border"
                 }`}
               >
-                <p className="text-[10px] text-muted-foreground uppercase">
+                <p className="text-[12px] text-muted-foreground uppercase">
                   {WEEKDAYS_FULL_UK[date.getDay()].slice(0, 3)}
                 </p>
                 <p className="text-xs font-semibold text-foreground mb-2">
@@ -169,12 +169,12 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
                 </p>
                 <div className="space-y-1">
                   {slots.length === 0 ? (
-                    <p className="text-[10px] text-muted-foreground italic">—</p>
+                    <p className="text-[12px] text-muted-foreground italic">—</p>
                   ) : (
                     slots.map((s) => (
                       <div
                         key={s.start}
-                        className="w-full text-[10px] font-mono rounded bg-primary/10 text-primary px-1 py-0.5"
+                        className="w-full text-[12px] font-mono rounded bg-primary/10 text-primary px-1 py-0.5"
                         title={`${minutesToHHMM(s.start)} — ${minutesToHHMM(s.end)}`}
                       >
                         {minutesToHHMM(s.start)}

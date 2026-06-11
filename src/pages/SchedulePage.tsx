@@ -921,11 +921,11 @@ export default function SchedulePage() {
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
                     <span className={step === 1 ? "text-foreground font-medium" : ""}>{t('schedule.step1')}</span>
                     <span className="h-px flex-1 bg-border" />
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold",
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-semibold",
                       step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
                     <span className={step === 2 ? "text-foreground font-medium" : ""}>{t('schedule.step2')}</span>
                   </div>
@@ -1552,7 +1552,7 @@ export default function SchedulePage() {
                                 )
                             : undefined
                         }
-                        onAiNotes={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => setDetailsLessonId(lesson.id) : undefined}
+                        onContentClick={() => setDetailsLessonId(lesson.id)}
                         onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => openEdit(lesson) : undefined}
                         canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
                         onCopy={canCopy ? () => openCopy(lesson) : undefined}

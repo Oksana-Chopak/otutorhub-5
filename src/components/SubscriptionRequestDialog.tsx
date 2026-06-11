@@ -165,7 +165,7 @@ export function SubscriptionRequestDialog({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-foreground">{t("subscriptionDialog.yearly")}</span>
-                      <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-semibold text-success">
+                      <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[12px] font-semibold text-success">
                         −20%
                       </span>
                     </div>

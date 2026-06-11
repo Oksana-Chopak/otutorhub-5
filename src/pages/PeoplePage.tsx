@@ -915,19 +915,19 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {fullName(u)}
               </p>
               {u.is_pending && (
-                <Badge variant="outline" className="border-warning/40 text-warning text-[10px] px-1.5 py-0">
+                <Badge variant="outline" className="border-warning/40 text-warning text-[12px] px-1.5 py-0">
                   {t("people.pendingBadge")}
                 </Badge>
               )}
               {u.archived_at && (
-                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[10px] px-1.5 py-0">
+                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[12px] px-1.5 py-0">
                   {t("people.archivedBadge")}
                 </Badge>
               )}
               {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
                 <Badge
                   variant="outline"
-                  className={`text-[10px] px-1.5 py-0 ${
+                  className={`text-[12px] px-1.5 py-0 ${
                     studentSt.status === "debt"
                       ? "border-warning/40 text-warning"
                       : "border-destructive/40 text-destructive"
@@ -983,7 +983,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             <button
               type="button"
               className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full transition-colors hover:opacity-80"
-              style={{ background: "var(--bg, #F5F4F0)", border: "0.5px solid var(--border, #f0f1f5)", color: "var(--sub, #9398b0)" }}
+              style={{ background: "var(--bg, #F5F4F0)", border: "0.5px solid var(--border, #eceef3)", color: "var(--sub, #9398b0)" }}
               onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
               title={t("people.writeBtn")}
               aria-label={t("people.writeBtn")}
@@ -1065,9 +1065,9 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
   return (
     <AppLayout>
-      {/* ── NEW HEADER: title + green burger ── */}
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("people.title")}</h1>
+      {/* Header — desktop only; mobile title+bell come from AppLayout */}
+      <div className="mb-4 hidden lg:flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold text-foreground">{t("people.title")}</h1>
         <div className="flex items-center gap-2">
           <NotificationBell />
         </div>
@@ -1127,7 +1127,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {!loading && (
         <div
           className="mb-1 flex gap-0 border-b"
-          style={{ borderColor: "var(--border, #f0f1f5)" }}
+          style={{ borderColor: "var(--border, #eceef3)" }}
         >
           {(["tutors", "students", "managers"] as const).map((tab) => {
             const counts = { tutors: tutors.length, students: students.length, managers: managers.length };
@@ -1166,7 +1166,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               className="shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition-all"
               style={{
                 background: statusFilter === pill.value ? "#E1F5EE" : "var(--bg, #F5F4F0)",
-                border: `0.5px solid ${statusFilter === pill.value ? "var(--teal, #2BBFAA)" : "var(--border, #f0f1f5)"}`,
+                border: `0.5px solid ${statusFilter === pill.value ? "var(--teal, #2BBFAA)" : "var(--border, #eceef3)"}`,
                 color: statusFilter === pill.value ? "#0F6E56" : "var(--sub, #9398b0)",
               }}
             >
@@ -1782,7 +1782,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       <span>{t("people.progressTitle", { done: tutorProgress.doneCount })}</span>
                       <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount} з 9</span>
                     </div>
-                    <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border,#f0f1f5)" }}>
+                    <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border,#eceef3)" }}>
                       <div
                         className="h-full rounded-full transition-all"
                         style={{ width: `${(tutorProgress.doneCount / 9) * 100}%`, background: "#1D9E75" }}
@@ -1813,7 +1813,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <button
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
-                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#f0f1f5)" }}
+                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
                       onClick={() => { setWalletPerson(u); setWalletOpen(true); setSelectedPerson(null); }}
                     >
                       <Wallet className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
@@ -1822,7 +1822,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <button
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
-                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#f0f1f5)" }}
+                      style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
                       onClick={() => setContactDialog({ open: true, user: u })}
                     >
                       <Tag className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />

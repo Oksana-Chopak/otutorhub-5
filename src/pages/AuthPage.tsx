@@ -574,7 +574,7 @@ export default function AuthPage() {
                       >
                         <BookOpenCheck className="h-5 w-5 text-primary" />
                         <span className="text-sm font-medium">{t("auth.roleTutor")}</span>
-                        <span className="text-[10px] text-muted-foreground">{t("auth.tutorHint")}</span>
+                        <span className="text-[12px] text-muted-foreground">{t("auth.tutorHint")}</span>
                       </button>
                       <button
                         type="button"
@@ -588,7 +588,7 @@ export default function AuthPage() {
                       >
                         <GraduationCap className="h-5 w-5 text-primary" />
                         <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
-                        <span className="text-[10px] text-muted-foreground">{t("auth.studentHint")}</span>
+                        <span className="text-[12px] text-muted-foreground">{t("auth.studentHint")}</span>
                       </button>
                     </div>
                   </div>

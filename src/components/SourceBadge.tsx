@@ -16,7 +16,7 @@ export function SourceBadge({ source, className, showIcon = true }: Props) {
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[10px] font-medium text-warning",
+          "inline-flex items-center gap-1 rounded-md bg-warning/15 px-1.5 py-0.5 text-[12px] font-medium text-warning",
           className
         )}
         {...{title: t("sourceBadge.hub")}}
@@ -29,7 +29,7 @@ export function SourceBadge({ source, className, showIcon = true }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground",
+        "inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-[12px] font-medium text-muted-foreground",
         className
       )}
       {...{title: t("sourceBadge.own")}}

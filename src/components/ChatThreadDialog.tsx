@@ -253,7 +253,7 @@ export function ChatThreadDialog({
                       >
                         <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
-                          className={`mt-0.5 text-[10px] ${
+                          className={`mt-0.5 text-[12px] ${
                             mine ? "text-primary-foreground/70" : "text-muted-foreground"
                           }`}
                         >

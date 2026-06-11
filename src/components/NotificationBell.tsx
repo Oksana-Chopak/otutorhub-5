@@ -63,7 +63,7 @@ export function NotificationBell({ className, golden }: Props) {
         >
           <Bell className="h-5 w-5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" }} />
           {unreadCount > 0 && (
-            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-white border-2 border-white">
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[12px] font-bold text-white border-2 border-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -119,7 +119,7 @@ export function NotificationBell({ className, golden }: Props) {
                       {n.body && (
                         <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{n.body}</p>
                       )}
-                      <p className="mt-1 text-[10px] text-muted-foreground/70">
+                      <p className="mt-1 text-[12px] text-muted-foreground/70">
                         {timeAgo(n.created_at, t as unknown as (k: string, o?: object) => string)}
                       </p>
                     </div>

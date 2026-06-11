@@ -137,7 +137,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-[10px] text-muted-foreground">{formatDate(n.created_at)}</p>
+                  <p className="text-[12px] text-muted-foreground">{formatDate(n.created_at)}</p>
                 </div>
               ))}
             </div>

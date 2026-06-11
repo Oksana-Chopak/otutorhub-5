@@ -625,12 +625,13 @@ export default function MyStudentsPage() {
     <AppLayout>
       {/* ── Header: назва + пошук-іконка (Додати учня — FAB внизу) ────── */}
       <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 hidden lg:block">
           <h1 className="font-black text-[22px] leading-tight" style={{ fontFamily: T.display }}>{t("myStudents.title")}</h1>
           {!searchOpen && (
             <p className="text-[14px] mt-0.5" style={{ color: T.sub }}>{t("myStudents.subtitle")}</p>
           )}
         </div>
+        <div className="min-w-0 lg:hidden" />
         <div className="flex items-center gap-2 flex-shrink-0">
           {searchOpen ? (
             <>
@@ -821,7 +822,7 @@ export default function MyStudentsPage() {
                       style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
                       <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[11px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
+                        <p className="text-[12px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
                         <p className="text-[14px] truncate" style={{ color: T.txt, fontFamily: T.body }}>{value}</p>
                       </div>
                       {label === "Телефон" && (

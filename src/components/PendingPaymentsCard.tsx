@@ -193,7 +193,7 @@ export function PendingPaymentsCard() {
             <CardTitle className="font-display text-base">
               Очікують оплати
             </CardTitle>
-            <Badge variant="outline" className="ml-1 text-[10px]">
+            <Badge variant="outline" className="ml-1 text-[12px]">
               {t("pendingPaymentsExtra.studentCount", { count: groups.length })} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
             </Badge>
             <ChevronDown

@@ -191,7 +191,7 @@ export default function StudentPaymentsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="font-semibold text-foreground">{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
-                      <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${paid ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
+                      <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] font-semibold ${paid ? "bg-success/10 text-success" : "bg-warning/10 text-warning"}`}>
                         {paid ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>

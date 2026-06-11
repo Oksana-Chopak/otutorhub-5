@@ -25,9 +25,8 @@ import { Loader2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
-import i18nInstance from "@/i18n";
+import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
-const t = i18nInstance.t.bind(i18nInstance);
 
 interface Props {
   open: boolean;
@@ -42,6 +41,7 @@ interface StudentRow {
   student_id: string;
   subject: string;
   price: number;
+  currency?: string | null;
   name: string;
   default_meeting_url?: string | null;
 }
@@ -96,7 +96,7 @@ export function QuickLessonDialog({
       const [{ data: rates }, { data: gs }] = await Promise.all([
         supabase
           .from("student_rates")
-          .select("student_id, subject, price_per_lesson, archived_at")
+          .select("student_id, subject, price_per_lesson, currency, archived_at")
           .eq("tutor_id", user.id)
           .eq("source", "independent"),
         supabase
@@ -134,6 +134,7 @@ export function QuickLessonDialog({
           student_id: r.student_id,
           subject: r.subject || "",
           price: Number(r.price_per_lesson ?? 0),
+          currency: r.currency ?? "UAH",
           name: nameOf.get(r.student_id) ?? t("shared.student"),
           default_meeting_url: (meetOf.get(r.student_id) as string | null) ?? null,
         }));
@@ -444,7 +445,7 @@ export function QuickLessonDialog({
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt,
                               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
-                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{s.subject} · {s.price}₴</div>
+                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{s.subject} · {formatPrice(s.price, s.currency)}</div>
                           </div>
                           <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
                             border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>

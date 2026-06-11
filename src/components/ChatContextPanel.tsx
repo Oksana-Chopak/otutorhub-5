@@ -162,7 +162,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                 <div className="mt-2 flex items-center gap-1.5">
                   <span
                     className={cn(
-                      "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                      "inline-flex items-center rounded-full border px-2 py-0.5 text-[12px] font-semibold",
                       nextLesson.student_payment_status === "paid"
                         ? "border-transparent bg-success/15 text-success"
                         : "border-transparent bg-warning/15 text-warning"
@@ -210,7 +210,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
               <p className="text-xs text-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">
                 {lastHomework.homework}
               </p>
-              <p className="mt-1 text-[11px] text-muted-foreground flex items-center justify-between">
+              <p className="mt-1 text-[12px] text-muted-foreground flex items-center justify-between">
                 <span>
                   {format(new Date(lastHomework.starts_at), "d MMM", { locale: dateLocale })}
                   {lastHomework.subject && ` · ${lastHomework.subject}`}

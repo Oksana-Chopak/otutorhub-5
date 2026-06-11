@@ -753,21 +753,21 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                   ) : (
                     <span aria-hidden>{step.emoji}</span>
                   )}
-                  <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-card text-[10px] font-black text-foreground shadow ring-1 ring-border">
+                  <span className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-card text-[12px] font-black text-foreground shadow ring-1 ring-border">
                     {step.id}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="font-display font-bold text-foreground">{step.title}</h3>
-                    <span className="gamify-sticker warning text-[10px]">+{step.xp} XP</span>
+                    <span className="gamify-sticker warning text-[12px]">+{step.xp} XP</span>
                     {step.badge && (
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-[12px]">
                         {step.badge}
                       </Badge>
                     )}
                     {isAutoDone && step.autoHint && (
-                      <span className="gamify-sticker success text-[10px] animate-pop">
+                      <span className="gamify-sticker success text-[12px] animate-pop">
                         {step.autoHint}
                       </span>
                     )}
@@ -890,7 +890,7 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                   )}
                   {!isDone && step.id === 11 && (
                     <div className="mt-3">
-                      <span className="gamify-sticker warning text-[10px]">
+                      <span className="gamify-sticker warning text-[12px]">
                         {t("onboardingExtra.aiSoonBadge")}
                       </span>
                     </div>

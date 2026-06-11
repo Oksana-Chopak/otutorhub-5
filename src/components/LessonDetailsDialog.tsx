@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface LessonRowFull {
@@ -62,19 +57,35 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, lessonId]);
 
+  const locale = i18n.language === "sv" ? "sv-SE" : i18n.language === "en" ? "en-GB" : "uk-UA";
+  const sub = row
+    ? new Date(row.starts_at).toLocaleString(locale, {
+        weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+      })
+    : "";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {row
-              ? `${row.subject} · ${new Date(row.starts_at).toLocaleString(
-                  i18n.language === "sv" ? "sv-SE" : i18n.language === "en" ? "en-GB" : "uk-UA",
-                  { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }
-                )}`
-              : t("lessonDetails.fallbackTitle")}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        {/* Drag handle (mobile) */}
+        <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+        </div>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 12px", flexShrink: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {row ? row.subject : t("lessonDetails.fallbackTitle")}
+            </div>
+            {sub && <div style={{ fontSize: 13.5, color: "#9398b0", marginTop: 1 }}>{sub}</div>}
+          </div>
+          <button onClick={() => onOpenChange(false)} aria-label="✕"
+            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <X size={18} />
+          </button>
+        </div>
+        {/* Body */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 20px" }}>
         {loading || !row ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -98,6 +109,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             }}
           />
         )}
+        </div>
       </DialogContent>
     </Dialog>
   );

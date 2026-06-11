@@ -2,6 +2,7 @@
 @import "@fontsource/inter/500.css";
 @import "@fontsource/inter/600.css";
 @import "@fontsource/inter/700.css";
+@import "@fontsource/inter/800.css";
 @import "@fontsource-variable/plus-jakarta-sans";
 
 @tailwind base;
@@ -19,7 +20,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 9%;
 
-    --primary: 178 90% 38%;
+    --primary: 171 63% 46%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 14% 96%;
@@ -69,7 +70,7 @@
     --popover: 224 47% 10%;
     --popover-foreground: 210 20% 96%;
 
-    --primary: 178 78% 45%;
+    --primary: 171 63% 46%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 224 30% 16%;
@@ -127,7 +128,7 @@
     --ds-txt: #0f0f1a;
     --ds-sub: #9398b0;
     --ds-muted: #b0b4c8;
-    --ds-border: #f0f1f5;
+    --ds-border: #eceef3;
   }
 
   h1, h2, h3, h4, h5, h6 {

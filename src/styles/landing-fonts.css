@@ -1,0 +1,3 @@
+/* Landing/legal-only display fonts. Imported ONLY by landing components so the
+   Google Fonts request rides their lazy chunk and never loads inside the app. */
+@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Golos+Text:wght@400;500;600;700&display=swap");

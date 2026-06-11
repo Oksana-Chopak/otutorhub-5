@@ -40,11 +40,6 @@ import i18nInstance from "@/i18n";
 import { insertNotification } from "@/lib/notifications";
 const t = i18nInstance.t.bind(i18nInstance);
 
-function normalizeUrl(value: string): string {
-  // Returns an empty string if the URL is not a safe http(s) URL.
-  return sanitizeHttpUrl(value) ?? "";
-}
-
 const PLATFORMS: { k: string; label: string; ph: string }[] = [
   { k: "zoom", label: "Zoom", ph: "https://us02web.zoom.us/j/…" },
   { k: "meet", label: "Google Meet", ph: "https://meet.google.com/…" },

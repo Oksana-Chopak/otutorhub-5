@@ -59,7 +59,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[12px] font-semibold text-primary-foreground">
                     {badge}
                   </span>
                 )}
@@ -113,7 +113,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                   <span className="relative">
                     <item.icon className="h-6 w-6" />
                     {badge > 0 && (
-                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
+                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[12px] font-semibold text-primary-foreground">
                         {badge > 9 ? "9+" : badge}
                       </span>
                     )}

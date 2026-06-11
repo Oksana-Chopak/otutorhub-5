@@ -81,7 +81,7 @@ export default function StudentSchedulePage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-medium text-foreground">{l.subject}</p>
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusClass[l.status]}`}>
+                    <span className={`rounded-full px-2 py-0.5 text-[12px] font-semibold ${statusClass[l.status]}`}>
                       {statusLabel[l.status]}
                     </span>
                   </div>

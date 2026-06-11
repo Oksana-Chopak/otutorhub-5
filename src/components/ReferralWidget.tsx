@@ -153,11 +153,11 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
             </div>
             <Progress value={progress} className="h-2" />
             {toBigBonus > 0 ? (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[12px] text-muted-foreground">
                 {t("referralWidget.toBigBonus", { count: toBigBonus }) ?? `Ще ${toBigBonus} → +3 міс`}
               </p>
             ) : (
-              <p className="text-[11px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
+              <p className="text-[12px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
             )}
           </div>
         )}

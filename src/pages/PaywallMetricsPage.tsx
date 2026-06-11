@@ -250,15 +250,15 @@ export default function PaywallMetricsPage() {
                     <div className="mb-2 text-sm font-medium text-foreground">{f.label}</div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <div className="text-[10px] uppercase text-muted-foreground">{t("paywallMetricsExtra.clicksCol")}</div>
+                        <div className="text-[12px] uppercase text-muted-foreground">{t("paywallMetricsExtra.clicksCol")}</div>
                         <div className="text-sm font-semibold">{f.clicks}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase text-muted-foreground">{t("paywallMetricsExtra.usersSmall")}</div>
+                        <div className="text-[12px] uppercase text-muted-foreground">{t("paywallMetricsExtra.usersSmall")}</div>
                         <div className="text-sm font-semibold">{f.uniqueUsers}</div>
                       </div>
                       <div>
-                        <div className="text-[10px] uppercase text-muted-foreground">К/Ю</div>
+                        <div className="text-[12px] uppercase text-muted-foreground">К/Ю</div>
                         <div className="text-sm font-semibold">
                           {(f.clicks / Math.max(1, f.uniqueUsers)).toFixed(1)}
                         </div>
@@ -330,7 +330,7 @@ export default function PaywallMetricsPage() {
                               ? "secondary"
                               : "outline"
                         }
-                        className="shrink-0 text-[10px]"
+                        className="shrink-0 text-[12px]"
                       >
                         {STATUS_LABELS[e.subscription_status ?? "free"] ?? e.subscription_status}
                       </Badge>

@@ -49,7 +49,7 @@ export function StatCard({
         <p
           className={cn(
             "min-w-0 font-medium text-muted-foreground",
-            compact ? "text-[11px] leading-tight sm:text-xs" : "text-sm",
+            compact ? "text-[12px] leading-tight sm:text-xs" : "text-sm",
           )}
         >
           {label}
@@ -68,7 +68,7 @@ export function StatCard({
         {typeof trendDelta === "number" && trendDelta !== 0 && (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+              "inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[12px] font-semibold",
               trendDelta > 0
                 ? "bg-success/10 text-success"
                 : "bg-destructive/10 text-destructive",
@@ -87,7 +87,7 @@ export function StatCard({
         )}
       </div>
       {trend && (
-        <p className={cn("mt-1 text-muted-foreground", compact ? "text-[11px]" : "text-xs")}>
+        <p className={cn("mt-1 text-muted-foreground", compact ? "text-[12px]" : "text-xs")}>
           {trend}
         </p>
       )}
