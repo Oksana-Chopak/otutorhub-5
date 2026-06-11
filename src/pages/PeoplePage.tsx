@@ -203,7 +203,7 @@ export default function PeoplePage() {
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding">("all");
+  const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding" | "debt">("all");
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [selectedPerson, setSelectedPerson] = useState<UserRow | null>(null);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -787,6 +787,11 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         if (u.role !== "tutor") return false;
         const done = !!(u.has_student && u.has_lesson && u.has_paid_lesson);
         if (done) return false;
+      } else if (statusFilter === "debt") {
+        // Лише учні з неоплаченими проведеними уроками
+        if (isArchived || u.is_pending) return false;
+        if (u.role !== "student") return false;
+        if ((u.unpaid_count ?? 0) <= 0) return false;
       } else {
         if (isArchived) return false;
         if (statusFilter === "active" && u.is_pending) return false;
@@ -956,10 +961,31 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             )}
             {isExpanded && (
               <>
-                {(u.email || u.phone) && (
-                  <p className="mt-0.5 break-words text-[12px]" style={{ color: "var(--sub, #9398b0)" }}>
-                    {[u.email, u.phone].filter(Boolean).join(" · ")}
-                  </p>
+                {(u.email || u.phone || u.telegram) && (
+                  <div className="mt-1 flex flex-col gap-0.5">
+                    {[
+                      { v: u.email, label: "email" },
+                      { v: u.phone, label: "phone" },
+                      { v: u.telegram, label: "telegram" },
+                    ].filter((c) => !!c.v).map((c) => (
+                      <span key={c.label} className="flex items-center gap-1.5 min-w-0">
+                        <span className="truncate text-[13px]" style={{ color: "#9398b0" }}>{c.v}</span>
+                        <button
+                          type="button"
+                          aria-label="Copy"
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] transition-colors hover:bg-[#f0fdf9]"
+                          style={{ color: "#b0b4c8" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(String(c.v));
+                            toast.success("Скопійовано", { description: String(c.v) });
+                          }}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
                 )}
                 {u.role === "tutor" && u.subjects && u.subjects.length > 0 && (
                   <div className="mt-1 space-y-0.5">
@@ -982,20 +1008,20 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           {canChat && (
             <button
               type="button"
-              className="flex h-[30px] w-[30px] flex-shrink-0 items-center justify-center rounded-full transition-colors hover:opacity-80"
-              style={{ background: "var(--bg, #F5F4F0)", border: "0.5px solid var(--border, #eceef3)", color: "var(--sub, #9398b0)" }}
+              className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[12px] transition-transform active:scale-95"
+              style={{ background: "#f0fdf9", boxShadow: "inset 0 0 0 1.5px rgba(43,191,170,.4)", color: "#1f8e7e" }}
               onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
               title={t("people.writeBtn")}
               aria-label={t("people.writeBtn")}
             >
-              <MessageSquare className="h-3.5 w-3.5" />
+              <MessageSquare className="h-[18px] w-[18px]" />
             </button>
           )}
           {isExpanded && isManager && (
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
               onClick={(e) => {
                 e.stopPropagation();
                 setContactDialog({ open: true, user: u });
@@ -1011,7 +1037,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-primary"
+                  className="h-9 w-9 text-muted-foreground hover:text-primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     unarchivePerson(u);
@@ -1024,7 +1050,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     archivePerson(u);
@@ -1037,7 +1063,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                className="h-9 w-9 text-muted-foreground hover:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation();
                   purgePerson(u);

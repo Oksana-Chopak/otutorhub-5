@@ -6,13 +6,10 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -202,13 +199,25 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
-          <DialogDescription>
-            Видимі тільки самій людині та менеджеру. Картка — для зручності виплат.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+              {t("contactEditExtra.titleFormat", { name: userName })}
+            </div>
+            <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>
+              Видимі тільки самій людині та менеджеру. Картка — для зручності виплат.
+            </div>
+          </div>
+          <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
+            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <X size={18} />
+          </button>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 16px" }}>
         <div className="space-y-3 py-2">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -313,6 +322,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             Зберегти
           </Button>
         </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
