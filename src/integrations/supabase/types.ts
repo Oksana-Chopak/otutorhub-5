@@ -553,45 +553,6 @@ export type Database = {
           },
         ]
       }
-      feedback_submissions: {
-        Row: {
-          category: string
-          created_at: string
-          id: string
-          message: string
-          page_url: string | null
-          rating: number | null
-          status: string
-          updated_at: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          category?: string
-          created_at?: string
-          id?: string
-          message: string
-          page_url?: string | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          id?: string
-          message?: string
-          page_url?: string | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       lesson_feedback: {
         Row: {
           comment: string | null
