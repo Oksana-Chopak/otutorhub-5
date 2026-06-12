@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -41,12 +39,12 @@ interface SubscriptionRequest {
 
 const statusMeta: Record<
   RequestStatus,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive" }
+  { label: string; bg: string; color: string }
 > = {
-  new: { label: t("subscriptionRequests.statusNew"), variant: "default" },
-  in_progress: { label: t("subscriptionRequests.statusInProgress"), variant: "secondary" },
-  completed: { label: t("subscriptionRequests.statusCompleted"), variant: "outline" },
-  rejected: { label: t("subscriptionRequests.statusRejected"), variant: "destructive" },
+  new: { label: t("subscriptionRequests.statusNew"), bg: "rgba(43,191,170,.15)", color: "#1f8e7e" },
+  in_progress: { label: t("subscriptionRequests.statusInProgress"), bg: "rgba(245,158,11,.15)", color: "#b4740b" },
+  completed: { label: t("subscriptionRequests.statusCompleted"), bg: "rgba(34,197,94,.15)", color: "#16a34a" },
+  rejected: { label: t("subscriptionRequests.statusRejected"), bg: "rgba(224,85,47,.12)", color: "#b3441f" },
 };
 
 export default function SubscriptionRequestsPage() {
@@ -164,7 +162,14 @@ export default function SubscriptionRequestsPage() {
                 <Card key={r.id} className="rounded-[18px] border-[#eceef3] shadow-none">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0,
+                          background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#fff",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16 }}>
+                          {name.split(" ").map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?"}
+                        </div>
+                        <div className="min-w-0">
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>
                           {name}
                         </p>
@@ -174,8 +179,11 @@ export default function SubscriptionRequestsPage() {
                           })}{" "}
                           · {r.plan.toUpperCase()} · {Number(r.price)} ₴/міс
                         </p>
+                        </div>
                       </div>
-                      <Badge variant={meta.variant}>{meta.label}</Badge>
+                      <span style={{ height: 26, padding: "0 11px", borderRadius: 999, display: "inline-flex", alignItems: "center",
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12.5,
+                        background: meta.bg, color: meta.color }}>{meta.label}</span>
                     </div>
 
                     <div className="flex flex-wrap gap-3 text-[13.5px]" style={{ color: "#6b7280" }}>
@@ -216,7 +224,7 @@ export default function SubscriptionRequestsPage() {
                     )}
 
                     {r.status !== "completed" && r.status !== "rejected" && (
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         <Textarea
                           placeholder={t("subscriptionRequestsExtra.msgPlaceholder")}
                           value={responseDrafts[r.id] ?? ""}
@@ -227,6 +235,7 @@ export default function SubscriptionRequestsPage() {
                             }))
                           }
                           rows={2}
+                          className="rounded-[13px] border-[#eceef3] text-[14.5px] focus-visible:ring-[#2BBFAA]"
                         />
                         <div className="flex flex-wrap items-center gap-2">
                           <Select
@@ -245,21 +254,37 @@ export default function SubscriptionRequestsPage() {
                               <SelectItem value="rejected">{t("subscriptionRequests.statusRejected")}</SelectItem>
                             </SelectContent>
                           </Select>
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <button
+                            type="button"
                             onClick={() => updateStatus(r.id, "in_progress")}
                             disabled={savingId === r.id}
+                            style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
+                              background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5 }}
                           >
                             Взяти в роботу
-                          </Button>
-                          <Button
-                            size="sm"
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => updateStatus(r.id, "completed")}
                             disabled={savingId === r.id}
+                            style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
+                              background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", cursor: "pointer",
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
+                              boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >
                             Завершити
-                          </Button>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => updateStatus(r.id, "rejected")}
+                            disabled={savingId === r.id}
+                            style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(224,85,47,.3)",
+                              background: "transparent", color: "#b3441f", cursor: "pointer",
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5 }}
+                          >
+                            Відхилити
+                          </button>
                         </div>
                       </div>
                     )}

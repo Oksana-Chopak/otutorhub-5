@@ -696,6 +696,28 @@ export default function SchedulePage() {
       }
       return;
     }
+    // КОРІНЬ «ціна=0»: фінанси мають жити в lesson_details (звідти читає view),
+    // а не лише в legacy-колонках lessons. Тригер ensure створює details з 0 —
+    // одразу перезаписуємо явними значеннями з форми.
+    const detailRows = (insertedLessons ?? []).map((l) => {
+      const d: any = { lesson_id: l.id };
+      if (isManager) {
+        d.student_price = Number(form.student_price) || 0;
+        d.tutor_payout = Number(form.tutor_payout) || 0;
+        d.student_payment_status = form.student_payment_status;
+        d.tutor_payout_status = form.tutor_payout_status;
+      } else if (isIndependentTutor) {
+        const priceFromForm = Number(form.student_price);
+        if (priceFromForm > 0) d.student_price = priceFromForm;
+      }
+      return d;
+    }).filter((d) => Object.keys(d).length > 1);
+    if (detailRows.length > 0) {
+      const { error: detErr } = await supabase
+        .from("lesson_details")
+        .upsert(detailRows, { onConflict: "lesson_id" });
+      if (detErr) console.warn("lesson_details upsert after create failed", detErr);
+    }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
       repeats > 1

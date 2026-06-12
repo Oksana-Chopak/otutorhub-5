@@ -951,7 +951,7 @@ export default function FinancesPage() {
 
         {/* Desktop table */}
         <div className="hidden lg:block overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-[15px]">
             <thead>
               <tr className="border-b border-border bg-secondary/50">
                 <th className="px-3 py-3 w-10">
@@ -1973,7 +1973,7 @@ export default function FinancesPage() {
                 <p className="text-sm text-muted-foreground">{t("finances.noMarginData")}</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-[15px]">
                     <thead>
                       <tr className="border-b border-border text-xs text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">{t("finances.colTutor")}</th>
