@@ -335,7 +335,7 @@ export default function AuditLogPage() {
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={meta.variant}>{meta.label}</Badge>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[13px]" style={{ color: "#9398b0" }}>
                           {formatDate(e.created_at)}
                         </span>
                       </div>

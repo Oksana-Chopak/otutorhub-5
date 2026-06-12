@@ -192,7 +192,7 @@ export default function WalletsPage() {
                   <CardContent className="p-4 space-y-3">
                     <div>
                       <div className="font-medium text-foreground">{r.student_name}</div>
-                      <div className="text-xs text-muted-foreground">↔ {r.tutor_name}</div>
+                      <div className="text-[13px]" style={{ color: "#9398b0" }}>↔ {r.tutor_name}</div>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="text-sm">

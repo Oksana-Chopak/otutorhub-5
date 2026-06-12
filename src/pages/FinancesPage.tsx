@@ -858,14 +858,15 @@ export default function FinancesPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{l.subject}</p>
-                    <p className="text-xs text-muted-foreground">{formatDate(l.starts_at)}</p>
+                    <p className="truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{l.subject}</p>
+                    <p className="text-[12.5px]" style={{ color: "#9398b0", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && (
                     <div
-                      className={`text-right shrink-0 text-sm font-semibold ${
+                      className={`text-right shrink-0 font-semibold ${
                         lessonProfit >= 0 ? "text-foreground" : "text-destructive"
                       }`}
+                      style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}
                     >
                       {lessonProfit} ₴
                     </div>
@@ -1858,7 +1859,7 @@ export default function FinancesPage() {
             <div className="mb-4 rounded-[14px] border border-border bg-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <p className="text-[14px] font-bold text-foreground">По учнях</p>
-                <span className="text-[12px] text-muted-foreground">
+                <span className="text-[13px]" style={{ color: "#9398b0" }}>
                   {period === "week" ? "Цей тиждень" : period === "month" ? "Цей місяць" : "Весь час"}
                 </span>
               </div>

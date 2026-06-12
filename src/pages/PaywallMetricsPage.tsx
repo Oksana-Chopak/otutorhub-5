@@ -160,7 +160,7 @@ export default function PaywallMetricsPage() {
               <CardDescription className="flex items-center gap-1.5">
                 <MousePointerClick className="h-3.5 w-3.5" /> Кліків по фічах
               </CardDescription>
-              <CardTitle className="text-3xl">{totals.allClicks}</CardTitle>
+              <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.allClicks}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
@@ -168,7 +168,7 @@ export default function PaywallMetricsPage() {
               <CardDescription className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" /> Унікальних користувачів
               </CardDescription>
-              <CardTitle className="text-3xl">{totals.uniqueUsers}</CardTitle>
+              <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.uniqueUsers}</CardTitle>
             </CardHeader>
           </Card>
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
@@ -176,7 +176,7 @@ export default function PaywallMetricsPage() {
               <CardDescription className="flex items-center gap-1.5">
                 <TrendingUp className="h-3.5 w-3.5" /> Візитів /subscription
               </CardDescription>
-              <CardTitle className="text-3xl">{totals.visits}</CardTitle>
+              <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.visits}</CardTitle>
             </CardHeader>
           </Card>
         </div>
@@ -184,7 +184,7 @@ export default function PaywallMetricsPage() {
         {/* Bar chart */}
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle className="text-lg">{t("paywallMetricsExtra.topFeatures")}</CardTitle>
+            <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.topFeatures")}</CardTitle>
             <CardDescription>
               {statusFilter === "free"
                 ? t("paywallMetricsExtra.conversionHint")
@@ -237,7 +237,7 @@ export default function PaywallMetricsPage() {
         {/* Per-feature breakdown */}
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle className="text-lg">{t("paywallMetricsExtra.details")}</CardTitle>
+            <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.details")}</CardTitle>
           </CardHeader>
           <CardContent>
             {/* Mobile cards */}
@@ -307,7 +307,7 @@ export default function PaywallMetricsPage() {
         {/* Recent events */}
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle className="text-lg">{t("paywallMetricsExtra.recentEvents")}</CardTitle>
+            <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.recentEvents")}</CardTitle>
             <CardDescription>{t("paywallMetricsExtra.recentEventsDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -384,7 +384,7 @@ export default function PaywallMetricsPage() {
                         <TableCell className="text-sm">
                           {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
                         </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">{e.source}</TableCell>
+                        <TableCell className="text-[13px]" style={{ color: "#9398b0" }}>{e.source}</TableCell>
                         <TableCell>
                           <Badge
                             variant={

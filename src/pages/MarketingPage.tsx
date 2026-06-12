@@ -131,7 +131,7 @@ export default function MarketingPage() {
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
-              <CardTitle>Нова розсилка</CardTitle>
+              <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>Нова розсилка</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -169,10 +169,10 @@ export default function MarketingPage() {
                   placeholder={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
                   maxLength={100000}
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px]" style={{ color: "#9398b0" }}>
                   Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
                 </p>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[13px] mt-1">
                   Підтримується HTML. Порожній рядок = новий абзац.
                 </p>
               </div>
@@ -186,7 +186,7 @@ export default function MarketingPage() {
 
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Eye className="h-4 w-4" /> Прев'ю</CardTitle>
+              <CardTitle className="flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}><Eye className="h-4 w-4" /> Прев'ю</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border bg-muted/30 p-4">
@@ -207,7 +207,7 @@ export default function MarketingPage() {
 
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle>Історія розсилок</CardTitle>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>Історія розсилок</CardTitle>
           </CardHeader>
           <CardContent>
             {campaigns.length === 0 ? (
@@ -228,7 +228,7 @@ export default function MarketingPage() {
                           {isOpen ? <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" /> : <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />}
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
-                            <div className="text-xs text-muted-foreground">
+                            <div className="text-[13px]" style={{ color: "#9398b0" }}>
                               {new Date(c.created_at).toLocaleString("uk-UA")} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
                             </div>
                           </div>
@@ -260,11 +260,11 @@ export default function MarketingPage() {
                             </div>
                             {errs.length === 0 ? (
                               c.recipients_failed > 0 ? (
-                                <p className="text-xs text-muted-foreground">
+                                <p className="text-[13px]" style={{ color: "#9398b0" }}>
                                   Деталі помилок не збережені для цієї розсилки (старі дані). Нові розсилки будуть писати деталі сюди.
                                 </p>
                               ) : (
-                                <p className="text-xs text-muted-foreground">Усі листи доставлено.</p>
+                                <p className="text-[13px]" style={{ color: "#9398b0" }}>Усі листи доставлено.</p>
                               )
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">

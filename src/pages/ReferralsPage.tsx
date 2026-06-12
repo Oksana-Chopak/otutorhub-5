@@ -193,7 +193,7 @@ export default function ReferralsPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium text-foreground">{r.studentName}</p>
                       <Badge className={statusClass[r.status]}>{statusLabel[r.status]}</Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[13px]" style={{ color: "#9398b0" }}>
                         {new Date(r.created_at).toLocaleString("uk-UA", {
                           day: "numeric",
                           month: "short",
@@ -282,7 +282,7 @@ export default function ReferralsPage() {
                   </div>
                 )}
                 {!(r.studentEmail || r.studentPhone || r.studentTelegram) && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[13px]" style={{ color: "#9398b0" }}>
                     Учень не вказав контактів у профілі. Напишіть йому через чат.
                   </p>
                 )}

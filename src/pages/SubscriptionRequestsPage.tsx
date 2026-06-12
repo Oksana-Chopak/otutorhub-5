@@ -165,10 +165,10 @@ export default function SubscriptionRequestsPage() {
                   <CardContent className="p-5 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div>
-                        <p className="font-display text-lg font-semibold text-foreground">
+                        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>
                           {name}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[13px]" style={{ color: "#9398b0", marginTop: 2 }}>
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
                             locale: uk,
                           })}{" "}
@@ -178,7 +178,7 @@ export default function SubscriptionRequestsPage() {
                       <Badge variant={meta.variant}>{meta.label}</Badge>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+                    <div className="flex flex-wrap gap-3 text-[13.5px]" style={{ color: "#6b7280" }}>
                       {r.tutor?.email && (
                         <a
                           href={`mailto:${r.tutor.email}`}
@@ -198,8 +198,8 @@ export default function SubscriptionRequestsPage() {
                     </div>
 
                     {r.message && (
-                      <div className="rounded-lg bg-muted/40 p-3 text-sm text-foreground">
-                        <div className="mb-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
+                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[12.5px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> Повідомлення
                         </div>
                         {r.message}
@@ -207,8 +207,8 @@ export default function SubscriptionRequestsPage() {
                     )}
 
                     {r.manager_response && (
-                      <div className="rounded-lg border border-border p-3 text-sm">
-                        <div className="mb-1 text-xs text-muted-foreground">
+                      <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
+                        <div className="mb-1.5 text-[12.5px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           Ваша відповідь
                         </div>
                         {r.manager_response}
