@@ -797,6 +797,7 @@ export const uk = {
     itemPaywallMetrics: "Метрики paywall",
     emailMarketing: "Email-розсилки",
     itemAudit: "Аудит",
+    itemFeedback: "Звернення",
   },
 
   people: {
@@ -926,6 +927,11 @@ export const uk = {
     restoreDone: "Покупки відновлено",
     restoreNone: "Активних покупок не знайдено",
     restoreFailed: "Не вдалося відновити",
+  },
+  feedbackInbox: {
+    title: "Звернення",
+    subtitle: "Фідбек, баги та питання від користувачів.",
+    empty: "Поки немає звернень.",
   },
   accountDeletion: {
     title: "Небезпечна зона",
@@ -1211,6 +1217,7 @@ export const uk = {
   },
 
   feedback: {
+    errorTitle: "Не вдалося надіслати",
     ideaLabel: "Ідея",
     ideaDesc: "Що покращити",
     bugLabel: "Баг",

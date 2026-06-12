@@ -558,6 +558,7 @@ export const sv: Partial<Translations> = {
     itemSubRequests: "Prenumerationsförfrågningar",
     itemPaywallMetrics: "Paywall-mätvärden",
     itemAudit: "Granskning",
+    itemFeedback: "Feedback",
     emailMarketing: "E-postkampanjer",
   },
   landing: {
@@ -909,6 +910,11 @@ export const sv: Partial<Translations> = {
     restoreNone: "Inga aktiva köp hittades",
     restoreFailed: "Återställning misslyckades",
   },
+  feedbackInbox: {
+    title: "Feedback",
+    subtitle: "Användarfeedback, buggar och frågor.",
+    empty: "Inga inlägg ännu.",
+  },
   accountDeletion: {
     title: "Riskzon",
     desc: "Att radera kontot är permanent: profil, kontakter och inställningar raderas. Lektionshistorik hos dina motparter finns kvar.",
@@ -1193,6 +1199,7 @@ export const sv: Partial<Translations> = {
   },
 
   feedback: {
+    errorTitle: "Kunde inte skicka",
     ideaLabel: "Idé",
     ideaDesc: "Vad kan förbättras",
     bugLabel: "Bugg",

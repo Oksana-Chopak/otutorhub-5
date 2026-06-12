@@ -21,6 +21,7 @@ const ChatsPage = lazy(() => import("./pages/ChatsPage"));
 const PeoplePage = lazy(() => import("./pages/PeoplePage"));
 const AvailabilityPage = lazy(() => import("./pages/AvailabilityPage"));
 const AuditLogPage = lazy(() => import("./pages/AuditLogPage"));
+const FeedbackInboxPage = lazy(() => import("./pages/FeedbackInboxPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
@@ -124,6 +125,15 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["manager"]}>
                 <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/feedback-inbox"
+            element={
+              <ProtectedRoute allowedRoles={["manager"]}>
+                <FeedbackInboxPage />
               </ProtectedRoute>
             }
           />

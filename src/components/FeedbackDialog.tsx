@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 
@@ -43,14 +44,24 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       return;
     }
     setSubmitting(true);
-    setTimeout(() => {
-      toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });
-      setMessage("");
-      setRating(0);
-      setCategory("idea");
-      onOpenChange(false);
-      setSubmitting(false);
-    }, 400);
+    const { error } = await supabase.from("feedback_submissions").insert({
+      user_id: user?.id,
+      category,
+      message: message.trim(),
+      rating: rating > 0 ? rating : null,
+      page_url: typeof window !== "undefined" ? window.location.pathname : null,
+      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({ title: t("feedback.errorTitle"), description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });
+    setMessage("");
+    setRating(0);
+    setCategory("idea");
+    onOpenChange(false);
   };
 
   if (!user) return null;

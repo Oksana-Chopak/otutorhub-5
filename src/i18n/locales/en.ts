@@ -788,6 +788,7 @@ export const en: Translations = {
     itemSubRequests: "Subscription requests",
     itemPaywallMetrics: "Paywall metrics",
     itemAudit: "Audit log",
+    itemFeedback: "Feedback",
     emailMarketing: "Email campaigns",
   },
 
@@ -918,6 +919,11 @@ export const en: Translations = {
     restoreDone: "Purchases restored",
     restoreNone: "No active purchases found",
     restoreFailed: "Restore failed",
+  },
+  feedbackInbox: {
+    title: "Feedback",
+    subtitle: "User feedback, bugs and questions.",
+    empty: "No submissions yet.",
   },
   accountDeletion: {
     title: "Danger zone",
@@ -1203,6 +1209,7 @@ export const en: Translations = {
   },
 
   feedback: {
+    errorTitle: "Failed to send",
     ideaLabel: "Idea",
     ideaDesc: "What to improve",
     bugLabel: "Bug",

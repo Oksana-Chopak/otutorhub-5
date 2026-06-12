@@ -57,6 +57,7 @@ import {
   Loader2,
   Video,
   AlertTriangle,
+  Inbox,
   Crown,
   UserX,
   Tag,
@@ -261,6 +262,7 @@ export default function DashboardPage() {
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
   const [tutorReferralRequestCount, setTutorReferralRequestCount] = useState(0);
   const [supportRequestCount, setSupportRequestCount] = useState(0);
+  const [feedbackNewCount, setFeedbackNewCount] = useState(0);
   const [studentsWithoutTutor, setStudentsWithoutTutor] = useState(0);
   const [studentTutorCount, setStudentTutorCount] = useState(0);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
@@ -510,7 +512,7 @@ export default function DashboardPage() {
     setPendingRequestCount((requestRows ?? []).length);
 
     if (isManager) {
-      const [{ count: trCount }, { count: srCount }] = await Promise.all([
+      const [{ count: trCount }, { count: srCount }, { count: fbCount }] = await Promise.all([
         supabase
           .from("tutor_referral_requests")
           .select("id", { count: "exact", head: true })
@@ -519,9 +521,14 @@ export default function DashboardPage() {
           .from("subscription_requests")
           .select("id", { count: "exact", head: true })
           .in("status", ["new", "in_progress"]),
+        supabase
+          .from("feedback_submissions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", "new"),
       ]);
       setTutorReferralRequestCount(trCount ?? 0);
       setSupportRequestCount(srCount ?? 0);
+      setFeedbackNewCount(fbCount ?? 0);
     }
 
     if (isManager) {
@@ -1060,6 +1067,18 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.supportRequestsCta"),
       });
     }
+    // Звернення користувачів (фідбек/баги/питання)
+    if (feedbackNewCount > 0) {
+      tasks.push({
+        key: "feedback-inbox",
+        icon: Inbox,
+        tone: "primary" as const,
+        title: `${feedbackNewCount} нов${feedbackNewCount === 1 ? "е звернення" : feedbackNewCount < 5 ? "і звернення" : "их звернень"}`,
+        description: "Фідбек, баги та питання від користувачів.",
+        to: "/feedback-inbox",
+        cta: "Переглянути",
+      });
+    }
     // 4. Students without a tutor
     if (studentsWithoutTutor > 0) {
       tasks.push({
@@ -1131,6 +1150,7 @@ export default function DashboardPage() {
     pendingRequestCount,
     tutorReferralRequestCount,
     supportRequestCount,
+    feedbackNewCount,
     studentsWithoutTutor,
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
