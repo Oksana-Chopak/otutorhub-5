@@ -25,7 +25,7 @@ const SEGMENTS: { value: Segment; label: string }[] = [
   { value: "all_independent", label: "Усі незалежні репетитори" },
   { value: "trial", label: "На тріалі" },
   { value: "trial_ending_soon", label: "Тріал закінчується (≤3 днів)" },
-  { value: "pro_active", label: "Активна Pro-підписка" },
+  { value: "pro_active", label: "Активна підписка" },
   { value: "expired", label: "Закінчився тріал / підписка" },
 ];
 

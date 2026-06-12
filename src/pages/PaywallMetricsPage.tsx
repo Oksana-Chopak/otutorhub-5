@@ -54,7 +54,7 @@ const FEATURE_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   free: "Free",
   trial: "Trial",
-  active: "Pro",
+  active: "Підписка",
   past_due: t("paywallMetricsExtra.pastDue"),
   cancelled: t("paywallMetricsExtra.cancelled"),
 };

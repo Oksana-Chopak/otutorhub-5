@@ -96,10 +96,10 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 14, background: C.warnBg, border: `1px solid ${C.warnBorder}`, marginBottom: 14 }}>
               <Lock size={18} style={{ color: C.warnD, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: C.warnD }}>AI-конспект — у Pro</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: C.warnD }}>AI-конспект — у підписці</div>
                 <button onClick={() => { onOpenChange(false); navigate("/subscription?from=ai_summary"); }}
                   style={{ border: "none", background: "transparent", cursor: "pointer", color: C.tealD, fontFamily: C.display, fontWeight: 700, fontSize: 13, padding: 0, marginTop: 2 }}>
-                  Активувати Pro →
+                  Оформити підписку →
                 </button>
               </div>
             </div>

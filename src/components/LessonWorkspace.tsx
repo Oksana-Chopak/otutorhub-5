@@ -795,7 +795,7 @@ export function LessonWorkspace({
                 className="border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Lock className="mr-1.5 h-3.5 w-3.5" />
-                ✨ AI-конспект (Pro)
+                ✨ AI-конспект (підписка)
               </Button>
             )
           )}

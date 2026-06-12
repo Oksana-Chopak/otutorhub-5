@@ -60,8 +60,8 @@ interface LeaderRow {
 
 const STEPS = [
   { e: "🔗", n: "1", title: "Поділись посиланням", desc: "Надішли колезі-репетитору в Telegram чи будь-де." },
-  { e: "🎓", n: "2", title: "Друг реєструється", desc: "Отримує 21 день Pro-тріалу безкоштовно." },
-  { e: "🎁", n: "3", title: "Ти отримуєш Pro", desc: "Місяць Pro за кожного, хто залишиться. 3 оплати → +3 міс." },
+  { e: "🎓", n: "2", title: "Друг реєструється", desc: "Отримує 21 день пробного періоду безкоштовно." },
+  { e: "🎁", n: "3", title: "Ти отримуєш бонус", desc: "Місяць підписки за кожного, хто залишиться. 3 оплати → +3 міс." },
 ];
 
 export default function MyReferralsPage() {
@@ -150,7 +150,7 @@ export default function MyReferralsPage() {
   };
 
   const inviteText = t("referralWidget.inviteText") ||
-    "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день Pro безкоштовно за моїм посиланням 👇";
+    "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день безкоштовно за моїм посиланням 👇";
 
   const openExternal = (href: string) => {
     window.open(href, "_blank", "noopener,noreferrer");
@@ -236,7 +236,7 @@ export default function MyReferralsPage() {
                 </div>
                 <div>
                   <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 16 }}>{t("myReferrals.yourLinkTitle") || "Твоє посилання"}</div>
-                  <div style={{ fontSize: 13, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці Pro"}</div>
+                  <div style={{ fontSize: 13, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці підписки"}</div>
                 </div>
               </div>
 
@@ -298,7 +298,7 @@ export default function MyReferralsPage() {
               <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", padding: "11px 13px", borderRadius: 12, background: "rgba(43,191,170,.08)", border: `1px solid ${R.tealRing}` }}>
                 <span style={{ fontSize: 20 }}>🎁</span>
                 <div style={{ fontSize: 13, lineHeight: 1.45 }}>
-                  Друг отримає <b>21 день Pro-тріалу</b>, а ти — <b>місяць Pro безкоштовно</b> за кожного, хто залишиться.
+                  Друг отримає <b>21 день пробного періоду</b>, а ти — <b>місяць підписки безкоштовно</b> за кожного, хто залишиться.
                 </div>
               </div>
             </Card>
@@ -317,7 +317,7 @@ export default function MyReferralsPage() {
                   <div style={{ height: "100%", width: `${progress}%`, borderRadius: 999, background: R.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
                 <div style={{ fontSize: 13, color: R.muted, marginTop: 5 }}>
-                  {toBigBonus > 0 ? `Ще ${toBigBonus} ${toBigBonus === 1 ? "оплата" : "оплати"} → +3 місяці Pro` : "Бонус відкрито — +3 місяці Pro 🎉"}
+                  {toBigBonus > 0 ? `Ще ${toBigBonus} ${toBigBonus === 1 ? "оплата" : "оплати"} → +3 місяці підписки` : "Бонус відкрито — +3 місяці підписки 🎉"}
                 </div>
               </Card>
             </div>
@@ -353,10 +353,10 @@ export default function MyReferralsPage() {
                     const name = names[r.referred_id] ?? t("myReferrals.you");
                     const isPro = !!r.upgraded_to_pro_at;
                     const pill = isPro
-                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: "✓ Pro" }
+                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: "✓ Підписка" }
                       : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: "Тріал" };
                     const note = isPro
-                      ? (t("myReferrals.noteJoinedPro") || "Приєднав(ла)ся · оформив(ла) Pro")
+                      ? (t("myReferrals.noteJoinedPro") || "Приєднав(ла)ся · оформив(ла) підписку")
                       : (t("myReferrals.noteJoinedTrial") || "Приєднав(ла)ся · на тріалі");
                     return (
                       <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderBottom: i < referrals.length - 1 ? `1px solid ${R.border}` : "none" }}>
@@ -378,7 +378,7 @@ export default function MyReferralsPage() {
               {referrals.length > 0 && (
                 <div style={{ fontSize: 13, color: R.muted, marginTop: 8, paddingLeft: 2 }}>
                   {t("myReferrals.summaryLine", { total: referrals.length, pro: proUpgrades }) ||
-                    `Усього запрошень: ${referrals.length} · з Pro: ${proUpgrades}`}
+                    `Усього запрошень: ${referrals.length} · з підпискою: ${proUpgrades}`}
                 </div>
               )}
             </div>

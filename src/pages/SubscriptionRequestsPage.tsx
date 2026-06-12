@@ -136,7 +136,7 @@ export default function SubscriptionRequestsPage() {
               Запити на підписку
             </h1>
             <p className="text-sm text-muted-foreground">
-              Самостійні репетитори, які бажають оформити Pro-тариф.
+              Самостійні репетитори, які бажають оформити платну підписку.
             </p>
           </div>
         </div>

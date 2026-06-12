@@ -296,7 +296,7 @@ export default function SubscriptionPage() {
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
           <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
-          <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>oTutorHub Pro</h1>
+          <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>Підписка oTutorHub</h1>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -310,7 +310,7 @@ export default function SubscriptionPage() {
             {isActive ? (
               <>
                 <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
-                <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>Pro активний 💚</div>
+                <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>Підписка активна 💚</div>
                 <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>Усі функції відкриті. Дякуємо, що з нами!</div>
               </>
             ) : isTrial ? (
@@ -318,7 +318,7 @@ export default function SubscriptionPage() {
                 <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Твій тріал</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
                   <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 40, letterSpacing: "-.02em", color: S.teal }}>{Math.max(0, trialDaysLeft ?? 0)}</span>
-                  <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 17, color: "#fff" }}>днів Pro</span>
+                  <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 17, color: "#fff" }}>днів підписки</span>
                   <span style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>залишилось</span>
                 </div>
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
@@ -338,7 +338,7 @@ export default function SubscriptionPage() {
           {/* ── iOS StoreKit (App Store IAP через RevenueCat) ───────────── */}
           {!isActive && iosApp && (
             <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
-              <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити Pro</div>
+              <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити підписку</div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: "Щомісяця" }, { v: "yearly" as const, l: "Щороку" }]).map((o) => {
                   const on = billing === o.v;
@@ -354,7 +354,7 @@ export default function SubscriptionPage() {
               <button onClick={handleIapPurchase} disabled={iapBusy !== null}
                 style={{ width: "100%", height: 50, borderRadius: 14, border: "none", cursor: iapBusy ? "default" : "pointer", background: S.gradTeal, color: "#fff", fontFamily: S.display, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {iapBusy === "buy" && <Loader2 size={18} className="animate-spin" />}
-                Оформити Pro
+                Оформити підписку
               </button>
               <button onClick={handleIapRestore} disabled={iapBusy !== null}
                 style={{ width: "100%", height: 40, marginTop: 8, borderRadius: 11, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
@@ -371,7 +371,7 @@ export default function SubscriptionPage() {
           {!isActive && !iosApp && (
             <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити Pro</span>
+                <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>Оформити підписку</span>
                 <span>
                   <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 28, color: S.tealD }}>{proPrice}</span>
                   <span style={{ fontSize: 13, color: S.sub }}> ₴/міс</span>
@@ -420,7 +420,7 @@ export default function SubscriptionPage() {
 
           {/* ── Benefits ─────────────────────────────────────────────────── */}
           <div>
-            <Label>Що ти відчуєш на Pro</Label>
+            <Label>Що ти відчуєш із підпискою</Label>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {BENEFITS.map((b, i) => (
                 <div key={i} style={{ background: "#fff", border: `1px solid ${S.border}`, borderRadius: 16, boxShadow: S.shadowSm, padding: 14 }}>

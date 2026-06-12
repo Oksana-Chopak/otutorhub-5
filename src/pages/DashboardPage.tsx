@@ -1054,7 +1054,7 @@ export default function DashboardPage() {
         tone: "warning" as const,
         title: `${supportRequestCount} запит${
           supportRequestCount === 1 ? "" : supportRequestCount < 5 ? "и" : "ів"
-        } на підписку Pro`,
+        } на підписку`,
         description: t("dashboardExtra.supportRequestsDesc"),
         to: "/subscription-requests",
         cta: t("dashboardExtra.supportRequestsCta"),
@@ -1181,7 +1181,7 @@ export default function DashboardPage() {
                   }}
                 >
                   <Sparkles className="h-4 w-4" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
-                  🎁 Тріал Pro: залишилось{" "}
+                  🎁 Пробний період: залишилось{" "}
                   <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}</strong>
                   {" "}· Підключити за 249 ₴/міс →
                 </Link>
@@ -1229,17 +1229,17 @@ export default function DashboardPage() {
                 aria-label="✕" style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: 9,
                   border: "none", background: "rgba(154,106,18,.12)", color: "#9a6a12", cursor: "pointer" }}>✕</button>
               <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15.5, color: "#7a5a14" }}>
-                ⏳ Pro закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
+                ⏳ Пробний період закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
               </p>
               <p style={{ fontSize: 13.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
-                Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString("uk-UA")} ₴</b> зафіксовано. Лишись на Pro — нічого не загубиться.
+                Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString("uk-UA")} ₴</b> зафіксовано. Оформи підписку — нічого не загубиться.
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
                   boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
-                Залишитись на Pro →
+                Оформити підписку →
               </button>
             </div>
           )}

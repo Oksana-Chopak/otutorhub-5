@@ -457,7 +457,7 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 17, color: "#fff" }}>
-                      Pro підписка
+                      Підписка
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
                       {settings?.trial_until ? `Тріал · до ${new Date(settings.trial_until).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}

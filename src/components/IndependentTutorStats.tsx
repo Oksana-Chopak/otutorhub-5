@@ -185,7 +185,7 @@ export function IndependentTutorStats() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">
-                Перейдіть на Pro — більше керування і красива аналітика
+                Оформіть підписку — більше керування і красива аналітика
               </p>
               <p className="mt-0.5 text-[13px] text-muted-foreground">
                 Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами,
