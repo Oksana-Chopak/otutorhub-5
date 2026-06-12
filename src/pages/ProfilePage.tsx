@@ -25,12 +25,28 @@ import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { ProRulesCard } from "@/components/ProRulesCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
+import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
+
+function PushSettingsCard() {
+  const { t } = useTranslation();
+  return (
+    <div className="mb-4 rounded-[16px] border-[0.5px] bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
+      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
+        {t("pushNotif.cardTitle")}
+      </p>
+      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "#9398b0" }}>
+        {t("pushNotif.cardDesc")}
+      </p>
+      <PushNotificationToggle />
+    </div>
+  );
+}
 
 function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] }) {
   const nonEmpty = groups.filter((g) => g.items.length > 0);
@@ -300,6 +316,7 @@ export default function ProfilePage() {
             </p>
           </div>
           <GoogleCalendarCard />
+          <PushSettingsCard />
           <MoreSection title={t("profile.sectionsTitle")} groups={managerGroups} />
           {managerGroups.every((g) => g.items.length === 0) && (
             <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
@@ -737,6 +754,7 @@ export default function ProfilePage() {
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="calendar"><GoogleCalendarCard /></div>
+            <PushSettingsCard />
           </SheetContent>
         </Sheet>
 

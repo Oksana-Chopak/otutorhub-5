@@ -25,6 +25,8 @@ const routeTitleKey: Record<string, string> = {
   "/paywall-metrics": "nav.paywallMetrics",
   "/audit": "nav.audit",
   "/onboarding": "nav.setupGuide",
+  "/availability": "nav.availability",
+  "/feedback-inbox": "feedbackInbox.title",
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -37,15 +39,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
         {titleKey && (
-          <header className="sticky top-0 z-20 flex h-11 items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden">
-            <h1 className="font-display text-sm font-semibold text-muted-foreground">
+          <header className="sticky top-0 z-20 flex h-[52px] items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden">
+            <h1 className="min-w-0 truncate font-display text-[17px] font-extrabold text-foreground">
               {t(titleKey)}
             </h1>
-            <div className="flex items-center gap-2">
-              <NotificationBell className="h-9 w-9 border-0 bg-transparent hover:bg-secondary" />
+            <div className="flex shrink-0 items-center gap-2">
+              <NotificationBell />
               <button
                 onClick={() => window.dispatchEvent(new CustomEvent("toggleSidebar"))}
-                className="flex h-9 w-9 items-center justify-center rounded-[10px] text-white"
+                className="flex h-11 w-11 items-center justify-center rounded-[14px] text-white"
                 style={{ background: "var(--teal,#2BBFAA)" }}
                 aria-label={t("nav.openMenu")}
               >

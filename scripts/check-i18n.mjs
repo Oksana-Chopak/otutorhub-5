@@ -18,24 +18,92 @@ const SRC = join(ROOT, "src");
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function extractLeafKeys(text, prefix = "") {
+function extractLeafKeys(text) {
+  // Character-level scanner: immune to glued braces ("…",}), {{placeholders}}
+  // inside strings, one-line objects, quoted keys and comments.
   const keys = new Set();
   const path = [];
-  for (const line of text.split("\n")) {
-    const stripped = line.trim();
-    if (stripped.startsWith("//") || stripped.startsWith("*")) continue;
+  let i = 0;
+  const n = text.length;
+  let pendingKey = null; // key name waiting for its value
+  let token = "";
 
-    const openObj = stripped.match(/^(\w+)\s*:\s*\{/);
-    if (openObj && !stripped.includes("}")) {
-      path.push(openObj[1]);
+  const isIdent = (c) => /[A-Za-z0-9_$]/.test(c);
+
+  const readString = (quote) => {
+    let s = "";
+    i++; // skip opening quote
+    while (i < n) {
+      const c = text[i];
+      if (c === "\\") { s += text[i + 1] ?? ""; i += 2; continue; }
+      if (c === quote) { i++; break; }
+      s += c;
+      i++;
+    }
+    return s;
+  };
+
+  while (i < n) {
+    const c = text[i];
+
+    // comments
+    if (c === "/" && text[i + 1] === "/") { while (i < n && text[i] !== "\n") i++; continue; }
+    if (c === "/" && text[i + 1] === "*") {
+      i += 2;
+      while (i < n && !(text[i] === "*" && text[i + 1] === "/")) i++;
+      i += 2;
       continue;
     }
-    const keyVal = stripped.match(/^(\w+)\s*:\s*["'`\[]/);
-    if (keyVal) {
-      keys.add([...path, keyVal[1]].join("."));
+
+    // strings: either a quoted key ("60": …) or a value
+    if (c === '"' || c === "'" || c === "`") {
+      const str = readString(c);
+      let j = i;
+      while (j < n && /\s/.test(text[j])) j++;
+      if (text[j] === ":") {
+        pendingKey = str; // quoted key
+        i = j + 1;
+      } else if (pendingKey !== null) {
+        keys.add([...path, pendingKey].join("."));
+        pendingKey = null;
+      }
       continue;
     }
-    if (stripped.startsWith("}") && path.length) path.pop();
+
+    if (isIdent(c)) {
+      token = "";
+      while (i < n && isIdent(text[i])) { token += text[i]; i++; }
+      if (pendingKey !== null) {
+        // primitive value (true / null / 123 / identifier ref)
+        keys.add([...path, pendingKey].join("."));
+        pendingKey = null;
+        token = "";
+      }
+      continue;
+    }
+
+    if (c === ":") { if (token) { pendingKey = token; token = ""; } i++; continue; }
+
+    if (c === "{") { if (pendingKey !== null) { path.push(pendingKey); pendingKey = null; } i++; continue; }
+
+    if (c === "}") { if (path.length) path.pop(); i++; continue; }
+
+    if (c === "[") {
+      // array value — record the key, skip array contents (strings handled)
+      if (pendingKey !== null) { keys.add([...path, pendingKey].join(".")); pendingKey = null; }
+      let depth = 1;
+      i++;
+      while (i < n && depth > 0) {
+        const a = text[i];
+        if (a === '"' || a === "'" || a === "`") { readString(a); continue; }
+        if (a === "[") depth++;
+        else if (a === "]") depth--;
+        i++;
+      }
+      continue;
+    }
+
+    i++;
   }
   return keys;
 }

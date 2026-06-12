@@ -154,7 +154,7 @@ export function ScheduleFiltersSheet(props: Props) {
       type="button"
       variant="outline"
       size="sm"
-      className="relative h-9 gap-2"
+      className="relative h-10 gap-2"
     >
       <Filter className="h-4 w-4" />
       <span>{triggerLabel}</span>

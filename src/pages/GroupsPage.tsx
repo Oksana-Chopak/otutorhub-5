@@ -118,12 +118,12 @@ export default function GroupsPage() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-4 sm:p-6 max-w-6xl">
+      <div>
         <div className="mb-6 hidden lg:flex items-center justify-between">
           <div>
             <h1 className="font-display text-2xl font-bold">{t("groupsPage.title")}</h1>
             <p className="text-sm text-muted-foreground">
-              Об'єднуйте учнів у групи для парних та групових уроків
+              {t("groupsPage.subtitle")}
             </p>
           </div>
           <NotificationBell />
@@ -160,7 +160,7 @@ export default function GroupsPage() {
                   </div>
                 </div>
                 <div style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 12px", borderRadius: 999, background: "#f0fdf9", color: "#1f8e7e", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
-                  👥 {enrollCountFor(g.id)} учнів
+                  👥 {t("groupsPage.membersCount", { count: enrollCountFor(g.id) })}
                 </div>
               </button>
             ))}
@@ -454,7 +454,7 @@ function GroupDetailsDialog({
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        className="h-9 w-9 text-muted-foreground hover:text-destructive"
                         onClick={() => removeStudent(e.id)}
                         disabled={busy}
                       >

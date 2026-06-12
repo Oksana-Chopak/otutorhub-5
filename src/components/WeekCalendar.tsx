@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -135,23 +134,32 @@ export function WeekCalendar({
   }, [lessons, days]);
 
   return (
-    <div className="rounded-xl border border-border bg-card">
+    <div className="rounded-[16px] border-[0.5px] bg-white" style={{ borderColor: "var(--border,#eceef3)" }}>
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-        <Button variant="outline" size="sm" onClick={onToday} className="gap-1.5">
+        <button
+          type="button"
+          onClick={onToday}
+          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[13.5px] font-bold transition-colors hover:bg-[#f0fdf9]"
+          style={{ borderColor: "var(--border,#eceef3)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
+        >
           <CalendarDays className="h-3.5 w-3.5" />
           {t("weekCalendar.today")}
-        </Button>
+        </button>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev}>
+          <button type="button" onClick={onPrev} aria-label="←"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
+            style={{ color: "var(--sub,#9398b0)" }}>
             <ChevronLeft className="h-4 w-4" />
-          </Button>
+          </button>
           <span className="text-sm font-medium text-foreground min-w-[120px] text-center">
             {formatRange(start)}
           </span>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNext}>
+          <button type="button" onClick={onNext} aria-label="→"
+            className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
+            style={{ color: "var(--sub,#9398b0)" }}>
             <ChevronRight className="h-4 w-4" />
-          </Button>
+          </button>
         </div>
         <span className="text-[13px] text-muted-foreground hidden sm:block">
           {start.getFullYear()}

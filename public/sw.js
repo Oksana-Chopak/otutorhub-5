@@ -9,7 +9,7 @@ self.addEventListener('push', (event) => {
       body: payload.body,
       icon: '/logo.png',
       badge: '/logo.png',
-      tag: 'otutorhub-notif',
+      tag: payload.tag || 'otutorhub-' + Date.now(),
       data: { link: payload.link },
       requireInteraction: false,
     })

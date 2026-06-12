@@ -209,7 +209,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               {t("contactEditExtra.titleFormat", { name: userName })}
             </div>
             <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>
-              Видимі тільки самій людині та менеджеру. Картка — для зручності виплат.
+              {t("contactEdit.visibilityHint")}
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"

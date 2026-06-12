@@ -171,10 +171,10 @@ Deno.serve(async (req) => {
 
   const db = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
 
-  let body: { userId?: string; title?: string; body?: string; link?: string } = {};
+  let body: { userId?: string; title?: string; body?: string; link?: string; tag?: string } = {};
   try { body = await req.json(); } catch { /* ignore */ }
 
-  const { userId, title = "oTutorHub", body: msgBody = "", link = "/" } = body;
+  const { userId, title = "oTutorHub", body: msgBody = "", link = "/", tag } = body;
   if (!userId) {
     return new Response(JSON.stringify({ error: "userId required" }), { status: 400 });
   }
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ ok: true, sent: 0 }), { headers: { "Content-Type": "application/json" } });
   }
 
-  const payload = { title, body: msgBody, link };
+  const payload = { title, body: msgBody, link, ...(tag ? { tag } : {}) };
   const results = await Promise.allSettled(
     (subs as { endpoint: string; p256dh: string; auth: string }[]).map((s) => sendOne(s, payload))
   );

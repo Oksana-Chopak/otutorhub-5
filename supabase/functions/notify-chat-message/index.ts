@@ -1,6 +1,7 @@
 // Triggered after chat_messages INSERT (via DB trigger) to push Telegram notification
 // to the recipient. Uses service role key for auth instead of webhook secret.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { sendWebPush } from '../_shared/push.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -48,6 +49,27 @@ Deno.serve(async (req) => {
     const recipientId = msg.sender_id === thread.tutor_id ? thread.student_id : thread.tutor_id;
     if (!recipientId) return new Response(JSON.stringify({ ok: true, skipped: 'no recipient' }));
 
+    // Fetch sender name (used by both Web Push and Telegram)
+    const { data: senderProfile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', msg.sender_id)
+      .maybeSingle();
+    const senderName = [senderProfile?.first_name, senderProfile?.last_name]
+      .filter(Boolean).join(' ') || 'Хтось';
+
+    const rawBody = (msg.body ?? '').trim() || '📎 вкладення';
+    const preview = rawBody.length > 300 ? rawBody.slice(0, 300) + '…' : rawBody;
+
+    // Web Push — fires regardless of Telegram link; same thread replaces previous push (tag)
+    sendWebPush(supabaseUrl, serviceKey, {
+      userId: recipientId,
+      title: `💬 ${senderName}`,
+      body: preview.length > 140 ? preview.slice(0, 140) + '…' : preview,
+      link: '/chats',
+      tag: `chat-${msg.thread_id}`,
+    }).catch(() => { /* best-effort */ });
+
     // Check if recipient has Telegram linked
     const { data: link } = await supabase
       .from('user_telegram_links')
@@ -58,20 +80,6 @@ Deno.serve(async (req) => {
     if (!link?.chat_id) {
       return new Response(JSON.stringify({ ok: true, skipped: 'no telegram link for recipient' }));
     }
-
-    // Fetch sender name
-    const { data: senderProfile } = await supabase
-      .from('profiles')
-      .select('first_name, last_name')
-      .eq('id', msg.sender_id)
-      .maybeSingle();
-    const senderName = [senderProfile?.first_name, senderProfile?.last_name]
-      .filter(Boolean).join(' ') || 'Хтось';
-
-    // Build Telegram message
-    const preview = (msg.body ?? '').length > 300
-      ? (msg.body ?? '').slice(0, 300) + '…'
-      : (msg.body ?? '📎 вкладення');
 
     const text = [
       `💬 <b>${escapeHtml(senderName)}</b>`,

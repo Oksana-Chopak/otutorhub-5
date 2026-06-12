@@ -1,6 +1,7 @@
 // Sends Telegram payment reminders to students based on each tutor's Pro rules.
 // Should be invoked on a schedule (cron). Idempotent via lesson_payment_reminders log.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendWebPush } from "../_shared/push.ts";
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
@@ -159,10 +160,6 @@ Deno.serve(async (req) => {
     }
 
     const chatId = chatByUser.get(lesson.student_id);
-    if (!chatId) {
-      skipped++;
-      continue;
-    }
 
     const lessonStart = new Date(lesson.starts_at).getTime();
     const days = Math.max(0, Math.min(30, settings.payment_due_days ?? 1));
@@ -221,21 +218,27 @@ Deno.serve(async (req) => {
     const price = Number(lesson.student_price ?? 0);
     let header = "💳 Нагадування про оплату";
     let body = "";
-    const tnameEsc = escapeHtml(tname);
     if (mode === "prepaid") {
-      body = `Нагадуємо про передоплату за майбутній урок (${dateStr}) з ${tnameEsc}.`;
+      body = `Нагадуємо про передоплату за майбутній урок (${dateStr}) з ${tname}.`;
     } else if (mode === "before_lesson") {
-      body = `Нагадуємо про оплату уроку ${dateStr} з ${tnameEsc}. До початку залишилось ~${days} ${
+      body = `Нагадуємо про оплату уроку ${dateStr} з ${tname}. До початку залишилось ~${days} ${
         days === 1 ? "день" : "днів"
       }.`;
     } else {
-      body = `Дякуємо за урок ${dateStr} з ${tnameEsc}! Час оплатити заняття.`;
+      body = `Дякуємо за урок ${dateStr} з ${tname}! Час оплатити заняття.`;
     }
     const priceLine = price > 0 ? `\n\nСума: <b>${price} ₴</b>` : "";
-    const text = `${header}\n\n${body}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
+    const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
 
-    const ok = await sendTg(TELEGRAM_BOT_TOKEN, chatId, text);
-    if (!ok) {
+    const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
+    const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+      userId: lesson.student_id,
+      title: header,
+      body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+      link: "/student/payments",
+      tag: `payrem-${lesson.id}`,
+    });
+    if (!tgOk && !pushOk) {
       skipped++;
       continue;
     }
@@ -246,7 +249,7 @@ Deno.serve(async (req) => {
       tutor_id: lesson.tutor_id,
       student_id: lesson.student_id,
       reminder_kind: reminderKind,
-      channel: "telegram",
+      channel: tgOk ? "telegram" : "webpush",
     });
     sent++;
   }

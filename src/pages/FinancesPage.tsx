@@ -19,6 +19,7 @@ import {
   Package,
   Plus,
   Wallet,
+  X,
   Trash2,
   Percent,
   Menu,
@@ -1782,7 +1783,6 @@ export default function FinancesPage() {
               </Select>
             </div>
           )}
-          {/* Notification bell + record payment moved to global header / FAB */}
         </div>
       </div>
 
@@ -1795,24 +1795,26 @@ export default function FinancesPage() {
             <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[13px] font-medium text-muted-foreground">{periodLabel}</span>
-                <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
+                <div className="flex gap-1.5">
                   {(["week", "month", "all"] as Period[]).map((p) => (
                     <button
                       key={p}
                       type="button"
                       onClick={() => setPeriod(p)}
-                      className={cn(
-                        "px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors",
-                        period === p
-                          ? "bg-primary text-primary-foreground"
-                          : "text-muted-foreground hover:text-foreground",
-                      )}
+                      style={{
+                        height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+                        background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
+                        color: period === p ? "#fff" : "var(--sub,#9398b0)",
+                        boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
+                        transition: "all .15s",
+                      }}
                     >
                       {p === "week"
-                        ? t("finances.periodWeekShort", { defaultValue: "Тижд." })
+                        ? t("finances.periodWeekShort")
                         : p === "month"
-                        ? t("finances.periodMonthShort", { defaultValue: "Міс." })
-                        : t("finances.periodAllShort", { defaultValue: "Все" })}
+                        ? t("finances.periodMonthShort")
+                        : t("finances.periodAllShort")}
                     </button>
                   ))}
                 </div>
@@ -1871,10 +1873,10 @@ export default function FinancesPage() {
                 <span className="text-xl">⚠️</span>
                 <div>
                   <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
-                    Заборгованість {totalDebt} ₴
+                    {t("finances.debtTitle", { sum: totalDebt })}
                   </p>
                   <p className="text-[13px]" style={{ color: "#b45309", opacity: 0.8 }}>
-                    {debtsRows.length} {debtsRows.length === 1 ? "урок" : debtsRows.length < 5 ? "уроки" : "уроків"} очікують оплати
+                    {t("finances.debtAwaiting", { count: debtsRows.length })}
                   </p>
                 </div>
               </div>
@@ -1894,32 +1896,19 @@ export default function FinancesPage() {
                     await insertNotification({
                       userId: studentId,
                       type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
-                      title: "💳 Нагадування про оплату",
-                      body: `Очікує оплати: ${agg.count} ${agg.count === 1 ? "урок" : agg.count < 5 ? "уроки" : "уроків"} на ${agg.sum.toLocaleString("uk-UA")} ₴`,
+                      title: t("finances.remindPushTitle"),
+                      body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString("uk-UA") }),
                       link: "/student/payments",
                     });
                     sent += 1;
                   }
-                  toast.success(`Нагадування надіслано`, { description: `${sent} ${sent === 1 ? "учню" : "учням"}` });
+                  toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
                   handleTabChange("debts");
                 }}
                 className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[13px] font-bold transition-opacity hover:opacity-80"
                 style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
-                Нагадати
+                {t("people.remindBtn")}
               </button>
-            </div>
-          )}
-
-          {/* === Pie chart — income by student === */}
-          {incomeByStudent.length > 0 && (
-            <div className="mb-4 rounded-[14px] border border-border bg-card p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[14px] font-bold text-foreground">По учнях</p>
-                <span className="text-[13px]" style={{ color: "#9398b0" }}>
-                  {period === "week" ? "Цей тиждень" : period === "month" ? "Цей місяць" : "Весь час"}
-                </span>
-              </div>
-              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
             </div>
           )}
 
@@ -1930,7 +1919,7 @@ export default function FinancesPage() {
               onClick={exportCsv}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-gray-100"
               style={{ color: "var(--sub,#9398b0)", border: "1px solid var(--border,#eceef3)" }}
-              title="Скачати CSV">
+              title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
               CSV
             </button>
@@ -1957,45 +1946,49 @@ export default function FinancesPage() {
             <TabsContent value="debts" className="mt-4">{renderRows(debtsRows)}</TabsContent>
           </Tabs>
 
-          {/* === Bulk actions — kept as secondary, only on desktop === */}
-          <details className="mt-4 hidden rounded-xl border border-border bg-card lg:block">
-            <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">
-                  {t("finances.bulkActions")} {selected.size > 0 && (
-                    <span className="ml-1 font-semibold text-foreground">({selected.size})</span>
-                  )}
-                </span>
-                <span className="text-[13px] text-muted-foreground">{t("finances.expandBulk")}</span>
-              </div>
-            </summary>
-            <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={selected.size === 0 || bulkBusy}
+          {/* === Selection bar — sticky, only when rows are selected (desktop) === */}
+          {selected.size > 0 && (
+            <div
+              className="sticky bottom-4 z-30 mt-4 hidden items-center gap-2 rounded-[14px] border-[0.5px] bg-white px-4 py-3 lg:flex"
+              style={{ borderColor: "var(--border,#eceef3)", boxShadow: "0 12px 32px -12px rgba(15,15,26,.3)" }}
+            >
+              <span className="text-[14px] font-bold text-foreground">
+                {t("finances.selectedCount", { count: selected.size })}
+              </span>
+              <div className="flex-1" />
+              <button
+                type="button"
+                disabled={bulkBusy}
                 onClick={() => bulkMark("student_payment_status")}
+                className="flex h-10 items-center gap-1.5 rounded-[12px] px-4 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 <CheckCheck className="h-4 w-4" />
                 {t("finances.markStudentsPaid")}
-              </Button>
+              </button>
               {!isIndependentTutor && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={selected.size === 0 || bulkBusy}
+                <button
+                  type="button"
+                  disabled={bulkBusy}
                   onClick={() => bulkMark("tutor_payout_status")}
+                  className="flex h-10 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-white px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
+                  style={{ borderColor: "#5DCAA5", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
                 >
                   <CheckCheck className="h-4 w-4" />
                   {t("finances.markTutorsPaid")}
-                </Button>
+                </button>
               )}
-              <Button size="sm" variant="outline" onClick={exportCsv}>
-                <Download className="h-4 w-4" />
-                {t("finances.exportCsv")}
-              </Button>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                aria-label={t("common.close")}
+                className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
+                style={{ color: "var(--sub,#9398b0)" }}
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
-          </details>
+          )}
 
           {/* === Analytics (unchanged) === */}
           {!isIndependentTutor && (

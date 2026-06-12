@@ -1,4 +1,3 @@
-import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { PeopleSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
@@ -207,7 +206,7 @@ export default function PeoplePage() {
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
   const [selectedPerson, setSelectedPerson] = useState<UserRow | null>(null);
   const [walletOpen, setWalletOpen] = useState(false);
-  const [walletPerson, setWalletPerson] = useState<UserRow | null>(null);
+  const [walletPair, setWalletPair] = useState<{ student: UserRow; tutorId: string; tutorName: string } | null>(null);
   const navigate = useNavigate();
 
   const openChatWith = (userId: string) => {
@@ -867,7 +866,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
     return (
     <div
       key={u.id}
-      className={`overflow-hidden rounded-[16px] bg-white p-3 sm:p-3.5 transition-all cursor-pointer ${
+      className={`overflow-hidden rounded-[16px] border-[0.5px] bg-white p-3 sm:p-3.5 transition-all cursor-pointer ${
         u.archived_at
           ? "border-border opacity-70"
           : u.is_pending
@@ -978,7 +977,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           onClick={(e) => {
                             e.stopPropagation();
                             navigator.clipboard.writeText(String(c.v));
-                            toast.success("Скопійовано", { description: String(c.v) });
+                            toast.success(t("people.copied"), { description: String(c.v) });
                           }}
                         >
                           <Copy className="h-3.5 w-3.5" />
@@ -1094,9 +1093,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {/* Header — desktop only; mobile title+bell come from AppLayout */}
       <div className="mb-4 hidden lg:flex items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-foreground">{t("people.title")}</h1>
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-        </div>
       </div>
 
       {/* Search + filters (filters collapse on mobile) */}
@@ -1586,14 +1582,21 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
       {isManager && (
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogContent className="max-w-md max-h-[90vh] flex flex-col">
-              <DialogHeader>
-                <DialogTitle>{t("people.dialogAddTitle")}</DialogTitle>
-                <DialogDescription>
-                  {t("people.dialogAddDesc")}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3 py-2 overflow-y-auto flex-1 -mx-1 px-1 min-h-0">
+            <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+              <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
+                <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogAddTitle")}</div>
+                  <div style={{ fontSize: 13, color: "#9398b0", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddDesc")}</div>
+                </div>
+                <button type="button" onClick={() => setAddOpen(false)} aria-label="✕"
+                  style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
@@ -1666,15 +1669,17 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   </div>
                 )}
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setAddOpen(false)} disabled={adding}>
+              <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+                <button type="button" onClick={() => setAddOpen(false)} disabled={adding}
+                  style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                   {t("people.cancelBtn")}
-                </Button>
-                <Button onClick={addPerson} disabled={adding}>
-                  {adding ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                </button>
+                <button type="button" onClick={addPerson} disabled={adding}
+                  style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: adding ? "default" : "pointer", opacity: adding ? 0.7 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  {adding && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("people.addBtn")}
-                </Button>
-              </DialogFooter>
+                </button>
+              </div>
             </DialogContent>
           </Dialog>
           )}
@@ -1692,9 +1697,42 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     { ok: !!u.has_lesson, label: t("people.progressLessons") },
                     { ok: !!u.has_paid_lesson, label: t("people.progressPayments") },
                   ];
-                  return { doneCount: steps.filter(s => s.ok).length, total: 12, steps };
+                  return { doneCount: steps.filter(s => s.ok).length, steps };
                 })()
               : null;
+            const tutorNameOf = (id: string) => {
+              const tu = allTutors.find((x) => x.id === id);
+              return tu ? fullName(tu) : "?";
+            };
+            const studentPairs = u.role === "student"
+              ? studentRates.filter((r) => r.student_id === u.id)
+              : [];
+            const openRateFor = (r: (typeof studentRates)[number]) => {
+              setStudentDialog({
+                open: true,
+                studentId: u.id,
+                studentName: fullName(u),
+                tutorId: r.tutor_id,
+                tutorName: tutorNameOf(r.tutor_id),
+                subject: r.subject,
+                price: String(r.price_per_lesson ?? ""),
+                currency: r.currency || "UAH",
+                existingId: r.id,
+              });
+              setSelectedPerson(null);
+            };
+            const openAssignTutor = () => {
+              setAddTutorToStudent({
+                open: true,
+                studentId: u.id,
+                studentName: fullName(u),
+                tutorId: "",
+                subject: "",
+                price: "",
+                currency: "UAH",
+              });
+              setSelectedPerson(null);
+            };
             return (
               <>
                 {/* Drag handle */}
@@ -1825,7 +1863,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         );
                       })}
                       <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
-                        предмет · ставка · валюта
+                        {t("people.subjectRateHint")}
                       </p>
                     </div>
                     {isManager && (
@@ -1833,11 +1871,51 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         type="button"
                         className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#9398b0)" }}
-                        onClick={() => setContactDialog({ open: true, user: u })}
+                        onClick={() => {
+                          setTutorDialog({
+                            open: true,
+                            userId: u.id,
+                            subjects: u.subjects ?? [],
+                            rates: Object.fromEntries(
+                              (u.subjects ?? []).map((s) => [s, String(tutorSubjectRates[u.id]?.[s] ?? "")]),
+                            ),
+                          });
+                          setSelectedPerson(null);
+                        }}
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                     )}
+                  </div>
+                )}
+
+                {/* Rate rows — student pairs (subject · tutor · price) */}
+                {u.role === "student" && studentPairs.length > 0 && (
+                  <div className="flex items-start gap-3 px-4 py-3 border-b border-border">
+                    <Tag className="h-4 w-4 shrink-0 mt-0.5" style={{ color: "var(--sub,#9398b0)" }} />
+                    <div className="flex-1 min-w-0">
+                      {studentPairs.map((r) => (
+                        <div key={r.id} className="flex items-center gap-2">
+                          <p className="flex-1 min-w-0 truncate text-[14px] text-foreground">
+                            {r.subject} · {tutorNameOf(r.tutor_id)} · {r.price_per_lesson} {currencySymbol(r.currency)}
+                          </p>
+                          {isManager && (
+                            <button
+                              type="button"
+                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                              style={{ color: "var(--sub,#9398b0)" }}
+                              onClick={() => openRateFor(r)}
+                              aria-label={t("people.actionRate")}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                      <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                        {t("people.subjectRateHint")}
+                      </p>
+                    </div>
                   </div>
                 )}
 
@@ -1846,12 +1924,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   <div className="px-4 py-3 border-b border-border">
                     <div className="flex justify-between text-[13px] mb-1.5" style={{ color: "var(--sub,#9398b0)" }}>
                       <span>{t("people.progressTitle", { done: tutorProgress.doneCount })}</span>
-                      <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount} з 9</span>
+                      <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount}/{tutorProgress.steps.length}</span>
                     </div>
                     <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border,#eceef3)" }}>
                       <div
                         className="h-full rounded-full transition-all"
-                        style={{ width: `${(tutorProgress.doneCount / 9) * 100}%`, background: "#1D9E75" }}
+                        style={{ width: `${(tutorProgress.doneCount / tutorProgress.steps.length) * 100}%`, background: "#1D9E75" }}
                       />
                     </div>
                   </div>
@@ -1871,28 +1949,45 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors"
                       style={{ background: "#E1F5EE", border: "0.5px solid #5DCAA5" }}
-                      onClick={() => navigate(`/people?assign=${u.id}`)}
+                      onClick={openAssignTutor}
                     >
                       <GraduationCap className="h-5 w-5" style={{ color: "#0F6E56" }} />
-                      <span className="text-[13px] font-medium" style={{ color: "#0F6E56" }}>Репетитор</span>
+                      <span className="text-[13px] font-medium" style={{ color: "#0F6E56" }}>{t("roles.tutor")}</span>
                     </button>
                     <button
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
                       style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
-                      onClick={() => { setWalletPerson(u); setWalletOpen(true); setSelectedPerson(null); }}
+                      onClick={() => {
+                        if (studentPairs.length === 0) {
+                          toast.info(t("people.assignTutorFirst"));
+                          openAssignTutor();
+                          return;
+                        }
+                        const pair = studentPairs[0];
+                        setWalletPair({ student: u, tutorId: pair.tutor_id, tutorName: tutorNameOf(pair.tutor_id) });
+                        setWalletOpen(true);
+                        setSelectedPerson(null);
+                      }}
                     >
                       <Wallet className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Гаманець</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>{t("people.actionWallet")}</span>
                     </button>
                     <button
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
                       style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
-                      onClick={() => setContactDialog({ open: true, user: u })}
+                      onClick={() => {
+                        if (studentPairs.length === 0) {
+                          toast.info(t("people.assignTutorFirst"));
+                          openAssignTutor();
+                          return;
+                        }
+                        openRateFor(studentPairs[0]);
+                      }}
                     >
                       <Tag className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
-                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Ставка</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>{t("people.actionRate")}</span>
                     </button>
                   </div>
                 )}
@@ -1906,7 +2001,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       style={{ background: "var(--teal,#2BBFAA)" }}
                       onClick={() => { setInvite({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: (u.role === "tutor" ? "tutor" : "student"), studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
                     >
-                      Нагадати
+                      {t("people.remindBtn")}
                     </button>
                     <button
                       type="button"
@@ -1925,14 +2020,14 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       </Sheet>
 
       {/* WalletDialog for student actions */}
-      {walletPerson && (
+      {walletPair && (
         <WalletDialog
           open={walletOpen}
-          onOpenChange={(open) => { setWalletOpen(open); if (!open) setWalletPerson(null); }}
-          tutorId={walletPerson.id}
-          studentId={walletPerson.id}
-          tutorName={fullName(walletPerson)}
-          studentName={fullName(walletPerson)}
+          onOpenChange={(open) => { setWalletOpen(open); if (!open) setWalletPair(null); }}
+          tutorId={walletPair.tutorId}
+          studentId={walletPair.student.id}
+          tutorName={walletPair.tutorName}
+          studentName={fullName(walletPair.student)}
           canTopUp={isManager}
         />
       )}

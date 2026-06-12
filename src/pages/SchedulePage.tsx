@@ -1,4 +1,3 @@
-import { NotificationBell } from "@/components/NotificationBell";
 import { AppLayout } from "@/components/AppLayout";
 import { PageFAB } from "@/components/PageFAB";
 import { useEffect, useMemo, useState } from "react";
@@ -54,7 +53,6 @@ import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { formatPrice } from "@/lib/currency";
 import { useSearchParams, Link } from "react-router-dom";
-import { useAvailabilityRequestCount } from "@/hooks/useAvailabilityRequestCount";
 import { cn } from "@/lib/utils";
 import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
 import { useScheduleFilters } from "@/hooks/useScheduleFilters";
@@ -108,6 +106,37 @@ function formatDateGroup(iso: string) {
 
 function formatTime(iso: string) {
   return new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+}
+
+function SegSwitch<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string; icon?: React.ReactNode }[];
+}) {
+  return (
+    <div className="inline-flex shrink-0 rounded-[12px] p-1" style={{ background: "rgba(15,15,26,.06)" }}>
+      {options.map((o) => (
+        <button
+          key={o.value}
+          type="button"
+          onClick={() => onChange(o.value)}
+          className="flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13.5px] transition-all"
+          style={
+            value === o.value
+              ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
+              : { color: "#9398b0", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
+          }
+        >
+          {o.icon}
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 export default function SchedulePage() {
@@ -908,8 +937,6 @@ export default function SchedulePage() {
   const canCreate = isManager || isTutor;
 
   // Tabs: "lessons" (default) and "availability" — only for tutors/managers
-  const showAvailabilityTab = isManager || isTutor;
-  const availabilityBadge = useAvailabilityRequestCount();
   const [searchParams, setSearchParams] = useSearchParams();
   useEffect(() => {
     const v = searchParams.get("view");
@@ -919,19 +946,12 @@ export default function SchedulePage() {
     // лише при першому відкритті за посиланням
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const activeTab = "lessons" as const;
-  const setTab = (t: "lessons" | "availability") => {
-    const next = new URLSearchParams(searchParams);
-    if (t === "lessons") next.delete("tab");
-    else next.set("tab", t);
-    setSearchParams(next, { replace: true });
-  };
 
   return (
     <AppLayout>
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl flex items-center gap-2">
+          <h1 className="hidden lg:flex font-display text-xl font-bold text-foreground sm:text-2xl items-center gap-2">
             <span>📅</span>
             <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
@@ -942,13 +962,15 @@ export default function SchedulePage() {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden sm:inline-flex rounded-lg border border-border bg-card p-0.5">
-            <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
-              <List className="h-3.5 w-3.5" />{t('schedule.listView')}
-            </Button>
-            <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
-              <CalendarRange className="h-3.5 w-3.5" />{t('schedule.weekView')}
-            </Button>
+          <div className="hidden sm:block">
+            <SegSwitch<"list" | "week">
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
+                { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
+              ]}
+            />
           </div>
           <ScheduleFiltersSheet
             filters={filters}
@@ -1388,7 +1410,7 @@ export default function SchedulePage() {
             {/* Summary — primary teaching field */}
             <div>
               <Label htmlFor="edit_summary" className="flex items-center gap-1.5 font-medium">
-                📚 Конспект уроку
+                📚 {t("lessonWorkspaceExtra.summaryTitle")}
               </Label>
               <Textarea
                 id="edit_summary"
@@ -1400,7 +1422,7 @@ export default function SchedulePage() {
               />
               {canEditTeachingFields(editingLesson) && (
                 <p className="text-[13px] text-muted-foreground mt-1">
-                  Учень отримає сповіщення про оновлення домашки чи конспекту.
+                  {t("schedule.studentNotifiedHint")}
                 </p>
               )}
             </div>
@@ -1408,7 +1430,7 @@ export default function SchedulePage() {
             {/* Meeting link — collapsed at the bottom (rarely changed) */}
             <div>
               <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Video className="h-3.5 w-3.5" /> Посилання на зустріч
+                <Video className="h-3.5 w-3.5" /> {t("schedule.meetingUrl")}
               </Label>
               <Input id="edit_meeting_url" type="url" placeholder="https://meet.google.com/..."
                 value={editForm.meeting_url}
@@ -1423,7 +1445,7 @@ export default function SchedulePage() {
             {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
               <Button onClick={saveEdit} disabled={editSubmitting}>
                 {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Зберегти
+                {t("common.save")}
               </Button>
             )}
           </DialogFooter>
@@ -1433,13 +1455,15 @@ export default function SchedulePage() {
       {/* Top "Lessons / My hours" tab switcher removed — availability now lives on /availability and is linked at the bottom of this page. */}
 
       {/* Mobile-only view switcher */}
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5 sm:hidden">
-        <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("list")}>
-          <List className="h-3.5 w-3.5" />Список
-        </Button>
-        <Button variant={view === "week" ? "secondary" : "ghost"} size="sm" className="h-8 gap-1.5" onClick={() => setView("week")}>
-          <CalendarRange className="h-3.5 w-3.5" />Тиждень
-        </Button>
+      <div className="mb-4 sm:hidden">
+        <SegSwitch<"list" | "week">
+          value={view}
+          onChange={setView}
+          options={[
+            { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
+            { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
+          ]}
+        />
       </div>
 
       <>
@@ -1505,25 +1529,15 @@ export default function SchedulePage() {
       ) : (
         <>
         {isPureStudentForList && (
-          <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5">
-            <Button
-              variant={studentArchive === "upcoming" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setStudentArchive("upcoming")}
-            >
-              <Clock className="h-3.5 w-3.5" />
-              Майбутні
-            </Button>
-            <Button
-              variant={studentArchive === "past" ? "secondary" : "ghost"}
-              size="sm"
-              className="h-8 gap-1.5"
-              onClick={() => setStudentArchive("past")}
-            >
-              <CalendarDays className="h-3.5 w-3.5" />
-              Архів
-            </Button>
+          <div className="mb-4">
+            <SegSwitch<"upcoming" | "past">
+              value={studentArchive}
+              onChange={setStudentArchive}
+              options={[
+                { value: "upcoming", label: t("common.upcoming"), icon: <Clock className="h-3.5 w-3.5" /> },
+                { value: "past", label: t("common.archive"), icon: <CalendarDays className="h-3.5 w-3.5" /> },
+              ]}
+            />
           </div>
         )}
         {listFocus && (
@@ -1531,8 +1545,8 @@ export default function SchedulePage() {
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 8px 0 13px",
               borderRadius: 999, background: "rgba(245,158,11,.14)", border: "1px solid rgba(245,158,11,.35)",
               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "#b4740b" }}>
-              {listFocus === "unpriced" ? "Показано: уроки без ціни" : "Показано: уроки без посилання"}
-              <button type="button" aria-label="Зняти фільтр"
+              {listFocus === "unpriced" ? t("schedule.focusUnpriced") : t("schedule.focusNoLink")}
+              <button type="button" aria-label={t("schedule.clearFilterAria")}
                 onClick={() => { setListFocus(null); const n = new URLSearchParams(searchParams); n.delete("filter"); setSearchParams(n, { replace: true }); }}
                 style={{ width: 22, height: 22, borderRadius: 999, border: "none", cursor: "pointer",
                   background: "rgba(180,116,11,.15)", color: "#b4740b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, lineHeight: 1 }}>
@@ -1656,12 +1670,12 @@ export default function SchedulePage() {
 
       {(isManager || isTutor) && (
         <div className="mt-8 border-t border-border pt-4 text-center">
-          <a
-            href="/availability"
+          <Link
+            to="/availability"
             className="text-sm text-primary hover:underline"
           >
-            Налаштувати доступні години для бронювання →
-          </a>
+            {t("schedule.availabilityLink")}
+          </Link>
         </div>
       )}
       <QuickLessonDialog

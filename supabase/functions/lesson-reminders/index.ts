@@ -2,6 +2,7 @@
 // Two reminders: 60 minutes before and 15 minutes before.
 // Idempotent via lesson_reminders log. Run on a cron every 5 minutes.
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendWebPush } from "../_shared/push.ts";
 
 const MIN_MS = 60 * 1000;
 
@@ -169,12 +170,20 @@ Deno.serve(async (req) => {
       if (now >= fbTrigger && now - fbTrigger <= fbWindow) {
         const studentChat = chatByUser.get(lesson.student_id);
         const fbKey = `${lesson.id}:${lesson.student_id}:feedback_nudge`;
-        if (studentChat && !sentSet.has(fbKey)) {
+        if (!sentSet.has(fbKey)) {
           const tutorName = nameById.get(lesson.tutor_id) ?? "репетитором";
           const text =
             `⭐ Як пройшов урок з <b>${escapeHtml(tutorName)}</b> (${escapeHtml(lesson.subject)})?\n\n` +
             `Відкрийте урок у застосунку і поставте оцінку — це допоможе репетитору і іншим учням.`;
-          if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
+          const tgOk = studentChat ? await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text) : false;
+          const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+            userId: lesson.student_id,
+            title: "⭐ Як пройшов урок?",
+            body: `Оцініть урок з ${tutorName} (${lesson.subject})`,
+            link: "/schedule",
+            tag: `lesson-${lesson.id}-feedback`,
+          });
+          if (tgOk || pushOk) {
             await supabase.from("lesson_reminders").insert({
               lesson_id: lesson.id,
               tutor_id: lesson.tutor_id,
@@ -182,7 +191,7 @@ Deno.serve(async (req) => {
               recipient_id: lesson.student_id,
               recipient_role: "student",
               reminder_kind: "feedback_nudge",
-              channel: "telegram",
+              channel: tgOk ? "telegram" : "webpush",
             });
             sent++;
           } else skipped++;
@@ -204,7 +213,7 @@ Deno.serve(async (req) => {
         if (now - trigger > n.windowMs) continue;
         const tutorChat = chatByUser.get(lesson.tutor_id);
         const key = `${lesson.id}:${lesson.tutor_id}:${n.kind}`;
-        if (!tutorChat || sentSet.has(key)) continue;
+        if (sentSet.has(key)) continue;
         const studentName = nameById.get(lesson.student_id) ?? "учнем";
         const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
           timeZone: "Europe/Kyiv",
@@ -217,7 +226,15 @@ Deno.serve(async (req) => {
           `📝 Урок з <b>${escapeHtml(studentName)}</b> (${escapeHtml(lesson.subject)}) ${dateStr} вже мав відбутися.\n\n` +
           `Будь ласка, відмітьте у застосунку: <b>Проведено</b> ✅ або <b>Скасовано</b> ❌.\n` +
           `Без статусу оплата за урок не нараховується.`;
-        if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
+        const tgOk = tutorChat ? await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text) : false;
+        const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+          userId: lesson.tutor_id,
+          title: "📝 Відмітьте статус уроку",
+          body: `${studentName} · ${lesson.subject} · ${dateStr}`,
+          link: "/schedule",
+          tag: `lesson-${lesson.id}-${n.kind}`,
+        });
+        if (tgOk || pushOk) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
@@ -225,7 +242,7 @@ Deno.serve(async (req) => {
             recipient_id: lesson.tutor_id,
             recipient_role: "tutor",
             reminder_kind: n.kind,
-            channel: "telegram",
+            channel: tgOk ? "telegram" : "webpush",
           });
           sent++;
         } else skipped++;
@@ -257,11 +274,19 @@ Deno.serve(async (req) => {
       // Send to tutor
       const tutorChat = chatByUser.get(lesson.tutor_id);
       const tutorKey = `${lesson.id}:${lesson.tutor_id}:${rule.kind}`;
-      if (tutorChat && !sentSet.has(tutorKey)) {
+      if (!sentSet.has(tutorKey)) {
         const text =
           `⏰ Урок з <b>${escapeHtml(studentName)}</b> через ${rule.minutesBefore} хв\n` +
           `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
-        if (await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text)) {
+        const tgOk = tutorChat ? await sendTg(TELEGRAM_BOT_TOKEN, tutorChat, text) : false;
+        const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+          userId: lesson.tutor_id,
+          title: `⏰ Урок через ${rule.minutesBefore} хв`,
+          body: `${studentName} · ${lesson.subject} · ${dateStr}`,
+          link: "/schedule",
+          tag: `lesson-${lesson.id}-${rule.kind}`,
+        });
+        if (tgOk || pushOk) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
@@ -269,7 +294,7 @@ Deno.serve(async (req) => {
             recipient_id: lesson.tutor_id,
             recipient_role: "tutor",
             reminder_kind: rule.kind,
-            channel: "telegram",
+            channel: tgOk ? "telegram" : "webpush",
           });
           sent++;
         } else skipped++;
@@ -278,11 +303,19 @@ Deno.serve(async (req) => {
       // Send to student
       const studentChat = chatByUser.get(lesson.student_id);
       const studentKey = `${lesson.id}:${lesson.student_id}:${rule.kind}`;
-      if (studentChat && !sentSet.has(studentKey)) {
+      if (!sentSet.has(studentKey)) {
         const text =
           `⏰ Урок з <b>${escapeHtml(tutorName)}</b> через ${rule.minutesBefore} хв\n` +
           `📚 ${escapeHtml(lesson.subject)}\n📅 ${dateStr}${link}`;
-        if (await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text)) {
+        const tgOk = studentChat ? await sendTg(TELEGRAM_BOT_TOKEN, studentChat, text) : false;
+        const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+          userId: lesson.student_id,
+          title: `⏰ Урок через ${rule.minutesBefore} хв`,
+          body: `${tutorName} · ${lesson.subject} · ${dateStr}`,
+          link: "/schedule",
+          tag: `lesson-${lesson.id}-${rule.kind}`,
+        });
+        if (tgOk || pushOk) {
           await supabase.from("lesson_reminders").insert({
             lesson_id: lesson.id,
             tutor_id: lesson.tutor_id,
@@ -290,7 +323,7 @@ Deno.serve(async (req) => {
             recipient_id: lesson.student_id,
             recipient_role: "student",
             reminder_kind: rule.kind,
-            channel: "telegram",
+            channel: tgOk ? "telegram" : "webpush",
           });
           sent++;
         } else skipped++;
