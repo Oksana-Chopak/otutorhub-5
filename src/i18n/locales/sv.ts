@@ -1397,7 +1397,7 @@ export const sv: Partial<Translations> = {
     pendingPaymentsCta: "Visa obetalda",
     tutorRequestsDesc: "Elever har lämnat en förfrågan — hitta dem en lärare.",
     tutorRequestsCta: "Visa förfrågningar",
-    supportRequestsDesc: "Lärare har skickat frågor — vänligen svara.",
+    supportRequestsDesc: "Självständiga lärare väntar på sitt Pro-abonnemang.",
     supportRequestsCta: "Öppna meddelanden",
     studentsWithoutTutorDesc: "Tilldela ett pris — utan det blir det inga lektioner eller chattar.",
     studentsWithoutTutorCta: "Öppna personer",

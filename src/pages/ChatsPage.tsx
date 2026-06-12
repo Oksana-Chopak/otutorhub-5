@@ -727,7 +727,7 @@ export default function ChatsPage() {
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
-          <p className="mx-auto mt-2 max-w-md text-xs text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-md text-[13px] text-muted-foreground">
             {isManager ? t("chats.noChatsManager") : t("chats.noChatsOther")}
           </p>
         </div>
@@ -754,7 +754,7 @@ export default function ChatsPage() {
                   <p className="hidden lg:block font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
                     {t("chats.title") || "Чати"}
                   </p>
-                  <p className="hidden lg:block text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="hidden lg:block text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
                     {isManager
                       ? `${threads.length} активних діалогів`
                       : t("chats.pageSubtitleOther")}
@@ -796,7 +796,7 @@ export default function ChatsPage() {
                   <button
                     key={mode}
                     onClick={() => setSortMode(mode)}
-                    className="flex-1 h-7 rounded-[8px] text-[12px] font-bold transition-all"
+                    className="flex-1 h-7 rounded-[8px] text-[13px] font-bold transition-all"
                     style={
                       sortMode === mode
                         ? { background: "#fff", color: "var(--txt,#0f0f1a)", boxShadow: "0 1px 3px rgba(15,15,26,.1)", fontFamily: "Inter, system-ui" }
@@ -867,14 +867,14 @@ export default function ChatsPage() {
                             {tName}
                           </p>
                           <span
-                            className="text-[12px] flex-shrink-0"
+                            className="text-[13px] flex-shrink-0"
                             style={{ color: "var(--muted,#b0b4c8)" }}
                           >
                             {timeShort(thread.last_message_at)}
                           </span>
                         </div>
                         <p
-                          className="text-[12.5px] truncate mt-0.5"
+                          className="text-[13px] truncate mt-0.5"
                           style={{
                             color: isUnread ? "var(--txt,#0f0f1a)" : "var(--sub,#9398b0)",
                             fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
@@ -886,7 +886,7 @@ export default function ChatsPage() {
 
                       {isUnread && (
                         <span
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0"
+                          className="w-5 h-5 rounded-full flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0"
                           style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
                         >
                           ●
@@ -923,7 +923,7 @@ export default function ChatsPage() {
                   </button>
 
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[12px] flex-shrink-0"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0"
                     style={{ background: avatarGradient(counterpartName(selectedThread)), fontFamily: "Inter, system-ui" }}
                   >
                     {computeInitials(counterpartName(selectedThread))}
@@ -939,7 +939,7 @@ export default function ChatsPage() {
                       </p>
                       {isManager && (
                         <span
-                          className="inline-flex items-center gap-1 text-[12px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
+                          className="inline-flex items-center gap-1 text-[13px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
                         >
                           <ShieldCheck className="h-2.5 w-2.5" />
@@ -948,11 +948,11 @@ export default function ChatsPage() {
                       )}
                     </div>
                     {isManager ? (
-                      <p className="text-[12px] truncate" style={{ color: "var(--sub,#9398b0)" }}>
+                      <p className="text-[13px] truncate" style={{ color: "var(--sub,#9398b0)" }}>
                         {fullName(profiles[selectedThread.tutor_id])} · тред центру
                       </p>
                     ) : (
-                      <p className="text-[12px]" style={{ color: "#22c55e" }}>
+                      <p className="text-[13px]" style={{ color: "#22c55e" }}>
                         {t("chats.online") || "у мережі"}
                       </p>
                     )}
@@ -981,7 +981,7 @@ export default function ChatsPage() {
                   {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
                     <div className="flex justify-center mb-4">
                       <button
-                        className="px-3 py-1 rounded-full text-[12px] transition-colors hover:bg-black/5"
+                        className="px-3 py-1 rounded-full text-[13px] transition-colors hover:bg-black/5"
                         style={{ color: "var(--sub,#9398b0)" }}
                         onClick={() =>
                           setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
@@ -1012,7 +1012,7 @@ export default function ChatsPage() {
                           {showDateSep && (
                             <div className="flex justify-center my-4">
                               <span
-                                className="px-3 py-1 rounded-full text-[12px] font-semibold"
+                                className="px-3 py-1 rounded-full text-[13px] font-semibold"
                                 style={{
                                   background: "rgba(15,15,26,.08)",
                                   color: "var(--sub,#9398b0)",
@@ -1033,7 +1033,7 @@ export default function ChatsPage() {
                             {/* Sender name for manager threads (not mine) */}
                             {!mine && isManager && (
                               <p
-                                className="text-[12px] mb-1 px-3 truncate max-w-[75%]"
+                                className="text-[13px] mb-1 px-3 truncate max-w-[75%]"
                                 style={{
                                   color: senderIsManager ? "#b45309" : "var(--sub,#9398b0)",
                                   fontFamily: "Inter, system-ui",
@@ -1105,14 +1105,14 @@ export default function ChatsPage() {
 
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span
-                                  className="text-[12px]"
+                                  className="text-[13px]"
                                   style={{ color: mine ? "rgba(255,255,255,0.6)" : "var(--muted,#b0b4c8)" }}
                                 >
                                   {timeShort(m.created_at)}
                                 </span>
                                 {mine && (
                                   <span
-                                    className="text-[12px]"
+                                    className="text-[13px]"
                                     style={{ color: readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id]) ? "#bdfaee" : "rgba(255,255,255,0.5)" }}
                                   >
                                     {readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id])
@@ -1148,7 +1148,7 @@ export default function ChatsPage() {
                             key={tpl}
                             type="button"
                             onClick={() => setDraft(tpl)}
-                            className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11.5px] transition-colors"
+                            className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] transition-colors"
                             style={{
                               border: "1px solid var(--border,#eceef3)",
                               background: "var(--bg,#F5F4F0)",
@@ -1171,7 +1171,7 @@ export default function ChatsPage() {
                 {/* Pending file preview */}
                 {pendingFile && (
                   <div
-                    className="flex items-center gap-2 px-3 py-2 text-[12px] flex-shrink-0"
+                    className="flex items-center gap-2 px-3 py-2 text-[13px] flex-shrink-0"
                     style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}
                   >
                     <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
@@ -1289,7 +1289,7 @@ export default function ChatsPage() {
                 </>
               ) : (
                 <div
-                  className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[12px]"
+                  className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[13px]"
                   style={{ color: "var(--muted,#b0b4c8)" }}
                 >
                   <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
@@ -1364,7 +1364,7 @@ export default function ChatsPage() {
                   const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
                   if (!existing) return null;
                   return (
-                    <p className="text-xs text-warning">{t("chats.chatExistsWarning")}</p>
+                    <p className="text-[13px] text-warning">{t("chats.chatExistsWarning")}</p>
                   );
                 })()}
               </>

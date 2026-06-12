@@ -119,7 +119,7 @@ export function ProRulesCard() {
           </button>
         </div>
         {disabled && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, color: C.sub, flexShrink: 0 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: C.sub, flexShrink: 0 }}>
             <Lock className="h-3 w-3" /> {t("proRulesCard.availableInPro")}
           </span>
         )}
@@ -145,9 +145,9 @@ export function ProRulesCard() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 16 }}>{p.title}</span>
-                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 11.5, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
+                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 13, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
                 </div>
-                <div style={{ fontSize: 12.5, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
+                <div style={{ fontSize: 13, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
               </div>
               <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0, border: `2px solid ${on ? C.teal : C.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {on && <span style={{ width: 11, height: 11, borderRadius: 999, background: C.teal }} />}
@@ -159,7 +159,7 @@ export function ProRulesCard() {
 
       {/* Summary */}
       <div style={{ marginTop: 14, borderRadius: 16, padding: 16, background: "rgba(43,191,170,.06)", border: `1px solid ${C.tealRing}` }}>
-        <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
+        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
           {t("proRulesCard.summary") || "Підсумок"}{activePreset ? ` · ${activePreset.title}` : ` · ${t("proRulesCard.custom") || "Власні"}`}
         </div>
         <div style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 8 }}>{summaryText()}</div>
@@ -180,7 +180,7 @@ export function ProRulesCard() {
           {/* Free window */}
           <div>
             <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.freeWindow") || "Безкоштовне вікно"}</div>
-            <div style={{ fontSize: 12, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint") || "За скільки годин до уроку можна скасувати безкоштовно"}</div>
+            <div style={{ fontSize: 13, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint") || "За скільки годин до уроку можна скасувати безкоштовно"}</div>
             <div style={{ display: "flex", gap: 8 }}>
               {[6, 12, 24, 48].map((h) => {
                 const on = state.cancel_free_hours === h;
@@ -197,14 +197,14 @@ export function ProRulesCard() {
               <Input type="number" min={0} max={168} value={state.cancel_free_hours}
                 onChange={(e) => set("cancel_free_hours", Number(e.target.value) || 0)}
                 className="w-20 h-9" style={{ borderRadius: 10 }} />
-              <span style={{ fontSize: 12.5, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
+              <span style={{ fontSize: 13, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
             </div>
           </div>
 
           {/* Late fee */}
           <div>
             <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.lateCancelLabel")}</div>
-            <div style={{ fontSize: 12, color: C.sub, marginTop: 1, marginBottom: 9 }}>
+            <div style={{ fontSize: 13, color: C.sub, marginTop: 1, marginBottom: 9 }}>
               {t("proRulesCard.lateCancelHint", { hours: state.cancel_free_hours, percent: state.cancel_fee_percent })}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -229,7 +229,7 @@ export function ProRulesCard() {
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.reminderLabel")}</div>
-                <div style={{ fontSize: 12, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.reminderHint")}</div>
+                <div style={{ fontSize: 13, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.reminderHint")}</div>
               </div>
               <Switch checked={state.payment_reminder_enabled} disabled={disabled}
                 onCheckedChange={(v) => set("payment_reminder_enabled", v)} />
@@ -254,7 +254,7 @@ export function ProRulesCard() {
                         </span>
                         <span style={{ minWidth: 0 }}>
                           <span style={{ display: "block", fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: on ? C.tealD : C.txt }}>{opt.title}</span>
-                          <span style={{ display: "block", fontSize: 12, color: C.sub, marginTop: 1 }}>{opt.desc}</span>
+                          <span style={{ display: "block", fontSize: 13, color: C.sub, marginTop: 1 }}>{opt.desc}</span>
                         </span>
                       </button>
                     );

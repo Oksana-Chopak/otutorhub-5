@@ -1416,7 +1416,7 @@ export const uk = {
     pendingPaymentsCta: "Переглянути неоплачені",
     tutorRequestsDesc: "Учні залишили заявку — підберіть фахівця.",
     tutorRequestsCta: "Переглянути заявки",
-    supportRequestsDesc: "Репетитори надіслали запитання — дайте відповідь.",
+    supportRequestsDesc: "Самостійні репетитори чекають на оформлення Pro-тарифу.",
     supportRequestsCta: "Відкрити звернення",
     studentsWithoutTutorDesc: "Призначте ставку — без неї не буде ні уроків, ні чатів.",
     studentsWithoutTutorCta: "Відкрити людей",

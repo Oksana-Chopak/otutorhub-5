@@ -134,7 +134,7 @@ export function QuickPaymentFab() {
         >
           <Wallet className="h-5 w-5" />
           <span className="hidden sm:inline">{t("quickPaymentFabExtra.btnLabel")}</span>
-          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-xs font-bold">
+          <span className="rounded-full bg-primary-foreground/20 px-2 py-0.5 text-[13px] font-bold">
             {unpaidCount}
           </span>
         </Button>
@@ -161,7 +161,7 @@ export function QuickPaymentFab() {
                     <p className="truncate text-sm font-medium text-foreground">
                       {r.student_name}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[13px] text-muted-foreground">
                       {r.subject} ·{" "}
                       {d.toLocaleDateString("uk-UA", {
                         day: "numeric",

@@ -129,7 +129,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const label: React.CSSProperties = {
-    fontFamily: L.display, fontWeight: 700, fontSize: 12, letterSpacing: ".07em",
+    fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".07em",
     textTransform: "uppercase", color: L.sub, marginBottom: 6,
   };
 
@@ -140,7 +140,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(59,130,246,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>🎙</span>
           <div>
             <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>Запис уроку</div>
-            <div style={{ fontSize: 12.5, color: L.muted }}>Fireflies · конспект із дзвінка</div>
+            <div style={{ fontSize: 13, color: L.muted }}>Fireflies · конспект із дзвінка</div>
           </div>
         </div>
         {canRecord && !isReady && (

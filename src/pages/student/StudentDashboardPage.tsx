@@ -184,11 +184,11 @@ export default function StudentDashboardPage() {
                 return (
                   <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "#fff" }}>
                     <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
-                      <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                      <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
                         {isToday ? "Сьогодні" : d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
                       </span>
                       {!isToday && (
-                        <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 12.5 }}>
+                        <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 13 }}>
                           {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
                         </span>
                       )}
@@ -207,7 +207,7 @@ export default function StudentDashboardPage() {
                           <Video size={20} />
                         </a>
                       ) : (
-                        <span style={{ flexShrink: 0, fontSize: 12, color: DS.muted, fontFamily: DS.body }}>{t("studentPages.noMeetingLink")}</span>
+                        <span style={{ flexShrink: 0, fontSize: 13, color: DS.muted, fontFamily: DS.body }}>{t("studentPages.noMeetingLink")}</span>
                       )}
                     </div>
                   </li>
@@ -225,7 +225,7 @@ export default function StudentDashboardPage() {
                 <DollarSign className="h-5 w-5" style={{ color: "#b4740b" }} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 12, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.awaitingPayment")}</p>
+                <p style={{ fontSize: 13, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.awaitingPayment")}</p>
                 <p style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 24, color: DS.txt, lineHeight: 1.1 }}>{pendingPaymentsCount}</p>
               </div>
             </div>
@@ -236,7 +236,7 @@ export default function StudentDashboardPage() {
                 <BookOpen className="h-5 w-5" style={{ color: DS.tealD }} />
               </div>
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: 12, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPagesExtra.homeworkTitle")}</p>
+                <p style={{ fontSize: 13, color: DS.sub, fontFamily: DS.display, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPagesExtra.homeworkTitle")}</p>
                 <p style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 24, color: DS.txt, lineHeight: 1.1 }}>{homeworkCount}</p>
               </div>
             </div>

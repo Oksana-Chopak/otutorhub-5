@@ -460,7 +460,7 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             {pendingHint && (
-              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-xs text-foreground">
+              <div className="mb-4 rounded-md border border-primary/30 bg-primary/5 p-3 text-[13px] text-foreground">
                 <div className="mb-1 flex items-center gap-1.5 font-medium text-primary">
                   <Mail className="h-3.5 w-3.5" />
                   {t("auth.invitedByTutor")}
@@ -503,7 +503,7 @@ export default function AuthPage() {
                 {!isNativeApp() && (
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                  <div className="relative flex justify-center text-xs uppercase">
+                  <div className="relative flex justify-center text-[13px] uppercase">
                     <span className="bg-card px-2 text-muted-foreground">{t("common.or")}</span>
                   </div>
                 </div>
@@ -539,7 +539,7 @@ export default function AuthPage() {
                       required
                     />
                   </div>
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-[13px]">
                     <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground">
                       <Checkbox
                         checked={remember}
@@ -556,7 +556,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="block w-full text-center text-xs text-muted-foreground hover:text-foreground hover:underline"
+                    className="block w-full text-center text-[13px] text-muted-foreground hover:text-foreground hover:underline"
                   >
                     {t("auth.forgotPassword")}
                   </button>
@@ -581,7 +581,7 @@ export default function AuthPage() {
                       >
                         <BookOpenCheck className="h-5 w-5 text-primary" />
                         <span className="text-sm font-medium">{t("auth.roleTutor")}</span>
-                        <span className="text-[12px] text-muted-foreground">{t("auth.tutorHint")}</span>
+                        <span className="text-[13px] text-muted-foreground">{t("auth.tutorHint")}</span>
                       </button>
                       <button
                         type="button"
@@ -595,7 +595,7 @@ export default function AuthPage() {
                       >
                         <GraduationCap className="h-5 w-5 text-primary" />
                         <span className="text-sm font-medium">{t("auth.roleStudent")}</span>
-                        <span className="text-[12px] text-muted-foreground">{t("auth.studentHint")}</span>
+                        <span className="text-[13px] text-muted-foreground">{t("auth.studentHint")}</span>
                       </button>
                     </div>
                   </div>
@@ -623,7 +623,7 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setShowExtra((v) => !v)}
-                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                    className="flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
                   >
                     {showExtra ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
                     {showExtra ? t("auth.hideOptional") : t("auth.showOptional")}
@@ -662,14 +662,14 @@ export default function AuthPage() {
                       onChange={(e) => setSignUpData({ ...signUpData, password: e.target.value })}
                       required
                     />
-                    <p className="text-xs text-muted-foreground">{t("auth.minPasswordHint")}</p>
+                    <p className="text-[13px] text-muted-foreground">{t("auth.minPasswordHint")}</p>
                   </div>
                   <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {t("auth.createAccount")}
                   </Button>
                   {signUpData.role === "tutor" && (
-                    <p className="text-center text-xs text-muted-foreground">
+                    <p className="text-center text-[13px] text-muted-foreground">
                       {t("auth.tutorFreeHint")}
                     </p>
                   )}

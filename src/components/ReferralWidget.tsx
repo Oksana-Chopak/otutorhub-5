@@ -122,19 +122,19 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           </div>
           <div>
             <h3 className="font-bold text-foreground">{t("referralWidget.title")}</h3>
-            <p className="text-xs text-muted-foreground">{t("referralWidget.desc")}</p>
+            <p className="text-[13px] text-muted-foreground">{t("referralWidget.desc")}</p>
           </div>
         </div>
 
         {savedUah > 0 && (
           <div className="mb-3 rounded-xl border border-success/30 bg-success/5 p-3">
-            <p className="text-xs text-muted-foreground">{t("referralWidget.savedLabel")}</p>
+            <p className="text-[13px] text-muted-foreground">{t("referralWidget.savedLabel")}</p>
             <p className="text-2xl font-bold text-success">{savedUah.toLocaleString("uk-UA")} ₴</p>
           </div>
         )}
 
         <div className="mb-3 flex gap-2">
-          <Input value={link} readOnly className="font-mono text-xs" onClick={(e) => (e.target as HTMLInputElement).select()} />
+          <Input value={link} readOnly className="font-mono text-[13px]" onClick={(e) => (e.target as HTMLInputElement).select()} />
           <Button onClick={handleCopy} variant="outline" size="icon" className="shrink-0">
             {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -145,7 +145,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
 
         {!compact && (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-xs">
+            <div className="flex items-center justify-between text-[13px]">
               <span className="text-muted-foreground">
                 Цього місяця: <strong className="text-foreground">{monthly} з 3</strong> оплат → +3 міс бонус 🔥
               </span>
@@ -153,18 +153,18 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
             </div>
             <Progress value={progress} className="h-2" />
             {toBigBonus > 0 ? (
-              <p className="text-[12px] text-muted-foreground">
+              <p className="text-[13px] text-muted-foreground">
                 {t("referralWidget.toBigBonus", { count: toBigBonus }) ?? `Ще ${toBigBonus} → +3 міс`}
               </p>
             ) : (
-              <p className="text-[12px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
+              <p className="text-[13px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
             )}
           </div>
         )}
       </div>
 
       {!compact && referrals.length > 0 && (
-        <div className="border-t border-border p-3 text-xs text-muted-foreground">
+        <div className="border-t border-border p-3 text-[13px] text-muted-foreground">
           Усього запрошень: <strong className="text-foreground">{referrals.length}</strong> · з Pro: <strong className="text-foreground">{proUpgrades}</strong>
         </div>
       )}

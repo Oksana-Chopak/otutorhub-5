@@ -780,7 +780,7 @@ export default function FinancesPage() {
     return (
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {/* Mobile sort controls */}
-        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[12px] lg:hidden">
+        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[13px] lg:hidden">
           <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
           <MobileSortChip
             label={t("finances.colDate")}
@@ -817,11 +817,11 @@ export default function FinancesPage() {
                       <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
                         <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-[13px] text-muted-foreground">
                         {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                       </p>
                       {tx.note && (
-                        <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{tx.note}</p>
+                        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{tx.note}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -859,7 +859,7 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{l.subject}</p>
-                    <p className="text-[12.5px]" style={{ color: "#9398b0", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[13px]" style={{ color: "#9398b0", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && (
                     <div
@@ -873,7 +873,7 @@ export default function FinancesPage() {
                   )}
                 </div>
 
-                <div className="mt-2 grid grid-cols-1 gap-2 text-xs">
+                <div className="mt-2 grid grid-cols-1 gap-2 text-[13px]">
                   <div className={cn(
                     "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
                     studentUnpaid ? "bg-warning/10" : "bg-success/5",
@@ -881,7 +881,7 @@ export default function FinancesPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
                       {l.student_paid_at && (
-                        <p className="truncate text-[12px] text-muted-foreground">
+                        <p className="truncate text-[13px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                         </p>
                       )}
@@ -898,8 +898,8 @@ export default function FinancesPage() {
                         <Badge
                           className={
                             l.student_payment_status === "paid"
-                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[12px]"
-                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[12px]"
+                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[13px]"
+                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[13px]"
                           }
                         >
                           {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
@@ -916,7 +916,7 @@ export default function FinancesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
                         {l.tutor_paid_at && (
-                          <p className="truncate text-[12px] text-muted-foreground">
+                          <p className="truncate text-[13px] text-muted-foreground">
                             {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                           </p>
                         )}
@@ -933,8 +933,8 @@ export default function FinancesPage() {
                           <Badge
                             className={
                               l.tutor_payout_status === "paid"
-                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[12px]"
-                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[12px]"
+                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[13px]"
+                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[13px]"
                             }
                           >
                             {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
@@ -1023,7 +1023,7 @@ export default function FinancesPage() {
                             {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                           </span>
                           {tx.note && (
-                            <span className="truncate text-xs text-muted-foreground">— {tx.note}</span>
+                            <span className="truncate text-[13px] text-muted-foreground">— {tx.note}</span>
                           )}
                         </div>
                       </td>
@@ -1077,7 +1077,7 @@ export default function FinancesPage() {
                     <td className="px-3 py-3">
                       <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
                       {l.student_paid_at && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-[13px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                         </div>
                       )}
@@ -1103,7 +1103,7 @@ export default function FinancesPage() {
                       <td className="px-3 py-3">
                         <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
                         {l.tutor_paid_at && (
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-[13px] text-muted-foreground">
                             {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                           </div>
                         )}
@@ -1277,7 +1277,7 @@ export default function FinancesPage() {
         }}>
         {label}
         {count !== undefined && count > 0 && (
-          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize:11,
+          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 13,
             fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
             {count}
           </span>
@@ -1305,7 +1305,7 @@ export default function FinancesPage() {
                 background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)", position:"relative", overflow:"hidden" }}>
                 <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100,
                   borderRadius:"50%", background:"radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
-                <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:"rgba(255,255,255,.5)",
+                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"rgba(255,255,255,.5)",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
                   💰 Отримано
                 </p>
@@ -1323,14 +1323,14 @@ export default function FinancesPage() {
               {/* Pending — warn */}
               <div style={{ borderRadius:16, padding:"14px 16px",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
-                <p style={{ fontFamily:F.display, fontSize:11, fontWeight:700, color:F.warnD,
+                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.warnD,
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   ⏳ Очікує
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
                   {pendingIncome.toLocaleString("uk-UA")} ₴
                 </p>
-                <p style={{ fontFamily:F.body, fontSize:12, color:F.warnD, opacity:0.7, marginTop:2 }}>
+                <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.7, marginTop:2 }}>
                   {debtList.length} уроків
                 </p>
               </div>
@@ -1338,14 +1338,14 @@ export default function FinancesPage() {
               {/* Avg */}
               <div style={{ borderRadius:16, padding:"14px 16px",
                 background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
-                <p style={{ fontFamily:F.display, fontSize:11, fontWeight:700, color:"#7c3aed",
+                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"#7c3aed",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   📊 Середній урок
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
                   {avgLesson.toLocaleString("uk-UA")} ₴
                 </p>
-                <p style={{ fontFamily:F.body, fontSize:12, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
+                <p style={{ fontFamily:F.body, fontSize: 13, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
                   {paidLessonsCount} уроків
                 </p>
               </div>
@@ -1372,7 +1372,7 @@ export default function FinancesPage() {
                           height:`${bar.pct}%`, minHeight:4,
                           background: bar.isToday ? F.teal : bar.amt>0 ? "rgba(43,191,170,.3)" : F.border,
                           transition:"height .3s" }} />
-                        <span style={{ fontFamily:F.display, fontSize:10, fontWeight:700,
+                        <span style={{ fontFamily:F.display, fontSize: 13, fontWeight:700,
                           color: bar.isToday ? F.teal : F.muted }}>{bar.label}</span>
                       </div>
                     ))}
@@ -1396,7 +1396,7 @@ export default function FinancesPage() {
                               whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                               {nameOf(l.student_id)}
                             </p>
-                            <p style={{ fontFamily:F.body, fontSize:12, color:F.sub }}>
+                            <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
                               {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
                             </p>
                           </div>
@@ -1406,7 +1406,7 @@ export default function FinancesPage() {
                               {paid ? "+" : ""}{Number(l.student_price).toLocaleString("uk-UA")} ₴
                             </p>
                             <button onClick={() => togglePayment(l, "student_payment_status")}
-                              style={{ fontFamily:F.display, fontWeight:700, fontSize:11,
+                              style={{ fontFamily:F.display, fontWeight:700, fontSize: 13,
                                 background: paid ? "rgba(34,197,94,.15)" : F.warnBg,
                                 color: paid ? "#16a34a" : F.warnD,
                                 border:`1px solid ${paid?"rgba(34,197,94,.3)":F.warnBorder}`,
@@ -1492,7 +1492,7 @@ export default function FinancesPage() {
                                 whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                                 {nameOf(l.student_id)}
                               </p>
-                              <p style={{ fontFamily:F.body, fontSize:12, color:F.sub }}>
+                              <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
                                 {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
                               </p>
                             </div>
@@ -1513,7 +1513,7 @@ export default function FinancesPage() {
                               }}
                               style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
                                 background:"rgba(245,158,11,.18)", color:F.warnD,
-                                fontFamily:F.display, fontWeight:700, fontSize:12.5, cursor:"pointer",
+                                fontFamily:F.display, fontWeight:700, fontSize: 13, cursor:"pointer",
                                 flexShrink:0 }}>
                               Нагадати
                             </button>
@@ -1540,14 +1540,14 @@ export default function FinancesPage() {
 
                   {/* This month + month-over-month */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Цей місяць</p>
+                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Цей місяць</p>
                     <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
                       <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
                         {analyticsStats.thisMonth.toLocaleString("uk-UA")} ₴
                       </span>
                       {analyticsStats.momPct !== null && (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:4, borderRadius:999, padding:"4px 10px",
-                          fontFamily:F.display, fontWeight:700, fontSize:12.5,
+                          fontFamily:F.display, fontWeight:700, fontSize: 13,
                           background: analyticsStats.momPct >= 0 ? "rgba(34,197,94,.12)" : "rgba(245,158,11,.14)",
                           color: analyticsStats.momPct >= 0 ? "#16a34a" : F.warnD }}>
                           {analyticsStats.momPct >= 0 ? "▲" : "▼"} {Math.abs(analyticsStats.momPct)}% до минулого
@@ -1569,7 +1569,7 @@ export default function FinancesPage() {
                           <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
                             {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
                           </p>
-                          <p style={{ fontFamily:F.body, fontSize:12.5, color:F.warnD, opacity:0.85, marginTop:1 }}>
+                          <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.85, marginTop:1 }}>
                             {debtList.length} {debtList.length === 1 ? "урок очікує оплати" : "уроків очікують оплати"}
                           </p>
                         </div>
@@ -1584,7 +1584,7 @@ export default function FinancesPage() {
 
                   {/* 6-month trend */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>Дохід за 6 місяців</p>
+                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>Дохід за 6 місяців</p>
                     <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:84 }}>
                       {sixMonthBars.map(bar => (
                         <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
@@ -1596,15 +1596,15 @@ export default function FinancesPage() {
                               <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0", height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0, background:F.teal }} />
                             )}
                           </div>
-                          <span style={{ fontFamily:F.display, fontSize:10.5, fontWeight:700, color:F.muted }}>{bar.month}</span>
+                          <span style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted }}>{bar.month}</span>
                         </div>
                       ))}
                     </div>
                     <div style={{ display:"flex", gap:14, marginTop:10 }}>
-                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize:11.5, color:F.sub }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
                         <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> Отримано
                       </span>
-                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize:11.5, color:F.sub }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
                         <span style={{ width:9, height:9, borderRadius:2, background:"rgba(245,158,11,.55)" }} /> Очікує
                       </span>
                     </div>
@@ -1613,7 +1613,7 @@ export default function FinancesPage() {
                   {/* Top students */}
                   {byStudentCockpit.length > 0 && (
                     <div>
-                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>Топ-учні за доходом</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>Топ-учні за доходом</p>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {byStudentCockpit.map(s => {
                           const maxAmt = byStudentCockpit[0]?.amount ?? 1;
@@ -1637,11 +1637,11 @@ export default function FinancesPage() {
                   {/* Stats */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Уроків цей місяць</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Уроків цей місяць</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.completedCount}</p>
                     </div>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize:12, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Середній урок</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Середній урок</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString("uk-UA")} ₴</p>
                     </div>
                   </div>
@@ -1713,7 +1713,7 @@ export default function FinancesPage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">
+          <p className="text-[13px] text-muted-foreground sm:text-sm">
             {isIndependentTutor ? t("finances.pageSubtitleTutor") : t("finances.pageSubtitleManager")}
           </p>
         </div>
@@ -1761,7 +1761,7 @@ export default function FinancesPage() {
           <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
             <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs font-medium text-muted-foreground">{periodLabel}</span>
+                <span className="text-[13px] font-medium text-muted-foreground">{periodLabel}</span>
                 <div className="inline-flex rounded-lg border border-border bg-background p-0.5">
                   {(["week", "month", "all"] as Period[]).map((p) => (
                     <button
@@ -1769,7 +1769,7 @@ export default function FinancesPage() {
                       type="button"
                       onClick={() => setPeriod(p)}
                       className={cn(
-                        "px-2.5 py-1 text-[12px] font-medium rounded-md transition-colors",
+                        "px-2.5 py-1 text-[13px] font-medium rounded-md transition-colors",
                         period === p
                           ? "bg-primary text-primary-foreground"
                           : "text-muted-foreground hover:text-foreground",
@@ -1887,13 +1887,13 @@ export default function FinancesPage() {
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
                 <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
-                <span className="ml-1 text-[12px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
+                <span className="ml-1 text-[13px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
               </TabsTrigger>
               <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
                 <span className="sm:hidden">{t("finances.debtsTabShort", { defaultValue: "Борги" })}</span>
-                <span className="ml-1 text-[12px] text-muted-foreground">({debtsRows.length})</span>
+                <span className="ml-1 text-[13px] text-muted-foreground">({debtsRows.length})</span>
               </TabsTrigger>
             </TabsList>
 
@@ -1910,7 +1910,7 @@ export default function FinancesPage() {
                     <span className="ml-1 font-semibold text-foreground">({selected.size})</span>
                   )}
                 </span>
-                <span className="text-xs text-muted-foreground">{t("finances.expandBulk")}</span>
+                <span className="text-[13px] text-muted-foreground">{t("finances.expandBulk")}</span>
               </div>
             </summary>
             <div className="flex flex-wrap items-center gap-2 border-t border-border px-4 py-3">
@@ -1947,7 +1947,7 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[13px] text-muted-foreground">
                     {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
                   </span>
                 </div>
@@ -1956,7 +1956,7 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}</h2>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
+                  <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
                 </div>
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
               </div>
@@ -1967,7 +1967,7 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.marginByTutor")}</h2>
-                <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.marginFormula")}</span>
+                <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.marginFormula")}</span>
               </div>
               {markupByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("finances.noMarginData")}</p>
@@ -1975,7 +1975,7 @@ export default function FinancesPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-[15px]">
                     <thead>
-                      <tr className="border-b border-border text-xs text-muted-foreground">
+                      <tr className="border-b border-border text-[13px] text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">{t("finances.colTutor")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("finances.colLessonsCount")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("finances.colMargin")}</th>
@@ -2006,7 +2006,7 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
-                <span className="hidden text-xs text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
+                <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
               <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart
                 tutorNames={Object.fromEntries(
@@ -2133,7 +2133,7 @@ function SummaryStat({
       : "text-foreground";
   return (
     <div className="min-w-0 rounded-lg bg-secondary/40 px-2.5 py-2">
-      <div className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground sm:text-[12px]">
+      <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground sm:text-[13px]">
         <Icon className="h-3 w-3" />
         <span className="truncate">{label}</span>
       </div>
@@ -2180,7 +2180,7 @@ function SortHeader({
       >
         <span>{label}</span>
         {sublabel && (
-          <span className="text-[12px] font-normal text-muted-foreground normal-case">{sublabel}</span>
+          <span className="text-[13px] font-normal text-muted-foreground normal-case">{sublabel}</span>
         )}
       </span>
       <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100 text-primary" : "opacity-70")} />

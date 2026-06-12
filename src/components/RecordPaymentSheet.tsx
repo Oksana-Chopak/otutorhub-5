@@ -238,7 +238,7 @@ export function RecordPaymentSheet({
                       >
                         <div className="min-w-0">
                           <div className="truncate font-medium text-foreground">{l.subject}</div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-[13px] text-muted-foreground">
                             {formatDate(l.starts_at)} · {l.student_price} ₴
                           </div>
                         </div>
@@ -292,7 +292,7 @@ export function RecordPaymentSheet({
 
                 {/* Велике поле на ДС-картці */}
                 <div style={{ borderRadius: 16, padding: 14, background: "#fbfbfc", border: "1px solid #eceef3" }}>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 8 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 8 }}>
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
                   {mode === "lessons" ? (
@@ -330,7 +330,7 @@ export function RecordPaymentSheet({
 
                 {/* Коментар */}
                 <div>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 6 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 6 }}>
                     {t("recordPaymentExtra.commentLabel")}
                   </p>
                   <input
@@ -402,12 +402,12 @@ function PairPicker({
                   <span className="block truncate font-medium text-foreground">
                     {p.student_name}
                   </span>
-                  <span className="block truncate text-xs text-muted-foreground">
+                  <span className="block truncate text-[13px] text-muted-foreground">
                     ↔ {p.tutor_name}
                   </span>
                 </span>
                 {p.rate ? (
-                  <Badge variant="outline" className="shrink-0 text-[12px]">
+                  <Badge variant="outline" className="shrink-0 text-[13px]">
                     {p.rate} ₴/ур.
                   </Badge>
                 ) : null}
@@ -425,7 +425,7 @@ function PickedHeader({ pair, onBack }: { pair: PairOption; onBack: () => void }
     <div className="flex items-center justify-between gap-2 rounded-md bg-secondary/40 px-3 py-2 text-sm">
       <div className="min-w-0">
         <div className="truncate font-medium text-foreground">{pair.student_name}</div>
-        <div className="truncate text-xs text-muted-foreground">↔ {pair.tutor_name}</div>
+        <div className="truncate text-[13px] text-muted-foreground">↔ {pair.tutor_name}</div>
       </div>
       <Button size="sm" variant="ghost" onClick={onBack}>
         <ArrowLeft className="mr-1 h-3.5 w-3.5" />

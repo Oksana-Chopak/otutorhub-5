@@ -243,7 +243,7 @@ export function ChatThreadDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 text-xs text-muted-foreground"
+                      className="h-6 text-[13px] text-muted-foreground"
                       onClick={() => setShowArchived(true)}
                     >
                       Показати всю історію
@@ -267,7 +267,7 @@ export function ChatThreadDialog({
                       >
                         <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
-                          className={`mt-0.5 text-[12px] ${
+                          className={`mt-0.5 text-[13px] ${
                             mine ? "text-white/70" : "text-[#9398b0]"
                           }`}
                         >

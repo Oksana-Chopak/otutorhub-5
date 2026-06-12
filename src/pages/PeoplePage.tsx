@@ -920,19 +920,19 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {fullName(u)}
               </p>
               {u.is_pending && (
-                <Badge variant="outline" className="border-warning/40 text-warning text-[12px] px-1.5 py-0">
+                <Badge variant="outline" className="border-warning/40 text-warning text-[13px] px-1.5 py-0">
                   {t("people.pendingBadge")}
                 </Badge>
               )}
               {u.archived_at && (
-                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[12px] px-1.5 py-0">
+                <Badge variant="outline" className="border-muted-foreground/30 text-muted-foreground text-[13px] px-1.5 py-0">
                   {t("people.archivedBadge")}
                 </Badge>
               )}
               {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
                 <Badge
                   variant="outline"
-                  className={`text-[12px] px-1.5 py-0 ${
+                  className={`text-[13px] px-1.5 py-0 ${
                     studentSt.status === "debt"
                       ? "border-warning/40 text-warning"
                       : "border-destructive/40 text-destructive"
@@ -992,7 +992,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {u.subjects.map((s) => {
                       const r = tutorSubjectRates[u.id]?.[s];
                       return (
-                        <p key={s} className="break-words text-xs text-muted-foreground">
+                        <p key={s} className="break-words text-[13px] text-muted-foreground">
                           <span className="text-foreground">{s}</span>
                           {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
                         </p>
@@ -1266,7 +1266,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           <div className="space-y-4 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
             <div>
               <Label>{t("people.fieldSubjects")}</Label>
-              <p className="text-xs text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
+              <p className="text-[13px] text-muted-foreground mb-2">{t("people.clickToSelect")}</p>
               <SubjectMultiSelect
                 value={tutorDialog.subjects}
                 onChange={(next) =>
@@ -1285,7 +1285,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             {tutorDialog.subjects.length > 0 && (
               <div className="space-y-2">
                 <Label>{t("people.ratePerSubject")}</Label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   {t("people.ratePerSubjectDesc")}
                 </p>
                 <div className="space-y-2">
@@ -1306,7 +1306,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         }
                         placeholder={t("people.ratePlaceholder")}
                       />
-                      <span className="text-xs text-muted-foreground">₴</span>
+                      <span className="text-[13px] text-muted-foreground">₴</span>
                     </div>
                   ))}
                 </div>
@@ -1351,7 +1351,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 const tutorRate = tutorSubjectRates[studentDialog.tutorId]?.[studentDialog.subject];
                 if (tutorRate !== undefined && tutorRate > 0) {
                   return (
-                    <p className="text-xs">
+                    <p className="text-[13px]">
                       {t("people.tutorRateForSubject")} <span className="font-medium text-foreground">{tutorRate} ₴</span>
                     </p>
                   );
@@ -1461,7 +1461,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               const availableSubjects = tSubjects.filter((s) => !takenSubjects.has(s));
               if (availableSubjects.length === 0) {
                 return (
-                  <p className="text-xs text-muted-foreground italic">
+                  <p className="text-[13px] text-muted-foreground italic">
                     {t("people.allSubjectsAdded")}
                   </p>
                 );
@@ -1498,7 +1498,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject];
                     if (tutorRate !== undefined && tutorRate > 0) {
                       return (
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[13px] text-muted-foreground">
                           {t("people.tutorRateForSubject")}{" "}
                           <span className="font-medium text-foreground">{tutorRate} ₴</span>
                         </p>
@@ -1636,7 +1636,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     maxLength={32}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   {t("people.ghostHint")}
                 </p>
                 <div>
@@ -1658,7 +1658,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {addForm.role === "tutor" && (
                   <div>
                     <Label>{t("people.fieldSubjects")}</Label>
-                    <p className="text-xs text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
+                    <p className="text-[13px] text-muted-foreground mb-2">{t("people.oneOrMore")}</p>
                     <SubjectMultiSelect
                       value={addForm.subjects}
                       onChange={(next) => setAddForm((f) => ({ ...f, subjects: next }))}
@@ -1824,7 +1824,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           </p>
                         );
                       })}
-                      <p className="text-[12px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
+                      <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
                         предмет · ставка · валюта
                       </p>
                     </div>
@@ -1844,7 +1844,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {/* Onboarding progress — tutor only */}
                 {tutorProgress && (
                   <div className="px-4 py-3 border-b border-border">
-                    <div className="flex justify-between text-[12px] mb-1.5" style={{ color: "var(--sub,#9398b0)" }}>
+                    <div className="flex justify-between text-[13px] mb-1.5" style={{ color: "var(--sub,#9398b0)" }}>
                       <span>{t("people.progressTitle", { done: tutorProgress.doneCount })}</span>
                       <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount} з 9</span>
                     </div>
@@ -1874,7 +1874,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       onClick={() => navigate(`/people?assign=${u.id}`)}
                     >
                       <GraduationCap className="h-5 w-5" style={{ color: "#0F6E56" }} />
-                      <span className="text-[12px] font-medium" style={{ color: "#0F6E56" }}>Репетитор</span>
+                      <span className="text-[13px] font-medium" style={{ color: "#0F6E56" }}>Репетитор</span>
                     </button>
                     <button
                       type="button"
@@ -1883,7 +1883,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       onClick={() => { setWalletPerson(u); setWalletOpen(true); setSelectedPerson(null); }}
                     >
                       <Wallet className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
-                      <span className="text-[12px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Гаманець</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Гаманець</span>
                     </button>
                     <button
                       type="button"
@@ -1892,7 +1892,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       onClick={() => setContactDialog({ open: true, user: u })}
                     >
                       <Tag className="h-5 w-5" style={{ color: "var(--sub,#9398b0)" }} />
-                      <span className="text-[12px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Ставка</span>
+                      <span className="text-[13px] font-medium" style={{ color: "var(--sub,#9398b0)" }}>Ставка</span>
                     </button>
                   </div>
                 )}

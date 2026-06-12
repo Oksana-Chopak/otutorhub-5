@@ -127,6 +127,8 @@ export default function SchedulePage() {
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
   const [view, setView] = useState<"list" | "week">("week");
+  // Глибокі лінки з дашборда: показати в списку лише проблемні уроки
+  const [listFocus, setListFocus] = useState<null | "unpriced" | "nolink">(null);
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
@@ -455,11 +457,19 @@ export default function SchedulePage() {
 
   // Combined subject options for dropdown (union of tutor profile + rate subjects + pair subjects)
   const subjectOptions = useMemo(() => {
-    const set = new Set<string>();
-    (selectedTutor?.subjects ?? []).forEach((s) => s && set.add(s));
-    tutorRateSubjects.forEach((s) => s && set.add(s));
-    pairSubjects.forEach((s) => s && set.add(s));
-    return Array.from(set).sort((a, b) => a.localeCompare(b, "uk"));
+    // ci/trim-дедуплікація: "english", " English " і "ENGLISH" — один пункт.
+    // Пріоритет написання: ставки пари > предметні ставки репетитора > профіль.
+    const byKey = new Map<string, string>();
+    const add = (raw: string | null | undefined) => {
+      const v = (raw ?? "").trim();
+      if (!v) return;
+      const k = v.toLowerCase();
+      if (!byKey.has(k)) byKey.set(k, v);
+    };
+    pairSubjects.forEach(add);
+    tutorRateSubjects.forEach(add);
+    (selectedTutor?.subjects ?? []).forEach(add);
+    return Array.from(byKey.values()).sort((a, b) => a.localeCompare(b, "uk"));
   }, [selectedTutor, tutorRateSubjects, pairSubjects]);
 
   // Auto-fill prices for managers and independent tutors when tutor/student/subject change.
@@ -814,14 +824,20 @@ export default function SchedulePage() {
   // Upcoming → ascending (closest first). Past → descending (most recent first).
   const isPureStudentForList = isStudent && !isManager && !isTutor;
   const lessonsForList = useMemo(() => {
-    if (!isPureStudentForList || view !== "list") return filteredLessons;
+    const base =
+      listFocus === "unpriced"
+        ? filteredLessons.filter((l) => l.status !== "cancelled" && (l.student_price == null || Number(l.student_price) === 0))
+        : listFocus === "nolink"
+        ? filteredLessons.filter((l) => l.status !== "cancelled" && !l.meeting_url)
+        : filteredLessons;
+    if (!isPureStudentForList || view !== "list") return base;
     const now = Date.now();
     const cutoff = now - 60 * 60 * 1000; // give a 1h grace period
-    return filteredLessons.filter((l) => {
+    return base.filter((l) => {
       const ts = new Date(l.starts_at).getTime();
       return studentArchive === "upcoming" ? ts >= cutoff : ts < cutoff;
     });
-  }, [filteredLessons, isPureStudentForList, view, studentArchive]);
+  }, [filteredLessons, isPureStudentForList, view, studentArchive, listFocus]);
 
   // Group lessons into human buckets: Сьогодні / Завтра / Цей тиждень / Пізніше / Минулі.
   // Within each bucket, sort by time (upcoming asc, past desc).
@@ -895,6 +911,14 @@ export default function SchedulePage() {
   const showAvailabilityTab = isManager || isTutor;
   const availabilityBadge = useAvailabilityRequestCount();
   const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const v = searchParams.get("view");
+    if (v === "list" || v === "week") setView(v);
+    const f = searchParams.get("filter");
+    if (f === "unpriced" || f === "nolink") { setListFocus(f); setView("list"); }
+    // лише при першому відкритті за посиланням
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const activeTab = "lessons" as const;
   const setTab = (t: "lessons" | "availability") => {
     const next = new URLSearchParams(searchParams);
@@ -912,7 +936,7 @@ export default function SchedulePage() {
             <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
           {!isManager && (
-            <p className="text-xs text-muted-foreground sm:text-sm">
+            <p className="text-[13px] text-muted-foreground sm:text-sm">
               {isTutor ? t("schedule.tutorSubtitle") : t("schedule.studentSubtitle")}
             </p>
           )}
@@ -953,12 +977,12 @@ export default function SchedulePage() {
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-semibold",
+                  <div className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
                     <span className={step === 1 ? "text-foreground font-medium" : ""}>{t('schedule.step1')}</span>
                     <span className="h-px flex-1 bg-border" />
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-semibold",
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-semibold",
                       step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
                     <span className={step === 2 ? "text-foreground font-medium" : ""}>{t('schedule.step2')}</span>
                   </div>
@@ -994,7 +1018,7 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.tutor_id && (
-                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectTutor')}</p>
+                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
@@ -1026,17 +1050,17 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.student_id && (
-                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectStudent')}</p>
+                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectStudent')}</p>
                   )}
                   {students.length === 0 && isTutor && !isManager && (
-                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-xs">
+                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-[13px]">
                       <p className="text-muted-foreground mb-2">
                         {isIndependentTutor
                           ? t('schedule.noStudentsIndependent')
                           : t('schedule.noStudentsHub')}
                       </p>
                       {isIndependentTutor && (
-                        <Button asChild size="sm" variant="outline" className="h-7 text-xs">
+                        <Button asChild size="sm" variant="outline" className="h-7 text-[13px]">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
                             {t("myStudents.addStudentBtn")}
@@ -1065,7 +1089,7 @@ export default function SchedulePage() {
                     )}
                   />
                   {formErrors.subject && (
-                    <p className="mt-1 text-xs text-destructive">{t('schedule.selectSubject')}</p>
+                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectSubject')}</p>
                   )}
                 </div>
                 <div>
@@ -1088,7 +1112,7 @@ export default function SchedulePage() {
                     )}
                   />
                   {formErrors.starts_at && (
-                    <p className="mt-1 text-xs text-destructive">{t('schedule.dateTime')}</p>
+                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.dateTime')}</p>
                   )}
                 </div>
                 </>)}
@@ -1118,7 +1142,7 @@ export default function SchedulePage() {
                       value={form.student_price}
                       onChange={(e) => setForm((f) => ({ ...f, student_price: e.target.value }))}
                     />
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-[13px] text-muted-foreground">
                       {existingRateForPair
                         ? `💡 ${t('schedule.priceHintExisting')}`
                         : `🆕 ${t('schedule.priceHintNew')}`}
@@ -1177,11 +1201,11 @@ export default function SchedulePage() {
                     {form.tutor_id && form.student_id && form.subject && !autoFilling && (
                       <>
                         {(!form.student_price || form.student_price === "0") && (
-                          <p className="text-xs text-warning -mt-2">
+                          <p className="text-[13px] text-warning -mt-2">
                             ⚠️ Для цього учня з обраного предмета ще не задано ціну. Введіть її вручну або задайте на сторінці «Люди» → «Учні репетитора».
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground -mt-2">
+                        <p className="text-[13px] text-muted-foreground -mt-2">
                           💡 Ціна учня береться з його тарифу, виплата — зі ставки репетитора. Можна змінити вручну.
                         </p>
                       </>
@@ -1221,12 +1245,12 @@ export default function SchedulePage() {
                   </>
                 )}
                 {isStudent && !isManager && !isTutor && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[13px] text-muted-foreground">
                     {t("schedule.studentRequestHint")}
                   </p>
                 )}
                 {conflictWarning && (
-                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-warning">
+                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-[13px] text-warning">
                     ⚠ {conflictWarning}
                   </div>
                 )}
@@ -1249,7 +1273,7 @@ export default function SchedulePage() {
                   <button
                     type="button"
                     onClick={() => setNotesOpen((v) => !v)}
-                    className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
+                    className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors w-full"
                   >
                     <span className="flex-1 text-left">
                       {t('schedule.notes')} {form.notes ? `(${form.notes.length})` : `(${t('common.optional')})`}
@@ -1375,7 +1399,7 @@ export default function SchedulePage() {
                 onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
               />
               {canEditTeachingFields(editingLesson) && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-[13px] text-muted-foreground mt-1">
                   Учень отримає сповіщення про оновлення домашки чи конспекту.
                 </p>
               )}
@@ -1502,6 +1526,21 @@ export default function SchedulePage() {
             </Button>
           </div>
         )}
+        {listFocus && (
+          <div className="mb-3 flex items-center gap-2">
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 8px 0 13px",
+              borderRadius: 999, background: "rgba(245,158,11,.14)", border: "1px solid rgba(245,158,11,.35)",
+              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "#b4740b" }}>
+              {listFocus === "unpriced" ? "Показано: уроки без ціни" : "Показано: уроки без посилання"}
+              <button type="button" aria-label="Зняти фільтр"
+                onClick={() => { setListFocus(null); const n = new URLSearchParams(searchParams); n.delete("filter"); setSearchParams(n, { replace: true }); }}
+                style={{ width: 22, height: 22, borderRadius: 999, border: "none", cursor: "pointer",
+                  background: "rgba(180,116,11,.15)", color: "#b4740b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, lineHeight: 1 }}>
+                ✕
+              </button>
+            </span>
+          </div>
+        )}
         {grouped.length === 0 ? (
         isPureStudent && studentTutors.length === 0 ? (
           <EmptyState
@@ -1543,7 +1582,7 @@ export default function SchedulePage() {
                   }`}
                 >
                   {bucketLabel}
-                  <span className="ml-2 text-xs font-normal opacity-70">· {dayLessons.length}</span>
+                  <span className="ml-2 text-[13px] font-normal opacity-70">· {dayLessons.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {dayLessons.map((lesson) => {

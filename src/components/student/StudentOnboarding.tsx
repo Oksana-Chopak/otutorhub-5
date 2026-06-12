@@ -116,7 +116,7 @@ export function StudentOnboarding({ onComplete }: Props) {
         </Button>
         <button
           onClick={() => setStep("done")}
-          className="block w-full text-center text-xs text-muted-foreground hover:text-foreground"
+          className="block w-full text-center text-[13px] text-muted-foreground hover:text-foreground"
         >
           {t("studentOnboarding.skip")}
         </button>
@@ -171,7 +171,7 @@ export function StudentOnboarding({ onComplete }: Props) {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="mb-2 flex items-center justify-between text-[13px] text-muted-foreground">
           <span>{t("studentOnboarding.stepOf", { step })}</span>
           <span>{t("studentOnboarding.findTutor")}</span>
         </div>
@@ -201,7 +201,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                   )}
                 >
                   <span className="text-3xl">{SUBJECT_EMOJI[s] ?? "📖"}</span>
-                  <span className="text-xs font-medium leading-tight">{s}</span>
+                  <span className="text-[13px] font-medium leading-tight">{s}</span>
                 </button>
               );
             })}

@@ -64,7 +64,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
             <p className="text-sm font-medium text-foreground">
               {t("needsMarking.title", { count: items.length })}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[13px] text-muted-foreground">
               {t("needsMarking.desc")}
             </p>
           </div>
@@ -79,7 +79,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
                 <p className="truncate text-sm font-medium text-foreground">
                   {l.subject} · {studentNames[l.student_id] ?? "—"}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[13px] text-muted-foreground">
                   {fmt(l.starts_at)}
                   {l.source === "hub" && (
                     <span className="ml-2 italic">{t("needsMarking.managerNote")}</span>

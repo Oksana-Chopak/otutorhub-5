@@ -47,7 +47,7 @@ export function MessageReactions({ reactions, myId, onToggle, mine }: Props) {
           type="button"
           onClick={() => handle(emoji)}
           className={cn(
-            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-xs transition-colors",
+            "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[13px] transition-colors",
             info.mine
               ? "border-primary/40 bg-primary/10 text-foreground"
               : "border-border bg-background/60 text-foreground hover:border-primary/30"

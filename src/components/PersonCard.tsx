@@ -126,7 +126,7 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
           cursor: "pointer", display: "flex", alignItems: "center",
           justifyContent: "center", gap: 3,
           color: copied ? "#16a34a" : T.sub,
-          fontFamily: T.display, fontSize: 11, fontWeight: 600,
+          fontFamily: T.display, fontSize: 13, fontWeight: 600,
         }}
       >
         {copied
@@ -169,7 +169,7 @@ export function PersonBadges({
     return (
       <span style={{
         display: "inline-flex", alignItems: "center", height: 22, padding: "0 8px",
-        borderRadius: 999, fontSize: 11.5, fontFamily: T.display, fontWeight: 700,
+        borderRadius: 999, fontSize: 13, fontFamily: T.display, fontWeight: 700,
         background: c.bg, color: c.color, border: `1px solid ${c.border}`,
       }}>
         {children}

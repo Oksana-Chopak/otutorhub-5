@@ -231,7 +231,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
         <div className="space-y-3">
           <div>
-            <Label className="text-xs">{t("assignTutorExtra.tutorLabel")}</Label>
+            <Label className="text-[13px]">{t("assignTutorExtra.tutorLabel")}</Label>
             {loadingTutors ? (
               <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" /> Завантаження…
@@ -246,7 +246,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                     <SelectItem key={t.id} value={t.id}>
                       {t.name}
                       {t.defaultRate != null && (
-                        <span className="ml-2 text-xs text-muted-foreground">
+                        <span className="ml-2 text-[13px] text-muted-foreground">
                           ({t.defaultRate} ₴)
                         </span>
                       )}
@@ -258,13 +258,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           </div>
 
           <div>
-            <Label className="text-xs">{t("assignTutorExtra.subjectLabel")}</Label>
+            <Label className="text-[13px]">{t("assignTutorExtra.subjectLabel")}</Label>
             <SubjectComboBox value={subject} onChange={(name) => setSubject(name)} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-xs">{t("assignTutorExtra.studentRateLabel")}</Label>
+              <Label className="text-[13px]">{t("assignTutorExtra.studentRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"
@@ -274,7 +274,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               />
             </div>
             <div>
-              <Label className="text-xs">{t("assignTutorExtra.tutorRateLabel")}</Label>
+              <Label className="text-[13px]">{t("assignTutorExtra.tutorRateLabel")}</Label>
               <Input
                 type="number"
                 inputMode="decimal"
@@ -286,7 +286,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           </div>
 
           {margin != null && (
-            <div className="rounded-md border border-border bg-muted/30 p-2 text-xs">
+            <div className="rounded-md border border-border bg-muted/30 p-2 text-[13px]">
               Маржа школи: <span className="font-medium text-foreground">{margin} ₴</span> за урок
             </div>
           )}

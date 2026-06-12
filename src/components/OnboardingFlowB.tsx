@@ -106,7 +106,7 @@ function GhostBtn({ children, onClick, style = {} }: any) {
 
 function XpSticker({ xp }: { xp: number }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[13px] font-bold"
       style={{ background: "#fef9ec", color: "#92400e", outline: "1px solid #fbbf24", fontFamily: T.display }}>
       ⭐ {xp} XP
     </span>
@@ -190,7 +190,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
         ))}
       </div>
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: T.sub }}>Немає у списку? Додай свій</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-1.5" style={{ color: T.sub }}>Немає у списку? Додай свій</p>
         <div className="flex gap-2">
           <Input value={custom} onChange={e => setCustom(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addCustom()}
@@ -246,19 +246,19 @@ function StudentAction({ defaultSubject, onComplete, user }: {
   return (
     <div className="flex flex-col gap-3.5">
       <div>
-        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ім'я учня</Label>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ім'я учня</Label>
         <Input value={name} onChange={e => setName(e.target.value)} placeholder="Анна Іваненко" className="h-12 rounded-xl text-[15px]" />
       </div>
       <div className="flex gap-3">
         <div style={{ flex: 1.3 }}>
-          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Предмет</Label>
+          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Предмет</Label>
           <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Англійська" className="h-12 rounded-xl text-[15px]" />
           {defaultSubject && subject === defaultSubject && (
-            <p className="text-xs font-semibold mt-1" style={{ color: T.tealD }}>↑ підтягнуто з твоїх предметів</p>
+            <p className="text-[13px] font-semibold mt-1" style={{ color: T.tealD }}>↑ підтягнуто з твоїх предметів</p>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ціна</Label>
+          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ціна</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>₴</span>
             <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
@@ -267,7 +267,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
           </div>
         </div>
       </div>
-      <p className="text-xs" style={{ color: T.muted }}>Учень отримає запрошення приєднатися до твого кабінету.</p>
+      <p className="text-[13px]" style={{ color: T.muted }}>Учень отримає запрошення приєднатися до твого кабінету.</p>
       <Btn disabled={!ok || saving} onClick={save}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Додати учня"}
       </Btn>
@@ -359,14 +359,14 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
 
       {/* Date */}
       <div>
-        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Дата</Label>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Дата</Label>
         <Input type="date" value={date} onChange={e => setDate(e.target.value)}
           className="h-12 rounded-xl text-[15px]" />
       </div>
 
       {/* Time — custom 24h selects */}
       <div>
-        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>
           Час {timeStr && <span style={{ color: T.tealD, fontWeight: 700 }}>· {timeStr}</span>}
         </Label>
         <div className="flex gap-2 items-center">
@@ -384,7 +384,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
           </select>
         </div>
         {!hour && (
-          <p className="text-xs mt-1.5" style={{ color: T.muted }}>Оберіть годину, потім хвилини</p>
+          <p className="text-[13px] mt-1.5" style={{ color: T.muted }}>Оберіть годину, потім хвилини</p>
         )}
       </div>
 
@@ -454,13 +454,13 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>Авто-нагадування про оплату</p>
-          <p className="text-[12.5px] mt-0.5 leading-snug" style={{ color: T.sub }}>Учень отримує нагадування у Telegram та в застосунку.</p>
+          <p className="text-[13px] mt-0.5 leading-snug" style={{ color: T.sub }}>Учень отримує нагадування у Telegram та в застосунку.</p>
         </div>
         <Switch checked={reminder} onCheckedChange={setReminder} />
       </div>
       {/* Mode */}
       <div style={{ opacity: reminder ? 1 : .5, pointerEvents: reminder ? "auto" : "none" }}>
-        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Коли учень має сплатити</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Коли учень має сплатити</p>
         <div className="flex flex-col gap-2">
           {MODES.map(o => <RadioCard key={o.v} {...o} />)}
         </div>
@@ -474,7 +474,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       </div>
       {/* Free cancel */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Безкоштовне скасування / перенесення</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Безкоштовне скасування / перенесення</p>
         <div className="flex items-center gap-2.5">
           <Input value={hours} inputMode="numeric" onChange={e => setHours(e.target.value.replace(/\D/g,"").slice(0,3))}
             className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
@@ -483,7 +483,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       </div>
       {/* Fee % */}
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Авто-стягнення за пізнє скасування</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Авто-стягнення за пізнє скасування</p>
         <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
           {[0,10,25,50,100].map(p => (
             <button key={p} onClick={() => setFee(p)}
@@ -495,7 +495,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
             </button>
           ))}
         </div>
-        <p className="text-xs mt-2 leading-snug" style={{ color: T.muted }}>
+        <p className="text-[13px] mt-2 leading-snug" style={{ color: T.muted }}>
           {fee === 0 ? "Штраф вимкнено — пізнє скасування безкоштовне." : `Скасування пізніше ніж за ${hours} год → ${fee}% від вартості уроку.`}
         </p>
       </div>
@@ -592,7 +592,7 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
         ))}
       </div>
       <div>
-        <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Робочі години</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Робочі години</p>
         <div className="flex items-center gap-2">
           <Input type="time" value={fromH} onChange={e => setFromH(e.target.value)} className="h-12 rounded-xl text-[15px] flex-1" />
           <span style={{ color: T.muted, fontFamily: T.display, flexShrink: 0 }}>—</span>
@@ -644,7 +644,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
       <span className="text-2xl flex-shrink-0">{emoji}</span>
       <div className="flex-1 min-w-0">
         <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{title}</p>
-        <p className="text-[12.5px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
+        <p className="text-[13px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
       </div>
       <Switch checked={on} onCheckedChange={setOn} />
     </div>
@@ -675,7 +675,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
         </svg>
         Підключити Telegram
       </button>
-      <p className="text-center text-xs" style={{ color: T.muted }}>Відкриється бот @oTutorHubBot — натисни Start</p>
+      <p className="text-center text-[13px]" style={{ color: T.muted }}>Відкриється бот @oTutorHubBot — натисни Start</p>
       <GhostBtn onClick={onComplete}>Пропустити поки що</GhostBtn>
     </div>
   );
@@ -709,7 +709,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
       <div className="relative rounded-xl bg-white overflow-hidden transition-colors"
         style={{ border: `1px solid ${T.border}`, borderLeft: `4px solid ${paid ? T.success : T.teal}` }}>
         {/* Status pill */}
-        <div className="absolute left-3 top-2 rounded-full px-2.5 py-0.5 text-xs font-bold"
+        <div className="absolute left-3 top-2 rounded-full px-2.5 py-0.5 text-[13px] font-bold"
           style={{ fontFamily: T.display,
                    background: paid ? "rgba(12,166,120,.15)" : "rgba(43,191,170,.15)",
                    color: paid ? T.success : T.tealD,
@@ -721,7 +721,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
           <div className="flex flex-col justify-center" style={{ minWidth: 88 }}>
             <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>Сьогодні</span>
             <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>18:00</span>
-            <span className="text-[12px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>60 хв</span>
+            <span className="text-[13px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>60 хв</span>
           </div>
           {/* Divider */}
           <div className="w-px mx-3.5" style={{ background: T.border }} />
@@ -776,9 +776,9 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
         </div>
         <div className="flex-1 min-w-0">
           <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{studentName || "Анна Іваненко"}</p>
-          <p className="text-[12.5px]" style={{ color: T.sub }}>{subject || "Англійська"} · твій учень</p>
+          <p className="text-[13px]" style={{ color: T.sub }}>{subject || "Англійська"} · твій учень</p>
         </div>
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full"
+        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full"
           style={{ background: T.tealL, color: T.tealD, outline: `1px solid ${T.teal}66`, fontFamily: T.display }}>
           Новий чат
         </span>
@@ -825,8 +825,8 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "#dcfce7", color: "#166534" }}>🎁 +30 днів тобі</span>
-        <span className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: T.tealL, color: T.tealD }}>+21 день другу</span>
+        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#dcfce7", color: "#166534" }}>🎁 +30 днів тобі</span>
+        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: T.tealL, color: T.tealD }}>+21 день другу</span>
       </div>
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
         Поділись посиланням з колегою-репетитором. Без зірочок і дрібного шрифту.
@@ -868,7 +868,7 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
         Постійна кімната — учень підключається одним кліком з кожного уроку.
       </p>
       <div>
-        <Label className="text-xs font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Посилання Zoom / Meet</Label>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Посилання Zoom / Meet</Label>
         <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
           className="h-12 rounded-xl text-[15px]" />
       </div>
@@ -925,7 +925,7 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
         <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-xl flex-shrink-0" style={{ background: T.tealL }}>🎙</div>
         <div>
           <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>Запис уроку через Fireflies</p>
-          <p className="text-[12.5px]" style={{ color: T.sub }}>Бот тихо приєднується до Zoom / Meet</p>
+          <p className="text-[13px]" style={{ color: T.sub }}>Бот тихо приєднується до Zoom / Meet</p>
         </div>
       </div>
       <p className="text-sm leading-relaxed" style={{ color: T.sub }}>
@@ -942,7 +942,7 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
             <span className="text-[18px]">{x.e}</span>
             <div className="flex-1">
               <p className="font-bold text-[13.5px]" style={{ fontFamily: T.display }}>{x.t}</p>
-              <p className="text-xs" style={{ color: T.sub }}>{x.d}</p>
+              <p className="text-[13px]" style={{ color: T.sub }}>{x.d}</p>
             </div>
           </div>
         ))}
@@ -1098,7 +1098,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               </div>
             </div>
 
-            <p className="text-[12px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
+            <p className="text-[13px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
               ПІДСИЛЮВАЧІ · {bonusDone}/{BONUS.length}
             </p>
 
@@ -1117,7 +1117,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{step.title}</p>
-                      <p className="text-[12.5px] truncate" style={{ color: T.sub }}>
+                      <p className="text-[13px] truncate" style={{ color: T.sub }}>
                         {done ? step.hint : step.desc}
                       </p>
                     </div>

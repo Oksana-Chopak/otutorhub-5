@@ -57,6 +57,7 @@ import {
   Loader2,
   Video,
   AlertTriangle,
+  Crown,
   UserX,
   Tag,
   CalendarPlus,
@@ -1049,11 +1050,11 @@ export default function DashboardPage() {
     if (supportRequestCount > 0) {
       tasks.push({
         key: "support-requests",
-        icon: AlertTriangle,
+        icon: Crown,
         tone: "warning" as const,
-        title: `${supportRequestCount} звернен${
-          supportRequestCount === 1 ? "ня" : supportRequestCount < 5 ? "ня" : "ь"
-        } у службу підтримки`,
+        title: `${supportRequestCount} запит${
+          supportRequestCount === 1 ? "" : supportRequestCount < 5 ? "и" : "ів"
+        } на підписку Pro`,
         description: t("dashboardExtra.supportRequestsDesc"),
         to: "/subscription-requests",
         cta: t("dashboardExtra.supportRequestsCta"),
@@ -1081,7 +1082,7 @@ export default function DashboardPage() {
         tone: "primary" as const,
         title: t("dashboardPageExtra.lessonsWithoutLink", { count: lessonsWithoutMeeting }),
         description: t("dashboardExtra.noMeetingLinkDesc"),
-        to: "/schedule",
+        to: "/schedule?view=list&filter=nolink",
         cta: t("dashboardExtra.pendingLessonRequestsCta"),
       });
     }
@@ -1119,7 +1120,7 @@ export default function DashboardPage() {
         tone: "warning" as const,
         title: t("dashboardPageExtra.lessonsWithoutPrice", { count: lessonsWithoutPrice }),
         description: t("dashboardExtra.noRateDesc"),
-        to: "/schedule",
+        to: "/schedule?view=list&filter=unpriced",
         cta: t("dashboardExtra.noRateCta"),
       });
     }
@@ -1272,7 +1273,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 gap-3 lg:hidden">
                 <Link to="/finances" className="block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
-                  <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit") || "Твій дохід"}
                   </p>
                   <p className="mt-2 font-extrabold leading-none"
@@ -1280,7 +1281,7 @@ export default function DashboardPage() {
                     {formatPrice(profit, "UAH")}
                   </p>
                   {profitGrowthPct !== null && (
-                    <p className="mt-1 text-[12px] font-bold"
+                    <p className="mt-1 text-[13px] font-bold"
                       style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за місяць
                     </p>
@@ -1304,7 +1305,7 @@ export default function DashboardPage() {
                     style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
                     {studentCount}
                   </p>
-                  <p className="mt-1 text-[12px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="mt-1 text-[13px]" style={{ color: "var(--sub,#9398b0)" }}>
                     {t("dashboard.cardStudents") || "учні"} · активних
                   </p>
                 </Link>
@@ -1316,7 +1317,7 @@ export default function DashboardPage() {
                 <Link to="/finances" className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
                   <div className="min-w-0">
-                    <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
+                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
                       💰 Дохід
                     </p>
                     <p className="font-black leading-none mt-0.5"
@@ -1324,7 +1325,7 @@ export default function DashboardPage() {
                       {formatPrice(profit, "UAH")}
                     </p>
                     {profitGrowthPct !== null && (
-                      <p className="text-[12px] font-bold mt-0.5"
+                      <p className="text-[13px] font-bold mt-0.5"
                         style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
                         {profitGrowthPct >= 0 ? "↑ +" : "↓ "}{profitGrowthPct}%
                       </p>
@@ -1340,7 +1341,7 @@ export default function DashboardPage() {
                     <GraduationCap className="h-3.5 w-3.5" style={{ color: "#2BBFAA" }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
                       Учні
                     </p>
                     <p className="font-black leading-none mt-0.5"
@@ -1355,7 +1356,7 @@ export default function DashboardPage() {
                   <div className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
                     <div className="min-w-0">
-                      <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                      <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
                         🏅 Рівень
                       </p>
                       <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1374,7 +1375,7 @@ export default function DashboardPage() {
                              background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
                     <div className="min-w-0">
-                      <p className="text-[12px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
+                      <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#9398b0)" }}>
                         Серія
                       </p>
                       <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1406,7 +1407,7 @@ export default function DashboardPage() {
                 className="overflow-hidden rounded-[18px] p-4 sm:p-5 lg:hidden"
                 style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
               >
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                   💰 {t("dashboard.cardProfit")}
                 </p>
                 <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
@@ -1427,25 +1428,25 @@ export default function DashboardPage() {
               <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3 lg:hidden">
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
                   </div>
                   <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub") || "активних"}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub") || "активних"}</p>
                   </div>
                   <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
                   </div>
                   <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
                 </Link>
@@ -1456,9 +1457,9 @@ export default function DashboardPage() {
                   className="overflow-hidden rounded-[16px] p-4"
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
-                  <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
+                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
-<p className="mt-0.5 text-[12px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
+<p className="mt-0.5 text-[13px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {weeklyIncomeBars.map((h, i) => (
                       <div key={i} className="flex-1 rounded-sm"
@@ -1468,25 +1469,25 @@ export default function DashboardPage() {
                 </div>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.cardStudents")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#9398b0)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[12px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
                   <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
                 </Link>
@@ -1515,7 +1516,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground">Ви ще не запросили учня</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-0.5 text-[13px] text-muted-foreground">
                     Запросіть першого учня — це займе хвилину, а ваш простір одразу оживе.
                   </p>
                   <div className="mt-2 flex gap-2">
@@ -1571,7 +1572,7 @@ export default function DashboardPage() {
               <div className="mb-3 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                 <h2 className="text-base font-semibold">{t("dashboardPageExtra.needsMarkingTitle")}</h2>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{needsMarkLessons.length}</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-700">{needsMarkLessons.length}</span>
               </div>
               <div className="space-y-2">
                 {needsMarkLessons.map((lesson) => (
@@ -1596,11 +1597,11 @@ export default function DashboardPage() {
           {isManager && (
             <div className="mt-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[12px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #9398b0)" }}>
+                <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #9398b0)" }}>
                   💰 {t("pendingPayments.title")}
                 </p>
                 {pendingPayments.length > 0 && (
-                  <span className="text-[12px] font-semibold" style={{ color: "#f59e0b" }}>
+                  <span className="text-[13px] font-semibold" style={{ color: "#f59e0b" }}>
                     {pendingPayments.length} {pendingPayments.length === 1 ? t("lessonCard.lesson") : t("lessonCard.lessons")}
                   </span>
                 )}
@@ -1671,7 +1672,7 @@ export default function DashboardPage() {
                     : t("dashboard.upcomingLessons")}
                 </p>
                 <button
-                  className="text-[12px] font-semibold transition-colors hover:underline"
+                  className="text-[13px] font-semibold transition-colors hover:underline"
                   style={{ color: "var(--teal)" }}
                   onClick={() => navigate("/schedule")}
                 >
@@ -1688,7 +1689,7 @@ export default function DashboardPage() {
                       {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
                         <>
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.addFirstStudent")}</p>
-                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardPageExtra.addFirstStudentHint")}</p>
+                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardPageExtra.addFirstStudentHint")}</p>
                           <Button
                             size="sm"
                             className="mt-3 rounded-xl"
@@ -1704,7 +1705,7 @@ export default function DashboardPage() {
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>
                             {t("dashboard.noUpcoming")}
                           </p>
-                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>Сьогодні вільний день</p>
+                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>Сьогодні вільний день</p>
                           {isTutor && !isManager && (
                             <Button
                               size="sm"
@@ -1800,7 +1801,7 @@ export default function DashboardPage() {
                         <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                       </div>
                       <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
-                      <p className="mt-1 text-[12px]" style={{ color: "var(--ds-sub)" }}>
+                      <p className="mt-1 text-[13px]" style={{ color: "var(--ds-sub)" }}>
                         Немає термінових задач.
                       </p>
                     </div>
@@ -1835,7 +1836,7 @@ export default function DashboardPage() {
                               <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>
                                 {task.title}
                               </p>
-                              <p className="mt-0.5 text-[12px] leading-snug" style={{ color: "var(--ds-sub)" }}>
+                              <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>
                                 {task.description}
                               </p>
                             </div>
@@ -1859,7 +1860,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.tutorAssignsLessons")}</p>
-                              <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.tutorScheduleHint") ?? "Розклад"}</p>
+                              <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.tutorScheduleHint") ?? "Розклад"}</p>
                             </div>
                             <ChevronRight className="h-4 w-4 text-slate-300" />
                           </div>
@@ -1867,7 +1868,7 @@ export default function DashboardPage() {
                       ) : (
                         <div className="ds-pop-in rounded-[18px] bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #3b82f6" }}>
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.findTutor")}</p>
-                          <p className="mt-0.5 text-[12px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
+                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
                           <div className="mt-3">
                             <FindTutorDialog trigger={
                               <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#fff" }}>

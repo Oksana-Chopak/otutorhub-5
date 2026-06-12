@@ -89,7 +89,7 @@ export default function ResetPasswordPage() {
                   required
                   disabled={!hasRecoverySession}
                 />
-                <p className="text-xs text-muted-foreground">{t("resetPassword.hint")}</p>
+                <p className="text-[13px] text-muted-foreground">{t("resetPassword.hint")}</p>
               </div>
               <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading || !hasRecoverySession}>
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

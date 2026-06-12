@@ -153,7 +153,7 @@ export function WeekCalendar({
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
-        <span className="text-xs text-muted-foreground hidden sm:block">
+        <span className="text-[13px] text-muted-foreground hidden sm:block">
           {start.getFullYear()}
         </span>
       </div>
@@ -167,7 +167,7 @@ export function WeekCalendar({
             <div
               key={i}
               className={cn(
-                "px-1 py-2 text-center text-xs",
+                "px-1 py-2 text-center text-[13px]",
                 isToday ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
               )}
             >
@@ -213,7 +213,7 @@ export function WeekCalendar({
             {Array.from({ length: HOURS }, (_, i) => (
               <div
                 key={i}
-                className="text-[12px] text-muted-foreground text-right pr-1 border-b border-border/50"
+                className="text-[13px] text-muted-foreground text-right pr-1 border-b border-border/50"
                 style={{ height: HOUR_HEIGHT }}
               >
                 {String(START_HOUR + i).padStart(2, "0")}:00
@@ -270,7 +270,7 @@ export function WeekCalendar({
                         onLessonClick?.(l);
                       }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[12px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[13px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}

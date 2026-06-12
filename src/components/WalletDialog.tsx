@@ -446,8 +446,8 @@ export function WalletDialog({
                         <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: F.txt }}>
                           {KIND_LABEL[tx.kind] ?? tx.kind}
                         </p>
-                        {tx.note && <p style={{ fontSize: 12, color: F.sub, fontFamily: F.body }}>{tx.note}</p>}
-                        <p style={{ fontSize: 12, color: F.muted, fontFamily: F.body }}>
+                        {tx.note && <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{tx.note}</p>}
+                        <p style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>
                           {formatDateTime(tx.created_at)}
                         </p>
                       </div>

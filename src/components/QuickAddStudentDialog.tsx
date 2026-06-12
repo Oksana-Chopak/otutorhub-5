@@ -312,7 +312,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                           style={{ flex: 1, height: 36, borderRadius: 9, border: "none",
                             background: form.currency === cur ? "#fff" : "transparent",
                             boxShadow: form.currency === cur ? "0 1px 3px rgba(15,15,26,.12)" : "none",
-                            fontFamily: F.display, fontWeight: 700, fontSize: 12.5,
+                            fontFamily: F.display, fontWeight: 700, fontSize: 13,
                             color: form.currency === cur ? F.tealD : F.muted, cursor: "pointer" }}>
                           {cur === "UAH" ? "₴" : cur === "USD" ? "$" : cur === "EUR" ? "€" : "zł"}
                         </button>

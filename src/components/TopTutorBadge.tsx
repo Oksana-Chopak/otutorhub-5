@@ -21,9 +21,9 @@ export function TopTutorBadge({ percentile }: Props) {
         <p className="font-semibold text-foreground">
           {t("tutorDelight.topTutorTitle", { pct: display })}
         </p>
-        <p className="text-xs text-muted-foreground">{t("tutorDelight.topTutorDesc")}</p>
+        <p className="text-[13px] text-muted-foreground">{t("tutorDelight.topTutorDesc")}</p>
       </div>
-      <span className="ml-auto shrink-0 rounded-full bg-amber-400/20 px-2.5 py-1 text-xs font-bold text-amber-600">
+      <span className="ml-auto shrink-0 rounded-full bg-amber-400/20 px-2.5 py-1 text-[13px] font-bold text-amber-600">
         TOP {display}%
       </span>
     </Card>

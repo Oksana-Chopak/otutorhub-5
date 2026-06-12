@@ -31,7 +31,7 @@ export function DayClosedCelebration({ show, lessonCount, onDone }: Props) {
         <p className="max-w-xs text-muted-foreground">
           {t("tutorDelight.dayClosedDesc", { count: lessonCount })}
         </p>
-        <p className="text-xs text-muted-foreground/60">{t("tutorDelight.dayClosedTap")}</p>
+        <p className="text-[13px] text-muted-foreground/60">{t("tutorDelight.dayClosedTap")}</p>
       </div>
     </div>
   );

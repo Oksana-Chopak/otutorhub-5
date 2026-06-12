@@ -210,7 +210,7 @@ export default function WalletsPage() {
                         Поповнити
                       </Button>
                     </div>
-                    <div className="text-[12px] text-muted-foreground">
+                    <div className="text-[13px] text-muted-foreground">
                       Остання операція: {fmtDate(r.last_transaction_at)}
                     </div>
                   </CardContent>
@@ -221,7 +221,7 @@ export default function WalletsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block overflow-x-auto rounded-lg border border-border">
               <table className="w-full text-sm">
-                <thead className="bg-muted/40 text-xs uppercase text-muted-foreground">
+                <thead className="bg-muted/40 text-[13px] uppercase text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
@@ -255,7 +255,7 @@ export default function WalletsPage() {
                           <span className="text-muted-foreground">—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                      <td className="px-4 py-3 text-[13px] text-muted-foreground">
                         {fmtDate(r.last_transaction_at)}
                       </td>
                       <td className="px-4 py-3 text-right">

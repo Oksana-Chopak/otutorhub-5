@@ -411,7 +411,7 @@ export function LessonWorkspace({
           <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>{title}</span>
-            {!open && preview && <span style={{ display: "block", fontSize: 12.5, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
+            {!open && preview && <span style={{ display: "block", fontSize: 13, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
           </span>
           <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
         </button>
@@ -428,7 +428,7 @@ export function LessonWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.notCompleted")}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[13px] text-muted-foreground mt-0.5">
                 Один тап — і урок піде в історію та у фінанси.
               </div>
             </div>
@@ -446,7 +446,7 @@ export function LessonWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.studentPaidQuestion")}</div>
-              <div className="text-xs text-muted-foreground mt-0.5">
+              <div className="text-[13px] text-muted-foreground mt-0.5">
                 {studentPrice ? `${studentPrice} ₴ — ` : ""}зафіксуйте оплату, щоб не загубилась.
               </div>
             </div>
@@ -460,7 +460,7 @@ export function LessonWorkspace({
 
       {/* 0c. Hub tutor info — payment is handled by manager */}
       {isTutor && source === "hub" && statusLocal === "completed" && (
-        <section className="rounded-lg border border-border bg-muted/30 p-3 md:col-span-2 text-xs text-muted-foreground">
+        <section className="rounded-lg border border-border bg-muted/30 p-3 md:col-span-2 text-[13px] text-muted-foreground">
           Оплату за проведені уроки невдовзі проведе менеджер.
         </section>
       )}
@@ -480,8 +480,8 @@ export function LessonWorkspace({
               <span
                 className={
                   paidLocal === "paid"
-                    ? "rounded-full bg-success/10 px-2 py-0.5 text-xs font-medium text-success"
-                    : "rounded-full bg-warning/10 px-2 py-0.5 text-xs font-medium text-warning"
+                    ? "rounded-full bg-success/10 px-2 py-0.5 text-[13px] font-medium text-success"
+                    : "rounded-full bg-warning/10 px-2 py-0.5 text-[13px] font-medium text-warning"
                 }
               >
                 {paidLocal === "paid" ? t("lessonWorkspaceExtra.paid") : t("lessonWorkspaceExtra.unpaid")}
@@ -528,7 +528,7 @@ export function LessonWorkspace({
                     Минулий урок · {new Date(prevLesson.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}
                   </span>
                   {!prevOpen && (
-                    <span style={{ display: "block", fontSize: 12.5, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                    <span style={{ display: "block", fontSize: 13, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
                       {(prevLesson.summary || prevLesson.homework || "").split("\n")[0]}
                     </span>
                   )}
@@ -539,13 +539,13 @@ export function LessonWorkspace({
                 <div style={{ padding: "0 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
                   {prevLesson.summary && (
                     <div>
-                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 11.5, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Що пройшли</div>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Що пройшли</div>
                       <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
                     </div>
                   )}
                   {prevLesson.homework && (
                     <div>
-                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 11.5, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Домашка була</div>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>Домашка була</div>
                       <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
                     </div>
                   )}
@@ -557,7 +557,7 @@ export function LessonWorkspace({
           {/* 🔒 Private per-lesson notes */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🔒</span>
+              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
               <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
             </div>
             <textarea rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
@@ -717,7 +717,7 @@ export function LessonWorkspace({
         ) : homework ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{homework}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
+          <p className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
         )}
       </section>
       )}
@@ -727,7 +727,7 @@ export function LessonWorkspace({
         <section className="rounded-lg border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <NotebookPen className="h-4 w-4 text-primary" />
-            {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-xs text-muted-foreground">(учня)</span>}
+            {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-[13px] text-muted-foreground">(учня)</span>}
           </div>
           {canEditStudentNotes ? (
             <>
@@ -801,7 +801,7 @@ export function LessonWorkspace({
           )}
         </div>
         {aiAllowed && settings?.ai_notes_auto && (
-          <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-xs text-foreground/80">
+          <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-[13px] text-foreground/80">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <p>
               <span className="font-medium text-foreground">Авто-конспект увімкнено.</span> Запис стартує, щойно ти приєднаєшся до дзвінка{settings?.ai_notes_auto_send ? ", а готовий конспект піде учню автоматично" : ""}.
@@ -811,7 +811,7 @@ export function LessonWorkspace({
         {canEditTutorFields ? (
           <>
             {aiAllowed && (
-              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-xs text-foreground/80">
+              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-[13px] text-foreground/80">
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                 <p>
                   <span className="font-medium text-foreground">Порада:</span> коротко занотуйте тему та головні
@@ -840,7 +840,7 @@ export function LessonWorkspace({
         ) : summary ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{summary}</p>
         ) : (
-          <p className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
+          <p className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
         )}
       </section>
       )}
@@ -885,9 +885,9 @@ export function LessonWorkspace({
                 <Video className="h-4 w-4 text-primary" />
                 Онлайн-зустріч
                 {effectiveMeetingUrl ? (
-                  <span className="text-xs font-normal text-success">{t("lessonWorkspaceExtra.linkExists")}</span>
+                  <span className="text-[13px] font-normal text-success">{t("lessonWorkspaceExtra.linkExists")}</span>
                 ) : (
-                  <span className="text-xs font-normal text-warning">{t("lessonWorkspaceExtra.linkMissing")}</span>
+                  <span className="text-[13px] font-normal text-warning">{t("lessonWorkspaceExtra.linkMissing")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -918,7 +918,7 @@ export function LessonWorkspace({
             </div>
             <CollapsibleContent className="mt-3 space-y-3">
               <div>
-                <Label className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
+                <Label className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://meet.google.com/…"
@@ -936,7 +936,7 @@ export function LessonWorkspace({
                 </div>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
+                <Label className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://us02web.zoom.us/j/…"
@@ -947,7 +947,7 @@ export function LessonWorkspace({
                     {saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1 text-[13px] text-muted-foreground">
                   Використовується, якщо для уроку не задано окреме посилання.
                 </p>
               </div>
@@ -968,7 +968,7 @@ export function LessonWorkspace({
                   </a>
                 </Button>
               ) : (
-                <span className="text-xs text-muted-foreground">{t("lessonWorkspaceExtra.noLink")}</span>
+                <span className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noLink")}</span>
               )}
               {(isStudent || isTutor) && (
                 <Button

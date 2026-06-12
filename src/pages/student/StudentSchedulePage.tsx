@@ -77,10 +77,10 @@ export default function StudentSchedulePage() {
             <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "1px solid #eceef3", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
-                <span style={{ fontFamily: D, fontWeight: 700, fontSize: 10, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                <span style={{ fontFamily: D, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
                   {d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
                 </span>
-                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 12.5 }}>
+                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 13 }}>
                   {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
                 </span>
                 <span style={{ fontFamily: D, fontWeight: 800, fontSize: 19, letterSpacing: "-.02em", color: sm.accent, marginTop: 2 }}>
@@ -91,7 +91,7 @@ export default function StudentSchedulePage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                     <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
-                    <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 12, background: sm.bg, color: sm.fg }}>
+                    <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg }}>
                       {statusLabel[l.status]}
                     </span>
                   </div>

@@ -802,13 +802,13 @@ export default function MyStudentsPage() {
                       <p className="text-[13px] font-bold" style={{ color: "#b45309" }}>
                         ⚠️ Заборгованість ₴{s.unpaid_total}
                       </p>
-                      <p className="text-[12px]" style={{ color: "#b45309" }}>
+                      <p className="text-[13px]" style={{ color: "#b45309" }}>
                         {s.unpaid_count} неоплачений{s.unpaid_count > 1 ? "х" : ""} урок{s.unpaid_count > 1 ? "ів" : ""}
                       </p>
                     </div>
                     <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id,
                         studentName: name, tutorName: t("common.you"), rate: s.price })}
-                      className="h-8 px-3 rounded-[9px] text-[12.5px] font-bold"
+                      className="h-8 px-3 rounded-[9px] text-[13px] font-bold"
                       style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)", fontFamily: T.display }}>
                       Нагадати
                     </button>
@@ -842,7 +842,7 @@ export default function MyStudentsPage() {
                       style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
                       <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
+                        <p className="text-[13px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
                         <p className="text-[14px] truncate" style={{ color: T.txt, fontFamily: T.body }}>{value}</p>
                       </div>
                       {label === "Телефон" && (
@@ -1093,7 +1093,7 @@ export default function MyStudentsPage() {
                   {/* 🔒 Private notes */}
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-                      <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🔒</span>
+                      <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
                       <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub }}>{t("myStudents.notesLabel")}</span>
                     </div>
                     <textarea rows={3} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}

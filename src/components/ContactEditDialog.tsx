@@ -309,7 +309,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground -mt-1">
+          <p className="text-[13px] text-muted-foreground -mt-1">
             З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.
           </p>
         </div>

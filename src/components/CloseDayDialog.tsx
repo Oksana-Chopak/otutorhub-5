@@ -135,7 +135,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {r.time} · {r.name}
                   </div>
-                  <div style={{ fontSize: 12.5, color: C.sub, marginTop: 1 }}>
+                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>
                     {formatPrice(r.price, r.currency)}
                     {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
                       <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>📦 пакет: {packMap[r.student_id]}</span>

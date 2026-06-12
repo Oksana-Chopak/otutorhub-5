@@ -1407,7 +1407,7 @@ export const en: Translations = {
     pendingPaymentsCta: "View unpaid",
     tutorRequestsDesc: "Students left a request — find them a tutor.",
     tutorRequestsCta: "View requests",
-    supportRequestsDesc: "Tutors sent questions — please reply.",
+    supportRequestsDesc: "Independent tutors are waiting for their Pro plan.",
     supportRequestsCta: "Open messages",
     studentsWithoutTutorDesc: "Assign a rate — without it there will be no lessons or chats.",
     studentsWithoutTutorCta: "Open people",

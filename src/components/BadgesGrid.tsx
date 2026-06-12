@@ -26,7 +26,7 @@ export function BadgesGrid({ earned, className }: Props) {
             title={badge.description}
           >
             <div className={cn("text-3xl", isEarned && "animate-bounce-soft")}>{badge.emoji}</div>
-            <div className="text-[12px] font-medium leading-tight text-foreground">{badge.name}</div>
+            <div className="text-[13px] font-medium leading-tight text-foreground">{badge.name}</div>
           </div>
         );
       })}

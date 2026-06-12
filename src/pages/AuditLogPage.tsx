@@ -243,10 +243,10 @@ export default function AuditLogPage() {
             placeholder={t("auditLog.searchPlaceholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-8 max-w-[220px] text-xs"
+            className="h-8 max-w-[220px] text-[13px]"
           />
           <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger className="h-8 w-[160px] text-xs"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[160px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActors")}</SelectItem>
               {actorOptions.map((a) => (
@@ -255,7 +255,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-8 w-[180px] text-xs"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[180px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
@@ -264,7 +264,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-8 w-[140px] text-xs"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[140px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allEntities")}</SelectItem>
               {entityOptions.map((a) => (
@@ -273,7 +273,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as Period)}>
-            <SelectTrigger className="h-8 w-[130px] text-xs"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-8 w-[130px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allTime")}</SelectItem>
               <SelectItem value="today">{t("auditLogExtra.today")}</SelectItem>
@@ -285,7 +285,7 @@ export default function AuditLogPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-xs"
+              className="h-8 text-[13px]"
               onClick={() => {
                 setActorFilter("all");
                 setActionFilter("all");
@@ -297,7 +297,7 @@ export default function AuditLogPage() {
               Скинути
             </Button>
           )}
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto text-[13px] text-muted-foreground">
             {filtered.length} з {entries.length}
           </span>
         </div>
@@ -350,7 +350,7 @@ export default function AuditLogPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 text-xs"
+                        className="h-7 text-[13px]"
                         onClick={() => toggleOpen(e.id)}
                       >
                         {isOpen ? (
@@ -367,7 +367,7 @@ export default function AuditLogPage() {
                   </div>
                   {hasPayload && isOpen && (
                     <div className="mt-3 overflow-x-auto rounded border border-border">
-                      <table className="w-full text-xs">
+                      <table className="w-full text-[13px]">
                         <thead>
                           <tr className="bg-secondary/50">
                             <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t("auditLogExtra.fieldHeader")}</th>

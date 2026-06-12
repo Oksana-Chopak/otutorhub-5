@@ -70,7 +70,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
           {loading || !url ? (
             <div className="flex aspect-video w-full max-w-[240px] items-center justify-center bg-muted/40">
               {error ? (
-                <span className="text-[12px] text-destructive px-2 text-center">{error}</span>
+                <span className="text-[13px] text-destructive px-2 text-center">{error}</span>
               ) : (
                 <Loader2 className="h-4 w-4 animate-spin opacity-60" />
               )}
@@ -118,7 +118,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                   className="mx-auto max-h-[80vh] w-auto rounded-md object-contain"
                 />
                 <div className="flex items-center justify-between gap-2 px-1">
-                  <span className="truncate text-xs text-muted-foreground" title={attachment.file_name}>
+                  <span className="truncate text-[13px] text-muted-foreground" title={attachment.file_name}>
                     {attachment.file_name}
                   </span>
                   <a
@@ -126,7 +126,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                     download={attachment.file_name}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-xs hover:bg-accent"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[13px] hover:bg-accent"
                   >
                     <Download className="h-3 w-3" />
                     {t("chatAttachment.download")}
@@ -151,7 +151,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
         if (!url) e.preventDefault();
       }}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-xs transition-colors",
+        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] transition-colors",
         mine
           ? "border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20"
           : "border-border bg-background/60 hover:bg-background",

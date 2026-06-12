@@ -187,8 +187,8 @@ export function AppSidebar() {
                 : 0;
             const badgeClass =
               item.badgeKey === "chats"
-                ? "bg-primary px-1.5 text-[12px] font-semibold text-primary-foreground"
-                : "bg-warning px-1.5 text-[12px] font-semibold text-warning-foreground";
+                ? "bg-primary px-1.5 text-[13px] font-semibold text-primary-foreground"
+                : "bg-warning px-1.5 text-[13px] font-semibold text-warning-foreground";
             return (
               <RouterNavLink
                 key={item.to}
@@ -244,7 +244,7 @@ export function AppSidebar() {
 
         {showOnboardingHelp && (
           <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-            <p className="mb-1.5 px-3 text-[12px] font-semibold uppercase tracking-wider text-slate-500">
+            <p className="mb-1.5 px-3 text-[13px] font-semibold uppercase tracking-wider text-slate-500">
               {t("nav.help")}
             </p>
             <button
@@ -258,7 +258,7 @@ export function AppSidebar() {
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
-                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[12px] font-semibold text-white animate-pulse">
+                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[13px] font-semibold text-white animate-pulse">
                   {t("nav.newBadge") || "Новий!"}
                 </span>
               )}
@@ -323,7 +323,7 @@ export function AppSidebar() {
                   ? `${profile.first_name} ${profile.last_name}`.trim()
                   : user?.email ?? "—"}
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-[13px] text-slate-400">
                 {primaryRole ? t(roleLabelKey[primaryRole]) : t("roles.none")}
               </p>
             </div>

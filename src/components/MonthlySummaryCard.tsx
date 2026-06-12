@@ -82,7 +82,7 @@ export function MonthlySummaryCard() {
         ref={cardRef}
         className="relative bg-gradient-to-br from-primary via-primary to-primary/70 p-6 text-primary-foreground"
       >
-        <div className="absolute right-3 top-3 text-xs opacity-70">oTutorHub</div>
+        <div className="absolute right-3 top-3 text-[13px] opacity-70">oTutorHub</div>
         <div className="mb-1 text-sm opacity-90">
           {firstName ? t("monthlySummaryExtra.greeting", { name: firstName, month: monthLabel }) : t("monthlySummaryExtra.greetingNoName", { month: monthLabel })}
         </div>

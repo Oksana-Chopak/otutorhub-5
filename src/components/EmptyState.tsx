@@ -75,7 +75,7 @@ export function EmptyState({
       )}
 
       {hint && (
-        <p className="mt-1 max-w-xs text-xs italic text-muted-foreground/70">{hint}</p>
+        <p className="mt-1 max-w-xs text-[13px] italic text-muted-foreground/70">{hint}</p>
       )}
 
       {(actionLabel || secondaryLabel || children) && (

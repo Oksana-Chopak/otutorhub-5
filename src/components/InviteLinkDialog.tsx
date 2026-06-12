@@ -124,7 +124,7 @@ export function InviteLinkDialog({
 
         <div className="space-y-3 overflow-y-auto px-6 py-2 flex-1 min-w-0">
           {emailSent && email && (
-            <div className="flex items-start gap-2 rounded-md border border-success/40 bg-success/5 p-3 text-xs text-foreground">
+            <div className="flex items-start gap-2 rounded-md border border-success/40 bg-success/5 p-3 text-[13px] text-foreground">
               <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <div className="min-w-0">
                 <strong className="break-all">{t("inviteLinkExtra.emailSentLabel", { email })}</strong>
@@ -137,17 +137,17 @@ export function InviteLinkDialog({
           )}
 
           {!email && (
-            <div className="rounded-md border border-warning/40 bg-warning/5 p-3 text-xs text-foreground">
+            <div className="rounded-md border border-warning/40 bg-warning/5 p-3 text-[13px] text-foreground">
               ⚠️ Ви не вказали email. {isTutor ? "Репетитор" : "Учень"} зможе зареєструватися самостійно, але автоматично з'єднати профіль вийде тільки якщо телефон при реєстрації <strong>збігатиметься</strong> з тим, що ви вказали{phone ? ` (${phone})` : ""}.
             </div>
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
+            <label className="text-[13px] font-medium text-muted-foreground">
               Посилання для реєстрації
             </label>
             <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-2 min-w-0">
-              <code className="flex-1 truncate text-xs text-foreground min-w-0">{inviteUrl}</code>
+              <code className="flex-1 truncate text-[13px] text-foreground min-w-0">{inviteUrl}</code>
               <Button
                 size="sm"
                 variant="ghost"
@@ -160,10 +160,10 @@ export function InviteLinkDialog({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-muted-foreground">
+            <label className="text-[13px] font-medium text-muted-foreground">
               Готове повідомлення для {roleNounDative}
             </label>
-            <div className="rounded-md border bg-muted/30 p-3 text-xs whitespace-pre-wrap break-words text-foreground">
+            <div className="rounded-md border bg-muted/30 p-3 text-[13px] whitespace-pre-wrap break-words text-foreground">
               {message}
             </div>
             <Button

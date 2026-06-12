@@ -69,7 +69,7 @@ export function StudentRewardsShelf() {
     <div style={{ fontFamily: C.body, color: C.txt, display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Hero */}
       <div style={{ borderRadius: 20, padding: "20px 22px", background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", boxShadow: "0 16px 40px -20px rgba(15,15,26,.7)" }}>
-        <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: C.display, fontWeight: 700 }}>
+        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: C.display, fontWeight: 700 }}>
           Мої нагороди
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>

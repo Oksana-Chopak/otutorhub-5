@@ -287,7 +287,7 @@ export default function SubscriptionPage() {
 
   const tealRing = "rgba(43,191,170,.28)";
   const Label = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 11, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
+    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
   );
 
   return (
@@ -295,7 +295,7 @@ export default function SubscriptionPage() {
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
-          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
+          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
           <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>oTutorHub Pro</h1>
         </div>
 
@@ -303,19 +303,19 @@ export default function SubscriptionPage() {
           {/* ── Trial hero (dark) ─────────────────────────────────────────── */}
           <div style={{ position: "relative", overflow: "hidden", borderRadius: 22, padding: 22, background: S.gradIncome, color: "#fff", boxShadow: "0 18px 44px -22px rgba(15,15,26,.7)" }}>
             {earlyBirdLeft !== null && (
-              <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 12, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
+              <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 13, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
                 🔥 ще {earlyBirdLeft} {earlyBirdLeft === 1 ? "місце" : earlyBirdLeft < 5 ? "місця" : "місць"}
               </div>
             )}
             {isActive ? (
               <>
-                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
+                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>Pro активний 💚</div>
                 <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>Усі функції відкриті. Дякуємо, що з нами!</div>
               </>
             ) : isTrial ? (
               <>
-                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Твій тріал</div>
+                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Твій тріал</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
                   <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 40, letterSpacing: "-.02em", color: S.teal }}>{Math.max(0, trialDaysLeft ?? 0)}</span>
                   <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 17, color: "#fff" }}>днів Pro</span>
@@ -328,7 +328,7 @@ export default function SubscriptionPage() {
               </>
             ) : (
               <>
-                <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
+                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>Підписка</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>Усе, щоб рости</div>
                 <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{iosApp ? "Pro відкриває всі можливості для твоєї практики." : `Обери Pro — і веди всю практику в одному місці. ${PRO_PRICE_MONTHLY} ₴/міс, скасування в один клік.`}</div>
               </>
@@ -346,7 +346,7 @@ export default function SubscriptionPage() {
                   return (
                     <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, lineHeight: 1.25, background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
                       <div>{o.l}</div>
-                      {price && <div style={{ fontSize: 11.5, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
+                      {price && <div style={{ fontSize: 13, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
                     </button>
                   );
                 })}
@@ -361,7 +361,7 @@ export default function SubscriptionPage() {
                 {iapBusy === "restore" && <Loader2 size={15} className="animate-spin" />}
                 Відновити покупки
               </button>
-              <div style={{ fontSize: 11, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
+              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
                 Оплата через App Store · автоподовження, скасування в Налаштуваннях Apple ID
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function SubscriptionPage() {
                 </span>
               </div>
               {billing === "yearly" && (
-                <div style={{ fontSize: 12, color: S.sub, marginTop: 2 }}>{PRO_PRICE_YEARLY_TOTAL} ₴ на рік · економія 23%</div>
+                <div style={{ fontSize: 13, color: S.sub, marginTop: 2 }}>{PRO_PRICE_YEARLY_TOTAL} ₴ на рік · економія 23%</div>
               )}
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: "Щомісяця" }, { v: "yearly" as const, l: "Щороку −23%" }]).map((o) => {
@@ -389,7 +389,7 @@ export default function SubscriptionPage() {
                 })}
               </div>
               <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
-              <div style={{ fontSize: 11, color: S.muted, textAlign: "center", marginTop: 8 }}>LiqPay · скасування в один клік</div>
+              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 8 }}>LiqPay · скасування в один клік</div>
             </div>
           )}
 
@@ -397,7 +397,7 @@ export default function SubscriptionPage() {
           {!isActive && !iosApp && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
               <div style={{ flex: 1, height: 1, background: S.border }} />
-              <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 12, color: S.muted }}>або не плати</span>
+              <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, color: S.muted }}>або не плати</span>
               <div style={{ flex: 1, height: 1, background: S.border }} />
             </div>
           )}
@@ -410,7 +410,7 @@ export default function SubscriptionPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>Запроси друга — не плати</div>
-                <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>Місяць Pro безкоштовно за кожного, хто залишиться{iosApp ? "." : <>. Це <b style={{ color: S.tealD }}>−{PRO_PRICE_MONTHLY} ₴/міс</b>.</>}</div>
+                <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>Місяць Pro безкоштовно за кожного, хто залишиться{iosApp ? "." : <>. Це <b style={{ color: S.tealD }}>−{PRO_PRICE_MONTHLY} ₴/міс</b>.</>}</div>
               </div>
             </div>
             <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 46, borderRadius: 13, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -428,7 +428,7 @@ export default function SubscriptionPage() {
                     <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{b.e}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14.5 }}>{b.t}</div>
-                      <div style={{ fontSize: 12.5, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
+                      <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
                     </div>
                   </div>
                 </div>
@@ -445,7 +445,7 @@ export default function SubscriptionPage() {
                 </div>
                 <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>Не підходить оплата картою?</div></div>
               </div>
-              <div style={{ fontSize: 12.5, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>Якщо LiqPay не підходить — залиш запит, і менеджер допоможе оплатити банком, переказом чи рахунком-фактурою.</div>
+              <div style={{ fontSize: 13, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>Якщо LiqPay не підходить — залиш запит, і менеджер допоможе оплатити банком, переказом чи рахунком-фактурою.</div>
               <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 46, borderRadius: 13, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : "Звʼязатися з менеджером"}
               </button>
@@ -463,11 +463,11 @@ export default function SubscriptionPage() {
                       </span>
                       <Badge variant={meta.tone}>{meta.label}</Badge>
                     </div>
-                    {meta.description && <p style={{ fontSize: 12.5, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
+                    {meta.description && <p style={{ fontSize: 13, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
                     {latestRequest.manager_response && (
                       <div style={{ marginTop: 8, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
-                        <div style={{ fontSize: 11, color: S.sub, marginBottom: 2 }}>Відповідь менеджера</div>
-                        <p style={{ fontSize: 12.5, color: S.txt }}>{latestRequest.manager_response}</p>
+                        <div style={{ fontSize: 13, color: S.sub, marginBottom: 2 }}>Відповідь менеджера</div>
+                        <p style={{ fontSize: 13, color: S.txt }}>{latestRequest.manager_response}</p>
                       </div>
                     )}
                     {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (

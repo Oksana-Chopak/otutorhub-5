@@ -219,12 +219,12 @@ export function LessonCard({
       {/* Dark rail */}
       <div style={{ position: "relative", width: 88, flexShrink: 0, background: L.gradIncome, color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px 6px", textAlign: "center", overflow: "hidden" }}>
         <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
-        <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+        <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
           {relLabel ?? dow}
         </div>
         {!relLabel && <div style={{ fontFamily: L.display, fontWeight: 800, fontSize: 13.5, color: "#fff", marginBottom: 4 }}>{dateLabel}</div>}
         <div style={{ fontFamily: L.display, fontWeight: 800, fontSize: 25, letterSpacing: "-.02em", lineHeight: 1, color: sm.accent, marginTop: relLabel ? 6 : 0 }}>{time}</div>
-        <div style={{ fontFamily: L.display, fontWeight: 600, fontSize: 11.5, color: "rgba(255,255,255,.55)", marginTop: 3 }}>{lesson.duration_minutes} {t("lessonCard.min")}</div>
+        <div style={{ fontFamily: L.display, fontWeight: 600, fontSize: 13, color: "rgba(255,255,255,.55)", marginTop: 3 }}>{lesson.duration_minutes} {t("lessonCard.min")}</div>
       </div>
 
       {/* Body */}
@@ -235,7 +235,7 @@ export function LessonCard({
             {statusEditable ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 12.5, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
+                  <button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: "currentColor" }} />
                     {t(sm.key)}
                     <ChevronDown size={14} strokeWidth={2.2} />
@@ -252,7 +252,7 @@ export function LessonCard({
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: "0 11px", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 12.5, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: "0 11px", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
                 <span style={{ width: 8, height: 8, borderRadius: 999, background: "currentColor" }} />
                 {t(sm.key)}
               </span>
@@ -288,7 +288,7 @@ export function LessonCard({
               <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 17, lineHeight: 1.18, color: L.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title}</div>
               <div style={{ fontSize: 14, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{lesson.subject}</div>
               {showTutor && tutorName && (
-                <div style={{ fontSize: 12.5, color: L.sub, marginTop: 1 }}>{t("lessonCard.tutor")}<b style={{ color: L.txt, fontWeight: 600 }}>{tutorName}</b></div>
+                <div style={{ fontSize: 13, color: L.sub, marginTop: 1 }}>{t("lessonCard.tutor")}<b style={{ color: L.txt, fontWeight: 600 }}>{tutorName}</b></div>
               )}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -303,7 +303,7 @@ export function LessonCard({
                   style={{ position: "relative", width: 44, height: 44, borderRadius: 14, background: L.tealTint, color: L.tealD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `inset 0 0 0 1px ${L.tealRing}` }}>
                   <MessageCircle size={22} />
                   {unreadCount > 0 && (
-                    <span style={{ position: "absolute", top: -6, right: -6, minWidth: 19, height: 19, padding: "0 5px", borderRadius: 999, background: L.coral, color: "#fff", fontFamily: L.display, fontWeight: 800, fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2px #fff" }}>{unreadCount}</span>
+                    <span style={{ position: "absolute", top: -6, right: -6, minWidth: 19, height: 19, padding: "0 5px", borderRadius: 999, background: L.coral, color: "#fff", fontFamily: L.display, fontWeight: 800, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 2px #fff" }}>{unreadCount}</span>
                   )}
                 </Link>
               )}

@@ -182,7 +182,7 @@ export default function SubscriptionRequestsPage() {
                         </div>
                       </div>
                       <span style={{ height: 26, padding: "0 11px", borderRadius: 999, display: "inline-flex", alignItems: "center",
-                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12.5,
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
                         background: meta.bg, color: meta.color }}>{meta.label}</span>
                     </div>
 
@@ -207,7 +207,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.message && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
-                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[12.5px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[13px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> Повідомлення
                         </div>
                         {r.message}
@@ -216,7 +216,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.manager_response && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
-                        <div className="mb-1.5 text-[12.5px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 text-[13px]" style={{ color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           Ваша відповідь
                         </div>
                         {r.manager_response}

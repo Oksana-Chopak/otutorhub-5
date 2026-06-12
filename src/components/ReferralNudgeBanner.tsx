@@ -56,7 +56,7 @@ export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
           <p className="font-display text-base font-bold text-foreground">
             {t("referralBanner.text")}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-[13px] text-muted-foreground">
             {t("referralBanner.bonus")}
           </p>
         </div>

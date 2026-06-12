@@ -10,7 +10,7 @@ export function PushNotificationToggle() {
   if (!supported) return null;
   if (permission === "denied") {
     return (
-      <p className="text-xs text-muted-foreground">{t("pushNotif.denied")}</p>
+      <p className="text-[13px] text-muted-foreground">{t("pushNotif.denied")}</p>
     );
   }
 

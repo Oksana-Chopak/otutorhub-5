@@ -93,7 +93,7 @@ export default function JoinPage() {
           >
             {t("join.cta")}
           </Button>
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-[13px] text-muted-foreground">
             {t("join.hasAccount")} <Link to="/auth" className="text-primary underline">{t("join.signIn")}</Link>
           </p>
         </CardContent>

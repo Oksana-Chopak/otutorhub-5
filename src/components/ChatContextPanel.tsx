@@ -145,7 +145,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
       ) : (
         <>
           <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <p className="px-3 pt-3 pb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="px-3 pt-3 pb-1.5 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
               {t("chatContext.nextLesson")}
             </p>
             {nextLesson ? (
@@ -157,12 +157,12 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                   {format(new Date(nextLesson.starts_at), "d MMM, HH:mm", { locale: dateLocale })}
                 </p>
                 {nextLesson.subject && (
-                  <p className="text-xs text-muted-foreground">{nextLesson.subject}</p>
+                  <p className="text-[13px] text-muted-foreground">{nextLesson.subject}</p>
                 )}
                 <div className="mt-2 flex items-center gap-1.5">
                   <span
                     className={cn(
-                      "inline-flex items-center rounded-full border px-2 py-0.5 text-[12px] font-semibold",
+                      "inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-semibold",
                       nextLesson.student_payment_status === "paid"
                         ? "border-transparent bg-success/15 text-success"
                         : "border-transparent bg-warning/15 text-warning"
@@ -172,19 +172,19 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                       ? t("chatContext.paid")
                       : t("chatContext.unpaid")}
                   </span>
-                  <span className="text-xs text-muted-foreground ml-auto">
+                  <span className="text-[13px] text-muted-foreground ml-auto">
                     Відкрити урок →
                   </span>
                 </div>
               </Link>
             ) : (
-              <p className="px-3 pb-3 text-xs text-muted-foreground">{t("chatContext.noUpcoming")}</p>
+              <p className="px-3 pb-3 text-[13px] text-muted-foreground">{t("chatContext.noUpcoming")}</p>
             )}
           </div>
 
           {unpaidCount > 0 && (
             <div className="rounded-xl border border-warning/40 bg-warning/8 p-3">
-              <p className="mb-1 text-xs font-medium uppercase tracking-wide text-warning">
+              <p className="mb-1 text-[13px] font-medium uppercase tracking-wide text-warning">
                 {t("chatContext.debt")}
               </p>
               <p className="text-sm font-semibold text-foreground">
@@ -192,7 +192,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
               </p>
               <Link
                 to="/finances?filter=need_pay"
-                className="mt-1.5 inline-block text-xs text-primary underline underline-offset-2"
+                className="mt-1.5 inline-block text-[13px] text-primary underline underline-offset-2"
               >
                 {t("chatContext.viewDebts")}
               </Link>
@@ -204,13 +204,13 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
               to={`/schedule?lesson=${lastHomework.id}`}
               className="block rounded-xl border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
             >
-              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <p className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
                 {t("chatContext.lastHomework")}
               </p>
-              <p className="text-xs text-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">
+              <p className="text-[13px] text-foreground leading-relaxed line-clamp-4 whitespace-pre-wrap">
                 {lastHomework.homework}
               </p>
-              <p className="mt-1 text-[12px] text-muted-foreground flex items-center justify-between">
+              <p className="mt-1 text-[13px] text-muted-foreground flex items-center justify-between">
                 <span>
                   {format(new Date(lastHomework.starts_at), "d MMM", { locale: dateLocale })}
                   {lastHomework.subject && ` · ${lastHomework.subject}`}

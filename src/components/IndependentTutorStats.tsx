@@ -135,7 +135,7 @@ export function IndependentTutorStats() {
           Ваша статистика
         </h2>
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-          <SelectTrigger className="h-8 w-[170px] text-xs">
+          <SelectTrigger className="h-8 w-[170px] text-[13px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -187,7 +187,7 @@ export function IndependentTutorStats() {
               <p className="text-sm font-medium text-foreground">
                 Перейдіть на Pro — більше керування і красива аналітика
               </p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
+              <p className="mt-0.5 text-[13px] text-muted-foreground">
                 Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами,
                 детальні звіти та експорт.
               </p>

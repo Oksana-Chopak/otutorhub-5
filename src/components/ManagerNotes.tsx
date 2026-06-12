@@ -87,7 +87,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
-        className="flex w-full items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        className="flex w-full items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
       >
         <StickyNote className="h-3.5 w-3.5" />
         <span className="flex-1 text-left">Приватні нотатки {notes.length > 0 && t("managerNotesExtra.titleWithCount", { count: notes.length }).replace("Приватні нотатки (", "").replace(")", "")}</span>
@@ -101,14 +101,14 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={t("managerNotes.placeholder")}
-              className={compact ? "min-h-[52px] resize-none text-xs" : "min-h-[60px] resize-none text-xs"}
+              className={compact ? "min-h-[52px] resize-none text-[13px]" : "min-h-[60px] resize-none text-[13px]"}
             />
           </div>
           <Button
             size="sm"
             onClick={addNote}
             disabled={saving || !draft.trim()}
-            className="w-full h-8 text-xs"
+            className="w-full h-8 text-[13px]"
           >
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("managerNotesExtra.addBtn")}
           </Button>
@@ -118,13 +118,13 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             </div>
           ) : notes.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic text-center py-1">{t("managerNotesExtra.noNotes")}</p>
+            <p className="text-[13px] text-muted-foreground italic text-center py-1">{t("managerNotesExtra.noNotes")}</p>
           ) : (
             <div className="space-y-2">
               {notes.map((n) => (
                 <div
                   key={n.id}
-                  className="rounded-md bg-muted/40 border border-border p-2.5 text-xs space-y-1"
+                  className="rounded-md bg-muted/40 border border-border p-2.5 text-[13px] space-y-1"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <p className="text-foreground whitespace-pre-wrap flex-1 break-words">{n.content}</p>
@@ -137,7 +137,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                  <p className="text-[12px] text-muted-foreground">{formatDate(n.created_at)}</p>
+                  <p className="text-[13px] text-muted-foreground">{formatDate(n.created_at)}</p>
                 </div>
               ))}
             </div>

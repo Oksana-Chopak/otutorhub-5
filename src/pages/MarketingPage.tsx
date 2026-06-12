@@ -233,7 +233,7 @@ export default function MarketingPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right text-xs shrink-0">
+                        <div className="text-right text-[13px] shrink-0">
                           <div className="font-semibold">
                             {c.recipients_sent}/{c.recipients_total}
                             {c.recipients_failed > 0 && <span className="text-destructive"> ({c.recipients_failed} помилок)</span>}
@@ -245,7 +245,7 @@ export default function MarketingPage() {
                       {isOpen && (
                         <div className="border-t bg-muted/20 p-3 space-y-3">
                           <div>
-                            <div className="text-xs font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
+                            <div className="text-[13px] font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
                             <iframe
                               srcDoc={c.html_body}
                               sandbox=""
@@ -255,7 +255,7 @@ export default function MarketingPage() {
                           </div>
 
                           <div>
-                            <div className="text-xs font-semibold text-muted-foreground mb-1">
+                            <div className="text-[13px] font-semibold text-muted-foreground mb-1">
                               Помилки доставки ({errs.length})
                             </div>
                             {errs.length === 0 ? (
@@ -269,7 +269,7 @@ export default function MarketingPage() {
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">
                                 {errs.map((e, i) => (
-                                  <div key={i} className="rounded border bg-background p-2 text-xs">
+                                  <div key={i} className="rounded border bg-background p-2 text-[13px]">
                                     <div className="flex items-center justify-between gap-2">
                                       <span className="font-mono truncate">{e.email}</span>
                                       {e.status != null && (

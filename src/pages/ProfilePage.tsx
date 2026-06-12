@@ -43,7 +43,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
       <CardContent className="space-y-5">
         {nonEmpty.map((group) => (
           <div key={group.title}>
-            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="mb-2 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
               {group.title}
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -371,7 +371,7 @@ export default function ProfilePage() {
   const Sec = ({ title, children }: { title?: string; children: React.ReactNode }) => (
     <div className="rounded-[18px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
       {title && (
-        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 12, fontWeight: 700,
+        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 13, fontWeight: 700,
           letterSpacing: "0.07em", textTransform: "uppercase" as const, color: P.muted }}>
           {title}
         </p>
@@ -488,7 +488,7 @@ export default function ProfilePage() {
                     style={{ height: 50, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
                       border: active ? `1.5px solid ${P.teal}` : `1px solid ${P.border}`,
                       background: active ? P.tealL : P.bg, cursor: "pointer",
-                      fontFamily: P.display, fontSize: 11.5, fontWeight: 700,
+                      fontFamily: P.display, fontSize: 13, fontWeight: 700,
                       color: active ? P.tealD : P.muted }}>
                     <span style={{ fontSize: 20 }}>{emoji}</span>
                     {label}
@@ -611,7 +611,7 @@ export default function ProfilePage() {
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
                       {t("profile.editContacts") || "Контактні дані"}
                     </span>
-                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 12.5, color: "#9398b0" }}>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "#9398b0" }}>
                       {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
                     </span>
                   </span>
