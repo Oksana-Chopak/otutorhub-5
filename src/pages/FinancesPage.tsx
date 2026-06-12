@@ -19,6 +19,7 @@ import {
   Package,
   Plus,
   Wallet,
+  Trash2,
   Percent,
   Menu,
   ArrowUp,
@@ -44,6 +45,16 @@ const IncomeByStudentPie = lazy(() => import("@/components/IncomeByStudentPie").
 const ProfitSparkline = lazy(() => import("@/components/ProfitSparkline").then((m) => ({ default: m.ProfitSparkline })));
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
 import { WalletDialog } from "@/components/WalletDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
@@ -167,6 +178,25 @@ export default function FinancesPage() {
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
   const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
+  // Видалення помилкової передоплати прямо зі стріму (RPC дозволяє лише менеджеру)
+  const [deletePrepayTx, setDeletePrepayTx] = useState<WalletTransaction | null>(null);
+  const [deletingPrepay, setDeletingPrepay] = useState(false);
+  const confirmDeletePrepay = async () => {
+    if (!deletePrepayTx) return;
+    setDeletingPrepay(true);
+    const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
+      _tx_id: deletePrepayTx.id,
+      _hard: true,
+    });
+    setDeletingPrepay(false);
+    if (error) {
+      toast.error("Не вдалося видалити передоплату", { description: error.message });
+      return;
+    }
+    toast.success("Передоплату видалено", { description: "Баланс гаманця перераховано автоматично" });
+    setDeletePrepayTx(null);
+    fetchData();
+  };
 
   // Column sort (Google-Sheets style). null = smart default sort.
   type SortKey = "starts_at" | "student_paid_at" | "tutor_paid_at";
@@ -794,9 +824,23 @@ export default function FinancesPage() {
                         <p className="mt-0.5 truncate text-[12px] text-muted-foreground">{tx.note}</p>
                       )}
                     </div>
-                    <div className="shrink-0 text-right text-sm font-semibold text-primary tabular-nums">
-                      {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                      {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                    <div className="flex shrink-0 items-center gap-2">
+                      <div className="text-right text-sm font-semibold text-primary tabular-nums">
+                        {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                        {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                      </div>
+                      {isManager && (
+                        <span
+                          role="button"
+                          aria-label="Видалити передоплату"
+                          onClick={(e) => { e.stopPropagation(); setDeletePrepayTx(tx); }}
+                          style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center",
+                            justifyContent: "center", color: "#b3441f", background: "rgba(224,85,47,.08)",
+                            border: "1px solid rgba(224,85,47,.25)" }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </span>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -982,9 +1026,25 @@ export default function FinancesPage() {
                           )}
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-right font-semibold text-primary tabular-nums whitespace-nowrap">
-                        {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
-                        {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-2">
+                          <div className="text-right font-semibold text-primary tabular-nums">
+                            {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                            {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                          </div>
+                          {isManager && (
+                            <button
+                              type="button"
+                              aria-label="Видалити передоплату"
+                              onClick={(e) => { e.stopPropagation(); setDeletePrepayTx(tx); }}
+                              style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center",
+                                justifyContent: "center", color: "#b3441f", background: "rgba(224,85,47,.08)",
+                                border: "1px solid rgba(224,85,47,.25)", cursor: "pointer", flexShrink: 0 }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -2010,6 +2070,38 @@ export default function FinancesPage() {
           canDelete={isManager}
         />
       )}
+      {/* Підтвердження видалення передоплати */}
+      <AlertDialog open={!!deletePrepayTx} onOpenChange={(o) => !deletingPrepay && !o && setDeletePrepayTx(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800 }}>
+              Видалити передоплату?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deletePrepayTx && (
+                <>
+                  {deletePrepayTx.lessons_delta > 0 && <b>+{deletePrepayTx.lessons_delta} ур. </b>}
+                  {Number(deletePrepayTx.amount_delta) > 0 && <b>+{Number(deletePrepayTx.amount_delta).toFixed(0)} ₴ </b>}
+                  · {nameOf(deletePrepayTx.student_id)} ↔ {nameOf(deletePrepayTx.tutor_id)}
+                  <br />Запис зникне з історії, баланс гаманця перерахується автоматично. Дію не можна скасувати.
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingPrepay}>Скасувати</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deletingPrepay}
+              onClick={(e) => { e.preventDefault(); confirmDeletePrepay(); }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingPrepay && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Видалити
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {canManagePrepay && (
         <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
       )}

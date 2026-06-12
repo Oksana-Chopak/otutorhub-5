@@ -3,7 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -276,55 +275,84 @@ export function RecordPaymentSheet({
             ) : (
               <>
                 <PickedHeader pair={pickedPair} onBack={() => setPickedPair(null)} />
-                <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="lessons">{t("recordPayment.byLessons")}</TabsTrigger>
-                    <TabsTrigger value="amount">{t("recordPaymentExtra.byAmount")}</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="lessons" className="space-y-2 pt-3">
-                    <Label className="text-xs">{t("recordPaymentExtra.countLabel")}</Label>
-                    <Input
-                      type="number"
-                      min="1"
+
+                {/* ДС-сегмент: за уроками / на суму */}
+                <div style={{ display: "flex", gap: 2, background: "rgba(15,15,26,.06)", borderRadius: 12, padding: 4 }}>
+                  {([["lessons", t("recordPayment.byLessons")], ["amount", t("recordPaymentExtra.byAmount")]] as const).map(([key, label]) => (
+                    <button key={key} type="button" onClick={() => setMode(key as any)}
+                      style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
+                        background: mode === key ? "#fff" : "transparent",
+                        boxShadow: mode === key ? "0 1px 4px rgba(15,15,26,.12)" : "none",
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
+                        color: mode === key ? "#1f8e7e" : "#b0b4c8" }}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Велике поле на ДС-картці */}
+                <div style={{ borderRadius: 16, padding: 14, background: "#fbfbfc", border: "1px solid #eceef3" }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 8 }}>
+                    {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
+                  </p>
+                  {mode === "lessons" ? (
+                    <input
+                      type="number" min="1" inputMode="numeric"
                       placeholder={t("recordPaymentExtra.countPlaceholder")}
                       value={lessonsCount}
                       onChange={(e) => setLessonsCount(e.target.value)}
+                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid #eceef3", padding: "0 14px",
+                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
+                        background: "#fff", outline: "none" }}
                     />
-                    {pickedPair.rate && lessonsCount && (
-                      <p className="text-xs text-muted-foreground">
-                        ≈ {(parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0)} ₴ за поточною ставкою
-                      </p>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="amount" className="space-y-2 pt-3">
-                    <Label className="text-xs">{t("recordPaymentExtra.amountLabel")}</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      step="0.01"
+                  ) : (
+                    <input
+                      type="number" min="1" step="0.01" inputMode="decimal"
                       placeholder={t("recordPaymentExtra.amountPlaceholder")}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
+                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid #eceef3", padding: "0 14px",
+                        fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
+                        background: "#fff", outline: "none" }}
                     />
-                    {pickedPair.rate && amount && (
-                      <p className="text-xs text-muted-foreground">
-                        ≈ {Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate)} уроків
-                      </p>
-                    )}
-                  </TabsContent>
-                </Tabs>
+                  )}
+                  {mode === "lessons" && pickedPair.rate && lessonsCount ? (
+                    <p style={{ marginTop: 8, fontSize: 13, color: "#9398b0" }}>
+                      ≈ <b style={{ color: "#0f0f1a" }}>{(parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0)} ₴</b> за поточною ставкою
+                    </p>
+                  ) : null}
+                  {mode === "amount" && pickedPair.rate && amount ? (
+                    <p style={{ marginTop: 8, fontSize: 13, color: "#9398b0" }}>
+                      ≈ <b style={{ color: "#0f0f1a" }}>{Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate)} уроків</b>
+                    </p>
+                  ) : null}
+                </div>
+
+                {/* Коментар */}
                 <div>
-                  <Label className="text-xs">{t("recordPaymentExtra.commentLabel")}</Label>
-                  <Input
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0", marginBottom: 6 }}>
+                    {t("recordPaymentExtra.commentLabel")}
+                  </p>
+                  <input
                     placeholder={t("recordPaymentExtra.commentPlaceholder")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
+                    style={{ width: "100%", height: 46, borderRadius: 12, border: "1.5px solid #eceef3", padding: "0 13px",
+                      fontSize: 14.5, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#0f0f1a",
+                      background: "#fff", outline: "none" }}
                   />
                 </div>
-                <Button onClick={handleTopUp} disabled={busy} className="w-full">
-                  {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+
+                <button type="button" onClick={handleTopUp} disabled={busy}
+                  style={{ width: "100%", height: 50, borderRadius: 14, border: "none",
+                    cursor: busy ? "default" : "pointer",
+                    background: busy ? "rgba(43,191,170,.4)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
+                    color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5,
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    boxShadow: busy ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                  {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                   Зберегти передоплату
-                </Button>
+                </button>
               </>
             )}
           </TabsContent>
