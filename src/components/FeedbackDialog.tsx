@@ -54,7 +54,10 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     });
     setSubmitting(false);
     if (error) {
-      toast({ title: t("feedback.errorTitle"), description: error.message, variant: "destructive" });
+      const friendly = /does not exist|42P01/i.test(error.message)
+        ? "Сховище звернень ще не готове — адміністратор має застосувати оновлення бази."
+        : error.message;
+      toast({ title: t("feedback.errorTitle"), description: friendly, variant: "destructive" });
       return;
     }
     toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });

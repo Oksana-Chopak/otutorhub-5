@@ -188,6 +188,27 @@ export default function FinancesPage() {
       _tx_id: deletePrepayTx.id,
       _hard: true,
     });
+    if (error && /updated_at|does not exist/i.test(error.message)) {
+      // Жива БД ще без фіксу колонки (міграції з GitHub не застосовуються).
+      // Обхід без SQL: сторно через wallet_adjust (manager-only, live з травня) —
+      // компенсуюча транзакція; пару (оригінал+сторно) ховаємо зі стріму.
+      const { error: adjErr } = await supabase.rpc("wallet_adjust" as any, {
+        _tutor_id: deletePrepayTx.tutor_id,
+        _student_id: deletePrepayTx.student_id,
+        _lessons_delta: -(deletePrepayTx.lessons_delta ?? 0),
+        _amount_delta: -Number(deletePrepayTx.amount_delta ?? 0),
+        _note: `[storno:${deletePrepayTx.id}] Скасування помилкової передоплати`,
+      });
+      setDeletingPrepay(false);
+      if (adjErr) {
+        toast.error("Не вдалося видалити передоплату", { description: adjErr.message });
+        return;
+      }
+      toast.success("Передоплату скасовано", { description: "Баланс виправлено компенсуючим записом" });
+      setDeletePrepayTx(null);
+      fetchData();
+      return;
+    }
     setDeletingPrepay(false);
     if (error) {
       toast.error("Не вдалося видалити передоплату", { description: error.message });
@@ -361,16 +382,28 @@ export default function FinancesPage() {
     [billable, periodStart],
   );
 
+  const stornoedIds = useMemo(() => {
+    const ids = new Set<string>();
+    transactions.forEach((tx) => {
+      const m = /\[storno:([0-9a-fA-F-]+)\]/.exec(tx.note ?? "");
+      if (m) ids.add(m[1]);
+    });
+    return ids;
+  }, [transactions]);
+
   const periodTopups = useMemo(
     () =>
       transactions.filter(
         (tx) =>
+          // Сторновані пари ховаємо: і компенсуючий запис, і скасований оригінал
+          !/\[storno:/.test(tx.note ?? "") &&
+          !stornoedIds.has(tx.id) &&
           (tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
           && (tutorFilter === "all" || tx.tutor_id === tutorFilter)
           && inPeriod(tx.created_at),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transactions, tutorFilter, periodStart],
+    [transactions, tutorFilter, periodStart, stornoedIds],
   );
 
   // Per-tab row sets — keep the same shape used by both mobile cards and desktop table.
@@ -1846,7 +1879,30 @@ export default function FinancesPage() {
                 </div>
               </div>
               <button
-                onClick={() => handleTabChange("debts")}
+                onClick={async () => {
+                  // Згрупувати борги по учнях і надіслати кожному одне нагадування
+                  const byStudent = new Map<string, { count: number; sum: number }>();
+                  debtsRows.forEach((row) => {
+                    const l = row as unknown as { student_id: string; student_price: number | null };
+                    const cur = byStudent.get(l.student_id) ?? { count: 0, sum: 0 };
+                    cur.count += 1;
+                    cur.sum += Number(l.student_price) || 0;
+                    byStudent.set(l.student_id, cur);
+                  });
+                  let sent = 0;
+                  for (const [studentId, agg] of byStudent) {
+                    await insertNotification({
+                      userId: studentId,
+                      type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
+                      title: "💳 Нагадування про оплату",
+                      body: `Очікує оплати: ${agg.count} ${agg.count === 1 ? "урок" : agg.count < 5 ? "уроки" : "уроків"} на ${agg.sum.toLocaleString("uk-UA")} ₴`,
+                      link: "/student/payments",
+                    });
+                    sent += 1;
+                  }
+                  toast.success(`Нагадування надіслано`, { description: `${sent} ${sent === 1 ? "учню" : "учням"}` });
+                  handleTabChange("debts");
+                }}
                 className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[13px] font-bold transition-opacity hover:opacity-80"
                 style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
                 Нагадати

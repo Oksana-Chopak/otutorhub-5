@@ -33,12 +33,18 @@ export default function FeedbackInboxPage() {
   const [filter, setFilter] = useState<"all" | Status>("all");
   const [busyId, setBusyId] = useState<string | null>(null);
 
+  const [tableMissing, setTableMissing] = useState(false);
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("feedback_submissions")
       .select("id, user_id, category, message, rating, status, page_url, created_at")
       .order("created_at", { ascending: false });
+    if (error && /does not exist|42P01/i.test(error.message)) {
+      setTableMissing(true);
+      setLoading(false);
+      return;
+    }
     const list = (data ?? []) as Row[];
     setRows(list);
     const ids = [...new Set(list.map((r) => r.user_id).filter(Boolean))] as string[];
@@ -100,7 +106,17 @@ export default function FeedbackInboxPage() {
           })}
         </div>
 
-        {loading ? (
+        {tableMissing ? (
+          <div style={{ borderRadius: 18, border: "1px solid rgba(245,158,11,.4)", background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", padding: 18 }}>
+            <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16, color: "#7a5a14" }}>
+              Сховище звернень ще не створено
+            </p>
+            <p className="mt-1.5 text-[14px]" style={{ color: "#9a6a12", lineHeight: 1.55 }}>
+              База даних чекає на оновлення. Відкрий чат Lovable і попроси виконати SQL-скрипт із файлу
+              <b> docs/APPLY-IN-LOVABLE.sql</b> (лежить у проєкті) — після цього звернення почнуть зберігатись і зʼявляться тут.
+            </p>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "44px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff" }}>
