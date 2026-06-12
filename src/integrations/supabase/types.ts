@@ -2029,7 +2029,6 @@ export type Database = {
           lessons_balance: number | null
           student_id: string | null
           tutor_id: string | null
-          updated_at: string | null
         }
         Relationships: []
       }
