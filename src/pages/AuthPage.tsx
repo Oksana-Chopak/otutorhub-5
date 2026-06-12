@@ -476,8 +476,8 @@ export default function AuthPage() {
             )}
             <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); setSignInData(p => ({ ...p, password: "" })); setSignUpData(p => ({ ...p, password: "" })); }} className="w-full">
               <TabsList className="grid w-full grid-cols-2 p-1 rounded-[12px] h-12" style={{ background: "rgba(15,15,26,.06)" }}>
-                <TabsTrigger value="signin" className="rounded-[9px] font-bold text-[14px] data-[state=active]:bg-white data-[state=active]:text-[#0f0f1a] data-[state=active]:shadow-sm data-[state=inactive]:text-[#9398b0]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{t("auth.tabSignIn")}</TabsTrigger>
-                <TabsTrigger value="signup" className="rounded-[9px] font-bold text-[14px] data-[state=active]:bg-white data-[state=active]:text-[#0f0f1a] data-[state=active]:shadow-sm data-[state=inactive]:text-[#9398b0]" style={{ fontFamily: "Inter, system-ui, sans-serif" }}>{t("auth.tabSignUp")}</TabsTrigger>
+                <TabsTrigger value="signin" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignIn")}</TabsTrigger>
+                <TabsTrigger value="signup" className="rounded-md font-medium data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm data-[state=inactive]:text-muted-foreground">{t("auth.tabSignUp")}</TabsTrigger>
               </TabsList>
 
               <div className="mt-4 space-y-3">

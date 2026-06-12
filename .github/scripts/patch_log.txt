@@ -1,1 +1,1 @@
-- FinancesPage — expensesRows data isolation
+- Auth tabs — active state teal
