@@ -553,6 +553,45 @@ export type Database = {
           },
         ]
       }
+      feedback_submissions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          page_url: string | null
+          rating: number | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       lesson_feedback: {
         Row: {
           comment: string | null
@@ -1612,7 +1651,12 @@ export type Database = {
           subjects: string[]
           updated_at: string
           user_id: string
-        }
+                  payout_frequency: string | null
+          payout_weekday: number | null
+          payout_monthday: number | null
+          payout_anchor: string | null
+          payout_last_marked_at: string | null
+}
         Insert: {
           bio?: string | null
           created_at?: string
@@ -1620,7 +1664,12 @@ export type Database = {
           subjects?: string[]
           updated_at?: string
           user_id: string
-        }
+                  payout_frequency?: string | null
+          payout_weekday?: number | null
+          payout_monthday?: number | null
+          payout_anchor?: string | null
+          payout_last_marked_at?: string | null
+}
         Update: {
           bio?: string | null
           created_at?: string
@@ -1628,7 +1677,12 @@ export type Database = {
           subjects?: string[]
           updated_at?: string
           user_id?: string
-        }
+                  payout_frequency?: string | null
+          payout_weekday?: number | null
+          payout_monthday?: number | null
+          payout_anchor?: string | null
+          payout_last_marked_at?: string | null
+}
         Relationships: []
       }
       tutor_notes: {

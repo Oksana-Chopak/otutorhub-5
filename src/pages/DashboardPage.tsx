@@ -26,7 +26,7 @@ import { CloseDayDialog, type CloseDayRow } from "@/components/CloseDayDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { GraduationCap, Sparkles, X } from "lucide-react";
+import { GraduationCap, Sparkles, X, Wallet, CheckCircle2 } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
@@ -47,6 +47,7 @@ import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import { insertNotification } from "@/lib/notifications";
+import { isPayoutDueToday } from "@/lib/payoutSchedule";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
@@ -256,6 +257,8 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
+  const [payoutSchedules, setPayoutSchedules] = useState<Array<{ user_id: string; name: string; payout_frequency: string | null; payout_weekday: number | null; payout_monthday: number | null; payout_anchor: string | null }>>([]);
+  const [payingTutor, setPayingTutor] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
   const [tutorCount, setTutorCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
@@ -555,6 +558,21 @@ export default function DashboardPage() {
       new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
     );
     setLessons(uniqueLessons);
+    if (isManager) {
+      const { data: sched } = await supabase
+        .from("tutor_details")
+        .select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
+        .not("payout_frequency", "is", null);
+      if (sched && sched.length) {
+        const ids = (sched as any[]).map((r) => r.user_id);
+        const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
+        const nameMap: Record<string, string> = {};
+        (profs ?? []).forEach((pr: any) => { nameMap[pr.id] = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim() || "Репетитор"; });
+        setPayoutSchedules((sched as any[]).map((r) => ({ ...r, name: nameMap[r.user_id] ?? "Репетитор" })));
+      } else {
+        setPayoutSchedules([]);
+      }
+    }
 
     if (isIndependentTutor) {
       const { count } = await supabase
@@ -708,6 +726,18 @@ export default function DashboardPage() {
         link: "/finances",
       });
     }
+  };
+
+  const markPayoutPaid = async (tutorId: string) => {
+    setPayingTutor(tutorId);
+    const { data, error } = await supabase.rpc("mark_tutor_payouts_paid" as any, { _tutor_id: tutorId });
+    setPayingTutor(null);
+    if (error) {
+      toast.error("Не вдалося позначити виплату", { description: error.message });
+      return;
+    }
+    toast.success("Виплату позначено ✓", { description: `${data ?? 0} ${(data ?? 0) === 1 ? "урок" : "уроків"} позначено виплаченими` });
+    setLessons((prev) => prev.map((l) => (l.tutor_id === tutorId && l.tutor_payout_status === "unpaid" ? { ...l, tutor_payout_status: "paid" as PaymentStatus } : l)));
   };
 
   useEffect(() => {
@@ -1025,8 +1055,27 @@ export default function DashboardPage() {
       description: string;
       to: string;
       cta: string;
+      payTutorId?: string;
     }>;
-    const tasks = [];
+    const tasks: Array<any> = [];
+    // 0. Дні виплат репетиторам (за графіком)
+    payoutSchedules.forEach((sch) => {
+      if (!isPayoutDueToday(sch)) return;
+      const unpaid = lessons.filter(
+        (l) => l.tutor_id === sch.user_id && l.tutor_payout_status === "unpaid" && l.status !== "cancelled",
+      );
+      const sum = unpaid.reduce((acc, l) => acc + (Number(l.tutor_payout) || 0), 0);
+      tasks.push({
+        key: `payout-${sch.user_id}`,
+        icon: Wallet,
+        tone: "warning" as const,
+        title: `💰 Час виплати: ${sch.name}`,
+        description: sum > 0 ? `${sum.toLocaleString("uk-UA")} ₴ за ${unpaid.length} ${unpaid.length === 1 ? "урок" : unpaid.length < 5 ? "уроки" : "уроків"}` : "Невиплачених уроків немає",
+        to: "/finances",
+        cta: "Позначити виплаченим",
+        payTutorId: sch.user_id,
+      });
+    });
     // 1. Pending payments — top priority for everyone, but smartTasks is manager-only here
     if (pendingPayments.length > 0) {
       tasks.push({
@@ -1146,6 +1195,8 @@ export default function DashboardPage() {
     return tasks;
   }, [
     isManager,
+    payoutSchedules,
+    lessons,
     pendingLessonRequests,
     pendingRequestCount,
     tutorReferralRequestCount,
@@ -1841,6 +1892,26 @@ export default function DashboardPage() {
                         : task.tone === "warning"    ? "#f59e0b"
                         : "#9398b0";
                       return (
+                        task.payTutorId ? (
+                          <div key={task.key}
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                            style={{ borderLeft: `3.5px solid ${borderColor}` }}>
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
+                              <Icon className="h-4 w-4" style={{ color: iconColor }} />
+                            </div>
+                            <Link to={task.to} className="min-w-0 flex-1">
+                              <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
+                              <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
+                            </Link>
+                            <button type="button" disabled={payingTutor === task.payTutorId}
+                              onClick={() => markPayoutPaid(task.payTutorId!)}
+                              className="flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] px-3 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
+                              {payingTutor === task.payTutorId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                              Виплачено
+                            </button>
+                          </div>
+                        ) : (
                         <Link key={task.key} to={task.to} className="block group">
                           <div
                             className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
@@ -1863,6 +1934,7 @@ export default function DashboardPage() {
                             <ChevronRight className="ml-1 h-4 w-4 flex-shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
                           </div>
                         </Link>
+                        )
                       );
                     })
                   )}

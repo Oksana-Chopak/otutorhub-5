@@ -71,6 +71,7 @@ import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus
 import { safeHref } from "@/lib/safeUrl";
 import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 
 interface Profile {
   id: string;
@@ -1308,6 +1309,8 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 </div>
               </div>
             )}
+
+            {tutorDialog.userId && <PayoutScheduleCard tutorId={tutorDialog.userId} />}
           </div>
           <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}
