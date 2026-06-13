@@ -390,7 +390,31 @@ function GroupDetailsDialog({
     });
     setBusy(false);
     if (error) {
-      toast.error(error.message);
+      // Перетворюємо технічні помилки БД на зрозумілі.
+      const code = (error as any).code;
+      const msg = error.message || "";
+      if (code === "23505" || /duplicate|unique/i.test(msg)) {
+        // Учень уже був у групі (можливо неактивний) — реактивуємо.
+        const { error: upErr } = await supabase
+          .from("group_enrollments")
+          .update({ status: "active" })
+          .eq("group_id", groupId)
+          .eq("student_id", pickedStudent);
+        if (upErr) {
+          toast.error(upErr.message);
+          return;
+        }
+        setPickedStudent("");
+        toast.success(t("groupsPageExtra.studentAdded"));
+        load();
+        onChanged();
+        return;
+      }
+      if (code === "42501" || /permission denied|policy|row-level/i.test(msg)) {
+        toast.error("Немає доступу додати учня в цю групу. Перевірте, що ви репетитор цієї групи.");
+        return;
+      }
+      toast.error(msg || "Не вдалося додати учня");
       return;
     }
     setPickedStudent("");
