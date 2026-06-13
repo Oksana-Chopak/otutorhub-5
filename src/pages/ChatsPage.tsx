@@ -1137,37 +1137,6 @@ export default function ChatsPage() {
                   <div ref={messagesEndRef} />
                 </div>
 
-                {/* Quick replies — manager only */}
-                {isManager && (
-                  <div className="relative flex-shrink-0" style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}>
-                    <div className="flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1.5 lg:flex-wrap lg:overflow-visible lg:pb-2">
-                      {t("chatsQuickReplies")
-                        .split(",")
-                        .map((tpl) => (
-                          <button
-                            key={tpl}
-                            type="button"
-                            onClick={() => setDraft(tpl)}
-                            className="shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] transition-colors"
-                            style={{
-                              border: "1px solid var(--border,#eceef3)",
-                              background: "var(--bg,#F5F4F0)",
-                              color: "var(--sub,#9398b0)",
-                              fontFamily: "Inter, system-ui",
-                            }}
-                          >
-                            {tpl.length > 38 ? tpl.slice(0, 38) + "…" : tpl}
-                          </button>
-                        ))}
-                    </div>
-                    <div
-                      aria-hidden
-                      className="pointer-events-none absolute right-0 top-0 h-full w-8 lg:hidden"
-                      style={{ background: "linear-gradient(to left,#fff,transparent)" }}
-                    />
-                  </div>
-                )}
-
                 {/* Pending file preview */}
                 {pendingFile && (
                   <div

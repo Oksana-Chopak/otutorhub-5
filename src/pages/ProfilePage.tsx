@@ -168,6 +168,20 @@ export default function ProfilePage() {
   const [newSubject, setNewSubject] = useState("");
 
   useEffect(() => {
+    // Менеджеру теж потрібні імʼя+аватар для ДС-картки ідентичності (легкий запит).
+    if (user && isManager && !isTutor) {
+      (async () => {
+        const { data } = await supabase
+          .from("profiles")
+          .select("first_name, last_name, avatar_url")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (data) {
+          setProfileName({ first: data.first_name ?? "", last: data.last_name ?? "" });
+          setAvatarUrl((data as { avatar_url?: string | null }).avatar_url ?? null);
+        }
+      })();
+    }
     if (!user || !isTutor) {
       setLoading(false);
       return;
@@ -305,31 +319,6 @@ export default function ProfilePage() {
     toast.success(t("profile.editSaved") || "Профіль оновлено");
   };
 
-  if (!isTutor) {
-    return (
-      <AppLayout>
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-6 hidden lg:block">
-            <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("profile.managerTitle")}</h1>
-            <p className="mt-1 text-sm" style={{ color: "#9398b0" }}>
-              {t("profile.managerSub")}
-            </p>
-          </div>
-          <GoogleCalendarCard />
-          <PushSettingsCard />
-          <MoreSection title={t("profile.sectionsTitle")} groups={managerGroups} />
-          {managerGroups.every((g) => g.items.length === 0) && (
-            <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
-              <CardContent className="py-8 text-center text-sm text-muted-foreground">
-                {t("profile.noExtraSettings")}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </AppLayout>
-    );
-  }
-
   // ── Design tokens ───────────────────────────────────────────────────────────
   const P = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
@@ -403,6 +392,121 @@ export default function ProfilePage() {
     { key: "animals", emoji: "🐶", label: "Тварини" },
     { key: "stars",   emoji: "⭐", label: "Зірки"   },
   ];
+
+  // ── MANAGER profile (DS: identity card + sections) ───────────────────────────
+  if (!isTutor) {
+    const mgrName = (profileName.first || profileName.last)
+      ? [profileName.first, profileName.last].filter(Boolean).join(" ")
+      : user?.email?.split("@")[0] ?? "Менеджер";
+    const mgrInitials = ((mgrName.split(" ")[0]?.[0] ?? "") + (mgrName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
+    return (
+      <AppLayout>
+        <div className="mx-auto max-w-[680px]">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
+
+            {/* Identity card */}
+            <div className="rounded-[20px] overflow-hidden lg:col-span-2" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+              <div style={{ padding: "20px 18px" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+                  <div style={{ width: 62, height: 62, borderRadius: Math.round(62 * 0.32), flexShrink: 0,
+                    background: "linear-gradient(135deg,#2BBFAA,#0EA5A0)",
+                    display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden",
+                    boxShadow: "0 6px 18px -8px rgba(43,191,170,.55)" }}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={mgrName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 22, color: "#fff" }}>{mgrInitials}</span>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 19, color: P.txt, lineHeight: 1.2 }}>{mgrName}</p>
+                    <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>{t("profile.managerSub")}</p>
+                  </div>
+                  <button onClick={openEditProfile} aria-label={t("profile.editTitle") || "Редагувати профіль"}
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                    style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
+                    <Pencil size={14} style={{ color: P.sub }} />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Integrations: calendar + push */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              <GoogleCalendarCard />
+              <PushSettingsCard />
+            </div>
+
+            {/* Manager sections — every existing item preserved, now in DS cards */}
+            {managerGroups.map((group) => (
+              group.items.length > 0 && (
+                <Sec key={group.title} title={group.title}>
+                  {group.items.map((item, i) => (
+                    <NavRow
+                      key={item.to}
+                      icon={<item.icon size={18} />}
+                      label={item.label}
+                      onClick={() => { window.location.href = item.to; }}
+                      noBorder={i === group.items.length - 1}
+                    />
+                  ))}
+                </Sec>
+              )
+            ))}
+
+            {managerGroups.every((g) => g.items.length === 0) && (
+              <div className="rounded-[18px] border border-dashed lg:col-span-2" style={{ borderColor: P.border }}>
+                <p className="py-8 text-center text-sm" style={{ color: P.sub }}>{t("profile.noExtraSettings")}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Edit-profile sheet (same as tutor branch) */}
+        <Sheet open={activeSheet === "editProfile"} onOpenChange={(o) => !o && setActiveSheet(null)}>
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+            <div className="flex justify-center pt-2.5 pb-1">
+              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            </div>
+            <div className="px-5 py-4">
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
+                {t("profile.editTitle") || "Редагувати профіль"}
+              </p>
+              <div style={{ display: "flex", justifyContent: "center", margin: "12px 0 18px" }}>
+                <AvatarUploader
+                  userId={user?.id ?? ""}
+                  currentUrl={avatarUrl}
+                  firstName={profileName.first}
+                  lastName={profileName.last}
+                  onChanged={(url) => setAvatarUrl(url)}
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                  {t("profile.editFirstName") || "Ім'я"}
+                </label>
+                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-12 rounded-[12px]" />
+              </div>
+              <div style={{ marginBottom: 4 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                  {t("profile.editLastName") || "Прізвище"}
+                </label>
+                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-12 rounded-[12px]" />
+              </div>
+              <button onClick={saveProfile} disabled={savingProfile}
+                style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
+                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
+                  boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
