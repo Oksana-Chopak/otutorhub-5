@@ -1660,6 +1660,13 @@ export default function DashboardPage() {
             </section>
           )}
 
+          {/* Notes — ALWAYS right under the profit bubble (manager + hub tutor) */}
+          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
+            <div className="mt-4">
+              <TutorNotesCard />
+            </div>
+          )}
+
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
           {isManager && (
             <div className="mt-4">
@@ -2040,24 +2047,10 @@ export default function DashboardPage() {
                     <TelegramLinkCard />
                   </div>
 
-                  {/* Notes visible in right column on desktop (not for independent tutor — already shown above lessons) */}
-                  {(isTutor || isManager) && !isIndependentTutor && (
-                    <div className="hidden md:block mt-1">
-                      <TutorNotesCard />
-                    </div>
-                  )}
-
                 </div>
               )}
             </section>
           </div>
-
-          {/* Mobile: notes below the grid (desktop shows in right col) */}
-          {(isTutor || isManager) && !isIndependentTutor && (
-            <div className="mt-2 md:hidden">
-              <TutorNotesCard />
-            </div>
-          )}
 
           {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
