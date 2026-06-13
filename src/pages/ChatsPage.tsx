@@ -56,12 +56,20 @@ function formatBytes(b: number | null) {
   return `${(b / 1024 / 1024).toFixed(1)} MB`;
 }
 
+interface ThreadContext {
+  kind: "lesson" | "debt" | "new" | "none";
+  text: string;
+  amount?: number;
+  count?: number;
+}
+
 interface Thread {
   id: string;
   tutor_id: string;
   student_id: string;
   last_message_at: string | null;
   last_message_preview: string | null;
+  ctx?: ThreadContext;
 }
 
 interface Message {
@@ -227,7 +235,54 @@ export default function ChatsPage() {
       });
     }
 
-    setThreads(list);
+    // ── Контекст кожного діалогу (борг / наступний урок / новий учень) ──
+    // ОДИН запит усіх уроків видимих пар, далі групуємо в памʼяті (швидко навіть
+    // для менеджера з десятками чатів). Помилки тихо ігноруємо — список не падає.
+    let withCtx: Thread[] = list.map((th) => ({ ...th, ctx: { kind: "new" as const, text: "Новий учень" } }));
+    try {
+      const tutorIds = Array.from(new Set(list.map((t) => t.tutor_id)));
+      const studentIds = Array.from(new Set(list.map((t) => t.student_id)));
+      const { data: rows } = await supabase
+        .from("lessons_visible")
+        .select("tutor_id, student_id, starts_at, status, student_price, student_payment_status")
+        .in("tutor_id", tutorIds)
+        .in("student_id", studentIds);
+      const byPair = new Map<string, Array<{ starts_at: string; status: string | null; student_price: number | null; student_payment_status: string | null }>>();
+      (rows ?? []).forEach((l: any) => {
+        const key = `${l.tutor_id}|${l.student_id}`;
+        if (!byPair.has(key)) byPair.set(key, []);
+        byPair.get(key)!.push(l);
+      });
+      const now = Date.now();
+      withCtx = list.map((th): Thread => {
+        const lessons = byPair.get(`${th.tutor_id}|${th.student_id}`) ?? [];
+        if (lessons.length === 0) return { ...th, ctx: { kind: "new", text: "Новий учень" } };
+        const unpaid = lessons.filter((l) => l.student_payment_status === "unpaid" && l.status !== "cancelled");
+        if (unpaid.length > 0) {
+          const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
+          return { ...th, ctx: { kind: "debt", text: `Борг ₴${sum.toLocaleString("uk-UA")} · ${unpaid.length} ур.`, amount: sum, count: unpaid.length } };
+        }
+        const next = lessons
+          .filter((l) => l.status !== "cancelled" && new Date(l.starts_at).getTime() >= now)
+          .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime())[0];
+        if (next) {
+          const d = new Date(next.starts_at);
+          const today = new Date(); today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
+          const dd = new Date(d); dd.setHours(0, 0, 0, 0);
+          const dayLabel = dd.getTime() === today.getTime() ? "сьогодні"
+            : dd.getTime() === tomorrow.getTime() ? "завтра"
+            : d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+          const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+          return { ...th, ctx: { kind: "lesson", text: `Урок ${dayLabel} · ${time}` } };
+        }
+        return { ...th, ctx: { kind: "none", text: "" } };
+      });
+    } catch {
+      // лишаємо дефолтний ctx
+    }
+
+    setThreads(withCtx);
     setProfiles(profileMap);
     setManagerIds(mIds);
     setReadMap(reads);
@@ -577,6 +632,10 @@ export default function ChatsPage() {
     );
   };
 
+  // Бейдж непрочитаних: точну кількість per-thread ми не тримаємо в списку,
+  // тож показуємо акцентну крапку (як у Telegram, коли число невідоме).
+  const unreadDotFor = (_t: Thread): string => "●";
+
   // Filter + sort thread list
   const visibleThreads = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -814,7 +873,7 @@ export default function ChatsPage() {
             </div>
 
             {/* Thread rows */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto" style={{ padding: "10px 12px", background: "#F5F4F0" }}>
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
                   <p className="text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
@@ -839,58 +898,88 @@ export default function ChatsPage() {
                     <button
                       key={thread.id}
                       onClick={() => setSelectedId(thread.id)}
-                      className={cn(
-                        "flex items-center gap-3 w-full text-left px-4 py-3 border-b border-border/40 transition-colors",
-                        selectedId === thread.id
-                          ? "bg-[rgba(43,191,170,0.08)]"
-                          : "hover:bg-gray-50/70"
-                      )}
+                      className="w-full text-left transition-all active:scale-[0.995]"
+                      style={{
+                        borderRadius: 18,
+                        border: `1px solid ${selectedId === thread.id ? "#2BBFAA" : "#eceef3"}`,
+                        background: "#fff",
+                        boxShadow: selectedId === thread.id ? "0 4px 16px -6px rgba(43,191,170,.3)" : "0 1px 4px rgba(0,0,0,.04)",
+                        padding: 13,
+                        marginBottom: 8,
+                      }}
                     >
-                      {/* Avatar */}
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0 relative"
-                        style={{ background: avatarGradient(tName), fontFamily: "Inter, system-ui" }}
-                      >
-                        {computeInitials(tName)}
+                      <div className="flex items-center gap-3">
+                        {/* Avatar */}
+                        <div
+                          className="flex items-center justify-center text-white font-bold flex-shrink-0 relative"
+                          style={{ width: 48, height: 48, borderRadius: Math.round(48 * 0.26), fontSize: 15, background: avatarGradient(tName), fontFamily: "Inter, system-ui" }}
+                        >
+                          {computeInitials(tName)}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p
+                              className="truncate text-[15px]"
+                              style={{ fontWeight: isUnread ? 800 : 600, fontFamily: "Inter, system-ui", color: "#0f0f1a" }}
+                            >
+                              {tName}
+                            </p>
+                            <span className="text-[12.5px] flex-shrink-0" style={{ color: "#b0b4c8" }}>
+                              {timeShort(thread.last_message_at)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2 mt-0.5">
+                            <p
+                              className="text-[13px] truncate"
+                              style={{
+                                color: isUnread ? "#0f0f1a" : "#9398b0",
+                                fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
+                                fontWeight: isUnread ? 600 : 400,
+                              }}
+                            >
+                              {thread.last_message_preview ?? t("chats.noMessagesLabel")}
+                            </p>
+                            {isUnread && (
+                              <span
+                                className="flex items-center justify-center text-white flex-shrink-0"
+                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 11.5 }}
+                              >
+                                {unreadDotFor(thread)}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p
-                            className="truncate text-[14.5px]"
+                      {/* Context pill row */}
+                      {thread.ctx && thread.ctx.kind !== "none" && (
+                        <div
+                          className="flex items-center gap-2 mt-2.5 pt-2.5"
+                          style={{ borderTop: "1px solid #f3f4f8" }}
+                        >
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold"
                             style={{
-                              fontWeight: isUnread ? 700 : 500,
                               fontFamily: "Inter, system-ui",
-                              color: "var(--txt,#0f0f1a)",
+                              background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(34,197,94,.12)" : "rgba(37,99,235,.1)",
+                              color: thread.ctx.kind === "debt" ? "#B4740B" : thread.ctx.kind === "lesson" ? "#15803d" : "#2563eb",
                             }}
                           >
-                            {tName}
-                          </p>
-                          <span
-                            className="text-[13px] flex-shrink-0"
-                            style={{ color: "var(--muted,#b0b4c8)" }}
-                          >
-                            {timeShort(thread.last_message_at)}
+                            <span style={{ fontSize: 11 }}>{thread.ctx.kind === "debt" ? "💸" : thread.ctx.kind === "lesson" ? "📅" : "✨"}</span>
+                            {thread.ctx.text}
                           </span>
+                          {thread.ctx.kind === "debt" && (
+                            <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
+                              Нагадати →
+                            </span>
+                          )}
+                          {thread.ctx.kind === "new" && (
+                            <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
+                              Створити урок →
+                            </span>
+                          )}
                         </div>
-                        <p
-                          className="text-[13px] truncate mt-0.5"
-                          style={{
-                            color: isUnread ? "var(--txt,#0f0f1a)" : "var(--sub,#9398b0)",
-                            fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
-                          }}
-                        >
-                          {thread.last_message_preview ?? t("chats.noMessagesLabel")}
-                        </p>
-                      </div>
-
-                      {isUnread && (
-                        <span
-                          className="w-5 h-5 rounded-full flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0"
-                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
-                        >
-                          ●
-                        </span>
                       )}
                     </button>
                   );
@@ -1055,6 +1144,7 @@ export default function ChatsPage() {
                                       background: "linear-gradient(135deg,#2BBFAA,#25a896)",
                                       color: "#fff",
                                       borderRadius: "16px 16px 5px 16px",
+                                      boxShadow: "0 6px 18px -8px rgba(43,191,170,.55)",
                                     }
                                   : senderIsManager
                                   ? {
@@ -1134,6 +1224,66 @@ export default function ChatsPage() {
                       );
                     })
                   )}
+
+                  {/* Smart card — контекстна дія під останнім повідомленням */}
+                  {selectedThread?.ctx && (selectedThread.ctx.kind === "debt" || selectedThread.ctx.kind === "new") && messages.length > 0 && (
+                    <div
+                      className="flex items-center gap-3 mt-2"
+                      style={{
+                        borderRadius: 16,
+                        padding: 13,
+                        background: selectedThread.ctx.kind === "debt" ? "rgba(245,158,11,.1)" : "rgba(37,99,235,.08)",
+                        border: selectedThread.ctx.kind === "debt" ? "1px solid rgba(245,158,11,.32)" : "1px solid rgba(37,99,235,.28)",
+                      }}
+                    >
+                      <div
+                        className="flex items-center justify-center flex-shrink-0"
+                        style={{
+                          width: 38, height: 38, borderRadius: 11,
+                          background: selectedThread.ctx.kind === "debt" ? "rgba(245,158,11,.2)" : "rgba(37,99,235,.15)",
+                          color: selectedThread.ctx.kind === "debt" ? "#B4740B" : "#2563eb",
+                          fontSize: 18,
+                        }}
+                      >
+                        {selectedThread.ctx.kind === "debt" ? "💸" : "✨"}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
+                          {selectedThread.ctx.kind === "debt"
+                            ? `Неоплачено ₴${(selectedThread.ctx.amount ?? 0).toLocaleString("uk-UA")}`
+                            : "Створити перший урок"}
+                        </p>
+                        <p className="text-[12.5px] truncate" style={{ color: "#9398b0" }}>
+                          {selectedThread.ctx.kind === "debt"
+                            ? `${selectedThread.ctx.count ?? 0} ${(selectedThread.ctx.count ?? 0) === 1 ? "урок" : "уроків"} очікує оплати`
+                            : `${counterpartName(selectedThread)} ще без уроків`}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedThread.ctx?.kind === "debt") {
+                            setDraft((d) => d || "Доброго дня! Нагадую про оплату за уроки 🙏");
+                          } else {
+                            window.location.href = "/schedule";
+                          }
+                        }}
+                        className="flex-shrink-0 rounded-[11px] px-3.5 h-9 text-[13px] font-bold text-white"
+                        style={{
+                          fontFamily: "Inter, system-ui",
+                          background: selectedThread.ctx.kind === "debt"
+                            ? "linear-gradient(135deg,#f59e0b,#d97706)"
+                            : "linear-gradient(135deg,#2BBFAA,#25a896)",
+                          boxShadow: selectedThread.ctx.kind === "debt"
+                            ? "0 6px 16px -8px rgba(245,158,11,.6)"
+                            : "0 6px 16px -8px rgba(43,191,170,.6)",
+                        }}
+                      >
+                        {selectedThread.ctx.kind === "debt" ? "Нагадати" : "Створити"}
+                      </button>
+                    </div>
+                  )}
+
                   <div ref={messagesEndRef} />
                 </div>
 
