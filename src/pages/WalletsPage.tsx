@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Wallet, Plus, Search, Loader2 } from "lucide-react";
+import { Wallet, Plus, Search, Loader2, X } from "lucide-react";
 import { WalletDialog } from "@/components/WalletDialog";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
@@ -41,6 +40,7 @@ export default function WalletsPage() {
   const [rows, setRows] = useState<PairRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [active, setActive] = useState<PairRow | null>(null);
   const [showAll, setShowAll] = useState(true);
 
@@ -150,15 +150,27 @@ export default function WalletsPage() {
         </header>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[200px] flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder={t("walletsPage.searchPlaceholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+          {searchOpen ? (
+            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={20} style={{ color: "#9398b0", flexShrink: 0 }} />
+              <input
+                autoFocus
+                placeholder={t("walletsPage.searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
+              />
+              <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <X size={17} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setSearchOpen(true)} aria-label={t("walletsPage.searchPlaceholder")}
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={21} strokeWidth={2} />
+            </button>
+          )}
           <Button
             variant={showAll ? "default" : "outline"}
             size="sm"
