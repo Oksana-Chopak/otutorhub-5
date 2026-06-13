@@ -323,10 +323,26 @@ export default function AuthPage() {
           : t("auth.loginRetry"),
         variant: "destructive",
       });
-      // Якщо email не підтверджено — одразу пропонуємо надіслати лист повторно,
-      // щоб людина не застрягла (часта причина: лінк протух або не дійшов).
+      // Якщо email не підтверджено — для запрошених (pending) учнів одразу
+      // підтверджуємо на сервері та ретраїмо логін; для звичайних — резендимо лист.
       if (error.message === "Email not confirmed") {
         try {
+          const { data: isPending } = await supabase.rpc("is_pending_email", {
+            _email: parsed.data.email,
+          });
+          if (isPending === true) {
+            await supabase.functions.invoke("confirm-pending-signup", {
+              body: { email: parsed.data.email },
+            });
+            const retry = await supabase.auth.signInWithPassword({
+              email: parsed.data.email,
+              password: parsed.data.password,
+            });
+            if (!retry.error) {
+              navigate("/", { replace: true });
+              return;
+            }
+          }
           await supabase.auth.resend({ type: "signup", email: parsed.data.email });
           toast({
             title: t("authExtra.confirmResent") || "Лист надіслано повторно",
