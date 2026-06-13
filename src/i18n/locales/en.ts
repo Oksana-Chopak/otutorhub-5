@@ -2391,6 +2391,8 @@ export const en: Translations = {
     sendReminder: "Send reminder via Telegram + email",
   },
   authExtra: {
+    confirmResent: "Confirmation re-sent",
+    confirmResentDesc: "A new link is on its way. Check your inbox and Spam folder.",
     emailConfirmed: "Email confirmed! 🎉",
     emailConfirmedDesc: "Sign in to continue.",
     emailAlreadyUsed: "Email already registered",

@@ -182,6 +182,49 @@ export default function AuthPage() {
     localStorage.setItem(REMEMBER_KEY, String(remember));
   }, [remember]);
 
+  // Обробка токенів із лінка підтвердження email.
+  // Supabase-конфіг тут без detectSessionInUrl, тож токени з лінка не парсяться
+  // автоматично — ловимо їх руками. Лінк може прийти у двох форматах:
+  //   • PKCE:     ?code=...                (новий, обмінюємо exchangeCodeForSession)
+  //   • implicit: #access_token=...&refresh_token=...  (старий, ставимо setSession)
+  // Без цього виникав баг «email підтверджено, але вхід каже not confirmed».
+  useEffect(() => {
+    const hash = window.location.hash.startsWith("#")
+      ? new URLSearchParams(window.location.hash.slice(1))
+      : null;
+    const code = searchParams.get("code");
+    const accessToken = hash?.get("access_token");
+    const refreshToken = hash?.get("refresh_token");
+
+    if (!code && !accessToken) return;
+
+    (async () => {
+      try {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        } else if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) throw error;
+        }
+        // Сесія створена — прибираємо токени з URL і йдемо в застосунок.
+        window.history.replaceState({}, "", window.location.pathname);
+        navigate("/", { replace: true });
+      } catch (err) {
+        console.error("[AuthPage] confirmation-link token exchange failed:", err);
+        // Не вдалося — лишаємо користувача на формі входу з підказкою.
+        toast({
+          title: t("authExtra.emailConfirmed"),
+          description: t("authExtra.emailConfirmedDesc"),
+        });
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // If we arrived via invite link, immediately check whether the email
   // matches an existing ghost profile so the hint is visible upfront.
   useEffect(() => {

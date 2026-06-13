@@ -2381,6 +2381,8 @@ export const sv: Partial<Translations> = {
     sendReminder: "Skicka påminnelse via Telegram + e-post",
   },
   authExtra: {
+    confirmResent: "Bekräftelse skickad igen",
+    confirmResentDesc: "En ny länk är på väg. Kolla din inkorg och skräppost.",
     emailConfirmed: "E-post bekräftad! 🎉",
     emailConfirmedDesc: "Logga in för att fortsätta.",
     emailAlreadyUsed: "E-post redan registrerad",

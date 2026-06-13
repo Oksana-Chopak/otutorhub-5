@@ -2401,6 +2401,8 @@ export const uk = {
     sendReminder: "Надіслати нагадування у Telegram + email",
   },
   authExtra: {
+    confirmResent: "Лист надіслано повторно",
+    confirmResentDesc: "Нове посилання вже на пошті. Перевірте вхідні та «Спам».",
     emailConfirmed: "Email підтверджено! 🎉",
     emailConfirmedDesc: "Увійдіть, щоб продовжити.",
     emailAlreadyUsed: "Email вже зареєстровано",
