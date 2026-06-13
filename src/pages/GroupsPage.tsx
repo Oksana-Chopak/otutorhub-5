@@ -346,19 +346,19 @@ function GroupDetailsDialog({
     setEnrollments((ens ?? []) as Enrollment[]);
 
     const groupTutorId = (g as any)?.tutor_id ?? user.id;
-    // available = tutor's students not already enrolled (active)
+    // available = tutor's students not already enrolled (active).
+    // Джерело істини — tutor_student_pairs (учень репетитора через урок АБО ставку),
+    // а не лише student_rates: учень, доданий через урок без окремої ставки, теж має
+    // бути доступним для групи. Фолбек на student_rates про всяк випадок.
     const enrolledIds = new Set((ens ?? []).filter((e: any) => e.status === "active").map((e: any) => e.student_id));
-    const { data: rates } = await supabase
-      .from("student_rates")
-      .select("student_id, archived_at")
-      .eq("tutor_id", groupTutorId);
-    const ids = Array.from(
-      new Set(
-        (rates ?? [])
-          .filter((r: any) => !r.archived_at && !enrolledIds.has(r.student_id))
-          .map((r: any) => r.student_id)
-      )
-    );
+    const [{ data: pairs }, { data: rates }] = await Promise.all([
+      supabase.from("tutor_student_pairs").select("student_id").eq("tutor_id", groupTutorId),
+      supabase.from("student_rates").select("student_id, archived_at").eq("tutor_id", groupTutorId),
+    ]);
+    const candidateIds = new Set<string>();
+    (pairs ?? []).forEach((p: any) => candidateIds.add(p.student_id));
+    (rates ?? []).forEach((r: any) => { if (!r.archived_at) candidateIds.add(r.student_id); });
+    const ids = Array.from(candidateIds).filter((sid) => !enrolledIds.has(sid));
     if (ids.length) {
       const { data: profs } = await supabase
         .from("profiles")
