@@ -391,6 +391,18 @@ export default function AuthPage() {
       return;
     }
     setLoading(true);
+
+    // Check if this email matches a pending ghost profile (invited by tutor/manager).
+    // If yes — skip email confirmation entirely: auto-confirm on the server and
+    // sign the user in immediately with the password they just typed. This
+    // avoids the common breakage where repeated sign-up attempts invalidate the
+    // previous confirmation link.
+    let isPending = false;
+    try {
+      const { data } = await supabase.rpc("is_pending_email", { _email: parsed.data.email });
+      isPending = data === true;
+    } catch { /* ignore — fall back to normal flow */ }
+
     const { data: signUpResult, error } = await supabase.auth.signUp({
       email: parsed.data.email,
       password: parsed.data.password,
@@ -405,8 +417,9 @@ export default function AuthPage() {
         },
       },
     });
-    setLoading(false);
+
     if (!error && signUpResult?.user && signUpResult.user.identities?.length === 0) {
+      setLoading(false);
       toast({
         title: t("authExtra.emailAlreadyUsed"),
         description: t("authExtra.emailAlreadyUsedDesc"),
@@ -417,6 +430,7 @@ export default function AuthPage() {
       return;
     }
     if (error) {
+      setLoading(false);
       console.error("Sign-up failed", error);
       toast({
         title: t("authExtra.signupFailed"),
@@ -427,14 +441,30 @@ export default function AuthPage() {
       });
       return;
     }
-    let demoName: string | null = null;
-    try {
-      const raw = localStorage.getItem("tutorhub.demo");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        demoName = parsed?.student?.name || parsed?.lesson?.studentName || parsed?.payment?.studentName || null;
+
+    // Pending invite fast path: confirm email server-side, then sign in directly.
+    if (isPending) {
+      try {
+        await supabase.functions.invoke("confirm-pending-signup", {
+          body: { email: parsed.data.email },
+        });
+        const { error: signInErr } = await supabase.auth.signInWithPassword({
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        setLoading(false);
+        if (!signInErr) {
+          navigate("/", { replace: true });
+          return;
+        }
+        // Fallthrough to email-sent screen if direct sign-in failed.
+        console.warn("[AuthPage] pending auto sign-in failed:", signInErr);
+      } catch (err) {
+        console.warn("[AuthPage] confirm-pending-signup failed:", err);
       }
-    } catch { /* ignore */ }
+    }
+
+    setLoading(false);
     setSentEmail(parsed.data.email);
     setEmailSent(true);
   };
