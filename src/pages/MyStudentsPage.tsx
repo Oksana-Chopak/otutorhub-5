@@ -656,63 +656,54 @@ export default function MyStudentsPage() {
 
   return (
     <AppLayout>
-      {/* ── Header: назва + пошук-іконка (Додати учня — FAB внизу) ────── */}
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div className="min-w-0 hidden lg:block">
-          <h1 className="font-black text-[22px] leading-tight" style={{ fontFamily: T.display }}>{t("myStudents.title")}</h1>
-          {!searchOpen && (
-            <p className="text-[14px] mt-0.5" style={{ color: T.sub }}>{t("myStudents.subtitle")}</p>
-          )}
-        </div>
-        <div className="min-w-0 lg:hidden" />
-        <div className="flex items-center gap-2 flex-shrink-0">
-          {searchOpen ? (
-            <>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
-                <input
-                  autoFocus
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setSearchQuery(e.target.value);
-                    setSelectedStudentId(null);
-                  }}
-                  placeholder={t("myStudents.searchPlaceholder")}
-                  className="h-11 pl-10 pr-3 rounded-[12px] text-[15px] outline-none focus:border-[#2BBFAA]"
-                  style={{ width: 260, border: `1.5px solid ${T.border}`, background: "#fff", fontFamily: T.body }}
-                />
-              </div>
-              <button
-                onClick={() => { setSearchOpen(false); setSearchQuery(""); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100"
-                style={{ color: T.sub }}>
-                <X className="h-4 w-4" />
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
-              title={t("myStudents.searchPlaceholder")}
-              style={{ color: T.sub }}>
-              <Search className="h-5 w-5" />
-            </button>
-          )}
+      {/* ── Header (desktop only — mobile header is AppLayout's) ───────── */}
+      <div className="mb-3 hidden lg:flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 style={{ fontFamily: T.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", color: T.txt }}>{t("myStudents.title")}</h1>
+          <p className="mt-0.5 truncate" style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.subtitle")}</p>
         </div>
       </div>
 
-      {/* ── Tabs ───────────────────────────────────────────────────────── */}
-      <div className="flex gap-0.5 mb-4 rounded-[12px] p-1" style={{ background: T.bg, width: "fit-content" }}>
-        {([["active", t("myStudents.tabActive", { count: activeStudents.length })],
-           ["archived", t("myStudents.tabArchived", { count: archivedStudents.length })]] as const).map(([key, label]) => (
-          <button key={key} onClick={() => setView(key)}
-            className="px-4 h-8 rounded-[9px] text-[13px] font-bold transition-all"
-            style={view === key
+      {/* ── Search (full-width row, appears only when open) ───────────── */}
+      {searchOpen && (
+        <div className="mb-3">
+          <div className="flex items-center gap-2.5" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: `1px solid ${T.border}`, boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            <Search size={20} style={{ color: T.sub, flexShrink: 0 }} />
+            <input
+              autoFocus
+              value={searchQuery}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setSelectedStudentId(null); }}
+              placeholder={t("myStudents.searchPlaceholder")}
+              style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: T.body, fontSize: 15, color: T.txt, minWidth: 0 }}
+            />
+            <button onClick={() => { setSearchQuery(""); setSearchOpen(false); }} aria-label={t("common.close")}
+              style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: T.bg, color: T.sub, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <X size={17} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tabs + magnifier in one row ──────────────────────────────── */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex gap-0.5 rounded-[12px] p-1" style={{ background: T.bg, width: "fit-content" }}>
+          {([["active", t("myStudents.tabActive", { count: activeStudents.length })],
+             ["archived", t("myStudents.tabArchived", { count: archivedStudents.length })]] as const).map(([key, label]) => (
+            <button key={key} onClick={() => { setView(key); setSearchQuery(""); }}
+              className="px-4 h-8 rounded-[9px] text-[13px] font-bold transition-all"
+              style={view === key
               ? { background: "#fff", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
               : { background: "transparent", color: T.sub, fontFamily: T.display }}>
             {label}
           </button>
         ))}
+        </div>
+        {!searchOpen && (
+          <button onClick={() => setSearchOpen(true)} aria-label={t("myStudents.searchPlaceholder")}
+            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            <Search size={21} strokeWidth={2} />
+          </button>
+        )}
       </div>
 
       {loading ? <StudentsSkeleton /> : visibleStudents.length === 0 ? (
