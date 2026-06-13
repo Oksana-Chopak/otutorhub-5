@@ -173,11 +173,11 @@ export default function MyStudentsPage() {
     | null
   >(null);
 
-  useEffect(() => {
-    if (!wsLoading && user && (!isTutor || !isIndependent)) {
-      navigate("/onboarding", { replace: true });
-    }
-  }, [wsLoading, user, isTutor, isIndependent, navigate]);
+  // Роут уже захищений ProtectedRoute allowedRoles={["tutor"]} в App.tsx.
+  // Раніше тут було додаткове викидання на /onboarding при !isIndependent, але
+  // воно спрацьовувало через timing useWorkspaceSettings (поки isIndependent ще
+  // не догрузилось) і відкидало незалежного репетитора назад — через що клік по
+  // бульбашці «Учні» виглядав як «нічого не відбувається». Прибрано.
 
   const load = async () => {
     if (!user) return;
