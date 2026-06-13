@@ -7,6 +7,37 @@ import { UserAvatar } from "./UserAvatar";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
+// Нормалізація: центрований квадратний кроп + випрямлення орієнтації + стиск.
+// Браузер при малюванні на canvas сам застосовує EXIF-орієнтацію, тож фото з
+// телефону більше не лягає боком, а непрямокутні фото не спотворюються.
+async function normalizeAvatar(file: File): Promise<Blob> {
+  const SIZE = 512;
+  const dataUrl: string = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result as string);
+    r.onerror = () => rej(new Error("read failed"));
+    r.readAsDataURL(file);
+  });
+  const img: HTMLImageElement = await new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error("decode failed"));
+    im.src = dataUrl;
+  });
+  const side = Math.min(img.naturalWidth, img.naturalHeight);
+  const sx = (img.naturalWidth - side) / 2;
+  const sy = (img.naturalHeight - side) / 2;
+  const canvas = document.createElement("canvas");
+  canvas.width = SIZE;
+  canvas.height = SIZE;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("no canvas ctx");
+  ctx.drawImage(img, sx, sy, side, side, 0, 0, SIZE, SIZE);
+  return await new Promise((res, rej) =>
+    canvas.toBlob((b) => (b ? res(b) : rej(new Error("toBlob failed"))), "image/jpeg", 0.9),
+  );
+}
+
 interface AvatarUploaderProps {
   userId: string;
   currentUrl?: string | null;
@@ -35,7 +66,15 @@ export function AvatarUploader({
       return;
     }
     setBusy(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+
+    // Випрямляємо орієнтацію + центрований квадратний кроп (фікс «кривого» фото).
+    let uploadBlob: Blob = file;
+    try {
+      uploadBlob = await normalizeAvatar(file);
+    } catch (e) {
+      console.warn("avatar normalize failed, uploading original", e);
+    }
+    const ext = "jpg";
     const path = `${userId}/avatar.${ext}`;
 
     // Cleanup any old avatar files for this user
@@ -48,7 +87,7 @@ export function AvatarUploader({
 
     const { error: upErr } = await supabase.storage
       .from("avatars")
-      .upload(path, file, { upsert: true, cacheControl: "3600" });
+      .upload(path, uploadBlob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" });
     if (upErr) {
       console.error(upErr);
       toast.error(t("avatarUploader.uploadFailed"));
