@@ -261,7 +261,7 @@ export default function AuditLogPage() {
             </button>
           )}
           <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger className="h-8 w-[160px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[160px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActors")}</SelectItem>
               {actorOptions.map((a) => (
@@ -270,7 +270,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-8 w-[180px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[180px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
@@ -279,7 +279,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-8 w-[140px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[140px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allEntities")}</SelectItem>
               {entityOptions.map((a) => (
@@ -288,7 +288,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as Period)}>
-            <SelectTrigger className="h-8 w-[130px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[130px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allTime")}</SelectItem>
               <SelectItem value="today">{t("auditLogExtra.today")}</SelectItem>
@@ -300,7 +300,7 @@ export default function AuditLogPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-[13px]"
+              className="h-10 text-[13px]"
               onClick={() => {
                 setActorFilter("all");
                 setActionFilter("all");

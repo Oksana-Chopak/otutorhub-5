@@ -243,7 +243,7 @@ export function PendingPaymentsCard() {
                       </button>
                       <Button
                         size="sm"
-                        className="h-8 shrink-0 gap-1"
+                        className="h-10 shrink-0 gap-1"
                         onClick={() => markPaid(allIds)}
                         disabled={busy}
                         title={t("pendingPaymentsExtra.markAllPaid")}
