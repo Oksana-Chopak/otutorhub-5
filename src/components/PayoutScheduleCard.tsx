@@ -14,6 +14,7 @@ const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
   const [loading, setLoading] = useState(true);
+  const [colsMissing, setColsMissing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [freq, setFreq] = useState<"" | "weekly" | "biweekly" | "monthly">("");
   const [weekday, setWeekday] = useState<number>(5); // п'ятниця за замовч.
@@ -23,12 +24,17 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
     let alive = true;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("tutor_details")
         .select("payout_frequency, payout_weekday, payout_monthday")
         .eq("user_id", tutorId)
         .maybeSingle();
       if (!alive) return;
+      if (error && /payout_frequency|column|does not exist/i.test(error.message)) {
+        setColsMissing(true);
+        setLoading(false);
+        return;
+      }
       if (data) {
         setFreq((data.payout_frequency as any) ?? "");
         if (data.payout_weekday != null) setWeekday(data.payout_weekday);
@@ -62,6 +68,9 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
   if (loading) {
     return <div className="flex justify-center py-4"><Loader2 className="h-4 w-4 animate-spin" style={{ color: C.sub }} /></div>;
   }
+
+  // Колонки графіка ще не створені (Частина 1 SQL не застосована) — картку ховаємо.
+  if (colsMissing) return null;
 
   const chip = (active: boolean) => ({
     height: 36, padding: "0 13px", borderRadius: 11, cursor: "pointer",

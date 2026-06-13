@@ -559,17 +559,22 @@ export default function DashboardPage() {
     );
     setLessons(uniqueLessons);
     if (isManager) {
-      const { data: sched } = await supabase
-        .from("tutor_details")
-        .select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
-        .not("payout_frequency", "is", null);
-      if (sched && sched.length) {
-        const ids = (sched as any[]).map((r) => r.user_id);
-        const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
-        const nameMap: Record<string, string> = {};
-        (profs ?? []).forEach((pr: any) => { nameMap[pr.id] = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim() || "Репетитор"; });
-        setPayoutSchedules((sched as any[]).map((r) => ({ ...r, name: nameMap[r.user_id] ?? "Репетитор" })));
-      } else {
+      try {
+        const { data: sched, error: schedErr } = await supabase
+          .from("tutor_details")
+          .select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
+          .not("payout_frequency", "is", null);
+        if (!schedErr && sched && sched.length) {
+          const ids = (sched as any[]).map((r) => r.user_id);
+          const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
+          const nameMap: Record<string, string> = {};
+          (profs ?? []).forEach((pr: any) => { nameMap[pr.id] = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim() || "Репетитор"; });
+          setPayoutSchedules((sched as any[]).map((r) => ({ ...r, name: nameMap[r.user_id] ?? "Репетитор" })));
+        } else {
+          setPayoutSchedules([]);
+        }
+      } catch {
+        // Колонки графіка ще не створені (Частина 1 SQL не застосована) — тихо пропускаємо
         setPayoutSchedules([]);
       }
     }
