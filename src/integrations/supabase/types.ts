@@ -299,6 +299,45 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback_submissions: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          message: string
+          page_url: string | null
+          rating: number | null
+          status: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          message: string
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          message?: string
+          page_url?: string | null
+          rating?: number | null
+          status?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       google_calendar_tokens: {
         Row: {
           access_token: string
@@ -552,45 +591,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      feedback_submissions: {
-        Row: {
-          category: string
-          created_at: string
-          id: string
-          message: string
-          page_url: string | null
-          rating: number | null
-          status: string
-          updated_at: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          category?: string
-          created_at?: string
-          id?: string
-          message: string
-          page_url?: string | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          category?: string
-          created_at?: string
-          id?: string
-          message?: string
-          page_url?: string | null
-          rating?: number | null
-          status?: string
-          updated_at?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
       }
       lesson_feedback: {
         Row: {
@@ -1647,42 +1647,42 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string
+          payout_anchor: string | null
+          payout_frequency: string | null
+          payout_last_marked_at: string | null
+          payout_monthday: number | null
+          payout_weekday: number | null
           rate_per_lesson: number
           subjects: string[]
           updated_at: string
           user_id: string
-                  payout_frequency: string | null
-          payout_weekday: number | null
-          payout_monthday: number | null
-          payout_anchor: string | null
-          payout_last_marked_at: string | null
-}
+        }
         Insert: {
           bio?: string | null
           created_at?: string
+          payout_anchor?: string | null
+          payout_frequency?: string | null
+          payout_last_marked_at?: string | null
+          payout_monthday?: number | null
+          payout_weekday?: number | null
           rate_per_lesson?: number
           subjects?: string[]
           updated_at?: string
           user_id: string
-                  payout_frequency?: string | null
-          payout_weekday?: number | null
-          payout_monthday?: number | null
-          payout_anchor?: string | null
-          payout_last_marked_at?: string | null
-}
+        }
         Update: {
           bio?: string | null
           created_at?: string
+          payout_anchor?: string | null
+          payout_frequency?: string | null
+          payout_last_marked_at?: string | null
+          payout_monthday?: number | null
+          payout_weekday?: number | null
           rate_per_lesson?: number
           subjects?: string[]
           updated_at?: string
           user_id?: string
-                  payout_frequency?: string | null
-          payout_weekday?: number | null
-          payout_monthday?: number | null
-          payout_anchor?: string | null
-          payout_last_marked_at?: string | null
-}
+        }
         Relationships: []
       }
       tutor_notes: {
@@ -2236,6 +2236,7 @@ export type Database = {
         Args: { _tutor_id: string }
         Returns: undefined
       }
+      mark_tutor_payouts_paid: { Args: { _tutor_id: string }; Returns: number }
       merge_pending_profile: {
         Args: { _email: string; _phone: string; _real_id: string }
         Returns: string
