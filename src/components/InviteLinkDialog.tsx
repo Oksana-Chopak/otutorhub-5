@@ -3,12 +3,9 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Copy, Check, Mail, Send, Loader2, MailCheck } from "lucide-react";
+import { Copy, Check, Mail, X, MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import i18nInstance from "@/i18n";
@@ -47,7 +44,6 @@ export function InviteLinkDialog({
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [resending, setResending] = useState(false);
-  const [resent, setResent] = useState(emailSent);
 
   const inviteUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -59,8 +55,6 @@ export function InviteLinkDialog({
 
   const isTutor = role === "tutor";
   const roleNoun = isTutor ? t("inviteLink.tutorNoun") : t("inviteLink.studentNoun");
-  const roleNounDative = isTutor ? t("inviteLink.tutorDative") : t("inviteLink.studentDative");
-  const roleNounPossessive = isTutor ? t("inviteLinkExtra.tutorPossessive") : t("inviteLinkExtra.studentPossessive");
 
   const message = useMemo(() => {
     const greeting = personName ? t("inviteLink.greeting", { name: personName }) : t("inviteLink.greetingGeneric") ?? "Привіт!";
@@ -100,127 +94,124 @@ export function InviteLinkDialog({
     }
     const result = data as { success?: boolean; reason?: string; message?: string };
     if (result?.success) {
-      setResent(true);
       toast.success(t("inviteLinkExtra.emailSent"));
     } else if (result?.reason === "rate_limited") {
       toast.info(t("inviteLinkExtra.emailRateLimited"));
-      setResent(true);
     } else {
       toast.error(t("inviteLinkExtra.emailFailed"));
     }
   };
 
+  const firstName = (personName ?? "").split(" ")[0] || personName || roleNoun;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
-          <DialogTitle>🎉 {isTutor ? t("assignTutorExtra.assigned").replace(" 🎉","") : t("inviteLinkExtra.studentAdded").replace("🎉 ","").replace(" додано!","")} додано!</DialogTitle>
-          <DialogDescription>
-            {emailSent
-              ? `Ми надіслали запрошення на email ${roleNounDative === "репетитору" ? "репетитора" : "учня"}. ${isTutor ? "Він" : "Він/вона"} отримає лист з кнопкою для створення акаунта — після реєстрації профіль автоматично зв'яжеться з вашим.`
-              : `Щоб ${isTutor ? "репетитор міг увійти й вести уроки" : "учень міг увійти й бачити уроки"}, ${isTutor ? "йому" : "йому/їй"} потрібно створити акаунт. Передайте посилання нижче — після реєстрації профіль автоматично зв'яжеться з вашим.`}
+      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] flex flex-col p-0 gap-0 [&>button.absolute]:hidden">
+        {/* Header — 🎉 medallion */}
+        <div className="shrink-0 text-center relative" style={{ padding: "22px 20px 14px" }}>
+          <button onClick={() => onOpenChange(false)} aria-label={t("common.close")}
+            style={{ position: "absolute", top: 16, right: 16, width: 34, height: 34, borderRadius: 10, border: "none", background: "#F5F4F0", color: "#9398b0", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <X className="h-[17px] w-[17px]" />
+          </button>
+          <div style={{ width: 64, height: 64, margin: "4px auto 0", borderRadius: 20, background: "linear-gradient(135deg,#2BBFAA,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, boxShadow: "0 14px 30px -12px rgba(43,191,170,.7)" }}>🎉</div>
+          <DialogTitle asChild>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 23, letterSpacing: "-.01em", color: "#0f0f1a", marginTop: 14 }}>
+              {firstName} {t("inviteLinkExtra.addedSuffix") || "додано!"}
+            </div>
+          </DialogTitle>
+          <DialogDescription asChild>
+            <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, lineHeight: 1.5, color: "#9398b0", marginTop: 6, padding: "0 4px" }}>
+              {email
+                ? (isTutor
+                    ? "Ми надіслали репетитору запрошення на email. Після реєстрації профіль автоматично зв'яжеться з вашим."
+                    : "Ми надіслали учню запрошення на email. Після реєстрації профіль автоматично зв'яжеться з вашим.")
+                : (isTutor
+                    ? "Щоб репетитор міг увійти й вести уроки, передайте йому посилання нижче — профіль зв'яжеться автоматично."
+                    : "Щоб учень міг увійти й бачити уроки, передайте йому посилання нижче — профіль зв'яжеться автоматично.")}
+            </div>
           </DialogDescription>
-        </DialogHeader>
+        </div>
 
-        <div className="space-y-3 overflow-y-auto px-6 py-2 flex-1 min-w-0">
-          {emailSent && email && (
-            <div className="flex items-start gap-2 rounded-md border border-success/40 bg-success/5 p-3 text-[13px] text-foreground">
-              <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-              <div className="min-w-0">
-                <strong className="break-all">{t("inviteLinkExtra.emailSentLabel", { email })}</strong>
-                <p className="mt-1 text-muted-foreground">
-                  Якщо лист не отримано — попросіть перевірити папку «Спам».
-                  Можете також скопіювати посилання нижче й передати напряму.
-                </p>
+        <div className="flex-1 overflow-y-auto" style={{ padding: "4px 20px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Status box */}
+          {email && emailSent ? (
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start", borderRadius: 13, border: "1px solid rgba(34,197,94,.4)", background: "rgba(34,197,94,.06)", padding: 13 }}>
+              <MailCheck className="h-[19px] w-[19px] shrink-0" style={{ color: "#16a34a", marginTop: 1 }} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a", wordBreak: "break-all" }}>
+                  {t("inviteLinkExtra.emailSentLabel", { email })}
+                </div>
+                <div style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "#9398b0", marginTop: 3, lineHeight: 1.45 }}>
+                  {t("inviteLinkExtra.notReceived") || "Не отримали? Перевірте «Спам» або"}{" "}
+                  <button onClick={handleResendEmail} disabled={resending}
+                    style={{ border: "none", background: "none", padding: 0, cursor: resending ? "default" : "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#16a34a", textDecoration: "underline", textUnderlineOffset: 2, whiteSpace: "nowrap" }}>
+                    {resending ? (t("inviteLinkExtra.sending") || "надсилаю…") : (t("inviteLinkExtra.resendInline") || "надішліть ще раз")}
+                  </button>.
+                </div>
               </div>
             </div>
-          )}
-
-          {!email && (
-            <div className="rounded-md border border-warning/40 bg-warning/5 p-3 text-[13px] text-foreground">
-              ⚠️ Ви не вказали email. {isTutor ? "Репетитор" : "Учень"} зможе зареєструватися самостійно, але автоматично з'єднати профіль вийде тільки якщо телефон при реєстрації <strong>збігатиметься</strong> з тим, що ви вказали{phone ? ` (${phone})` : ""}.
+          ) : !email ? (
+            <div style={{ borderRadius: 13, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.06)", padding: 13, fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, lineHeight: 1.45, color: "#0f0f1a" }}>
+              ⚠️ {t("inviteLinkExtra.noEmailWarn") || "Ви не вказали email. Учень зможе зареєструватися сам, але профіль з'єднається автоматично лише якщо телефон збігатиметься з указаним"}{phone ? ` (${phone})` : ""}.
             </div>
+          ) : (
+            /* email заданий, але авто-лист не пішов — даємо кнопку надіслати */
+            studentId && (
+              <button onClick={handleResendEmail} disabled={resending}
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", height: 46, borderRadius: 13, border: "none", cursor: resending ? "default" : "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                <Mail className="h-4 w-4" />
+                {resending ? (t("inviteLinkExtra.sending") || "Надсилаю…") : (t("inviteLinkExtra.sendEmailNow") || "Надіслати лист на email")}
+              </button>
+            )
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-medium text-muted-foreground">
-              Посилання для реєстрації
-            </label>
-            <div className="flex items-center gap-2 rounded-md border bg-muted/30 p-2 min-w-0">
-              <code className="flex-1 truncate text-[13px] text-foreground min-w-0">{inviteUrl}</code>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => copy(inviteUrl, "link")}
-                className="h-7 shrink-0"
-              >
-                {copiedLink ? <Check className="h-3.5 w-3.5 text-success" /> : <Copy className="h-3.5 w-3.5" />}
-              </Button>
+          {/* Registration link */}
+          <div>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "#9398b0", marginBottom: 8 }}>
+              {t("inviteLinkExtra.linkLabel") || "Посилання для реєстрації"}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "7px 7px 7px 14px", minWidth: 0 }}>
+              <code style={{ flex: 1, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 14.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{inviteUrl}</code>
+              <button onClick={() => copy(inviteUrl, "link")} aria-label={t("inviteLinkExtra.copyLink") || "Копіювати"}
+                style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, border: "none", cursor: "pointer", background: copiedLink ? "rgba(34,197,94,.14)" : "#fff", color: copiedLink ? "#16a34a" : "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                {copiedLink ? <Check className="h-[21px] w-[21px]" /> : <Copy className="h-[21px] w-[21px]" />}
+              </button>
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-[13px] font-medium text-muted-foreground">
-              Готове повідомлення для {roleNounDative}
-            </label>
-            <div className="rounded-md border bg-muted/30 p-3 text-[13px] whitespace-pre-wrap break-words text-foreground">
+          {/* Ready message */}
+          <div>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "#9398b0", marginBottom: 8 }}>
+              {t("inviteLinkExtra.messageLabel") || "Готове повідомлення"}
+            </div>
+            <div style={{ position: "relative", whiteSpace: "pre-wrap", borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "13px 56px 13px 15px", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a", wordBreak: "break-word" }}>
               {message}
+              <button onClick={() => copy(message, "message")} aria-label={t("inviteLinkExtra.copyMessage") || "Копіювати повідомлення"}
+                style={{ position: "absolute", top: 8, right: 8, width: 44, height: 44, borderRadius: 11, border: "none", cursor: "pointer", background: copiedMessage ? "rgba(34,197,94,.14)" : "#fff", color: copiedMessage ? "#16a34a" : "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                {copiedMessage ? <Check className="h-[21px] w-[21px]" /> : <Copy className="h-[21px] w-[21px]" />}
+              </button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => copy(message, "message")}
-              className="w-full"
-            >
-              {copiedMessage ? (
-                <Check className="mr-2 h-4 w-4 text-success" />
-              ) : (
-                <Copy className="mr-2 h-4 w-4" />
-              )}
-              Скопіювати повідомлення
-            </Button>
           </div>
 
-          {email && studentId && (
-            <Button
-              variant={resent ? "outline" : "default"}
-              size="sm"
-              className="w-full"
-              onClick={handleResendEmail}
-              disabled={resending}
-            >
-              {resending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : resent ? (
-                <MailCheck className="mr-2 h-4 w-4" />
-              ) : (
-                <Mail className="mr-2 h-4 w-4" />
-              )}
-              {resent ? t("inviteLinkExtra.resendBtn") : t("inviteLinkExtra.sendEmailTo", { role: roleNounDative })}
-            </Button>
-          )}
-
+          {/* Open mail app — only with email */}
           {email && (
-            <a
-              href={`mailto:${email}?subject=${encodeURIComponent(
-                t("inviteLinkExtra.inviteSubject")
-              )}&body=${encodeURIComponent(message)}`}
-              className="block"
-            >
-              <Button variant="ghost" size="sm" className="w-full">
-                <Mail className="mr-2 h-4 w-4" />
+            <a href={`mailto:${email}?subject=${encodeURIComponent(t("inviteLinkExtra.inviteSubject"))}&body=${encodeURIComponent(message)}`} className="block">
+              <button style={{ width: "100%", height: 44, borderRadius: 12, border: "none", background: "transparent", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                <Mail className="h-4 w-4" />
                 <span className="truncate">{t("inviteLinkExtra.openEmail")}</span>
-              </Button>
+              </button>
             </a>
           )}
         </div>
 
-        <DialogFooter className="px-6 pb-6 pt-3 shrink-0 border-t bg-background">
-          <Button onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
-            <Send className="mr-2 h-4 w-4" />
-            Готово
-          </Button>
-        </DialogFooter>
+        {/* Footer — Done */}
+        <div className="shrink-0" style={{ padding: "14px 20px 20px", borderTop: "1px solid #eceef3", background: "#fff" }}>
+          <button onClick={() => onOpenChange(false)}
+            style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+            <Check className="h-[18px] w-[18px]" />
+            {t("inviteLinkExtra.doneBtn") || "Готово"}
+          </button>
+        </div>
       </DialogContent>
     </Dialog>
   );

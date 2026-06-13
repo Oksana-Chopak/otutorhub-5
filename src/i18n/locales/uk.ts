@@ -2344,6 +2344,13 @@ export const uk = {
     doneBtn: "Готово",
   },
   inviteLinkExtra: {
+    sendEmailNow: "Надіслати лист на email",
+    addedSuffix: "додано!",
+    notReceived: "Не отримали? Перевірте «Спам» або",
+    resendInline: "надішліть ще раз",
+    noEmailWarn: "Ви не вказали email. Учень зможе зареєструватися сам, але профіль з'єднається автоматично лише якщо телефон збігатиметься з указаним",
+    linkLabel: "Посилання для реєстрації",
+    messageLabel: "Готове повідомлення",
     tutorPossessive: "своїм репетитором",
     studentPossessive: "своїм учнем",
     inviteTutorText: "запрошую тебе приєднатися до oTutorHub як репетитора. Створи акаунт за посиланням нижче:",

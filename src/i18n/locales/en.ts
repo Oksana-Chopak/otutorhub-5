@@ -2334,6 +2334,13 @@ export const en: Translations = {
     doneBtn: "Done",
   },
   inviteLinkExtra: {
+    sendEmailNow: "Send the email now",
+    addedSuffix: "added!",
+    notReceived: "Didn't get it? Check Spam or",
+    resendInline: "send again",
+    noEmailWarn: "You didn't provide an email. The student can register themselves, but the profile will link automatically only if the phone matches the one you entered",
+    linkLabel: "Registration link",
+    messageLabel: "Ready-made message",
     tutorPossessive: "as my tutor",
     studentPossessive: "as my student",
     inviteTutorText: "invite you to join oTutorHub as a tutor. Create an account using the link below:",

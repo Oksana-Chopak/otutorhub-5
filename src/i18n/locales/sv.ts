@@ -2324,6 +2324,13 @@ export const sv: Partial<Translations> = {
     doneBtn: "Klar",
   },
   inviteLinkExtra: {
+    sendEmailNow: "Skicka e-post nu",
+    addedSuffix: "tillagd!",
+    notReceived: "Fick du inget? Kolla skräppost eller",
+    resendInline: "skicka igen",
+    noEmailWarn: "Du angav ingen e-post. Eleven kan registrera sig själv, men profilen länkas automatiskt endast om telefonnumret matchar det du angav",
+    linkLabel: "Registreringslänk",
+    messageLabel: "Färdigt meddelande",
     tutorPossessive: "som min lärare",
     studentPossessive: "som min elev",
     inviteTutorText: "bjuder in dig att gå med i oTutorHub som lärare. Skapa ett konto via länken nedan:",
