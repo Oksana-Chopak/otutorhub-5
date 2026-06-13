@@ -31,10 +31,13 @@ export function StudentOnboarding({ onComplete }: Props) {
   const { user } = useAuth();
   const [step, setStep] = useState<Step>(1);
   const [subjects, setSubjects] = useState<string[]>([]);
+  const [customSubject, setCustomSubject] = useState("");
+  const [customSubjects, setCustomSubjects] = useState<string[]>([]);
   const [level, setLevel] = useState<string | null>(null);
   const [schedule, setSchedule] = useState<string[]>([]);
   const [goal, setGoal] = useState<string | null>(null);
   const [goalOther, setGoalOther] = useState("");
+  const [saveErr, setSaveErr] = useState<string | null>(null);
 
   const LEVELS = [
     { value: "beginner", label: t("studentOnboarding.levelZero"), emoji: "🐣" },
@@ -74,6 +77,7 @@ export function StudentOnboarding({ onComplete }: Props) {
   const submit = async () => {
     if (!user) return;
     setStep("submitting");
+    setSaveErr(null);
     const { error } = await supabase.from("student_intake_quiz").insert({
       student_id: user.id,
       subjects,
@@ -83,7 +87,15 @@ export function StudentOnboarding({ onComplete }: Props) {
       goal_other: goal === "other" ? goalOther.trim() || null : null,
     });
     if (error) {
-      toast.error(t("studentOnboarding.saveFailed"));
+      // Конкретна, помітна помилка замість мікро-тосту в кутку.
+      const human = /duplicate|unique/i.test(error.message)
+        ? "Ви вже проходили це опитування раніше."
+        : /row-level security|permission/i.test(error.message)
+        ? "Немає доступу для збереження. Спробуйте перезайти в акаунт."
+        : /network|fetch|timeout/i.test(error.message)
+        ? "Проблема зі з'єднанням. Перевірте інтернет і спробуйте ще раз."
+        : `Не вдалося зберегти: ${error.message}`;
+      setSaveErr(human);
       setStep(4);
       return;
     }
@@ -183,8 +195,9 @@ export function StudentOnboarding({ onComplete }: Props) {
           <h2 className="text-xl font-bold text-foreground">{t("studentOnboarding.whatSubject")}</h2>
           <p className="text-sm text-muted-foreground">{t("studentOnboarding.selectMultiple")}</p>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {SUBJECT_OPTIONS.map((s) => {
+            {[...SUBJECT_OPTIONS, ...customSubjects].map((s) => {
               const active = subjects.includes(s);
+              const isCustom = customSubjects.includes(s);
               return (
                 <button
                   key={s}
@@ -200,11 +213,50 @@ export function StudentOnboarding({ onComplete }: Props) {
                       : "border-border hover:border-primary/40"
                   )}
                 >
-                  <span className="text-3xl">{SUBJECT_EMOJI[s] ?? "📖"}</span>
+                  <span className="text-3xl">{isCustom ? "✏️" : (SUBJECT_EMOJI[s] ?? "📖")}</span>
                   <span className="text-[13px] font-medium leading-tight">{s}</span>
                 </button>
               );
             })}
+          </div>
+
+          {/* Додати свій предмет */}
+          <div className="flex gap-2">
+            <input
+              value={customSubject}
+              onChange={(e) => setCustomSubject(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const v = customSubject.trim();
+                  if (v.length >= 2 && ![...SUBJECT_OPTIONS, ...customSubjects].some((x) => x.toLowerCase() === v.toLowerCase())) {
+                    setCustomSubjects((p) => [...p, v]);
+                    setSubjects((p) => [...p, v]);
+                    setCustomSubject("");
+                  }
+                }
+              }}
+              placeholder={t("studentOnboarding.addOwnSubject") || "Свій предмет…"}
+              maxLength={40}
+              className="flex-1 rounded-xl border-2 border-border px-4 py-2.5 text-[14px] outline-none focus:border-primary/50"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui" }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                const v = customSubject.trim();
+                if (v.length >= 2 && ![...SUBJECT_OPTIONS, ...customSubjects].some((x) => x.toLowerCase() === v.toLowerCase())) {
+                  setCustomSubjects((p) => [...p, v]);
+                  setSubjects((p) => [...p, v]);
+                  setCustomSubject("");
+                }
+              }}
+              disabled={customSubject.trim().length < 2}
+              className="rounded-xl px-4 text-white font-bold text-[14px] disabled:opacity-40"
+              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
+            >
+              +
+            </button>
           </div>
           <Button
             className="w-full"
@@ -314,14 +366,29 @@ export function StudentOnboarding({ onComplete }: Props) {
             })}
           </div>
           {goal === "other" && (
-            <Textarea
-              placeholder={t("studentOnboarding.goalPlaceholder")}
-              value={goalOther}
-              onChange={(e) => setGoalOther(e.target.value)}
-              className="animate-fade-in"
-              rows={3}
-            />
+            <div className="animate-fade-in">
+              <Textarea
+                placeholder={t("studentOnboarding.goalPlaceholder")}
+                value={goalOther}
+                onChange={(e) => { setGoalOther(e.target.value); if (saveErr) setSaveErr(null); }}
+                rows={3}
+                maxLength={300}
+              />
+              <p className="mt-1 text-right text-[12px]" style={{ color: "#9398b0" }}>{goalOther.trim().length}/300</p>
+            </div>
           )}
+
+          {/* Помітне попередження про помилку збереження */}
+          {saveErr && (
+            <div className="flex items-start gap-3 rounded-[14px] p-3.5 animate-fade-in" style={{ background: "rgba(224,85,47,.08)", border: "1.5px solid rgba(224,85,47,.35)" }}>
+              <span style={{ fontSize: 20, lineHeight: 1 }}>⚠️</span>
+              <div>
+                <p className="text-[14px] font-bold" style={{ color: "#b3441f", fontFamily: "Inter, system-ui" }}>Не вдалося зберегти</p>
+                <p className="text-[13px] mt-0.5" style={{ color: "#9a4a35", lineHeight: 1.5 }}>{saveErr}</p>
+              </div>
+            </div>
+          )}
+
           <Button
             className="w-full"
             disabled={!goal || (goal === "other" && goalOther.trim().length === 0)}

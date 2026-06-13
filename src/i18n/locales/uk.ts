@@ -1338,6 +1338,7 @@ export const uk = {
     whenConvenient: "Коли зручно займатись?",
     whatGoal: "Яка ціль?",
     goalPlaceholder: "Розкажи про свою ціль…",
+    addOwnSubject: "Свій предмет…",
     finish: "Завершити",
   },
 

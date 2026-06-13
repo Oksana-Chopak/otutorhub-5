@@ -1319,6 +1319,7 @@ export const sv: Partial<Translations> = {
     whenConvenient: "När är det lämpligt att studera?",
     whatGoal: "Vad är ditt mål?",
     goalPlaceholder: "Berätta om ditt mål…",
+    addOwnSubject: "Eget ämne…",
     finish: "Avsluta",
   },
 

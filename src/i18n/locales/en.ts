@@ -1329,6 +1329,7 @@ export const en: Translations = {
     whenConvenient: "When is it convenient to study?",
     whatGoal: "What is your goal?",
     goalPlaceholder: "Tell me about your goal…",
+    addOwnSubject: "Your own subject…",
     finish: "Finish",
   },
 
