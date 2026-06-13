@@ -887,36 +887,23 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         >
           <div className="relative shrink-0">
             {u.is_pending ? (
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-warning/20 text-warning">
-                <Hourglass className="h-4 w-4" />
+              <div className="flex h-[52px] w-[52px] items-center justify-center rounded-full bg-warning/20 text-warning">
+                <Hourglass className="h-5 w-5" />
               </div>
             ) : (
               <UserAvatar
                 url={u.avatar_url}
                 firstName={u.first_name}
                 lastName={u.last_name}
-                className={`h-[46px] w-[46px] ${
+                className={`h-[52px] w-[52px] ${
                   accent === "primary" ? "ring-2 ring-primary/30" : ""
                 }`}
               />
             )}
-            {/* Status dot on avatar — green=active, red=debt, gray=inactive, yellow=pending */}
-            <span
-              className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
-              style={{
-                background: u.is_pending
-                  ? "#EF9F27"
-                  : u.archived_at
-                    ? "#888780"
-                    : studentSt?.status === "debt"
-                      ? "#E24B4A"
-                      : "#1D9E75"
-              }}
-            />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="max-w-full overflow-visible text-[15px] font-semibold text-foreground">
+              <p className="max-w-full overflow-visible text-[17px] font-bold text-foreground">
                 {fullName(u)}
               </p>
               {u.is_pending && (
@@ -972,16 +959,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         <span className="truncate text-[13px]" style={{ color: "#9398b0" }}>{c.v}</span>
                         <button
                           type="button"
-                          aria-label="Copy"
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[7px] transition-colors hover:bg-[#f0fdf9]"
-                          style={{ color: "#b0b4c8" }}
+                          aria-label={t("people.copied") || "Копіювати"}
+                          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] transition-colors hover:bg-[#f0fdf9]"
+                          style={{ color: "#25a896" }}
                           onClick={(e) => {
                             e.stopPropagation();
                             navigator.clipboard.writeText(String(c.v));
                             toast.success(t("people.copied"), { description: String(c.v) });
                           }}
                         >
-                          <Copy className="h-3.5 w-3.5" />
+                          <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
                         </button>
                       </span>
                     ))}
@@ -1771,13 +1758,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         className="h-[52px] w-[52px]"
                       />
                     )}
-                    <span
-                      className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
-                      style={{
-                        background: u.is_pending ? "#EF9F27" : u.archived_at ? "#888780"
-                          : "#1D9E75"
-                      }}
-                    />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[18px] font-semibold leading-tight text-foreground truncate">
@@ -1844,11 +1824,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <span className="flex-1 text-[14px] text-foreground">{u.phone}</span>
                     <button
                       type="button"
-                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                      style={{ color: "var(--sub,#9398b0)" }}
-                      onClick={() => navigator.clipboard.writeText(u.phone!)}
+                      aria-label="Копіювати"
+                      className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
+                      style={{ color: "#25a896" }}
+                      onClick={() => { navigator.clipboard.writeText(u.phone!); toast.success(t("people.copied"), { description: u.phone! }); }}
                     >
-                      <Copy className="h-3.5 w-3.5" />
+                      <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
                     </button>
                   </div>
                 )}
@@ -1858,11 +1839,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <span className="flex-1 text-[14px] text-foreground truncate">{u.email}</span>
                     <button
                       type="button"
-                      className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                      style={{ color: "var(--sub,#9398b0)" }}
-                      onClick={() => navigator.clipboard.writeText(u.email!)}
+                      aria-label="Копіювати"
+                      className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
+                      style={{ color: "#25a896" }}
+                      onClick={() => { navigator.clipboard.writeText(u.email!); toast.success(t("people.copied"), { description: u.email! }); }}
                     >
-                      <Copy className="h-3.5 w-3.5" />
+                      <Copy className="h-[19px] w-[19px]" strokeWidth={2} />
                     </button>
                   </div>
                 )}
