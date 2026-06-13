@@ -7,7 +7,6 @@
  */
 import { useState } from "react";
 import { MessageCircle, Copy, Check, Mail } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
 const T = {
@@ -20,14 +19,6 @@ const T = {
   muted:   "#b0b4c8",
   display: "Inter, system-ui, sans-serif",
   body:    "'Plus Jakarta Sans', system-ui, sans-serif",
-};
-
-const STATUS_DOT: Record<string, string> = {
-  ok:       "#22c55e",
-  debt:     "#f59e0b",
-  inactive: "#9aa0b4",
-  new:      "#b0b4c8",
-  pending:  "#EF9F27",
 };
 
 const AVATAR_GRADIENTS = [
@@ -55,7 +46,6 @@ export function computeInitials(name: string): string {
 export function PersonAva({
   name,
   avatarUrl,
-  status = "ok",
   size = 52,
 }: {
   name: string;
@@ -63,9 +53,6 @@ export function PersonAva({
   status?: string;
   size?: number;
 }) {
-  const dotSize  = Math.round(size * 0.27);
-  const dotColor = STATUS_DOT[status] ?? STATUS_DOT.new;
-
   return (
     <div style={{ position: "relative", flexShrink: 0, width: size, height: size }}>
       {avatarUrl ? (
@@ -85,11 +72,6 @@ export function PersonAva({
           {computeInitials(name)}
         </div>
       )}
-      <span style={{
-        position: "absolute", right: -1, bottom: -1,
-        width: dotSize, height: dotSize, borderRadius: 999,
-        background: dotColor, boxShadow: "0 0 0 3px #fff",
-      }} />
     </div>
   );
 }
@@ -141,7 +123,6 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
 export function PersonBadges({
   status,
   isPending,
-  inactiveDays,
   unpaidTotal,
   obDone,
   kind,
@@ -149,7 +130,6 @@ export function PersonBadges({
 }: {
   status: string;
   isPending?: boolean;
-  inactiveDays?: number;
   unpaidTotal?: number;
   obDone?: number;
   kind?: "student" | "tutor" | "manager";
@@ -178,7 +158,6 @@ export function PersonBadges({
 
   if (isPending)              pills.push(<Pill key="p" tone="warn">⏳ Очікує входу</Pill>);
   else if (status === "debt") pills.push(<Pill key="d" tone="warn">⚠️ Борг ₴{unpaidTotal}</Pill>);
-  else if (status === "inactive" && inactiveDays) pills.push(<Pill key="i" tone="muted">💤 {inactiveDays} дн. тиша</Pill>);
   else if (status === "new")  pills.push(<Pill key="n" tone="muted">✨ Новий</Pill>);
 
   if (kind === "tutor" && obDone !== undefined && obDone < 3 && !isPending)
@@ -202,7 +181,6 @@ interface PersonCardProps {
   subLine: string;          // "Англійська · ₴500/урок" / "Математика · Фізика" / "Менеджер"
   email?: string | null;
   isPending?: boolean;
-  inactiveDays?: number;
   unpaidTotal?: number;
   obDone?: number;          // onboarding steps done (tutor in manager view)
   kind?: "student" | "tutor" | "manager";
@@ -213,7 +191,7 @@ interface PersonCardProps {
 }
 
 export function PersonCard({
-  name, avatarUrl, status, subLine, email, isPending, inactiveDays,
+  name, avatarUrl, status, subLine, email, isPending,
   unpaidTotal, obDone, kind, isOwner, active, onOpen, onWrite,
 }: PersonCardProps) {
   const [hover, setHover] = useState(false);
@@ -249,7 +227,7 @@ export function PersonCard({
           {subLine}
         </span>
         <PersonBadges
-          status={status} isPending={isPending} inactiveDays={inactiveDays}
+          status={status} isPending={isPending}
           unpaidTotal={unpaidTotal} obDone={obDone} kind={kind} isOwner={isOwner}
         />
         <ContactInline value={email} />

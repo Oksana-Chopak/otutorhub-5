@@ -908,9 +908,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     ? "#888780"
                     : studentSt?.status === "debt"
                       ? "#E24B4A"
-                      : studentSt?.status === "inactive"
-                        ? "#888780"
-                        : "#1D9E75"
+                      : "#1D9E75"
               }}
             />
           </div>
@@ -929,7 +927,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   {t("people.archivedBadge")}
                 </Badge>
               )}
-              {studentSt && (studentSt.status === "debt" || studentSt.status === "inactive") && (
+              {studentSt && studentSt.status === "debt" && (
                 <Badge
                   variant="outline"
                   className={`text-[13px] px-1.5 py-0 ${

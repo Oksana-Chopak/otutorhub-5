@@ -29,10 +29,9 @@ import {
   Plus,
   Loader2,
   Phone,
-  Mail,
   Search,
   Copy,
-  Send,
+  ArrowLeft,
   MessageCircle,
   X,
   Facebook,
@@ -42,7 +41,6 @@ import {
   ArchiveRestore,
   Hourglass,
   Banknote,
-  Video,
   Wallet,
   MessageSquare,
   CalendarPlus,
@@ -638,10 +636,22 @@ export default function MyStudentsPage() {
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
-  // Profile panel helper
-  const inactiveDaysOf = (s: MyStudent) => {
-    if (!s.last_lesson_at) return undefined;
-    return Math.round((Date.now() - new Date(s.last_lesson_at).getTime()) / 86400000);
+  // Єдина іконка копіювання (без слів/кнопок) — 44px тач-таргет, як у дизайні.
+  const CopyMini = ({ value, label }: { value: string; label: string }) => {
+    const [done, setDone] = useState(false);
+    return (
+      <button aria-label={t("common.copy") || "Копіювати"} title={t("common.copy") || "Копіювати"}
+        onClick={(e) => {
+          e.stopPropagation();
+          navigator.clipboard.writeText(value);
+          toast.success(`${label} ${t("common.copied") || "скопійовано"}`, { description: value });
+          setDone(true);
+          setTimeout(() => setDone(false), 1500);
+        }}
+        style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, border: "none", cursor: "pointer", background: "transparent", color: done ? "#16a34a" : T.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {done ? <Check size={19} strokeWidth={2.4} /> : <Copy size={19} strokeWidth={2} />}
+      </button>
+    );
   };
 
   return (
@@ -719,7 +729,6 @@ export default function MyStudentsPage() {
           <div className={`flex flex-col gap-2.5 flex-shrink-0 ${selectedStudent ? "hidden lg:flex lg:w-[400px]" : "w-full"}`}>
             {visibleStudents.map(s => {
               const st = statusOf(s);
-              const inactiveDays = inactiveDaysOf(s);
               const name = `${s.first_name} ${s.last_name}`.trim() || "—";
               return (
                 <PersonCard
@@ -731,7 +740,6 @@ export default function MyStudentsPage() {
                   subLine={`${s.subject} · ${formatPrice(s.price, s.currency)}/урок${(s.wallet_lessons ?? 0) > 0 ? ` · 📦 ${s.wallet_lessons} ур.` : ""}`}
                   email={s.email}
                   isPending={s.is_pending}
-                  inactiveDays={st.status === "inactive" ? inactiveDays : undefined}
                   unpaidTotal={s.unpaid_total}
                   kind="student"
                   active={selectedStudentId === s.id}
@@ -749,141 +757,125 @@ export default function MyStudentsPage() {
             const name = `${s.first_name} ${s.last_name}`.trim() || "—";
             const nextLessonLabel = (s as any).next_lesson_at
               ? new Date((s as any).next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
-              : t("myStudents.noUpcoming");
+              : "—";
+            const statusBg = s.is_pending ? "rgba(148,155,185,.14)" : st.status === "debt" ? "rgba(245,158,11,.12)" : st.status === "ok" ? "rgba(34,197,94,.12)" : st.status === "new" ? "rgba(37,99,235,.1)" : "rgba(148,155,185,.12)";
+            const statusFg = s.is_pending ? T.sub : st.status === "debt" ? "#B4740B" : st.status === "ok" ? "#16a34a" : st.status === "new" ? "#2563eb" : T.sub;
+            const statusLabel = s.is_pending ? "⏳ Очікує входу" : st.label;
+            const contacts = [
+              { label: "Телефон", value: s.phone, tel: true },
+              { label: "Telegram", value: s.telegram, tel: false },
+            ].filter(c => c.value);
 
             return (
-              <div className="flex-1 min-w-0 rounded-[20px] border bg-white"
-                style={{ borderColor: T.border, boxShadow: "0 2px 12px rgba(15,15,26,.06)" }}>
-                {/* Back button (mobile only) */}
-                <button className="lg:hidden flex items-center gap-1.5 px-4 pt-4 pb-2 text-[14px] font-semibold"
-                  style={{ color: T.tealD, fontFamily: T.display }}
-                  onClick={() => setSelectedStudentId(null)}>
-                  ← Назад
-                </button>
-
-                {/* Hero */}
-                <div className="flex items-center gap-4 px-5 pt-5 pb-4" style={{ borderBottom: `1px solid ${T.border}` }}>
-                  <PersonAva name={name} avatarUrl={s.avatar_url} status={s.is_pending ? "pending" : st.status} size={56} />
-                  <div className="min-w-0 flex-1">
-                    <p className="font-black text-[20px] leading-tight truncate" style={{ fontFamily: T.display, color: T.txt }}>{name}</p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <span className="text-[13px] font-semibold px-2.5 py-0.5 rounded-full"
-                        style={{ background: st.status === "debt" ? "rgba(245,158,11,.12)" : st.status === "ok" ? "rgba(34,197,94,.12)" : "rgba(148,155,185,.12)",
-                                 color: st.status === "debt" ? "#b45309" : st.status === "ok" ? "#16a34a" : T.sub }}>
-                        {s.is_pending ? "⏳ Очікує входу" : st.label}
-                      </span>
-                      <span className="text-[13px]" style={{ color: T.sub }}>{s.subject}</span>
-                    </div>
-                  </div>
-                  <button className="p-2 rounded-full hover:bg-gray-50" onClick={() => openEdit(s)} title={t("common.edit")}>
-                    <Pencil size={16} style={{ color: T.muted }} />
+              <div className="flex-1 min-w-0 rounded-[20px] flex flex-col" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: "0 2px 12px rgba(15,15,26,.06)", maxHeight: "calc(100vh - 120px)" }}>
+                {/* Corner actions: back (mobile) + edit / archive */}
+                <div className="relative flex items-center justify-between flex-shrink-0" style={{ padding: "12px 14px 4px" }}>
+                  <button className="lg:hidden flex items-center gap-1 text-[14px] font-bold" style={{ color: T.tealD, fontFamily: T.display, background: "none", border: "none", cursor: "pointer" }}
+                    onClick={() => setSelectedStudentId(null)}>
+                    <ArrowLeft size={18} /> Назад
                   </button>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 px-5 py-4" style={{ borderBottom: `1px solid ${T.border}` }}>
-                  <button onClick={() => navigate(`/chats?with=${s.id}`)}
-                    className="flex-1 h-12 rounded-[14px] font-bold text-[15px] text-white flex items-center justify-center gap-2"
-                    style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display,
-                             boxShadow: "0 6px 18px -6px rgba(43,191,170,.6)" }}>
-                    <MessageCircle size={18} strokeWidth={2} /> {t("people.write")}
-                  </button>
-                  {s.phone && (
-                    <a href={`tel:${s.phone}`}
-                      className="flex-shrink-0 h-12 px-5 rounded-[14px] border font-bold text-[15px] flex items-center justify-center gap-2"
-                      style={{ borderColor: T.border, color: T.tealD, fontFamily: T.display, textDecoration: "none" }}>
-                      <Phone size={17} strokeWidth={2} /> {t("people.call")}
-                    </a>
-                  )}
-                </div>
-
-                {/* Debt alert */}
-                {s.unpaid_total > 0 && (
-                  <div className="mx-5 my-3 rounded-[14px] flex items-center justify-between px-4 py-3"
-                    style={{ background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.3)" }}>
-                    <div>
-                      <p className="text-[13px] font-bold" style={{ color: "#b45309" }}>
-                        ⚠️ Заборгованість ₴{s.unpaid_total}
-                      </p>
-                      <p className="text-[13px]" style={{ color: "#b45309" }}>
-                        {s.unpaid_count} неоплачений{s.unpaid_count > 1 ? "х" : ""} урок{s.unpaid_count > 1 ? "ів" : ""}
-                      </p>
-                    </div>
-                    <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id,
-                        studentName: name, tutorName: t("common.you"), rate: s.price })}
-                      className="h-8 px-3 rounded-[9px] text-[13px] font-bold"
-                      style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)", fontFamily: T.display }}>
-                      Нагадати
+                  <div className="hidden lg:block" />
+                  <div className="flex gap-1.5">
+                    <button onClick={() => openEdit(s)} aria-label={t("common.edit")}
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      <Pencil size={20} />
+                    </button>
+                    <button onClick={() => s.archived_at ? unarchive(s) : archive(s)} aria-label={s.archived_at ? t("people.unarchiveBtn") : t("people.archiveBtn")}
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      {s.archived_at ? <ArchiveRestore size={20} /> : <Archive size={20} />}
                     </button>
                   </div>
-                )}
-
-                {/* Stats */}
-                <div className="grid grid-cols-2 gap-3 px-5 py-4" style={{ borderTop: s.unpaid_total > 0 ? "none" : `1px solid ${T.border}` }}>
-                  <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
-                    <p className="font-black text-[24px]" style={{ fontFamily: T.display, color: T.txt }}>{(s as any).total_lessons ?? 0}</p>
-                    <p className="text-[13px]" style={{ color: T.sub }}>уроків разом</p>
-                  </div>
-                  <div className="rounded-[14px] p-3" style={{ background: T.bg }}>
-                    <p className="font-black text-[18px]" style={{ fontFamily: T.display,
-                       color: (s as any).next_lesson_at ? T.tealD : T.muted }}>
-                      {nextLessonLabel}
-                    </p>
-                    <p className="text-[13px]" style={{ color: T.sub }}>наступний урок</p>
-                  </div>
                 </div>
 
-                {/* Contacts */}
-                <div className="px-5 pb-4 flex flex-col gap-2.5" style={{ borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
-                  {[
-                    { icon: <Mail size={15} />, label: "Email",    value: s.email, copyable: true },
-                    { icon: <Phone size={15} />, label: "Телефон", value: s.phone, copyable: true },
-                    { icon: <Send size={15} />,  label: "Telegram", value: s.telegram, copyable: true },
-                    { icon: <Video size={15} />, label: "Постійна кімната", value: s.default_meeting_url, copyable: false },
-                  ].filter(c => c.value).map(({ icon, label, value, copyable }) => (
-                    <div key={label} className="flex items-center gap-3 rounded-[12px] px-3 py-2.5"
-                      style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
-                      <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[13px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
-                        <p className="text-[14px] truncate" style={{ color: T.txt, fontFamily: T.body }}>{value}</p>
+                <div className="flex-1 overflow-y-auto" style={{ padding: "6px 16px 0", display: "flex", flexDirection: "column", gap: 14 }}>
+                  {/* Hero */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "4px 2px 0" }}>
+                    <PersonAva name={name} avatarUrl={s.avatar_url} status="none" size={64} />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em", color: T.txt }} className="truncate">{name}</div>
+                      {s.email && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                          <span style={{ fontFamily: T.body, fontSize: 15, color: T.sub, minWidth: 0 }} className="truncate">{s.email}</span>
+                          <CopyMini value={s.email} label="Email" />
+                        </div>
+                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
+                        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, padding: "2px 10px", borderRadius: 999, background: statusBg, color: statusFg }}>{statusLabel}</span>
+                        <span style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{s.subject} · {formatPrice(s.price, s.currency)}/урок</span>
                       </div>
-                      {copyable && (
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(value as string);
-                            toast.success(`${label} скопійовано`, { description: value as string });
-                          }}
-                          className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0"
-                          style={{ color: T.sub }}
-                          title="Копіювати">
-                          <Copy size={15} />
-                        </button>
-                      )}
-                      {label === "Телефон" && (
-                        <a href={`tel:${value}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0"
-                          style={{ color: T.tealD }} title="Подзвонити">
-                          <Phone size={15} />
-                        </a>
-                      )}
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Debt alert */}
+                  {s.unpaid_total > 0 && (
+                    <div style={{ borderRadius: 16, padding: 14, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>⚠️ Борг {formatPrice(s.unpaid_total, s.currency)}</div>
+                        <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{s.unpaid_count} неоплачени{s.unpaid_count > 1 ? "х" : "й"} урок{s.unpaid_count > 1 ? "ів" : ""}</div>
+                      </div>
+                      <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
+                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 14.5, cursor: "pointer", flexShrink: 0 }}>
+                        Нагадати
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Stats */}
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
+                      <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, color: T.txt }}>{(s as any).total_lessons ?? 0}</div>
+                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>уроків разом</div>
+                    </div>
+                    <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
+                      <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: (s as any).next_lesson_at ? T.tealD : T.muted }}>{nextLessonLabel}</div>
+                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>наступний урок</div>
+                    </div>
+                  </div>
+
+                  {/* Wallet package */}
+                  {(s.wallet_lessons ?? 0) > 0 && (
+                    <div style={{ borderRadius: 16, padding: "13px 15px", background: "#f0fdf9", border: "1px solid rgba(43,191,170,.28)", display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>📦</span>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.tealD }}>Пакет: {s.wallet_lessons} оплачених уроків наперед</div>
+                    </div>
+                  )}
+
+                  {/* Contacts */}
+                  {contacts.length > 0 && (
+                    <div>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>Контакти</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                        {contacts.map((c) => (
+                          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "#fff" }}>
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
+                              <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
+                            </div>
+                            {c.tel && (
+                              <a href={`tel:${c.value}`} aria-label="Подзвонити" style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", color: T.tealD }}>
+                                <Phone size={19} strokeWidth={2} />
+                              </a>
+                            )}
+                            <CopyMini value={c.value as string} label={c.label} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* Actions: edit / archive / wallet */}
-                <div className="flex gap-2 px-5 pb-5">
-                  <Button size="sm" variant="outline" onClick={() => openEdit(s)} className="flex-1">
-                    <Pencil className="h-3.5 w-3.5 mr-1" /> {t("common.edit")}
-                  </Button>
-                  {!s.archived_at ? (
-                    <Button size="sm" variant="outline" onClick={() => archive(s)}>
-                      <Archive className="h-3.5 w-3.5 mr-1" /> {t("people.archiveBtn")}
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" onClick={() => unarchive(s)}>
-                      <ArchiveRestore className="h-3.5 w-3.5 mr-1" /> {t("people.unarchiveBtn")}
-                    </Button>
+                {/* Sticky actions */}
+                <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "12px 16px 16px", borderTop: `1px solid ${T.border}`, background: "#fff" }}>
+                  {s.phone && (
+                    <a href={`tel:${s.phone}`}
+                      style={{ flexShrink: 0, height: 50, padding: "0 18px", borderRadius: 14, border: `1px solid ${T.border}`, background: "#fff", color: T.tealD, fontFamily: T.display, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      <Phone size={18} strokeWidth={2} /> {t("people.call")}
+                    </a>
                   )}
+                  <button onClick={() => navigate(`/chats?with=${s.id}`)}
+                    style={{ flex: 1, height: 50, borderRadius: 14, border: "none", background: `linear-gradient(135deg,${T.teal},${T.tealD})`, color: "#fff", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                    <MessageCircle size={19} strokeWidth={2} /> {t("people.write")}
+                  </button>
                 </div>
               </div>
             );
