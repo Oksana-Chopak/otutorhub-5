@@ -170,7 +170,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                   </div>
                   <button onClick={() => { navigator.clipboard.writeText(contact.email!); toast.success("Email скопійовано", { description: contact.email! }); }}
                     className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
-                    <Copy size={15} />
+                    <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>
               )}
@@ -186,7 +186,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                   </a>
                   <button onClick={() => { navigator.clipboard.writeText(contact.phone!); toast.success("Телефон скопійовано", { description: contact.phone! }); }}
                     className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
-                    <Copy size={15} />
+                    <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>
               )}

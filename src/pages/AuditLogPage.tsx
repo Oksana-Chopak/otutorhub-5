@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -13,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ShieldAlert, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { ShieldAlert, Download, ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
@@ -92,6 +91,7 @@ export default function AuditLogPage() {
   const [entityFilter, setEntityFilter] = useState<string>("all");
   const [periodFilter, setPeriodFilter] = useState<Period>("all");
   const [search, setSearch] = useState<string>("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -239,12 +239,27 @@ export default function AuditLogPage() {
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder={t("auditLog.searchPlaceholder")}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-8 max-w-[220px] text-[13px]"
-          />
+          {searchOpen ? (
+            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 44, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={20} style={{ color: "#9398b0", flexShrink: 0 }} />
+              <input
+                autoFocus
+                placeholder={t("auditLog.searchPlaceholder")}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
+              />
+              <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
+                style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <X size={16} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setSearchOpen(true)} aria-label={t("auditLog.searchPlaceholder")}
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={21} strokeWidth={2} />
+            </button>
+          )}
           <Select value={actorFilter} onValueChange={setActorFilter}>
             <SelectTrigger className="h-8 w-[160px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
