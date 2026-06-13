@@ -30,6 +30,8 @@ import {
   Loader2,
   Phone,
   Mail,
+  Search,
+  Copy,
   Send,
   X,
   Facebook,
@@ -656,7 +658,7 @@ export default function MyStudentsPage() {
           {searchOpen ? (
             <>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: T.muted }} />
                 <input
                   autoFocus
                   value={searchQuery}
@@ -665,8 +667,8 @@ export default function MyStudentsPage() {
                     setSelectedStudentId(null);
                   }}
                   placeholder={t("myStudents.searchPlaceholder")}
-                  className="h-10 pl-9 pr-3 rounded-[12px] text-[14px] outline-none"
-                  style={{ width: 220, border: `1px solid ${T.border}`, background: "#fbfbfc", fontFamily: T.body }}
+                  className="h-11 pl-10 pr-3 rounded-[12px] text-[15px] outline-none focus:border-[#2BBFAA]"
+                  style={{ width: 260, border: `1.5px solid ${T.border}`, background: "#fff", fontFamily: T.body }}
                 />
               </div>
               <button
@@ -682,7 +684,7 @@ export default function MyStudentsPage() {
               className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-gray-100 transition-colors"
               title={t("myStudents.searchPlaceholder")}
               style={{ color: T.sub }}>
-              <Mail className="h-5 w-5" />
+              <Search className="h-5 w-5" />
             </button>
           )}
         </div>
@@ -833,11 +835,11 @@ export default function MyStudentsPage() {
                 {/* Contacts */}
                 <div className="px-5 pb-4 flex flex-col gap-2.5" style={{ borderTop: `1px solid ${T.border}`, paddingTop: 16 }}>
                   {[
-                    { icon: <Mail size={15} />, label: "Email",    value: s.email },
-                    { icon: <Phone size={15} />, label: "Телефон", value: s.phone },
-                    { icon: <Send size={15} />,  label: "Telegram", value: s.telegram },
-                    { icon: <Video size={15} />, label: "Постійна кімната", value: s.default_meeting_url },
-                  ].filter(c => c.value).map(({ icon, label, value }) => (
+                    { icon: <Mail size={15} />, label: "Email",    value: s.email, copyable: true },
+                    { icon: <Phone size={15} />, label: "Телефон", value: s.phone, copyable: true },
+                    { icon: <Send size={15} />,  label: "Telegram", value: s.telegram, copyable: true },
+                    { icon: <Video size={15} />, label: "Постійна кімната", value: s.default_meeting_url, copyable: false },
+                  ].filter(c => c.value).map(({ icon, label, value, copyable }) => (
                     <div key={label} className="flex items-center gap-3 rounded-[12px] px-3 py-2.5"
                       style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
                       <span style={{ color: T.muted, flexShrink: 0 }}>{icon}</span>
@@ -845,9 +847,21 @@ export default function MyStudentsPage() {
                         <p className="text-[13px] uppercase tracking-wide" style={{ color: T.muted, fontFamily: T.display }}>{label}</p>
                         <p className="text-[14px] truncate" style={{ color: T.txt, fontFamily: T.body }}>{value}</p>
                       </div>
+                      {copyable && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(value as string);
+                            toast.success(`${label} скопійовано`, { description: value as string });
+                          }}
+                          className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0"
+                          style={{ color: T.sub }}
+                          title="Копіювати">
+                          <Copy size={15} />
+                        </button>
+                      )}
                       {label === "Телефон" && (
-                        <a href={`tel:${value}`} className="p-1.5 rounded-full hover:bg-gray-100"
-                          style={{ color: T.tealD }}>
+                        <a href={`tel:${value}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0"
+                          style={{ color: T.tealD }} title="Подзвонити">
                           <Phone size={15} />
                         </a>
                       )}

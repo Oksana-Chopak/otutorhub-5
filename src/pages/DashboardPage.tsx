@@ -1371,7 +1371,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </Link>
-                <Link to="/people" className="flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow"
+                <Link to="/my-students" className="flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow"
                   style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
                     style={{ background: "rgba(43,191,170,0.1)" }}>
@@ -1410,7 +1410,7 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* 2. Students */}
-                <Link to="/people" className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
+                <Link to="/my-students" className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
                   style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
                   <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
                     style={{ background: "rgba(43,191,170,0.1)" }}>

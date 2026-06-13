@@ -208,19 +208,32 @@ export default function AuthPage() {
       navigate("/", { replace: true });
       return;
     }
-    // No active session — auto-fill email so the user only needs to type password
-    const emailFromConfirm = searchParams.get("email");
-    if (emailFromConfirm) {
-      setSignInData((prev) => ({ ...prev, email: emailFromConfirm }));
-    }
-    toast({
-      title: t("authExtra.emailConfirmed"),
-      description: t("authExtra.emailConfirmedDesc"),
-    });
-    // Move focus to password field so user can immediately type password
-    setTimeout(() => {
-      document.getElementById("signin-password")?.focus();
-    }, 300);
+    // Лінк підтвердження міг принести токени в URL-хеші, які Supabase парсить
+    // асинхронно. Дочекаймося сесії перш ніж просити пароль — інакше виникає
+    // розсинхрон «email підтверджено, але вхід каже not confirmed».
+    let cancelled = false;
+    (async () => {
+      // Дати Supabase обробити хеш (#access_token=...) із лінка підтвердження.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled) return;
+      if (session?.user) {
+        navigate("/", { replace: true });
+        return;
+      }
+      // Сесії немає — підтвердження пройшло, але входу нема: автозаповнюємо email.
+      const emailFromConfirm = searchParams.get("email");
+      if (emailFromConfirm) {
+        setSignInData((prev) => ({ ...prev, email: emailFromConfirm }));
+      }
+      toast({
+        title: t("authExtra.emailConfirmed"),
+        description: t("authExtra.emailConfirmedDesc"),
+      });
+      setTimeout(() => {
+        document.getElementById("signin-password")?.focus();
+      }, 300);
+    })();
+    return () => { cancelled = true; };
   }, [isConfirmed, authLoading, user, navigate, searchParams]);
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -267,6 +280,17 @@ export default function AuthPage() {
           : t("auth.loginRetry"),
         variant: "destructive",
       });
+      // Якщо email не підтверджено — одразу пропонуємо надіслати лист повторно,
+      // щоб людина не застрягла (часта причина: лінк протух або не дійшов).
+      if (error.message === "Email not confirmed") {
+        try {
+          await supabase.auth.resend({ type: "signup", email: parsed.data.email });
+          toast({
+            title: t("authExtra.confirmResent") || "Лист надіслано повторно",
+            description: t("authExtra.confirmResentDesc") || `Нове посилання вже на ${parsed.data.email}. Перевірте пошту (і спам).`,
+          });
+        } catch { /* ignore resend errors */ }
+      }
       return;
     }
     navigate("/", { replace: true });
