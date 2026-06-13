@@ -124,7 +124,7 @@ function SegSwitch<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className="flex h-9 items-center gap-1.5 rounded-[9px] px-3 text-[13.5px] transition-all"
+          className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[13.5px] transition-all"
           style={
             value === o.value
               ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
@@ -132,7 +132,7 @@ function SegSwitch<T extends string>({
           }
         >
           {o.icon}
-          {o.label}
+          <span className="hidden sm:inline">{o.label}</span>
         </button>
       ))}
     </div>
@@ -962,16 +962,14 @@ export default function SchedulePage() {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <div className="hidden sm:block">
-            <SegSwitch<"list" | "week">
-              value={view}
-              onChange={setView}
-              options={[
-                { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
-                { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
-              ]}
-            />
-          </div>
+          <SegSwitch<"list" | "week">
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
+              { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
+            ]}
+          />
           <ScheduleFiltersSheet
             filters={filters}
             showTutorFilter={isManager}
@@ -1453,18 +1451,6 @@ export default function SchedulePage() {
       </Dialog>
 
       {/* Top "Lessons / My hours" tab switcher removed — availability now lives on /availability and is linked at the bottom of this page. */}
-
-      {/* Mobile-only view switcher */}
-      <div className="mb-4 sm:hidden">
-        <SegSwitch<"list" | "week">
-          value={view}
-          onChange={setView}
-          options={[
-            { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
-            { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
-          ]}
-        />
-      </div>
 
       <>
       {studentTutors.length > 0 && (
