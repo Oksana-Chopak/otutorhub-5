@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
   Loader2, Plus, Crown, BarChart3, Trophy, HandHeart,
-  CalendarClock, ShieldAlert, ChevronRight, Sparkles,
+  CalendarClock, ShieldAlert, ChevronRight, Sparkles, Inbox,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -117,17 +117,17 @@ export default function ProfilePage() {
   const managerGroups: SectionGroup[] = isManager
     ? [
         {
-          title: t("profile.groupScheduleAvail"),
+          title: t("profile.groupStudentsRequests"),
           items: [
-            { to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock },
-            { to: "/onboarding", label: t("nav.setupGuide"), icon: Sparkles },
+            { to: "/feedback-inbox", label: t("profile.itemFeedback") ?? "Звернення", icon: Inbox },
+            { to: "/referrals", label: t("profile.itemTutorRequests"), icon: HandHeart },
+            { to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown },
           ],
         },
         {
-          title: t("profile.groupStudentsRequests"),
+          title: t("profile.groupScheduleAvail"),
           items: [
-            { to: "/referrals", label: t("profile.itemTutorRequests"), icon: HandHeart },
-            { to: "/subscription-requests", label: t("profile.itemSubRequests"), icon: Crown },
+            { to: "/availability", label: t("profile.itemAvailability"), icon: CalendarClock },
           ],
         },
         {
