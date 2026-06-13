@@ -1020,12 +1020,15 @@ export default function ChatsPage() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p
-                        className="font-bold text-[15px] truncate"
-                        style={{ fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)" }}
+                      <button
+                        type="button"
+                        onClick={() => canShowContext && setShowContextPanel(true)}
+                        className={cn("font-bold text-[15px] truncate text-left", canShowContext && "hover:underline")}
+                        style={{ fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", cursor: canShowContext ? "pointer" : "default" }}
+                        title={canShowContext ? "Відкрити профіль" : undefined}
                       >
                         {counterpartName(selectedThread)}
-                      </p>
+                      </button>
                       {isManager && (
                         <span
                           className="inline-flex items-center gap-1 text-[13px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
@@ -1164,7 +1167,7 @@ export default function ChatsPage() {
                               {/* ЦЕНТР badge for manager sender */}
                               {!mine && senderIsManager && (
                                 <span
-                                  className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
+                                  className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
                                   style={{
                                     background: "rgba(245,158,11,.18)",
                                     color: "#b45309",

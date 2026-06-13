@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { uk as ukLocale, enUS, sv as svLocale } from "date-fns/locale";
-import { X } from "lucide-react";
+import { X, Copy, Phone } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +41,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
   const [nextLesson, setNextLesson] = useState<NextLesson | null>(null);
   const [lastHomework, setLastHomework] = useState<LastHomework | null>(null);
   const [unpaidCount, setUnpaidCount] = useState(0);
+  const [contact, setContact] = useState<{ name: string; email: string | null; phone: string | null } | null>(null);
 
   useEffect(() => {
     if (!tutorId || !studentId) {
@@ -51,6 +53,18 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
     let cancelled = false;
     setLoading(true);
     (async () => {
+      // Контакти учня (email + телефон) — щоб репетитор міг їх глянути з чату.
+      const [{ data: prof }, { data: cont }] = await Promise.all([
+        supabase.from("profiles").select("first_name, last_name").eq("id", studentId).maybeSingle(),
+        supabase.from("profile_contacts").select("email, phone").eq("user_id", studentId).maybeSingle(),
+      ]);
+      if (!cancelled) {
+        setContact({
+          name: prof ? `${prof.first_name ?? ""} ${prof.last_name ?? ""}`.trim() : "",
+          email: (cont as any)?.email ?? null,
+          phone: (cont as any)?.phone ?? null,
+        });
+      }
       const nowIso = new Date().toISOString();
       const [nextRes, hwRes, unpaidRes] = await Promise.all([
         supabase
@@ -144,6 +158,41 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
         </div>
       ) : (
         <>
+          {/* Контакти учня */}
+          {contact && (contact.email || contact.phone) && (
+            <div className="rounded-[14px] overflow-hidden" style={{ border: "1px solid #eceef3", background: "#fff" }}>
+              {contact.email && (
+                <div className="flex items-center gap-3 px-3.5 py-2.5" style={{ borderBottom: contact.phone ? "1px solid #f3f4f8" : "none" }}>
+                  <span style={{ color: "#b0b4c8", flexShrink: 0 }}>📧</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] uppercase tracking-wide" style={{ color: "#b0b4c8", fontFamily: "Inter, system-ui" }}>Email</p>
+                    <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.email}</p>
+                  </div>
+                  <button onClick={() => { navigator.clipboard.writeText(contact.email!); toast.success("Email скопійовано", { description: contact.email! }); }}
+                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
+                    <Copy size={15} />
+                  </button>
+                </div>
+              )}
+              {contact.phone && (
+                <div className="flex items-center gap-3 px-3.5 py-2.5">
+                  <span style={{ color: "#b0b4c8", flexShrink: 0 }}>📞</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[11.5px] uppercase tracking-wide" style={{ color: "#b0b4c8", fontFamily: "Inter, system-ui" }}>Телефон</p>
+                    <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.phone}</p>
+                  </div>
+                  <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#1f8e7e" }} title="Подзвонити">
+                    <Phone size={15} />
+                  </a>
+                  <button onClick={() => { navigator.clipboard.writeText(contact.phone!); toast.success("Телефон скопійовано", { description: contact.phone! }); }}
+                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
+                    <Copy size={15} />
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="rounded-xl border border-border bg-card overflow-hidden">
             <p className="px-3 pt-3 pb-1.5 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
               {t("chatContext.nextLesson")}
