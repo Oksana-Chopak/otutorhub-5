@@ -34,10 +34,10 @@ export async function insertNotification({ userId, type, title, body, link }: In
     link: link ?? null,
   });
 
-  if (error) return; // don't push if insert failed
+  if (error) return; // don't notify if insert failed
 
-  // Fire-and-forget push notification (no await — never blocks UI)
-  supabase.functions.invoke("send-push", {
-    body: { userId, title, body: body ?? "", link: link ?? "/", tag: type },
-  }).catch(() => { /* push is best-effort */ });
+  // Push is sent server-side by the AFTER INSERT trigger on public.notifications
+  // (send_push_on_notification → send-push with the service-role key). We must NOT
+  // also invoke send-push from the client — it would 403 (needs service-role) and
+  // would double-send. See migration *_notifications_push_trigger.sql.
 }

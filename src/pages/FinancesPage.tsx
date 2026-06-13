@@ -1716,16 +1716,6 @@ export default function FinancesPage() {
                 </p>
               </div>
             )}
-            {/* Pie chart */}
-            {incomeByStudent.length > 0 && (
-              <div style={{ borderRadius:18, padding:"16px 18px",
-                background:F.surface, border:`1px solid ${F.border}` }}>
-                <p style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt, marginBottom:12 }}>
-                  По учнях
-                </p>
-                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
-              </div>
-            )}
             {/* Export */}
             <button onClick={exportCsv}
               style={{ height:44, borderRadius:14, border:`1px solid ${F.border}`,

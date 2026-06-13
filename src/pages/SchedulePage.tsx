@@ -155,7 +155,9 @@ export default function SchedulePage() {
   const [students, setStudents] = useState<PersonOption[]>([]);
   const [profilesMap, setProfilesMap] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
-  const [view, setView] = useState<"list" | "week">("week");
+  const [view, setView] = useState<"list" | "week">(() =>
+    typeof window !== "undefined" && window.matchMedia("(min-width:1024px)").matches ? "week" : "list"
+  );
   // Глибокі лінки з дашборда: показати в списку лише проблемні уроки
   const [listFocus, setListFocus] = useState<null | "unpriced" | "nolink">(null);
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
@@ -962,22 +964,26 @@ export default function SchedulePage() {
           )}
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <SegSwitch<"list" | "week">
-            value={view}
-            onChange={setView}
-            options={[
-              { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
-              { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
-            ]}
-          />
-          <ScheduleFiltersSheet
-            filters={filters}
-            showTutorFilter={isManager}
-            showStudentFilter={isManager || isTutor}
-            showSourceFilter={hasMixedSources}
-            tutors={tutors}
-            students={students}
-          />
+          <div className="hidden sm:block">
+            <SegSwitch<"list" | "week">
+              value={view}
+              onChange={setView}
+              options={[
+                { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
+                { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
+              ]}
+            />
+          </div>
+          <div className="hidden sm:block">
+            <ScheduleFiltersSheet
+              filters={filters}
+              showTutorFilter={isManager}
+              showStudentFilter={isManager || isTutor}
+              showSourceFilter={hasMixedSources}
+              tutors={tutors}
+              students={students}
+            />
+          </div>
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
@@ -1356,6 +1362,28 @@ export default function SchedulePage() {
           </Dialog>
         )}
       </div>
+      </div>
+
+      {/* Mobile: view switcher + filter in one row */}
+      <div className="flex items-center gap-2 mb-4 sm:hidden">
+        <div className="flex-1">
+          <SegSwitch<"list" | "week">
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "list", label: t("schedule.listView"), icon: <List className="h-3.5 w-3.5" /> },
+              { value: "week", label: t("schedule.weekView"), icon: <CalendarRange className="h-3.5 w-3.5" /> },
+            ]}
+          />
+        </div>
+        <ScheduleFiltersSheet
+          filters={filters}
+          showTutorFilter={isManager}
+          showStudentFilter={isManager || isTutor}
+          showSourceFilter={hasMixedSources}
+          tutors={tutors}
+          students={students}
+        />
       </div>
 
       {/* Edit lesson dialog (opened from calendar / list) */}

@@ -108,7 +108,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             size="sm"
             onClick={addNote}
             disabled={saving || !draft.trim()}
-            className="w-full h-8 text-[13px]"
+            className="w-full h-10 text-[13px]"
           >
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("managerNotesExtra.addBtn")}
           </Button>

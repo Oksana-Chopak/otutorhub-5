@@ -85,7 +85,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={t("subjectSelect.customPlaceholder")}
-          className="h-8 text-[13px]"
+          className="h-10 text-[13px]"
         />
         <Button
           type="button"
@@ -93,7 +93,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           size="sm"
           onClick={addCustom}
           disabled={!custom.trim()}
-          className="h-8 shrink-0"
+          className="h-10 shrink-0"
         >
           <Plus className="h-3.5 w-3.5 mr-1" />
           {t("subjectSelect.addBtn")}

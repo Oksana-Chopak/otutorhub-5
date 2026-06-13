@@ -690,7 +690,7 @@ export default function MyStudentsPage() {
           {([["active", t("myStudents.tabActive", { count: activeStudents.length })],
              ["archived", t("myStudents.tabArchived", { count: archivedStudents.length })]] as const).map(([key, label]) => (
             <button key={key} onClick={() => { setView(key); setSearchQuery(""); }}
-              className="px-4 h-8 rounded-[9px] text-[13px] font-bold transition-all"
+              className="px-4 h-10 rounded-[9px] text-[13px] font-bold transition-all"
               style={view === key
               ? { background: "#fff", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
               : { background: "transparent", color: T.sub, fontFamily: T.display }}>

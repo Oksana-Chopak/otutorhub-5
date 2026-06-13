@@ -135,7 +135,7 @@ export function IndependentTutorStats() {
           Ваша статистика
         </h2>
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-          <SelectTrigger className="h-8 w-[170px] text-[13px]">
+          <SelectTrigger className="h-10 w-[170px] text-[13px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
