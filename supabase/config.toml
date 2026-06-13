@@ -51,3 +51,25 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.confirm-pending-signup]
     verify_jwt = false
+  [functions.send-push]
+    verify_jwt = false
+  [functions.notify-chat-message]
+    verify_jwt = false
+  [functions.scheduled-notifications]
+    verify_jwt = false
+  [functions.archive-old-chats]
+    verify_jwt = false
+  [functions.tutor-weekly-digest]
+    verify_jwt = false
+  [functions.revenuecat-webhook]
+    verify_jwt = false
+  [functions.generate-lesson-summary]
+    verify_jwt = true
+  [functions.notify-lesson-update]
+    verify_jwt = true
+  [functions.telegram-bot-info]
+    verify_jwt = true
+  [functions.telegram-link]
+    verify_jwt = true
+  [functions.remind-payment]
+    verify_jwt = true
