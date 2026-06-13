@@ -1,18 +1,18 @@
--- Web-push for in-app notifications.
+-- Web-push for in-app notifications — SUPERSEDED.
 --
--- Problem: client code (src/lib/notifications.ts) called the send-push edge
--- function with a browser JWT, but send-push requires the service-role key, so
--- every client-side push got a 403.
+-- This migration originally added the public.notifications push trigger
+-- (send_push_on_notification → send-push edge function). A later migration
+-- (20260613204940_...) authored via Lovable now defines the FULL setup: the
+-- notifications table + indexes + RLS policies + the identical push trigger.
 --
--- Fix: fire the push server-side from a SECURITY DEFINER trigger on
--- public.notifications. AFTER INSERT, we POST to send-push with the service-role
--- bearer via pg_net (async, never blocks the insert). The client invoke is being
--- removed in the same change so push is sent exactly once.
+-- To avoid two migrations defining the same function/trigger, the trigger
+-- definition has been removed from here and lives authoritatively in 204940.
+-- We keep only an idempotent table guard so that, whichever order the two
+-- notifications migrations run in, the table exists (the push trigger in 204940
+-- attaches to public.notifications).
 --
--- NOTE: guard against migration-ordering issues — the notifications table may be
--- created by a different migration with a later timestamp (it was historically
--- "missing" in prod). Ensure it exists here so this migration is self-contained
--- and order-independent.
+-- The client-side send-push invoke removal (src/lib/notifications.ts) stays in
+-- the same change set as before — push is sent exactly once, server-side.
 
 CREATE TABLE IF NOT EXISTS public.notifications (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,49 +24,3 @@ CREATE TABLE IF NOT EXISTS public.notifications (
   read boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-
---
--- Fix: fire the push server-side from a SECURITY DEFINER trigger on
--- public.notifications. AFTER INSERT, we POST to send-push with the service-role
--- bearer via pg_net (async, never blocks the insert). The client invoke is being
--- removed in the same change so push is sent exactly once.
-
-CREATE OR REPLACE FUNCTION public.send_push_on_notification()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  -- Async edge call (pg_net) — do not block the INSERT.
-  PERFORM net.http_post(
-    url     := 'https://kficbcjqcbhqhjimxfed.supabase.co/functions/v1/send-push',
-    headers := jsonb_build_object(
-      'Content-Type',  'application/json',
-      'Authorization', 'Bearer ' || current_setting('supabase.service_role_key', true)
-    ),
-    body    := jsonb_build_object(
-      'userId', NEW.user_id::text,
-      'title',  NEW.title,
-      'body',   COALESCE(NEW.body, ''),
-      'link',   COALESCE(NEW.link, '/'),
-      'tag',    NEW.type
-    )
-  );
-  RETURN NEW;
-EXCEPTION WHEN OTHERS THEN
-  -- Never block the notification insert because of a push failure.
-  RAISE WARNING 'send_push_on_notification failed: %', SQLERRM;
-  RETURN NEW;
-END;
-$$;
-
--- Trigger: AFTER INSERT, one row at a time
-DROP TRIGGER IF EXISTS trg_send_push_on_notification ON public.notifications;
-CREATE TRIGGER trg_send_push_on_notification
-  AFTER INSERT ON public.notifications
-  FOR EACH ROW
-  EXECUTE FUNCTION public.send_push_on_notification();
-
--- Only the trigger should call this — never clients directly.
-REVOKE EXECUTE ON FUNCTION public.send_push_on_notification() FROM anon, authenticated, public;

@@ -13,28 +13,22 @@ interface InsertNotification {
 }
 
 export async function insertNotification({ userId, type, title, body, link }: InsertNotification) {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-  // Deduplication: skip if same user + type was notified within 24h
-  const { data: existing } = await db
-    .from("notifications")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("type", type)
-    .gte("created_at", since)
-    .maybeSingle();
-
-  if (existing) return;
-
-  const { error } = await db.from("notifications").insert({
-    user_id: userId,
-    type,
-    title,
-    body: body ?? null,
-    link: link ?? null,
+  // Cross-user notifications (e.g. tutor → student) are blocked by the
+  // "insert own" RLS on public.notifications. We go through the
+  // create_notification SECURITY DEFINER RPC instead, which also does the 24h
+  // dedup server-side. The AFTER INSERT trigger then fires the web-push.
+  const { error } = await db.rpc("create_notification", {
+    _user_id: userId,
+    _type: type,
+    _title: title,
+    _body: body ?? null,
+    _link: link ?? null,
   });
 
-  if (error) return; // don't notify if insert failed
+  if (error) {
+    // Best-effort: never block the user's action because a notification failed.
+    console.error("[notifications] create_notification failed:", error);
+  }
 
   // Push is sent server-side by the AFTER INSERT trigger on public.notifications
   // (send_push_on_notification → send-push with the service-role key). We must NOT
