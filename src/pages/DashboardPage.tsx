@@ -1294,7 +1294,7 @@ export default function DashboardPage() {
       {loading ? (
         <DashboardSkeleton />
       ) : (
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-clip">
           {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
 
           {/* ── Тріал закінчується — персональні цифри ── */}
@@ -1571,15 +1571,6 @@ export default function DashboardPage() {
             </>
           )}
 
-          {/* Hub tutor: Notes only — QuickActionsCard replaced by FAB button */}
-          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
-            <div className="mt-4 space-y-4">
-              <TutorNotesCard />
-            </div>
-          )}
-
-
-
           {/* Top-10% badge */}
           {isTutor && !isManager && topPercentile !== null && topPercentile < 10 && (
             <TopTutorBadge percentile={topPercentile} />
@@ -1740,7 +1731,7 @@ export default function DashboardPage() {
           )}
 
           <div className="grid gap-5 md:grid-cols-2 md:gap-6">
-            <section className="order-1">
+            <section className="order-1 min-w-0">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[14px] font-bold uppercase tracking-[0.05em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {isIndependentTutor
@@ -1862,7 +1853,7 @@ export default function DashboardPage() {
               </div>
             </section>
 
-            <section className="order-2">
+            <section className="order-2 min-w-0">
               <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
