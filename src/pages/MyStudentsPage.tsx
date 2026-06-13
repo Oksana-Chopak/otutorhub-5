@@ -33,6 +33,7 @@ import {
   Search,
   Copy,
   Send,
+  MessageCircle,
   X,
   Facebook,
   Instagram,
@@ -785,7 +786,7 @@ export default function MyStudentsPage() {
                     className="flex-1 h-12 rounded-[14px] font-bold text-[15px] text-white flex items-center justify-center gap-2"
                     style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display,
                              boxShadow: "0 6px 18px -6px rgba(43,191,170,.6)" }}>
-                    <Send size={18} strokeWidth={2} /> {t("people.write")}
+                    <MessageCircle size={18} strokeWidth={2} /> {t("people.write")}
                   </button>
                   {s.phone && (
                     <a href={`tel:${s.phone}`}

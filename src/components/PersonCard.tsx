@@ -6,7 +6,7 @@
  * Аватар з градієнтом + статус-крапка + ім'я + підрядок + бейджі + email+Copy + «Написати».
  */
 import { useState } from "react";
-import { Send, Copy, Check, Mail } from "lucide-react";
+import { MessageCircle, Copy, Check, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
@@ -107,10 +107,10 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
   };
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 7 }}>
-      <Mail size={13} style={{ color: T.muted, flexShrink: 0 }} />
+    <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}>
+      <Mail size={17} style={{ color: T.muted, flexShrink: 0 }} />
       <span style={{
-        flex: 1, fontSize: 13, color: T.sub, minWidth: 0,
+        flex: 1, fontSize: 15, color: T.sub, minWidth: 0,
         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
         fontFamily: T.body,
       }}>
@@ -121,17 +121,16 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
         title="Копіювати"
         aria-label="Копіювати"
         style={{
-          width: 58, height: 26, borderRadius: 7, flexShrink: 0,
-          border: `1px solid ${T.border}`, background: T.bg,
+          width: 44, height: 44, borderRadius: 11, flexShrink: 0,
+          border: "none", background: "transparent",
           cursor: "pointer", display: "flex", alignItems: "center",
-          justifyContent: "center", gap: 3,
-          color: copied ? "#16a34a" : T.sub,
-          fontFamily: T.display, fontSize: 13, fontWeight: 600,
+          justifyContent: "center",
+          color: copied ? "#16a34a" : T.tealD,
         }}
       >
         {copied
-          ? <><Check size={11} strokeWidth={2.5} /> Готово</>
-          : <><Copy size={11} strokeWidth={1.8} /> Копіювати</>
+          ? <Check size={19} strokeWidth={2.4} />
+          : <Copy size={19} strokeWidth={2} />
         }
       </button>
     </div>
@@ -274,7 +273,7 @@ export function PersonCard({
             boxShadow: canWrite ? "0 6px 14px -6px rgba(43,191,170,0.6)" : "none",
           }}
         >
-          <Send size={20} strokeWidth={2} />
+          <MessageCircle size={21} strokeWidth={2} />
         </button>
       </div>
     </div>
