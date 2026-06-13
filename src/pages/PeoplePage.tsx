@@ -54,6 +54,7 @@ import {
   X,
   Wallet,
   Tag,
+  Search,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
@@ -202,6 +203,7 @@ export default function PeoplePage() {
 
   // Search & filters
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [subjectFilter, setSubjectFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<"active" | "pending" | "archived" | "all" | "onboarding" | "debt">("all");
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({});
@@ -1097,12 +1099,27 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {/* Search + filters (filters collapse on mobile) */}
       {!loading && (
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
-          <Input
-            placeholder={t("people.searchPlaceholder")}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 min-w-0 flex-1 rounded-xl border-[0.5px] text-[15px]"
-          />
+          {searchOpen ? (
+            <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={20} style={{ color: "#9398b0", flexShrink: 0 }} />
+              <input
+                autoFocus
+                placeholder={t("people.searchPlaceholder")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
+              />
+              <button onClick={() => { setSearchQuery(""); setSearchOpen(false); }} aria-label={t("common.close")}
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <X size={17} />
+              </button>
+            </div>
+          ) : (
+            <button onClick={() => setSearchOpen(true)} aria-label={t("people.searchPlaceholder")}
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "#9398b0", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              <Search size={21} strokeWidth={2} />
+            </button>
+          )}
           <MobileFilters
             compact
             align="right"

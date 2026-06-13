@@ -943,7 +943,7 @@ export default function ChatsPage() {
                             {isUnread && (
                               <span
                                 className="flex items-center justify-center text-white flex-shrink-0"
-                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 11.5 }}
+                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 12 }}
                               >
                                 {unreadDotFor(thread)}
                               </span>
@@ -959,7 +959,7 @@ export default function ChatsPage() {
                           style={{ borderTop: "1px solid #f3f4f8" }}
                         >
                           <span
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-bold"
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold"
                             style={{
                               fontFamily: "Inter, system-ui",
                               background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(34,197,94,.12)" : "rgba(37,99,235,.1)",
@@ -1167,7 +1167,7 @@ export default function ChatsPage() {
                               {/* ЦЕНТР badge for manager sender */}
                               {!mine && senderIsManager && (
                                 <span
-                                  className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
+                                  className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
                                   style={{
                                     background: "rgba(245,158,11,.18)",
                                     color: "#b45309",

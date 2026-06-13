@@ -148,7 +148,7 @@ export default function FeedbackInboxPage() {
                       </div>
                     </div>
                     {r.status === "new" && (
-                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 11.5, display: "inline-flex", alignItems: "center" }}>NEW</span>
+                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12, display: "inline-flex", alignItems: "center" }}>NEW</span>
                     )}
                   </div>
 
