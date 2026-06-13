@@ -24,14 +24,14 @@ export function StreakCard({ streak, className }: Props) {
         <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 text-white">
           <Flame className="h-7 w-7" />
           {current > 0 && (
-            <span className="absolute -bottom-1 -right-1 flex h-6 min-w-[24px] items-center justify-center rounded-full bg-card px-1 text-[13px] font-bold text-foreground shadow">
+            <span className="absolute -bottom-1 -right-1 flex h-6 min-w-[24px] items-center justify-center rounded-full px-1 text-[13px] font-bold shadow" style={{ background: "#fff", color: "#0f0f1a" }}>
               {current}
             </span>
           )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-[13px] uppercase tracking-wide text-muted-foreground">{t("streak.title")}</div>
+            <div className="text-[13px] uppercase tracking-wide" style={{ color: "#9398b0" }}>{t("streak.title")}</div>
             {/* Streak freeze indicator (Duolingo-style) */}
             <div
               className={cn(
@@ -46,15 +46,15 @@ export function StreakCard({ streak, className }: Props) {
                   : t("streak.freezeNextMonth")
               }
             >
-              <Snowflake className="h-3 w-3" />
+              <Snowflake className="h-3 w-3" style={freezes > 0 ? undefined : { color: "#9398b0" }} />
               {freezes} {freezes === 1 ? t("streak.freezeOne") : t("streak.freezeMany")}
             </div>
           </div>
-          <div className="text-lg font-bold text-foreground">
+          <div className="text-lg font-bold" style={{ color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif" }}>
             {current === 0 ? t("streak.startToday") : t("streak.daysStreak", { count: current })}
           </div>
           {longest > current && (
-            <div className="text-[13px] text-muted-foreground">{t("streak.record", { longest })}</div>
+            <div className="text-[13px]" style={{ color: "#9398b0" }}>{t("streak.record", { longest })}</div>
           )}
         </div>
       </div>
@@ -65,12 +65,12 @@ export function StreakCard({ streak, className }: Props) {
         </p>
       )}
       {!usedFreeze && freezes === 0 && current > 0 && (
-        <p className="mt-3 rounded-lg bg-muted/40 p-2 text-[13px] text-muted-foreground">
+        <p className="mt-3 rounded-[10px] p-2 text-[13px]" style={{ background: "#fbfbfc", color: "#9398b0", border: "1px solid #eceef3" }}>
           {t("streak.noFreeze")}
         </p>
       )}
       {toNextBonus > 0 && toNextBonus <= 14 && (
-        <p className="mt-3 rounded-lg bg-card/50 p-2 text-[13px] text-foreground">
+        <p className="mt-3 rounded-[10px] p-2 text-[13px]" style={{ background: "#f0fdf9", color: "#1f8e7e" }}>
           {t("streak.daysToBonus", { count: toNextBonus })}
         </p>
       )}
