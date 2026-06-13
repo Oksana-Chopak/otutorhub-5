@@ -41,6 +41,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.marketing-unsubscribe]
     verify_jwt = false
+  [functions.delete-account]
+    verify_jwt = true
   [functions.send-marketing-campaign]
     verify_jwt = true
   [functions.fireflies-webhook]

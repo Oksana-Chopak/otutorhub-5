@@ -33,7 +33,12 @@ export function DeleteAccountSection() {
     try {
       const { data, error } = await supabase.functions.invoke("delete-account");
       if (error || (data as { error?: string } | null)?.error) {
-        throw new Error(error?.message || (data as { error?: string }).error);
+        const raw = error?.message || (data as { error?: string }).error || "";
+        // Якщо edge-функцію ще не задеплоєно — даємо людську підказку, а не сире "Failed to send a request".
+        if (/failed to send|not found|fetch|network|edge function/i.test(raw)) {
+          throw new Error("Сервіс видалення тимчасово недоступний. Напишіть нам — і ми видалимо акаунт вручну протягом 24 годин.");
+        }
+        throw new Error(raw);
       }
       toast.success(t("accountDeletion.done"));
       try { await signOut(); } catch { /* сесія вже мертва — ок */ }
