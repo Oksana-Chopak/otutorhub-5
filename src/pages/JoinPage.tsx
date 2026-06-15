@@ -51,7 +51,7 @@ export default function JoinPage() {
             <CardDescription>{t("join.invalidDesc")}</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/auth?signup=1&role=tutor")} className="w-full">{t("join.register")}</Button>
+            <Button onClick={() => navigate("/auth?signup=1")} className="w-full">{t("join.register")}</Button>
           </CardContent>
         </Card>
       </div>

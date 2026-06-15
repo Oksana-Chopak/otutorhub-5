@@ -226,7 +226,7 @@
 ---
 
 ## Referral Flow
-- Bonus: **+30 days** for both referrer and referred (NOT +7)
+- Bonus: **21-day Pro trial** for the referred friend + **1 month Pro** for the referrer (per friend who subscribes)
 - JoinPage: dark hero gradient + teal CTA button — matches app design
 - No `?role=tutor` forced in signup URL
 - Share text: uses `referralWidget.shareText` i18n key (not hardcoded Ukrainian)
@@ -245,7 +245,7 @@
 ## Monetization
 - Monthly subscription after 30-day trial
 - First cohort: free for 6 months
-- Referral: 30 days Pro for both parties
+- Referral: 21-day trial (friend) + 1 month Pro (referrer)
 - LiqPay integration: **pending** (not yet implemented)
 - `TrialCountdownBanner`: only shows if `trial_until` was set AND expired
   (never shows for new registrations with `trial_until=null`)

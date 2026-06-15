@@ -97,8 +97,7 @@ export function RatePropagationDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t("ratePropagation.dialogTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
-            Ставку «{subject}» змінено з <b>{oldPrice} ₴</b> на <b>{newPrice} ₴</b>.
-            Оберіть, до яких уроків застосувати нове значення.
+            {t("ratePropagation.applyDescription", { subject, oldPrice, newPrice })}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -135,9 +134,14 @@ export function RatePropagationDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>{t("common.cancel") || "Скасувати"}</AlertDialogCancel>
-          <AlertDialogAction className="h-11 rounded-[12px] text-[15px] font-semibold" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
+          <AlertDialogAction
+            disabled={busy}
+            onClick={(e) => { e.preventDefault(); apply(); }}
+            className="h-11 rounded-[12px] text-[15px] font-semibold"
+            style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}
+          >
             {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
-            Застосувати
+            {t("ratePropagation.applyBtn")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

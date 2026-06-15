@@ -101,15 +101,15 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
   const hasAnySlotInView = days.some((d) => d.slots.length > 0);
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-[16px] border-[0.5px] border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h3 className="font-display text-base font-semibold text-foreground flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-primary" />
-            Доступні години — {tutorName}
+            {t("tutorAvailability.title", { name: tutorName })}
           </h3>
           <p className="text-[13px] text-muted-foreground">
-            Найближчі 14 днів. Щоб домовитися про урок — напишіть репетитору в чат.
+            {t("tutorAvailability.next14")}
           </p>
         </div>
         {hasWeekly || hasPositiveOverride ? (
@@ -117,7 +117,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9"
               onClick={() => setWeekOffset((v) => Math.max(0, v - 1))}
               disabled={weekOffset === 0}
             >
@@ -126,7 +126,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             <Button
               variant="outline"
               size="icon"
-              className="h-7 w-7"
+              className="h-9 w-9"
               onClick={() => setWeekOffset((v) => Math.min(1, v + 1))}
               disabled={weekOffset === 1}
             >
@@ -148,7 +148,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
         </p>
       ) : !hasAnySlotInView ? (
         <p className="text-center text-sm text-muted-foreground py-6">
-          У цьому тижні немає вільних слотів. Перегляньте наступний тиждень або напишіть репетитору в чат.
+          {t("tutorAvailability.noSlotsThisWeek")}
         </p>
       ) : (
         <div className="grid grid-cols-7 gap-1.5">
@@ -157,7 +157,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             return (
               <div
                 key={date.toISOString()}
-                className={`rounded-lg border p-2 min-h-[120px] ${
+                className={`rounded-[12px] border p-2 min-h-[120px] ${
                   isToday ? "border-primary/40 bg-primary/5" : "border-border"
                 }`}
               >

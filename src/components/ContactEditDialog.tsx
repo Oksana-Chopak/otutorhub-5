@@ -315,11 +315,11 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
         </div>
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end px-0">
           <Button variant="outline" className="h-11 rounded-[12px] border-[0.5px]" onClick={() => onOpenChange(false)} disabled={saving}>
-            Скасувати
+            {t("common.cancel")}
           </Button>
           <Button onClick={save} disabled={saving} className="h-11 w-full rounded-[12px] text-[15px] font-semibold sm:w-auto" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Зберегти
+            {t("common.save")}
           </Button>
         </DialogFooter>
         </div>

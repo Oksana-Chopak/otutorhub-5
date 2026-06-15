@@ -1309,7 +1309,7 @@ export const en: Translations = {
     inviteTitle: "{{name}} invites you",
     inviteSubtitle: "to oTutorHub — the app for tutors",
     bonusTitle: "Registration bonus",
-    bonusDesc: "<strong>+7 days subscription</strong> free for you. <strong>+7 days</strong> also for {{name}} as a thank-you.",
+    bonusDesc: "<strong>21 days of Pro</strong> free for you. <strong>A month of Pro</strong> also for {{name}} as a thank-you.",
     feature1: "📅 Convenient lesson schedule",
     feature2: "💰 Finance tracking and payment reminders",
     feature3: "💬 Chats with students",
@@ -1417,7 +1417,7 @@ export const en: Translations = {
   referralBanner: {
     hide: "Hide",
     text: "Know fellow tutors? Invite them and get a month of subscription free",
-    bonus: "+7 days for both on signup · +1 month of subscription each time a friend goes subscription",
+    bonus: "21 days of Pro for your friend on signup · +1 month of Pro for you each time a friend subscribes",
     cta: "Invite a friend →",
   },
 
@@ -2025,6 +2025,7 @@ export const en: Translations = {
     updatedZero: "Updated lessons: 0",
     updated: "Updated lessons: {{count}}",
     dialogTitle: "Apply new price?",
+    applyDescription: "The rate for “{{subject}}” changed from {{oldPrice}} ₴ to {{newPrice}} ₴. Choose which lessons to apply the new value to.",
     futureUnpaid: "Future unpaid (recommended)",
     allFuture: "All future",
     applyBtn: "Apply",
@@ -2114,6 +2115,9 @@ export const en: Translations = {
   tutorAvailability: {
     noHours: "The tutor currently has no available hours for new lessons. Write to them in chat to arrange.",
     notSet: "The tutor hasn't set their available hours yet. Write to them in chat to arrange a time.",
+    title: "Available hours — {{name}}",
+    next14: "Next 14 days. To arrange a lesson — message the tutor in chat.",
+    noSlotsThisWeek: "No free slots this week. Check next week or message the tutor in chat.",
   },
   tutorChangeRequests: {
     requestUpdateFailed: "Lesson updated but request could not be updated",
@@ -2664,6 +2668,7 @@ export const en: Translations = {
     sent: "Request sent to manager",
     sentDesc: "We will contact you shortly.",
     title: "Get subscription subscription",
+    requestDescription: "Choose a billing period — your school manager will receive the request and reach out for payment.",
     alreadySent: "Request already sent",
     periodLabel: "Billing period",
     yearly: "Yearly",
@@ -3111,6 +3116,9 @@ export const en: Translations = {
   independentStatsExtra: {
     awaitingPayment: "Awaiting payment",
     detailsLink: "Details",
+    title: "Your stats",
+    proPromptTitle: "Get a subscription — more control and beautiful analytics",
+    proPromptDesc: "Automatic payment reminders, student-initiated cancellation/rescheduling by your rules, detailed reports and export.",
   },
   quickLessonDialog: {
     studentFallback: "Student",
