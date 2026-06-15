@@ -1,6 +1,6 @@
-import type { Translations } from "./uk";
+import type { LocaleTranslations } from "./types";
 
-export const en: Translations = {
+export const en: LocaleTranslations = {
   reviewPrompt: {
     title: "How was your lesson with {{tutor}}?",
     commentPlaceholder: "Add a few words (optional)…",
@@ -1153,7 +1153,6 @@ export const en: Translations = {
     studentCount: "{{count}} students",
     studentCount_one: "{{count}} student",
     studentCount_few: "{{count}} students",
-    studentCount_other: "{{count}} students",
     studentCount_other: "{{count}} students",
     addStudentBtn: "Add student",
     tabActive: "Active ({{count}})",

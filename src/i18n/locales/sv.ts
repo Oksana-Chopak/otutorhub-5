@@ -1,7 +1,7 @@
-import type { Translations } from "./uk";
+import type { LocaleTranslations } from "./types";
 
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
-export const sv: Partial<Translations> = {
+export const sv: LocaleTranslations = {
   reviewPrompt: {
     title: "Hur var din lektion med {{tutor}}?",
     commentPlaceholder: "Lägg till några ord (valfritt)…",
@@ -1143,7 +1143,6 @@ export const sv: Partial<Translations> = {
     studentCount: "{{count}} elever",
     studentCount_one: "{{count}} elev",
     studentCount_few: "{{count}} elever",
-    studentCount_other: "{{count}} elever",
     studentCount_other: "{{count}} elever",
     addStudentBtn: "Lägg till elev",
     tabActive: "Aktiva ({{count}})",

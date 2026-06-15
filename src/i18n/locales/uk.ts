@@ -3744,6 +3744,3 @@ export const uk = {
     empty: "Графік зʼявиться після першого завершеного уроку 📈",
   },
 };
-
-export type Translations = typeof uk;
-
