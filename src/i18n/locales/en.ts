@@ -1066,6 +1066,7 @@ export const en: Translations = {
     unarchiveFailed: "Could not restore",
     unarchived: "Profile restored",
     cannotDeleteOwn: "You cannot delete your own account",
+    cannotDeleteManager: "A manager cannot be deleted",
     deleteCancelled: "Deletion cancelled",
     deleteFailed: "Could not delete: {{message}}",
     deleteSuccess: "{{name}} and all related data deleted",

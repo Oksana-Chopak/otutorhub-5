@@ -1056,6 +1056,7 @@ export const sv: Partial<Translations> = {
     unarchiveFailed: "Det gick inte att återställa",
     unarchived: "Profil återställd",
     cannotDeleteOwn: "Du kan inte ta bort ditt eget konto",
+    cannotDeleteManager: "En handledare kan inte raderas",
     deleteCancelled: "Borttagning avbruten",
     deleteFailed: "Det gick inte att ta bort: {{message}}",
     deleteSuccess: "{{name}} och alla relaterade data borttagna",

@@ -1075,6 +1075,7 @@ export const uk = {
     unarchiveFailed: "Не вдалося відновити",
     unarchived: "Профіль повернуто",
     cannotDeleteOwn: "Не можна видалити власний акаунт",
+    cannotDeleteManager: "Менеджера не можна видалити",
     deleteCancelled: "Видалення скасовано",
     deleteFailed: "Не вдалося видалити: {{message}}",
     deleteSuccess: "{{name}} та всі пов'язані дані видалено",

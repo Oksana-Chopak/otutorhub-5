@@ -745,6 +745,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       toast.error(t("people.cannotDeleteOwn"));
       return;
     }
+    if (u.role === "manager") {
+      toast.error(t("people.cannotDeleteManager"));
+      return;
+    }
     const name = fullName(u);
     const first = window.confirm(
       t("peoplePage.deleteConfirm", { name })
@@ -757,10 +761,15 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       toast.info(t("people.deleteCancelled"));
       return;
     }
-    const { error } = await supabase.rpc("manager_purge_user", { _user_id: u.id });
-    if (error) {
-      console.error("Failed to purge user", error);
-      toast.error(t("people.deleteFailed", { message: error.message }));
+    // Full delete via Edge function (service role): purges data AND removes the
+    // auth login so the email is freed (a plain DB RPC cannot touch auth.users).
+    const { data, error } = await supabase.functions.invoke("manager-delete-user", {
+      body: { targetId: u.id },
+    });
+    const errMsg = error?.message || (data as { error?: string } | null)?.error;
+    if (errMsg) {
+      console.error("Failed to delete user", errMsg);
+      toast.error(t("people.deleteFailed", { message: errMsg }));
       return;
     }
     toast.success(t("people.deleteSuccess", { name }));
@@ -1048,18 +1057,20 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 text-muted-foreground hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  purgePerson(u);
-                }}
-                title={t("people.deleteBtn")}
-              >
-                <FlameKindling className="h-3.5 w-3.5" />
-              </Button>
+              {u.role !== "manager" && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    purgePerson(u);
+                  }}
+                  title={t("people.deleteBtn")}
+                >
+                  <FlameKindling className="h-3.5 w-3.5" />
+                </Button>
+              )}
             </>
           )}
           <button
@@ -1784,7 +1795,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         <Archive className="h-4 w-4" />
                       </button>
                     )}
-                    {isManager && u.id !== currentUser?.id && (
+                    {isManager && u.id !== currentUser?.id && u.role !== "manager" && (
                       <button
                         type="button"
                         className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-50 transition-colors"
