@@ -250,13 +250,44 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 
 ---
 
-## Monetization
-- Monthly subscription after 30-day trial
-- First cohort: free for 6 months
-- Referral: 21-day trial (friend) + 1 month Pro (referrer)
-- LiqPay integration: **pending** (not yet implemented)
+## Monetization & Business Model — READ FIRST (do not re-ask the owner)
+
+There are **two separate revenue models** depending on tutor type. Conflating them
+causes critical errors. Both are already implemented — verify against the code
+fields below before building anything money-related.
+
+### Hub tutors (school with a manager)
+- The hub has its own tutors. **Students pay the HUB; the hub pays the tutor.**
+- Prices are **fixed per pair** (student × tutor × subject) in `student_rates.price_per_lesson`.
+- Per lesson, `lesson_details` holds BOTH sides:
+  - `student_price` — what the student owes the hub (+ `student_payment_status`, `student_paid_at`)
+  - `tutor_payout` — what the hub owes the tutor (+ `tutor_payout_status`, `tutor_paid_at`)
+- **Hub margin = `student_price − tutor_payout`** per lesson. The manager Finances
+  page already computes this: `totalIncome = Σ student_price`,
+  `totalExpense = Σ paid tutor_payout`, `profit = income − expense`
+  (see `FinancesPage.tsx` ~lines 509–519).
+- The hub tutor does NOT pay a subscription — they receive payouts FROM the hub.
+  `PayoutScheduleCard` (manager side, in the tutor dialog on People) sets WHEN the
+  manager pays the tutor (weekly / biweekly / monthly via
+  `payout_frequency/weekday/monthday`).
+- So: revenue for the hub comes from the **per-lesson margin**, not a subscription.
+
+### Independent tutors
+- Manage their OWN students, set their OWN prices, collect payments **directly**
+  (no hub in the middle, no `tutor_payout` margin to a hub).
+- Monetization here is the **subscription**: up to 5 students free, then 145 ₴/mo.
+- This is the only place the "Pro / subscription / trial" concepts apply.
+
+### Don't mix them
+- "Pro / subscription / 145 ₴/mo / trial" → **independent tutors only**.
+- "student_price vs tutor_payout / margin / payout schedule" → **hub only**.
+- A hub tutor screen must show hub payouts (what the hub owes them), NOT a
+  subscription. An independent tutor screen must never show `tutor_payout`/margin.
+
+- Referral: 21-day trial (friend) + 1 month Pro (referrer) — independent side.
+- LiqPay integration: **pending** (not yet implemented).
 - `TrialCountdownBanner`: only shows if `trial_until` was set AND expired
-  (never shows for new registrations with `trial_until=null`)
+  (never shows for new registrations with `trial_until=null`).
 
 ---
 
