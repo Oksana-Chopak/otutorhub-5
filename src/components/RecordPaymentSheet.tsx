@@ -348,7 +348,7 @@ export function RecordPaymentSheet({
                   style={{ width: "100%", height: 50, borderRadius: 14, border: "none",
                     cursor: busy ? "default" : "pointer",
                     background: busy ? "rgba(43,191,170,.4)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
-                    color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5,
+                    color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5,
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     boxShadow: busy ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}

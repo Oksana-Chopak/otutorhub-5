@@ -1301,7 +1301,7 @@ export default function FinancesPage() {
           height:34, padding:"0 16px", borderRadius:999, border:"none", cursor:"pointer",
           fontFamily:F.display, fontWeight:700, fontSize:14,
           background: period===p ? F.teal : F.bg,
-          color: period===p ? "#fff" : F.sub,
+          color: period===p ? "#0f0f1a" : F.sub,
           boxShadow: period===p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
           transition:"all .15s",
         }}>
@@ -1804,7 +1804,7 @@ export default function FinancesPage() {
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
-                        color: period === p ? "#fff" : "var(--sub,#9398b0)",
+                        color: period === p ? "#0f0f1a" : "var(--sub,#9398b0)",
                         boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
                         transition: "all .15s",
                       }}

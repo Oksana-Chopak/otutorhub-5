@@ -497,7 +497,7 @@ export default function ProfilePage() {
               <button onClick={saveProfile} disabled={savingProfile}
                 style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
-                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
                   boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
@@ -714,7 +714,7 @@ export default function ProfilePage() {
                 disabled={savingProfile}
                 style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
-                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: savingProfile ? "default" : "pointer", opacity: savingProfile ? 0.7 : 1,
                   boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {savingProfile ? "…" : (t("profile.editSave") || "Зберегти")}
@@ -856,7 +856,7 @@ export default function ProfilePage() {
                 }}
                 style={{ marginTop: 16, width: "100%", height: 48, borderRadius: 13,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
-                  color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
+                  color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: "pointer" }}>
                 {t("profile.subjectsSaveBtn")}
               </button>

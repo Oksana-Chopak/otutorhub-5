@@ -219,7 +219,7 @@ export default function MyReferralsPage() {
                 <div key={i} style={{ display: "flex", gap: 13, padding: "13px 10px", borderBottom: i < STEPS.length - 1 ? `1px solid ${R.border}` : "none" }}>
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{s.e}</div>
-                    <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 13, boxShadow: R.shadowTeal }}>{s.n}</div>
+                    <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 13, boxShadow: R.shadowTeal }}>{s.n}</div>
                   </div>
                   <div style={{ flex: 1, paddingTop: 2 }}>
                     <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 15 }}>{t(s.titleKey)}</div>
@@ -232,7 +232,7 @@ export default function MyReferralsPage() {
             {/* Твоє посилання */}
             <Card style={{ padding: 18, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${R.tealRing}` }}>
               <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 14 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 13, background: R.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: R.shadowTeal }}>
+                <div style={{ width: 42, height: 42, borderRadius: 13, background: R.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: R.shadowTeal }}>
                   <Heart size={21} />
                 </div>
                 <div>
@@ -259,7 +259,7 @@ export default function MyReferralsPage() {
                   <PopoverTrigger asChild>
                     <button disabled={!link} aria-label={t("referralWidget.share") || "Поділитися"}
                       style={{ width: 46, height: 46, borderRadius: 12, border: "none", cursor: link ? "pointer" : "default",
-                        background: R.gradTeal, color: "#fff", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
+                        background: R.gradTeal, color: "#0f0f1a", boxShadow: R.shadowTeal, opacity: link ? 1 : 0.6,
                         display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Share2 size={18} />
                     </button>

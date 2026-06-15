@@ -202,7 +202,7 @@ export default function WalletsPage() {
               {filtered.map((r) => (
                 <div key={`${r.tutor_id}:${r.student_id}`} className="rounded-[18px] p-4 space-y-3" style={{ border: "1px solid #eceef3", background: "#fff", boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
                   <div className="flex items-center gap-3">
-                    <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}>
+                    <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}>
                       {(r.student_name.split(" ").map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("") || "?").toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -222,8 +222,8 @@ export default function WalletsPage() {
                       </span>
                     </div>
                     <button type="button" onClick={() => setActive(r)}
-                      className="flex items-center gap-1.5 rounded-[11px] px-3 h-9 text-[13px] font-bold text-white"
-                      style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
+                      className="flex items-center gap-1.5 rounded-[11px] px-3 h-9 text-[13px] font-bold"
+                      style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                       <Plus className="h-3.5 w-3.5" />
                       Поповнити
                     </button>

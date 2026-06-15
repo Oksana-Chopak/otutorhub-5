@@ -221,7 +221,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)",
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: F.display, fontWeight: 800, fontSize: 18, color: "#fff",
+                  fontFamily: F.display, fontWeight: 800, fontSize: 18, color: "#0f0f1a",
                   boxShadow: "0 4px 12px -4px rgba(43,191,170,.5)", transition: "all .3s" }}>
                   {fInitials}
                 </div>
@@ -341,7 +341,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     background: form.first_name.trim() && form.subject.trim()
                       ? "linear-gradient(135deg,#2BBFAA,#25a896)"
                       : "rgba(43,191,170,.35)",
-                    color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                    color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                     boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)", marginTop: 4 }}>
                   {t("quickAddStudent.nextToContacts")}
                 </button>
@@ -386,7 +386,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
                     cursor: submitting ? "not-allowed" : "pointer",
                     background: "linear-gradient(135deg,#2BBFAA,#25a896)",
-                    color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                    color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                     boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   {submitting && <span className="animate-spin">⟳</span>}

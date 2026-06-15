@@ -250,7 +250,7 @@ export function PersonCard({
             background: canWrite
               ? `linear-gradient(135deg,${T.teal},${T.tealD})`
               : "rgba(15,15,26,0.06)",
-            color: canWrite ? "#fff" : T.muted,
+            color: canWrite ? "#0f0f1a" : T.muted,
             display: "flex", alignItems: "center", justifyContent: "center",
             boxShadow: canWrite ? "0 6px 14px -6px rgba(43,191,170,0.6)" : "none",
           }}

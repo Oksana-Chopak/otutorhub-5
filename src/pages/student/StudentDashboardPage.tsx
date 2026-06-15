@@ -204,7 +204,7 @@ export default function StudentDashboardPage() {
                       </div>
                       {l.meeting_url ? (
                         <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                          style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                          style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
                           <Video size={20} />
                         </a>
                       ) : (
@@ -258,7 +258,7 @@ export default function StudentDashboardPage() {
         {!hasTutor && (
           <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: "1px solid rgba(43,191,170,.28)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 <Sparkles size={20} />
               </div>
               <div style={{ flex: 1 }}>
@@ -268,7 +268,7 @@ export default function StudentDashboardPage() {
                 </p>
                 <button onClick={() => setShowQuizAgain(true)}
                   style={{ marginTop: 12, height: 42, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer",
-                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                     fontFamily: DS.display, fontWeight: 700, fontSize: 14, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                   {t("studentPagesExtra.findTutorBtn")}
                 </button>

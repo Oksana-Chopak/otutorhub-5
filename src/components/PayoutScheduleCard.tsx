@@ -114,7 +114,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
                   fontFamily: C.display, fontWeight: 700, fontSize: 13,
                   background: weekday === d ? C.teal : "#fff",
                   border: `1.5px solid ${weekday === d ? C.teal : C.border}`,
-                  color: weekday === d ? "#fff" : C.sub }}>
+                  color: weekday === d ? "#0f0f1a" : C.sub }}>
                 {WEEKDAYS_UK[d].slice(0, 2)}
               </button>
             ))}
@@ -137,7 +137,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       <button type="button" onClick={save} disabled={saving}
         style={{ width: "100%", height: 44, marginTop: 14, borderRadius: 12, border: "none",
           cursor: saving ? "default" : "pointer",
-          background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+          background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
           fontFamily: C.display, fontWeight: 700, fontSize: 14.5,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>

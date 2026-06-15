@@ -352,7 +352,7 @@ export default function SubscriptionPage() {
                 })}
               </div>
               <button onClick={handleIapPurchase} disabled={iapBusy !== null}
-                style={{ width: "100%", height: 50, borderRadius: 14, border: "none", cursor: iapBusy ? "default" : "pointer", background: S.gradTeal, color: "#fff", fontFamily: S.display, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                style={{ width: "100%", height: 50, borderRadius: 14, border: "none", cursor: iapBusy ? "default" : "pointer", background: S.gradTeal, color: "#0f0f1a", fontFamily: S.display, fontWeight: 700, fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {iapBusy === "buy" && <Loader2 size={18} className="animate-spin" />}
                 {t("subscriptionPageExtra.subscribeBtn")}
               </button>
@@ -405,7 +405,7 @@ export default function SubscriptionPage() {
           {/* ── Path 2 — invite ──────────────────────────────────────────── */}
           <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${tealRing}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 13, background: S.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal, flexShrink: 0 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 13, background: S.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal, flexShrink: 0 }}>
                 <Heart size={21} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>

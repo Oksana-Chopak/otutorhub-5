@@ -1321,7 +1321,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveTutorRate}
-              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
               {t("people.saveBtn")}
             </button>
           </div>
@@ -1399,7 +1399,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveStudentPrice}
-              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
               {t("people.saveBtn")}
             </button>
           </div>
@@ -1547,7 +1547,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               {t("people.cancelBtn")}
             </button>
             <button type="button" onClick={saveAddTutorToStudent}
-              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
               {t("people.addBtn")}
             </button>
           </div>
@@ -1681,7 +1681,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   {t("people.cancelBtn")}
                 </button>
                 <button type="button" onClick={addPerson} disabled={adding}
-                  style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: adding ? "default" : "pointer", opacity: adding ? 0.7 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                  style={{ flex: 1, height: 50, borderRadius: 14, border: "none", cursor: adding ? "default" : "pointer", opacity: adding ? 0.7 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   {adding && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("people.addBtn")}
                 </button>

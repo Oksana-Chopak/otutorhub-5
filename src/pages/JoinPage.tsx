@@ -89,7 +89,7 @@ export default function JoinPage() {
           <Button
             onClick={() => navigate(`/auth?signup=1`)}
             className="h-[52px] w-full rounded-[14px] text-[16px] font-semibold"
-            style={{background:"var(--teal,#2BBFAA)",color:"#fff"}}
+            style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}
           >
             {t("join.cta")}
           </Button>

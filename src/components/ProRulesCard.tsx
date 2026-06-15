@@ -280,7 +280,7 @@ export function ProRulesCard() {
 
       {/* Save */}
       <button onClick={save} disabled={disabled || saving} type="button"
-        style={{ marginTop: 18, width: "100%", height: 52, borderRadius: 14, border: "none", color: "#fff",
+        style={{ marginTop: 18, width: "100%", height: 52, borderRadius: 14, border: "none", color: "#0f0f1a",
           background: C.gradTeal, fontFamily: C.display, fontWeight: 700, fontSize: 16,
           cursor: disabled || saving ? "default" : "pointer", opacity: disabled || saving ? 0.7 : 1,
           boxShadow: C.shadowTeal, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

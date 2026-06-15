@@ -164,7 +164,7 @@ export default function SubscriptionRequestsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-                          background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#fff",
+                          background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#0f0f1a",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16 }}>
                           {name.split(" ").map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?"}
@@ -269,7 +269,7 @@ export default function SubscriptionRequestsPage() {
                             onClick={() => updateStatus(r.id, "completed")}
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
-                              background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", cursor: "pointer",
+                              background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >

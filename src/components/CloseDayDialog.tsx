@@ -161,7 +161,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           <button type="button" onClick={apply} disabled={busy || doneCount === 0}
             style={{ flex: 1, height: 52, borderRadius: 14, border: "none", cursor: busy || doneCount === 0 ? "not-allowed" : "pointer",
               background: doneCount === 0 ? "rgba(43,191,170,.35)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
-              color: "#fff", fontFamily: C.display, fontWeight: 700, fontSize: 16,
+              color: "#0f0f1a", fontFamily: C.display, fontWeight: 700, fontSize: 16,
               boxShadow: doneCount === 0 ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {busy && <Loader2 size={18} className="animate-spin" />}

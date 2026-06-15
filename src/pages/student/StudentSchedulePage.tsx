@@ -102,7 +102,7 @@ export default function StudentSchedulePage() {
                 </div>
                 {l.meeting_url && l.status === "scheduled" && (
                   <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                    style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                    style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
                     <Video size={20} />
                   </a>
                 )}

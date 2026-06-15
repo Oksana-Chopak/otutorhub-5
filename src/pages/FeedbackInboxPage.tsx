@@ -169,7 +169,7 @@ export default function FeedbackInboxPage() {
                         </button>
                       )}
                       <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "resolved")}
-                        style={{ height: 36, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
+                        style={{ height: 36, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                         <Check className="h-3.5 w-3.5" /> {t("feedbackInbox.markResolved")}
                       </button>
                     </div>

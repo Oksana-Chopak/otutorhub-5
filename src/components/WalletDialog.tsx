@@ -312,7 +312,7 @@ export function WalletDialog({
                           background: checked ? F.teal : "transparent",
                           border: checked ? "none" : `2px solid ${F.muted}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "#fff", fontSize: 13, fontWeight: 700 }}>
+                          color: "#0f0f1a", fontSize: 13, fontWeight: 700 }}>
                           {checked && "✓"}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -493,7 +493,7 @@ export function WalletDialog({
               style={{ width: "100%", height: 52, borderRadius: 14, border: "none",
                 cursor: checkedIds.size > 0 && !marking ? "pointer" : "not-allowed",
                 background: checkedIds.size > 0 ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
-                color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                 boxShadow: checkedIds.size > 0 ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {marking ? "…" : t("walletDialog.markCta", { total: checkedTotal })}
@@ -505,7 +505,7 @@ export function WalletDialog({
               disabled={busy}
               onClick={handleTopUp}
               style={{ width: "100%", height: 52, borderRadius: 14, border: "none", cursor: "pointer",
-                background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                 fontFamily: F.display, fontWeight: 700, fontSize: 16,
                 boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
               {busy ? "…" : t("walletDialog.topupCta")}

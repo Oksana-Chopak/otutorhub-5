@@ -200,7 +200,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
             onClick={submit}
             disabled={saving}
             style={{
-              width: "100%", height: 48, borderRadius: 14, border: "none", color: "#fff",
+              width: "100%", height: 48, borderRadius: 14, border: "none", color: "#0f0f1a",
               background: "linear-gradient(135deg,#2BBFAA,#25a896)",
               fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15,
               cursor: saving ? "default" : "pointer", opacity: saving ? 0.7 : 1,

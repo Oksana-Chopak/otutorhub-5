@@ -1329,7 +1329,7 @@ export default function DashboardPage() {
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
-                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
                   boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Оформити підписку →
@@ -1353,7 +1353,7 @@ export default function DashboardPage() {
                   {closeDayRows.length} {closeDayRows.length === 1 ? "урок чекає" : closeDayRows.length < 5 ? "уроки чекають" : "уроків чекають"} відмітки «проведено + оплачено»
                 </span>
               </span>
-              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Одним рухом
               </span>
             </button>
@@ -1992,7 +1992,7 @@ export default function DashboardPage() {
                           <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
                           <div className="mt-3">
                             <FindTutorDialog trigger={
-                              <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#fff" }}>
+                              <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#0f0f1a" }}>
                                 {t("dashboardPageExtra.leaveRequest")}
                               </Button>
                             } />

@@ -615,7 +615,7 @@ export function LessonWorkspace({
                 )}
                 {summaryDraft !== (summary ?? "") && (
                   <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                     {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {t("lessonWorkspaceExtra.saveAndSend")}
                   </button>
@@ -680,7 +680,7 @@ export function LessonWorkspace({
               </div>
               {effectiveMeetingUrl && (
                 <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
-                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                   <ExternalLink className="h-4 w-4" /> {t("lessonWorkspaceExtra.joinBtn")}
                 </a>
               )}

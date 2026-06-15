@@ -412,7 +412,7 @@ export function QuickLessonDialog({
                 </p>
                 <button onClick={() => setAddStudentOpen(true)}
                   style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
-                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
+                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                     fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
                   + {t("quickLessonDialog.addStudentBtn")}
                 </button>
@@ -602,7 +602,7 @@ export function QuickLessonDialog({
                 style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
                   cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
                   background: canSubmit ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
-                  color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                  color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                   boxShadow: canSubmit ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {submitting && <Loader2 className="h-[18px] w-[18px] animate-spin" />}

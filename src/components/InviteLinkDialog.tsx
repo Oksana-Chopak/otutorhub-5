@@ -159,7 +159,7 @@ export function InviteLinkDialog({
             /* email заданий, але авто-лист не пішов — даємо кнопку надіслати */
             studentId && (
               <button onClick={handleResendEmail} disabled={resending}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", height: 46, borderRadius: 13, border: "none", cursor: resending ? "default" : "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", height: 46, borderRadius: 13, border: "none", cursor: resending ? "default" : "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 <Mail className="h-4 w-4" />
                 {resending ? t("inviteLinkExtra.sending") : t("inviteLinkExtra.sendEmailNow")}
               </button>
@@ -208,7 +208,7 @@ export function InviteLinkDialog({
         {/* Footer — Done */}
         <div className="shrink-0" style={{ padding: "14px 20px 20px", borderTop: "1px solid #eceef3", background: "#fff" }}>
           <button onClick={() => onOpenChange(false)}
-            style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+            style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
             <Check className="h-[18px] w-[18px]" />
             {t("inviteLinkExtra.doneBtn")}
           </button>

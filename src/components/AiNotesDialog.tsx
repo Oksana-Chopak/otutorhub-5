@@ -76,7 +76,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
         <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle asChild>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 <Sparkles size={19} />
               </div>
               <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.txt }}>{t("aiNotesDialog.title")}</span>
@@ -125,7 +125,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
           </div>
 
           <button onClick={() => { onOpenChange(false); navigate("/schedule"); }}
-            style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
+            style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
             {t("aiNotesDialog.tryCta")} <ArrowRight size={18} />
           </button>
           <p style={{ fontSize: 13, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>

@@ -150,7 +150,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
             style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 15px", borderRadius: 12,
               border: "none", cursor: starting || isProcessing ? "default" : "pointer",
               background: starting || isProcessing ? "rgba(43,191,170,.35)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
-              color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 13.5,
+              color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 13.5,
               boxShadow: starting || isProcessing ? "none" : "0 6px 16px -6px rgba(43,191,170,.6)" }}>
             {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
             {t("firefliesPanel.recordThisLesson")}

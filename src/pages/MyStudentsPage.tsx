@@ -865,7 +865,7 @@ export default function MyStudentsPage() {
                     </a>
                   )}
                   <button onClick={() => navigate(`/chats?with=${s.id}`)}
-                    style={{ flex: 1, height: 50, borderRadius: 14, border: "none", background: `linear-gradient(135deg,${T.teal},${T.tealD})`, color: "#fff", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                    style={{ flex: 1, height: 50, borderRadius: 14, border: "none", background: `linear-gradient(135deg,${T.teal},${T.tealD})`, color: "#0f0f1a", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                     <MessageCircle size={19} strokeWidth={2} /> {t("people.write")}
                   </button>
                 </div>
@@ -959,7 +959,7 @@ export default function MyStudentsPage() {
                           style={{ position: "relative", width: 60, height: 60, borderRadius: 20, flexShrink: 0, padding: 0, cursor: "pointer",
                             border: "none",
                             background: filled ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "#fff",
-                            color: filled ? "#fff" : F.muted,
+                            color: filled ? "#0f0f1a" : F.muted,
                             boxShadow: filled ? "0 8px 20px -8px rgba(43,191,170,.55)" : `inset 0 0 0 1.5px ${F.border}`,
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontFamily: F.display, fontWeight: 800, fontSize: 22,
@@ -971,7 +971,7 @@ export default function MyStudentsPage() {
                           )}
                           <span style={{ position: "absolute", right: -2, bottom: -2, width: 22, height: 22, borderRadius: 999,
                             background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 0 0 2.5px #fff",
-                            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+                            display: "flex", alignItems: "center", justifyContent: "center", color: "#0f0f1a" }}>
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M3 8.5A1.5 1.5 0 014.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0121 8.5v10A1.5 1.5 0 0119.5 20h-15A1.5 1.5 0 013 18.5z" /><circle cx="12" cy="13" r="3.2" />
                             </svg>
@@ -1028,7 +1028,7 @@ export default function MyStudentsPage() {
                           ))}
                           {draftIsCustom && (
                             <button type="button" onClick={() => addSubject(subjectDraft)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
                               + «{subjectDraft.trim()}»
                             </button>
                           )}
@@ -1113,7 +1113,7 @@ export default function MyStudentsPage() {
                     style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
                       background: submitting ? F.muted : "linear-gradient(135deg,#2BBFAA,#25a896)",
                       cursor: submitting ? "not-allowed" : "pointer",
-                      fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#fff",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#0f0f1a",
                       boxShadow: submitting ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                     {submitting && <Loader2 size={18} className="animate-spin" />}

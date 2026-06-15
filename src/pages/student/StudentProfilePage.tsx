@@ -127,7 +127,7 @@ export default function StudentProfilePage() {
               </div>
               <button onClick={save} disabled={saving}
                 style={{ width: "100%", height: 48, borderRadius: 13, border: "none", cursor: saving ? "default" : "pointer",
-                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: C.display, fontWeight: 700, fontSize: 15,
+                  background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: C.display, fontWeight: 700, fontSize: 15,
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t("common.save")}

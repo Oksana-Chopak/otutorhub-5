@@ -26,7 +26,7 @@ export function PageHeader({ title, children, className }: PageHeaderProps) {
             to="/profile"
             aria-label={t("pageHeader.menu")}
             className="flex h-11 w-11 items-center justify-center rounded-[14px] text-foreground transition-colors hover:bg-muted"
-            style={{ background: "var(--teal,#2BBFAA)", color: "#fff" }}
+            style={{ background: "var(--teal,#2BBFAA)", color: "#0f0f1a" }}
           >
             <Menu className="h-5 w-5" />
           </Link>

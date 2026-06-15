@@ -836,8 +836,8 @@ export default function ChatsPage() {
                 {isManager && (
                   <button
                     onClick={openNewChatDialog}
-                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full font-bold text-[13px] text-white flex-shrink-0 transition-opacity active:opacity-80"
-                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
+                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
+                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
                     {t("chats.new")}
@@ -956,8 +956,8 @@ export default function ChatsPage() {
                             </p>
                             {isUnread && (
                               <span
-                                className="flex items-center justify-center text-white flex-shrink-0"
-                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 12 }}
+                                className="flex items-center justify-center flex-shrink-0"
+                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 12 }}
                               >
                                 {unreadDotFor(thread)}
                               </span>
@@ -1170,7 +1170,7 @@ export default function ChatsPage() {
                                 ...(mine
                                   ? {
                                       background: "linear-gradient(135deg,#2BBFAA,#25a896)",
-                                      color: "#fff",
+                                      color: "#0f0f1a",
                                       borderRadius: "16px 16px 5px 16px",
                                       boxShadow: "0 6px 18px -8px rgba(43,191,170,.55)",
                                     }
@@ -1403,8 +1403,8 @@ export default function ChatsPage() {
                   <button
                     type="submit"
                     disabled={sending || (draft.trim().length === 0 && !pendingFile)}
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white flex-shrink-0 transition-opacity disabled:opacity-40"
-                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 4px 14px -4px rgba(43,191,170,0.6)" }}
+                    className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-40"
+                    style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", boxShadow: "0 4px 14px -4px rgba(43,191,170,0.6)" }}
                   >
                     {sending
                       ? <Loader2 className="h-4 w-4 animate-spin" />

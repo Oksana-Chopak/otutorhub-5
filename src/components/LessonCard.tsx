@@ -294,7 +294,7 @@ export function LessonCard({
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               {href && (
                 <a href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()} aria-label="Zoom"
-                  style={{ width: 44, height: 44, borderRadius: 14, background: L.teal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                  style={{ width: 44, height: 44, borderRadius: 14, background: L.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
                   <Video size={21} />
                 </a>
               )}

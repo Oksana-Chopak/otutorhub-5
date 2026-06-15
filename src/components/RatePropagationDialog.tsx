@@ -135,7 +135,7 @@ export function RatePropagationDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={busy}>{t("common.cancel") || "Скасувати"}</AlertDialogCancel>
-          <AlertDialogAction className="h-11 rounded-[12px] text-[15px] font-semibold" style={{background:"var(--teal,#2BBFAA)",color:"#fff"}}>
+          <AlertDialogAction className="h-11 rounded-[12px] text-[15px] font-semibold" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
             {busy && <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />}
             Застосувати
           </AlertDialogAction>
