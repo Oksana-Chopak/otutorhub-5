@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -274,7 +275,7 @@ export function PendingPaymentsCard() {
                               >
                                 <p className="truncate text-[13px] text-foreground">
                                   {r.subject} ·{" "}
-                                  {d.toLocaleDateString("uk-UA", {
+                                  {d.toLocaleDateString(getLocale(), {
                                     day: "numeric",
                                     month: "short",
                                   })}

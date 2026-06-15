@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { StudentOnboarding } from "@/components/student/StudentOnboarding";
@@ -185,15 +186,15 @@ export default function StudentDashboardPage() {
                   <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "#fff" }}>
                     <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                       <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
-                        {isToday ? "Сьогодні" : d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
+                        {isToday ? "Сьогодні" : d.toLocaleDateString(getLocale(), { weekday: "short" }).replace(".", "")}
                       </span>
                       {!isToday && (
                         <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 13 }}>
-                          {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
+                          {d.toLocaleDateString(getLocale(), { day: "numeric", month: "short" }).replace(".", "")}
                         </span>
                       )}
                       <span style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 20, letterSpacing: "-.02em", color: DS.teal, marginTop: 3 }}>
-                        {d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
+                        {d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
                     <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>

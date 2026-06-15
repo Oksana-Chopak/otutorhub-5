@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -229,7 +230,7 @@ export default function MarketingPage() {
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
                             <div className="text-[13px]" style={{ color: "#9398b0" }}>
-                              {new Date(c.created_at).toLocaleString("uk-UA")} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
+                              {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
                             </div>
                           </div>
                         </div>

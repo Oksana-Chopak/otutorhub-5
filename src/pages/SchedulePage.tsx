@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,11 +102,11 @@ function toLocalInputValue(iso: string) {
 
 function formatDateGroup(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" });
+  return d.toLocaleDateString(getLocale(), { weekday: "short", day: "numeric", month: "long" });
 }
 
 function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
 }
 
 function SegSwitch<T extends string>({
@@ -623,7 +624,7 @@ export default function SchedulePage() {
       return ls < endMs && le > startMs;
     });
     if (!conflict) return null;
-    const conflictTime = new Date(conflict.starts_at).toLocaleString("uk-UA", {
+    const conflictTime = new Date(conflict.starts_at).toLocaleString(getLocale(), {
       day: "numeric",
       month: "short",
       hour: "2-digit",

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -78,13 +79,13 @@ export default function StudentSchedulePage() {
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
                 <span style={{ fontFamily: D, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
-                  {d.toLocaleDateString("uk-UA", { weekday: "short" }).replace(".", "")}
+                  {d.toLocaleDateString(getLocale(), { weekday: "short" }).replace(".", "")}
                 </span>
                 <span style={{ fontFamily: D, fontWeight: 800, fontSize: 13 }}>
-                  {d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" }).replace(".", "")}
+                  {d.toLocaleDateString(getLocale(), { day: "numeric", month: "short" }).replace(".", "")}
                 </span>
                 <span style={{ fontFamily: D, fontWeight: 800, fontSize: 19, letterSpacing: "-.02em", color: sm.accent, marginTop: 2 }}>
-                  {d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })}
+                  {d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
               <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>

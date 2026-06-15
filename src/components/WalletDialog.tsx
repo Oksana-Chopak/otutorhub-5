@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -33,7 +34,7 @@ interface WalletDialogProps {
 }
 
 const formatDateTime = (iso: string) =>
-  new Date(iso).toLocaleString("uk-UA", {
+  new Date(iso).toLocaleString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -213,7 +214,7 @@ export function WalletDialog({
   const ava = (name: string) => GRADS[((name.charCodeAt(0) || 0) + (name.charCodeAt(1) || 0)) % GRADS.length];
   const ini = (name: string) => name.trim().split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
 
-  const fmt = (d: string) => new Date(d).toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "short" });
+  const fmt = (d: string) => new Date(d).toLocaleDateString(getLocale(), { weekday: "short", day: "numeric", month: "short" });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

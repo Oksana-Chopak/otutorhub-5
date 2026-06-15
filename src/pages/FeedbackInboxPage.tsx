@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -142,7 +143,7 @@ export default function FeedbackInboxPage() {
                         </p>
                         <p className="text-[13px]" style={{ color: "#9398b0" }}>
                           <span style={{ color: cat.color, fontWeight: 700 }}>{t(`feedbackInbox.category_${r.category}`)}</span>
-                          {" · "}{new Date(r.created_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}
+                          {" · "}{new Date(r.created_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
                           {r.rating ? ` · ${"★".repeat(r.rating)}` : ""}
                         </p>
                       </div>

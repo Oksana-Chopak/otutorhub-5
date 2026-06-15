@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -194,7 +195,7 @@ export default function ReferralsPage() {
                       <p className="font-medium text-foreground">{r.studentName}</p>
                       <Badge className={statusClass[r.status]}>{statusLabel[r.status]}</Badge>
                       <span className="text-[13px]" style={{ color: "#9398b0" }}>
-                        {new Date(r.created_at).toLocaleString("uk-UA", {
+                        {new Date(r.created_at).toLocaleString(getLocale(), {
                           day: "numeric",
                           month: "short",
                           hour: "2-digit",

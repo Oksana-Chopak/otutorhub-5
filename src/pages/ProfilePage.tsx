@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
@@ -581,7 +582,7 @@ export default function ProfilePage() {
                       {t("profile.subscriptionTitle")}
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
-                      {settings?.trial_until ? t("profile.trialUntil", { date: new Date(settings.trial_until).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" }) }) : t("profile.subscriptionActive")}
+                      {settings?.trial_until ? t("profile.trialUntil", { date: new Date(settings.trial_until).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" }) }) : t("profile.subscriptionActive")}
                     </p>
                   </div>
                   <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />

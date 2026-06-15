@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { getLocale } from "@/lib/locale";
 import i18nInstance from "@/i18n";
 import {
   LineChart,
@@ -58,7 +59,7 @@ function weekLabel(key: string) {
   const [y, m, d] = key.split("-").map(Number);
   const date = new Date(y, m - 1, d);
   const wn = isoWeekNumber(date);
-  const short = date.toLocaleDateString("uk-UA", { day: "2-digit", month: "short" });
+  const short = date.toLocaleDateString(getLocale(), { day: "2-digit", month: "short" });
   return `Т${wn} · ${short}`;
 }
 

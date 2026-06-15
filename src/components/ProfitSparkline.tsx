@@ -1,4 +1,5 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { getLocale } from "@/lib/locale";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -9,7 +10,7 @@ interface Point {
 
 function shortLabel(iso: string): string {
   const d = new Date(iso);
-  return d.toLocaleDateString("uk-UA", { day: "2-digit", month: "short" });
+  return d.toLocaleDateString(getLocale(), { day: "2-digit", month: "short" });
 }
 
 export function ProfitSparkline({ data }: { data: Point[] }) {

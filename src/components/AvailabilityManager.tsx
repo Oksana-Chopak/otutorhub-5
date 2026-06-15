@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -441,7 +442,7 @@ export function AvailabilityManager() {
                       <b style={{ fontFamily: A.display }}>{fullName(tutorProfile)}</b>
                     </div>
                     {r.message && <div style={{ fontSize: 13, color: A.sub, marginTop: 2 }}>{r.message}</div>}
-                    <div style={{ fontSize: 13, color: A.muted, marginTop: 2 }}>{new Date(r.created_at).toLocaleString("uk-UA")}</div>
+                    <div style={{ fontSize: 13, color: A.muted, marginTop: 2 }}>{new Date(r.created_at).toLocaleString(getLocale())}</div>
                   </div>
                   {(isManager || (isTutor && r.tutor_id === user?.id)) && (
                     <Button size="sm" variant="outline" onClick={() => acknowledgeRequest(r.id)}>
@@ -582,7 +583,7 @@ export function AvailabilityManager() {
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13.5 }}>
-                            {new Date(o.slot_date + "T00:00:00").toLocaleDateString("uk-UA", { day: "2-digit", month: "long", weekday: "short" })}
+                            {new Date(o.slot_date + "T00:00:00").toLocaleDateString(getLocale(), { day: "2-digit", month: "long", weekday: "short" })}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: A.display, fontWeight: 700, fontSize: 13,
                             background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral }}>

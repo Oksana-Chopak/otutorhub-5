@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +41,7 @@ const actionLabels: Record<string, { label: string; variant: "default" | "second
 };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("uk-UA");
+  return new Date(iso).toLocaleString(getLocale());
 }
 
 function nameOf(profiles: Map<string, ProfileLite>, id: string | null) {

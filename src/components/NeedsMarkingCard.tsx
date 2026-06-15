@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,7 +52,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
   };
 
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleString("uk-UA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+    new Date(iso).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   return (
     <section className="mt-6">

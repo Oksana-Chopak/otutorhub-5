@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -335,7 +336,7 @@ export default function MyReferralsPage() {
                   {t("myReferrals.savedLabel") || "Заощаджено"}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, marginTop: 4, color: R.successD }}>
-                  {savedUah.toLocaleString("uk-UA")} ₴
+                  {savedUah.toLocaleString(getLocale())} ₴
                 </div>
               </Card>
             </div>

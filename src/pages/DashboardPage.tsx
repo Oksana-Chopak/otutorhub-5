@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -809,7 +810,7 @@ export default function DashboardPage() {
           id: l.id,
           student_id: l.student_id,
           name: profiles[l.student_id] ?? "Учень",
-          time: new Date(l.starts_at).toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }),
+          time: new Date(l.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" }),
           price: Number(l.student_price) || 0,
           currency: pairCurrency[`${l.tutor_id}:${l.student_id}`],
           paid: l.student_payment_status === "paid",
@@ -1091,7 +1092,7 @@ export default function DashboardPage() {
         icon: Wallet,
         tone: "warning" as const,
         title: `💰 Час виплати: ${sch.name}`,
-        description: sum > 0 ? `${sum.toLocaleString("uk-UA")} ₴ за ${unpaid.length} ${unpaid.length === 1 ? "урок" : unpaid.length < 5 ? "уроки" : "уроків"}` : "Невиплачених уроків немає",
+        description: sum > 0 ? `${sum.toLocaleString(getLocale())} ₴ за ${unpaid.length} ${unpaid.length === 1 ? "урок" : unpaid.length < 5 ? "уроки" : "уроків"}` : "Невиплачених уроків немає",
         to: "/finances",
         cta: "Позначити виплаченим",
         payTutorId: sch.user_id,
@@ -1324,7 +1325,7 @@ export default function DashboardPage() {
                 ⏳ Пробний період закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
               </p>
               <p style={{ fontSize: 13.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
-                Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString("uk-UA")} ₴</b> зафіксовано. Оформи підписку — нічого не загубиться.
+                Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString(getLocale())} ₴</b> зафіксовано. Оформи підписку — нічого не загубиться.
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",

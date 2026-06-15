@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { getLocale } from "@/lib/locale";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -101,7 +102,7 @@ interface WalletTransaction {
 interface WalletPair extends PairOption {}
 
 const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("uk-UA", {
+  new Date(iso).toLocaleDateString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -1220,13 +1221,13 @@ export default function FinancesPage() {
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString("uk-UA", { month: "short" });
+      const key = d.toLocaleDateString(getLocale(), { month: "short" });
       map.set(key, { earned: 0, pending: 0 });
     }
     billable.forEach(l => {
       const d = new Date(l.starts_at);
       if ((now.getTime() - d.getTime()) > 6 * 30 * 86400 * 1000) return;
-      const key = d.toLocaleDateString("uk-UA", { month: "short" });
+      const key = d.toLocaleDateString(getLocale(), { month: "short" });
       if (!map.has(key)) return;
       const entry = map.get(key)!;
       if (l.student_payment_status === "paid") entry.earned += Number(l.student_price);
@@ -1353,11 +1354,11 @@ export default function FinancesPage() {
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:900, fontSize:38, color:F.teal,
                   letterSpacing:"-0.025em", lineHeight:1 }}>
-                  {totalIncome.toLocaleString("uk-UA")} ₴
+                  {totalIncome.toLocaleString(getLocale())} ₴
                 </p>
                 {pendingIncome > 0 && (
                   <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.45)", marginTop:6 }}>
-                    + {t("finances.pendingAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
+                    + {t("finances.pendingAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                   </p>
                 )}
               </div>
@@ -1370,7 +1371,7 @@ export default function FinancesPage() {
                   ⏳ {t("finances.pendingLabel")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
-                  {pendingIncome.toLocaleString("uk-UA")} ₴
+                  {pendingIncome.toLocaleString(getLocale())} ₴
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: debtList.length })}
@@ -1385,7 +1386,7 @@ export default function FinancesPage() {
                   📊 {t("finances.avgLesson")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
-                  {avgLesson.toLocaleString("uk-UA")} ₴
+                  {avgLesson.toLocaleString(getLocale())} ₴
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 13, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: paidLessonsCount })}
@@ -1439,13 +1440,13 @@ export default function FinancesPage() {
                               {nameOf(l.student_id)}
                             </p>
                             <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
-                              {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
+                              {new Date(l.starts_at).toLocaleDateString(getLocale(),{day:"numeric",month:"short"})} · {l.subject}
                             </p>
                           </div>
                           <div style={{ textAlign:"right", flexShrink:0 }}>
                             <p style={{ fontFamily:F.display, fontWeight:800, fontSize:15,
                               color: paid ? "#16a34a" : F.warnD }}>
-                              {paid ? "+" : ""}{Number(l.student_price).toLocaleString("uk-UA")} ₴
+                              {paid ? "+" : ""}{Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
                             <button onClick={() => togglePayment(l, "student_payment_status")}
                               style={{ fontFamily:F.display, fontWeight:700, fontSize: 13,
@@ -1499,7 +1500,7 @@ export default function FinancesPage() {
                         display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD }}>
-                            ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
+                            ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
                             {t("finances.lessonsUnpaid", { count: debtList.length })}
@@ -1535,12 +1536,12 @@ export default function FinancesPage() {
                                 {nameOf(l.student_id)}
                               </p>
                               <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
-                                {new Date(l.starts_at).toLocaleDateString("uk-UA",{day:"numeric",month:"short"})} · {l.subject}
+                                {new Date(l.starts_at).toLocaleDateString(getLocale(),{day:"numeric",month:"short"})} · {l.subject}
                               </p>
                             </div>
                             <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16,
                               color:F.warnD, flexShrink:0 }}>
-                              {Number(l.student_price).toLocaleString("uk-UA")} ₴
+                              {Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
                             <button
                               onClick={() => {
@@ -1548,7 +1549,7 @@ export default function FinancesPage() {
                                   userId: l.student_id,
                                   type: `payment_reminder_${l.id}_${Date.now()}`,
                                   title: t("finances.paymentReminderPushTitle"),
-                                  body: t("finances.paymentReminderPushBody", { date: new Date(l.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }), sum: Number(l.student_price).toLocaleString("uk-UA") }),
+                                  body: t("finances.paymentReminderPushBody", { date: new Date(l.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }), sum: Number(l.student_price).toLocaleString(getLocale()) }),
                                   link: "/schedule",
                                 });
                                 toast.success(t("finances.reminderSent"), { description: nameOf(l.student_id) });
@@ -1585,7 +1586,7 @@ export default function FinancesPage() {
                     <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>{t("finances.thisMonth")}</p>
                     <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
                       <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
-                        {analyticsStats.thisMonth.toLocaleString("uk-UA")} ₴
+                        {analyticsStats.thisMonth.toLocaleString(getLocale())} ₴
                       </span>
                       {analyticsStats.momPct !== null && (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:4, borderRadius:999, padding:"4px 10px",
@@ -1598,7 +1599,7 @@ export default function FinancesPage() {
                     </div>
                     {analyticsStats.projected > analyticsStats.thisMonth && (
                       <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:7, lineHeight:1.45 }}>
-                        {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString("uk-UA")} ₴</b> {t("finances.forecastPost")}
+                        {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString(getLocale())} ₴</b> {t("finances.forecastPost")}
                       </p>
                     )}
                   </div>
@@ -1609,7 +1610,7 @@ export default function FinancesPage() {
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
-                            {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
+                            {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.85, marginTop:1 }}>
                             {t("finances.lessonsAwaitPayment", { count: debtList.length })}
@@ -1664,7 +1665,7 @@ export default function FinancesPage() {
                             <div key={s.student_id}>
                               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                                 <span style={{ fontFamily:F.body, fontSize:13, color:F.txt }}>{s.name}</span>
-                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>{s.amount.toLocaleString("uk-UA")} ₴</span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>{s.amount.toLocaleString(getLocale())} ₴</span>
                               </div>
                               <div style={{ height:7, borderRadius:999, background:F.border }}>
                                 <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:s.color, transition:"width .4s ease" }} />
@@ -1684,7 +1685,7 @@ export default function FinancesPage() {
                     </div>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
                       <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.avgLesson")}</p>
-                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString("uk-UA")} ₴</p>
+                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString(getLocale())} ₴</p>
                     </div>
                   </div>
 
@@ -1693,7 +1694,7 @@ export default function FinancesPage() {
                     <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ fontSize:18 }}>🚫</span>
                       <p style={{ fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.4 }}>
-                        {t("finances.cancellationsPre")} <b>{analyticsStats.cancelledLost.toLocaleString("uk-UA")} ₴</b>{t("finances.cancellationsPost")}
+                        {t("finances.cancellationsPre")} <b>{analyticsStats.cancelledLost.toLocaleString(getLocale())} ₴</b>{t("finances.cancellationsPost")}
                       </p>
                     </div>
                   )}
@@ -1717,7 +1718,7 @@ export default function FinancesPage() {
               <div style={{ borderRadius:18, padding:"16px 18px",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
                 <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD, marginBottom:4 }}>
-                  ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
+                  ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
                   {t("finances.lessonsUnpaid", { count: debtList.length })}
@@ -1895,7 +1896,7 @@ export default function FinancesPage() {
                       userId: studentId,
                       type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
                       title: t("finances.remindPushTitle"),
-                      body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString("uk-UA") }),
+                      body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString(getLocale()) }),
                       link: "/student/payments",
                     });
                     sent += 1;

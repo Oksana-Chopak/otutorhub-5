@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,7 +24,7 @@ interface PairRow {
 
 const fmtDate = (iso: string | null) =>
   iso
-    ? new Date(iso).toLocaleDateString("uk-UA", {
+    ? new Date(iso).toLocaleDateString(getLocale(), {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",

@@ -1,4 +1,5 @@
 import { PageFAB } from "@/components/PageFAB";
+import { getLocale } from "@/lib/locale";
 import { PeopleSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
@@ -859,7 +860,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           ];
           const doneCount = steps.filter((s) => s.ok).length;
           const fmt = (d?: string | null) =>
-            d ? new Date(d).toLocaleDateString("uk-UA", { day: "2-digit", month: "short" }) : "—";
+            d ? new Date(d).toLocaleDateString(getLocale(), { day: "2-digit", month: "short" }) : "—";
           return { steps, doneCount, fmt };
         })()
       : null;

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import type { StudentReward } from "@/hooks/useStudentRewards";
@@ -38,7 +39,7 @@ export function RewardCollection({ rewards, loading }: Props) {
           {rewards.map((r) => (
             <span
               key={r.id}
-              title={new Date(r.earned_at).toLocaleDateString("uk-UA")}
+              title={new Date(r.earned_at).toLocaleDateString(getLocale())}
               style={{
                 width: 46, height: 46, borderRadius: 14, display: "flex", alignItems: "center",
                 justifyContent: "center", fontSize: 23, cursor: "default",

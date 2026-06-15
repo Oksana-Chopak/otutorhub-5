@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -163,7 +164,7 @@ export function QuickPaymentFab() {
                     </p>
                     <p className="truncate text-[13px] text-muted-foreground">
                       {r.subject} ·{" "}
-                      {d.toLocaleDateString("uk-UA", {
+                      {d.toLocaleDateString(getLocale(), {
                         day: "numeric",
                         month: "short",
                       })}{" "}

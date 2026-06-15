@@ -1,3 +1,4 @@
+import { getLocale } from "@/lib/locale";
 export type CurrencyCode = "UAH" | "USD" | "EUR" | "SEK" | "PLN" | "GBP";
 
 export const CURRENCY_OPTIONS: { code: string; symbol: string; label: string }[] = [
@@ -33,7 +34,7 @@ export function formatPrice(
   const formatted =
     opts.decimals != null
       ? n.toFixed(opts.decimals)
-      : new Intl.NumberFormat("uk-UA", {
+      : new Intl.NumberFormat(getLocale(), {
           minimumFractionDigits: 0,
           maximumFractionDigits: 2,
         }).format(n);

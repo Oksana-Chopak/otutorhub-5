@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -525,7 +526,7 @@ export function LessonWorkspace({
                 <span style={{ fontSize: 16 }}>🧠</span>
                 <span style={{ flex: 1, minWidth: 0 }}>
                   <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, color: L.txt }}>
-                    {t("lessonWorkspaceExtra.prevLessonHeader", { date: new Date(prevLesson.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }) })}
+                    {t("lessonWorkspaceExtra.prevLessonHeader", { date: new Date(prevLesson.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }) })}
                   </span>
                   {!prevOpen && (
                     <span style={{ display: "block", fontSize: 13, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>

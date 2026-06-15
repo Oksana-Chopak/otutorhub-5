@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -48,7 +49,7 @@ interface Props {
 }
 
 const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("uk-UA", {
+  new Date(iso).toLocaleDateString(getLocale(), {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

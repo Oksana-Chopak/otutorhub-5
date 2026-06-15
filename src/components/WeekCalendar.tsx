@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -53,10 +54,9 @@ function formatRange(weekStart: Date) {
   const sameMonth = weekStart.getMonth() === end.getMonth();
   const opt: Intl.DateTimeFormatOptions = { day: "numeric", month: "short" };
   if (sameMonth) {
-    return `${weekStart.getDate()}–${end.toLocaleDateString("uk-UA", opt)}`;
+    return `${weekStart.getDate()}–${end.toLocaleDateString(getLocale(), opt)}`;
   }
-  return `${weekStart.toLocaleDateString("uk-UA", opt)} – ${end.toLocaleDateString(
-    "uk-UA",
+  return `${weekStart.toLocaleDateString(getLocale(), opt)} – ${end.toLocaleDateString(getLocale(),
     opt
   )}`;
 }
@@ -208,7 +208,7 @@ export function WeekCalendar({
               <div className="relative h-px bg-destructive">
                 <span className="absolute -left-1 -top-[3px] inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
                 <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[11px] font-semibold text-destructive-foreground">
-                  {now.toLocaleTimeString("uk-UA", {
+                  {now.toLocaleTimeString(getLocale(), {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -284,7 +284,7 @@ export function WeekCalendar({
                       style={{ top, height }}
                     >
                       <div className="font-semibold truncate">
-                        {startD.toLocaleTimeString("uk-UA", {
+                        {startD.toLocaleTimeString(getLocale(), {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}{" "}

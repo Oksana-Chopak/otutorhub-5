@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,7 +103,7 @@ export function StudentRewardsShelf() {
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {rewards.map((r, i) => (
-              <span key={i} title={new Date(r.created_at).toLocaleDateString("uk-UA")}
+              <span key={i} title={new Date(r.created_at).toLocaleDateString(getLocale())}
                 style={{ width: 46, height: 46, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 23, background: "linear-gradient(135deg, rgba(43,191,170,.12), rgba(43,191,170,.04))", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.25)" }}>
                 {r.emoji}
               </span>

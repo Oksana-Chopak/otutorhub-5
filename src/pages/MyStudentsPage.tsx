@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -747,7 +748,7 @@ export default function MyStudentsPage() {
             const st = statusOf(s);
             const name = `${s.first_name} ${s.last_name}`.trim() || "—";
             const nextLessonLabel = (s as any).next_lesson_at
-              ? new Date((s as any).next_lesson_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })
+              ? new Date((s as any).next_lesson_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })
               : "—";
             const statusBg = s.is_pending ? "rgba(148,155,185,.14)" : st.status === "debt" ? "rgba(245,158,11,.12)" : st.status === "ok" ? "rgba(34,197,94,.12)" : st.status === "new" ? "rgba(37,99,235,.1)" : "rgba(148,155,185,.12)";
             const statusFg = s.is_pending ? T.sub : st.status === "debt" ? "#B4740B" : st.status === "ok" ? "#16a34a" : st.status === "new" ? "#2563eb" : T.sub;

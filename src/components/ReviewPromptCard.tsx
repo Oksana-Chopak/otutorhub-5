@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Star, Loader2, X } from "lucide-react";
@@ -130,7 +131,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
 
   if (loading || !current) return null;
 
-  const fmtDate = new Date(current.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
+  const fmtDate = new Date(current.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "long" });
 
   return (
     <div

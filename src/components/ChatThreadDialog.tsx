@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -271,7 +272,7 @@ export function ChatThreadDialog({
                             mine ? "text-white/70" : "text-[#9398b0]"
                           }`}
                         >
-                          {new Date(m.created_at).toLocaleTimeString("uk-UA", {
+                          {new Date(m.created_at).toLocaleTimeString(getLocale(), {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}

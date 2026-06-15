@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -79,7 +80,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
 
   const formatDate = (iso: string) => {
     const d = new Date(iso);
-    return d.toLocaleDateString("uk-UA", { day: "2-digit", month: "short", year: "numeric" });
+    return d.toLocaleDateString(getLocale(), { day: "2-digit", month: "short", year: "numeric" });
   };
 
   return (

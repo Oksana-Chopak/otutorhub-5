@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { insertNotification } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
@@ -308,7 +309,7 @@ export function QuickLessonDialog({
     createdRows?.forEach((r) => void syncLessonToGoogleCalendar(r.id, "upsert"));
     // Notify student that a new lesson has been scheduled
     if (created && selected.student_id) {
-      const dateStr = effStartsAt.toLocaleString("uk-UA", {
+      const dateStr = effStartsAt.toLocaleString(getLocale(), {
         weekday: "long", day: "numeric", month: "long",
         hour: "2-digit", minute: "2-digit",
       });
@@ -323,7 +324,7 @@ export function QuickLessonDialog({
       });
     }
     localStorage.setItem(LAST_MODE_KEY, "individual");
-    const timeStr = effStartsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+    const timeStr = effStartsAt.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
     toast.success(
       seriesCount > 1
         ? t("quickLessonDialog.seriesCreated", { count: seriesCount, name: selected.name, time: timeStr })
@@ -338,10 +339,10 @@ export function QuickLessonDialog({
 
   const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
   const heroDate = effStartsAt
-    ? cap(effStartsAt.toLocaleDateString("uk-UA", { weekday: "short", day: "numeric", month: "long" }))
+    ? cap(effStartsAt.toLocaleDateString(getLocale(), { weekday: "short", day: "numeric", month: "long" }))
     : "";
   const heroTime = effStartsAt
-    ? effStartsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
+    ? effStartsAt.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
     : "";
   const pad2 = (n: number) => String(n).padStart(2, "0");
   const ymd = effStartsAt ? `${effStartsAt.getFullYear()}-${pad2(effStartsAt.getMonth() + 1)}-${pad2(effStartsAt.getDate())}` : "";

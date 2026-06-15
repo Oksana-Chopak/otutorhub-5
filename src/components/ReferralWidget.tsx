@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -129,7 +130,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
         {savedUah > 0 && (
           <div className="mb-3 rounded-xl border border-success/30 bg-success/5 p-3">
             <p className="text-[13px] text-muted-foreground">{t("referralWidget.savedLabel")}</p>
-            <p className="text-2xl font-bold text-success">{savedUah.toLocaleString("uk-UA")} ₴</p>
+            <p className="text-2xl font-bold text-success">{savedUah.toLocaleString(getLocale())} ₴</p>
           </div>
         )}
 

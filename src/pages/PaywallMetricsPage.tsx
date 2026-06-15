@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -337,7 +338,7 @@ export default function PaywallMetricsPage() {
                     </div>
                     <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-muted-foreground">
                       <span className="whitespace-nowrap">
-                        {new Date(e.created_at).toLocaleString("uk-UA", {
+                        {new Date(e.created_at).toLocaleString(getLocale(), {
                           day: "2-digit",
                           month: "2-digit",
                           hour: "2-digit",
@@ -374,7 +375,7 @@ export default function PaywallMetricsPage() {
                     recent.map((e) => (
                       <TableRow key={e.id}>
                         <TableCell className="whitespace-nowrap text-[13px] text-muted-foreground">
-                          {new Date(e.created_at).toLocaleString("uk-UA", {
+                          {new Date(e.created_at).toLocaleString(getLocale(), {
                             day: "2-digit",
                             month: "2-digit",
                             hour: "2-digit",

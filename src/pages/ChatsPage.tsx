@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { getLocale } from "@/lib/locale";
 import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
@@ -97,8 +98,8 @@ function timeShort(iso: string | null | undefined) {
   const today = new Date();
   const sameDay = d.toDateString() === today.toDateString();
   return sameDay
-    ? d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" })
-    : d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
+    ? d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleDateString(getLocale(), { day: "numeric", month: "short" });
 }
 
 export default function ChatsPage() {
@@ -260,7 +261,7 @@ export default function ChatsPage() {
         const unpaid = lessons.filter((l) => l.student_payment_status === "unpaid" && l.status !== "cancelled");
         if (unpaid.length > 0) {
           const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
-          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: sum.toLocaleString("uk-UA"), count: unpaid.length }), amount: sum, count: unpaid.length } };
+          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: sum.toLocaleString(getLocale()), count: unpaid.length }), amount: sum, count: unpaid.length } };
         }
         const next = lessons
           .filter((l) => l.status !== "cancelled" && new Date(l.starts_at).getTime() >= now)
@@ -272,8 +273,8 @@ export default function ChatsPage() {
           const dd = new Date(d); dd.setHours(0, 0, 0, 0);
           const dayLabel = dd.getTime() === today.getTime() ? t("chats.ctxDayToday")
             : dd.getTime() === tomorrow.getTime() ? t("chats.ctxDayTomorrow")
-            : d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
-          const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+            : d.toLocaleDateString(getLocale(), { day: "numeric", month: "short" });
+          const time = d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
           return { ...th, ctx: { kind: "lesson", text: t("chats.ctxLesson", { day: dayLabel, time }) } };
         }
         return { ...th, ctx: { kind: "none", text: "" } };
@@ -778,7 +779,7 @@ export default function ChatsPage() {
     yesterday.setDate(today.getDate() - 1);
     if (d.toDateString() === today.toDateString()) return t("chats.dateToday");
     if (d.toDateString() === yesterday.toDateString()) return t("chats.dateYesterday");
-    return d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
+    return d.toLocaleDateString(getLocale(), { day: "numeric", month: "long" });
   };
 
   return (
@@ -1258,7 +1259,7 @@ export default function ChatsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
                           {selectedThread.ctx.kind === "debt"
-                            ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString("uk-UA") })
+                            ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString(getLocale()) })
                             : t("chats.smartCreateFirstLesson")}
                         </p>
                         <p className="text-[12.5px] truncate" style={{ color: "#9398b0" }}>
