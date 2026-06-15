@@ -25,3 +25,6 @@ dist-ssr
 .env.production
 .env.e2e
 test-results/
+
+# Generated test artifacts
+playwright-report/
