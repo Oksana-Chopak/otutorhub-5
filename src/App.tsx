@@ -46,6 +46,7 @@ const TermsPage = lazy(() => import("./pages/TermsPage"));
 const PrivacyPage = lazy(() => import("./pages/PrivacyPage"));
 const StudentDashboardPage = lazy(() => import("./pages/student/StudentDashboardPage"));
 const StudentSchedulePage = lazy(() => import("./pages/student/StudentSchedulePage"));
+const StudentAchievementsPage = lazy(() => import("./pages/student/StudentAchievementsPage"));
 const StudentPaymentsPage = lazy(() => import("./pages/student/StudentPaymentsPage"));
 const StudentHomeworkPage = lazy(() => import("./pages/student/StudentHomeworkPage"));
 const StudentProfilePage = lazy(() => import("./pages/student/StudentProfilePage"));
@@ -240,6 +241,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["student"]}>
                 <StudentSchedulePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/student/achievements"
+            element={
+              <ProtectedRoute allowedRoles={["student"]}>
+                <StudentAchievementsPage />
               </ProtectedRoute>
             }
           />

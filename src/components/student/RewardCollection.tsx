@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import type { StudentReward } from "@/hooks/useStudentRewards";
 
@@ -22,11 +23,9 @@ export function RewardCollection({ rewards, loading }: Props) {
           <Sparkles className="h-4 w-4" style={{ color: C.teal }} />
           {t("rewardCollection.title")}
         </h2>
-        {rewards.length > 0 && (
-          <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, color: C.tealD }}>
-            {rewards.length} {t("rewardCollection.countSuffix")}
-          </span>
-        )}
+        <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, color: C.tealD, textDecoration: "none" }}>
+          {t("rewardCollection.seeAll")} →
+        </Link>
       </div>
 
       {loading ? null : rewards.length === 0 ? (
