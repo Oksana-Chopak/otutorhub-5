@@ -738,6 +738,7 @@ export const en: Translations = {
   },
 
   chats: {
+    loadEarlier: "↑ Show earlier",
     ctxNewStudent: "New student",
     ctxDebt: "Debt ₴{{amount}} · {{count}} lessons",
     ctxDebt_one: "Debt ₴{{amount}} · {{count}} lesson",

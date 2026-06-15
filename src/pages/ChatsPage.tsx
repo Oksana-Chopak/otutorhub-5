@@ -116,6 +116,8 @@ export default function ChatsPage() {
   const [showContextPanel, setShowContextPanel] = useState(false);
   const canShowContext = !roles.includes("student");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [msgLimit, setMsgLimit] = useState(50);
+  const [hasMoreMsgs, setHasMoreMsgs] = useState(false);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [readMap, setReadMap] = useState<Record<string, string>>({});
@@ -407,8 +409,11 @@ export default function ChatsPage() {
         .select("id, thread_id, sender_id, body, created_at")
         .eq("thread_id", selectedId);
       if (!includeArchived) query = query.eq("archived", false);
-      const { data } = await query.order("created_at", { ascending: true });
-      const msgs = (data ?? []) as Message[];
+      // Load the most recent `msgLimit` messages (newest-first), then display oldest→newest.
+      const { data } = await query.order("created_at", { ascending: false }).limit(msgLimit);
+      const rows = (data ?? []) as Message[];
+      if (!cancelled) setHasMoreMsgs(rows.length === msgLimit);
+      const msgs = rows.slice().reverse();
       if (!cancelled) setMessages(msgs);
       // Load attachments for these messages
       if (msgs.length > 0) {
@@ -496,7 +501,10 @@ export default function ChatsPage() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedId, showArchived]);
+  }, [selectedId, showArchived, msgLimit]);
+
+  // Reset the message window when switching threads.
+  useEffect(() => { setMsgLimit(50); }, [selectedId]);
 
   // Realtime: refresh thread list metadata when any message arrives so unread badges update
   useEffect(() => {
@@ -1090,6 +1098,17 @@ export default function ChatsPage() {
                     </div>
                   )}
 
+                  {hasMoreMsgs && messages.length > 0 && (
+                    <div className="flex justify-center py-2">
+                      <button
+                        type="button"
+                        onClick={() => setMsgLimit((l) => l + 50)}
+                        className="rounded-full border border-border bg-card px-4 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                      >
+                        {t("chats.loadEarlier")}
+                      </button>
+                    </div>
+                  )}
                   {messages.length === 0 ? (
                     <p className="text-center text-[13px] py-8" style={{ color: "var(--sub,#9398b0)" }}>
                       {t("chats.noMessagesYet")}

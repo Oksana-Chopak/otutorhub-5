@@ -509,6 +509,7 @@ export const sv: Partial<Translations> = {
     csvPaidOut: "Utbetald",
   },
   chats: {
+    loadEarlier: "↑ Visa tidigare",
     ctxNewStudent: "Ny elev",
     ctxDebt: "Skuld ₴{{amount}} · {{count}} lektioner",
     ctxDebt_one: "Skuld ₴{{amount}} · {{count}} lektion",

@@ -746,6 +746,7 @@ export const uk = {
 
   // Chats
   chats: {
+    loadEarlier: "↑ Показати раніші",
     ctxNewStudent: "Новий учень",
     ctxDebt: "Борг ₴{{amount}} · {{count}} ур.",
     ctxDebt_one: "Борг ₴{{amount}} · {{count}} ур.",

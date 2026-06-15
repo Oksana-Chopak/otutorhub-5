@@ -1890,17 +1890,19 @@ export default function FinancesPage() {
                     cur.sum += Number(l.student_price) || 0;
                     byStudent.set(l.student_id, cur);
                   });
-                  let sent = 0;
-                  for (const [studentId, agg] of byStudent) {
-                    await insertNotification({
-                      userId: studentId,
-                      type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
-                      title: t("finances.remindPushTitle"),
-                      body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString(getLocale()) }),
-                      link: "/student/payments",
-                    });
-                    sent += 1;
-                  }
+                  // Fire all reminders in parallel — they're independent inserts.
+                  await Promise.all(
+                    Array.from(byStudent).map(([studentId, agg]) =>
+                      insertNotification({
+                        userId: studentId,
+                        type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
+                        title: t("finances.remindPushTitle"),
+                        body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString(getLocale()) }),
+                        link: "/student/payments",
+                      }),
+                    ),
+                  );
+                  const sent = byStudent.size;
                   toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
                   handleTabChange("debts");
                 }}
