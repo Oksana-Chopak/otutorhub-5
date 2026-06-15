@@ -1814,7 +1814,7 @@ export const en: Translations = {
     subtitle: "Your achievements collection",
     collected: "{{count}} of {{total}} collected",
     hint: "Earn more by attending lessons and doing your homework.",
-    empty: "Nothing yet — finish your first lesson to unlock your first achievement 🎯",
+    empty: "Your first achievement is within reach — finish your first lesson to unlock it 🎯",
     firstLesson: "First lesson",
     firstLessonDesc: "Complete your first lesson",
     firstHomework: "First homework",

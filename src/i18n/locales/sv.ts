@@ -1804,7 +1804,7 @@ export const sv: Partial<Translations> = {
     subtitle: "Din samling av prestationer",
     collected: "{{count}} av {{total}} insamlade",
     hint: "Tjäna fler genom att gå på lektioner och göra dina läxor.",
-    empty: "Inget ännu — slutför din första lektion för att låsa upp din första prestation 🎯",
+    empty: "Din första prestation är inom räckhåll — slutför din första lektion och lås upp den 🎯",
     firstLesson: "Första lektionen",
     firstLessonDesc: "Slutför din första lektion",
     firstHomework: "Första läxan",

@@ -22,7 +22,7 @@ export default function StudentAchievementsPage() {
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <Card>
+          <Card className="rounded-[16px]">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" />

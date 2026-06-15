@@ -38,13 +38,13 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
               </span>
             )}
             <div className={cn("text-3xl", earned ? "animate-bounce-soft" : "grayscale")}>{def.emoji}</div>
-            <div className="text-[10px] font-medium leading-tight text-foreground">{t(def.nameKey)}</div>
+            <div className="text-[12px] font-medium leading-tight text-foreground">{t(def.nameKey)}</div>
             {showProgress && (
               <div className="mt-0.5 w-full">
                 <div className="h-1 overflow-hidden rounded-full bg-border">
                   <div className="h-full rounded-full bg-primary/60" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="mt-0.5 text-[9px] tabular-nums text-muted-foreground">{current}/{target}</div>
+                <div className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">{current}/{target}</div>
               </div>
             )}
           </div>
