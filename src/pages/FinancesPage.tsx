@@ -894,7 +894,7 @@ export default function FinancesPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
                     <p className="truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{l.subject}</p>
-                    <p className="text-[13px]" style={{ color: "#9398b0", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[13px]" style={{ color: "#6b7088", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && (
                     <div
@@ -1919,7 +1919,7 @@ export default function FinancesPage() {
             <button
               onClick={exportCsv}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-gray-100"
-              style={{ color: "var(--sub,#9398b0)", border: "1px solid var(--border,#eceef3)" }}
+              style={{ color: "var(--sub,#6b7088)", border: "1px solid var(--border,#eceef3)" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
               CSV
@@ -1984,7 +1984,7 @@ export default function FinancesPage() {
                 onClick={() => setSelected(new Set())}
                 aria-label={t("common.close")}
                 className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-                style={{ color: "var(--sub,#9398b0)" }}
+                style={{ color: "var(--sub,#6b7088)" }}
               >
                 <X className="h-4 w-4" />
               </button>

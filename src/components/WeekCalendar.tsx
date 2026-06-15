@@ -149,7 +149,7 @@ export function WeekCalendar({
         <div className="flex items-center gap-2">
           <button type="button" onClick={onPrev} aria-label="←"
             className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-            style={{ color: "var(--sub,#9398b0)" }}>
+            style={{ color: "var(--sub,#6b7088)" }}>
             <ChevronLeft className="h-4 w-4" />
           </button>
           <span className="text-sm font-medium text-foreground min-w-[120px] text-center">
@@ -157,7 +157,7 @@ export function WeekCalendar({
           </span>
           <button type="button" onClick={onNext} aria-label="→"
             className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-            style={{ color: "var(--sub,#9398b0)" }}>
+            style={{ color: "var(--sub,#6b7088)" }}>
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>

@@ -71,7 +71,7 @@ export default function StudentHomeworkPage() {
           <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff" }}>
             <div style={{ fontSize: 38 }}>📚</div>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noHomeworkTitle")}</p>
-            <p style={{ fontSize: 14, color: "#9398b0", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
+            <p style={{ fontSize: 14, color: "#6b7088", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
           </div>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -81,7 +81,7 @@ export default function StudentHomeworkPage() {
                   <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>📚</span>
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
-                    <p style={{ fontSize: 13, color: "#9398b0", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+                    <p style={{ fontSize: 13, color: "#6b7088", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                   </div>
                 </div>
                 <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "#fbfbfc", border: "1px solid #eceef3", padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55, color: "#0f0f1a" }}>

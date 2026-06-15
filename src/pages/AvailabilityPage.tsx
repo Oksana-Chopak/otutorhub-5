@@ -33,7 +33,7 @@ export default function AvailabilityPage() {
         </div>
         {infoOpen && (
           <div className="mt-3 rounded-[14px] px-4 py-3 text-[14px] leading-relaxed"
-            style={{ background: "rgba(43,191,170,.07)", color: "var(--sub,#9398b0)",
+            style={{ background: "rgba(43,191,170,.07)", color: "var(--sub,#6b7088)",
                      border: "1px solid rgba(43,191,170,.2)" }}>
             {t("availability.subtitle")}
           </div>

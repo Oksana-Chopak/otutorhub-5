@@ -41,7 +41,7 @@ function PushSettingsCard() {
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
         {t("pushNotif.cardTitle")}
       </p>
-      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "#9398b0" }}>
+      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "#6b7088" }}>
         {t("pushNotif.cardDesc")}
       </p>
       <PushNotificationToggle />
@@ -675,7 +675,7 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#9398b0", marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#6b7088", marginBottom: 16 }}>
                 {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
@@ -728,12 +728,12 @@ export default function ProfilePage() {
                   gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid #eceef3",
                   background: "#fff", cursor: "pointer" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Mail size={18} style={{ color: "#9398b0" }} />
+                  <Mail size={18} style={{ color: "#6b7088" }} />
                   <span style={{ textAlign: "left" }}>
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
                       {t("profile.editContacts") || "Контактні дані"}
                     </span>
-                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "#9398b0" }}>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "#6b7088" }}>
                       {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
                     </span>
                   </span>
@@ -751,12 +751,12 @@ export default function ProfilePage() {
                     <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "#0f0f1a" }}>
                       <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
                       {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
-                      <span style={{ color: "#9398b0", fontWeight: 600 }}>({reviews.length})</span>
+                      <span style={{ color: "#6b7088", fontWeight: 600 }}>({reviews.length})</span>
                     </span>
                   )}
                 </div>
                 {reviews.length === 0 ? (
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#9398b0", padding: "10px 0" }}>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#6b7088", padding: "10px 0" }}>
                     {t("profile.reviewsEmpty") || "Поки що немає відгуків. Вони з'являться, коли учні оцінять твої уроки 🌟"}
                   </p>
                 ) : (
@@ -822,7 +822,7 @@ export default function ProfilePage() {
                     <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
                       style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
                         background: "transparent", border: "1px solid #eceef3", cursor: "pointer",
-                        color: "#9398b0" }}>
+                        color: "#6b7088" }}>
                       + {s}
                     </button>
                   ))}

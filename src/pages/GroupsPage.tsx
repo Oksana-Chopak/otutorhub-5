@@ -155,7 +155,7 @@ export default function GroupsPage() {
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
                     {g.subject && (
-                      <p style={{ fontSize: 13.5, color: "#9398b0", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
+                      <p style={{ fontSize: 13.5, color: "#6b7088", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
                     )}
                   </div>
                 </div>

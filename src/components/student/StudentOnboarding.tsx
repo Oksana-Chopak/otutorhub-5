@@ -374,7 +374,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                 rows={3}
                 maxLength={300}
               />
-              <p className="mt-1 text-right text-[13px]" style={{ color: "#9398b0" }}>{goalOther.trim().length}/300</p>
+              <p className="mt-1 text-right text-[13px]" style={{ color: "#6b7088" }}>{goalOther.trim().length}/300</p>
             </div>
           )}
 

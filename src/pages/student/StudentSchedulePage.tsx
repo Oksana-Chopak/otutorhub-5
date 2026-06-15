@@ -96,7 +96,7 @@ export default function StudentSchedulePage() {
                       {statusLabel[l.status]}
                     </span>
                   </div>
-                  <p style={{ fontSize: 13, color: "#9398b0", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <p style={{ fontSize: 13, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                   </p>
                 </div>
