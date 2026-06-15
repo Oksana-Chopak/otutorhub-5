@@ -16,6 +16,14 @@
 - Only push if ALL four checks are green
 - After push — verify each changed page via Chrome extension before reporting done
 
+### Deploy model — READ THIS (it has bitten the release twice)
+Three independent channels — pushing to `main` does NOT deploy all of them:
+- **Frontend code** (pages, components, hooks) → Lovable **Publish** ships it. Also visible in Lovable Preview immediately on git push, no Publish needed.
+- **DB migrations** (`supabase/migrations/*.sql`) → NOT applied by Publish or by an external git push. They must be applied via Supabase (Dashboard SQL Editor, or ask Lovable chat to apply them). A migration sitting in the repo is NOT in prod until applied.
+- **Edge functions** (`supabase/functions/*`) → same: NOT deployed by Publish/git push. Must be deployed via Supabase, AND must be listed in `supabase/config.toml` or they are skipped entirely.
+- Verification trick: if a table/function/column shows up in `src/integrations/supabase/types.ts`, it IS in the live DB (Lovable regenerates types from the live DB after applying). If it's only in a migration file, it's NOT live yet.
+- The old migrations/functions are in prod because they were originally run through the Lovable/Supabase pipeline — not because an external push applied them.
+
 ### Never touch
 - `LessonCard.tsx` — perfect as-is, used across Dashboard/Schedule
 - Supabase queries and hooks logic
