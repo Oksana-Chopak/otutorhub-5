@@ -983,9 +983,9 @@ export default function MyStudentsPage() {
                       </PopoverContent>
                     </Popover>
                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
-                      <input style={inp(true)} placeholder={t("myStudents.fieldFirstName")} value={form.first_name}
+                      <input aria-label={t("myStudents.fieldFirstName")} style={inp(true)} placeholder={t("myStudents.fieldFirstName")} value={form.first_name}
                         onChange={(e) => setForm({ ...form, first_name: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
-                      <input style={inp(false)} placeholder={t("myStudents.fieldLastName")} value={form.last_name}
+                      <input aria-label={t("myStudents.fieldLastName")} style={inp(false)} placeholder={t("myStudents.fieldLastName")} value={form.last_name}
                         onChange={(e) => setForm({ ...form, last_name: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
                     </div>
                   </div>
@@ -1015,7 +1015,7 @@ export default function MyStudentsPage() {
                     </div>
                     {subjectOpen && (
                       <div style={{ marginTop: 10, padding: 12, borderRadius: 14, background: F.bg, border: `1px solid ${F.border}` }}>
-                        <input autoFocus value={subjectDraft} onChange={(e) => setSubjectDraft(e.target.value)}
+                        <input autoFocus aria-label={t("myStudents.subjectDraftPlaceholder")} value={subjectDraft} onChange={(e) => setSubjectDraft(e.target.value)}
                           placeholder={t("myStudents.subjectDraftPlaceholder")}
                           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSubject(subjectDraft); } }}
                           style={{ ...inp(false), background: "#fff", borderColor: F.teal, boxShadow: "0 0 0 3px rgba(43,191,170,.12)" }} />
@@ -1042,7 +1042,7 @@ export default function MyStudentsPage() {
                     <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")}</div>
                     <div style={{ display: "flex", gap: 10 }}>
                       <div style={{ flex: 1 }}>
-                        <input inputMode="decimal" placeholder="500" value={form.price}
+                        <input aria-label={t("myStudents.priceCardTitle")} inputMode="decimal" placeholder="500" value={form.price}
                           onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })}
                           onFocus={focusOn} onBlur={focusOff} style={{ ...inp(true), background: "#fff" }} />
                       </div>
@@ -1080,11 +1080,11 @@ export default function MyStudentsPage() {
                   <div>
                     <span style={lbl}>{t("myStudents.contactsLabel")}</span>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <input type="tel" style={inp(false)} placeholder={t("myStudents.fieldPhone")} value={form.phone}
+                      <input aria-label={t("myStudents.fieldPhone")} type="tel" style={inp(false)} placeholder={t("myStudents.fieldPhone")} value={form.phone}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
-                      <input type="email" style={inp(false)} placeholder="Email" value={form.email}
+                      <input aria-label="Email" type="email" style={inp(false)} placeholder="Email" value={form.email}
                         onChange={(e) => setForm({ ...form, email: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
-                      <input style={inp(false)} placeholder="Telegram @username" value={form.telegram}
+                      <input aria-label="Telegram" style={inp(false)} placeholder="Telegram @username" value={form.telegram}
                         onChange={(e) => setForm({ ...form, telegram: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
                     </div>
                   </div>
@@ -1095,7 +1095,7 @@ export default function MyStudentsPage() {
                       <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
                       <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub }}>{t("myStudents.notesLabel")}</span>
                     </div>
-                    <textarea rows={3} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}
+                    <textarea rows={3} aria-label={t("myStudents.notesPlaceholder")} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}
                       onChange={(e) => setForm({ ...form, tutor_notes: e.target.value })}
                       onFocus={(e) => { e.target.style.borderColor = "#F5B544"; e.target.style.boxShadow = "0 0 0 3px rgba(245,181,68,.16)"; e.target.style.background = "#fff"; }}
                       onBlur={(e) => { e.target.style.borderColor = "rgba(245,181,68,.35)"; e.target.style.boxShadow = "none"; e.target.style.background = "#FFFCF4"; }}

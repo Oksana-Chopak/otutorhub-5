@@ -254,7 +254,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
                     <span style={lblSt}>{t("quickAddStudent.firstName")} <span style={{ color: F.teal }}>*</span></span>
-                    <input style={inpSt()} placeholder={t("quickAddStudent.firstNamePlaceholder")}
+                    <input aria-label={t("quickAddStudent.firstName")} style={inpSt()} placeholder={t("quickAddStudent.firstNamePlaceholder")}
                       value={form.first_name}
                       onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
                       onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -263,7 +263,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   </div>
                   <div>
                     <span style={lblSt}>{t("quickAddStudent.lastName")}</span>
-                    <input style={inpSt()} placeholder={t("quickAddStudent.lastNamePlaceholder")}
+                    <input aria-label={t("quickAddStudent.lastName")} style={inpSt()} placeholder={t("quickAddStudent.lastNamePlaceholder")}
                       value={form.last_name}
                       onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
                       onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -275,7 +275,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Subject */}
                 <div>
                   <span style={lblSt}>{t("quickAddStudent.subject")} <span style={{ color: F.teal }}>*</span></span>
-                  <input style={inpSt()} placeholder={t("quickAddStudent.subjectPlaceholder")}
+                  <input aria-label={t("quickAddStudent.subject")} style={inpSt()} placeholder={t("quickAddStudent.subjectPlaceholder")}
                     value={form.subject}
                     onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                     onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -303,7 +303,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
                     <span style={lblSt}>{t("quickAddStudent.pricePerLesson")} <span style={{ color: F.teal }}>*</span></span>
-                    <input type="number" min={0} style={inpSt()} placeholder="500"
+                    <input aria-label={t("quickAddStudent.pricePerLesson")} type="number" min={0} style={inpSt()} placeholder="500"
                       value={form.price}
                       onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                       onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -354,7 +354,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Email / Telegram */}
                 <div>
                   <span style={lblSt}>{t("quickAddStudent.emailOrTelegram")} <span style={{ color: F.teal }}>*</span></span>
-                  <input style={inpSt()} placeholder={t("quickAddStudent.emailOrTelegramPlaceholder")}
+                  <input aria-label={t("quickAddStudent.emailOrTelegram")} style={inpSt()} placeholder={t("quickAddStudent.emailOrTelegramPlaceholder")}
                     value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -365,7 +365,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Phone */}
                 <div>
                   <span style={lblSt}>{t("quickAddStudent.phone")}</span>
-                  <input type="tel" style={inpSt()} placeholder="+380 67 123 45 67"
+                  <input aria-label={t("quickAddStudent.phone")} type="tel" style={inpSt()} placeholder="+380 67 123 45 67"
                     value={form.phone}
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
                     onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
