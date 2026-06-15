@@ -3036,6 +3036,13 @@ export const uk = {
     lastOpCol: "Остання операція",
   },
   dashboardPageExtra: {
+    allClearDesc: "Можна планувати наступний тиждень 💪",
+    payoutMarkFailed: "Не вдалося позначити виплату",
+    payoutMarked: "Виплату позначено ✓",
+    payoutMarkedDesc: "{{count}} уроків позначено виплаченими",
+    payoutMarkedDesc_one: "{{count}} урок позначено виплаченим",
+    payoutMarkedDesc_few: "{{count}} уроки позначено виплаченими",
+    payoutMarkedDesc_many: "{{count}} уроків позначено виплаченими",
     rescheduleBtn: "Перенести",
     paymentUnpaid: "⏳ Очікує",
     paymentPaid: "✓ Оплачено",
@@ -3730,6 +3737,9 @@ export const uk = {
   },
   pageHeader: {
     menu: "Меню",
+  },
+  financeWeeklyChart: {
+    empty: "Графік зʼявиться після першого завершеного уроку 📈",
   },
 };
 

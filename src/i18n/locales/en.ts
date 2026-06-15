@@ -3026,6 +3026,12 @@ export const en: Translations = {
     lastOpCol: "Last operation",
   },
   dashboardPageExtra: {
+    allClearDesc: "Time to plan next week 💪",
+    payoutMarkFailed: "Could not mark the payout",
+    payoutMarked: "Payout marked ✓",
+    payoutMarkedDesc: "{{count}} lessons marked as paid out",
+    payoutMarkedDesc_one: "{{count}} lesson marked as paid out",
+    payoutMarkedDesc_other: "{{count}} lessons marked as paid out",
     rescheduleBtn: "Reschedule",
     paymentUnpaid: "⏳ Pending",
     paymentPaid: "✓ Paid",
@@ -3720,5 +3726,8 @@ export const en: Translations = {
   },
   pageHeader: {
     menu: "Menu",
+  },
+  financeWeeklyChart: {
+    empty: "The chart appears after your first completed lesson 📈",
   },
 };

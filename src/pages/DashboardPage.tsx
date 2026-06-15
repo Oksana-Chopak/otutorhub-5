@@ -755,10 +755,10 @@ export default function DashboardPage() {
     const { data, error } = await supabase.rpc("mark_tutor_payouts_paid" as any, { _tutor_id: tutorId });
     setPayingTutor(null);
     if (error) {
-      toast.error("Не вдалося позначити виплату", { description: error.message });
+      toast.error(t("dashboardPageExtra.payoutMarkFailed"), { description: error.message });
       return;
     }
-    toast.success("Виплату позначено ✓", { description: `${data ?? 0} ${(data ?? 0) === 1 ? "урок" : "уроків"} позначено виплаченими` });
+    toast.success(t("dashboardPageExtra.payoutMarked"), { description: t("dashboardPageExtra.payoutMarkedDesc", { count: data ?? 0 }) });
     setLessons((prev) => prev.map((l) => (l.tutor_id === tutorId && l.tutor_payout_status === "unpaid" ? { ...l, tutor_payout_status: "paid" as PaymentStatus } : l)));
   };
 
@@ -1900,9 +1900,9 @@ export default function DashboardPage() {
                       <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                         <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                       </div>
-                      <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("emptyState.allClear") || "Усе під контролем 🎉"}</p>
+                      <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("emptyState.allClear")}</p>
                       <p className="mt-1 text-[13px]" style={{ color: "var(--ds-sub)" }}>
-                        Немає термінових задач.
+                        {t("dashboardPageExtra.allClearDesc")}
                       </p>
                     </div>
                   ) : (

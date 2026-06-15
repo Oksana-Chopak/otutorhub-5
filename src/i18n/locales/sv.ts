@@ -3016,6 +3016,12 @@ export const sv: Partial<Translations> = {
     lastOpCol: "Senaste operation",
   },
   dashboardPageExtra: {
+    allClearDesc: "Dags att planera nästa vecka 💪",
+    payoutMarkFailed: "Det gick inte att markera utbetalningen",
+    payoutMarked: "Utbetalning markerad ✓",
+    payoutMarkedDesc: "{{count}} lektioner markerade som utbetalda",
+    payoutMarkedDesc_one: "{{count}} lektion markerad som utbetald",
+    payoutMarkedDesc_other: "{{count}} lektioner markerade som utbetalda",
     rescheduleBtn: "Flytta",
     paymentUnpaid: "⏳ Väntar",
     paymentPaid: "✓ Betald",
@@ -3710,5 +3716,8 @@ export const sv: Partial<Translations> = {
   },
   pageHeader: {
     menu: "Meny",
+  },
+  financeWeeklyChart: {
+    empty: "Diagrammet visas efter din första genomförda lektion 📈",
   },
 };

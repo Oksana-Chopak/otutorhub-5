@@ -132,7 +132,7 @@ export function FinanceWeeklyChart({
   if (!hasData) {
     return (
       <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-        Немає завершених уроків для побудови графіка
+        {i18nInstance.t("financeWeeklyChart.empty")}
       </div>
     );
   }
