@@ -353,6 +353,11 @@ export default function SchedulePage() {
       supabase.from("student_rates").select("tutor_id, student_id, currency"),
     ]);
 
+    // Surface load failures instead of silently showing an empty schedule.
+    if (lessonsRes.error) {
+      toast.error(t("schedule.loadFailed"));
+    }
+
     const profiles = profilesRes.data ?? [];
     const pmap: Record<string, string> = {};
     profiles.forEach((p: any) => {
@@ -401,7 +406,6 @@ export default function SchedulePage() {
     setStudents(studentIds.map((id) => ({ id, name: pmap[id] ?? t('roles.student') })));
 
     const rawLessons = (lessonsRes.data ?? []) as any[];
-    console.log('[SchedulePage] lessons count:', rawLessons.length, 'unique ids:', new Set(rawLessons.map((l) => l.id)).size);
     const lessonsWithSource = rawLessons
       .filter((l) => {
         // Manager should never see independent tutor lessons

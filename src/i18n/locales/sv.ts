@@ -225,6 +225,7 @@ export const sv: Partial<Translations> = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    loadFailed: "Det gick inte att läsa in schemat",
     studentNotifiedHint: "Eleven får en avisering när läxan eller sammanfattningen uppdateras.",
     focusUnpriced: "Visar: lektioner utan pris",
     focusNoLink: "Visar: lektioner utan länk",

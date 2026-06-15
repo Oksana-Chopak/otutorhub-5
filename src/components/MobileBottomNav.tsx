@@ -64,10 +64,10 @@ export function MobileBottomNav() {
 
   // ── Tutor / manager: 4 іконки без підписів ──────────────────────────────────
   const tabs = [
-    { to: "/", icon: Home },
-    { to: "/schedule", icon: CalendarDays },
-    { to: "/finances", icon: Wallet },
-    { to: "/chats", icon: MessageSquare },
+    { to: "/", icon: Home, labelKey: "nav.dashboard" },
+    { to: "/schedule", icon: CalendarDays, labelKey: "nav.schedule" },
+    { to: "/finances", icon: Wallet, labelKey: "nav.finances" },
+    { to: "/chats", icon: MessageSquare, labelKey: "nav.chats" },
   ] as const;
 
   return (
@@ -89,6 +89,8 @@ export function MobileBottomNav() {
           return (
             <NavLink
               key={tab.to} to={tab.to}
+              aria-label={t(tab.labelKey)}
+              aria-current={active ? "page" : undefined}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
                 minHeight: 52, textDecoration: "none", position: "relative",

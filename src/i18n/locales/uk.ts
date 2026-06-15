@@ -458,6 +458,7 @@ export const uk = {
 
   // Schedule
   schedule: {
+    loadFailed: "Не вдалося завантажити розклад",
     studentNotifiedHint: "Учень отримає сповіщення про оновлення домашки чи конспекту.",
     focusUnpriced: "Показано: уроки без ціни",
     focusNoLink: "Показано: уроки без посилання",

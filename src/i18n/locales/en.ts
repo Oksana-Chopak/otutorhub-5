@@ -452,6 +452,7 @@ export const en: Translations = {
   },
 
   schedule: {
+    loadFailed: "Failed to load the schedule",
     studentNotifiedHint: "The student gets a notification when homework or the summary is updated.",
     focusUnpriced: "Showing: lessons without a price",
     focusNoLink: "Showing: lessons without a link",
