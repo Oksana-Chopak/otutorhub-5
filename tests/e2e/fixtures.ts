@@ -1,9 +1,16 @@
 import { test as base, expect, Page } from "@playwright/test";
 
 // ── Test credentials (from environment variables) ──────────────────────────
+// TEST_TUTOR = INDEPENDENT tutor (own workspace).
 export const TEST_TUTOR = {
   email: process.env.TEST_TUTOR_EMAIL ?? "",
   password: process.env.TEST_TUTOR_PASSWORD ?? "",
+};
+
+// TEST_HUB_TUTOR = a tutor inside a hub (needed for the "Менеджер хабу" button).
+export const TEST_HUB_TUTOR = {
+  email: process.env.TEST_HUB_TUTOR_EMAIL ?? "",
+  password: process.env.TEST_HUB_TUTOR_PASSWORD ?? "",
 };
 
 export const TEST_MANAGER = {
@@ -19,6 +26,7 @@ export const TEST_STUDENT = {
 // ── Custom fixtures ────────────────────────────────────────────────────────
 type Fixtures = {
   tutorPage: Page;
+  hubTutorPage: Page;
   managerPage: Page;
   studentPage: Page;
 };
@@ -36,6 +44,14 @@ export const test = base.extend<Fixtures>({
     const context = await browser.newContext();
     const page = await context.newPage();
     await loginAs(page, TEST_MANAGER);
+    await use(page);
+    await context.close();
+  },
+
+  hubTutorPage: async ({ browser }, use) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    await loginAs(page, TEST_HUB_TUTOR);
     await use(page);
     await context.close();
   },
