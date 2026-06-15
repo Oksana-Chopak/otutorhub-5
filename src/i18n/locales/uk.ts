@@ -410,6 +410,8 @@ export const uk = {
 
   // Dashboard
   dashboard: {
+    hubManager: "Менеджер хабу",
+    hubManagerFailed: "Не вдалося відкрити чат з менеджером",
     title: "Мій день",
     subManager: "Керуйте уроками, людьми та оплатами",
     subOther: "Огляд ваших занять",

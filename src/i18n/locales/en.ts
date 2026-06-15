@@ -405,6 +405,8 @@ export const en: Translations = {
   },
 
   dashboard: {
+    hubManager: "Hub manager",
+    hubManagerFailed: "Could not open the chat with the manager",
     title: "My day",
     subManager: "Manage lessons, people and payments",
     subOther: "Overview of your lessons",

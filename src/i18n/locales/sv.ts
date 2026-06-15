@@ -179,6 +179,8 @@ export const sv: Partial<Translations> = {
     passwordRequired: "Ange ditt lösenord",
   },
   dashboard: {
+    hubManager: "Hubbansvarig",
+    hubManagerFailed: "Det gick inte att öppna chatten med handledaren",
     title: "Min dag",
     subManager: "Hantera lektioner, personer och betalningar",
     subOther: "Översikt av dina lektioner",

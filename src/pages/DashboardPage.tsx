@@ -60,6 +60,7 @@ import {
   AlertTriangle,
   Inbox,
   Crown,
+  MessageSquare,
   UserX,
   Tag,
   CalendarPlus,
@@ -232,6 +233,21 @@ export default function DashboardPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
+  const [openingManagerChat, setOpeningManagerChat] = useState(false);
+
+  // "Менеджер хабу" — open (or create) the hub tutor ↔ manager support chat,
+  // using the existing chat system (start_manager_chat resolves the single
+  // manager + ensures the thread; ChatsPage selects it via ?with=).
+  const openManagerChat = async () => {
+    setOpeningManagerChat(true);
+    const { data, error } = await (supabase as any).rpc("start_manager_chat");
+    setOpeningManagerChat(false);
+    if (error || !data) {
+      toast.error(t("dashboard.hubManagerFailed"));
+      return;
+    }
+    navigate(`/chats?with=${data}`);
+  };
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
   // Student-only users belong on /student-dashboard. Redirect them out of
@@ -1610,8 +1626,17 @@ export default function DashboardPage() {
             </div>
           )}
           {isTutor && !isManager && !isIndependentTutor && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
               <PendingPaymentsCard />
+              <Button
+                variant="outline"
+                className="h-11 w-full justify-center gap-2 rounded-[12px]"
+                disabled={openingManagerChat}
+                onClick={openManagerChat}
+              >
+                {openingManagerChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
+                {t("dashboard.hubManager")}
+              </Button>
             </div>
           )}
 

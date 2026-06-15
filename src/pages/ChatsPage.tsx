@@ -342,6 +342,7 @@ export default function ChatsPage() {
           .eq("user_id", withId);
         const otherIsTutor = (otherRoles ?? []).some((r: any) => r.role === "tutor");
         const otherIsStudent = (otherRoles ?? []).some((r: any) => r.role === "student");
+        const otherIsManager = (otherRoles ?? []).some((r: any) => r.role === "manager");
         const myIsTutor = roles.includes("tutor");
         let tutorId: string | null = null;
         let studentId: string | null = null;
@@ -351,6 +352,10 @@ export default function ChatsPage() {
         } else if (!myIsTutor && otherIsTutor) {
           tutorId = withId;
           studentId = myId;
+        } else if (myIsTutor && otherIsManager) {
+          // Tutor ↔ hub manager support thread (manager occupies the student slot).
+          tutorId = myId;
+          studentId = withId;
         }
         if (!tutorId || !studentId) {
           // Maybe thread already exists
