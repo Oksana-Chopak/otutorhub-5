@@ -116,7 +116,7 @@ export function SubscriptionRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[20px] rounded-b-none bottom-0 top-auto translate-y-0 sm:rounded-[20px] sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%]">
         <DialogHeader>
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Crown className="h-5 w-5" />
