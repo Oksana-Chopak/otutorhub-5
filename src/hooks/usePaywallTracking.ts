@@ -9,7 +9,10 @@ export type PaywallFeatureKey =
   | "payment_reminder"
   | "bulk_actions"
   | "subscription_page_visit"
-  | "upgrade_banner";
+  | "upgrade_banner"
+  // Product events for the newly-added features (reuse the same event log).
+  | "achievements_view"
+  | "hub_manager_chat";
 
 export type PaywallSource =
   | "lesson_workspace"
@@ -18,6 +21,7 @@ export type PaywallSource =
   | "sidebar"
   | "subscription_page"
   | "analytics_page"
+  | "achievements_page"
   | "unknown";
 
 /**

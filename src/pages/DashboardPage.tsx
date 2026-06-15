@@ -12,6 +12,7 @@ import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
 import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
@@ -234,12 +235,14 @@ export default function DashboardPage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
+  const { trackPaywallClick } = usePaywallTracking();
   const [openingManagerChat, setOpeningManagerChat] = useState(false);
 
   // "Менеджер хабу" — open (or create) the hub tutor ↔ manager support chat,
   // using the existing chat system (start_manager_chat resolves the single
   // manager + ensures the thread; ChatsPage selects it via ?with=).
   const openManagerChat = async () => {
+    trackPaywallClick("hub_manager_chat", "dashboard");
     setOpeningManagerChat(true);
     const { data, error } = await (supabase as any).rpc("start_manager_chat");
     setOpeningManagerChat(false);

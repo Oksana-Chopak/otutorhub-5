@@ -1,13 +1,22 @@
+import { useEffect } from "react";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StudentAchievementsGrid } from "@/components/student/StudentAchievementsGrid";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
+import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { Loader2, Trophy } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function StudentAchievementsPage() {
   const { t } = useTranslation();
   const { achievements, earnedAchievements, loading } = useStudentRewards();
+  const { trackPaywallClick } = usePaywallTracking();
+
+  // Product analytics: record an achievements-page view (student is authed here).
+  useEffect(() => {
+    trackPaywallClick("achievements_view", "achievements_page");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <StudentLayout>

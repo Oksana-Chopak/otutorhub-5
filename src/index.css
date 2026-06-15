@@ -116,6 +116,15 @@
     font-family: var(--font-body);
   }
 
+  /* Keyboard-only focus ring for every interactive element — overrides inline
+     outline:none on custom-styled buttons/inputs so keyboard users always see
+     focus. :focus-visible means it does NOT show on mouse click. */
+  :where(a[href], button, input, select, textarea, summary, [role="button"], [role="tab"], [role="switch"], [tabindex]:not([tabindex="-1"])):focus-visible {
+    outline: 2px solid hsl(var(--ring)) !important;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   /* ── Design System 2.0 tokens ─────────────────────────────────────────── */
   :root {
     --teal: #2BBFAA;
