@@ -117,14 +117,14 @@ export function SubscriptionRequestDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md max-h-[92vh] overflow-y-auto rounded-t-[20px] rounded-b-none bottom-0 top-auto translate-y-0 sm:rounded-[20px] sm:bottom-auto sm:top-[50%] sm:translate-y-[-50%]">
+        <div className="mx-auto mt-2.5 h-1 w-9 rounded-full bg-border sm:hidden" />
         <DialogHeader>
           <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Crown className="h-5 w-5" />
           </div>
           <DialogTitle>{t("subscriptionDialog.title")}</DialogTitle>
           <DialogDescription>
-            Оберіть період оплати — менеджер школи отримає ваш запит і зв'яжеться
-            для оплати.
+            {t("subscriptionDialog.requestDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -133,7 +133,7 @@ export function SubscriptionRequestDialog({
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
         ) : existingPending ? (
-          <div className="rounded-lg border border-success/30 bg-success/5 p-4 text-sm">
+          <div className="rounded-[12px] border border-success/30 bg-success/5 p-4 text-sm">
             <div className="mb-1 inline-flex items-center gap-2 text-success">
               <CheckCircle2 className="h-4 w-4" />
               <span className="font-medium">{t("subscriptionDialog.alreadySent")}</span>
@@ -155,7 +155,7 @@ export function SubscriptionRequestDialog({
                 <label
                   htmlFor="bill-yearly"
                   className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition",
+                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
                     billing === "yearly"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/40"
@@ -178,7 +178,7 @@ export function SubscriptionRequestDialog({
                 <label
                   htmlFor="bill-monthly"
                   className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition",
+                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
                     billing === "monthly"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-primary/40"

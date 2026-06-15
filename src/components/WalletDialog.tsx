@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -146,7 +146,7 @@ export function WalletDialog({
   const [marking, setMarking] = useState(false);
 
   // Fetch unpaid lessons when tab = mark
-  useState(() => {
+  useEffect(() => {
     if (!open || !tutorId || !studentId) return;
     setLoadingUnpaid(true);
     (supabase as any)
@@ -162,7 +162,7 @@ export function WalletDialog({
         setCheckedIds(new Set(rows.map((l: any) => l.id)));
         setLoadingUnpaid(false);
       });
-  });
+  }, [open, tutorId, studentId]);
 
   const handleMarkPaid = async () => {
     if (checkedIds.size === 0) return;

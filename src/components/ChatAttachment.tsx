@@ -63,7 +63,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
       <>
         <div
           className={cn(
-            "group relative overflow-hidden rounded-lg border",
+            "group relative overflow-hidden rounded-[12px] border",
             mine ? "border-primary-foreground/30" : "border-border"
           )}
         >
@@ -115,7 +115,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                 <img
                   src={url}
                   alt={attachment.file_name}
-                  className="mx-auto max-h-[80vh] w-auto rounded-md object-contain"
+                  className="mx-auto max-h-[80vh] w-auto rounded-[12px] object-contain"
                 />
                 <div className="flex items-center justify-between gap-2 px-1">
                   <span className="truncate text-[13px] text-muted-foreground" title={attachment.file_name}>
@@ -126,7 +126,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
                     download={attachment.file_name}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-background px-2 py-1 text-[13px] hover:bg-accent"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-[12px] border border-border bg-background px-2 py-1 text-[13px] hover:bg-accent"
                   >
                     <Download className="h-3 w-3" />
                     {t("chatAttachment.download")}
@@ -151,7 +151,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
         if (!url) e.preventDefault();
       }}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md border px-2 py-1.5 text-left text-[13px] transition-colors",
+        "flex w-full items-center gap-2 rounded-[12px] border px-2 py-1.5 text-left text-[13px] transition-colors",
         mine
           ? "border-primary-foreground/30 bg-primary-foreground/10 hover:bg-primary-foreground/20"
           : "border-border bg-background/60 hover:bg-background",

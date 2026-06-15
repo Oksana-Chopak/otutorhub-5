@@ -1881,7 +1881,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {isManager && (
                       <button
                         type="button"
-                        className="flex h-7 w-7 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#6b7088)" }}
                         onClick={() => {
                           setTutorDialog({
@@ -1914,7 +1914,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           {isManager && (
                             <button
                               type="button"
-                              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
                               style={{ color: "var(--sub,#6b7088)" }}
                               onClick={() => openRateFor(r)}
                               aria-label={t("people.actionRate")}

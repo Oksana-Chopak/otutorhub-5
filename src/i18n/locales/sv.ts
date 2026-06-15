@@ -1298,7 +1298,7 @@ export const sv: LocaleTranslations = {
     inviteTitle: "{{name}} bjuder in dig",
     inviteSubtitle: "till oTutorHub — appen för lärare",
     bonusTitle: "Registreringsbonus",
-    bonusDesc: "<strong>+7 dagar prenumeration</strong> gratis för dig. <strong>+7 dagar</strong> också för {{name}} som tack.",
+    bonusDesc: "<strong>21 dagar Pro</strong> gratis för dig. <strong>En månad Pro</strong> också för {{name}} som tack.",
     feature1: "📅 Bekvämt lektionsschema",
     feature2: "💰 Ekonomispårning och betalningspåminnelser",
     feature3: "💬 Chattar med elever",
@@ -1406,7 +1406,7 @@ export const sv: LocaleTranslations = {
   referralBanner: {
     hide: "Dölj",
     text: "Känner du kollegor som är lärare? Bjud in dem och få en månad prenumeration gratis",
-    bonus: "+7 dagar för båda vid registrering · +1 månad prenumeration varje gång en vän går prenumeration",
+    bonus: "21 dagar Pro till din vän vid registrering · +1 månad Pro till dig varje gång en vän prenumererar",
     cta: "Bjud in en vän →",
   },
 
@@ -2014,6 +2014,7 @@ export const sv: LocaleTranslations = {
     updatedZero: "Uppdaterade lektioner: 0",
     updated: "Uppdaterade lektioner: {{count}}",
     dialogTitle: "Tillämpa nytt pris?",
+    applyDescription: "Priset för ”{{subject}}” ändrades från {{oldPrice}} ₴ till {{newPrice}} ₴. Välj vilka lektioner det nya värdet ska gälla för.",
     futureUnpaid: "Framtida obetalda (rekommenderas)",
     allFuture: "Alla framtida",
     applyBtn: "Tillämpa",
@@ -2103,6 +2104,9 @@ export const sv: LocaleTranslations = {
   tutorAvailability: {
     noHours: "Läraren har för närvarande inga lediga tider. Skriv till dem i chatten för att komma överens.",
     notSet: "Läraren har inte angett sina tillgängliga tider ännu. Skriv till dem i chatten.",
+    title: "Tillgängliga tider — {{name}}",
+    next14: "Närmaste 14 dagar. För att boka en lektion — skriv till läraren i chatten.",
+    noSlotsThisWeek: "Inga lediga tider den här veckan. Kolla nästa vecka eller skriv till läraren i chatten.",
   },
   tutorChangeRequests: {
     requestUpdateFailed: "Lektion uppdaterades men förfrågan kunde inte uppdateras",
@@ -2653,6 +2657,7 @@ export const sv: LocaleTranslations = {
     sent: "Förfrågan skickad till manager",
     sentDesc: "Vi kontaktar dig snart.",
     title: "Skaffa prenumeration",
+    requestDescription: "Välj en faktureringsperiod — din skolchef får förfrågan och kontaktar dig för betalning.",
     alreadySent: "Förfrågan redan skickad",
     periodLabel: "Faktureringsperiod",
     yearly: "Årligen",
@@ -3100,6 +3105,9 @@ export const sv: LocaleTranslations = {
   independentStatsExtra: {
     awaitingPayment: "Väntar på betalning",
     detailsLink: "Detaljer",
+    title: "Din statistik",
+    proPromptTitle: "Skaffa en prenumeration — mer kontroll och vacker analys",
+    proPromptDesc: "Automatiska betalningspåminnelser, avbokning/ombokning av elev enligt dina regler, detaljerade rapporter och export.",
   },
   quickLessonDialog: {
     studentFallback: "Elev",

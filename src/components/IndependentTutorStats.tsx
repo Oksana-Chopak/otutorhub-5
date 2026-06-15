@@ -132,7 +132,7 @@ export function IndependentTutorStats() {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-base font-semibold text-foreground">
-          Ваша статистика
+          {t("independentStatsExtra.title")}
         </h2>
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
           <SelectTrigger className="h-10 w-[170px] text-[13px]">
@@ -178,18 +178,17 @@ export function IndependentTutorStats() {
       </div>
 
       {!isPro && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-border bg-card p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-9 shrink-0 items-center justify-center rounded-[16px] bg-primary/10">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-primary/10">
               <Crown className="h-4 w-4 text-primary" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">
-                Оформіть підписку — більше керування і красива аналітика
+                {t("independentStatsExtra.proPromptTitle")}
               </p>
               <p className="mt-0.5 text-[13px] text-muted-foreground">
-                Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами,
-                детальні звіти та експорт.
+                {t("independentStatsExtra.proPromptDesc")}
               </p>
             </div>
           </div>

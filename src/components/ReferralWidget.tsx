@@ -72,7 +72,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
       toast.error(t("referralWidget.linkLoading"));
       return;
     }
-    const text = t("referralWidget.shareText", { link });
+    const text = t("referralWidget.inviteText");
 
     // Try Web Share API first (mobile + some desktops)
     if (navigator.share) {
