@@ -191,7 +191,7 @@ export function RecordPaymentSheet({
               {t("recordPayment.title")}
             </div>
             <div style={{ fontSize: 13.5, color: "#9398b0", marginTop: 2 }}>
-              За конкретний урок — або передоплата на майбутні
+              {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
           <button onClick={close} aria-label="✕"
@@ -204,10 +204,10 @@ export function RecordPaymentSheet({
         <Tabs value={tab} onValueChange={(v) => { setTab(v as any); setPickedPair(null); }}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="lesson">
-              <Receipt className="mr-1.5 h-4 w-4" /> За урок
+              <Receipt className="mr-1.5 h-4 w-4" /> {t("recordPaymentExtra.tabLesson")}
             </TabsTrigger>
             <TabsTrigger value="prepay">
-              <Wallet className="mr-1.5 h-4 w-4" /> Передоплата
+              <Wallet className="mr-1.5 h-4 w-4" /> {t("recordPaymentExtra.tabPrepay")}
             </TabsTrigger>
           </TabsList>
 
@@ -227,7 +227,7 @@ export function RecordPaymentSheet({
                 <PickedHeader pair={pickedPair} onBack={() => setPickedPair(null)} />
                 {pairUnpaid.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    У цієї пари немає неоплачених уроків. Можливо, варто зробити передоплату?
+                    {t("recordPaymentExtra.noUnpaidLessons")}
                   </p>
                 ) : (
                   <ul className="max-h-72 space-y-1.5 overflow-y-auto pr-1">
@@ -239,7 +239,7 @@ export function RecordPaymentSheet({
                         <div className="min-w-0">
                           <div className="truncate font-medium text-foreground">{l.subject}</div>
                           <div className="text-[13px] text-muted-foreground">
-                            {formatDate(l.starts_at)} · {l.student_price} ₴
+                            {formatDate(l.starts_at)} · {t("recordPaymentExtra.priceUah", { price: l.student_price })}
                           </div>
                         </div>
                         <Button
@@ -253,7 +253,7 @@ export function RecordPaymentSheet({
                           ) : (
                             <Check className="h-3.5 w-3.5" />
                           )}
-                          Оплачено
+                          {t("recordPaymentExtra.markPaid")}
                         </Button>
                       </li>
                     ))}
@@ -318,12 +318,12 @@ export function RecordPaymentSheet({
                   )}
                   {mode === "lessons" && pickedPair.rate && lessonsCount ? (
                     <p style={{ marginTop: 8, fontSize: 13, color: "#9398b0" }}>
-                      ≈ <b style={{ color: "#0f0f1a" }}>{(parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0)} ₴</b> за поточною ставкою
+                      ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.priceUah", { price: (parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0) })}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && pickedPair.rate && amount ? (
                     <p style={{ marginTop: 8, fontSize: 13, color: "#9398b0" }}>
-                      ≈ <b style={{ color: "#0f0f1a" }}>{Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate)} уроків</b>
+                      ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
                     </p>
                   ) : null}
                 </div>
@@ -351,7 +351,7 @@ export function RecordPaymentSheet({
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     boxShadow: busy ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                   {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-                  Зберегти передоплату
+                  {t("recordPaymentExtra.savePrepay")}
                 </button>
               </>
             )}
@@ -387,7 +387,7 @@ function PairPicker({
       </div>
       {pairs.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted-foreground">
-          Жодної пари не знайдено
+          {t("recordPaymentExtra.noPairsFound")}
         </p>
       ) : (
         <ul className="max-h-72 space-y-1 overflow-y-auto pr-1">
@@ -408,7 +408,7 @@ function PairPicker({
                 </span>
                 {p.rate ? (
                   <Badge variant="outline" className="shrink-0 text-[13px]">
-                    {p.rate} ₴/ур.
+                    {t("recordPaymentExtra.ratePerLesson", { rate: p.rate })}
                   </Badge>
                 ) : null}
               </button>
@@ -429,7 +429,7 @@ function PickedHeader({ pair, onBack }: { pair: PairOption; onBack: () => void }
       </div>
       <Button size="sm" variant="ghost" onClick={onBack}>
         <ArrowLeft className="mr-1 h-3.5 w-3.5" />
-        Інша пара
+        {t("recordPaymentExtra.otherPair")}
       </Button>
     </div>
   );

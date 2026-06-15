@@ -27,6 +27,7 @@ import { Loader2, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
 import type { StepProgress } from "@/components/OnboardingContent";
+import i18nInstance from "@/i18n";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -50,19 +51,19 @@ interface StepDef {
 }
 
 const ALL_STEPS: StepDef[] = [
-  { id:0, emoji:"📚", group:"essential", action:"subject",      xp:25,  title:"Оберіть свій предмет",              desc:"Вкажіть що ви викладаєте — це займе 10 секунд.",               cta:"Зберегти",            hint:"Предмет обрано ✓",           autoKey:"hasSubject" },
-  { id:1, emoji:"👋", group:"essential", action:"student",      xp:50,  title:"Додайте першого учня",              desc:"Ім'я, контакт, предмет і ціна. Учень отримає запрошення приєднатися.", cta:"Додати учня",     hint:"Учня додано ✓",              autoKey:"hasStudent" },
-  { id:2, emoji:"📅", group:"essential", action:"lesson",       xp:75,  title:"Заплануйте перший урок",            desc:"Оберіть учня, дату і час. Можна повторювати щотижня.",          cta:"Створити урок",       hint:"Урок створено ✓",            autoKey:"hasLesson" },
-  { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"Правила оплати та скасування",      desc:"Коли учень отримує нагадування про оплату, і % за пізнє скасування.", cta:"Зберегти правила", hint:"Правила збережено ✓",       autoKey:"hasPaymentRules" },
-  { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"Як відмічати уроки проведеними",   desc:"Автоматично через годину після уроку — або вручну, як зручно.", cta:"Обрати режим",       hint:"Режим обрано ✓",             autoKey:"hasAutoCompleteChoice" },
-  { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"Встанови доступні години",          desc:"Познач, коли ти вільний — учні бронюватимуть слоти самостійно.", cta:"Зберегти графік",   hint:"Доступність налаштовано ✓",  autoKey:"hasAvailability" },
-  { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"Підключіть Telegram-сповіщення",   desc:"Щоденний та щотижневий дайджест — щоб жоден урок не пройшов повз увагу.", cta:"Підключити Telegram", hint:"Telegram підключено ✓" },
-  { id:7, emoji:"🎁", group:"bonus",     action:"referral",     xp:100, title:"Запроси колегу",                    desc:"Друг отримає 21 день тріалу, а ти — місяць підписки безкоштовно.",  cta:"Запросити колегу",   hint:"Запрошення створено ✓",      autoKey:"hasReferral" },
-  { id:8, emoji:"🎥", group:"bonus",     action:"zoom",         xp:50,  title:"Підключіть Zoom або Meet",          desc:"Постійне посилання — учень підключається одним кліком.",        cta:"Зберегти посилання", hint:"Посилання збережено ✓",      autoKey:"hasMeetingUrl" },
-  { id:9, emoji:"💬", group:"bonus",     action:"chat",         xp:50,  title:"Спілкуйтеся в чаті",               desc:"Файли, домашка, нагадування — все в одному місці.",             cta:"Почати чат",         hint:"Чат створено ✓",             autoKey:"hasChat" },
-  { id:10,emoji:"💰", group:"bonus",     action:"finance",      xp:100, title:"Відмічайте оплати",                desc:"Бачиш статистику — скільки заробив і хто ще винен.",            cta:"Позначити оплату",   hint:"Оплату відмічено ✓",        autoKey:"hasPaidLesson" },
-  { id:11,emoji:"📆", group:"bonus",     action:"calendar",     xp:75,  title:"Підключіть Google Calendar",       desc:"Уроки автоматично синхронізуються у твій Google Календар.",     cta:"Підключити",         hint:"Calendar підключено ✓",      autoKey:"hasGoogleCalendar" },
-  { id:12,emoji:"✨", group:"bonus",     action:"ai",           xp:150, title:"AI-конспекти уроків",              desc:"Fireflies запише урок, AI зробить підсумок: що пройшли, що задано.", cta:"Як це працює",    hint:"AI готовий ✓" },
+  { id:0, emoji:"📚", group:"essential", action:"subject",      xp:25,  title:"step.subject.title",      desc:"step.subject.desc",      cta:"step.subject.cta",    hint:"step.subject.hint",      autoKey:"hasSubject" },
+  { id:1, emoji:"👋", group:"essential", action:"student",      xp:50,  title:"step.student.title",      desc:"step.student.desc",      cta:"step.student.cta",    hint:"step.student.hint",      autoKey:"hasStudent" },
+  { id:2, emoji:"📅", group:"essential", action:"lesson",       xp:75,  title:"step.lesson.title",       desc:"step.lesson.desc",       cta:"step.lesson.cta",     hint:"step.lesson.hint",       autoKey:"hasLesson" },
+  { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"step.proRules.title",     desc:"step.proRules.desc",     cta:"step.proRules.cta",   hint:"step.proRules.hint",     autoKey:"hasPaymentRules" },
+  { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"step.autoMark.title",     desc:"step.autoMark.desc",     cta:"step.autoMark.cta",   hint:"step.autoMark.hint",     autoKey:"hasAutoCompleteChoice" },
+  { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"step.availability.title", desc:"step.availability.desc", cta:"step.availability.cta", hint:"step.availability.hint", autoKey:"hasAvailability" },
+  { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"step.telegram.title",     desc:"step.telegram.desc",     cta:"step.telegram.cta",   hint:"step.telegram.hint" },
+  { id:7, emoji:"🎁", group:"bonus",     action:"referral",     xp:100, title:"step.referral.title",     desc:"step.referral.desc",     cta:"step.referral.cta",  hint:"step.referral.hint",     autoKey:"hasReferral" },
+  { id:8, emoji:"🎥", group:"bonus",     action:"zoom",         xp:50,  title:"step.zoom.title",         desc:"step.zoom.desc",         cta:"step.zoom.cta",      hint:"step.zoom.hint",         autoKey:"hasMeetingUrl" },
+  { id:9, emoji:"💬", group:"bonus",     action:"chat",         xp:50,  title:"step.chat.title",         desc:"step.chat.desc",         cta:"step.chat.cta",      hint:"step.chat.hint",         autoKey:"hasChat" },
+  { id:10,emoji:"💰", group:"bonus",     action:"finance",      xp:100, title:"step.finance.title",      desc:"step.finance.desc",      cta:"step.finance.cta",   hint:"step.finance.hint",      autoKey:"hasPaidLesson" },
+  { id:11,emoji:"📆", group:"bonus",     action:"calendar",     xp:75,  title:"step.calendar.title",     desc:"step.calendar.desc",     cta:"step.calendar.cta",  hint:"step.calendar.hint",     autoKey:"hasGoogleCalendar" },
+  { id:12,emoji:"✨", group:"bonus",     action:"ai",           xp:150, title:"step.ai.title",           desc:"step.ai.desc",           cta:"step.ai.cta",     hint:"step.ai.hint" },
 ];
 
 const CORE  = ALL_STEPS.filter(s => s.group !== "bonus");
@@ -139,11 +140,23 @@ function ProgressSegments({ total, active }: { total: number; active: number }) 
   );
 }
 
-const SUBJECTS_LIST = ["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Програмування","Біологія","Географія","Історія"];
+const SUBJECTS_LIST = [
+  i18nInstance.t("onboardingFlowB.subjectOptionEnglish"),
+  i18nInstance.t("onboardingFlowB.subjectOptionMath"),
+  i18nInstance.t("onboardingFlowB.subjectOptionUkrainian"),
+  i18nInstance.t("onboardingFlowB.subjectOptionPhysics"),
+  i18nInstance.t("onboardingFlowB.subjectOptionChemistry"),
+  i18nInstance.t("onboardingFlowB.subjectOptionGerman"),
+  i18nInstance.t("onboardingFlowB.subjectOptionProgramming"),
+  i18nInstance.t("onboardingFlowB.subjectOptionBiology"),
+  i18nInstance.t("onboardingFlowB.subjectOptionGeography"),
+  i18nInstance.t("onboardingFlowB.subjectOptionHistory"),
+];
 const DAYS_UA       = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
 
 // ── Subject inline action ─────────────────────────────────────────────────────
 function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => void; user: any }) {
+  const { t } = useTranslation();
   const [list, setList] = useState(SUBJECTS_LIST);
   const [sel, setSel]   = useState<string[]>([]);
   const [custom, setCustom] = useState("");
@@ -172,7 +185,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Обери предмети, які ти викладаєш. Їх бачитимуть учні.
+        {t("onboardingFlowB.subjectIntro")}
       </p>
       <div className="flex flex-wrap gap-2">
         {list.map(s => (
@@ -190,11 +203,11 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
         ))}
       </div>
       <div>
-        <p className="text-[13px] font-bold uppercase tracking-wider mb-1.5" style={{ color: T.sub }}>Немає у списку? Додай свій</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-1.5" style={{ color: T.sub }}>{t("onboardingFlowB.subjectCustomLabel")}</p>
         <div className="flex gap-2">
           <Input value={custom} onChange={e => setCustom(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addCustom()}
-            placeholder="Напр.: Логіка, Робототехніка"
+            placeholder={t("onboardingFlowB.subjectCustomPlaceholder")}
             className="h-12 rounded-xl text-[15px]" style={{ flex: 1 }} />
           <button onClick={addCustom} disabled={!custom.trim()}
             className="h-12 w-12 rounded-xl font-bold text-lg flex-shrink-0 transition-colors"
@@ -204,7 +217,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
         </div>
       </div>
       <Btn disabled={!sel.length || saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : `Зберегти${sel.length ? ` (${sel.length})` : ""}`}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : (sel.length ? t("onboardingFlowB.subjectSaveCount", { count: sel.length }) : t("onboardingFlowB.subjectSave"))}
       </Btn>
     </div>
   );
@@ -214,6 +227,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
 function StudentAction({ defaultSubject, onComplete, user }: {
   defaultSubject: string; onComplete: (id: string, name: string, subject: string) => void; user: any;
 }) {
+  const { t } = useTranslation();
   const [name,    setName]    = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [price,   setPrice]   = useState("");
@@ -230,7 +244,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
 
     const { error: profErr } = await supabase.from("profiles")
       .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true } as any);
-    if (profErr) { setSaving(false); toast.error("Помилка при збереженні"); return; }
+    if (profErr) { setSaving(false); toast.error(t("onboardingFlowB.studentSaveError")); return; }
 
     await supabase.from("user_roles").insert({ user_id: newId, role: "student" } as any);
     await supabase.from("student_rates").insert({
@@ -246,19 +260,19 @@ function StudentAction({ defaultSubject, onComplete, user }: {
   return (
     <div className="flex flex-col gap-3.5">
       <div>
-        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ім'я учня</Label>
-        <Input value={name} onChange={e => setName(e.target.value)} placeholder="Анна Іваненко" className="h-12 rounded-xl text-[15px]" />
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentNameLabel")}</Label>
+        <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("onboardingFlowB.studentNamePlaceholder")} className="h-12 rounded-xl text-[15px]" />
       </div>
       <div className="flex gap-3">
         <div style={{ flex: 1.3 }}>
-          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Предмет</Label>
-          <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Англійська" className="h-12 rounded-xl text-[15px]" />
+          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentSubjectLabel")}</Label>
+          <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t("onboardingFlowB.studentSubjectPlaceholder")} className="h-12 rounded-xl text-[15px]" />
           {defaultSubject && subject === defaultSubject && (
-            <p className="text-[13px] font-semibold mt-1" style={{ color: T.tealD }}>↑ підтягнуто з твоїх предметів</p>
+            <p className="text-[13px] font-semibold mt-1" style={{ color: T.tealD }}>{t("onboardingFlowB.studentSubjectPrefilled")}</p>
           )}
         </div>
         <div style={{ flex: 1 }}>
-          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Ціна</Label>
+          <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentPriceLabel")}</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>₴</span>
             <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
@@ -267,9 +281,9 @@ function StudentAction({ defaultSubject, onComplete, user }: {
           </div>
         </div>
       </div>
-      <p className="text-[13px]" style={{ color: T.muted }}>Учень отримає запрошення приєднатися до твого кабінету.</p>
+      <p className="text-[13px]" style={{ color: T.muted }}>{t("onboardingFlowB.studentInviteNote")}</p>
       <Btn disabled={!ok || saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Додати учня"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.studentSubmit")}
       </Btn>
     </div>
   );
@@ -280,6 +294,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
   studentId: string | null; studentName: string; subject: string;
   onComplete: (lessonId: string) => void; user: any;
 }) {
+  const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
   const [date,    setDate]    = useState(today);
   const [hour,    setHour]    = useState("");
@@ -309,7 +324,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
     const { data: created, error } = await supabase.from("lessons")
       .insert({
         tutor_id: user.id, student_id: studentId,
-        subject: subject || "Урок",
+        subject: subject || t("onboardingFlowB.lessonDefaultSubject"),
         starts_at: startsAt.toISOString(),
         duration_minutes: 60, status: "scheduled" as const,
         created_by: user.id, source: "independent",
@@ -326,7 +341,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
           const next = new Date(startsAt);
           next.setDate(next.getDate() + 7 * w);
           const { data: r } = await supabase.from("lessons")
-            .insert({ tutor_id: user.id, student_id: studentId, subject: subject || "Урок",
+            .insert({ tutor_id: user.id, student_id: studentId, subject: subject || t("onboardingFlowB.lessonDefaultSubject"),
               starts_at: next.toISOString(), duration_minutes: 60, status: "scheduled" as const,
               created_by: user.id, source: "independent" } as any)
             .select("id").single();
@@ -343,7 +358,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
       onComplete(created.id);
     } else {
       setSaving(false);
-      toast.error("Помилка при збереженні уроку");
+      toast.error(t("onboardingFlowB.lessonSaveError"));
     }
   };
 
@@ -359,7 +374,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
 
       {/* Date */}
       <div>
-        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Дата</Label>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.lessonDateLabel")}</Label>
         <Input type="date" value={date} onChange={e => setDate(e.target.value)}
           className="h-12 rounded-xl text-[15px]" />
       </div>
@@ -367,11 +382,11 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
       {/* Time — custom 24h selects */}
       <div>
         <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>
-          Час {timeStr && <span style={{ color: T.tealD, fontWeight: 700 }}>· {timeStr}</span>}
+          {t("onboardingFlowB.lessonTimeLabel")} {timeStr && <span style={{ color: T.tealD, fontWeight: 700 }}>· {timeStr}</span>}
         </Label>
         <div className="flex gap-2 items-center">
           <select value={hour} onChange={e => setHour(e.target.value)} style={selStyle(Boolean(hour))}>
-            <option value="" disabled>Година</option>
+            <option value="" disabled>{t("onboardingFlowB.lessonHourPlaceholder")}</option>
             {HOURS.map(h => (
               <option key={h} value={h}>{h}:00</option>
             ))}
@@ -384,7 +399,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
           </select>
         </div>
         {!hour && (
-          <p className="text-[13px] mt-1.5" style={{ color: T.muted }}>Оберіть годину, потім хвилини</p>
+          <p className="text-[13px] mt-1.5" style={{ color: T.muted }}>{t("onboardingFlowB.lessonTimeHint")}</p>
         )}
       </div>
 
@@ -397,11 +412,11 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
           <span className="absolute top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-all"
             style={{ left: repeat ? "calc(100% - 21px)" : "3px", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
         </span>
-        Повторювати щотижня
+        {t("onboardingFlowB.lessonRepeatWeekly")}
       </button>
 
       <Btn disabled={!ok || saving} onClick={saveLesson}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Створити урок"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.lessonSubmit")}
       </Btn>
     </div>
   );
@@ -409,6 +424,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
 
 // ── ProRules inline action ────────────────────────────────────────────────────
 function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: any }) {
+  const { t } = useTranslation();
   const { updateSettings } = useWorkspaceSettings();
   const [reminder, setReminder] = useState(true);
   const [mode,    setMode]    = useState<"prepaid"|"before_lesson"|"after_lesson">("before_lesson");
@@ -418,9 +434,9 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
   const [saving,  setSaving]  = useState(false);
 
   const MODES = [
-    { v: "prepaid"       as const, title: "Передоплата",  desc: "Нагадування одразу після створення уроку." },
-    { v: "before_lesson" as const, title: "До уроку",     desc: "Нагадування за вказану кількість днів до уроку." },
-    { v: "after_lesson"  as const, title: "Після уроку",  desc: "Нагадування через вказану кількість днів після уроку." },
+    { v: "prepaid"       as const, title: t("onboardingFlowB.proRulesModePrepaidTitle"),     desc: t("onboardingFlowB.proRulesModePrepaidDesc") },
+    { v: "before_lesson" as const, title: t("onboardingFlowB.proRulesModeBeforeTitle"),      desc: t("onboardingFlowB.proRulesModeBeforeDesc") },
+    { v: "after_lesson"  as const, title: t("onboardingFlowB.proRulesModeAfterTitle"),       desc: t("onboardingFlowB.proRulesModeAfterDesc") },
   ];
 
   const RadioCard = ({ v, title, desc }: any) => (
@@ -453,14 +469,14 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       {/* Reminder toggle */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>Авто-нагадування про оплату</p>
-          <p className="text-[13px] mt-0.5 leading-snug" style={{ color: T.sub }}>Учень отримує нагадування у Telegram та в застосунку.</p>
+          <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{t("onboardingFlowB.proRulesReminderTitle")}</p>
+          <p className="text-[13px] mt-0.5 leading-snug" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesReminderDesc")}</p>
         </div>
         <Switch checked={reminder} onCheckedChange={setReminder} />
       </div>
       {/* Mode */}
       <div style={{ opacity: reminder ? 1 : .5, pointerEvents: reminder ? "auto" : "none" }}>
-        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Коли учень має сплатити</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesWhenLabel")}</p>
         <div className="flex flex-col gap-2">
           {MODES.map(o => <RadioCard key={o.v} {...o} />)}
         </div>
@@ -468,22 +484,22 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
           <div className="flex items-center gap-2.5 mt-3">
             <Input value={days} inputMode="numeric" onChange={e => setDays(e.target.value.replace(/\D/g,"").slice(0,2))}
               className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
-            <span className="text-[13.5px]" style={{ color: T.sub }}>{mode === "before_lesson" ? "днів до уроку" : "днів після уроку"}</span>
+            <span className="text-[13.5px]" style={{ color: T.sub }}>{mode === "before_lesson" ? t("onboardingFlowB.proRulesDaysBefore") : t("onboardingFlowB.proRulesDaysAfter")}</span>
           </div>
         )}
       </div>
       {/* Free cancel */}
       <div>
-        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Безкоштовне скасування / перенесення</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesFreeCancelLabel")}</p>
         <div className="flex items-center gap-2.5">
           <Input value={hours} inputMode="numeric" onChange={e => setHours(e.target.value.replace(/\D/g,"").slice(0,3))}
             className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
-          <span className="text-[13.5px]" style={{ color: T.sub }}>годин до уроку</span>
+          <span className="text-[13.5px]" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesHoursBefore")}</span>
         </div>
       </div>
       {/* Fee % */}
       <div>
-        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Авто-стягнення за пізнє скасування</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesFeeLabel")}</p>
         <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
           {[0,10,25,50,100].map(p => (
             <button key={p} onClick={() => setFee(p)}
@@ -496,11 +512,11 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
           ))}
         </div>
         <p className="text-[13px] mt-2 leading-snug" style={{ color: T.muted }}>
-          {fee === 0 ? "Штраф вимкнено — пізнє скасування безкоштовне." : `Скасування пізніше ніж за ${hours} год → ${fee}% від вартості уроку.`}
+          {fee === 0 ? t("onboardingFlowB.proRulesFeeOffNote") : t("onboardingFlowB.proRulesFeeOnNote", { hours, fee })}
         </p>
       </div>
       <Btn disabled={saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Зберегти правила"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.proRulesSubmit")}
       </Btn>
     </div>
   );
@@ -508,13 +524,14 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
 
 // ── AutoMark inline action ────────────────────────────────────────────────────
 function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation();
   const { updateSettings } = useWorkspaceSettings();
   const [pick, setPick] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const opts = [
-    { title: "Автоматично", desc: "Урок стає «проведено» через годину після завершення." },
-    { title: "Вручну",      desc: "Ти сам відмічаєш кожен урок після завершення." },
+    { title: t("onboardingFlowB.autoMarkAutoTitle"),   desc: t("onboardingFlowB.autoMarkAutoDesc") },
+    { title: t("onboardingFlowB.autoMarkManualTitle"), desc: t("onboardingFlowB.autoMarkManualDesc") },
   ];
 
   const save = async () => {
@@ -540,7 +557,7 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
         </button>
       ))}
       <Btn disabled={saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Обрати режим"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.autoMarkSubmit")}
       </Btn>
     </div>
   );
@@ -548,6 +565,7 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
 
 // ── Availability inline action ────────────────────────────────────────────────
 function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user: any }) {
+  const { t } = useTranslation();
   const [selDays, setSelDays] = useState<string[]>(["Пн","Ср","Пт"]);
   const [fromH,   setFromH]   = useState("10:00");
   const [toH,     setToH]     = useState("20:00");
@@ -577,9 +595,9 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>У які дні ти приймаєш уроки?</p>
+      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>{t("onboardingFlowB.availabilityIntro")}</p>
       <div className="flex gap-1.5 flex-wrap">
-        {DAYS_UA.map(d => (
+        {DAYS_UA.map((d, di) => (
           <button key={d} onClick={() => toggle(d)}
             className="font-bold text-sm transition-all"
             style={{ width: 44, height: 44, borderRadius: 12, border: "none",
@@ -587,12 +605,12 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
                      color: selDays.includes(d) ? "#fff" : T.txt,
                      outline: selDays.includes(d) ? "none" : `1px solid ${T.border}`,
                      fontFamily: T.display }}>
-            {d}
+            {t(`onboardingFlowB.weekday.${di}`)}
           </button>
         ))}
       </div>
       <div>
-        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>Робочі години</p>
+        <p className="text-[13px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.availabilityHoursLabel")}</p>
         <div className="flex items-center gap-2">
           <Input type="time" value={fromH} onChange={e => setFromH(e.target.value)} className="h-12 rounded-xl text-[15px] flex-1" />
           <span style={{ color: T.muted, fontFamily: T.display, flexShrink: 0 }}>—</span>
@@ -600,7 +618,7 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
         </div>
       </div>
       <Btn disabled={!selDays.length || saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Зберегти графік"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.availabilitySubmit")}
       </Btn>
     </div>
   );
@@ -608,6 +626,7 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 
 // ── Telegram inline action ────────────────────────────────────────────────────
 function TelegramAction({ onComplete, user }: { onComplete: () => void; user: any }) {
+  const { t } = useTranslation();
   const { updateSettings } = useWorkspaceSettings();
   const [daily,      setDaily]      = useState(true);
   const [weekly,     setWeekly]     = useState(true);
@@ -653,17 +672,17 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Підключи бота — і отримуй зведення прямо в Telegram. Жоден урок і жодна оплата не пройдуть повз.
+        {t("onboardingFlowB.telegramIntro")}
       </p>
       <div className="flex flex-col gap-2.5">
-        <DigestRow on={daily}     setOn={setDaily}     emoji="🌅" title="Щоденний дайджест"
-          desc="Список уроків на день, хто в боргах, твій todo — щоранку." />
-        <DigestRow on={weekly}    setOn={setWeekly}    emoji="📊" title="Щотижневий підсумок"
-          desc="Скільки заробив, проведено уроків, що перенести — щопонеділка." />
-        <DigestRow on={remind1h}  setOn={setRemind1h}  emoji="🔔" title="Нагадування за годину"
-          desc="Прийде за 60 хвилин до уроку — встигнеш підготуватися." />
-        <DigestRow on={remind15m} setOn={setRemind15m} emoji="⏰" title="Нагадування за 15 хвилин"
-          desc="Фінальне нагадування — ні ти, ні учень не запізняться." />
+        <DigestRow on={daily}     setOn={setDaily}     emoji="🌅" title={t("onboardingFlowB.telegramDailyTitle")}
+          desc={t("onboardingFlowB.telegramDailyDesc")} />
+        <DigestRow on={weekly}    setOn={setWeekly}    emoji="📊" title={t("onboardingFlowB.telegramWeeklyTitle")}
+          desc={t("onboardingFlowB.telegramWeeklyDesc")} />
+        <DigestRow on={remind1h}  setOn={setRemind1h}  emoji="🔔" title={t("onboardingFlowB.telegramRemind1hTitle")}
+          desc={t("onboardingFlowB.telegramRemind1hDesc")} />
+        <DigestRow on={remind15m} setOn={setRemind15m} emoji="⏰" title={t("onboardingFlowB.telegramRemind15mTitle")}
+          desc={t("onboardingFlowB.telegramRemind15mDesc")} />
       </div>
       {/* Telegram blue button with plane icon */}
       <button onClick={openBot}
@@ -673,10 +692,10 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff">
           <path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.33 1.43.18 1.15 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/>
         </svg>
-        Підключити Telegram
+        {t("onboardingFlowB.telegramConnect")}
       </button>
-      <p className="text-center text-[13px]" style={{ color: T.muted }}>Відкриється бот @oTutorHubBot — натисни Start</p>
-      <GhostBtn onClick={onComplete}>Пропустити поки що</GhostBtn>
+      <p className="text-center text-[13px]" style={{ color: T.muted }}>{t("onboardingFlowB.telegramBotHint")}</p>
+      <GhostBtn onClick={onComplete}>{t("onboardingFlowB.telegramSkip")}</GhostBtn>
     </div>
   );
 }
@@ -685,6 +704,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
 function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: {
   lessonId: string | null; studentName: string; subject: string; onComplete: () => void; navigate: any;
 }) {
+  const { t } = useTranslation();
   const [paid, setPaid] = useState(false);
   const [saving, setSaving] = useState(false);
   const price = 500;
@@ -703,7 +723,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Познач урок оплаченим — і застосунок порахує твій дохід. Це та сама картка уроку, що скрізь.
+        {t("onboardingFlowB.financeIntro")}
       </p>
       {/* LessonCard anatomy */}
       <div className="relative rounded-xl bg-white overflow-hidden transition-colors"
@@ -714,21 +734,21 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
                    background: paid ? "rgba(12,166,120,.15)" : "rgba(43,191,170,.15)",
                    color: paid ? T.success : T.tealD,
                    outline: `1px solid ${paid ? "rgba(12,166,120,.3)" : "rgba(43,191,170,.3)"}` }}>
-          {paid ? "Проведено" : "Заплановано"}
+          {paid ? t("onboardingFlowB.financeStatusDone") : t("onboardingFlowB.financeStatusScheduled")}
         </div>
         <div className="flex items-stretch pt-8 pb-3.5 px-3.5">
           {/* Time block */}
           <div className="flex flex-col justify-center" style={{ minWidth: 88 }}>
-            <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>Сьогодні</span>
+            <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>{t("onboardingFlowB.financeToday")}</span>
             <span className="font-black text-[21px] leading-tight tracking-tight" style={{ fontFamily: T.display }}>18:00</span>
-            <span className="text-[13px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>60 хв</span>
+            <span className="text-[13px] uppercase tracking-wide mt-1" style={{ color: T.muted }}>{t("onboardingFlowB.financeDuration")}</span>
           </div>
           {/* Divider */}
           <div className="w-px mx-3.5" style={{ background: T.border }} />
           {/* Content */}
           <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <span className="font-bold text-base" style={{ fontFamily: T.display }}>{studentName || "Анна Іваненко"}</span>
-            <span className="text-sm mt-0.5" style={{ color: T.sub }}>{subject || "Англійська"}</span>
+            <span className="font-bold text-base" style={{ fontFamily: T.display }}>{studentName || t("onboardingFlowB.demoStudentName")}</span>
+            <span className="text-sm mt-0.5" style={{ color: T.sub }}>{subject || t("onboardingFlowB.demoSubject")}</span>
           </div>
         </div>
         {/* Payment toggle row */}
@@ -739,7 +759,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
           <span className="flex items-center gap-2 text-sm font-semibold"
             style={{ color: paid ? T.success : T.sub }}>
             <span className="text-base">{paid ? "✓" : "⏳"}</span>
-            {paid ? "Оплачено" : "Очікує оплати"}
+            {paid ? t("onboardingFlowB.financePaid") : t("onboardingFlowB.financeAwaiting")}
           </span>
           <span className="font-black text-base" style={{ fontFamily: T.display, color: paid ? T.success : T.txt }}>
             {price} ₴
@@ -748,11 +768,11 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
       </div>
       {paid ? (
         <Btn onClick={() => { onComplete(); navigate("/finances"); }}>
-          Перейти до Фінансів →
+          {t("onboardingFlowB.financeGoToFinances")}
         </Btn>
       ) : (
         <p className="text-center text-sm font-medium py-2" style={{ color: T.muted }}>
-          Натисни на рядок оплати ↑ щоб позначити
+          {t("onboardingFlowB.financeTapHint")}
         </p>
       )}
     </div>
@@ -764,6 +784,7 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
   studentId: string | null; studentName: string; subject: string;
   onComplete: () => void; navigate: any;
 }) {
+  const { t } = useTranslation();
   const firstLetter = (studentName || "А").charAt(0).toUpperCase();
   return (
     <div className="flex flex-col gap-4">
@@ -775,12 +796,12 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
           {firstLetter}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{studentName || "Анна Іваненко"}</p>
-          <p className="text-[13px]" style={{ color: T.sub }}>{subject || "Англійська"} · твій учень</p>
+          <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{studentName || t("onboardingFlowB.demoStudentName")}</p>
+          <p className="text-[13px]" style={{ color: T.sub }}>{t("onboardingFlowB.chatStudentSubtitle", { subject: subject || t("onboardingFlowB.demoSubject") })}</p>
         </div>
         <span className="text-[13px] font-bold px-2.5 py-1 rounded-full"
           style={{ background: T.tealL, color: T.tealD, outline: `1px solid ${T.teal}66`, fontFamily: T.display }}>
-          Новий чат
+          {t("onboardingFlowB.chatNewBadge")}
         </span>
       </div>
       {/* Chat preview */}
@@ -788,21 +809,21 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
         style={{ background: "#fbfbfc", border: `1px solid ${T.border}` }}>
         <div className="self-start max-w-[82%] rounded-[14px_14px_14px_4px] px-3.5 py-2.5 text-sm bg-white"
           style={{ border: `1px solid ${T.border}` }}>
-          Привіт! Готова до завтрашнього уроку? 😊
+          {t("onboardingFlowB.chatPreviewIncoming")}
         </div>
         <div className="self-end max-w-[82%] rounded-[14px_14px_4px_14px] px-3.5 py-2.5 text-sm text-white"
           style={{ background: T.teal }}>
-          Так! Скинула домашку у файлах 📎
+          {t("onboardingFlowB.chatPreviewOutgoing")}
         </div>
       </div>
       <p className="text-sm" style={{ color: T.muted }}>
-        Створимо чат із учнем, якого ти щойно додав. Файли, домашка, нагадування — все в одному місці.
+        {t("onboardingFlowB.chatDescription")}
       </p>
       <Btn onClick={() => {
         onComplete();
         navigate(studentId ? `/chats?with=${studentId}` : "/chats");
       }}>
-        Почати чат з {studentName?.split(" ")[0] || "учнем"} →
+        {t("onboardingFlowB.chatStartWith", { name: studentName?.split(" ")[0] || t("onboardingFlowB.chatStudentFallback") })}
       </Btn>
     </div>
   );
@@ -810,6 +831,7 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
 
 // ── Bonus: Referral ───────────────────────────────────────────────────────────
 function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void }) {
+  const { t } = useTranslation();
   const [link, setLink]     = useState("");
   const [copied, setCopied] = useState(false);
 
@@ -825,11 +847,11 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
-        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#dcfce7", color: "#166534" }}>🎁 +30 днів тобі</span>
-        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: T.tealL, color: T.tealD }}>+21 день другу</span>
+        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#dcfce7", color: "#166534" }}>{t("onboardingFlowB.referralBadgeYou")}</span>
+        <span className="text-[13px] font-bold px-2.5 py-1 rounded-full" style={{ background: T.tealL, color: T.tealD }}>{t("onboardingFlowB.referralBadgeFriend")}</span>
       </div>
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Поділись посиланням з колегою-репетитором. Без зірочок і дрібного шрифту.
+        {t("onboardingFlowB.referralDescription")}
       </p>
       <div className="flex gap-2">
         <div className="h-12 flex-1 rounded-xl border flex items-center px-3 text-sm font-semibold truncate"
@@ -839,16 +861,17 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
         <button onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); }}
           className="h-12 px-4 rounded-xl font-bold text-sm text-white flex-shrink-0"
           style={{ background: copied ? T.success : T.dark, fontFamily: T.display }}>
-          {copied ? "✓ Скопійовано" : "Копіювати"}
+          {copied ? t("onboardingFlowB.referralCopied") : t("onboardingFlowB.referralCopy")}
         </button>
       </div>
-      <Btn onClick={onComplete}>Готово</Btn>
+      <Btn onClick={onComplete}>{t("onboardingFlowB.referralDone")}</Btn>
     </div>
   );
 }
 
 // ── Bonus: Zoom ───────────────────────────────────────────────────────────────
 function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) {
+  const { t } = useTranslation();
   const [url, setUrl]     = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -865,15 +888,15 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Постійна кімната — учень підключається одним кліком з кожного уроку.
+        {t("onboardingFlowB.zoomIntro")}
       </p>
       <div>
-        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>Посилання Zoom / Meet</Label>
+        <Label className="text-[13px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.zoomUrlLabel")}</Label>
         <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
           className="h-12 rounded-xl text-[15px]" />
       </div>
       <Btn disabled={!url.trim() || saving} onClick={save}>
-        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : "Зберегти посилання"}
+        {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.zoomSubmit")}
       </Btn>
     </div>
   );
@@ -881,6 +904,7 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
 
 // ── Bonus: Calendar ───────────────────────────────────────────────────────────
 function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
 
   const connect = async () => {
@@ -890,7 +914,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
       body: { return_to: `${window.location.origin}/onboarding?calendar=connected` },
     });
     if (error || !data?.redirect_url) {
-      toast.error("Помилка підключення"); setLoading(false); return;
+      toast.error(t("onboardingFlowB.calendarConnectError")); setLoading(false); return;
     }
     window.location.href = data.redirect_url;
   };
@@ -898,7 +922,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
-        Уроки автоматично з'являтимуться у твоєму Google Календарі.
+        {t("onboardingFlowB.calendarIntro")}
       </p>
       <button onClick={connect} disabled={loading}
         className="h-[52px] rounded-2xl border flex items-center justify-center gap-2.5 font-bold text-sm transition-transform active:scale-[.97]"
@@ -911,7 +935,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
             <path fill="#EA4335" d="M24 10.8c3.2 0 6 1.1 8.2 3.2l6.2-6.2C34.9 4.1 29.9 2 24 2 15.1 2 7.5 6.8 4.3 14l7.3 5.6C13.3 14.7 18.2 10.8 24 10.8z"/>
           </svg>
         )}
-        Підключити Google Calendar
+        {t("onboardingFlowB.calendarConnect")}
       </button>
     </div>
   );
@@ -919,23 +943,24 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
 
 // ── Bonus: AI ─────────────────────────────────────────────────────────────────
 function AiBonus({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-xl flex-shrink-0" style={{ background: T.tealL }}>🎙</div>
         <div>
-          <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>Запис уроку через Fireflies</p>
-          <p className="text-[13px]" style={{ color: T.sub }}>Бот тихо приєднується до Zoom / Meet</p>
+          <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{t("onboardingFlowB.aiHeaderTitle")}</p>
+          <p className="text-[13px]" style={{ color: T.sub }}>{t("onboardingFlowB.aiHeaderDesc")}</p>
         </div>
       </div>
       <p className="text-sm leading-relaxed" style={{ color: T.sub }}>
-        На сторінці уроку натисни «🎙 Записати урок». Після завершення AI сам додасть конспект:
+        {t("onboardingFlowB.aiInstructions")}
       </p>
       <div className="flex flex-col gap-2">
         {[
-          { e: "📝", t: "Підсумок",             d: "Що пройшли на уроці" },
-          { e: "✅", t: "Action items",          d: "Що задано і що повторити" },
-          { e: "🎬", t: "Запис і транскрипт",   d: "Повна розшифровка розмови" },
+          { e: "📝", t: t("onboardingFlowB.aiSummaryTitle"),    d: t("onboardingFlowB.aiSummaryDesc") },
+          { e: "✅", t: t("onboardingFlowB.aiActionItemsTitle"), d: t("onboardingFlowB.aiActionItemsDesc") },
+          { e: "🎬", t: t("onboardingFlowB.aiRecordingTitle"),   d: t("onboardingFlowB.aiRecordingDesc") },
         ].map(x => (
           <div key={x.t} className="flex items-center gap-3 rounded-xl p-3"
             style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
@@ -947,13 +972,14 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
           </div>
         ))}
       </div>
-      <Btn onClick={onComplete}>Зрозуміло, готово</Btn>
+      <Btn onClick={onComplete}>{t("onboardingFlowB.aiDone")}</Btn>
     </div>
   );
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
 export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user }  = useAuth();
   const { settings, updateSettings, loading: wsLoading } = useWorkspaceSettings();
@@ -1028,7 +1054,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   useEffect(() => {
     const url = new URL(window.location.href);
     if (url.searchParams.get("calendar") === "connected") {
-      toast.success("Google Calendar підключено!");
+      toast.success(t("onboardingFlowB.calendarConnectedToast"));
       url.searchParams.delete("calendar");
       window.history.replaceState({}, "", url.pathname + url.search);
       reload();
@@ -1048,7 +1074,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
     const s = ALL_STEPS.find(x => x.id === id)!;
     const isFinal = id === CORE[CORE.length-1].id;
     burst(isFinal ? "final" : "step");
-    setVictory({ emoji: s.emoji, title: s.title, xp: s.xp, isFinal });
+    setVictory({ emoji: s.emoji, title: t(`onboardingFlowB.${s.title}`), xp: s.xp, isFinal });
     reload();
   };
 
@@ -1085,21 +1111,21 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
             <div className="pt-14 pb-6 text-center">
               <div className="ob-bounce text-[72px] leading-none">🎉</div>
               <h1 className="mt-4 text-[27px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.02em" }}>
-                Кабінет готовий!
+                {t("onboardingFlowB.celebrationTitle")}
               </h1>
               <p className="mt-2 text-[14.5px] leading-relaxed px-6" style={{ color: T.sub }}>
-                Основне налаштовано. Ось ще кілька підсилювачів — додай, коли буде час.
+                {t("onboardingFlowB.celebrationSubtitle")}
               </p>
               <div className="mt-4 inline-flex">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold"
                   style={{ background: "#fef9ec", color: "#92400e", outline: "1.5px solid #fbbf24", fontFamily: T.display }}>
-                  ⭐ {earnedXP} / {TOTAL_XP} XP зібрано
+                  {t("onboardingFlowB.celebrationXp", { earned: earnedXP, total: TOTAL_XP })}
                 </span>
               </div>
             </div>
 
             <p className="text-[13px] font-black uppercase tracking-widest mb-3" style={{ color: T.sub }}>
-              ПІДСИЛЮВАЧІ · {bonusDone}/{BONUS.length}
+              {t("onboardingFlowB.boostersLabel", { done: bonusDone, total: BONUS.length })}
             </p>
 
             <div className="flex flex-col gap-2.5">
@@ -1116,9 +1142,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                       {done ? "✅" : step.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{step.title}</p>
+                      <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{t(`onboardingFlowB.${step.title}`)}</p>
                       <p className="text-[13px] truncate" style={{ color: T.sub }}>
-                        {done ? step.hint : step.desc}
+                        {done ? t(`onboardingFlowB.${step.hint}`) : t(`onboardingFlowB.${step.desc}`)}
                       </p>
                     </div>
                     {!done && <XpSticker xp={step.xp} />}
@@ -1134,7 +1160,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   await updateSettings({ onboarding_completed: true } as any);
                   onFinish();
                 }}>
-                На дашборд →
+                {t("onboardingFlowB.goToDashboard")}
               </button>
             </div>
           </div>
@@ -1154,7 +1180,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                   <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-2xl flex-shrink-0" style={{ background: T.tealL }}>
                     {activeBonus.emoji}
                   </div>
-                  <p className="flex-1 font-black text-[18px]" style={{ fontFamily: T.display }}>{activeBonus.title}</p>
+                  <p className="flex-1 font-black text-[18px]" style={{ fontFamily: T.display }}>{t(`onboardingFlowB.${activeBonus.title}`)}</p>
                   <XpSticker xp={activeBonus.xp} />
                 </div>
                 <div className="px-5 py-4">
@@ -1190,8 +1216,8 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
           <div className="mb-2.5"><ProgressSegments total={CORE.length} active={idx} /></div>
           <div className="flex items-center justify-between mb-6">
             <span className="text-[13px] font-bold" style={{ fontFamily: T.display, color: T.sub }}>
-              Крок {idx+1} з {CORE.length}
-              {isEssential && <span style={{ color: T.muted }}> · основне</span>}
+              {t("onboardingFlowB.stepCounter", { current: idx+1, total: CORE.length })}
+              {isEssential && <span style={{ color: T.muted }}>{t("onboardingFlowB.stepEssentialSuffix")}</span>}
             </span>
             <XpSticker xp={earnedXP} />
           </div>
@@ -1202,10 +1228,10 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               <Medallion emoji={step.emoji} />
               <h1 className="mt-5 text-[24px] font-black leading-snug"
                 style={{ fontFamily: T.display, letterSpacing: "-0.02em" }}>
-                {step.title}
+                {t(`onboardingFlowB.${step.title}`)}
               </h1>
               <p className="mt-2.5 text-[15px] leading-relaxed px-2" style={{ color: T.sub }}>
-                {step.desc}
+                {t(`onboardingFlowB.${step.desc}`)}
               </p>
             </div>
 
@@ -1214,9 +1240,9 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 <div className="flex flex-col items-center gap-4 pt-2">
                   <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-bold"
                     style={{ background: "#f0fdf9", color: T.success, outline: `1px solid ${T.success}` }}>
-                    <Check className="h-3.5 w-3.5" strokeWidth={3} /> {step.hint}
+                    <Check className="h-3.5 w-3.5" strokeWidth={3} /> {t(`onboardingFlowB.${step.hint}`)}
                   </span>
-                  <Btn onClick={advance}>{idx === CORE.length-1 ? "Завершити →" : "Далі →"}</Btn>
+                  <Btn onClick={advance}>{idx === CORE.length-1 ? t("onboardingFlowB.finishStep") : t("onboardingFlowB.nextStep")}</Btn>
                 </div>
               ) : (
                 <>
@@ -1236,10 +1262,10 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
           <div className="flex items-center justify-between mt-4 min-h-[44px]">
             <GhostBtn onClick={() => setIdx(i => Math.max(0,i-1))}
               style={{ visibility: idx === 0 ? "hidden" : "visible" }}>
-              ← Назад
+              {t("onboardingFlowB.back")}
             </GhostBtn>
             {!isEssential && !alreadyDone && (
-              <GhostBtn onClick={advance} style={{ color: T.muted }}>Пропустити</GhostBtn>
+              <GhostBtn onClick={advance} style={{ color: T.muted }}>{t("onboardingFlowB.skip")}</GhostBtn>
             )}
           </div>
         </div>

@@ -55,7 +55,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
     setSubmitting(false);
     if (error) {
       const friendly = /does not exist|42P01/i.test(error.message)
-        ? "Сховище звернень ще не готове — адміністратор має застосувати оновлення бази."
+        ? t("feedback.storageNotReady")
         : error.message;
       toast({ title: t("feedback.errorTitle"), description: friendly, variant: "destructive" });
       return;

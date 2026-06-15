@@ -54,7 +54,7 @@ const FEATURE_LABELS: Record<string, string> = {
 const STATUS_LABELS: Record<string, string> = {
   free: "Free",
   trial: "Trial",
-  active: "Підписка",
+  active: t("paywallMetricsExtra.statusActive"),
   past_due: t("paywallMetricsExtra.pastDue"),
   cancelled: t("paywallMetricsExtra.cancelled"),
 };
@@ -122,10 +122,10 @@ export default function PaywallMetricsPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="hidden lg:flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
-              <BarChart3 className="h-6 w-6 text-primary" /> Метрики paywall
+              <BarChart3 className="h-6 w-6 text-primary" /> {t("paywallMetricsExtra.pageTitle")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Які платні фічі найчастіше «провокують» кліки користувачів
+              {t("paywallMetricsExtra.pageSubtitle")}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -158,7 +158,7 @@ export default function PaywallMetricsPage() {
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
-                <MousePointerClick className="h-3.5 w-3.5" /> Кліків по фічах
+                <MousePointerClick className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.featureClicks")}
               </CardDescription>
               <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.allClicks}</CardTitle>
             </CardHeader>
@@ -166,7 +166,7 @@ export default function PaywallMetricsPage() {
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
-                <Users className="h-3.5 w-3.5" /> Унікальних користувачів
+                <Users className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.uniqueUsersTotal")}
               </CardDescription>
               <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.uniqueUsers}</CardTitle>
             </CardHeader>
@@ -174,7 +174,7 @@ export default function PaywallMetricsPage() {
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5" /> Візитів /subscription
+                <TrendingUp className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.subscriptionVisits")}
               </CardDescription>
               <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.visits}</CardTitle>
             </CardHeader>
@@ -198,7 +198,7 @@ export default function PaywallMetricsPage() {
               </div>
             ) : featureStats.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">
-                Поки немає подій за обраний період.
+                {t("paywallMetricsExtra.noEventsForPeriod")}
               </p>
             ) : (
               <ResponsiveContainer width="100%" height={Math.max(220, featureStats.length * 56)}>
@@ -258,7 +258,7 @@ export default function PaywallMetricsPage() {
                         <div className="text-sm font-semibold">{f.uniqueUsers}</div>
                       </div>
                       <div>
-                        <div className="text-[13px] uppercase text-muted-foreground">К/Ю</div>
+                        <div className="text-[13px] uppercase text-muted-foreground">{t("paywallMetricsExtra.ratioShort")}</div>
                         <div className="text-sm font-semibold">
                           {(f.clicks / Math.max(1, f.uniqueUsers)).toFixed(1)}
                         </div>
@@ -283,7 +283,7 @@ export default function PaywallMetricsPage() {
                   {featureStats.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center text-sm text-muted-foreground">
-                        Немає даних
+                        {t("paywallMetricsExtra.noData")}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -367,7 +367,7 @@ export default function PaywallMetricsPage() {
                   {recent.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-sm text-muted-foreground">
-                        Немає подій
+                        {t("paywallMetricsExtra.noEvents")}
                       </TableCell>
                     </TableRow>
                   ) : (

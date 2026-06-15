@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, X, Check } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
+import { useTranslation } from "react-i18next";
 
 export interface CloseDayRow {
   id: string;
@@ -32,6 +33,7 @@ const C = {
 
 /** Evening batch: mark today's past lessons completed + paid in one move. */
 export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [state, setState] = useState<Record<string, { done: boolean; paid: boolean }>>({});
   const [busy, setBusy] = useState(false);
@@ -82,11 +84,11 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
             .upsert({ lesson_id: r.id, student_payment_status: "paid" }, { onConflict: "lesson_id" })
         )
       );
-      toast.success(`🌙 День закрито — ${doneIds.length} ${doneIds.length === 1 ? "урок" : doneIds.length < 5 ? "уроки" : "уроків"}`);
+      toast.success(t("closeDayDialog.dayClosedToast", { count: doneIds.length }));
       onOpenChange(false);
       onDone?.();
     } catch (e: any) {
-      toast.error("Не вдалося закрити день", { description: e?.message });
+      toast.error(t("closeDayDialog.closeDayError"), { description: e?.message });
     } finally {
       setBusy(false);
     }
@@ -116,8 +118,8 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div>
-            <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>🌙 Закрити день</div>
-            <div style={{ fontSize: 13.5, color: C.sub, marginTop: 2 }}>Відміть, що відбулось і що оплачено</div>
+            <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>{t("closeDayDialog.title")}</div>
+            <div style={{ fontSize: 13.5, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
           </div>
           <button onClick={() => onOpenChange(false)} aria-label="✕"
             style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -138,11 +140,11 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>
                     {formatPrice(r.price, r.currency)}
                     {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
-                      <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>📦 пакет: {packMap[r.student_id]}</span>
+                      <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[r.student_id] })}</span>
                     )}
                   </div>
                 </div>
-                <Pill on={st.done} label="Провів" onClick={() => setState((s) => ({ ...s, [r.id]: { ...st, done: !st.done } }))} />
+                <Pill on={st.done} label={t("closeDayDialog.conductedPill")} onClick={() => setState((s) => ({ ...s, [r.id]: { ...st, done: !st.done } }))} />
                 <Pill on={st.done && (st.paid || r.paid)} gold label="₴"
                   onClick={() => st.done && !r.paid && setState((s) => ({ ...s, [r.id]: { ...st, paid: !st.paid } }))} />
               </div>
@@ -154,7 +156,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${C.border}`, background: "#fff", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onOpenChange(false)}
             style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, fontFamily: C.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
-            Скасувати
+            {t("closeDayDialog.cancel")}
           </button>
           <button type="button" onClick={apply} disabled={busy || doneCount === 0}
             style={{ flex: 1, height: 52, borderRadius: 14, border: "none", cursor: busy || doneCount === 0 ? "not-allowed" : "pointer",
@@ -163,7 +165,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
               boxShadow: doneCount === 0 ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {busy && <Loader2 size={18} className="animate-spin" />}
-            Закрити день{doneCount > 0 ? ` (${doneCount})` : ""}
+            {t("closeDayDialog.submit")}{doneCount > 0 ? ` (${doneCount})` : ""}
           </button>
         </div>
       </DialogContent>

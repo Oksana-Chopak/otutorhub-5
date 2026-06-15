@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/components/NotificationBell";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +15,7 @@ interface PageHeaderProps {
  * Used on all main pages for consistent layout.
  */
 export function PageHeader({ title, children, className }: PageHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className={cn("mb-4", className)}>
       <div className="flex items-center justify-between gap-3">
@@ -22,7 +24,7 @@ export function PageHeader({ title, children, className }: PageHeaderProps) {
           <NotificationBell />
           <Link
             to="/profile"
-            aria-label="Меню"
+            aria-label={t("pageHeader.menu")}
             className="flex h-11 w-11 items-center justify-center rounded-[14px] text-foreground transition-colors hover:bg-muted"
             style={{ background: "var(--teal,#2BBFAA)", color: "#fff" }}
           >

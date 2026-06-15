@@ -32,22 +32,20 @@ export function RequestReviewButton({
     });
     if (threadErr || !threadId) {
       setSending(false);
-      toast.error(t("requestReview.failed") || "Не вдалося надіслати запит");
+      toast.error(t("requestReview.failed"));
       return;
     }
-    const body =
-      t("requestReview.message") ||
-      "Дякую за урок! 🌟 Якщо є хвилинка — постав, будь ласка, оцінку уроку у застосунку. Це дуже допомагає 🙏";
+    const body = t("requestReview.message");
     const { error: msgErr } = await supabase
       .from("chat_messages")
       .insert({ thread_id: threadId as string, sender_id: tutorId, body });
     setSending(false);
     if (msgErr) {
-      toast.error(t("requestReview.failed") || "Не вдалося надіслати запит");
+      toast.error(t("requestReview.failed"));
       return;
     }
     setSent(true);
-    toast.success(t("requestReview.sent") || "Запит на відгук надіслано 🌟");
+    toast.success(t("requestReview.sent"));
   };
 
   return (
@@ -58,7 +56,7 @@ export function RequestReviewButton({
       style={{ fontFamily: "Inter, system-ui" }}
     >
       {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircleHeart className="h-4 w-4" />}
-      {sent ? (t("requestReview.sentShort") || "Надіслано") : (t("requestReview.cta") || "Попросити відгук")}
+      {sent ? t("requestReview.sentShort") : t("requestReview.cta")}
     </button>
   );
 }

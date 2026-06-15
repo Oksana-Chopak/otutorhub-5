@@ -168,8 +168,8 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                     <p className="text-[12px] uppercase tracking-wide" style={{ color: "#b0b4c8", fontFamily: "Inter, system-ui" }}>Email</p>
                     <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.email}</p>
                   </div>
-                  <button onClick={() => { navigator.clipboard.writeText(contact.email!); toast.success("Email скопійовано", { description: contact.email! }); }}
-                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
+                  <button onClick={() => { navigator.clipboard.writeText(contact.email!); toast.success(t("chatContextPanel.emailCopied"), { description: contact.email! }); }}
+                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title={t("chatContextPanel.copy")}>
                     <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>
@@ -178,14 +178,14 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                 <div className="flex items-center gap-3 px-3.5 py-2.5">
                   <span style={{ color: "#b0b4c8", flexShrink: 0 }}>📞</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] uppercase tracking-wide" style={{ color: "#b0b4c8", fontFamily: "Inter, system-ui" }}>Телефон</p>
+                    <p className="text-[12px] uppercase tracking-wide" style={{ color: "#b0b4c8", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
                     <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.phone}</p>
                   </div>
-                  <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#1f8e7e" }} title="Подзвонити">
+                  <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#1f8e7e" }} title={t("chatContextPanel.call")}>
                     <Phone size={15} />
                   </a>
-                  <button onClick={() => { navigator.clipboard.writeText(contact.phone!); toast.success("Телефон скопійовано", { description: contact.phone! }); }}
-                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title="Копіювати">
+                  <button onClick={() => { navigator.clipboard.writeText(contact.phone!); toast.success(t("chatContextPanel.phoneCopied"), { description: contact.phone! }); }}
+                    className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#9398b0" }} title={t("chatContextPanel.copy")}>
                     <Copy size={19} strokeWidth={2} />
                   </button>
                 </div>
@@ -222,7 +222,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                       : t("chatContext.unpaid")}
                   </span>
                   <span className="text-[13px] text-muted-foreground ml-auto">
-                    Відкрити урок →
+                    {t("chatContextPanel.openLesson")}
                   </span>
                 </div>
               </Link>
@@ -264,7 +264,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                   {format(new Date(lastHomework.starts_at), "d MMM", { locale: dateLocale })}
                   {lastHomework.subject && ` · ${lastHomework.subject}`}
                 </span>
-                <span>Перейти →</span>
+                <span>{t("chatContextPanel.goTo")}</span>
               </p>
             </Link>
           )}

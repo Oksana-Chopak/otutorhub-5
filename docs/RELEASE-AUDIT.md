@@ -8,7 +8,7 @@
 
 | # | Роль | Що | Файл | Фікс |
 |---|---|---|---|---|
-| P0-1 | all | **`check-hardcode` гейт червоний**: 377 рядків без `t()` (ліміт 50). CLAUDE.md: «push лише коли всі 4 гейти зелені». Топ: OnboardingFlowB 86, SubscriptionPage 37, FinancesPage 28, ChatsPage 17, MyStudentsPage 16. | `scripts/check-hardcode.mjs` | Обгорнути видимі рядки в `t()` + ключі uk/en/sv до зеленого гейта. |
+| P0-1 ✅ | all | **`check-hardcode` гейт — ЗЕЛЕНИЙ.** Оркестрований sweep (45 агентів, по файлу) обгорнув ~719 рядків у `t()` + ключі uk/en/sv (зведено вручну, 34 колізії пропущено). **377 → 12** (ліміт 50). Усі 4 гейти зелені вперше. | `45 файлів + локалі` | ✅ зроблено. |
 | P0-2 | manager | **Менеджер читає уроки незалежних репетиторів** — RLS-ізоляція зламана в БД. Політику `lessons_select` (manager OR без фільтра source) ніколи не дропнули; isolation-fix лише додав «hub only», а Postgres ORить permissive-політики → `source='independent'` знову видимі. Клієнтський `.neq('source','independent')` обходиться прямим PostgREST-запитом з anon-ключем. | `migrations/20260506082107…:6` | Нова міграція: manager-гілку `lessons_select` → `has_role(...,'manager') AND (source='hub' OR source IS NULL)`. |
 | P0-3 | manager | **Менеджер читає приватні ціни незалежних** (`student_rates`). Політика `Manager manages student rates` (FOR ALL, без фільтра) не дропнута; а isolation-fix `Manager sees hub rates only` **зламаний — посилається на неіснуючу таблицю `public.workspace_settings`** (є лише `tutor_workspace_settings`). | `migrations/20260418114910…:22` | Звузити manager-політику + переписати fix на `tutor_workspace_settings`. |
 

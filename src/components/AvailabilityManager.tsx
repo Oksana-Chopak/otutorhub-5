@@ -426,7 +426,7 @@ export function AvailabilityManager() {
         <div style={{ marginBottom: 14, borderRadius: 16, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.4)", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Bell className="h-4 w-4" style={{ color: A.warning }} />
-            <span style={{ fontFamily: A.display, fontWeight: 800, fontSize: 14.5 }}>Запити на проставлення годин ({requests.length})</span>
+            <span style={{ fontFamily: A.display, fontWeight: 800, fontSize: 14.5 }}>{t("availabilityManagerExtra.requestsTitle", { count: requests.length })}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {requests.map((r) => {
@@ -445,7 +445,7 @@ export function AvailabilityManager() {
                   </div>
                   {(isManager || (isTutor && r.tutor_id === user?.id)) && (
                     <Button size="sm" variant="outline" onClick={() => acknowledgeRequest(r.id)}>
-                      <Check className="h-3.5 w-3.5 mr-1" /> Закрити
+                      <Check className="h-3.5 w-3.5 mr-1" /> {t("availabilityManagerExtra.closeBtn")}
                     </Button>
                   )}
                 </div>
@@ -467,9 +467,9 @@ export function AvailabilityManager() {
           <div style={{ borderRadius: 18, padding: 16, background: A.gradIncome, color: "#fff", boxShadow: "0 14px 32px -18px rgba(15,15,26,.6)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: A.display, fontWeight: 700 }}>Цього тижня відкрито</div>
+                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: A.display, fontWeight: 700 }}>{t("availabilityManagerExtra.openThisWeek")}</div>
                 <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 30, color: A.teal, marginTop: 4 }}>
-                  {totalWeeklyHours} <span style={{ fontSize: 15, color: "#fff" }}>год</span>
+                  {totalWeeklyHours} <span style={{ fontSize: 15, color: "#fff" }}>{t("availabilityManagerExtra.hoursShort")}</span>
                 </div>
               </div>
               <div style={{ width: 46, height: 46, borderRadius: 999, background: "rgba(255,255,255,.12)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -504,7 +504,7 @@ export function AvailabilityManager() {
                               {minutesToHHMM(w.start_minute)}–{minutesToHHMM(w.end_minute)}
                             </span>
                             {canEdit && (
-                              <button onClick={() => removeWeekly(w.id)} aria-label="Видалити"
+                              <button onClick={() => removeWeekly(w.id)} aria-label={t("availabilityManagerExtra.deleteAria")}
                                 style={{ width: 18, height: 18, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(43,191,170,.18)", color: A.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
                                 <Trash2 className="h-3 w-3" />
                               </button>
@@ -525,7 +525,7 @@ export function AvailabilityManager() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {Array.from(groupedWeekly.entries()).filter(([d, list]) => d !== day && list.length > 0).map(([d]) => (
-                          <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>Скопіювати з {WEEKDAYS_FULL_UK[d]}</DropdownMenuItem>
+                          <DropdownMenuItem key={d} onClick={() => copyDaySlots(d, day)}>{t("availabilityManagerExtra.copyFromDayItem", { day: WEEKDAYS_FULL_UK[d] })}</DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -553,16 +553,16 @@ export function AvailabilityManager() {
           {/* Overrides */}
           <div style={{ marginTop: 4 }}>
             <div style={{ margin: "2px 2px 4px" }}>
-              <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 16 }}>Винятки на дати</div>
-              <div style={{ fontSize: 13, color: A.sub, marginTop: 1, lineHeight: 1.4 }}>Відпустка, лікарняний або додаткові години поза шаблоном.</div>
+              <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 16 }}>{t("availabilityManagerExtra.dateExceptions")}</div>
+              <div style={{ fontSize: 13, color: A.sub, marginTop: 1, lineHeight: 1.4 }}>{t("availabilityManagerExtra.dateExceptionsDesc")}</div>
             </div>
             {canEdit && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "10px 0 12px" }}>
                 <Button size="sm" variant="outline" onClick={openDayOffDialog}>
-                  <CalendarOff className="h-4 w-4 mr-1" /> Позначити вихідний
+                  <CalendarOff className="h-4 w-4 mr-1" /> {t("availabilityManagerExtra.markDayOffBtn")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={openExtraHoursDialog}>
-                  <CalendarPlus className="h-4 w-4 mr-1" /> Додаткові години
+                  <CalendarPlus className="h-4 w-4 mr-1" /> {t("availabilityManagerExtra.extraHoursBtn")}
                 </Button>
               </div>
             )}
@@ -594,7 +594,7 @@ export function AvailabilityManager() {
                         </div>
                       </div>
                       {canEdit && (
-                        <button onClick={() => removeOverride(o.id)} aria-label="Видалити"
+                        <button onClick={() => removeOverride(o.id)} aria-label={t("availabilityManagerExtra.deleteAria")}
                           style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: A.muted, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -644,7 +644,7 @@ export function AvailabilityManager() {
                 />
               </div>
               <div>
-                <Label>До</Label>
+                <Label>{t("availabilityManagerExtra.toLabel")}</Label>
                 <Input
                   type="time"
                   value={weeklyDialog.to}
@@ -655,7 +655,7 @@ export function AvailabilityManager() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setWeeklyDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("availabilityManagerExtra.cancelBtn")}
             </Button>
             <Button onClick={addWeekly}>{t("availabilityManagerExtra.addBtn")}</Button>
           </DialogFooter>
@@ -708,7 +708,7 @@ export function AvailabilityManager() {
                   onChange={(e) => setOverrideDialog((s) => ({ ...s, fullDay: e.target.checked }))}
                   className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
                 />
-                Цілий день
+                {t("availabilityManagerExtra.fullDayLabel")}
               </label>
             )}
             {(overrideDialog.is_available || !overrideDialog.fullDay) && (
@@ -722,7 +722,7 @@ export function AvailabilityManager() {
                   />
                 </div>
                 <div>
-                  <Label>До</Label>
+                  <Label>{t("availabilityManagerExtra.toLabel")}</Label>
                   <Input
                     type="time"
                     value={overrideDialog.to}
@@ -734,7 +734,7 @@ export function AvailabilityManager() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOverrideDialog((s) => ({ ...s, open: false }))}>
-              Скасувати
+              {t("availabilityManagerExtra.cancelBtn")}
             </Button>
             <Button onClick={addOverride}>{t("availabilityManagerExtra.saveBtn")}</Button>
           </DialogFooter>

@@ -68,7 +68,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
 
   const handleShare = async () => {
     if (!link) {
-      toast.error("Посилання ще завантажується, спробуй ще раз");
+      toast.error(t("referralWidget.linkLoading"));
       return;
     }
     const text = t("referralWidget.shareText", { link });
@@ -86,7 +86,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
     // Clipboard with textarea fallback for browsers that block clipboard API
     try {
       await navigator.clipboard.writeText(link);
-      toast.success("Посилання скопійовано! 🎉");
+      toast.success(t("referralWidget.linkCopiedEmoji"));
     } catch (_clipErr) {
       // Last-resort fallback: textarea + execCommand
       try {
@@ -97,9 +97,9 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
         ta.select();
         document.execCommand("copy");
         document.body.removeChild(ta);
-        toast.success("Посилання скопійовано! 🎉");
+        toast.success(t("referralWidget.linkCopiedEmoji"));
       } catch (_) {
-        toast.error("Не вдалося скопіювати. Скопіюй вручну: " + link);
+        toast.error(t("referralWidget.copyFailedManual", { link }));
       }
     }
   };
@@ -147,14 +147,14 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-[13px]">
               <span className="text-muted-foreground">
-                Цього місяця: <strong className="text-foreground">{monthly} з 3</strong> оплат → +3 міс бонус 🔥
+                {t("referralWidget.thisMonthPrefix")} <strong className="text-foreground">{t("referralWidget.thisMonthCount", { monthly })}</strong> {t("referralWidget.thisMonthSuffix")}
               </span>
               <span className="font-semibold text-primary">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
             {toBigBonus > 0 ? (
               <p className="text-[13px] text-muted-foreground">
-                {t("referralWidget.toBigBonus", { count: toBigBonus }) ?? `Ще ${toBigBonus} → +3 міс`}
+                {t("referralWidget.toBigBonus", { count: toBigBonus })}
               </p>
             ) : (
               <p className="text-[13px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
@@ -165,7 +165,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
 
       {!compact && referrals.length > 0 && (
         <div className="border-t border-border p-3 text-[13px] text-muted-foreground">
-          Усього запрошень: <strong className="text-foreground">{referrals.length}</strong> · з Pro: <strong className="text-foreground">{proUpgrades}</strong>
+          {t("referralWidget.totalInvitesPrefix")} <strong className="text-foreground">{referrals.length}</strong> {t("referralWidget.totalInvitesProSep")} <strong className="text-foreground">{proUpgrades}</strong>
         </div>
       )}
     </Card>

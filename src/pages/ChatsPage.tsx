@@ -238,7 +238,7 @@ export default function ChatsPage() {
     // ── Контекст кожного діалогу (борг / наступний урок / новий учень) ──
     // ОДИН запит усіх уроків видимих пар, далі групуємо в памʼяті (швидко навіть
     // для менеджера з десятками чатів). Помилки тихо ігноруємо — список не падає.
-    let withCtx: Thread[] = list.map((th) => ({ ...th, ctx: { kind: "new" as const, text: "Новий учень" } }));
+    let withCtx: Thread[] = list.map((th) => ({ ...th, ctx: { kind: "new" as const, text: t("chats.ctxNewStudent") } }));
     try {
       const tutorIds = Array.from(new Set(list.map((t) => t.tutor_id)));
       const studentIds = Array.from(new Set(list.map((t) => t.student_id)));
@@ -256,11 +256,11 @@ export default function ChatsPage() {
       const now = Date.now();
       withCtx = list.map((th): Thread => {
         const lessons = byPair.get(`${th.tutor_id}|${th.student_id}`) ?? [];
-        if (lessons.length === 0) return { ...th, ctx: { kind: "new", text: "Новий учень" } };
+        if (lessons.length === 0) return { ...th, ctx: { kind: "new", text: t("chats.ctxNewStudent") } };
         const unpaid = lessons.filter((l) => l.student_payment_status === "unpaid" && l.status !== "cancelled");
         if (unpaid.length > 0) {
           const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
-          return { ...th, ctx: { kind: "debt", text: `Борг ₴${sum.toLocaleString("uk-UA")} · ${unpaid.length} ур.`, amount: sum, count: unpaid.length } };
+          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: sum.toLocaleString("uk-UA"), count: unpaid.length }), amount: sum, count: unpaid.length } };
         }
         const next = lessons
           .filter((l) => l.status !== "cancelled" && new Date(l.starts_at).getTime() >= now)
@@ -270,11 +270,11 @@ export default function ChatsPage() {
           const today = new Date(); today.setHours(0, 0, 0, 0);
           const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
           const dd = new Date(d); dd.setHours(0, 0, 0, 0);
-          const dayLabel = dd.getTime() === today.getTime() ? "сьогодні"
-            : dd.getTime() === tomorrow.getTime() ? "завтра"
+          const dayLabel = dd.getTime() === today.getTime() ? t("chats.ctxDayToday")
+            : dd.getTime() === tomorrow.getTime() ? t("chats.ctxDayTomorrow")
             : d.toLocaleDateString("uk-UA", { day: "numeric", month: "short" });
           const time = d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
-          return { ...th, ctx: { kind: "lesson", text: `Урок ${dayLabel} · ${time}` } };
+          return { ...th, ctx: { kind: "lesson", text: t("chats.ctxLesson", { day: dayLabel, time }) } };
         }
         return { ...th, ctx: { kind: "none", text: "" } };
       });
@@ -776,8 +776,8 @@ export default function ChatsPage() {
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(today.getDate() - 1);
-    if (d.toDateString() === today.toDateString()) return "Сьогодні";
-    if (d.toDateString() === yesterday.toDateString()) return "Вчора";
+    if (d.toDateString() === today.toDateString()) return t("chats.dateToday");
+    if (d.toDateString() === yesterday.toDateString()) return t("chats.dateYesterday");
     return d.toLocaleDateString("uk-UA", { day: "numeric", month: "long" });
   };
 
@@ -816,11 +816,11 @@ export default function ChatsPage() {
               <div className="flex items-start justify-between gap-2 mb-3">
                 <div>
                   <p className="hidden lg:block font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
-                    {t("chats.title") || "Чати"}
+                    {t("chats.title")}
                   </p>
                   <p className="hidden lg:block text-[13px] mt-0.5" style={{ color: "var(--sub,#9398b0)" }}>
                     {isManager
-                      ? `${threads.length} активних діалогів`
+                      ? t("chats.activeDialogsCount", { count: threads.length })
                       : t("chats.pageSubtitleOther")}
                   </p>
                 </div>
@@ -831,7 +831,7 @@ export default function ChatsPage() {
                     style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    {t("chats.new") || "Новий"}
+                    {t("chats.new")}
                   </button>
                 )}
               </div>
@@ -845,7 +845,7 @@ export default function ChatsPage() {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t("chats.searchPlaceholder") || "Пошук за іменем або повідомленням…"}
+                  placeholder={t("chats.searchPlaceholder")}
                   className="w-full pl-9 pr-3 h-9 rounded-xl text-[13.5px] outline-none"
                   style={{ border: "1px solid var(--border,#eceef3)", background: "#fbfbfc" }}
                 />
@@ -868,10 +868,10 @@ export default function ChatsPage() {
                     }
                   >
                     {mode === "recent"
-                      ? t("chats.sortRecent") || "Нові"
+                      ? t("chats.sortRecent")
                       : mode === "unread"
-                      ? t("chats.sortUnread") || "Непрочитані"
-                      : t("chats.sortName") || "Ім'я"}
+                      ? t("chats.sortUnread")
+                      : t("chats.sortName")}
                   </button>
                 ))}
               </div>
@@ -882,16 +882,16 @@ export default function ChatsPage() {
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
                   <p className="text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
-                    {search ? t("chats.noResults") || "Нічого не знайдено" : t("chats.noChats") || "Немає чатів"}
+                    {search ? t("chats.noResults") : t("chats.noChats")}
                   </p>
                   {!search && !isManager && (
                     <p className="text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>
-                      {t("chats.searchHint") || "Чати з'являться тут після того, як репетитор їх створить"}
+                      {t("chats.searchHint")}
                     </p>
                   )}
                   {!search && isManager && (
                     <p className="text-[13px]" style={{ color: "var(--muted,#b0b4c8)" }}>
-                      Натисни «+ Новий» щоб розпочати перший чат
+                      {t("chats.managerStartHint")}
                     </p>
                   )}
                 </div>
@@ -976,12 +976,12 @@ export default function ChatsPage() {
                           </span>
                           {thread.ctx.kind === "debt" && (
                             <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
-                              Нагадати →
+                              {t("chats.remindArrow")}
                             </span>
                           )}
                           {thread.ctx.kind === "new" && (
                             <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
-                              Створити урок →
+                              {t("chats.createLessonArrow")}
                             </span>
                           )}
                         </div>
@@ -1030,7 +1030,7 @@ export default function ChatsPage() {
                         onClick={() => canShowContext && setShowContextPanel(true)}
                         className={cn("font-bold text-[15px] truncate text-left", canShowContext && "hover:underline")}
                         style={{ fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", cursor: canShowContext ? "pointer" : "default" }}
-                        title={canShowContext ? "Відкрити профіль" : undefined}
+                        title={canShowContext ? t("chats.openProfile") : undefined}
                       >
                         {counterpartName(selectedThread)}
                       </button>
@@ -1040,17 +1040,17 @@ export default function ChatsPage() {
                           style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
                         >
                           <ShieldCheck className="h-2.5 w-2.5" />
-                          {t("chats.centerBadge") || "Центр"}
+                          {t("chats.centerBadge")}
                         </span>
                       )}
                     </div>
                     {isManager ? (
                       <p className="text-[13px] truncate" style={{ color: "var(--sub,#9398b0)" }}>
-                        {fullName(profiles[selectedThread.tutor_id])} · тред центру
+                        {t("chats.centerThreadSubtitle", { name: fullName(profiles[selectedThread.tutor_id]) })}
                       </p>
                     ) : (
                       <p className="text-[13px]" style={{ color: "#22c55e" }}>
-                        {t("chats.online") || "у мережі"}
+                        {t("chats.online")}
                       </p>
                     )}
                   </div>
@@ -1180,7 +1180,7 @@ export default function ChatsPage() {
                                   }}
                                 >
                                   <ShieldCheck className="h-2.5 w-2.5" />
-                                  {t("chats.centerBadge") || "ЦЕНТР"}
+                                  {t("chats.centerBadge")}
                                 </span>
                               )}
 
@@ -1258,20 +1258,20 @@ export default function ChatsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
                           {selectedThread.ctx.kind === "debt"
-                            ? `Неоплачено ₴${(selectedThread.ctx.amount ?? 0).toLocaleString("uk-UA")}`
-                            : "Створити перший урок"}
+                            ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString("uk-UA") })
+                            : t("chats.smartCreateFirstLesson")}
                         </p>
                         <p className="text-[12.5px] truncate" style={{ color: "#9398b0" }}>
                           {selectedThread.ctx.kind === "debt"
-                            ? `${selectedThread.ctx.count ?? 0} ${(selectedThread.ctx.count ?? 0) === 1 ? "урок" : "уроків"} очікує оплати`
-                            : `${counterpartName(selectedThread)} ще без уроків`}
+                            ? t("chats.smartLessonsAwaitingPayment", { count: selectedThread.ctx.count ?? 0 })
+                            : t("chats.smartNoLessonsYet", { name: counterpartName(selectedThread) })}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           if (selectedThread.ctx?.kind === "debt") {
-                            setDraft((d) => d || "Доброго дня! Нагадую про оплату за уроки 🙏");
+                            setDraft((d) => d || t("chats.debtReminderDraft"));
                           } else {
                             window.location.href = "/schedule";
                           }
@@ -1287,7 +1287,7 @@ export default function ChatsPage() {
                             : "0 6px 16px -8px rgba(43,191,170,.6)",
                         }}
                       >
-                        {selectedThread.ctx.kind === "debt" ? "Нагадати" : "Створити"}
+                        {selectedThread.ctx.kind === "debt" ? t("chats.remindBtn") : t("chats.createBtn2")}
                       </button>
                     </div>
                   )}
@@ -1363,7 +1363,7 @@ export default function ChatsPage() {
                     placeholder={
                       isManager
                         ? t("chats.placeholderManager")
-                        : t("chats.composerPlaceholder") || "Напишіть повідомлення…"
+                        : t("chats.composerPlaceholder")
                     }
                     maxLength={4000}
                     disabled={sending}
@@ -1420,7 +1420,7 @@ export default function ChatsPage() {
                   style={{ color: "var(--muted,#b0b4c8)" }}
                 >
                   <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
-                  <p>Оберіть чат, щоб<br />бачити контекст учня</p>
+                  <p>{t("chats.selectChatForContextLine1")}<br />{t("chats.selectChatForContextLine2")}</p>
                 </div>
               )}
             </div>

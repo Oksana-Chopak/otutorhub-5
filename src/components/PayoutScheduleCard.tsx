@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, CalendarClock } from "lucide-react";
@@ -13,6 +14,7 @@ const C = {
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [colsMissing, setColsMissing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,11 +59,11 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
     const { error } = await supabase.from("tutor_details").upsert(patch, { onConflict: "user_id" });
     setSaving(false);
     if (error) {
-      toast.error("Не вдалося зберегти графік", { description: error.message });
+      toast.error(t("payoutScheduleCard.saveErrorTitle"), { description: error.message });
       return;
     }
-    toast.success("Графік виплат збережено", {
-      description: describePayoutSchedule(patch as PayoutSchedule) ?? "Без графіка",
+    toast.success(t("payoutScheduleCard.saveSuccessTitle"), {
+      description: describePayoutSchedule(patch as PayoutSchedule) ?? t("payoutScheduleCard.noSchedule"),
     });
   };
 
@@ -84,16 +86,16 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
     <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <CalendarClock className="h-4 w-4" style={{ color: C.tealD }} />
-        <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 15, color: C.ink }}>Графік виплат</span>
+        <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 15, color: C.ink }}>{t("payoutScheduleCard.title")}</span>
       </div>
 
       {/* Періодичність */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: freq ? 12 : 0 }}>
         {([
-          ["", "Без графіка"],
-          ["weekly", "Щотижня"],
-          ["biweekly", "Раз на 2 тижні"],
-          ["monthly", "Щомісяця"],
+          ["", t("payoutScheduleCard.noSchedule")],
+          ["weekly", t("payoutScheduleCard.freqWeekly")],
+          ["biweekly", t("payoutScheduleCard.freqBiweekly")],
+          ["monthly", t("payoutScheduleCard.freqMonthly")],
         ] as const).map(([val, label]) => (
           <button key={val} type="button" onClick={() => setFreq(val)} style={chip(freq === val)}>
             {label}
@@ -104,7 +106,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* День тижня */}
       {(freq === "weekly" || freq === "biweekly") && (
         <div>
-          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>День тижня</p>
+          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.weekdayLabel")}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {WEEKDAY_ORDER.map((d) => (
               <button key={d} type="button" onClick={() => setWeekday(d)}
@@ -123,7 +125,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* Число місяця */}
       {freq === "monthly" && (
         <div>
-          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>Число місяця</p>
+          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
           <input type="number" min={1} max={28} value={monthday}
             onChange={(e) => setMonthday(Math.min(28, Math.max(1, parseInt(e.target.value, 10) || 1)))}
             style={{ width: 90, height: 44, borderRadius: 12, border: `1.5px solid ${C.border}`, padding: "0 13px",
@@ -140,7 +142,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
         {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-        Зберегти графік
+        {t("payoutScheduleCard.saveButton")}
       </button>
     </div>
   );

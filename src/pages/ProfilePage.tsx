@@ -331,7 +331,7 @@ export default function ProfilePage() {
   // ── Computed values ──────────────────────────────────────────────────────────
   const displayName = (profileName.first || profileName.last)
     ? [profileName.first, profileName.last].filter(Boolean).join(" ")
-    : user?.email?.split("@")[0] ?? "Репетитор";
+    : user?.email?.split("@")[0] ?? t("profile.defaultTutorName");
   const initials = ((displayName.split(" ")[0]?.[0] ?? "") + (displayName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
 
   const payRuleVal = (settings as any)?.payment_due_mode === "prepaid" ? t("profile.valPrepaid")
@@ -387,17 +387,17 @@ export default function ProfilePage() {
   );
 
   const THEMES: Array<{ key: string; emoji: string; label: string }> = [
-    { key: "fruits",  emoji: "🍎", label: "Фрукти" },
-    { key: "sports",  emoji: "⚽", label: "Спорт"  },
-    { key: "animals", emoji: "🐶", label: "Тварини" },
-    { key: "stars",   emoji: "⭐", label: "Зірки"   },
+    { key: "fruits",  emoji: "🍎", label: t("profile.themeFruits") },
+    { key: "sports",  emoji: "⚽", label: t("profile.themeSports")  },
+    { key: "animals", emoji: "🐶", label: t("profile.themeAnimals") },
+    { key: "stars",   emoji: "⭐", label: t("profile.themeStars")   },
   ];
 
   // ── MANAGER profile (DS: identity card + sections) ───────────────────────────
   if (!isTutor) {
     const mgrName = (profileName.first || profileName.last)
       ? [profileName.first, profileName.last].filter(Boolean).join(" ")
-      : user?.email?.split("@")[0] ?? "Менеджер";
+      : user?.email?.split("@")[0] ?? t("profile.defaultManagerName");
     const mgrInitials = ((mgrName.split(" ")[0]?.[0] ?? "") + (mgrName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
     return (
       <AppLayout>
@@ -538,7 +538,7 @@ export default function ProfilePage() {
                     {displayName}
                   </p>
                   <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>
-                    Незалежний репетитор
+                    {t("profile.independentTutorSub")}
                   </p>
                 </div>
                 {/* Edit button */}
@@ -578,10 +578,10 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 17, color: "#fff" }}>
-                      Підписка
+                      {t("profile.subscriptionTitle")}
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
-                      {settings?.trial_until ? `Тріал · до ${new Date(settings.trial_until).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" })}` : "Активна"}
+                      {settings?.trial_until ? t("profile.trialUntil", { date: new Date(settings.trial_until).toLocaleDateString("uk-UA", { day: "numeric", month: "short", year: "numeric" }) }) : t("profile.subscriptionActive")}
                     </p>
                   </div>
                   <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -595,7 +595,7 @@ export default function ProfilePage() {
             <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
               onClick={() => { window.location.href = "/achievements"; }} />
             <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
-              val="+249 грн за друга" onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
+              val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
           </Sec>
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
@@ -786,7 +786,7 @@ export default function ProfilePage() {
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 16 }}>
-                Предмети
+                {t("profile.subjectsSheetTitle")}
               </p>
               {/* Subject chips — existing subjects */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
@@ -804,7 +804,18 @@ export default function ProfilePage() {
               </div>
               {/* Add from predefined list */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-                {["Англійська","Математика","Українська","Фізика","Хімія","Німецька","Біологія","Інформатика","Історія","Польська"]
+                {[
+                  t("profile.subjectEnglish"),
+                  t("profile.subjectMath"),
+                  t("profile.subjectUkrainian"),
+                  t("profile.subjectPhysics"),
+                  t("profile.subjectChemistry"),
+                  t("profile.subjectGerman"),
+                  t("profile.subjectBiology"),
+                  t("profile.subjectInformatics"),
+                  t("profile.subjectHistory"),
+                  t("profile.subjectPolish"),
+                ]
                   .filter(s => !subjects.includes(s))
                   .map(s => (
                     <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
@@ -818,7 +829,7 @@ export default function ProfilePage() {
               {/* Add custom subject */}
               <div style={{ display: "flex", gap: 8 }}>
                 <input
-                  placeholder="Інший предмет…"
+                  placeholder={t("profile.customSubjectPlaceholder")}
                   style={{ flex: 1, height: 42, borderRadius: 11, padding: "0 12px",
                     fontSize: 14.5, border: "1.5px solid #eceef3", outline: "none",
                     fontFamily: "'Plus Jakarta Sans', system-ui" }}
@@ -840,13 +851,13 @@ export default function ProfilePage() {
                   await supabase.from("tutor_details")
                     .upsert({ user_id: user.id, subjects }, { onConflict: "user_id" });
                   setActiveSheet(null);
-                  toast.success("Предмети збережено");
+                  toast.success(t("profile.subjectsSavedToast"));
                 }}
                 style={{ marginTop: 16, width: "100%", height: 48, borderRadius: 13,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
                   color: "#fff", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: "pointer" }}>
-                Зберегти
+                {t("profile.subjectsSaveBtn")}
               </button>
             </div>
           </SheetContent>
@@ -868,7 +879,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
               style={{ borderColor: "var(--border,#eceef3)" }}>
               <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>
-                Доступні години
+                {t("profile.availableHoursTitle")}
               </p>
             </div>
             <div className="px-4 py-4">

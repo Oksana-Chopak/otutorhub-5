@@ -79,7 +79,7 @@ export function AddFab({ onLesson, onStudent, onPayment, bottom = 88 }: Props) {
             transform: open ? "rotate(45deg)" : "rotate(0deg)",
             transition: "transform .2s cubic-bezier(.34,1.56,.64,1)",
           }}
-          aria-label={open ? "Закрити" : "Додати"}>
+          aria-label={open ? t("addFab.close") : t("addFab.add")}>
           {open ? <X size={28} strokeWidth={2.2} color="#fff" />
                 : <Plus size={28} strokeWidth={2.4} color="#fff" />}
         </button>

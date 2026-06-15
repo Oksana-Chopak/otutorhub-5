@@ -132,7 +132,7 @@ export default function StudentPaymentsPage() {
         {walletBalances.length > 0 && (
           <div style={{ borderRadius: 18, padding: "16px 18px", background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)" }}>
             <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
-              📦 Передплачено
+              {t("studentPagesExtra.prepaidLabel")}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
               {walletBalances.map((b) => {
@@ -140,10 +140,10 @@ export default function StudentPaymentsPage() {
                 return (
                   <div key={b.tutor_id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
                     <span style={{ fontSize: 13.5, color: "rgba(255,255,255,.75)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {info?.tutor_name ?? "Репетитор"}
+                      {info?.tutor_name ?? t("studentPages.tutorFallback")}
                     </span>
                     <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#2BBFAA", flexShrink: 0 }}>
-                      {b.lessons_balance > 0 && `${b.lessons_balance} ур.`}
+                      {b.lessons_balance > 0 && t("studentPagesExtra.lessonsBalance", { count: b.lessons_balance })}
                       {b.lessons_balance > 0 && b.amount_balance > 0 && " · "}
                       {b.amount_balance > 0 && formatPrice(b.amount_balance, info?.currency)}
                     </span>
@@ -151,7 +151,7 @@ export default function StudentPaymentsPage() {
                 );
               })}
             </div>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginTop: 8 }}>Списується автоматично після проведених уроків</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginTop: 8 }}>{t("studentPagesExtra.autoDeductHint")}</p>
           </div>
         )}
 

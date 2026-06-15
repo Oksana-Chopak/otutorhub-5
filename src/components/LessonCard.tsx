@@ -33,7 +33,7 @@ export interface LessonCardData {
 
 interface LessonCardProps {
   lesson: LessonCardData;
-  /** Adds the 💼 tutor-payout row + "Репетитор: …" line. */
+  /** Adds the 💼 tutor-payout row + "Tutor: …" line. */
   role?: "tutor" | "manager" | "student";
   variant?: LessonCardVariant;
   studentName?: string;

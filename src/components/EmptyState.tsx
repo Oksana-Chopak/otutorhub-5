@@ -130,9 +130,9 @@ EmptyState.Lessons = function EmptyStateLessons({
     <EmptyState
       icon={CalendarDays}
       variant="default"
-      title={t("schedule.noLessons") ?? "Уроків поки немає"}
-      description={t("schedule.noLessonsDesc") ?? "Запишіть перший урок — це займе 30 секунд."}
-      actionLabel={t("schedule.addLesson") ?? "Запланувати урок"}
+      title={t("schedule.noLessons")}
+      description={t("schedule.noLessonsDesc")}
+      actionLabel={t("schedule.addLesson")}
       onAction={onSchedule}
     />
   );
@@ -149,7 +149,7 @@ EmptyState.UpcomingLessons = function EmptyStateUpcoming({
     <EmptyState
       icon={CalendarDays}
       variant="subtle"
-      title={t("schedule.noUpcoming") ?? "Наступних уроків немає"}
+      title={t("schedule.noUpcoming")}
       description={
         isTutor
           ? t("schedule.noUpcomingCreateDesc")
@@ -166,8 +166,8 @@ EmptyState.Payments = function EmptyStatePayments() {
     <EmptyState
       icon={Wallet}
       variant="subtle"
-      title={t("finances.noDebts") ?? "Заборгованостей немає"}
-      description={t("finances.noDebtsDesc") ?? "Всі уроки оплачено. Гарна робота!"}
+      title={t("finances.noDebts")}
+      description={t("finances.noDebtsDesc")}
     />
   );
 };
@@ -181,9 +181,9 @@ EmptyState.Messages = function EmptyStateMessages({
     <EmptyState
       icon={MessageSquare}
       variant="subtle"
-      title={t("chats.empty") ?? "Поки немає повідомлень"}
-      description={t("chats.emptyDesc") ?? "Написати учню або репетитору можна прямо звідси."}
-      actionLabel="Написати"
+      title={t("chats.empty")}
+      description={t("chats.emptyDesc")}
+      actionLabel={t("emptyState.messagesAction")}
       onAction={onNewChat}
     />
   );
@@ -194,9 +194,9 @@ EmptyState.Analytics = function EmptyStateAnalytics() {
     <EmptyState
       icon={BarChart3}
       variant="subtle"
-      title={t("analytics.noData") ?? "Даних ще недостатньо"}
-      description={t("analytics.noDataDesc") ?? "Статистика з'явиться після перших проведених уроків."}
-      hint="Зазвичай достатньо 3–5 занять."
+      title={t("analytics.noData")}
+      description={t("analytics.noDataDesc")}
+      hint={t("emptyState.analyticsHint")}
     />
   );
 };

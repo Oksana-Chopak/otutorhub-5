@@ -6,6 +6,7 @@
  * Аватар з градієнтом + статус-крапка + ім'я + підрядок + бейджі + email+Copy + «Написати».
  */
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { MessageCircle, Copy, Check, Mail } from "lucide-react";
 
 // ── Design tokens ────────────────────────────────────────────────────────────
@@ -78,6 +79,7 @@ export function PersonAva({
 
 // ── Inline email/copy row ─────────────────────────────────────────────────────
 export function ContactInline({ value }: { value: string | null | undefined }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
   if (!value) return null;
 
@@ -100,8 +102,8 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
       </span>
       <button
         onClick={copy}
-        title="Копіювати"
-        aria-label="Копіювати"
+        title={t("personCard.copy")}
+        aria-label={t("personCard.copy")}
         style={{
           width: 44, height: 44, borderRadius: 11, flexShrink: 0,
           border: "none", background: "transparent",
@@ -135,6 +137,7 @@ export function PersonBadges({
   kind?: "student" | "tutor" | "manager";
   isOwner?: boolean;
 }) {
+  const { t } = useTranslation();
   const pills: React.ReactNode[] = [];
 
   const Pill = ({ tone, children }: { tone: string; children: React.ReactNode }) => {
@@ -156,14 +159,14 @@ export function PersonBadges({
     );
   };
 
-  if (isPending)              pills.push(<Pill key="p" tone="warn">⏳ Очікує входу</Pill>);
-  else if (status === "debt") pills.push(<Pill key="d" tone="warn">⚠️ Борг ₴{unpaidTotal}</Pill>);
-  else if (status === "new")  pills.push(<Pill key="n" tone="muted">✨ Новий</Pill>);
+  if (isPending)              pills.push(<Pill key="p" tone="warn">{t("personCard.pendingEntry")}</Pill>);
+  else if (status === "debt") pills.push(<Pill key="d" tone="warn">{t("personCard.debt", { amount: unpaidTotal })}</Pill>);
+  else if (status === "new")  pills.push(<Pill key="n" tone="muted">{t("personCard.new")}</Pill>);
 
   if (kind === "tutor" && obDone !== undefined && obDone < 3 && !isPending)
-    pills.push(<Pill key="o" tone="blue">Онбординг {obDone}/3</Pill>);
+    pills.push(<Pill key="o" tone="blue">{t("personCard.onboarding", { done: obDone })}</Pill>);
   if (kind === "manager" && isOwner)
-    pills.push(<Pill key="ow" tone="teal">Власник</Pill>);
+    pills.push(<Pill key="ow" tone="teal">{t("personCard.owner")}</Pill>);
 
   return pills.length ? (
     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginTop: 6 }}>
@@ -194,6 +197,7 @@ export function PersonCard({
   name, avatarUrl, status, subLine, email, isPending,
   unpaidTotal, obDone, kind, isOwner, active, onOpen, onWrite,
 }: PersonCardProps) {
+  const { t } = useTranslation();
   const [hover, setHover] = useState(false);
   const canWrite = !isPending;
 
@@ -238,8 +242,8 @@ export function PersonCard({
         <button
           onClick={onWrite}
           disabled={!canWrite}
-          title="Написати"
-          aria-label="Написати"
+          title={t("personCard.write")}
+          aria-label={t("personCard.write")}
           style={{
             width: 46, height: 46, borderRadius: 14, border: "none",
             cursor: canWrite ? "pointer" : "default", flexShrink: 0,

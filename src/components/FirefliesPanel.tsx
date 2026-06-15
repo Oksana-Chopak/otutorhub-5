@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mic, ExternalLink, AlertCircle, ListChecks, FileAudio } from "lucide-react";
@@ -38,6 +39,7 @@ const EMPTY: State = {
 };
 
 export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Props) {
+  const { t } = useTranslation();
   const [state, setState] = useState<State>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -85,14 +87,14 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
   const startRecording = async () => {
     if (!meetingUrl) {
       toast({
-        title: "Add meeting link first",
-        description: "Set the Zoom or Google Meet URL for this lesson before recording.",
+        title: t("firefliesPanel.addMeetingLinkTitle"),
+        description: t("firefliesPanel.addMeetingLinkDescription"),
         variant: "destructive",
       });
       return;
     }
     const ok = window.confirm(
-      "This session will be recorded and transcribed.\nBoth participants will see the Fireflies bot in the call.\n\nStart recording now?"
+      t("firefliesPanel.confirmStartRecording")
     );
     if (!ok) return;
     setStarting(true);
@@ -103,16 +105,16 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
       if (error) throw error;
       const ff = (data as { fireflies?: { success?: boolean; message?: string } })?.fireflies;
       if (ff && ff.success === false) {
-        throw new Error(ff.message || "Fireflies refused the request");
+        throw new Error(ff.message || t("firefliesPanel.firefliesRefused"));
       }
       toast({
-        title: "🎙 Bot is joining the call",
-        description: "Fireflies will record silently. Notes appear here when ready.",
+        title: t("firefliesPanel.botJoiningTitle"),
+        description: t("firefliesPanel.botJoiningDescription"),
       });
       setState((s) => ({ ...s, status: "requested" }));
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Unknown error";
-      toast({ title: "Could not start recording", description: msg, variant: "destructive" });
+      const msg = e instanceof Error ? e.message : t("firefliesPanel.unknownError");
+      toast({ title: t("firefliesPanel.couldNotStartTitle"), description: msg, variant: "destructive" });
     } finally {
       setStarting(false);
     }
@@ -139,8 +141,8 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(59,130,246,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>🎙</span>
           <div>
-            <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>Запис уроку</div>
-            <div style={{ fontSize: 13, color: L.muted }}>Fireflies · конспект із дзвінка</div>
+            <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>{t("firefliesPanel.panelTitle")}</div>
+            <div style={{ fontSize: 13, color: L.muted }}>{t("firefliesPanel.panelSubtitle")}</div>
           </div>
         </div>
         {canRecord && !isReady && (
@@ -151,7 +153,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
               color: "#fff", fontFamily: L.display, fontWeight: 700, fontSize: 13.5,
               boxShadow: starting || isProcessing ? "none" : "0 6px 16px -6px rgba(43,191,170,.6)" }}>
             {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
-            Записати цей урок
+            {t("firefliesPanel.recordThisLesson")}
           </button>
         )}
       </div>
@@ -159,23 +161,23 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
       {canRecord && !isReady && !isProcessing && (
         <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(245,181,68,.35)", background: "rgba(245,181,68,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 13, lineHeight: 1.45, color: L.txt }}>
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" style={{ color: "#b4740b" }} />
-          <p>Урок буде записано і транскрибовано. Обидва учасники побачать бота Fireflies у дзвінку.</p>
+          <p>{t("firefliesPanel.recordingWarning")}</p>
         </div>
       )}
 
       {loading ? (
         <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: L.muted }}>
-          <Loader2 className="h-3.5 w-3.5 animate-spin" /> Завантаження…
+          <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("firefliesPanel.loading")}
         </div>
       ) : isProcessing ? (
         <div style={{ borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "12px 14px", fontSize: 13.5, lineHeight: 1.5 }}>
-          ⏳ Готуємо конспект уроку… Зазвичай це займає кілька хвилин після завершення дзвінка.
+          {t("firefliesPanel.processing")}
         </div>
       ) : isReady ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {state.summary && (
             <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
-              <div style={label}>Конспект</div>
+              <div style={label}>{t("firefliesPanel.summaryLabel")}</div>
               <p style={{ whiteSpace: "pre-wrap", fontSize: 14.5, lineHeight: 1.55 }}>{state.summary}</p>
             </div>
           )}
@@ -183,7 +185,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           {state.actionItems && state.actionItems.length > 0 && (
             <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
               <div style={{ ...label, display: "flex", alignItems: "center", gap: 6 }}>
-                <ListChecks className="h-3.5 w-3.5" /> Завдання з уроку
+                <ListChecks className="h-3.5 w-3.5" /> {t("firefliesPanel.actionItemsLabel")}
               </div>
               <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4, fontSize: 14.5, lineHeight: 1.5 }}>
                 {state.actionItems.map((it, i) => (
@@ -198,13 +200,13 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
               {state.recordingUrl && (
                 <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
-                  <ExternalLink className="h-4 w-4" /> Відкрити запис
+                  <ExternalLink className="h-4 w-4" /> {t("firefliesPanel.openRecording")}
                 </a>
               )}
               {state.audioUrl && (
                 <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
-                  <FileAudio className="h-4 w-4" /> Аудіо
+                  <FileAudio className="h-4 w-4" /> {t("firefliesPanel.audio")}
                 </a>
               )}
             </div>
@@ -213,13 +215,13 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           {state.transcript && state.transcript.length > 0 && (
             <details style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
               <summary style={{ ...label, marginBottom: 0, cursor: "pointer" }}>
-                Повний транскрипт ({state.transcript.length})
+                {t("firefliesPanel.fullTranscript", { count: state.transcript.length })}
               </summary>
               <div style={{ marginTop: 10, maxHeight: 380, overflowY: "auto", paddingRight: 8, display: "flex", flexDirection: "column", gap: 7 }}>
                 {state.transcript.map((s, i) => (
                   <div key={s.index ?? i} style={{ fontSize: 14 }}>
                     <span style={{ marginRight: 7, fontFamily: L.display, fontWeight: 700, color: L.tealD }}>
-                      {s.speaker_name || "Спікер"}:
+                      {s.speaker_name || t("firefliesPanel.speaker")}:
                     </span>
                     <span>{s.text}</span>
                   </div>
@@ -230,7 +232,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
         </div>
       ) : (
         <p style={{ fontSize: 13, color: L.muted, lineHeight: 1.5 }}>
-          Запису ще немає. {canRecord ? "Натисни кнопку вище — бот приєднається до дзвінка." : "Репетитор може запустити запис з цієї сторінки."}
+          {t("firefliesPanel.noRecordingYet")} {canRecord ? t("firefliesPanel.noRecordingTutorHint") : t("firefliesPanel.noRecordingViewerHint")}
         </p>
       )}
     </section>

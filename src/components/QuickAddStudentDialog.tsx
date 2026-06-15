@@ -174,7 +174,16 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const fInitials = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
-  const SUBS = ["Англійська","Математика","Фізика","Хімія","Українська","Біологія","Інформатика","Немецька"];
+  const SUBS = [
+    t("quickAddStudent.subjectEnglish"),
+    t("quickAddStudent.subjectMath"),
+    t("quickAddStudent.subjectPhysics"),
+    t("quickAddStudent.subjectChemistry"),
+    t("quickAddStudent.subjectUkrainian"),
+    t("quickAddStudent.subjectBiology"),
+    t("quickAddStudent.subjectInformatics"),
+    t("quickAddStudent.subjectGerman"),
+  ];
   const subMatches = (() => {
     const q = (form.subject || "").trim().toLowerCase();
     const selected = SUBS.filter(s => s.toLowerCase() === form.subject.toLowerCase());
@@ -228,12 +237,12 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               )}
               <div>
                 <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 19, color: F.txt, lineHeight: 1.2 }}>
-                  {step === 1 ? "Крок 1 · Учень" : "Крок 2 · Контакти"}
+                  {step === 1 ? t("quickAddStudent.step1Title") : t("quickAddStudent.step2Title")}
                 </p>
                 <p style={{ fontSize: 14, color: F.sub, marginTop: 3, fontFamily: F.body }}>
                   {step === 1
-                    ? "Ім'я, предмет, ціна"
-                    : `${form.first_name} ${form.last_name} · ${form.subject} · ${form.price}₴`}
+                    ? t("quickAddStudent.step1Subtitle")
+                    : t("quickAddStudent.step2Subtitle", { firstName: form.first_name, lastName: form.last_name, subject: form.subject, price: form.price })}
                 </p>
               </div>
             </div>
@@ -244,8 +253,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Name row */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
-                    <span style={lblSt}>Ім'я <span style={{ color: F.teal }}>*</span></span>
-                    <input style={inpSt()} placeholder="Анна"
+                    <span style={lblSt}>{t("quickAddStudent.firstName")} <span style={{ color: F.teal }}>*</span></span>
+                    <input style={inpSt()} placeholder={t("quickAddStudent.firstNamePlaceholder")}
                       value={form.first_name}
                       onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
                       onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -253,8 +262,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     />
                   </div>
                   <div>
-                    <span style={lblSt}>Прізвище</span>
-                    <input style={inpSt()} placeholder="Іваненко"
+                    <span style={lblSt}>{t("quickAddStudent.lastName")}</span>
+                    <input style={inpSt()} placeholder={t("quickAddStudent.lastNamePlaceholder")}
                       value={form.last_name}
                       onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
                       onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -265,8 +274,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
 
                 {/* Subject */}
                 <div>
-                  <span style={lblSt}>Предмет <span style={{ color: F.teal }}>*</span></span>
-                  <input style={inpSt()} placeholder="Почніть вводити…"
+                  <span style={lblSt}>{t("quickAddStudent.subject")} <span style={{ color: F.teal }}>*</span></span>
+                  <input style={inpSt()} placeholder={t("quickAddStudent.subjectPlaceholder")}
                     value={form.subject}
                     onChange={e => setForm(f => ({ ...f, subject: e.target.value }))}
                     onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -293,7 +302,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Price + Currency */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   <div>
-                    <span style={lblSt}>Ціна за урок <span style={{ color: F.teal }}>*</span></span>
+                    <span style={lblSt}>{t("quickAddStudent.pricePerLesson")} <span style={{ color: F.teal }}>*</span></span>
                     <input type="number" min={0} style={inpSt()} placeholder="500"
                       value={form.price}
                       onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
@@ -302,7 +311,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     />
                   </div>
                   <div>
-                    <span style={lblSt}>Валюта</span>
+                    <span style={lblSt}>{t("quickAddStudent.currency")}</span>
                     <div style={{ display: "flex", gap: 4, height: 48, alignItems: "center",
                       background: F.bg, borderRadius: 13, padding: "4px 6px",
                       border: `1.5px solid ${F.border}` }}>
@@ -334,7 +343,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                       : "rgba(43,191,170,.35)",
                     color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                     boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)", marginTop: 4 }}>
-                  Далі → Контакти
+                  {t("quickAddStudent.nextToContacts")}
                 </button>
               </div>
             )}
@@ -344,8 +353,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {/* Email / Telegram */}
                 <div>
-                  <span style={lblSt}>Email або Telegram <span style={{ color: F.teal }}>*</span></span>
-                  <input style={inpSt()} placeholder="anna@mail.com або @anna_iv"
+                  <span style={lblSt}>{t("quickAddStudent.emailOrTelegram")} <span style={{ color: F.teal }}>*</span></span>
+                  <input style={inpSt()} placeholder={t("quickAddStudent.emailOrTelegramPlaceholder")}
                     value={form.email}
                     onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                     onFocus={e => { e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff"; }}
@@ -355,7 +364,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
 
                 {/* Phone */}
                 <div>
-                  <span style={lblSt}>Телефон</span>
+                  <span style={lblSt}>{t("quickAddStudent.phone")}</span>
                   <input type="tel" style={inpSt()} placeholder="+380 67 123 45 67"
                     value={form.phone}
                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -367,7 +376,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                 {/* Invite hint */}
                 <div style={{ padding: "12px 14px", borderRadius: 13, background: "rgba(43,191,170,.07)",
                   border: "1px solid rgba(43,191,170,.2)", fontSize: 14, color: F.sub, fontFamily: F.body }}>
-                  📨 Надішлемо запрошення одразу після створення
+                  {t("quickAddStudent.inviteHint")}
                 </div>
 
                 {/* Submit */}
@@ -381,7 +390,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     boxShadow: "0 8px 20px -8px rgba(43,191,170,.55)",
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                   {submitting && <span className="animate-spin">⟳</span>}
-                  Додати учня
+                  {t("quickAddStudent.addStudent")}
                 </button>
 
                 {/* Back */}
@@ -389,7 +398,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   style={{ width: "100%", height: 44, borderRadius: 12, cursor: "pointer",
                     border: `1px solid ${F.border}`, background: "#fff",
                     fontFamily: F.display, fontWeight: 600, fontSize: 15, color: F.sub }}>
-                  ← Назад
+                  {t("quickAddStudent.back")}
                 </button>
               </div>
             )}

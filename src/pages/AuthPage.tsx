@@ -23,17 +23,17 @@ const t = i18n.t.bind(i18n);
 const REMEMBER_KEY = "tutorhub.rememberMe";
 
 const signUpSchema = z.object({
-  firstName: z.string().trim().min(1, t("authExtra.nameRequired") ?? "Введіть ім'я").max(50),
-  lastName: z.string().trim().min(1, t("authExtra.lastNameRequired") ?? "Введіть прізвище").max(50),
+  firstName: z.string().trim().min(1, t("authExtra.nameRequired")).max(50),
+  lastName: z.string().trim().min(1, t("authExtra.lastNameRequired")).max(50),
   phone: z.string().trim().max(20).optional().or(z.literal("")),
-  email: z.string().trim().email(t("authExtra.invalidEmail") ?? "Некоректний email").max(255),
-  password: z.string().min(8, t("authExtra.minPassword") ?? "Мінімум 8 символів").max(128),
+  email: z.string().trim().email(t("authExtra.invalidEmail")).max(255),
+  password: z.string().min(8, t("authExtra.minPassword")).max(128),
   role: z.enum(["student", "tutor"]),
 });
 
 const signInSchema = z.object({
-  email: z.string().trim().email(t("authExtra.invalidEmail") ?? "Некоректний email").max(255),
-  password: z.string().min(1, t("authExtra.passwordRequired") ?? "Введіть пароль").max(128),
+  email: z.string().trim().email(t("authExtra.invalidEmail")).max(255),
+  password: z.string().min(1, t("authExtra.passwordRequired")).max(128),
 }).required();
 
 type SignUpRole = "student" | "tutor";
@@ -62,9 +62,9 @@ function ConfirmedSignIn({
     setLoading(false);
     if (authError) {
       if (authError.message === "Email not confirmed") {
-        setError(t("auth.emailNotConfirmed") || "Email ще не підтверджено. Перевір пошту і натисни на посилання.");
+        setError(t("auth.emailNotConfirmed"));
       } else if (authError.message === "Invalid login credentials") {
-        setError(t("auth.invalidCreds") || "Невірний пароль. Спробуй ще раз.");
+        setError(t("auth.invalidCreds"));
       } else {
         setError(authError.message);
       }
@@ -84,16 +84,16 @@ function ConfirmedSignIn({
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-2xl">✅</div>
             <h2 className="font-display text-lg font-bold text-foreground">
-              {t("authExtra.emailConfirmed") || "Email підтверджено!"}
+              {t("authExtra.emailConfirmed")}
             </h2>
             {email && <span className="text-sm font-medium text-foreground">{email}</span>}
             <p className="text-sm text-muted-foreground">
-              {t("authExtra.emailConfirmedDesc") || "Введи пароль щоб увійти"}
+              {t("authExtra.emailConfirmedDesc")}
             </p>
           </div>
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="confirmed-pw">{t("auth.password") || "Пароль"}</Label>
+              <Label htmlFor="confirmed-pw">{t("auth.password")}</Label>
               <Input
                 id="confirmed-pw"
                 type="password"
@@ -112,14 +112,14 @@ function ConfirmedSignIn({
                     className="ml-2 underline font-medium"
                     onClick={onResend}
                   >
-                    {t("authExtra.resendEmail") || "Надіслати ще раз"}
+                    {t("authExtra.resendEmail")}
                   </button>
                 ) : null}
               </div>
             )}
             <Button type="submit" className="w-full h-12 rounded-[14px] text-[15.5px] font-bold shadow-[0_8px_20px_-8px_rgba(43,191,170,.6)]" disabled={loading || !password}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {t("auth.login") || "Увійти"}
+              {t("auth.login")}
             </Button>
           </form>
           <button
@@ -127,7 +127,7 @@ function ConfirmedSignIn({
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => window.location.href = "/auth"}
           >
-            {t("authExtra.backToSignup") || "← Повернутись до входу"}
+            {t("authExtra.backToSignup")}
           </button>
         </div>
       </div>
@@ -345,8 +345,8 @@ export default function AuthPage() {
           }
           await supabase.auth.resend({ type: "signup", email: parsed.data.email });
           toast({
-            title: t("authExtra.confirmResent") || "Лист надіслано повторно",
-            description: t("authExtra.confirmResentDesc") || `Нове посилання вже на ${parsed.data.email}. Перевірте пошту (і спам).`,
+            title: t("authExtra.confirmResent"),
+            description: t("authExtra.confirmResentDesc", { email: parsed.data.email }),
           });
         } catch { /* ignore resend errors */ }
       }
@@ -403,7 +403,7 @@ export default function AuthPage() {
     e.preventDefault();
     const parsed = signUpSchema.safeParse(signUpData);
     if (!parsed.success) {
-      toast({ title: t("common.error") || "Помилка", description: parsed.error.errors[0].message, variant: "destructive" });
+      toast({ title: t("common.error"), description: parsed.error.errors[0].message, variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -495,7 +495,7 @@ export default function AuthPage() {
       },
     });
     if (!error) {
-      toast({ title: t("authExtra.emailResent") || "Листа відправлено повторно" });
+      toast({ title: t("authExtra.emailResent") });
     }
   };
 
@@ -514,19 +514,19 @@ export default function AuthPage() {
             </div>
             <div>
               <h2 className="font-display text-xl font-bold text-foreground">
-                {t("authExtra.checkEmail", { defaultValue: "Перевір пошту 📬" })}
+                {t("authExtra.checkEmail")}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {t("authExtra.sentTo", { defaultValue: "Ми надіслали посилання на" })}{" "}
+                {t("authExtra.sentTo")}{" "}
                 <span className="font-medium text-foreground">{sentEmail}</span>
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                {t("authExtra.clickLinkToContinue", { defaultValue: "Натисни на посилання в листі — і одразу потрапиш у застосунок." })}
+                {t("authExtra.clickLinkToContinue")}
               </p>
             </div>
             <div className="mt-2 flex flex-col gap-2 w-full">
               <Button variant="outline" size="sm" className="w-full" onClick={resendConfirmation}>
-                {t("authExtra.resendEmail", { defaultValue: "Надіслати ще раз" })}
+                {t("authExtra.resendEmail")}
               </Button>
               <Button
                 variant="ghost"
@@ -534,7 +534,7 @@ export default function AuthPage() {
                 className="w-full text-muted-foreground"
                 onClick={() => { setEmailSent(false); setSentEmail(""); }}
               >
-                {t("authExtra.backToSignup", { defaultValue: "Назад до реєстрації" })}
+                {t("authExtra.backToSignup")}
               </Button>
             </div>
           </div>

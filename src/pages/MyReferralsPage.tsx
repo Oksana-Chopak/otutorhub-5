@@ -59,10 +59,10 @@ interface LeaderRow {
 }
 
 const STEPS = [
-  { e: "🔗", n: "1", title: "Поділись посиланням", desc: "Надішли колезі-репетитору в Telegram чи будь-де." },
-  { e: "🎓", n: "2", title: "Друг реєструється", desc: "Отримує 21 день пробного періоду безкоштовно." },
-  { e: "🎁", n: "3", title: "Ти отримуєш бонус", desc: "Місяць підписки за кожного, хто залишиться. 3 оплати → +3 міс." },
-];
+  { e: "🔗", n: "1", titleKey: "myReferrals.step1Title", descKey: "myReferrals.step1Desc" },
+  { e: "🎓", n: "2", titleKey: "myReferrals.step2Title", descKey: "myReferrals.step2Desc" },
+  { e: "🎁", n: "3", titleKey: "myReferrals.step3Title", descKey: "myReferrals.step3Desc" },
+] as const;
 
 export default function MyReferralsPage() {
   const { t } = useTranslation();
@@ -221,8 +221,8 @@ export default function MyReferralsPage() {
                     <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 13, boxShadow: R.shadowTeal }}>{s.n}</div>
                   </div>
                   <div style={{ flex: 1, paddingTop: 2 }}>
-                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 15 }}>{s.title}</div>
-                    <div style={{ fontSize: 13, color: R.sub, lineHeight: 1.45, marginTop: 2 }}>{s.desc}</div>
+                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 15 }}>{t(s.titleKey)}</div>
+                    <div style={{ fontSize: 13, color: R.sub, lineHeight: 1.45, marginTop: 2 }}>{t(s.descKey)}</div>
                   </div>
                 </div>
               ))}
@@ -298,7 +298,7 @@ export default function MyReferralsPage() {
               <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", padding: "11px 13px", borderRadius: 12, background: "rgba(43,191,170,.08)", border: `1px solid ${R.tealRing}` }}>
                 <span style={{ fontSize: 20 }}>🎁</span>
                 <div style={{ fontSize: 13, lineHeight: 1.45 }}>
-                  Друг отримає <b>21 день пробного періоду</b>, а ти — <b>місяць підписки безкоштовно</b> за кожного, хто залишиться.
+                  {t("myReferrals.rewardLinePart1")} <b>{t("myReferrals.rewardLineBold1")}</b>{t("myReferrals.rewardLinePart2")} <b>{t("myReferrals.rewardLineBold2")}</b> {t("myReferrals.rewardLinePart3")}
                 </div>
               </div>
             </Card>
@@ -309,7 +309,7 @@ export default function MyReferralsPage() {
               <Card style={{ padding: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
                   <span style={{ color: R.sub }}>
-                    Цього місяця: <b style={{ color: R.txt }}>{monthly} з 3</b> оплат → +3 міс бонус 🔥
+                    {t("myReferrals.monthlyProgressPrefix")} <b style={{ color: R.txt }}>{t("myReferrals.monthlyProgressCount", { monthly })}</b> {t("myReferrals.monthlyProgressSuffix")}
                   </span>
                   <span style={{ fontFamily: R.display, fontWeight: 700, color: R.tealD }}>{Math.round(progress)}%</span>
                 </div>
@@ -317,7 +317,7 @@ export default function MyReferralsPage() {
                   <div style={{ height: "100%", width: `${progress}%`, borderRadius: 999, background: R.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
                 <div style={{ fontSize: 13, color: R.muted, marginTop: 5 }}>
-                  {toBigBonus > 0 ? `Ще ${toBigBonus} ${toBigBonus === 1 ? "оплата" : "оплати"} → +3 місяці підписки` : "Бонус відкрито — +3 місяці підписки 🎉"}
+                  {toBigBonus > 0 ? t("myReferrals.bonusRemaining", { count: toBigBonus }) : t("myReferrals.bonusUnlocked")}
                 </div>
               </Card>
             </div>
@@ -353,8 +353,8 @@ export default function MyReferralsPage() {
                     const name = names[r.referred_id] ?? t("myReferrals.you");
                     const isPro = !!r.upgraded_to_pro_at;
                     const pill = isPro
-                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: "✓ Підписка" }
-                      : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: "Тріал" };
+                      ? { bg: "rgba(34,197,94,.14)", fg: "#16a34a", ring: "rgba(34,197,94,.3)", label: t("myReferrals.pillSubscription") }
+                      : { bg: "rgba(43,191,170,.12)", fg: "#1f8e7e", ring: "rgba(43,191,170,.28)", label: t("myReferrals.pillTrial") };
                     const note = isPro
                       ? (t("myReferrals.noteJoinedPro") || "Приєднав(ла)ся · оформив(ла) підписку")
                       : (t("myReferrals.noteJoinedTrial") || "Приєднав(ла)ся · на тріалі");

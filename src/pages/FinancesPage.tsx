@@ -202,20 +202,20 @@ export default function FinancesPage() {
       });
       setDeletingPrepay(false);
       if (adjErr) {
-        toast.error("Не вдалося видалити передоплату", { description: adjErr.message });
+        toast.error(t("finances.deletePrepayError"), { description: adjErr.message });
         return;
       }
-      toast.success("Передоплату скасовано", { description: "Баланс виправлено компенсуючим записом" });
+      toast.success(t("finances.prepayCancelledTitle"), { description: t("finances.prepayCancelledDesc") });
       setDeletePrepayTx(null);
       fetchData();
       return;
     }
     setDeletingPrepay(false);
     if (error) {
-      toast.error("Не вдалося видалити передоплату", { description: error.message });
+      toast.error(t("finances.deletePrepayError"), { description: error.message });
       return;
     }
-    toast.success("Передоплату видалено", { description: "Баланс гаманця перераховано автоматично" });
+    toast.success(t("finances.prepayDeletedTitle"), { description: t("finances.prepayDeletedDesc") });
     setDeletePrepayTx(null);
     fetchData();
   };
@@ -860,13 +860,13 @@ export default function FinancesPage() {
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <div className="text-right text-sm font-semibold text-primary tabular-nums">
-                        {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                        {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} {t("finances.lessonsUnit")}</div>}
                         {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
                       </div>
                       {isManager && (
                         <span
                           role="button"
-                          aria-label="Видалити передоплату"
+                          aria-label={t("finances.deletePrepayAria")}
                           onClick={(e) => { e.stopPropagation(); setDeletePrepayTx(tx); }}
                           style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center",
                             justifyContent: "center", color: "#b3441f", background: "rgba(224,85,47,.08)",
@@ -1064,13 +1064,13 @@ export default function FinancesPage() {
                       <td className="px-3 py-3 whitespace-nowrap">
                         <div className="flex items-center justify-end gap-2">
                           <div className="text-right font-semibold text-primary tabular-nums">
-                            {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} ур.</div>}
+                            {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} {t("finances.lessonsUnit")}</div>}
                             {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
                           </div>
                           {isManager && (
                             <button
                               type="button"
-                              aria-label="Видалити передоплату"
+                              aria-label={t("finances.deletePrepayAria")}
                               onClick={(e) => { e.stopPropagation(); setDeletePrepayTx(tx); }}
                               style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center",
                                 justifyContent: "center", color: "#b3441f", background: "rgba(224,85,47,.08)",
@@ -1190,7 +1190,15 @@ export default function FinancesPage() {
 
   // Week bars: earned per day of week (Пн–Нд)
   const weekBars = useMemo(() => {
-    const days = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+    const days = [
+      t("finances.weekdayMon"),
+      t("finances.weekdayTue"),
+      t("finances.weekdayWed"),
+      t("finances.weekdayThu"),
+      t("finances.weekdayFri"),
+      t("finances.weekdaySat"),
+      t("finances.weekdaySun"),
+    ];
     const sums = [0,0,0,0,0,0,0];
     const today = (new Date().getDay() + 6) % 7;
     periodBillable
@@ -1296,7 +1304,7 @@ export default function FinancesPage() {
           boxShadow: period===p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
           transition:"all .15s",
         }}>
-        {p==="week"?"Тиждень":p==="month"?"Місяць":"Весь час"}
+        {p==="week"?t("finances.periodWeekShort"):p==="month"?t("finances.periodMonthShort"):t("finances.periodAllShort")}
       </button>
     );
 
@@ -1341,7 +1349,7 @@ export default function FinancesPage() {
                   borderRadius:"50%", background:"radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
                 <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"rgba(255,255,255,.5)",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
-                  💰 Отримано
+                  💰 {t("finances.received")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:900, fontSize:38, color:F.teal,
                   letterSpacing:"-0.025em", lineHeight:1 }}>
@@ -1349,7 +1357,7 @@ export default function FinancesPage() {
                 </p>
                 {pendingIncome > 0 && (
                   <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.45)", marginTop:6 }}>
-                    + {pendingIncome.toLocaleString("uk-UA")} ₴ очікує
+                    + {t("finances.pendingAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
                   </p>
                 )}
               </div>
@@ -1359,13 +1367,13 @@ export default function FinancesPage() {
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
                 <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.warnD,
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
-                  ⏳ Очікує
+                  ⏳ {t("finances.pendingLabel")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
                   {pendingIncome.toLocaleString("uk-UA")} ₴
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.7, marginTop:2 }}>
-                  {debtList.length} уроків
+                  {t("finances.lessonsCount", { count: debtList.length })}
                 </p>
               </div>
 
@@ -1374,13 +1382,13 @@ export default function FinancesPage() {
                 background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
                 <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"#7c3aed",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
-                  📊 Середній урок
+                  📊 {t("finances.avgLesson")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
                   {avgLesson.toLocaleString("uk-UA")} ₴
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 13, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
-                  {paidLessonsCount} уроків
+                  {t("finances.lessonsCount", { count: paidLessonsCount })}
                 </p>
               </div>
             </div>
@@ -1390,9 +1398,9 @@ export default function FinancesPage() {
               overflow:"hidden", boxShadow:"0 2px 10px -4px rgba(15,15,26,.06)" }}>
               {/* Tab header */}
               <div style={{ display:"flex", borderBottom:`1px solid ${F.border}` }}>
-                <Tab id="ops" label="Операції" />
-                <Tab id="debts" label="Борги" count={debtList.length} />
-                <Tab id="analytics" label="Аналітика" />
+                <Tab id="ops" label={t("finances.tabOps")} />
+                <Tab id="debts" label={t("finances.tabDebts")} count={debtList.length} />
+                <Tab id="analytics" label={t("finances.tabAnalytics")} />
               </div>
 
               {/* ── OPS tab ──────────────────────────────────────────────────── */}
@@ -1445,7 +1453,7 @@ export default function FinancesPage() {
                                 color: paid ? "#16a34a" : F.warnD,
                                 border:`1px solid ${paid?"rgba(34,197,94,.3)":F.warnBorder}`,
                                 borderRadius:999, padding:"2px 8px", cursor:"pointer", marginTop:3 }}>
-                              {paid ? "Оплачено ✓" : "Очікує →"}
+                              {paid ? t("finances.paidChip") : t("finances.pendingChip")}
                             </button>
                           </div>
                         </div>
@@ -1453,7 +1461,7 @@ export default function FinancesPage() {
                     })}
                     {visibleLessons.length === 0 && (
                       <p style={{ textAlign:"center", padding:"20px 0", color:F.muted, fontFamily:F.body, fontSize:14 }}>
-                        Немає операцій за цей період
+                        {t("finances.noOpsForPeriod")}
                       </p>
                     )}
                   </div>
@@ -1467,10 +1475,10 @@ export default function FinancesPage() {
                     <div style={{ textAlign:"center", padding:"32px 0" }}>
                       <p style={{ fontSize:36, marginBottom:8 }}>☀️</p>
                       <p style={{ fontFamily:F.display, fontWeight:700, fontSize:17, color:F.txt }}>
-                        Всі розраховані!
+                        {t("finances.allSettledTitle")}
                       </p>
                       <p style={{ fontFamily:F.body, fontSize:14, color:F.sub, marginTop:4 }}>
-                        Жодних боргів — ти молодець 🎉
+                        {t("finances.allSettledDesc")}
                       </p>
                     </div>
                   ) : (
@@ -1481,9 +1489,9 @@ export default function FinancesPage() {
                         background:"rgba(43,191,170,.07)", border:"1px solid rgba(43,191,170,.25)" }}>
                         <span style={{ fontSize:15 }}>🔔</span>
                         <span style={{ flex:1, fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.35 }}>
-                          Втомилась нагадувати вручну? Увімкни <b>авто-нагадування про оплату</b> в правилах.
+                          {t("finances.autoReminderHintPre")} <b>{t("finances.autoReminderHintBold")}</b> {t("finances.autoReminderHintPost")}
                         </span>
-                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:"#1f8e7e", flexShrink:0 }}>Налаштувати →</span>
+                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:"#1f8e7e", flexShrink:0 }}>{t("finances.configureLink")}</span>
                       </Link>
                       {/* Summary warning */}
                       <div style={{ borderRadius:14, padding:"12px 14px", marginBottom:14,
@@ -1491,10 +1499,10 @@ export default function FinancesPage() {
                         display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD }}>
-                            ⚠️ {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                            ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
-                            {debtList.length} уроків без оплати
+                            {t("finances.lessonsUnpaid", { count: debtList.length })}
                           </p>
                         </div>
                         <button
@@ -1506,13 +1514,13 @@ export default function FinancesPage() {
                             setLessons(prev => prev.map(l =>
                               ids.includes(l.id) ? {...l, student_payment_status:"paid"} : l
                             ));
-                            toast.success("Всіх відмічено оплаченими ✓");
+                            toast.success(t("finances.allMarkedPaid"));
                           }}
                           style={{ height:38, padding:"0 14px", borderRadius:10, border:"none",
                             background:"rgba(245,158,11,.25)", color:F.warnD,
                             fontFamily:F.display, fontWeight:700, fontSize:13, cursor:"pointer",
                             whiteSpace:"nowrap" }}>
-                          Відмітити всіх
+                          {t("finances.markAll")}
                         </button>
                       </div>
                       {/* Per-lesson debt cards */}
@@ -1539,21 +1547,21 @@ export default function FinancesPage() {
                                 insertNotification({
                                   userId: l.student_id,
                                   type: `payment_reminder_${l.id}_${Date.now()}`,
-                                  title: "💳 Нагадування про оплату",
-                                  body: `Урок ${new Date(l.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })} — ${Number(l.student_price).toLocaleString("uk-UA")} ₴ очікує оплати`,
+                                  title: t("finances.paymentReminderPushTitle"),
+                                  body: t("finances.paymentReminderPushBody", { date: new Date(l.starts_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" }), sum: Number(l.student_price).toLocaleString("uk-UA") }),
                                   link: "/schedule",
                                 });
-                                toast.success("Нагадування надіслано", { description: nameOf(l.student_id) });
+                                toast.success(t("finances.reminderSent"), { description: nameOf(l.student_id) });
                               }}
                               style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
                                 background:"rgba(245,158,11,.18)", color:F.warnD,
                                 fontFamily:F.display, fontWeight:700, fontSize: 13, cursor:"pointer",
                                 flexShrink:0 }}>
-                              Нагадати
+                              {t("finances.remindBtn")}
                             </button>
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
-                              aria-label="Оплачено"
+                              aria-label={t("finances.statusPaid")}
                               style={{ width:32, height:32, borderRadius:9, border:"1.5px solid rgba(43,191,170,.4)",
                                 background:"#f0fdf9", color:"#1f8e7e", cursor:"pointer", flexShrink:0,
                                 display:"flex", alignItems:"center", justifyContent:"center",
@@ -1574,7 +1582,7 @@ export default function FinancesPage() {
 
                   {/* This month + month-over-month */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>Цей місяць</p>
+                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>{t("finances.thisMonth")}</p>
                     <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
                       <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
                         {analyticsStats.thisMonth.toLocaleString("uk-UA")} ₴
@@ -1584,13 +1592,13 @@ export default function FinancesPage() {
                           fontFamily:F.display, fontWeight:700, fontSize: 13,
                           background: analyticsStats.momPct >= 0 ? "rgba(34,197,94,.12)" : "rgba(245,158,11,.14)",
                           color: analyticsStats.momPct >= 0 ? "#16a34a" : F.warnD }}>
-                          {analyticsStats.momPct >= 0 ? "▲" : "▼"} {Math.abs(analyticsStats.momPct)}% до минулого
+                          {analyticsStats.momPct >= 0 ? "▲" : "▼"} {t("finances.vsLastMonth", { pct: Math.abs(analyticsStats.momPct) })}
                         </span>
                       )}
                     </div>
                     {analyticsStats.projected > analyticsStats.thisMonth && (
                       <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:7, lineHeight:1.45 }}>
-                        Прогноз на місяць: <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString("uk-UA")} ₴</b> з урахуванням уже заброньованих уроків.
+                        {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString("uk-UA")} ₴</b> {t("finances.forecastPost")}
                       </p>
                     )}
                   </div>
@@ -1601,16 +1609,16 @@ export default function FinancesPage() {
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
-                            {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                            {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.85, marginTop:1 }}>
-                            {debtList.length} {debtList.length === 1 ? "урок очікує оплати" : "уроків очікують оплати"}
+                            {t("finances.lessonsAwaitPayment", { count: debtList.length })}
                           </p>
                         </div>
                         <button onClick={() => setFinTab("debts")}
                           style={{ flexShrink:0, height:36, padding:"0 14px", borderRadius:10, border:"none", cursor:"pointer",
                             background:"rgba(245,158,11,.18)", color:F.warnD, fontFamily:F.display, fontWeight:700, fontSize:13 }}>
-                          Хто винен →
+                          {t("finances.whoOwes")}
                         </button>
                       </div>
                     </div>
@@ -1618,7 +1626,7 @@ export default function FinancesPage() {
 
                   {/* 6-month trend */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>Дохід за 6 місяців</p>
+                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>{t("finances.income6Months")}</p>
                     <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:84 }}>
                       {sixMonthBars.map(bar => (
                         <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
@@ -1636,10 +1644,10 @@ export default function FinancesPage() {
                     </div>
                     <div style={{ display:"flex", gap:14, marginTop:10 }}>
                       <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
-                        <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> Отримано
+                        <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> {t("finances.received")}
                       </span>
                       <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
-                        <span style={{ width:9, height:9, borderRadius:2, background:"rgba(245,158,11,.55)" }} /> Очікує
+                        <span style={{ width:9, height:9, borderRadius:2, background:"rgba(245,158,11,.55)" }} /> {t("finances.pendingLabel")}
                       </span>
                     </div>
                   </div>
@@ -1647,7 +1655,7 @@ export default function FinancesPage() {
                   {/* Top students */}
                   {byStudentCockpit.length > 0 && (
                     <div>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>Топ-учні за доходом</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>{t("finances.topStudentsByIncome")}</p>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {byStudentCockpit.map(s => {
                           const maxAmt = byStudentCockpit[0]?.amount ?? 1;
@@ -1671,11 +1679,11 @@ export default function FinancesPage() {
                   {/* Stats */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Уроків цей місяць</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.lessonsThisMonth")}</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.completedCount}</p>
                     </div>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>Середній урок</p>
+                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.avgLesson")}</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString("uk-UA")} ₴</p>
                     </div>
                   </div>
@@ -1685,7 +1693,7 @@ export default function FinancesPage() {
                     <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ fontSize:18 }}>🚫</span>
                       <p style={{ fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.4 }}>
-                        Скасування цього місяця — недоотримано <b>{analyticsStats.cancelledLost.toLocaleString("uk-UA")} ₴</b>.
+                        {t("finances.cancellationsPre")} <b>{analyticsStats.cancelledLost.toLocaleString("uk-UA")} ₴</b>{t("finances.cancellationsPost")}
                       </p>
                     </div>
                   )}
@@ -1695,7 +1703,7 @@ export default function FinancesPage() {
                     style={{ height:46, borderRadius:14, border:`1px solid ${F.border}`, background:F.surface, cursor:"pointer",
                       fontFamily:F.display, fontWeight:700, fontSize:14, color:F.sub,
                       display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-                    <Download className="h-4 w-4" /> Скачати CSV
+                    <Download className="h-4 w-4" /> {t("finances.downloadCsv")}
                   </button>
                 </div>
               )}
@@ -1709,10 +1717,10 @@ export default function FinancesPage() {
               <div style={{ borderRadius:18, padding:"16px 18px",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
                 <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD, marginBottom:4 }}>
-                  ⚠️ {pendingIncome.toLocaleString("uk-UA")} ₴ не отримано
+                  ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString("uk-UA") })}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
-                  {debtList.length} уроків без оплати
+                  {t("finances.lessonsUnpaid", { count: debtList.length })}
                 </p>
               </div>
             )}
@@ -1722,7 +1730,7 @@ export default function FinancesPage() {
                 background:F.surface, cursor:"pointer", fontFamily:F.display,
                 fontWeight:700, fontSize:14, color:F.sub,
                 display:"flex", alignItems:"center", justifyContent:"center", gap:6 }}>
-              <Download className="h-4 w-4" /> Скачати CSV
+              <Download className="h-4 w-4" /> {t("finances.downloadCsv")}
             </button>
           </div>
 
@@ -1762,10 +1770,10 @@ export default function FinancesPage() {
             <div className="w-full sm:w-44">
               <Select value={studentFilter} onValueChange={setStudentFilter}>
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Всі учні" />
+                  <SelectValue placeholder={t("finances.allStudents")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Всі учні</SelectItem>
+                  <SelectItem value="all">{t("finances.allStudents")}</SelectItem>
                   {studentOptions.map((s) => (
                     <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                   ))}
@@ -2115,28 +2123,28 @@ export default function FinancesPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800 }}>
-              Видалити передоплату?
+              {t("finances.deletePrepayConfirmTitle")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deletePrepayTx && (
                 <>
-                  {deletePrepayTx.lessons_delta > 0 && <b>+{deletePrepayTx.lessons_delta} ур. </b>}
+                  {deletePrepayTx.lessons_delta > 0 && <b>+{deletePrepayTx.lessons_delta} {t("finances.lessonsUnit")} </b>}
                   {Number(deletePrepayTx.amount_delta) > 0 && <b>+{Number(deletePrepayTx.amount_delta).toFixed(0)} ₴ </b>}
                   · {nameOf(deletePrepayTx.student_id)} ↔ {nameOf(deletePrepayTx.tutor_id)}
-                  <br />Запис зникне з історії, баланс гаманця перерахується автоматично. Дію не можна скасувати.
+                  <br />{t("finances.deletePrepayConfirmDesc")}
                 </>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deletingPrepay}>Скасувати</AlertDialogCancel>
+            <AlertDialogCancel disabled={deletingPrepay}>{t("finances.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               disabled={deletingPrepay}
               onClick={(e) => { e.preventDefault(); confirmDeletePrepay(); }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deletingPrepay && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Видалити
+              {t("finances.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

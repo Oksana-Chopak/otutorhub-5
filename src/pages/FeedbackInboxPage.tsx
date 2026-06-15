@@ -18,11 +18,11 @@ interface Row {
   created_at: string;
 }
 
-const CAT: Record<Category, { label: string; icon: typeof Bug; bg: string; color: string }> = {
-  bug: { label: "Помилка", icon: Bug, bg: "rgba(224,85,47,.12)", color: "#b3441f" },
-  idea: { label: "Ідея", icon: Lightbulb, bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },
-  question: { label: "Питання", icon: HelpCircle, bg: "rgba(245,158,11,.14)", color: "#b4740b" },
-  other: { label: "Інше", icon: MessageSquare, bg: "rgba(15,15,26,.06)", color: "#6b7280" },
+const CAT: Record<Category, { icon: typeof Bug; bg: string; color: string }> = {
+  bug: { icon: Bug, bg: "rgba(224,85,47,.12)", color: "#b3441f" },
+  idea: { icon: Lightbulb, bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },
+  question: { icon: HelpCircle, bg: "rgba(245,158,11,.14)", color: "#b4740b" },
+  other: { icon: MessageSquare, bg: "rgba(15,15,26,.06)", color: "#6b7280" },
 };
 
 export default function FeedbackInboxPage() {
@@ -52,7 +52,7 @@ export default function FeedbackInboxPage() {
       const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
       const map: Record<string, string> = {};
       (profs ?? []).forEach((p: any) => {
-        map[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Без імені";
+        map[p.id] = `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("feedbackInbox.noName");
       });
       setNames(map);
     }
@@ -87,10 +87,10 @@ export default function FeedbackInboxPage() {
         {/* Фільтри статусу */}
         <div className="mb-4 flex flex-wrap gap-2">
           {([
-            ["all", `Усі (${rows.length})`],
-            ["new", `Нові (${newCount})`],
-            ["in_progress", "В роботі"],
-            ["resolved", "Вирішені"],
+            ["all", t("feedbackInbox.filterAll", { count: rows.length })],
+            ["new", t("feedbackInbox.filterNew", { count: newCount })],
+            ["in_progress", t("feedbackInbox.filterInProgress")],
+            ["resolved", t("feedbackInbox.filterResolved")],
           ] as const).map(([key, label]) => {
             const on = filter === key;
             return (
@@ -109,11 +109,11 @@ export default function FeedbackInboxPage() {
         {tableMissing ? (
           <div style={{ borderRadius: 18, border: "1px solid rgba(245,158,11,.4)", background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", padding: 18 }}>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16, color: "#7a5a14" }}>
-              Сховище звернень ще не створено
+              {t("feedbackInbox.tableMissingTitle")}
             </p>
             <p className="mt-1.5 text-[14px]" style={{ color: "#9a6a12", lineHeight: 1.55 }}>
-              База даних чекає на оновлення. Відкрий чат Lovable і попроси виконати SQL-скрипт із файлу
-              <b> docs/APPLY-IN-LOVABLE.sql</b> (лежить у проєкті) — після цього звернення почнуть зберігатись і зʼявляться тут.
+              {t("feedbackInbox.tableMissingBefore")}
+              <b> docs/APPLY-IN-LOVABLE.sql</b>{t("feedbackInbox.tableMissingAfter")}
             </p>
           </div>
         ) : loading ? (
@@ -138,10 +138,10 @@ export default function FeedbackInboxPage() {
                       </span>
                       <div className="min-w-0">
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
-                          {r.user_id ? (names[r.user_id] ?? "…") : "Анонім"}
+                          {r.user_id ? (names[r.user_id] ?? "…") : t("feedbackInbox.anonymous")}
                         </p>
                         <p className="text-[13px]" style={{ color: "#9398b0" }}>
-                          <span style={{ color: cat.color, fontWeight: 700 }}>{cat.label}</span>
+                          <span style={{ color: cat.color, fontWeight: 700 }}>{t(`feedbackInbox.category_${r.category}`)}</span>
                           {" · "}{new Date(r.created_at).toLocaleDateString("uk-UA", { day: "numeric", month: "short" })}
                           {r.rating ? ` · ${"★".repeat(r.rating)}` : ""}
                         </p>
@@ -164,19 +164,19 @@ export default function FeedbackInboxPage() {
                       {r.status !== "in_progress" && (
                         <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "in_progress")}
                           style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "#b4740b", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
-                          Взяти в роботу
+                          {t("feedbackInbox.takeInProgress")}
                         </button>
                       )}
                       <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "resolved")}
                         style={{ height: 36, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
-                        <Check className="h-3.5 w-3.5" /> Вирішено
+                        <Check className="h-3.5 w-3.5" /> {t("feedbackInbox.markResolved")}
                       </button>
                     </div>
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
                       style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "#9398b0", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 12.5 }}>
-                      Повернути в нові
+                      {t("feedbackInbox.reopen")}
                     </button>
                   )}
                 </div>

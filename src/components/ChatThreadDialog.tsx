@@ -217,7 +217,7 @@ export function ChatThreadDialog({
             </span>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                {counterpartName || "Чат"}
+                {counterpartName || t("chatThread.title")}
               </div>
             </div>
           </div>
@@ -234,7 +234,7 @@ export function ChatThreadDialog({
               </div>
             ) : messages.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                Поки що повідомлень немає. Напишіть перше 👇
+                {t("chatThread.emptyState")}
               </p>
             ) : (
               <ul className="space-y-1.5">
@@ -246,7 +246,7 @@ export function ChatThreadDialog({
                       className="h-6 text-[13px] text-muted-foreground"
                       onClick={() => setShowArchived(true)}
                     >
-                      Показати всю історію
+                      {t("chatThread.showFullHistory")}
                     </Button>
                   </li>
                 )}

@@ -1,6 +1,8 @@
 // Розрахунок графіка виплат репетиторам.
 // Кожен репетитор має власну періодичність на tutor_details.
 
+import i18n from "@/i18n";
+
 export type PayoutFrequency = "weekly" | "biweekly" | "monthly";
 
 export interface PayoutSchedule {
@@ -70,20 +72,36 @@ export function nextPayoutDate(s: PayoutSchedule, from = new Date()): Date | nul
   return null;
 }
 
-const WEEKDAYS_UK = ["неділя", "понеділок", "вівторок", "середа", "четвер", "п'ятниця", "субота"];
-const WEEKDAYS_UK_SHORT = ["нд", "пн", "вт", "ср", "чт", "пт", "сб"];
+const WEEKDAYS_UK = [
+  i18n.t("payoutSchedule.weekdaySun"),
+  i18n.t("payoutSchedule.weekdayMon"),
+  i18n.t("payoutSchedule.weekdayTue"),
+  i18n.t("payoutSchedule.weekdayWed"),
+  i18n.t("payoutSchedule.weekdayThu"),
+  i18n.t("payoutSchedule.weekdayFri"),
+  i18n.t("payoutSchedule.weekdaySat"),
+];
+const WEEKDAYS_UK_SHORT = [
+  i18n.t("payoutSchedule.weekdayShortSun"),
+  i18n.t("payoutSchedule.weekdayShortMon"),
+  i18n.t("payoutSchedule.weekdayShortTue"),
+  i18n.t("payoutSchedule.weekdayShortWed"),
+  i18n.t("payoutSchedule.weekdayShortThu"),
+  i18n.t("payoutSchedule.weekdayShortFri"),
+  i18n.t("payoutSchedule.weekdayShortSat"),
+];
 
 /** Людський опис графіка: «щоп'ятниці», «раз на 2 тижні (пн)», «5 числа щомісяця». */
 export function describePayoutSchedule(s: PayoutSchedule): string | null {
   if (!s.payout_frequency) return null;
   if (s.payout_frequency === "weekly" && s.payout_weekday != null) {
-    return `щотижня · ${WEEKDAYS_UK[s.payout_weekday]}`;
+    return i18n.t("payoutSchedule.weekly", { weekday: WEEKDAYS_UK[s.payout_weekday] });
   }
   if (s.payout_frequency === "biweekly" && s.payout_weekday != null) {
-    return `раз на 2 тижні · ${WEEKDAYS_UK[s.payout_weekday]}`;
+    return i18n.t("payoutSchedule.biweekly", { weekday: WEEKDAYS_UK[s.payout_weekday] });
   }
   if (s.payout_frequency === "monthly" && s.payout_monthday != null) {
-    return `щомісяця · ${s.payout_monthday} числа`;
+    return i18n.t("payoutSchedule.monthly", { monthday: s.payout_monthday });
   }
   return null;
 }

@@ -23,18 +23,18 @@ export interface CurrencyMeta {
 }
 
 export const COMMON_CURRENCIES: CurrencyMeta[] = [
-  { code: "UAH", symbol: "₴", flag: "🇺🇦", name: "Гривня" },
-  { code: "USD", symbol: "$", flag: "🇺🇸", name: "Долар" },
-  { code: "EUR", symbol: "€", flag: "🇪🇺", name: "Євро" },
-  { code: "PLN", symbol: "zł", flag: "🇵🇱", name: "Злотий" },
-  { code: "SEK", symbol: "kr", flag: "🇸🇪", name: "Крона шведська" },
-  { code: "CZK", symbol: "Kč", flag: "🇨🇿", name: "Крона чеська" },
-  { code: "GBP", symbol: "£", flag: "🇬🇧", name: "Фунт" },
-  { code: "CHF", symbol: "₣", flag: "🇨🇭", name: "Франк" },
-  { code: "NOK", symbol: "kr", flag: "🇳🇴", name: "Крона норвезька" },
-  { code: "DKK", symbol: "kr", flag: "🇩🇰", name: "Крона датська" },
-  { code: "HUF", symbol: "Ft", flag: "🇭🇺", name: "Форинт" },
-  { code: "RON", symbol: "lei", flag: "🇷🇴", name: "Лей" },
+  { code: "UAH", symbol: "₴", flag: "🇺🇦", name: "UAH" },
+  { code: "USD", symbol: "$", flag: "🇺🇸", name: "USD" },
+  { code: "EUR", symbol: "€", flag: "🇪🇺", name: "EUR" },
+  { code: "PLN", symbol: "zł", flag: "🇵🇱", name: "PLN" },
+  { code: "SEK", symbol: "kr", flag: "🇸🇪", name: "SEK" },
+  { code: "CZK", symbol: "Kč", flag: "🇨🇿", name: "CZK" },
+  { code: "GBP", symbol: "£", flag: "🇬🇧", name: "GBP" },
+  { code: "CHF", symbol: "₣", flag: "🇨🇭", name: "CHF" },
+  { code: "NOK", symbol: "kr", flag: "🇳🇴", name: "NOK" },
+  { code: "DKK", symbol: "kr", flag: "🇩🇰", name: "DKK" },
+  { code: "HUF", symbol: "Ft", flag: "🇭🇺", name: "HUF" },
+  { code: "RON", symbol: "lei", flag: "🇷🇴", name: "RON" },
 ];
 
 const CUSTOM_CODE_RE = /^[A-Z]{2,6}$/;
@@ -61,10 +61,15 @@ export function CurrencyComboBox({ value, onChange, className, disabled }: Props
     ...customCodes.map<CurrencyMeta>((c) => ({ code: c, symbol: c, flag: "💱", name: c })),
   ];
 
+  const localizedName = (c: CurrencyMeta) =>
+    t(`currencyComboBox.name.${c.code}`, { defaultValue: c.name });
+
   const q = query.trim().toUpperCase();
   const filtered = q
     ? allKnown.filter(
-        (c) => c.code.includes(q) || c.name.toLowerCase().includes(query.toLowerCase()),
+        (c) =>
+          c.code.includes(q) ||
+          localizedName(c).toLowerCase().includes(query.toLowerCase()),
       )
     : allKnown;
 
@@ -136,7 +141,7 @@ export function CurrencyComboBox({ value, onChange, className, disabled }: Props
                     />
                     <span className="mr-2">{c.flag}</span>
                     <span className="font-medium">{c.code}</span>
-                    <span className="ml-2 text-muted-foreground">— {c.name}</span>
+                    <span className="ml-2 text-muted-foreground">— {localizedName(c)}</span>
                   </CommandItem>
                 ))}
               </CommandGroup>

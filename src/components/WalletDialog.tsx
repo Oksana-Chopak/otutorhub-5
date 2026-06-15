@@ -174,8 +174,8 @@ export function WalletDialog({
       .from("lesson_details")
       .upsert(upsertRows, { onConflict: "lesson_id" });
     setMarking(false);
-    if (error) { toast.error("Помилка позначення"); return; }
-    toast.success(`✓ ${checkedIds.size} ${checkedIds.size === 1 ? "урок" : "уроки"} відмічено оплаченими`);
+    if (error) { toast.error(t("walletDialog.markFailed")); return; }
+    toast.success(t("walletDialog.markedPaid", { count: checkedIds.size }));
     setUnpaidLessons(prev => prev.filter(l => !checkedIds.has(l.id)));
     setCheckedIds(new Set());
     refresh();
@@ -228,7 +228,7 @@ export function WalletDialog({
           padding: "14px 20px 10px", flexShrink: 0 }}>
           <div>
             <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 18, color: F.txt, lineHeight: 1.2 }}>
-              Оплата · {studentName ?? "Учень"}
+              {t("walletDialog.paymentHeader", { name: studentName ?? t("walletDialog.studentFallback") })}
             </p>
             <div style={{ display: "flex", gap: 14, marginTop: 5 }}>
               {loading ? (
@@ -237,13 +237,13 @@ export function WalletDialog({
                 <>
                   <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
                     <strong>{balance?.lessons_balance ?? 0}</strong>
-                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>уроки</span>
+                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.lessonsLabel")}</span>
                   </span>
                   <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
                     <strong style={{ color: (balance?.amount_balance ?? 0) > 0 ? F.tealD : F.txt }}>
                       {balance?.amount_balance ?? 0}₴
                     </strong>
-                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>— залишок</span>
+                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.balanceLabel")}</span>
                   </span>
                 </>
               )}
@@ -259,7 +259,7 @@ export function WalletDialog({
         {/* 3 tabs */}
         <div style={{ display: "flex", gap: 2, margin: "0 20px 12px",
           background: "rgba(15,15,26,.06)", borderRadius: 12, padding: 4, flexShrink: 0 }}>
-          {([["mark", "Відмітити"], ["topup", "Поповнити"], ["history", "Історія"]] as const).map(([key, label]) => (
+          {([["mark", t("walletDialog.tabMark")], ["topup", t("walletDialog.tabTopup")], ["history", t("walletDialog.tabHistory")]] as const).map(([key, label]) => (
             <button key={key} onClick={() => setTab(key)}
               style={{ flex: 1, height: 36, borderRadius: 9, border: "none", cursor: "pointer",
                 background: tab === key ? F.surface : "transparent",
@@ -279,23 +279,23 @@ export function WalletDialog({
             <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingBottom: 100 }}>
               {loadingUnpaid ? (
                 <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
-                  Завантаження…
+                  {t("walletDialog.loading")}
                 </p>
               ) : unpaidLessons.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "28px 0" }}>
                   <p style={{ fontSize: 28, marginBottom: 8 }}>🎉</p>
                   <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 16, color: F.txt }}>
-                    Всі оплати закриті
+                    {t("walletDialog.allPaidTitle")}
                   </p>
                   <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body, marginTop: 4 }}>
-                    Неоплачених уроків немає
+                    {t("walletDialog.allPaidDesc")}
                   </p>
                 </div>
               ) : (
                 <>
                   <p style={{ fontSize: 13, fontFamily: F.display, fontWeight: 700,
                     color: "#b45309", marginBottom: 4 }}>
-                    ⚠️ Неоплачені уроки · {unpaidLessons.length}
+                    {t("walletDialog.unpaidHeader", { count: unpaidLessons.length })}
                   </p>
                   {unpaidLessons.map(lesson => {
                     const checked = checkedIds.has(lesson.id);
@@ -347,7 +347,7 @@ export function WalletDialog({
                       boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.12)" : "none",
                       fontFamily: F.display, fontWeight: 700, fontSize: 14,
                       color: mode === m ? F.txt : F.muted }}>
-                    {m === "lessons" ? "Уроками" : "Сумою, ₴"}
+                    {m === "lessons" ? t("walletDialog.modeLessons") : t("walletDialog.modeAmount")}
                   </button>
                 ))}
               </div>
@@ -356,7 +356,7 @@ export function WalletDialog({
                 <div>
                   <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
-                    Кількість уроків
+                    {t("walletDialog.lessonsCountLabel")}
                   </p>
                   <input
                     type="number" min={1} placeholder="1"
@@ -379,7 +379,7 @@ export function WalletDialog({
                   </div>
                   {ratePerLesson && lessonsCount && parseInt(lessonsCount) > 0 && (
                     <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body, marginTop: 8 }}>
-                      ≈ {parseInt(lessonsCount) * ratePerLesson}₴ за поточною ставкою {ratePerLesson}₴/урок
+                      {t("walletDialog.rateHint", { total: parseInt(lessonsCount) * ratePerLesson, rate: ratePerLesson })}
                     </p>
                   )}
                 </div>
@@ -387,7 +387,7 @@ export function WalletDialog({
                 <div>
                   <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
-                    Сума, ₴
+                    {t("walletDialog.amountLabel")}
                   </p>
                   <input
                     type="number" min={0} placeholder="0"
@@ -404,10 +404,10 @@ export function WalletDialog({
               <div>
                 <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
                   color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
-                  Коментар
+                  {t("walletDialog.noteLabel")}
                 </p>
                 <input
-                  placeholder="Оплата готівкою, 9 черв."
+                  placeholder={t("walletDialog.notePlaceholder")}
                   value={note}
                   onChange={e => setNote(e.target.value)}
                   style={{ width: "100%", height: 48, borderRadius: 13, padding: "0 14px",
@@ -424,11 +424,11 @@ export function WalletDialog({
             <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingBottom: 100 }}>
               {loading ? (
                 <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body }}>
-                  Завантаження…
+                  {t("walletDialog.loading")}
                 </p>
               ) : transactions.length === 0 ? (
                 <p style={{ textAlign: "center", padding: "24px 0", color: F.muted, fontFamily: F.body, fontSize: 14 }}>
-                  Транзакцій ще немає
+                  {t("walletDialog.noTransactions")}
                 </p>
               ) : (
                 transactions.map(tx => {
@@ -455,7 +455,7 @@ export function WalletDialog({
                         {(tx.lessons_delta ?? 0) !== 0 && (
                           <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
                             color: (tx.lessons_delta ?? 0) > 0 ? F.tealD : "#ef4444" }}>
-                            {(tx.lessons_delta ?? 0) > 0 ? "+" : ""}{tx.lessons_delta} ур.
+                            {(tx.lessons_delta ?? 0) > 0 ? "+" : ""}{tx.lessons_delta} {t("walletDialog.lessonsShort")}
                           </p>
                         )}
                         {(tx.amount_delta ?? 0) !== 0 && (
@@ -495,7 +495,7 @@ export function WalletDialog({
                 color: "#fff", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                 boxShadow: checkedIds.size > 0 ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {marking ? "…" : `Відмітити · ${checkedTotal}₴`}
+              {marking ? "…" : t("walletDialog.markCta", { total: checkedTotal })}
             </button>
           )}
 
@@ -507,7 +507,7 @@ export function WalletDialog({
                 background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff",
                 fontFamily: F.display, fontWeight: 700, fontSize: 16,
                 boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-              {busy ? "…" : "Поповнити"}
+              {busy ? "…" : t("walletDialog.topupCta")}
             </button>
           )}
 
@@ -516,7 +516,7 @@ export function WalletDialog({
               style={{ width: "100%", height: 44, borderRadius: 12, border: `1px solid ${F.border}`,
                 background: F.surface, cursor: "pointer", color: F.sub,
                 fontFamily: F.display, fontWeight: 600, fontSize: 15 }}>
-              ← Назад до оплати
+              {t("walletDialog.backToPayment")}
             </button>
           )}
         </div>

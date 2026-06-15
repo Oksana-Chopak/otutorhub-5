@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -15,6 +16,7 @@ const C = {
 
 /** Student-facing rewards shelf: every completed lesson drops an emoji here. */
 export function StudentRewardsShelf() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [rewards, setRewards] = useState<RewardRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,16 +72,16 @@ export function StudentRewardsShelf() {
       {/* Hero */}
       <div style={{ borderRadius: 20, padding: "20px 22px", background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", boxShadow: "0 16px 40px -20px rgba(15,15,26,.7)" }}>
         <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: C.display, fontWeight: 700 }}>
-          Мої нагороди
+          {t("studentRewardsShelf.heroTitle")}
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
           <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 38, letterSpacing: "-.02em", color: C.teal }}>{rewards.length}</span>
-          <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>за весь час</span>
-          {monthCount > 0 && <span style={{ fontSize: 13, color: "rgba(255,255,255,.65)" }}>· {monthCount} цього місяця</span>}
+          <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("studentRewardsShelf.allTime")}</span>
+          {monthCount > 0 && <span style={{ fontSize: 13, color: "rgba(255,255,255,.65)" }}>· {t("studentRewardsShelf.thisMonth", { count: monthCount })}</span>}
         </div>
         {weekStreak > 1 && (
           <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 999, padding: "5px 12px", background: "rgba(245,181,68,.18)", color: "#F5B400", fontFamily: C.display, fontWeight: 700, fontSize: 13 }}>
-            🔥 {weekStreak} {weekStreak < 5 ? "тижні" : "тижнів"} поспіль з уроками
+            🔥 {t("studentRewardsShelf.weekStreak", { count: weekStreak })}
           </div>
         )}
       </div>
@@ -88,15 +90,15 @@ export function StudentRewardsShelf() {
       {rewards.length === 0 ? (
         <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 18, border: `1px dashed ${C.border}`, background: "#fff" }}>
           <div style={{ fontSize: 40 }}>🍎</div>
-          <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17, marginTop: 8 }}>Поки порожньо</p>
+          <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17, marginTop: 8 }}>{t("studentRewardsShelf.emptyTitle")}</p>
           <p style={{ fontSize: 14, color: C.sub, marginTop: 4, lineHeight: 1.5 }}>
-            Після кожного проведеного уроку тут з'являтиметься нова нагорода. Перша — вже на наступному занятті!
+            {t("studentRewardsShelf.emptyDescription")}
           </p>
         </div>
       ) : (
         <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
           <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, color: C.sub, marginBottom: 10, textTransform: "uppercase", letterSpacing: ".07em" }}>
-            Колекція
+            {t("studentRewardsShelf.collectionLabel")}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {rewards.map((r, i) => (

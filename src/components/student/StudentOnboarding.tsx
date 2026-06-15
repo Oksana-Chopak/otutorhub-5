@@ -89,12 +89,12 @@ export function StudentOnboarding({ onComplete }: Props) {
     if (error) {
       // Конкретна, помітна помилка замість мікро-тосту в кутку.
       const human = /duplicate|unique/i.test(error.message)
-        ? "Ви вже проходили це опитування раніше."
+        ? t("studentOnboarding.errorDuplicate")
         : /row-level security|permission/i.test(error.message)
-        ? "Немає доступу для збереження. Спробуйте перезайти в акаунт."
+        ? t("studentOnboarding.errorNoAccess")
         : /network|fetch|timeout/i.test(error.message)
-        ? "Проблема зі з'єднанням. Перевірте інтернет і спробуйте ще раз."
-        : `Не вдалося зберегти: ${error.message}`;
+        ? t("studentOnboarding.errorConnection")
+        : t("studentOnboarding.errorGeneric", { message: error.message });
       setSaveErr(human);
       setStep(4);
       return;
@@ -236,7 +236,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                   }
                 }
               }}
-              placeholder={t("studentOnboarding.addOwnSubject") || "Свій предмет…"}
+              placeholder={t("studentOnboarding.addOwnSubject")}
               maxLength={40}
               className="flex-1 rounded-xl border-2 border-border px-4 py-2.5 text-[14px] outline-none focus:border-primary/50"
               style={{ fontFamily: "'Plus Jakarta Sans', system-ui" }}
@@ -383,7 +383,7 @@ export function StudentOnboarding({ onComplete }: Props) {
             <div className="flex items-start gap-3 rounded-[14px] p-3.5 animate-fade-in" style={{ background: "rgba(224,85,47,.08)", border: "1.5px solid rgba(224,85,47,.35)" }}>
               <span style={{ fontSize: 20, lineHeight: 1 }}>⚠️</span>
               <div>
-                <p className="text-[14px] font-bold" style={{ color: "#b3441f", fontFamily: "Inter, system-ui" }}>Не вдалося зберегти</p>
+                <p className="text-[14px] font-bold" style={{ color: "#b3441f", fontFamily: "Inter, system-ui" }}>{t("studentOnboarding.saveFailedTitle")}</p>
                 <p className="text-[13px] mt-0.5" style={{ color: "#9a4a35", lineHeight: 1.5 }}>{saveErr}</p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Mic, FileText, Sparkles, Lock, ArrowRight } from "lucide-react";
 import {
   Dialog,
@@ -24,6 +25,7 @@ interface Props {
 
 export function AiNotesDialog({ open, onOpenChange }: Props) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { settings, isPro, isIndependent, updateSettings } = useWorkspaceSettings();
   const aiAllowed = !isIndependent || isPro;
 
@@ -77,29 +79,29 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
               <div style={{ width: 36, height: 36, borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
                 <Sparkles size={19} />
               </div>
-              <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.txt }}>AI-конспект уроків</span>
+              <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.txt }}>{t("aiNotesDialog.title")}</span>
             </div>
           </DialogTitle>
         </DialogHeader>
 
         <div style={{ padding: "8px 20px 20px", fontFamily: C.body }}>
           <p style={{ fontSize: 14.5, color: C.ink2, lineHeight: 1.55, margin: "4px 0 10px" }}>
-            Після уроку учень отримує структурований конспект — а ти не витрачаєш на це час. Два способи:
+            {t("aiNotesDialog.intro")}
           </p>
 
           <div style={{ marginBottom: 16 }}>
-            <Mode icon={Mic} title="Конспект із запису" desc="Бот Fireflies приєднується до Zoom / Google Meet, записує урок, а AI робить підсумок, транскрипт і список завдань." />
-            <Mode icon={FileText} title="Конспект із нотатки" desc="Пишеш тему одним рядком після уроку — AI розписує детальний конспект із прикладами та що повторити." />
+            <Mode icon={Mic} title={t("aiNotesDialog.modeRecordingTitle")} desc={t("aiNotesDialog.modeRecordingDesc")} />
+            <Mode icon={FileText} title={t("aiNotesDialog.modeNoteTitle")} desc={t("aiNotesDialog.modeNoteDesc")} />
           </div>
 
           {!aiAllowed && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 14, background: C.warnBg, border: `1px solid ${C.warnBorder}`, marginBottom: 14 }}>
               <Lock size={18} style={{ color: C.warnD, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: C.warnD }}>AI-конспект — у підписці</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: C.warnD }}>{t("aiNotesDialog.lockedTitle")}</div>
                 <button onClick={() => { onOpenChange(false); navigate("/subscription?from=ai_summary"); }}
                   style={{ border: "none", background: "transparent", cursor: "pointer", color: C.tealD, fontFamily: C.display, fontWeight: 700, fontSize: 13, padding: 0, marginTop: 2 }}>
-                  Оформити підписку →
+                  {t("aiNotesDialog.subscribeCta")}
                 </button>
               </div>
             </div>
@@ -110,24 +112,24 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
               on={auto}
               onChange={(v) => setFlag({ ai_notes_auto: v, ...(v ? {} : { ai_notes_auto_send: false }) })}
               disabled={!aiAllowed || busy}
-              title="Авто-конспект"
-              desc="Бот сам записує твої уроки — запис стартує, щойно ти приєднуєшся до дзвінка."
+              title={t("aiNotesDialog.autoNoteTitle")}
+              desc={t("aiNotesDialog.autoNoteDesc")}
             />
             <ToggleRow
               on={autoSend}
               onChange={(v) => setFlag({ ai_notes_auto_send: v })}
               disabled={!aiAllowed || !auto || busy}
-              title="Надсилати учневі автоматично"
-              desc="Готовий конспект одразу йде учню — без жодних дій з твого боку."
+              title={t("aiNotesDialog.autoSendTitle")}
+              desc={t("aiNotesDialog.autoSendDesc")}
             />
           </div>
 
           <button onClick={() => { onOpenChange(false); navigate("/schedule"); }}
             style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
-            Спробувати на уроці <ArrowRight size={18} />
+            {t("aiNotesDialog.tryCta")} <ArrowRight size={18} />
           </button>
           <p style={{ fontSize: 13, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
-            Відкрий будь-який урок → блок «AI-конспект». Для запису потрібне посилання на Zoom / Meet.
+            {t("aiNotesDialog.footerHint")}
           </p>
         </div>
       </DialogContent>

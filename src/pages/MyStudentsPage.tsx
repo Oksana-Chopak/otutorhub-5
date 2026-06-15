@@ -475,9 +475,9 @@ export default function MyStudentsPage() {
       {
         const newName = `${form.first_name} ${form.last_name}`.trim();
         window.setTimeout(() => {
-          toast("🎯 Перший крок зроблено!", {
-            description: newName ? `Створи перший урок з ${newName}` : "Створи перший урок у розкладі",
-            action: { label: "Створити урок", onClick: () => navigate("/schedule") },
+          toast(t("myStudents.firstStepToastTitle"), {
+            description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
+            action: { label: t("myStudents.createLessonAction"), onClick: () => navigate("/schedule") },
             duration: 8000,
           });
         }, 600);
@@ -587,7 +587,7 @@ export default function MyStudentsPage() {
 
   const archive = async (s: MyStudent) => {
     if (!s.rate_id) return;
-    if (!confirm(`Перенести ${ `${s.first_name} ${s.last_name}`.trim() || t("common.noName")} в архів? Історію уроків буде збережено.`)) return;
+    if (!confirm(t("myStudents.archiveConfirm", { name: `${s.first_name} ${s.last_name}`.trim() || t("common.noName") }))) return;
     const { error } = await supabase
       .from("student_rates")
       .update({ archived_at: new Date().toISOString() } as any)
@@ -728,7 +728,7 @@ export default function MyStudentsPage() {
                   name={name}
                   avatarUrl={s.avatar_url}
                   status={s.is_pending ? "pending" : st.status}
-                  subLine={`${s.subject} · ${formatPrice(s.price, s.currency)}/урок${(s.wallet_lessons ?? 0) > 0 ? ` · 📦 ${s.wallet_lessons} ур.` : ""}`}
+                  subLine={`${s.subject} · ${formatPrice(s.price, s.currency)}${t("myStudents.perLessonSuffix")}${(s.wallet_lessons ?? 0) > 0 ? ` · 📦 ${t("myStudents.walletLessonsShort", { count: s.wallet_lessons })}` : ""}`}
                   email={s.email}
                   isPending={s.is_pending}
                   unpaidTotal={s.unpaid_total}
@@ -751,9 +751,9 @@ export default function MyStudentsPage() {
               : "—";
             const statusBg = s.is_pending ? "rgba(148,155,185,.14)" : st.status === "debt" ? "rgba(245,158,11,.12)" : st.status === "ok" ? "rgba(34,197,94,.12)" : st.status === "new" ? "rgba(37,99,235,.1)" : "rgba(148,155,185,.12)";
             const statusFg = s.is_pending ? T.sub : st.status === "debt" ? "#B4740B" : st.status === "ok" ? "#16a34a" : st.status === "new" ? "#2563eb" : T.sub;
-            const statusLabel = s.is_pending ? "⏳ Очікує входу" : st.label;
+            const statusLabel = s.is_pending ? t("myStudents.statusPendingEntry") : st.label;
             const contacts = [
-              { label: "Телефон", value: s.phone, tel: true },
+              { label: t("myStudents.contactPhone"), value: s.phone, tel: true },
               { label: "Telegram", value: s.telegram, tel: false },
             ].filter(c => c.value);
 
@@ -763,7 +763,7 @@ export default function MyStudentsPage() {
                 <div className="relative flex items-center justify-between flex-shrink-0" style={{ padding: "12px 14px 4px" }}>
                   <button className="lg:hidden flex items-center gap-1 text-[14px] font-bold" style={{ color: T.tealD, fontFamily: T.display, background: "none", border: "none", cursor: "pointer" }}
                     onClick={() => setSelectedStudentId(null)}>
-                    <ArrowLeft size={18} /> Назад
+                    <ArrowLeft size={18} /> {t("myStudents.backBtn")}
                   </button>
                   <div className="hidden lg:block" />
                   <div className="flex gap-1.5">
@@ -792,7 +792,7 @@ export default function MyStudentsPage() {
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
                         <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, padding: "2px 10px", borderRadius: 999, background: statusBg, color: statusFg }}>{statusLabel}</span>
-                        <span style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{s.subject} · {formatPrice(s.price, s.currency)}/урок</span>
+                        <span style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{s.subject} · {formatPrice(s.price, s.currency)}{t("myStudents.perLessonSuffix")}</span>
                       </div>
                     </div>
                   </div>
@@ -801,12 +801,12 @@ export default function MyStudentsPage() {
                   {s.unpaid_total > 0 && (
                     <div style={{ borderRadius: 16, padding: 14, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>⚠️ Борг {formatPrice(s.unpaid_total, s.currency)}</div>
-                        <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{s.unpaid_count} неоплачени{s.unpaid_count > 1 ? "х" : "й"} урок{s.unpaid_count > 1 ? "ів" : ""}</div>
+                        <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>{t("myStudents.debtLabel", { amount: formatPrice(s.unpaid_total, s.currency) })}</div>
+                        <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{t("myStudents.unpaidLessonsCount", { count: s.unpaid_count })}</div>
                       </div>
                       <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
                         style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 14.5, cursor: "pointer", flexShrink: 0 }}>
-                        Нагадати
+                        {t("myStudents.remindBtn")}
                       </button>
                     </div>
                   )}
@@ -815,11 +815,11 @@ export default function MyStudentsPage() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
                       <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, color: T.txt }}>{(s as any).total_lessons ?? 0}</div>
-                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>уроків разом</div>
+                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.totalLessonsLabel")}</div>
                     </div>
                     <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
                       <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: (s as any).next_lesson_at ? T.tealD : T.muted }}>{nextLessonLabel}</div>
-                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>наступний урок</div>
+                      <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.nextLessonLabel")}</div>
                     </div>
                   </div>
 
@@ -827,14 +827,14 @@ export default function MyStudentsPage() {
                   {(s.wallet_lessons ?? 0) > 0 && (
                     <div style={{ borderRadius: 16, padding: "13px 15px", background: "#f0fdf9", border: "1px solid rgba(43,191,170,.28)", display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 18 }}>📦</span>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.tealD }}>Пакет: {s.wallet_lessons} оплачених уроків наперед</div>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.tealD }}>{t("myStudents.walletPackageLabel", { count: s.wallet_lessons })}</div>
                     </div>
                   )}
 
                   {/* Contacts */}
                   {contacts.length > 0 && (
                     <div>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>Контакти</div>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                         {contacts.map((c) => (
                           <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "#fff" }}>
@@ -843,7 +843,7 @@ export default function MyStudentsPage() {
                               <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
                             </div>
                             {c.tel && (
-                              <a href={`tel:${c.value}`} aria-label="Подзвонити" style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", color: T.tealD }}>
+                              <a href={`tel:${c.value}`} aria-label={t("myStudents.callAria")} style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", color: T.tealD }}>
                                 <Phone size={19} strokeWidth={2} />
                               </a>
                             )}
@@ -954,7 +954,7 @@ export default function MyStudentsPage() {
                   <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button type="button" aria-label="Фото учня"
+                        <button type="button" aria-label={t("myStudents.studentPhotoAria")}
                           style={{ position: "relative", width: 60, height: 60, borderRadius: 20, flexShrink: 0, padding: 0, cursor: "pointer",
                             border: "none",
                             background: filled ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "#fff",

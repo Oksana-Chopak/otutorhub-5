@@ -233,7 +233,7 @@ export function AppSidebar() {
             type="button"
             onClick={() => setSidebarCollapsed(prev => !prev)}
             className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
-            title={sidebarCollapsed ? "Розгорнути" : "Згорнути"}
+            title={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
           >
             {sidebarCollapsed
               ? <ChevronRight className="h-4 w-4" />
@@ -259,7 +259,7 @@ export function AppSidebar() {
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
                 <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[13px] font-semibold text-white animate-pulse">
-                  {t("nav.newBadge") || "Новий!"}
+                  {t("nav.newBadge")}
                 </span>
               )}
             </button>

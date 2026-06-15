@@ -959,7 +959,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         <span className="truncate text-[13px]" style={{ color: "#9398b0" }}>{c.v}</span>
                         <button
                           type="button"
-                          aria-label={t("people.copied") || "Копіювати"}
+                          aria-label={t("people.copyAriaLabel")}
                           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] transition-colors hover:bg-[#f0fdf9]"
                           style={{ color: "#25a896" }}
                           onClick={(e) => {
@@ -1183,7 +1183,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           {[
             { value: "all", label: t("people.statusAll") },
             { value: "active", label: "✅ " + t("people.statusActive") },
-            { value: "debt", label: "⚠️ Борг" },
+            { value: "debt", label: "⚠️ " + t("people.statusDebt") },
             { value: "pending", label: "⏳ " + t("people.statusPending") },
             { value: "archived", label: "📦 " + t("people.statusArchived") },
           ].map((pill) => (
@@ -1824,7 +1824,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <span className="flex-1 text-[14px] text-foreground">{u.phone}</span>
                     <button
                       type="button"
-                      aria-label="Копіювати"
+                      aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
                       style={{ color: "#25a896" }}
                       onClick={() => { navigator.clipboard.writeText(u.phone!); toast.success(t("people.copied"), { description: u.phone! }); }}
@@ -1839,7 +1839,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     <span className="flex-1 text-[14px] text-foreground truncate">{u.email}</span>
                     <button
                       type="button"
-                      aria-label="Копіювати"
+                      aria-label={t("people.copyAriaLabel")}
                       className="flex h-11 w-11 items-center justify-center rounded-[11px] hover:bg-[#f0fdf9] transition-colors"
                       style={{ color: "#25a896" }}
                       onClick={() => { navigator.clipboard.writeText(u.email!); toast.success(t("people.copied"), { description: u.email! }); }}

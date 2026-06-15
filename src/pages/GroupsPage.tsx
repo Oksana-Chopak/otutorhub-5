@@ -185,7 +185,7 @@ export default function GroupsPage() {
           />
         )}
       </div>
-      <PageFAB onClick={() => setCreateOpen(true)} label="Нова група" />
+      <PageFAB onClick={() => setCreateOpen(true)} label={t("groupsPageExtra.newGroupFab")} />
     </AppLayout>
   );
 }
@@ -235,7 +235,7 @@ function CreateGroupDialog({
 
   const submit = async () => {
     if (!user || !name.trim()) {
-      toast.error(t("groupsPage.nameRequired") ?? "Вкажіть назву групи");
+      toast.error(t("groupsPage.nameRequired") ?? t("groupsPageExtra.nameRequiredFallback"));
       return;
     }
     if (isManager && !tutorId) {
@@ -289,7 +289,7 @@ function CreateGroupDialog({
           )}
           <div className="space-y-1">
             <Label>{t("groupsPageExtra.nameLabel")}</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Наприклад: Англійська · 9-Б" />
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("groupsPageExtra.namePlaceholder")} />
           </div>
           <div className="space-y-1">
             <Label>{t("groupsPageExtra.subjectLabel")}</Label>
@@ -304,11 +304,11 @@ function CreateGroupDialog({
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Скасувати
+            {t("groupsPageExtra.cancel")}
           </Button>
           <Button onClick={submit} disabled={submitting}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Створити
+            {t("groupsPageExtra.create")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -411,10 +411,10 @@ function GroupDetailsDialog({
         return;
       }
       if (code === "42501" || /permission denied|policy|row-level/i.test(msg)) {
-        toast.error("Немає доступу додати учня в цю групу. Перевірте, що ви репетитор цієї групи.");
+        toast.error(t("groupsPageExtra.addStudentNoAccess"));
         return;
       }
-      toast.error(msg || "Не вдалося додати учня");
+      toast.error(msg || t("groupsPageExtra.addStudentFailed"));
       return;
     }
     setPickedStudent("");
@@ -515,7 +515,7 @@ function GroupDetailsDialog({
         <DialogFooter>
           <Button variant="outline" onClick={archiveGroup} className="text-destructive">
             <Archive className="mr-2 h-4 w-4" />
-            Видалити групу
+            {t("groupsPageExtra.deleteGroup")}
           </Button>
           <Button onClick={() => onOpenChange(false)}>{t("groupsPageExtra.doneBtn")}</Button>
         </DialogFooter>

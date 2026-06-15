@@ -81,8 +81,10 @@ export function ProRulesCard() {
     setState((s) => s && { ...s, [k]: v });
 
   const summaryText = () => {
-    const feeTxt = state.cancel_fee_percent === 0 ? "безкоштовне" : `оплачується ${state.cancel_fee_percent}%`;
-    return `Безкоштовне скасування за ${state.cancel_free_hours} год до уроку. Пізніше — ${feeTxt}. Учень бачить правила у Telegram при бронюванні.`;
+    const feeTxt = state.cancel_fee_percent === 0
+      ? t("proRulesCard.summaryFeeFree")
+      : t("proRulesCard.summaryFeePaid", { percent: state.cancel_fee_percent });
+    return t("proRulesCard.summaryText", { hours: state.cancel_free_hours, feeTxt });
   };
 
   const save = async () => {
@@ -113,7 +115,7 @@ export function ProRulesCard() {
           <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>
             {t("proRulesCard.title")}
           </div>
-          <button onClick={() => setInfoOpen((v) => !v)} type="button" aria-label="Детальніше"
+          <button onClick={() => setInfoOpen((v) => !v)} type="button" aria-label={t("proRulesCard.moreInfo")}
             style={{ width: 24, height: 24, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: infoOpen ? C.teal : C.muted, flexShrink: 0 }}>
             <Info className="h-4 w-4" />
           </button>

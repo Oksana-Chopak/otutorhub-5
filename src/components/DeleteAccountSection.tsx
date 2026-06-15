@@ -36,7 +36,7 @@ export function DeleteAccountSection() {
         const raw = error?.message || (data as { error?: string }).error || "";
         // Якщо edge-функцію ще не задеплоєно — даємо людську підказку, а не сире "Failed to send a request".
         if (/failed to send|not found|fetch|network|edge function/i.test(raw)) {
-          throw new Error("Сервіс видалення тимчасово недоступний. Напишіть нам — і ми видалимо акаунт вручну протягом 24 годин.");
+          throw new Error(t("accountDeletion.serviceUnavailable"));
         }
         throw new Error(raw);
       }

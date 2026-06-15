@@ -801,9 +801,9 @@ export default function SchedulePage() {
       (isManager || (isTutor && lsn.tutor_id === user?.id));
     if (canMarkPay) {
       toast.success(t('schedule.statusUpdated'), {
-        description: "Учень оплатив?",
+        description: t('schedule.studentPaidQuestion'),
         duration: 6000,
-        action: { label: "Оплачено ✓", onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) },
+        action: { label: t('schedule.markPaidAction'), onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) },
       });
     } else {
       toast.success(t('schedule.statusUpdated'));
@@ -1232,11 +1232,11 @@ export default function SchedulePage() {
                       <>
                         {(!form.student_price || form.student_price === "0") && (
                           <p className="text-[13px] text-warning -mt-2">
-                            ⚠️ Для цього учня з обраного предмета ще не задано ціну. Введіть її вручну або задайте на сторінці «Люди» → «Учні репетитора».
+                            {t('schedule.noPriceSetWarning')}
                           </p>
                         )}
                         <p className="text-[13px] text-muted-foreground -mt-2">
-                          💡 Ціна учня береться з його тарифу, виплата — зі ставки репетитора. Можна змінити вручну.
+                          {t('schedule.priceSourceHint')}
                         </p>
                       </>
                     )}
@@ -1425,7 +1425,7 @@ export default function SchedulePage() {
             {/* Homework — primary teaching field */}
             <div>
               <Label htmlFor="edit_homework" className="flex items-center gap-1.5 font-medium">
-                📝 Домашнє завдання
+                📝 {t('schedule.homeworkLabel')}
               </Label>
               <Textarea
                 id="edit_homework"

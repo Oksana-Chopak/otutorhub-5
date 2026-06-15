@@ -127,7 +127,7 @@ export function QuickLessonDialog({
         const nameOf = new Map(
           (profs ?? []).map((p: any) => [
             p.id,
-            `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "Учень",
+            `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || t("quickLessonDialog.studentFallback"),
           ])
         );
         const meetOf = new Map(
@@ -315,8 +315,10 @@ export function QuickLessonDialog({
       insertNotification({
         userId: selected.student_id,
         type: `lesson_scheduled_${created.id}`,
-        title: "📅 Новий урок у розкладі",
-        body: seriesCount > 1 ? `Репетитор запланував серію уроків (щотижня, ${seriesCount}) — перший ${dateStr}` : `Репетитор запланував урок — ${dateStr}`,
+        title: t("quickLessonDialog.notifLessonScheduledTitle"),
+        body: seriesCount > 1
+          ? t("quickLessonDialog.notifLessonSeriesBody", { count: seriesCount, date: dateStr })
+          : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
         link: "/schedule",
       });
     }
@@ -324,7 +326,7 @@ export function QuickLessonDialog({
     const timeStr = effStartsAt.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
     toast.success(
       seriesCount > 1
-        ? `🔁 Серію створено: ${seriesCount} уроків щотижня — ${selected.name}, ${timeStr}`
+        ? t("quickLessonDialog.seriesCreated", { count: seriesCount, name: selected.name, time: timeStr })
         : `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: timeStr })}`
     );
     onOpenChange(false);
@@ -427,7 +429,7 @@ export function QuickLessonDialog({
                       style={{ height: 40, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", flexShrink: 0,
                         background: timeEditOpen ? "rgba(43,191,170,.35)" : "rgba(255,255,255,.14)", color: "#fff",
                         fontFamily: F.display, fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <Clock size={16} /> Змінити
+                      <Clock size={16} /> {t("quickLessonDialog.changeTimeBtn")}
                     </button>
                   </div>
                   {timeEditOpen && (
@@ -471,7 +473,7 @@ export function QuickLessonDialog({
                         color: repeatWeeks > 0 ? F.tealD : F.sub,
                         fontFamily: F.display, fontWeight: 700, fontSize: 13.5,
                         display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      🔁 Щотижня
+                      🔁 {t("quickLessonDialog.weeklyToggle")}
                     </button>
                     {repeatWeeks > 0 && [4, 8, 12].map((n) => (
                       <button key={n} type="button" onClick={() => setRepeatWeeks(n)}
@@ -485,7 +487,7 @@ export function QuickLessonDialog({
                     ))}
                     {repeatWeeks > 0 && (
                       <span style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>
-                        {repeatWeeks} тижнів поспіль о цій годині
+                        {t("quickLessonDialog.weeksInARow", { count: repeatWeeks })}
                       </span>
                     )}
                   </div>

@@ -16,9 +16,9 @@ interface LanguageSwitcherProps {
 }
 
 const LANGS = [
-  { code: "uk", label: "Українська", short: "UA" },
-  { code: "en", label: "English", short: "EN" },
-  { code: "sv", label: "Svenska", short: "SV" },
+  { code: "uk", labelKey: "ukrainian", short: "UA" },
+  { code: "en", labelKey: "english", short: "EN" },
+  { code: "sv", labelKey: "swedish", short: "SV" },
 ] as const;
 
 export function LanguageSwitcher({
@@ -27,7 +27,7 @@ export function LanguageSwitcher({
   showLabel = true,
   className,
 }: LanguageSwitcherProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const resolved = i18n.resolvedLanguage ?? "uk";
   const current = resolved.startsWith("en") ? "en" : resolved.startsWith("sv") ? "sv" : "uk";
   const currentShort = LANGS.find((l) => l.code === current)?.short ?? "UA";
@@ -52,7 +52,7 @@ export function LanguageSwitcher({
             className={current === l.code ? "font-semibold" : ""}
           >
             <span className="mr-2 text-[13px] text-muted-foreground">{l.short}</span>
-            {l.label}
+            {t(`languageSwitcher.${l.labelKey}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
