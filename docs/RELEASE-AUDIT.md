@@ -19,13 +19,13 @@
 | P1-2 | all | **SchedulePage ковтає помилку** запиту уроків → порожній розклад без тоста/ретраю (не відрізнити від «немає уроків»). | `SchedulePage.tsx:403` |
 | P1-3 | all | **Чат вантажить усі повідомлення** без `.limit()` і без віртуалізації — довгий тред монтує всю історію щоразу. | `ChatsPage.tsx:405` |
 | P1-4 | all | **i18n-хардкод (377 рядків)** по екранах: OnboardingFlowB (86), SubscriptionPage (37, paywall), ChatsPage (17, **нова чат-фіча**), FinancesPage (28), MyStudentsPage (16), кабінет учня (платежі/домашки/дашборд/онбординг), mid-tier ~96 у 9 шеред-компонентах. en/sv бачать українську. |
-| P1-5 | all | **Захардкоджена локаль `uk-UA`** у форматуванні дат/чисел: `currency.ts:36` (центральний `formatPrice`!) + 79 сайтів у 36 файлах. sv/en бачать укр. місяці/розряди. Лише 3 файли беруть локаль з `i18n.language`. | `lib/currency.ts:36` |
-| P1-6 | all | **Хардкод-тости** проскакують `check-i18n` (він лише звіряє ключі): `DashboardPage:757/760`, `FinancesPage:1509`, тощо. |
-| P1-7 | all | **Негативні empty-state** («Немає X») всупереч правилу CLAUDE.md + неперекладені: `DashboardPage:1904`, `FinancesPage:1456`, `FinanceWeeklyChart:134`. |
-| P1-8 | all | **Ручні тернарні плюрали** замість i18next (`урок/уроки/уроків`) — неперекладні, часто граматично хибні: `DashboardPage:1094` та ін. |
-| P1-9 | all | **a11y:** мобільна таб-навігація тьютора/менеджера — лише іконки, без `aria-label`, активний стан лише кольором. | `MobileBottomNav.tsx:90` |
-| P1-10 | all | **a11y:** інпути діалогів мають `<span>`-лейбли замість `<label>` → немає доступного імені. | `QuickAddStudentDialog.tsx:247` |
-| P1-11 | all | **a11y:** біла на teal `#2BBFAA` — контраст 2.3:1 (WCAG AA треба 4.5:1). Це головна CTA (~48 файлів). | `PageHeader.tsx:27` |
+| P1-5 ✅ | all | **`uk-UA` локаль** → хелпер `getLocale()` (`lib/locale.ts`) + центральний `formatPrice` + 81 сайт у 36 файлах. |
+| P1-6 ✅ | all | **Хардкод-тости** виплат у `DashboardPage` → `t()`. (FinancesPage — через sweep.) |
+| P1-7 ✅ | all | **Негативні empty-state** → позитивні: `DashboardPage`, `FinanceWeeklyChart`, `FinancesPage`. |
+| P1-8 ✅ | all | **Ручний плюрал** виплат → i18next `_one/_few/_many`. (Решта ручних — дрібний P3-хвіст.) |
+| P1-9 ✅ | all | **a11y:** мобільна навігація — `aria-label` + `aria-current`. |
+| P1-10 ✅ | all | **a11y:** 14 інпутів `QuickAddStudentDialog`/`MyStudentsPage` → `aria-label`. |
+| P1-11 🟡 | all | **a11y контраст** (рішення: бренд teal недоторканий, текст темний): **центрально** `--primary-foreground` біла→темна (#0f0f1a) — усі shadcn `<Button>`/`<Badge>`. ⬜ Інлайн teal-submit (~20 файлів) — обережний пас **після твого перегляду вигляду**. |
 
 ## P2 — полірування (зокрема нова фіча досягнень)
 
