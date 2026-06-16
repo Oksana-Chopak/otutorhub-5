@@ -230,7 +230,7 @@ export default function StudentPaymentsPage() {
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
                       <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, background: paid ? "rgba(34,197,94,.16)" : "rgba(245,158,11,.16)", color: paid ? "#16a34a" : "#b4740b" }}>
-                        {paid ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
+                        {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>
                     </div>

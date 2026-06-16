@@ -423,7 +423,7 @@ export function QuickLessonDialog({
                 <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
+                      <div style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
                       <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 30, letterSpacing: "-.02em", marginTop: 2 }}>{heroTime}</div>
                     </div>
                     <button type="button" onClick={() => setTimeEditOpen((v) => !v)}
@@ -468,7 +468,7 @@ export function QuickLessonDialog({
                 {mode === "individual" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <button type="button" onClick={() => setRepeatWeeks((v) => (v > 0 ? 0 : 4))}
-                      style={{ height: 36, padding: "0 13px", borderRadius: 999, cursor: "pointer",
+                      style={{ height: 44, padding: "0 13px", borderRadius: 999, cursor: "pointer",
                         border: `1.5px solid ${repeatWeeks > 0 ? F.teal : F.border}`,
                         background: repeatWeeks > 0 ? F.tealL : F.surface,
                         color: repeatWeeks > 0 ? F.tealD : F.sub,
@@ -478,7 +478,7 @@ export function QuickLessonDialog({
                     </button>
                     {repeatWeeks > 0 && [4, 8, 12].map((n) => (
                       <button key={n} type="button" onClick={() => setRepeatWeeks(n)}
-                        style={{ height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
+                        style={{ height: 44, padding: "0 12px", borderRadius: 999, cursor: "pointer",
                           border: `1.5px solid ${repeatWeeks === n ? F.teal : F.border}`,
                           background: repeatWeeks === n ? F.tealL : F.surface,
                           color: repeatWeeks === n ? F.tealD : F.txt,
@@ -540,7 +540,7 @@ export function QuickLessonDialog({
                       );
                     })}
                     <button onClick={() => setAddStudentOpen(true)}
-                      style={{ height: 42, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
+                      style={{ height: 44, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
                         background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
                       + {t("quickLessonDialog.addStudentBtn")}
                     </button>

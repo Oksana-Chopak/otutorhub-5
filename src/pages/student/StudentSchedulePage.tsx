@@ -75,7 +75,7 @@ export default function StudentSchedulePage() {
           const d = new Date(l.starts_at);
           const isCancelled = l.status === "cancelled";
           return (
-            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "1px solid #eceef3", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
+            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
                 <span style={{ fontFamily: D, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
@@ -121,7 +121,7 @@ export default function StudentSchedulePage() {
         <Tabs defaultValue="upcoming">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="upcoming">{t("studentPagesExtra.upcoming", { count: upcoming.length })}</TabsTrigger>
-            <TabsTrigger value="past">{t("studentPagesExtra.past", { count: past.length })}</TabsTrigger>
+            <TabsTrigger value="past">{t("studentPagesExtra.pastSchedule", { count: past.length })}</TabsTrigger>
           </TabsList>
           <TabsContent value="upcoming" className="mt-4">{renderList(upcoming)}</TabsContent>
           <TabsContent value="past" className="mt-4">{renderList(past)}</TabsContent>

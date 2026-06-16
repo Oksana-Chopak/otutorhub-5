@@ -115,10 +115,10 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <Card className="overflow-hidden">
+    <Card className="overflow-hidden rounded-[16px]">
       <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <div className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-primary text-primary-foreground">
             <HandHeart className="h-5 w-5" />
           </div>
           <div>
@@ -128,7 +128,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
         </div>
 
         {savedUah > 0 && (
-          <div className="mb-3 rounded-xl border border-success/30 bg-success/5 p-3">
+          <div className="mb-3 rounded-[12px] border border-success/30 bg-success/5 p-3">
             <p className="text-[13px] text-muted-foreground">{t("referralWidget.savedLabel")}</p>
             <p className="text-2xl font-bold text-success">{savedUah.toLocaleString(getLocale())} ₴</p>
           </div>

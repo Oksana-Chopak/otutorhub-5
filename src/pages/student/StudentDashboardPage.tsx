@@ -164,7 +164,7 @@ export default function StudentDashboardPage() {
         <ReviewPromptCard />
 
         {/* Block 1: Upcoming lessons — DS cards with dark time rail */}
-        <div style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: 14 }}>
+        <div style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: DS.display, fontWeight: 700, fontSize: 15.5 }}>
               <CalendarDays className="h-4 w-4" style={{ color: DS.teal }} /> {t("studentPages.upcomingLessonsTitle")}
@@ -221,7 +221,7 @@ export default function StudentDashboardPage() {
         {/* Block 2 & 3: Quick stats — DS bubbles */}
         <div className="grid grid-cols-2 gap-3">
           <Link to="/student/payments" style={{ textDecoration: "none" }}>
-            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(245,181,68,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <DollarSign className="h-5 w-5" style={{ color: "#b4740b" }} />
               </div>
@@ -232,7 +232,7 @@ export default function StudentDashboardPage() {
             </div>
           </Link>
           <Link to="/student/homework" style={{ textDecoration: "none" }}>
-            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 18, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <BookOpen className="h-5 w-5" style={{ color: DS.tealD }} />
               </div>

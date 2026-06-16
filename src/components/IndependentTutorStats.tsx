@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatPrice } from "@/lib/currency";
 import i18nInstance from "@/i18n";
 import {
   Users,
@@ -135,7 +136,7 @@ export function IndependentTutorStats() {
           {t("independentStatsExtra.title")}
         </h2>
         <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-          <SelectTrigger className="h-10 w-[170px] text-[13px]">
+          <SelectTrigger className="h-10 w-[170px] text-[14px]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -162,7 +163,7 @@ export function IndependentTutorStats() {
         />
         <StatCard
           label={t("independentStats.earned")}
-          value={loading ? "…" : `${totalIncome} ₴`}
+          value={loading ? "…" : formatPrice(totalIncome, "UAH", { decimals: 0 })}
           icon={ArrowDownLeft}
           variant="success"
           to="/finances"
@@ -170,7 +171,7 @@ export function IndependentTutorStats() {
         />
         <StatCard
           label={t("independentStatsExtra.awaitingPayment")}
-          value={loading ? "…" : `${pendingIncome} ₴`}
+          value={loading ? "…" : formatPrice(pendingIncome, "UAH", { decimals: 0 })}
           icon={TrendingUp}
           variant={pendingIncome > 0 ? "warning" : "default"}
           to="/finances"
@@ -181,7 +182,7 @@ export function IndependentTutorStats() {
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-border bg-card p-4">
           <div className="flex items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[16px] bg-primary/10">
-              <Crown className="h-4 w-4 text-primary" />
+              <Crown className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
               <p className="text-sm font-medium text-foreground">
@@ -192,7 +193,7 @@ export function IndependentTutorStats() {
               </p>
             </div>
           </div>
-          <Button asChild size="sm">
+          <Button asChild className="h-11 rounded-[12px]">
             <Link to="/subscription">{t("independentStatsExtra.detailsLink")}</Link>
           </Button>
         </div>

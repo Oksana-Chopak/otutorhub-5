@@ -465,9 +465,9 @@ export default function ProfilePage() {
 
         {/* Edit-profile sheet (same as tutor branch) */}
         <Sheet open={activeSheet === "editProfile"} onOpenChange={(o) => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
@@ -486,13 +486,13 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
-                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-12 rounded-[12px]" />
+                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div style={{ marginBottom: 4 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
-                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-12 rounded-[12px]" />
+                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <button onClick={saveProfile} disabled={savingProfile}
                 style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
@@ -649,27 +649,27 @@ export default function ProfilePage() {
 
         {/* ── Sheets for settings components ─────────────────────────────────── */}
         <Sheet open={activeSheet === "rules"} onOpenChange={o => { if (!o) { setActiveSheet(null); refreshSettings(); } }}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="rules"><ProRulesCard /></div>
           </SheetContent>
         </Sheet>
 
         <Sheet open={activeSheet === "automark"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="automark"><AutoCompleteLessonsCard /></div>
           </SheetContent>
         </Sheet>
 
         <Sheet open={activeSheet === "editProfile"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
@@ -695,7 +695,7 @@ export default function ProfilePage() {
                   value={editFirst}
                   onChange={(e) => setEditFirst(e.target.value)}
                   placeholder={t("profile.editFirstName") || "Ім'я"}
-                  className="h-12 rounded-[12px]"
+                  className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
               <div style={{ marginBottom: 4 }}>
@@ -706,7 +706,7 @@ export default function ProfilePage() {
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
                   placeholder={t("profile.editLastName") || "Прізвище"}
-                  className="h-12 rounded-[12px]"
+                  className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
               <button
@@ -781,9 +781,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "subjects"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 16 }}>
@@ -831,8 +831,8 @@ export default function ProfilePage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   placeholder={t("profile.customSubjectPlaceholder")}
-                  style={{ flex: 1, height: 42, borderRadius: 11, padding: "0 12px",
-                    fontSize: 14.5, border: "1.5px solid #eceef3", outline: "none",
+                  style={{ flex: 1, height: 44, borderRadius: 12, padding: "0 12px",
+                    fontSize: 15, border: "1.5px solid #eceef3", outline: "none",
                     fontFamily: "'Plus Jakarta Sans', system-ui" }}
                   onKeyDown={e => {
                     if (e.key === "Enter") {
@@ -854,7 +854,7 @@ export default function ProfilePage() {
                   setActiveSheet(null);
                   toast.success(t("profile.subjectsSavedToast"));
                 }}
-                style={{ marginTop: 16, width: "100%", height: 48, borderRadius: 13,
+                style={{ marginTop: 16, width: "100%", height: 50, borderRadius: 14,
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", border: "none",
                   color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 700,
                   fontSize: 16, cursor: "pointer" }}>
@@ -865,9 +865,9 @@ export default function ProfilePage() {
         </Sheet>
 
         <Sheet open={activeSheet === "calendar"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex justify-center pt-2.5 pb-1">
-              <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+              <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div id="calendar"><GoogleCalendarCard /></div>
             <PushSettingsCard />
@@ -876,7 +876,7 @@ export default function ProfilePage() {
 
         {/* Availability sheet — slides up, X to close */}
         <Sheet open={activeSheet === "availability"} onOpenChange={o => !o && setActiveSheet(null)}>
-          <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[22px] p-0">
+          <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
               style={{ borderColor: "var(--border,#eceef3)" }}>
               <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>

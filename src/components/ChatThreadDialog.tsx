@@ -209,7 +209,7 @@ export function ChatThreadDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto flex flex-col [&>button.absolute]:hidden">
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "10px 18px 10px", flexShrink: 0, borderBottom: "1px solid #eceef3" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
@@ -261,8 +261,8 @@ export function ChatThreadDialog({
                       <div
                         className={
                           mine
-                            ? "max-w-[80%] rounded-[14px] rounded-br-[4px] px-3 py-2 text-[14.5px] text-white shadow-sm"
-                            : "max-w-[80%] rounded-[14px] rounded-bl-[4px] bg-white px-3 py-2 text-[14.5px] text-[#0f0f1a] shadow-sm"
+                            ? "max-w-[80%] rounded-[14px] rounded-br-[4px] px-3 py-2 text-[14px] text-white shadow-sm"
+                            : "max-w-[80%] rounded-[14px] rounded-bl-[4px] bg-white px-3 py-2 text-[14px] text-[#0f0f1a] shadow-sm"
                         }
                         style={mine ? { background: "linear-gradient(135deg,#2BBFAA,#25a896)" } : undefined}
                       >

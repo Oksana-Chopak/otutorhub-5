@@ -578,16 +578,16 @@ export function AvailabilityManager() {
                     <div key={o.id} style={{ display: "flex", alignItems: "center", gap: 11, borderRadius: 12, border: `1px solid ${A.border}`, background: A.surface, padding: "11px 12px" }}>
                       <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
                         background: extra ? "rgba(34,197,94,.12)" : "rgba(255,122,89,.13)", color: extra ? A.successD : A.coral }}>
-                        {extra ? <CalendarPlus className="h-[18px] w-[18px]" /> : <CalendarOff className="h-[18px] w-[18px]" />}
+                        {extra ? <Plus className="h-[18px] w-[18px]" /> : <CalendarOff className="h-[18px] w-[18px]" />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                           <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13.5 }}>
                             {new Date(o.slot_date + "T00:00:00").toLocaleDateString(getLocale(), { day: "2-digit", month: "long", weekday: "short" })}
                           </span>
-                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: A.display, fontWeight: 700, fontSize: 13,
-                            background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral }}>
-                            {extra ? t("availabilityManagerExtra.extraHours") : t("availabilityManagerExtra.holiday")}
+                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 12,
+                            background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral, boxShadow: extra ? "inset 0 0 0 1px rgba(34,197,94,.3)" : "inset 0 0 0 1px rgba(255,122,89,.32)" }}>
+                            {extra ? t("availabilityManagerExtra.extraHoursPill") : t("availabilityManagerExtra.holiday")}
                           </span>
                         </div>
                         <div style={{ fontSize: 13, color: A.sub, fontVariantNumeric: "tabular-nums", marginTop: 1 }}>

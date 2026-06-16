@@ -112,10 +112,10 @@ export function ProRulesCard() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
-          <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, letterSpacing: "-.01em" }}>
+          <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>
             {t("proRulesCard.title")}
           </div>
-          <button onClick={() => setInfoOpen((v) => !v)} type="button" aria-label={t("proRulesCard.moreInfo")}
+          <button onClick={() => setInfoOpen((v) => !v)} type="button" aria-label={t("proRulesCard.moreInfo")} aria-expanded={infoOpen}
             style={{ width: 24, height: 24, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: infoOpen ? C.teal : C.muted, flexShrink: 0 }}>
             <Info className="h-4 w-4" />
           </button>
@@ -127,11 +127,11 @@ export function ProRulesCard() {
         )}
       </div>
       {infoOpen && (
-        <p style={{ fontSize: 13, lineHeight: 1.5, borderRadius: 10, padding: "8px 12px", marginBottom: 4, background: "rgba(43,191,170,.07)", color: C.sub, border: "1px solid rgba(43,191,170,.15)" }}>
+        <p style={{ fontSize: 14, lineHeight: 1.5, borderRadius: 12, padding: "8px 12px", marginBottom: 4, background: "rgba(43,191,170,.07)", color: C.sub, border: "1px solid rgba(43,191,170,.15)" }}>
           {t("proRulesCard.description")}
         </p>
       )}
-      <p style={{ fontSize: 13.5, color: C.sub, lineHeight: 1.45, margin: "6px 0 16px" }}>
+      <p style={{ fontSize: 15, color: C.sub, lineHeight: 1.45, margin: "6px 0 16px" }}>
         {t("proRulesCard.intro") || "Почни з готового шаблону — потім можна тонко налаштувати під себе."}
       </p>
 
@@ -146,10 +146,10 @@ export function ProRulesCard() {
               <div style={{ width: 48, height: 48, borderRadius: 14, background: on ? "#fff" : C.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, flexShrink: 0 }}>{p.emoji}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 16 }}>{p.title}</span>
+                  <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17 }}>{p.title}</span>
                   {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 13, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
                 </div>
-                <div style={{ fontSize: 13, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
+                <div style={{ fontSize: 14, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
               </div>
               <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0, border: `2px solid ${on ? C.teal : C.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {on && <span style={{ width: 11, height: 11, borderRadius: 999, background: C.teal }} />}
@@ -164,15 +164,20 @@ export function ProRulesCard() {
         <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
           {t("proRulesCard.summary") || "Підсумок"}{activePreset ? ` · ${activePreset.title}` : ` · ${t("proRulesCard.custom") || "Власні"}`}
         </div>
-        <div style={{ fontSize: 13.5, lineHeight: 1.5, marginTop: 8 }}>{summaryText()}</div>
+        <div style={{ fontSize: 15, lineHeight: 1.5, marginTop: 8 }}>{summaryText()}</div>
       </div>
 
       {/* Fine-tune toggle */}
-      <button onClick={() => setTuneOpen((v) => !v)} type="button" disabled={disabled}
+      <button onClick={() => setTuneOpen((v) => !v)} type="button" disabled={disabled} aria-expanded={tuneOpen}
         style={{ marginTop: 14, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "13px 14px", borderRadius: 14, cursor: disabled ? "default" : "pointer", border: `1.5px solid ${C.border}`, background: C.surface }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <SlidersHorizontal size={18} style={{ color: C.tealD }} />
-          <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14 }}>{t("proRulesCard.fineTune") || "Тонке налаштування"}</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 10, textAlign: "left" }}>
+          <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(43,191,170,.12)", color: C.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <SlidersHorizontal size={18} />
+          </span>
+          <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.fineTune") || "Тонке налаштування"}</span>
+            <span style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.fineTuneSub") || "Зміни вікно, оплати й перенесення"}</span>
+          </span>
         </span>
         <ChevronDown size={18} style={{ color: C.muted, transform: tuneOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
       </button>
@@ -181,14 +186,14 @@ export function ProRulesCard() {
         <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 18, opacity: disabled ? 0.6 : 1, pointerEvents: disabled ? "none" : "auto" }}>
           {/* Free window */}
           <div>
-            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.freeWindow") || "Безкоштовне вікно"}</div>
-            <div style={{ fontSize: 13, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint") || "За скільки годин до уроку можна скасувати безкоштовно"}</div>
+            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.freeWindow") || "Безкоштовне вікно"}</div>
+            <div style={{ fontSize: 14, color: C.sub, marginTop: 1, marginBottom: 9 }}>{t("proRulesCard.freeWindowHint") || "За скільки годин до уроку можна скасувати безкоштовно"}</div>
             <div style={{ display: "flex", gap: 8 }}>
               {[6, 12, 24, 48].map((h) => {
                 const on = state.cancel_free_hours === h;
                 return (
                   <button key={h} onClick={() => set("cancel_free_hours", h)} type="button"
-                    style={{ flex: 1, height: 42, borderRadius: 12, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 14,
+                    style={{ flex: 1, height: 48, borderRadius: 12, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 14,
                       border: `1.5px solid ${on ? C.teal : C.border}`, background: on ? C.tealL : C.surface, color: on ? C.tealD : C.txt }}>
                     {h} {t("proRulesCard.hoursShort") || "год"}
                   </button>
@@ -198,15 +203,15 @@ export function ProRulesCard() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <Input type="number" min={0} max={168} value={state.cancel_free_hours}
                 onChange={(e) => set("cancel_free_hours", Number(e.target.value) || 0)}
-                className="w-20 h-9" style={{ borderRadius: 10 }} />
+                className="w-20 h-11 text-[15px] rounded-[12px]" />
               <span style={{ fontSize: 13, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
             </div>
           </div>
 
           {/* Late fee */}
           <div>
-            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.lateCancelLabel")}</div>
-            <div style={{ fontSize: 13, color: C.sub, marginTop: 1, marginBottom: 9 }}>
+            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.lateCancelLabel")}</div>
+            <div style={{ fontSize: 14, color: C.sub, marginTop: 1, marginBottom: 9 }}>
               {t("proRulesCard.lateCancelHint", { hours: state.cancel_free_hours, percent: state.cancel_fee_percent })}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
@@ -214,9 +219,9 @@ export function ProRulesCard() {
                 const on = state.cancel_fee_percent === p;
                 return (
                   <button key={p} onClick={() => set("cancel_fee_percent", p)} type="button"
-                    style={{ flex: 1, height: 40, borderRadius: 11, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 13.5,
+                    style={{ flex: 1, height: 48, borderRadius: 12, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 14,
                       border: `1.5px solid ${on ? C.teal : C.border}`, background: on ? "rgba(43,191,170,.1)" : C.surface, color: on ? C.tealD : C.txt }}>
-                    {p === 0 ? (t("proRulesCard.off") || "Off") : `${p}%`}
+                    {`${p}%`}
                   </button>
                 );
               })}
@@ -230,8 +235,8 @@ export function ProRulesCard() {
           <div>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5 }}>{t("proRulesCard.reminderLabel")}</div>
-                <div style={{ fontSize: 13, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.reminderHint")}</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.reminderLabel")}</div>
+                <div style={{ fontSize: 14, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.reminderHint")}</div>
               </div>
               <Switch checked={state.payment_reminder_enabled} disabled={disabled}
                 onCheckedChange={(v) => set("payment_reminder_enabled", v)} />
@@ -239,7 +244,7 @@ export function ProRulesCard() {
 
             {state.payment_reminder_enabled && (
               <div style={{ marginTop: 12 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, marginBottom: 8 }}>{t("proRulesCard.paymentDueLabel")}</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{t("proRulesCard.paymentDueLabel")}</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {([
                     { value: "prepaid" as PaymentMode, title: t("proRulesCard.prepaidTitle"), desc: t("proRulesCard.prepaidDesc") },
@@ -255,7 +260,7 @@ export function ProRulesCard() {
                           {on && <span style={{ width: 9, height: 9, borderRadius: 999, background: C.teal }} />}
                         </span>
                         <span style={{ minWidth: 0 }}>
-                          <span style={{ display: "block", fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: on ? C.tealD : C.txt }}>{opt.title}</span>
+                          <span style={{ display: "block", fontFamily: C.display, fontWeight: 700, fontSize: 16, color: on ? C.tealD : C.txt }}>{opt.title}</span>
                           <span style={{ display: "block", fontSize: 13, color: C.sub, marginTop: 1 }}>{opt.desc}</span>
                         </span>
                       </button>
@@ -269,7 +274,7 @@ export function ProRulesCard() {
                     </span>
                     <Input type="number" min={0} max={30} value={state.payment_due_days}
                       onChange={(e) => set("payment_due_days", Number(e.target.value) || 0)}
-                      className="w-20 h-9" style={{ borderRadius: 10 }} />
+                      className="w-20 h-11 text-[15px] rounded-[12px]" />
                   </div>
                 )}
               </div>
@@ -280,7 +285,7 @@ export function ProRulesCard() {
 
       {/* Save */}
       <button onClick={save} disabled={disabled || saving} type="button"
-        style={{ marginTop: 18, width: "100%", height: 52, borderRadius: 14, border: "none", color: "#0f0f1a",
+        style={{ marginTop: 18, width: "100%", height: 50, borderRadius: 14, border: "none", color: "#0f0f1a",
           background: C.gradTeal, fontFamily: C.display, fontWeight: 700, fontSize: 16,
           cursor: disabled || saving ? "default" : "pointer", opacity: disabled || saving ? 0.7 : 1,
           boxShadow: C.shadowTeal, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu,
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -795,7 +795,7 @@ export default function ChatsPage() {
       {loading ? (
         <ChatsSkeleton />
       ) : threads.length === 0 && !loading ? (
-        <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center">
+        <div className="rounded-[16px] border border-dashed border-border bg-card p-10 text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
@@ -807,7 +807,7 @@ export default function ChatsPage() {
       ) : (
         <div
           className={cn(
-            "flex overflow-hidden rounded-xl border border-border",
+            "flex overflow-hidden rounded-[16px] border-[0.5px] border-border",
             "-mx-4 md:-mx-6",
           )}
           style={{ height: "calc(100vh - 120px)" }}
@@ -836,7 +836,7 @@ export default function ChatsPage() {
                 {isManager && (
                   <button
                     onClick={openNewChatDialog}
-                    className="flex items-center gap-1.5 h-9 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
+                    className="flex items-center gap-1.5 h-11 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
                     style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -855,7 +855,7 @@ export default function ChatsPage() {
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("chats.searchPlaceholder")}
-                  className="w-full pl-9 pr-3 h-9 rounded-xl text-[13.5px] outline-none"
+                  className="w-full pl-9 pr-3 h-11 rounded-xl text-[15px] outline-none"
                   style={{ border: "1px solid var(--border,#eceef3)", background: "#fbfbfc" }}
                 />
               </div>
@@ -976,11 +976,11 @@ export default function ChatsPage() {
                             className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold"
                             style={{
                               fontFamily: "Inter, system-ui",
-                              background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(34,197,94,.12)" : "rgba(37,99,235,.1)",
-                              color: thread.ctx.kind === "debt" ? "#B4740B" : thread.ctx.kind === "lesson" ? "#15803d" : "#2563eb",
+                              background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(43,191,170,.12)" : "rgba(37,99,235,.1)",
+                              color: thread.ctx.kind === "debt" ? "#B4740B" : thread.ctx.kind === "lesson" ? "var(--teal-d,#25a896)" : "#2563eb",
                             }}
                           >
-                            <span style={{ fontSize: 11 }}>{thread.ctx.kind === "debt" ? "💸" : thread.ctx.kind === "lesson" ? "📅" : "✨"}</span>
+                            {thread.ctx.kind === "debt" ? <Wallet className="h-3 w-3" /> : thread.ctx.kind === "lesson" ? <Calendar className="h-3 w-3" /> : <Sparkles className="h-3 w-3" />}
                             {thread.ctx.text}
                           </span>
                           {thread.ctx.kind === "debt" && (
@@ -1270,10 +1270,9 @@ export default function ChatsPage() {
                           width: 38, height: 38, borderRadius: 11,
                           background: selectedThread.ctx.kind === "debt" ? "rgba(245,158,11,.2)" : "rgba(37,99,235,.15)",
                           color: selectedThread.ctx.kind === "debt" ? "#B4740B" : "#2563eb",
-                          fontSize: 18,
                         }}
                       >
-                        {selectedThread.ctx.kind === "debt" ? "💸" : "✨"}
+                        {selectedThread.ctx.kind === "debt" ? <Wallet className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
@@ -1296,7 +1295,7 @@ export default function ChatsPage() {
                             window.location.href = "/schedule";
                           }
                         }}
-                        className="flex-shrink-0 rounded-[11px] px-3.5 h-9 text-[13px] font-bold text-white"
+                        className="flex-shrink-0 rounded-[10px] px-3.5 h-[34px] text-[13px] font-bold text-white"
                         style={{
                           fontFamily: "Inter, system-ui",
                           background: selectedThread.ctx.kind === "debt"
@@ -1388,11 +1387,11 @@ export default function ChatsPage() {
                     maxLength={4000}
                     disabled={sending}
                     rows={1}
-                    className="flex-1 rounded-2xl border px-4 py-2.5 text-[14px] resize-none"
+                    className="flex-1 rounded-full border px-4 py-2.5 text-[15px] resize-none"
                     style={{
                       background: "#fbfbfc",
                       borderColor: "var(--border,#eceef3)",
-                      minHeight: 42,
+                      minHeight: 44,
                       maxHeight: 120,
                       fontFamily: "'Plus Jakarta Sans', system-ui",
                       outline: "none",
@@ -1451,7 +1450,7 @@ export default function ChatsPage() {
       {/* Mobile context sheet */}
       {canShowContext && (
         <Sheet open={showContextPanel} onOpenChange={setShowContextPanel}>
-          <SheetContent side="bottom" className="max-h-[82vh] rounded-t-2xl overflow-hidden p-0 flex flex-col">
+          <SheetContent side="bottom" className="max-h-[82vh] rounded-t-[20px] overflow-hidden p-0 flex flex-col">
             <div className="flex justify-center pt-2.5 pb-1 flex-shrink-0">
               <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>

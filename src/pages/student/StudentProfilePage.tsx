@@ -110,20 +110,20 @@ export default function StudentProfilePage() {
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="space-y-1.5">
                   <Label htmlFor="fn">{t("common.name")}</Label>
-                  <Input id="fn" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-12 rounded-[12px]" />
+                  <Input id="fn" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-11 rounded-[12px] text-[15px]" />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="ln">{t("studentPages.lastNameLabel")}</Label>
-                  <Input id="ln" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-12 rounded-[12px]" />
+                  <Input id="ln" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-11 rounded-[12px] text-[15px]" />
                 </div>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="ph">{t("studentPages.phoneLabel")}</Label>
-                <Input id="ph" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-12 rounded-[12px]" />
+                <Input id="ph" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>
-                <Input value={user?.email ?? ""} disabled className="h-12 rounded-[12px]" />
+                <Input value={user?.email ?? ""} disabled className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <button onClick={save} disabled={saving}
                 style={{ width: "100%", height: 48, borderRadius: 13, border: "none", cursor: saving ? "default" : "pointer",
@@ -138,8 +138,8 @@ export default function StudentProfilePage() {
             <GoogleCalendarCard />
 
             <button onClick={signOut}
-              style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "0 18px", borderRadius: 12, cursor: "pointer",
-                border: `1.5px solid ${C.border}`, background: C.surface, color: C.ink, fontFamily: C.display, fontWeight: 600, fontSize: 14 }}>
+              style={{ display: "flex", width: "100%", alignItems: "center", justifyContent: "center", gap: 8, height: 50, borderRadius: 14, cursor: "pointer",
+                border: `1.5px solid ${C.border}`, background: C.surface, color: "#e0552f", fontFamily: C.display, fontWeight: 600, fontSize: 14 }}>
               <LogOut className="h-4 w-4" />
               {t("common.logout")}
             </button>

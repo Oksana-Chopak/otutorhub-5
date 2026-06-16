@@ -884,7 +884,7 @@ export default function MyStudentsPage() {
         <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
           {/* Drag handle (mobile) */}
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-            <div className="w-9 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
+            <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
           </div>
           {(() => {
             const F = {
@@ -999,13 +999,13 @@ export default function MyStudentsPage() {
                           background: "#f0fdf9", color: F.tealD, boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)",
                           fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
                           {s}
-                          <button type="button" onClick={() => setSubjects(subjList.filter((x) => x !== s))} aria-label="✕"
+                          <button type="button" onClick={() => setSubjects(subjList.filter((x) => x !== s))} aria-label={`${t("myStudents.removeSubjectAria") || "Remove"} ${s}`}
                             style={{ width: 20, height: 20, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(43,191,170,.18)", color: F.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <X size={12} strokeWidth={2.4} />
                           </button>
                         </span>
                       ))}
-                      <button type="button" onClick={() => { setSubjectOpen((v) => !v); setSubjectDraft(""); }}
+                      <button type="button" onClick={() => { setSubjectOpen((v) => !v); setSubjectDraft(""); }} aria-label={t("myStudents.addSubjectBtn")}
                         style={{ display: "inline-flex", alignItems: "center", gap: 5, height: 38, padding: subjList.length ? "0 12px" : "0 15px 0 12px", borderRadius: 999, cursor: "pointer",
                           border: `1.5px ${subjectOpen ? "solid" : "dashed"} ${subjectOpen ? F.teal : F.border}`,
                           background: subjectOpen ? "#f0fdf9" : "#fff", color: subjectOpen ? F.tealD : F.sub,
@@ -1099,18 +1099,18 @@ export default function MyStudentsPage() {
                       onChange={(e) => setForm({ ...form, tutor_notes: e.target.value })}
                       onFocus={(e) => { e.target.style.borderColor = "#F5B544"; e.target.style.boxShadow = "0 0 0 3px rgba(245,181,68,.16)"; e.target.style.background = "#fff"; }}
                       onBlur={(e) => { e.target.style.borderColor = "rgba(245,181,68,.35)"; e.target.style.boxShadow = "none"; e.target.style.background = "#FFFCF4"; }}
-                      style={{ width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 15.5, fontFamily: F.body, color: F.txt, boxSizing: "border-box", outline: "none", resize: "none", lineHeight: 1.5, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)", transition: "all .15s" }} />
+                      style={{ width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 16, fontFamily: F.body, color: F.txt, boxSizing: "border-box", outline: "none", resize: "none", lineHeight: 1.5, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)", transition: "all .15s" }} />
                   </div>
                 </div>
 
                 {/* ── Footer ── */}
                 <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 10 }}>
                   <button type="button" onClick={close}
-                    style={{ height: 52, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                    style={{ height: 50, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
                     {t("myStudents.cancelBtn")}
                   </button>
                   <button type="button" onClick={submit} disabled={submitting}
-                    style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
+                    style={{ flex: 1, height: 50, borderRadius: 14, border: "none",
                       background: submitting ? F.muted : "linear-gradient(135deg,#2BBFAA,#25a896)",
                       cursor: submitting ? "not-allowed" : "pointer",
                       fontFamily: F.display, fontWeight: 700, fontSize: 16, color: "#0f0f1a",

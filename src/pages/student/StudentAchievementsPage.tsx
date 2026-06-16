@@ -41,7 +41,7 @@ export default function StudentAchievementsPage() {
             </CardHeader>
             <CardContent>
               {earnedAchievements === 0 && (
-                <p className="mb-4 rounded-xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
+                <p className="mb-4 rounded-[14px] bg-muted/40 p-4 text-center text-sm text-muted-foreground">
                   {t("studentAchievements.empty")}
                 </p>
               )}

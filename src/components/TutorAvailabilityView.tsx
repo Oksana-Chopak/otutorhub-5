@@ -117,20 +117,20 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-11 w-11"
               onClick={() => setWeekOffset((v) => Math.max(0, v - 1))}
               disabled={weekOffset === 0}
             >
-              <ChevronLeft className="h-3.5 w-3.5" />
+              <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-11 w-11"
               onClick={() => setWeekOffset((v) => Math.min(1, v + 1))}
               disabled={weekOffset === 1}
             >
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         ) : null}
@@ -174,7 +174,7 @@ export function TutorAvailabilityView({ tutorId, tutorName }: TutorCalendarProps
                     slots.map((s) => (
                       <div
                         key={s.start}
-                        className="w-full text-[13px] font-mono rounded bg-primary/10 text-primary px-1 py-0.5"
+                        className="w-full text-[13px] font-mono rounded-[8px] bg-primary/10 text-primary px-1 py-0.5"
                         title={`${minutesToHHMM(s.start)} — ${minutesToHHMM(s.end)}`}
                       >
                         {minutesToHHMM(s.start)}

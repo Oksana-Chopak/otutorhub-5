@@ -64,7 +64,7 @@ export default function JoinPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-4 py-8">
       <Card className="w-full max-w-md overflow-hidden rounded-[20px] shadow-xl border-0">
         <div className="rounded-t-[20px] p-6 text-white" style={{background:"linear-gradient(135deg,#0f0f1a 0%,#1a1a3e 100%)"}}>
-          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl" style={{background:"var(--teal,#2BBFAA)"}}>
+          <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-[16px]" style={{background:"var(--teal,#2BBFAA)"}}>
             <Gift className="h-7 w-7 text-white" />
           </div>
           <h1 className="mb-1 text-2xl font-extrabold">{t("join.inviteTitle", { name: referrerName })}</h1>
@@ -88,7 +88,7 @@ export default function JoinPage() {
           </div>
           <Button
             onClick={() => navigate(`/auth?signup=1`)}
-            className="h-[52px] w-full rounded-[14px] text-[16px] font-semibold"
+            className="h-[50px] w-full rounded-[14px] text-[16px] font-semibold"
             style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}
           >
             {t("join.cta")}

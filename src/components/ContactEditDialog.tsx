@@ -199,9 +199,9 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+      <DialogContent className="max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div style={{ minWidth: 0 }}>
@@ -317,7 +317,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
           <Button variant="outline" className="h-11 rounded-[12px] border-[0.5px]" onClick={() => onOpenChange(false)} disabled={saving}>
             {t("common.cancel")}
           </Button>
-          <Button onClick={save} disabled={saving} className="h-11 w-full rounded-[12px] text-[15px] font-semibold sm:w-auto" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
+          <Button onClick={save} disabled={saving} className="h-[50px] w-full rounded-[14px] text-[16px] font-semibold sm:w-auto" style={{background:"var(--teal,#2BBFAA)",color:"#0f0f1a"}}>
             {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             {t("common.save")}
           </Button>

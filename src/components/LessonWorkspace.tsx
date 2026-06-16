@@ -425,7 +425,7 @@ export function LessonWorkspace({
     <div className="grid gap-4 md:grid-cols-2">
       {/* 0. Primary CTA — mark lesson as completed */}
       {canMarkCompleted && statusLocal === "scheduled" && (
-        <section className="rounded-lg border border-primary/30 bg-primary/5 p-4 md:col-span-2">
+        <section className="rounded-[16px] border border-primary/30 bg-primary/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.notCompleted")}</div>
@@ -443,7 +443,7 @@ export function LessonWorkspace({
 
       {/* 0b. Post-completion nudge to record payment */}
       {canMarkCompleted && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && (
-        <section className="rounded-lg border border-warning/30 bg-warning/5 p-4 md:col-span-2">
+        <section className="rounded-[16px] border border-warning/30 bg-warning/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.studentPaidQuestion")}</div>
@@ -461,14 +461,14 @@ export function LessonWorkspace({
 
       {/* 0c. Hub tutor info — payment is handled by manager */}
       {isTutor && source === "hub" && statusLocal === "completed" && (
-        <section className="rounded-lg border border-border bg-muted/30 p-3 md:col-span-2 text-[13px] text-muted-foreground">
+        <section className="rounded-[16px] border border-border bg-muted/30 p-3 md:col-span-2 text-[13px] text-muted-foreground">
           {t("lessonWorkspaceExtra.hubPaymentInfo")}
         </section>
       )}
 
 
       {canTogglePayment && (
-        <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+        <section className="rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <Banknote className="h-4 w-4 text-primary" />
@@ -845,7 +845,7 @@ export function LessonWorkspace({
       )}
 
       {/* 5. Attachments */}
-      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+      <section className="rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
         <LessonAttachments lessonId={lessonId} tutorId={tutorId} studentId={studentId} />
       </section>
 
@@ -860,7 +860,7 @@ export function LessonWorkspace({
 
       {/* 5b. Lesson feedback (student rating) — only for completed lessons */}
       {isTutor && statusLocal === "completed" && (
-        <section className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
           <p className="text-sm text-muted-foreground">
             {t("requestReview.tutorHint") || "Попросіть учня залишити відгук про цей урок 🌟"}
           </p>

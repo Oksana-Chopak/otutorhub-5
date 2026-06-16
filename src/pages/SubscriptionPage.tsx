@@ -337,7 +337,7 @@ export default function SubscriptionPage() {
 
           {/* ── iOS StoreKit (App Store IAP через RevenueCat) ───────────── */}
           {!isActive && iosApp && (
-            <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+            <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearly") }]).map((o) => {
@@ -357,7 +357,7 @@ export default function SubscriptionPage() {
                 {t("subscriptionPageExtra.subscribeBtn")}
               </button>
               <button onClick={handleIapRestore} disabled={iapBusy !== null}
-                style={{ width: "100%", height: 40, marginTop: 8, borderRadius: 11, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 {iapBusy === "restore" && <Loader2 size={15} className="animate-spin" />}
                 {t("subscriptionPageExtra.restorePurchases")}
               </button>
@@ -369,7 +369,7 @@ export default function SubscriptionPage() {
 
           {/* ── Path 1 — pay (прихована в iOS-збірці: App Store 3.1.1) ──── */}
           {!isActive && !iosApp && (
-            <div style={{ borderRadius: 20, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+            <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                 <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</span>
                 <span>
@@ -403,7 +403,7 @@ export default function SubscriptionPage() {
           )}
 
           {/* ── Path 2 — invite ──────────────────────────────────────────── */}
-          <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${tealRing}` }}>
+          <div style={{ borderRadius: 16, padding: 16, background: "linear-gradient(135deg, rgba(43,191,170,.12), transparent)", border: `1px solid ${tealRing}` }}>
             <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, background: S.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: S.shadowTeal, flexShrink: 0 }}>
                 <Heart size={21} />
@@ -413,7 +413,7 @@ export default function SubscriptionPage() {
                 <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{iosApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
               </div>
             </div>
-            <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 46, borderRadius: 13, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <Share2 size={18} /> {t("subscriptionPageExtra.inviteBtn")}
             </button>
           </div>
@@ -438,7 +438,7 @@ export default function SubscriptionPage() {
 
           {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
           {!isActive && !iosApp && (
-            <div style={{ borderRadius: 18, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
+            <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Headset size={18} />
@@ -446,7 +446,7 @@ export default function SubscriptionPage() {
                 <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>{t("subscriptionPageExtra.cardNotWorkingTitle")}</div></div>
               </div>
               <div style={{ fontSize: 13, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>{t("subscriptionPageExtra.cardNotWorkingDesc")}</div>
-              <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 46, borderRadius: 13, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 44, borderRadius: 12, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
               </button>
 

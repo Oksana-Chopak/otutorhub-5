@@ -68,7 +68,7 @@ export default function StudentHomeworkPage() {
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff" }}>
+          <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
             <div style={{ fontSize: 38 }}>📚</div>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noHomeworkTitle")}</p>
             <p style={{ fontSize: 14, color: "#6b7088", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>

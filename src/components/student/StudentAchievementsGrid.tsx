@@ -25,7 +25,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
           <div
             key={def.key}
             className={cn(
-              "relative flex flex-col items-center gap-1 rounded-2xl border p-3 text-center transition-all",
+              "relative flex flex-col items-center gap-1 rounded-[18px] border p-3 text-center transition-all",
               earned
                 ? "border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 shadow-sm hover:scale-105"
                 : "border-dashed border-border bg-muted/30 opacity-60",
@@ -37,14 +37,14 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                 <Lock className="h-3 w-3" />
               </span>
             )}
-            <div className={cn("text-3xl", earned ? "animate-bounce-soft" : "grayscale")}>{def.emoji}</div>
-            <div className="text-[12px] font-medium leading-tight text-foreground">{t(def.nameKey)}</div>
+            <div className={cn("text-3xl", earned ? "animate-bounce-soft" : "opacity-50")}>{def.emoji}</div>
+            <div className="text-[12px] font-extrabold leading-tight text-foreground">{t(def.nameKey)}</div>
             {showProgress && (
               <div className="mt-0.5 w-full">
-                <div className="h-1 overflow-hidden rounded-full bg-border">
-                  <div className="h-full rounded-full bg-primary/60" style={{ width: `${pct}%` }} />
+                <div className="h-1.5 overflow-hidden rounded-full bg-border">
+                  <div className="h-full rounded-full bg-gradient-to-r from-primary to-primary/80" style={{ width: `${pct}%` }} />
                 </div>
-                <div className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">{current}/{target}</div>
+                <div className="mt-0.5 text-xs tabular-nums text-muted-foreground">{current}/{target}</div>
               </div>
             )}
           </div>

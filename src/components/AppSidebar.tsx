@@ -196,7 +196,7 @@ export function AppSidebar() {
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    "relative flex items-center gap-3 rounded-xl px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
+                    "relative flex items-center gap-3 rounded-[12px] px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
                     isActive
                       ? "bg-[rgba(43,191,170,0.13)] text-[#2BBFAA]"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -232,7 +232,7 @@ export function AppSidebar() {
           <button
             type="button"
             onClick={() => setSidebarCollapsed(prev => !prev)}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-[10px] text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
             title={sidebarCollapsed ? t("nav.expandSidebar") : t("nav.collapseSidebar")}
           >
             {sidebarCollapsed
@@ -253,7 +253,7 @@ export function AppSidebar() {
                 setOpen(false);
                 navigate("/onboarding");
               }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+              className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
             >
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
@@ -273,7 +273,7 @@ export function AppSidebar() {
               setOpen(false);
               setFeedbackOpen(true);
             }}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span>{t("feedback.btn")}</span>

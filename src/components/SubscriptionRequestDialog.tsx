@@ -138,10 +138,7 @@ export function SubscriptionRequestDialog({
               <CheckCircle2 className="h-4 w-4" />
               <span className="font-medium">{t("subscriptionDialog.alreadySent")}</span>
             </div>
-            <p className="text-muted-foreground">
-              Менеджер уже отримав ваш запит і скоро з вами зв'яжеться. Дублювати
-              не потрібно.
-            </p>
+            <p className="text-muted-foreground">{t("subscriptionDialog.alreadySentDesc")}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -211,12 +208,12 @@ export function SubscriptionRequestDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Закрити
+            {t("common.close")}
           </Button>
           {!existingPending && (
             <Button onClick={submit} disabled={submitting || checking}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Надіслати запит
+              {t("subscriptionDialog.submit")}
             </Button>
           )}
         </DialogFooter>

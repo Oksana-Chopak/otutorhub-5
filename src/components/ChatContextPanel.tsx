@@ -153,8 +153,8 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
 
       {loading ? (
         <div className="space-y-3">
-          <Skeleton className="h-20 w-full rounded-xl" />
-          <Skeleton className="h-16 w-full rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-[16px]" />
+          <Skeleton className="h-16 w-full rounded-[16px]" />
         </div>
       ) : (
         <>
@@ -193,7 +193,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
             </div>
           )}
 
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
+          <div className="rounded-[16px] border border-border bg-card overflow-hidden">
             <p className="px-3 pt-3 pb-1.5 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
               {t("chatContext.nextLesson")}
             </p>
@@ -232,7 +232,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
           </div>
 
           {unpaidCount > 0 && (
-            <div className="rounded-xl border border-warning/40 bg-warning/8 p-3">
+            <div className="rounded-[16px] border border-warning/40 bg-warning/8 p-3">
               <p className="mb-1 text-[13px] font-medium uppercase tracking-wide text-warning">
                 {t("chatContext.debt")}
               </p>
@@ -251,7 +251,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
           {lastHomework && (
             <Link
               to={`/schedule?lesson=${lastHomework.id}`}
-              className="block rounded-xl border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
+              className="block rounded-[16px] border border-border bg-card p-3 hover:bg-muted/40 transition-colors"
             >
               <p className="mb-1.5 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
                 {t("chatContext.lastHomework")}

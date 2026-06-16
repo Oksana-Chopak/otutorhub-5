@@ -913,7 +913,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="max-w-full overflow-visible text-[17px] font-bold text-foreground">
+              <p className="max-w-full overflow-visible text-[18px] font-bold text-foreground">
                 {fullName(u)}
               </p>
               {u.is_pending && (
@@ -941,7 +941,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             </div>
             {/* Collapsed: show subject·rate for tutors, subject for students, email only for pending */}
             {!isExpanded && (
-              <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub, #6b7088)" }}>
+              <p className="mt-0.5 text-[15px]" style={{ color: "var(--sub, #6b7088)" }}>
                 {u.is_pending
                   ? (u.email || u.phone || "")
                   : u.role === "tutor" && u.subjects && u.subjects.length > 0
@@ -966,7 +966,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       { v: u.telegram, label: "telegram" },
                     ].filter((c) => !!c.v).map((c) => (
                       <span key={c.label} className="flex items-center gap-1.5 min-w-0">
-                        <span className="truncate text-[13px]" style={{ color: "#6b7088" }}>{c.v}</span>
+                        <span className="truncate text-[15px]" style={{ color: "#6b7088" }}>{c.v}</span>
                         <button
                           type="button"
                           aria-label={t("people.copyAriaLabel")}
@@ -989,7 +989,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {u.subjects.map((s) => {
                       const r = tutorSubjectRates[u.id]?.[s];
                       return (
-                        <p key={s} className="break-words text-[13px] text-muted-foreground">
+                        <p key={s} className="break-words text-[15px] text-muted-foreground">
                           <span className="text-foreground">{s}</span>
                           {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
                         </p>
@@ -1005,13 +1005,13 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           {canChat && (
             <button
               type="button"
-              className="flex h-[38px] w-[38px] flex-shrink-0 items-center justify-center rounded-[12px] transition-transform active:scale-95"
-              style={{ background: "#f0fdf9", boxShadow: "inset 0 0 0 1.5px rgba(43,191,170,.4)", color: "#1f8e7e" }}
+              className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-transform active:scale-95"
+              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", color: "#0f0f1a" }}
               onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
               title={t("people.writeBtn")}
               aria-label={t("people.writeBtn")}
             >
-              <MessageSquare className="h-[18px] w-[18px]" />
+              <MessageCircle className="h-[21px] w-[21px]" />
             </button>
           )}
           {isExpanded && isManager && (
@@ -1099,7 +1099,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {!loading && (
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           {searchOpen ? (
-            <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "0.5px solid var(--border, #f0f1f5)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "#6b7088", flexShrink: 0 }} />
               <input
                 autoFocus
@@ -1129,7 +1129,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           >
             <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder={t("people.allSubjects")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1144,7 +1144,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             </div>
             <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1173,7 +1173,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               <button
                 key={tab}
                 onClick={() => setActiveRoleTab(tab)}
-                className="flex-1 pb-2.5 pt-2 text-[13px] font-medium transition-colors"
+                className="flex-1 pb-2.5 pt-2 text-[14px] transition-colors"
                 style={{
                   fontFamily: "Inter, system-ui, sans-serif",
                   fontSize: 14,
@@ -1207,10 +1207,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 height: 34,
                 fontFamily: "Inter, system-ui, sans-serif",
                 fontWeight: 700,
-                fontSize: 13,
-                background: statusFilter === pill.value ? "#f0fdf9" : "#fff",
+                fontSize: 14,
+                background: statusFilter === pill.value ? "#E1F5EE" : "#fff",
                 border: `1.5px solid ${statusFilter === pill.value ? "#2BBFAA" : "#eceef3"}`,
-                color: statusFilter === pill.value ? "#1f8e7e" : "#9398b0",
+                color: statusFilter === pill.value ? "#0F6E56" : "#9398b0",
               }}
             >
               {pill.label}
@@ -1260,16 +1260,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
       {/* Tutor rate dialog */}
       <Dialog open={tutorDialog.open} onOpenChange={(o) => setTutorDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+            <div className="h-1 w-9 rounded-full bg-border" />
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogTutorRateTitle")}</div>
               <div style={{ fontSize: 13, color: "#6b7088", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogTutorRateDesc")}</div>
             </div>
-            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))} aria-label="✕"
+            <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
               style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
@@ -1326,7 +1326,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
             {tutorDialog.userId && <PayoutScheduleCard tutorId={tutorDialog.userId} />}
           </div>
-          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "#fff", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setTutorDialog((s) => ({ ...s, open: false }))}
               style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
@@ -1341,16 +1341,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
       {/* Student price dialog */}
       <Dialog open={studentDialog.open} onOpenChange={(o) => setStudentDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+            <div className="h-1 w-9 rounded-full bg-border" />
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogStudentPriceTitle")}</div>
               <div style={{ fontSize: 13, color: "#6b7088", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogStudentPriceDesc")}</div>
             </div>
-            <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))} aria-label="✕"
+            <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
               style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
@@ -1404,7 +1404,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               </div>
             </div>
           </div>
-          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "#fff", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setStudentDialog((s) => ({ ...s, open: false }))}
               style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
@@ -1422,16 +1422,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         open={addTutorToStudent.open}
         onOpenChange={(o) => setAddTutorToStudent((s) => ({ ...s, open: o }))}
       >
-        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-            <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+            <div className="h-1 w-9 rounded-full bg-border" />
           </div>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
             <div style={{ minWidth: 0 }}>
               <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogAddTutorTitle")}</div>
               <div style={{ fontSize: 13, color: "#6b7088", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddTutorDesc", { name: addTutorToStudent.studentName })}</div>
             </div>
-            <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))} aria-label="✕"
+            <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))} aria-label={t("common.close")}
               style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
@@ -1552,7 +1552,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               );
             })()}
           </div>
-          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+          <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "#fff", display: "flex", gap: 10 }}>
             <button type="button" onClick={() => setAddTutorToStudent((s) => ({ ...s, open: false }))}
               style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
               {t("people.cancelBtn")}
@@ -1599,16 +1599,16 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       {/* ── PERSON BOTTOM SHEET ─────────────────────────────────────── */}
       {isManager && (
       <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+            <DialogContent className="w-full max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
               <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-                <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+                <div className="h-1 w-9 rounded-full bg-border" />
               </div>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("people.dialogAddTitle")}</div>
                   <div style={{ fontSize: 13, color: "#6b7088", marginTop: 2, lineHeight: 1.4 }}>{t("people.dialogAddDesc")}</div>
                 </div>
-                <button type="button" onClick={() => setAddOpen(false)} aria-label="✕"
+                <button type="button" onClick={() => setAddOpen(false)} aria-label={t("common.close")}
                   style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <X size={18} />
                 </button>
@@ -1686,7 +1686,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   </div>
                 )}
               </div>
-              <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "1px solid #eceef3", background: "#fff", display: "flex", gap: 10 }}>
+              <div style={{ flexShrink: 0, padding: "12px 20px 18px", borderTop: "0.5px solid var(--border, #f0f1f5)", background: "#fff", display: "flex", gap: 10 }}>
                 <button type="button" onClick={() => setAddOpen(false)} disabled={adding}
                   style={{ height: 50, padding: "0 18px", borderRadius: 14, border: "1px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                   {t("people.cancelBtn")}
@@ -1772,7 +1772,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[18px] font-semibold leading-tight text-foreground truncate">
+                    <p className="text-[22px] font-extrabold leading-tight text-foreground truncate">
                       {fullName(u)}
                     </p>
                     <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
@@ -1833,7 +1833,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {u.phone && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                     <Phone className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#6b7088)" }} />
-                    <span className="flex-1 text-[14px] text-foreground">{u.phone}</span>
+                    <span className="flex-1 text-[15px] text-foreground">{u.phone}</span>
                     <button
                       type="button"
                       aria-label={t("people.copyAriaLabel")}
@@ -1848,7 +1848,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 {u.email && (
                   <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
                     <Mail className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#6b7088)" }} />
-                    <span className="flex-1 text-[14px] text-foreground truncate">{u.email}</span>
+                    <span className="flex-1 text-[15px] text-foreground truncate">{u.email}</span>
                     <button
                       type="button"
                       aria-label={t("people.copyAriaLabel")}
@@ -1874,7 +1874,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           </p>
                         );
                       })}
-                      <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
+                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
                         {t("people.subjectRateHint")}
                       </p>
                     </div>
@@ -1924,7 +1924,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           )}
                         </div>
                       ))}
-                      <p className="text-[13px] mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
+                      <p className="text-sm mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
                         {t("people.subjectRateHint")}
                       </p>
                     </div>

@@ -1322,7 +1322,7 @@ export default function DashboardPage() {
             <div className="mb-4" style={{ position: "relative", borderRadius: 18, padding: "14px 44px 14px 16px",
               background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.45)" }}>
               <button onClick={() => { setTrialBannerHidden(true); if (trialBannerKey) localStorage.setItem(trialBannerKey, "1"); }}
-                aria-label="✕" style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: 9,
+                aria-label="Закрити" style={{ position: "absolute", top: 10, right: 10, width: 44, height: 44, borderRadius: 9,
                   border: "none", background: "rgba(154,106,18,.12)", color: "#9a6a12", cursor: "pointer" }}>✕</button>
               <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15.5, color: "#7a5a14" }}>
                 ⏳ Пробний період закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
@@ -1528,7 +1528,7 @@ export default function DashboardPage() {
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
                   </div>
-                  <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
@@ -1536,7 +1536,7 @@ export default function DashboardPage() {
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardStudentsSub") || "активних"}</p>
                   </div>
-                  <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
@@ -1544,7 +1544,7 @@ export default function DashboardPage() {
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
                   </div>
-                  <span style={{ color: "var(--border,#eceef3)", fontSize: "20px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
               </div>
               {/* Desktop lg: all 4 in one row */}
@@ -1569,7 +1569,7 @@ export default function DashboardPage() {
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
-                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
@@ -1577,7 +1577,7 @@ export default function DashboardPage() {
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
-                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
@@ -1585,7 +1585,7 @@ export default function DashboardPage() {
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
-                  <span style={{ color: "var(--border)", fontSize: "18px" }}>›</span>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
               </div>
             </>
@@ -1596,9 +1596,9 @@ export default function DashboardPage() {
             <TopTutorBadge percentile={topPercentile} />
           )}
           {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (
-            <div className="flex items-start justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+            <div className="flex items-start justify-between gap-3 rounded-[16px] border border-primary/30 bg-primary/5 p-4">
               <div className="flex items-start gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-primary/15 text-primary">
                   <HandHeart className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
@@ -1616,7 +1616,7 @@ export default function DashboardPage() {
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 shrink-0"
+                className="h-11 w-11 shrink-0"
                 aria-label="Прибрати нагадування"
                 onClick={() => {
                   localStorage.removeItem(`pending_invite_reminder_${user.id}`);
@@ -1625,7 +1625,7 @@ export default function DashboardPage() {
                   loadData();
                 }}
               >
-                ×
+                <X className="h-4 w-4" />
               </Button>
             </div>
           )}
@@ -1713,7 +1713,7 @@ export default function DashboardPage() {
               {pendingPayments.length === 0 ? (
                 /* Empty state — all paid */
                 <div
-                  className="flex flex-col items-center gap-3 rounded-[18px] bg-white px-5 py-7 text-center"
+                  className="flex flex-col items-center gap-3 rounded-[16px] bg-white px-5 py-7 text-center"
                   style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
                 >
                   <span className="text-3xl">☀️</span>
@@ -1769,7 +1769,7 @@ export default function DashboardPage() {
           <div className="grid gap-5 md:grid-cols-2 md:gap-6">
             <section className="order-1 min-w-0">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[14px] font-bold uppercase tracking-[0.05em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
+                <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                   {isIndependentTutor
                     ? `🗓️ ${"Сьогодні"} · ${todayLessons.length} ${"урок".slice(0, todayLessons.length === 1 ? 5 : todayLessons.length < 5 ? 5 : 6)}`
                     : t("dashboard.upcomingLessons")}
@@ -1785,7 +1785,7 @@ export default function DashboardPage() {
               <div className={`space-y-2.5 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div
-                    className="flex flex-col items-center gap-3 rounded-[18px] bg-white px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                    className="flex flex-col items-center gap-3 rounded-[16px] bg-white px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                   >
                     <span className="text-3xl">☀️</span>
                     <div>
@@ -1890,7 +1890,7 @@ export default function DashboardPage() {
             </section>
 
             <section className="order-2 min-w-0">
-              <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.07em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
+              <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
 
@@ -1898,7 +1898,7 @@ export default function DashboardPage() {
                 <div className="space-y-2.5">
                   {smartTasks.length === 0 ? (
                     <div
-                      className="rounded-[18px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                      className="rounded-[16px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                     >
                       <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                         <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
@@ -1926,7 +1926,7 @@ export default function DashboardPage() {
                       return (
                         task.payTutorId ? (
                           <div key={task.key}
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-white py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: `3.5px solid ${borderColor}` }}>
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
                               <Icon className="h-4 w-4" style={{ color: iconColor }} />
@@ -1946,7 +1946,7 @@ export default function DashboardPage() {
                         ) : (
                         <Link key={task.key} to={task.to} className="block group">
                           <div
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
                             style={{ borderLeft: `3.5px solid ${borderColor}` }}
                           >
                             <div
@@ -2008,7 +2008,7 @@ export default function DashboardPage() {
                   {isIndependentTutor && !obProgress.loading && (
                     <>
                       {pendingBonusTasks.length === 0 ? (
-                        <div className="rounded-[18px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+                        <div className="rounded-[16px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
                           <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                             <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                           </div>
@@ -2017,7 +2017,7 @@ export default function DashboardPage() {
                         </div>
                       ) : (
                         pendingBonusTasks.map((task) => (
-                          <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[18px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                          <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: "3.5px solid #2BBFAA" }}>
                             {task.action === "ai" ? (
                               <button type="button" onClick={() => setAiNotesOpen(true)} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0 text-left">
