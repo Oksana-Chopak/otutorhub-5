@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
-import { Loader2, Check, Lock, Info, SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Loader2, Check, Lock, Info, SlidersHorizontal, ChevronDown, Send, Mail, Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 type PaymentMode = "prepaid" | "before_lesson" | "after_lesson";
-type FeePercent = 0 | 10 | 25 | 50 | 100;
+type FeePercent = 0 | 50 | 100;
+type NoShowPercent = 50 | 100;
 
 interface RulesState {
   payment_reminder_enabled: boolean;
@@ -15,6 +16,10 @@ interface RulesState {
   payment_due_days: number;
   cancel_free_hours: number;
   cancel_fee_percent: FeePercent;
+  noshow_charge: NoShowPercent;
+  free_reschedules_per_month: number;
+  notify_telegram: boolean;
+  notify_email: boolean;
 }
 
 // ── Design tokens (DS — variant C "Обери політику") ───────────────────────────
@@ -34,6 +39,8 @@ interface Preset {
   desc: string;
   hours: number;
   fee: FeePercent;
+  noshow: NoShowPercent;
+  resched: number;
 }
 
 export function ProRulesCard() {
@@ -46,12 +53,22 @@ export function ProRulesCard() {
 
   useEffect(() => {
     if (!settings) return;
+    const raw = settings as unknown as Record<string, unknown>;
+    // Reconcile any legacy late-fee value (0/10/25/50/100) to the spec's 3 options.
+    const rawFee = (raw.cancel_fee_percent as number) ?? 0;
+    const fee: FeePercent = rawFee >= 75 ? 100 : rawFee >= 25 ? 50 : 0;
+    const rawNoshow = (raw.noshow_charge as number) ?? 100;
+    const noshow: NoShowPercent = rawNoshow <= 50 ? 50 : 100;
     setState({
-      payment_reminder_enabled: (settings as unknown as Record<string, unknown>).payment_reminder_enabled as boolean ?? true,
-      payment_due_mode: ((settings as unknown as Record<string, unknown>).payment_due_mode as PaymentMode) ?? "before_lesson",
-      payment_due_days: (settings as unknown as Record<string, unknown>).payment_due_days as number ?? 1,
-      cancel_free_hours: (settings as unknown as Record<string, unknown>).cancel_free_hours as number ?? 24,
-      cancel_fee_percent: ((settings as unknown as Record<string, unknown>).cancel_fee_percent as FeePercent) ?? 0,
+      payment_reminder_enabled: raw.payment_reminder_enabled as boolean ?? true,
+      payment_due_mode: (raw.payment_due_mode as PaymentMode) ?? "before_lesson",
+      payment_due_days: raw.payment_due_days as number ?? 1,
+      cancel_free_hours: raw.cancel_free_hours as number ?? 24,
+      cancel_fee_percent: fee,
+      noshow_charge: noshow,
+      free_reschedules_per_month: Math.max(0, (raw.free_reschedules_per_month as number) ?? 0),
+      notify_telegram: raw.notify_telegram as boolean ?? true,
+      notify_email: raw.notify_email as boolean ?? false,
     });
   }, [settings]);
 
@@ -66,15 +83,26 @@ export function ProRulesCard() {
   const disabled = !isPro && !isTrial;
 
   const PRESETS: Preset[] = [
-    { k: "flex", emoji: "🌿", title: t("proRulesCard.presetFlexTitle") || "Гнучка", desc: t("proRulesCard.presetFlexDesc") || "Безкоштовно за 6 год · пізніше 0% · м'яко до учнів", hours: 6, fee: 0 },
-    { k: "standard", emoji: "⚖️", title: t("proRulesCard.presetStandardTitle") || "Стандартна", desc: t("proRulesCard.presetStandardDesc") || "Безкоштовно за 24 год · пізніше 50%", hours: 24, fee: 50 },
-    { k: "strict", emoji: "🔒", title: t("proRulesCard.presetStrictTitle") || "Сувора", desc: t("proRulesCard.presetStrictDesc") || "Безкоштовно за 48 год · пізніше 100%", hours: 48, fee: 100 },
+    { k: "flex", emoji: "🌿", title: t("proRulesCard.presetFlexTitle"), desc: t("proRulesCard.presetFlexDesc"), hours: 6, fee: 0, noshow: 50, resched: 3 },
+    { k: "standard", emoji: "⚖️", title: t("proRulesCard.presetStandardTitle"), desc: t("proRulesCard.presetStandardDesc"), hours: 24, fee: 100, noshow: 100, resched: 2 },
+    { k: "strict", emoji: "🔒", title: t("proRulesCard.presetStrictTitle"), desc: t("proRulesCard.presetStrictDesc"), hours: 48, fee: 100, noshow: 100, resched: 0 },
   ];
-  const activePreset = PRESETS.find((p) => p.hours === state.cancel_free_hours && p.fee === state.cancel_fee_percent) ?? null;
+  const activePreset = PRESETS.find((p) =>
+    p.hours === state.cancel_free_hours &&
+    p.fee === state.cancel_fee_percent &&
+    p.noshow === state.noshow_charge &&
+    p.resched === state.free_reschedules_per_month,
+  ) ?? null;
 
   const applyPreset = (p: Preset) => {
     if (disabled) return;
-    setState((s) => s && { ...s, cancel_free_hours: p.hours, cancel_fee_percent: p.fee });
+    setState((s) => s && {
+      ...s,
+      cancel_free_hours: p.hours,
+      cancel_fee_percent: p.fee,
+      noshow_charge: p.noshow,
+      free_reschedules_per_month: p.resched,
+    });
   };
 
   const set = <K extends keyof RulesState>(k: K, v: RulesState[K]) =>
@@ -84,19 +112,38 @@ export function ProRulesCard() {
     const feeTxt = state.cancel_fee_percent === 0
       ? t("proRulesCard.summaryFeeFree")
       : t("proRulesCard.summaryFeePaid", { percent: state.cancel_fee_percent });
-    return t("proRulesCard.summaryText", { hours: state.cancel_free_hours, feeTxt });
+    const base = t("proRulesCard.summaryText", { hours: state.cancel_free_hours, feeTxt });
+    const noshow = state.noshow_charge === 100
+      ? t("proRulesCard.summaryNoshowFull")
+      : t("proRulesCard.summaryNoshowHalf");
+    const resched = t("proRulesCard.summaryReschedules", { count: state.free_reschedules_per_month });
+    const notify = state.notify_telegram || state.notify_email
+      ? t("proRulesCard.summaryNotify", {
+          channels: state.notify_telegram && state.notify_email
+            ? t("proRulesCard.channelsBoth")
+            : state.notify_telegram
+              ? t("proRulesCard.channelTelegram")
+              : t("proRulesCard.channelEmail"),
+        })
+      : t("proRulesCard.summaryNotifyOff");
+    return `${base} ${noshow} ${resched} ${notify}`;
   };
 
   const save = async () => {
     setSaving(true);
     const days = Math.max(0, Math.min(30, state.payment_due_days || 0));
     const hours = Math.max(0, Math.min(168, state.cancel_free_hours || 0));
+    const reschedules = Math.max(0, Math.min(31, state.free_reschedules_per_month || 0));
     const error = await updateSettings({
       payment_reminder_enabled: state.payment_reminder_enabled,
       payment_due_mode: state.payment_due_mode,
       payment_due_days: days,
       cancel_free_hours: hours,
       cancel_fee_percent: state.cancel_fee_percent,
+      noshow_charge: state.noshow_charge,
+      free_reschedules_per_month: reschedules,
+      notify_telegram: state.notify_telegram,
+      notify_email: state.notify_email,
       payment_rules_configured: true,
     } as never);
     setSaving(false);
@@ -215,7 +262,7 @@ export function ProRulesCard() {
               {t("proRulesCard.lateCancelHint", { hours: state.cancel_free_hours, percent: state.cancel_fee_percent })}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
-              {([0, 10, 25, 50, 100] as FeePercent[]).map((p) => {
+              {([100, 50, 0] as FeePercent[]).map((p) => {
                 const on = state.cancel_fee_percent === p;
                 return (
                   <button key={p} onClick={() => set("cancel_fee_percent", p)} type="button"
@@ -225,6 +272,77 @@ export function ProRulesCard() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* No-show */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.noshowLabel")}</div>
+              <div style={{ fontSize: 14, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.noshowHint")}</div>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              {([100, 50] as NoShowPercent[]).map((p) => {
+                const on = state.noshow_charge === p;
+                return (
+                  <button key={p} onClick={() => set("noshow_charge", p)} type="button"
+                    style={{ minWidth: 56, height: 44, padding: "0 14px", borderRadius: 12, cursor: "pointer", fontFamily: C.display, fontWeight: 700, fontSize: 14,
+                      border: `1.5px solid ${on ? C.teal : C.border}`, background: on ? "rgba(43,191,170,.1)" : C.surface, color: on ? C.tealD : C.txt }}>
+                    {`${p}%`}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Free reschedules per month */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.reschedulesLabel")}</div>
+              <div style={{ fontSize: 14, color: C.sub, marginTop: 1, lineHeight: 1.4 }}>{t("proRulesCard.reschedulesHint")}</div>
+            </div>
+            <div style={{ display: "inline-flex", alignItems: "center", borderRadius: 12, border: `1px solid ${C.border}`, background: C.surface, overflow: "hidden", flexShrink: 0 }}>
+              <button type="button" aria-label={t("proRulesCard.reschedulesDecrease")}
+                onClick={() => set("free_reschedules_per_month", Math.max(0, state.free_reschedules_per_month - 1))}
+                style={{ width: 44, height: 44, border: "none", background: "transparent", cursor: "pointer", color: C.sub, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Minus size={18} />
+              </button>
+              <span style={{ minWidth: 36, textAlign: "center", fontFamily: C.display, fontWeight: 800, fontSize: 16 }}>{state.free_reschedules_per_month}</span>
+              <button type="button" aria-label={t("proRulesCard.reschedulesIncrease")}
+                onClick={() => set("free_reschedules_per_month", Math.min(31, state.free_reschedules_per_month + 1))}
+                style={{ width: 44, height: 44, border: "none", background: "transparent", cursor: "pointer", color: C.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Plus size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Notify the student */}
+          <div>
+            <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.notifyLabel")}</div>
+            <div style={{ fontSize: 14, color: C.sub, marginTop: 1, marginBottom: 10, lineHeight: 1.4 }}>{t("proRulesCard.notifyHint")}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, minHeight: 44 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(34,158,217,.12)", color: "#229ED9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Send size={18} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15 }}>{t("proRulesCard.notifyTelegram")}</div>
+                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyTelegramSub")}</div>
+                </div>
+                <Switch checked={state.notify_telegram} disabled={disabled}
+                  onCheckedChange={(v) => set("notify_telegram", v)} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 11, minHeight: 44 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(139,92,246,.12)", color: "#7c3aed", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Mail size={18} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15 }}>{t("proRulesCard.notifyEmail")}</div>
+                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyEmailSub")}</div>
+                </div>
+                <Switch checked={state.notify_email} disabled={disabled}
+                  onCheckedChange={(v) => set("notify_email", v)} />
+              </div>
             </div>
           </div>
 

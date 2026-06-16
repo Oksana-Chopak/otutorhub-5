@@ -49,7 +49,7 @@ import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import { insertNotification } from "@/lib/notifications";
-import { isPayoutDueToday } from "@/lib/payoutSchedule";
+import { isPayoutDueToday, nextPayoutDate, type PayoutSchedule } from "@/lib/payoutSchedule";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
 import { TopTutorBadge } from "@/components/TopTutorBadge";
@@ -253,6 +253,8 @@ export default function DashboardPage() {
     navigate(`/chats?with=${data}`);
   };
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  // Hub tutor = tutor who belongs to a hub (not a manager, not independent).
+  const isHubTutor = isTutor && !isManager && !isIndependentTutor;
 
   // Student-only users belong on /student-dashboard. Redirect them out of
   // the tutor/manager dashboard immediately to avoid mixed UI.
@@ -298,6 +300,11 @@ export default function DashboardPage() {
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
+  // Hub tutor (source "hub", in a hub): own payout schedule + own per-lesson rate
+  // + count of hub students. PRIVACY: never load/derive student_price or hub margin.
+  const [hubPayoutSchedule, setHubPayoutSchedule] = useState<PayoutSchedule | null>(null);
+  const [hubRate, setHubRate] = useState<number | null>(null);
+  const [hubStudentCount, setHubStudentCount] = useState<number | null>(null);
   const [addStudentOpen, setAddStudentOpen] = useState(false);
   const [quickLessonOpen, setQuickLessonOpen] = useState(false);
   const [showDayClosed, setShowDayClosed] = useState(false);
@@ -606,6 +613,37 @@ export default function DashboardPage() {
         .eq("tutor_id", user.id)
         .eq("source", "independent");
       setMyStudentCount(count ?? 0);
+    }
+
+    // Hub tutor: own payout schedule + own per-lesson rate (tutor_details, keyed
+    // by user_id) and count of hub students. PRIVACY: tutor_details holds only the
+    // tutor's own data — no student_price / hub margin is ever touched here.
+    if (isHubTutor) {
+      try {
+        const { data: td } = await supabase
+          .from("tutor_details")
+          .select("rate_per_lesson, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (td) {
+          setHubRate(td.rate_per_lesson != null ? Number(td.rate_per_lesson) : null);
+          setHubPayoutSchedule({
+            payout_frequency: (td as any).payout_frequency ?? null,
+            payout_weekday: (td as any).payout_weekday ?? null,
+            payout_monthday: (td as any).payout_monthday ?? null,
+            payout_anchor: (td as any).payout_anchor ?? null,
+          });
+        }
+      } catch {
+        // Колонки графіка ще не створені — тихо пропускаємо.
+        setHubPayoutSchedule(null);
+      }
+      const { count } = await supabase
+        .from("student_rates")
+        .select("student_id", { count: "exact", head: true })
+        .eq("tutor_id", user.id)
+        .neq("source", "independent");
+      setHubStudentCount(count ?? 0);
     }
 
     // Top-10% calculation — compare tutor's lesson count vs all tutors this month
@@ -986,6 +1024,34 @@ export default function DashboardPage() {
     month: t("dashboardExtra.periodMonth"),
     week: t("dashboardExtra.periodWeek"),
   };
+
+  // ── Hub tutor: «До виплати від хабу» ──────────────────────────────────────
+  // Sum of the tutor's OWN tutor_payout for unpaid/pending billable lessons.
+  // PRIVACY: only tutor_payout is read here — student_price is null for hub
+  // tutors at the DB level and is never referenced.
+  const hubPayoutDue = useMemo(() => {
+    if (!isHubTutor || !user) return 0;
+    return lessons
+      .filter(
+        (l) =>
+          l.tutor_id === user.id &&
+          l.status !== "cancelled" &&
+          l.status !== "pending" &&
+          l.tutor_payout_status === "unpaid",
+      )
+      .reduce((sum, l) => sum + (Number(l.tutor_payout) || 0), 0);
+  }, [isHubTutor, lessons, user?.id]);
+
+  // Next payout date from the tutor's own schedule (null if no schedule set).
+  const hubNextPayout = useMemo(
+    () => (hubPayoutSchedule ? nextPayoutDate(hubPayoutSchedule) : null),
+    [hubPayoutSchedule],
+  );
+
+  const hubLessonsTodayCount = useMemo(() => {
+    if (!isHubTutor || !user) return 0;
+    return todayLessons.filter((l) => l.tutor_id === user.id).length;
+  }, [isHubTutor, todayLessons, user?.id]);
 
 
   const firstName = useMemo(() => {
@@ -1629,8 +1695,136 @@ export default function DashboardPage() {
               </Button>
             </div>
           )}
-          {isTutor && !isManager && !isIndependentTutor && (
-            <div className="mt-4 space-y-3">
+          {isHubTutor && (
+            <div className="mt-4 space-y-4">
+              {/* Violet hub chip — «Хаб «{hubName}»». No hub-name source in DB yet,
+                  so falls back to «Хаб» (see followups). */}
+              <div className="flex">
+                <span
+                  className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold"
+                  style={{
+                    background: "rgba(124,58,237,.12)",
+                    color: "#7c3aed",
+                    boxShadow: "inset 0 0 0 1px rgba(124,58,237,.28)",
+                  }}
+                >
+                  <GraduationCap className="h-[15px] w-[15px]" />
+                  {t("hubTutor.hubChip", { name: t("hubTutor.hubFallbackName") })}
+                </span>
+              </div>
+
+              {/* «До виплати від хабу» — dark gradient card. Money = own
+                  tutor_payout + own rate ONLY. Never student_price / hub margin. */}
+              <div
+                className="overflow-hidden rounded-[16px] p-[18px] text-white"
+                style={{
+                  background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)",
+                  boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)",
+                }}
+              >
+                <div className="flex items-start justify-between gap-2.5">
+                  <span
+                    className="text-[13px] font-bold uppercase tracking-[0.08em]"
+                    style={{ color: "rgba(255,255,255,.6)" }}
+                  >
+                    💼 {t("hubTutor.payoutDueTitle")}
+                  </span>
+                  <span
+                    className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold"
+                    style={{ background: "rgba(255,255,255,.16)", color: "#fff" }}
+                  >
+                    <GraduationCap className="h-[15px] w-[15px]" />
+                    {t("hubTutor.hubChip", { name: t("hubTutor.hubFallbackName") })}
+                  </span>
+                </div>
+                <p
+                  className="mt-3 text-[32px] font-extrabold leading-none"
+                  style={{ color: "var(--teal)", letterSpacing: "-0.02em" }}
+                >
+                  {formatPrice(hubPayoutDue, "UAH")}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2.5">
+                  <span className="text-[14px]" style={{ color: "rgba(255,255,255,.7)" }}>
+                    {hubNextPayout
+                      ? t("hubTutor.payoutOn", {
+                          date: hubNextPayout.toLocaleDateString(getLocale(), { day: "numeric", month: "long" }),
+                        })
+                      : t("hubTutor.payoutBySchedule")}
+                    {hubRate != null && hubRate > 0 && (
+                      <> · {t("hubTutor.rateLabel", { rate: formatPrice(hubRate, "UAH") })}</>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Two stat tiles: hub students + lessons today (COUNTS only) */}
+              <div className="grid grid-cols-2 gap-3">
+                <div
+                  className="rounded-[16px] border bg-white p-[15px]"
+                  style={{ borderColor: "var(--border,#eceef3)" }}
+                >
+                  <div
+                    className="mb-2 flex h-8 w-8 items-center justify-center rounded-[10px]"
+                    style={{ background: "rgba(124,58,237,.1)" }}
+                  >
+                    <GraduationCap className="h-4 w-4" style={{ color: "#7c3aed" }} />
+                  </div>
+                  <p
+                    className="text-[26px] font-extrabold leading-none"
+                    style={{ color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}
+                  >
+                    {hubStudentCount ?? 0}
+                  </p>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                    {t("hubTutor.hubStudents")}
+                  </p>
+                </div>
+                <div
+                  className="rounded-[16px] border bg-white p-[15px]"
+                  style={{ borderColor: "var(--border,#eceef3)" }}
+                >
+                  <div
+                    className="mb-2 flex h-8 w-8 items-center justify-center rounded-[10px]"
+                    style={{ background: "rgba(43,191,170,.1)" }}
+                  >
+                    <CalendarDays className="h-4 w-4" style={{ color: "var(--teal)" }} />
+                  </div>
+                  <p
+                    className="text-[26px] font-extrabold leading-none"
+                    style={{ color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}
+                  >
+                    {hubLessonsTodayCount}
+                  </p>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                    {t("hubTutor.lessonsToday")}
+                  </p>
+                </div>
+              </div>
+
+              {/* «Pro активний — від хабу» — replaces any upsell for hub tutors. */}
+              <div
+                className="flex items-center gap-3 rounded-[16px] p-[14px]"
+                style={{
+                  background: "rgba(124,58,237,.07)",
+                  border: "1px solid rgba(124,58,237,.25)",
+                }}
+              >
+                <div
+                  className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[13px]"
+                  style={{ background: "rgba(124,58,237,.14)", color: "#7c3aed" }}
+                >
+                  <Crown className="h-[22px] w-[22px]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-extrabold" style={{ color: "var(--txt,#0f0f1a)" }}>
+                    {t("hubTutor.proActiveTitle")}
+                  </p>
+                  <p className="text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                    {t("hubTutor.proActiveDesc")}
+                  </p>
+                </div>
+              </div>
+
               <PendingPaymentsCard />
               <Button
                 variant="outline"

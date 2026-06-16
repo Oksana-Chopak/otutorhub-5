@@ -1955,10 +1955,14 @@ export type Database = {
           current_plan: string | null
           custom_currencies: string[]
           daily_digest_enabled: boolean
+          free_reschedules_per_month: number
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
           marketing_opt_in: boolean
+          noshow_charge: number
+          notify_email: boolean
+          notify_telegram: boolean
           onboarding_completed: boolean
           onboarding_step: number
           payment_due_days: number
@@ -1983,10 +1987,14 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
           marketing_opt_in?: boolean
+          noshow_charge?: number
+          notify_email?: boolean
+          notify_telegram?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -2011,10 +2019,14 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
           marketing_opt_in?: boolean
+          noshow_charge?: number
+          notify_email?: boolean
+          notify_telegram?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
