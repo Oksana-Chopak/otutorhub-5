@@ -322,6 +322,43 @@ export function QuickLessonDialog({
           : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
         link: "/schedule",
       });
+
+      // TAIL D — if the tutor enabled a notify channel, also send the cancellation
+      // rules to the student as an in-app notification. Telegram/email delivery is a
+      // future edge function; this implements only the in-app channel. The cancel-rule
+      // columns may not exist in the live DB until the D migration is applied, so we
+      // read defensively (optional chaining / defaults) and simply skip when absent.
+      // Wrapped in try/catch — must NEVER block or fail lesson creation.
+      try {
+        const { data: ws } = await supabase
+          .from("tutor_workspace_settings")
+          .select(
+            "notify_telegram, notify_email, cancel_free_hours, cancel_fee_percent, noshow_charge, free_reschedules_per_month"
+          )
+          .eq("tutor_id", user.id)
+          .maybeSingle();
+        const s = (ws ?? {}) as Record<string, unknown>;
+        const notifyTelegram = (s.notify_telegram as boolean | undefined) ?? false;
+        const notifyEmail = (s.notify_email as boolean | undefined) ?? false;
+        if (notifyTelegram || notifyEmail) {
+          const rules = t("quickLessonDialog.notifCancellationRulesBody", {
+            hours: Number(s.cancel_free_hours ?? 24),
+            fee: Number(s.cancel_fee_percent ?? 50),
+            noshow: Number(s.noshow_charge ?? 100),
+            reschedules: Number(s.free_reschedules_per_month ?? 0),
+          });
+          insertNotification({
+            userId: selected.student_id,
+            type: `cancellation_rules_${created.id}`,
+            title: t("quickLessonDialog.notifCancellationRulesTitle"),
+            body: rules,
+            link: "/schedule",
+          });
+        }
+      } catch (e) {
+        // Best-effort only — never block lesson creation on a notification failure.
+        console.error("[QuickLessonDialog] cancellation-rules notify failed:", e);
+      }
     }
     localStorage.setItem(LAST_MODE_KEY, "individual");
     const timeStr = effStartsAt.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });

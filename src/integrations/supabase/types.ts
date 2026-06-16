@@ -1349,6 +1349,7 @@ export type Database = {
           grade_level: string | null
           parent_contact: string | null
           parent_name: string | null
+          tutor_notes: string | null
           updated_at: string
           user_id: string
         }
@@ -1357,6 +1358,7 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
+          tutor_notes?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1365,6 +1367,7 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
+          tutor_notes?: string | null
           updated_at?: string
           user_id?: string
         }

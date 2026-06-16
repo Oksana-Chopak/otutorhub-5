@@ -45,6 +45,17 @@ export interface StudentAchievementDef {
   /** Visual tier — drives gradient/glow colour (base teal vs rare gold). */
   tier: StudentAchievementTier;
   evaluate: (s: StudentAchievementStats) => StudentAchievementResult;
+  /**
+   * Meta badges depend on the *earned set* of other achievements, not on raw
+   * stats — e.g. "collect every teal badge". When present, this runs in a second
+   * pass over the already-evaluated results and its return overrides `evaluate`.
+   * Still 100% client-side: derived from the same data, no new backend metric.
+   * Typed against a minimal shape (tier + earned) to avoid a circular reference
+   * with `StudentAchievementWithStatus` (which is derived from this interface).
+   */
+  evaluateMeta?: (
+    results: ReadonlyArray<{ def: { tier: StudentAchievementTier }; earned: boolean }>,
+  ) => StudentAchievementResult;
 }
 
 const binary = (value: number): StudentAchievementResult => ({
@@ -116,6 +127,22 @@ export const STUDENT_ACHIEVEMENT_DEFS: Record<string, StudentAchievementDef> = {
     tier: "gold",
     evaluate: (s) => threshold(s.completedLessons, 50),
   },
+  // Meta "scholar" — earn every teal (base) badge. Fully client-side: derived
+  // from the earned set in a second pass, so no new backend metric is needed.
+  // `evaluate` is a safe placeholder; `evaluateMeta` is the real accrual.
+  scholar: {
+    key: "scholar",
+    emoji: "🎓",
+    nameKey: "studentAchievements.scholar",
+    descKey: "studentAchievements.scholarDesc",
+    tier: "gold",
+    evaluate: () => binary(0),
+    evaluateMeta: (results) => {
+      const teal = results.filter((a) => a.def.tier === "teal");
+      const earnedTeal = teal.filter((a) => a.earned).length;
+      return threshold(earnedTeal, teal.length);
+    },
+  },
 };
 
 export const ALL_STUDENT_ACHIEVEMENTS = Object.values(STUDENT_ACHIEVEMENT_DEFS);
@@ -151,7 +178,14 @@ export function maxConsecutiveWeeks(dates: Date[]): number {
 }
 
 export function computeStudentAchievements(stats: StudentAchievementStats) {
-  return ALL_STUDENT_ACHIEVEMENTS.map((def) => ({ def, ...def.evaluate(stats) }));
+  // Pass 1 — stats-based accrual for every badge.
+  const results = ALL_STUDENT_ACHIEVEMENTS.map((def) => ({ def, ...def.evaluate(stats) }));
+  // Pass 2 — meta badges (e.g. "collect all teal badges") override their result
+  // using the now-known earned set. Derived client-side; no new backend metric.
+  for (const r of results) {
+    if (r.def.evaluateMeta) Object.assign(r, r.def.evaluateMeta(results));
+  }
+  return results;
 }
 
 export type StudentAchievementWithStatus = ReturnType<typeof computeStudentAchievements>[number];

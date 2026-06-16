@@ -75,7 +75,32 @@ describe("computeStudentAchievements", () => {
     }
   });
 
-  it("covers exactly the 7 catalog achievements", () => {
-    expect(Object.keys(STUDENT_ACHIEVEMENT_DEFS)).toHaveLength(7);
+  it("covers exactly the 8 catalog achievements", () => {
+    expect(Object.keys(STUDENT_ACHIEVEMENT_DEFS)).toHaveLength(8);
+  });
+
+  it("scholar is a gold meta badge that tracks the teal set", () => {
+    const tealCount = Object.values(STUDENT_ACHIEVEMENT_DEFS).filter(
+      (d) => d.tier === "teal",
+    ).length;
+    expect(STUDENT_ACHIEVEMENT_DEFS.scholar.tier).toBe("gold");
+
+    // No teal badge earned → scholar locked, progress 0 / tealCount.
+    const none = byKey({ completedLessons: 0, lessonsWithHomework: 0, earlyBirdLessons: 0, maxConsecutiveWeeks: 0 });
+    expect(none.scholar.earned).toBe(false);
+    expect(none.scholar.current).toBe(0);
+    expect(none.scholar.target).toBe(tealCount);
+
+    // All teal thresholds met → scholar earned. Highest teal target is the
+    // homework10/ten_lessons threshold (10) plus a 4-week streak + early bird.
+    const all = byKey({ completedLessons: 10, lessonsWithHomework: 10, earlyBirdLessons: 1, maxConsecutiveWeeks: 4 });
+    expect(all.scholar.earned).toBe(true);
+    expect(all.scholar.current).toBe(tealCount);
+    expect(all.scholar.target).toBe(tealCount);
+
+    // Partial progress: only first_lesson + first_homework earned.
+    const partial = byKey({ completedLessons: 1, lessonsWithHomework: 1, earlyBirdLessons: 0, maxConsecutiveWeeks: 1 });
+    expect(partial.scholar.earned).toBe(false);
+    expect(partial.scholar.current).toBe(2);
   });
 });

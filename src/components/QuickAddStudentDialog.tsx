@@ -135,7 +135,20 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
           : t("quickAddStudent.contactsFailed")
       );
     }
-    await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
+    // Private tutor note ("🔒 Нотатки — бачиш лише ти") — stored on the
+    // student_details row (one per student). Non-empty only, and wrapped so a
+    // notes failure can never block the student from being created.
+    const notesVal = form.notes.trim();
+    try {
+      await supabase
+        .from("student_details")
+        .upsert(
+          { user_id: newId, ...(notesVal ? { tutor_notes: notesVal } : {}) },
+          { onConflict: "user_id" }
+        );
+    } catch {
+      /* notes are best-effort; student is already created */
+    }
 
     toast.success(t("quickAddStudent.studentAdded"));
     let inviteSent = false;

@@ -17,6 +17,7 @@ interface HomeworkRow {
   hasAiNote: boolean;
   aiNote: string;
   hasFile: boolean;
+  storagePath: string | null;
 }
 
 export default function StudentHomeworkPage() {
@@ -25,6 +26,7 @@ export default function StudentHomeworkPage() {
   const [rows, setRows] = useState<HomeworkRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [openNoteId, setOpenNoteId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -46,6 +48,31 @@ export default function StudentHomeworkPage() {
         pmap[p.id] = `${p.first_name} ${p.last_name}`.trim();
       });
 
+      // Additively fetch attachments for these homework lessons from the existing
+      // lesson_attachments table (same pattern as LessonAttachments.tsx). Wrapped so a
+      // failure here can never break the homework list itself.
+      const lessonIds = Array.from(
+        new Set(((data ?? []) as any[]).map((d) => d.lesson_id).filter(Boolean)),
+      );
+      const fileMap: Record<string, string> = {};
+      try {
+        if (lessonIds.length) {
+          const { data: atts } = await supabase
+            .from("lesson_attachments")
+            .select("lesson_id, storage_path")
+            .in("lesson_id", lessonIds)
+            .order("created_at", { ascending: false });
+          (atts ?? []).forEach((a: any) => {
+            // Keep the first (most recent) attachment per lesson.
+            if (a.lesson_id && a.storage_path && !(a.lesson_id in fileMap)) {
+              fileMap[a.lesson_id] = a.storage_path;
+            }
+          });
+        }
+      } catch (e) {
+        console.error(e);
+      }
+
       const list: HomeworkRow[] = ((data ?? []) as any[])
         .filter((d) => d.homework && d.homework.trim())
         .map((d) => ({
@@ -57,9 +84,9 @@ export default function StudentHomeworkPage() {
           tutor_name: pmap[d.lessons.tutor_id],
           hasAiNote: Boolean((d.summary && d.summary.trim()) || (d.fireflies_summary && d.fireflies_summary.trim())),
           aiNote: (d.summary?.trim() || d.fireflies_summary?.trim() || ""),
-          // Attachment data lives in the separate lesson_attachments table, which this
-          // page does not fetch. Left false until that data is wired (see followups).
-          hasFile: false,
+          // Attachment data comes from the separate lesson_attachments table (fetched above).
+          hasFile: Boolean(fileMap[d.lesson_id]),
+          storagePath: fileMap[d.lesson_id] ?? null,
         }))
         .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
       setRows(list);
@@ -70,6 +97,28 @@ export default function StudentHomeworkPage() {
 
   const fmt = (iso: string) =>
     new Date(iso).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+  // Resolve a short-lived signed URL for the lesson attachment and open it
+  // (same storage bucket/pattern as LessonAttachments.tsx). Guarded so it can
+  // never break the page.
+  const handleDownload = async (r: HomeworkRow) => {
+    if (!r.storagePath || downloadingId) return;
+    setDownloadingId(r.lesson_id);
+    try {
+      const { data, error } = await supabase.storage
+        .from("lesson-attachments")
+        .createSignedUrl(r.storagePath, 60);
+      if (error || !data?.signedUrl) {
+        console.error(error);
+        return;
+      }
+      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setDownloadingId(null);
+    }
+  };
 
   // Архів = ДЗ з минулих уроків; Активні = майбутні/нещодавні. Розподіл за датою уроку.
   const { active, archive } = useMemo(() => {
@@ -112,8 +161,11 @@ export default function StudentHomeworkPage() {
           </button>
         )}
         {r.hasFile && (
-          <button type="button" style={plainBtn}>
-            <Download size={16} strokeWidth={1.8} />{t("studentPagesExtra.downloadBtn")}
+          <button type="button" style={plainBtn} onClick={() => handleDownload(r)} disabled={downloadingId === r.lesson_id}>
+            {downloadingId === r.lesson_id
+              ? <Loader2 size={16} strokeWidth={1.8} className="animate-spin" />
+              : <Download size={16} strokeWidth={1.8} />}
+            {t("studentPagesExtra.downloadBtn")}
           </button>
         )}
         {!r.hasAiNote && !r.hasFile && (
