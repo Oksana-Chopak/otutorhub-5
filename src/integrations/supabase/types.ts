@@ -535,6 +535,15 @@ export type Database = {
       lesson_details: {
         Row: {
           created_at: string
+          fireflies_action_items: string[] | null
+          fireflies_audio_url: string | null
+          fireflies_completed_at: string | null
+          fireflies_meeting_id: string | null
+          fireflies_recording_url: string | null
+          fireflies_requested_at: string | null
+          fireflies_status: string | null
+          fireflies_summary: string | null
+          fireflies_transcript: Json | null
           homework: string | null
           lesson_id: string
           student_notes: string | null
@@ -549,6 +558,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          fireflies_action_items?: string[] | null
+          fireflies_audio_url?: string | null
+          fireflies_completed_at?: string | null
+          fireflies_meeting_id?: string | null
+          fireflies_recording_url?: string | null
+          fireflies_requested_at?: string | null
+          fireflies_status?: string | null
+          fireflies_summary?: string | null
+          fireflies_transcript?: Json | null
           homework?: string | null
           lesson_id: string
           student_notes?: string | null
@@ -563,6 +581,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          fireflies_action_items?: string[] | null
+          fireflies_audio_url?: string | null
+          fireflies_completed_at?: string | null
+          fireflies_meeting_id?: string | null
+          fireflies_recording_url?: string | null
+          fireflies_requested_at?: string | null
+          fireflies_status?: string | null
+          fireflies_summary?: string | null
+          fireflies_transcript?: Json | null
           homework?: string | null
           lesson_id?: string
           student_notes?: string | null
@@ -1918,6 +1945,8 @@ export type Database = {
       }
       tutor_workspace_settings: {
         Row: {
+          ai_notes_auto: boolean
+          ai_notes_auto_send: boolean
           auto_complete_lessons: boolean
           auto_complete_prompted: boolean
           cancel_fee_percent: number
@@ -1944,6 +1973,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
           cancel_fee_percent?: number
@@ -1970,6 +2001,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
           cancel_fee_percent?: number
@@ -2298,6 +2331,7 @@ export type Database = {
           last_name: string
         }[]
       }
+      start_manager_chat: { Args: never; Returns: string }
       wallet_adjust: {
         Args: {
           _amount_delta: number
