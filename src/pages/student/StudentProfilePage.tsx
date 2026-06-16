@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { AvatarUploader } from "@/components/AvatarUploader";
+import { UserAvatar } from "@/components/UserAvatar";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -10,9 +12,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+
+interface MyTutor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  subject: string;
+  avatarUrl: string | null;
+}
 
 const C = {
   teal: "#2BBFAA", tealD: "#1f8e7e", ink: "#0f0f1a", sub: "#9398b0",
@@ -31,14 +41,16 @@ export default function StudentProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [completed, setCompleted] = useState(0);
   const [weekly, setWeekly] = useState(0);
+  const [tutors, setTutors] = useState<MyTutor[]>([]);
 
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const [{ data: profile }, { data: contact }, { data: lessons }] = await Promise.all([
+      const [{ data: profile }, { data: contact }, { data: lessons }, { data: rates }] = await Promise.all([
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("phone").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("starts_at, status").eq("student_id", user.id),
+        supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
       setFirstName(profile?.first_name ?? "");
       setLastName(profile?.last_name ?? "");
@@ -48,6 +60,38 @@ export default function StudentProfilePage() {
       setCompleted(done.length);
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
       setWeekly(done.filter((l: any) => new Date(l.starts_at).getTime() >= weekAgo).length);
+
+      // "Мої репетитори": distinct tutors from the student↔tutor relationship
+      // (student_rates), with their subjects. Names/avatars from profiles.
+      const subjectsByTutor = new Map<string, Set<string>>();
+      ((rates ?? []) as { tutor_id: string; subject: string | null }[]).forEach((r) => {
+        if (!r.tutor_id) return;
+        const set = subjectsByTutor.get(r.tutor_id) ?? new Set<string>();
+        if (r.subject) set.add(r.subject);
+        subjectsByTutor.set(r.tutor_id, set);
+      });
+      const tutorIds = Array.from(subjectsByTutor.keys());
+      if (tutorIds.length) {
+        const { data: tProfiles } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, avatar_url")
+          .in("id", tutorIds);
+        const pMap: Record<string, { first_name: string | null; last_name: string | null; avatar_url: string | null }> = {};
+        ((tProfiles ?? []) as any[]).forEach((p) => {
+          pMap[p.id] = { first_name: p.first_name, last_name: p.last_name, avatar_url: p.avatar_url };
+        });
+        setTutors(
+          tutorIds.map((id) => ({
+            id,
+            firstName: pMap[id]?.first_name ?? "",
+            lastName: pMap[id]?.last_name ?? "",
+            subject: Array.from(subjectsByTutor.get(id) ?? []).join(" · "),
+            avatarUrl: pMap[id]?.avatar_url ?? null,
+          })),
+        );
+      } else {
+        setTutors([]);
+      }
       setLoading(false);
     })();
   }, [user?.id]);
@@ -99,6 +143,33 @@ export default function StudentProfilePage() {
                 </div>
               </div>
             </div>
+
+            {/* Мої репетитори — student's tutors with compact teal-tint chat button */}
+            {tutors.length > 0 && (
+              <div>
+                <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 12, letterSpacing: ".09em", textTransform: "uppercase", color: C.sub, margin: "2px 2px 8px" }}>
+                  {t("studentPagesExtra.myTutorsTitle")}
+                </p>
+                <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", overflow: "hidden" }}>
+                  {tutors.map((tt, i) => {
+                    const name = [tt.firstName, tt.lastName].filter(Boolean).join(" ").trim() || t("studentPages.tutorFallback");
+                    return (
+                      <div key={tt.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 13px", borderBottom: i < tutors.length - 1 ? `1px solid ${C.border}` : "none" }}>
+                        <UserAvatar url={tt.avatarUrl} firstName={tt.firstName} lastName={tt.lastName} className="h-10 w-10" />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</p>
+                          {tt.subject && <p style={{ fontFamily: C.body, fontSize: 12.5, color: C.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tt.subject}</p>}
+                        </div>
+                        <Link to={`/chats?with=${tt.id}`} aria-label={t("studentPages.chatWithTutorAria")}
+                          style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: C.tealD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
+                          <MessageCircle size={18} />
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Gamification — level & progress (real completed-lessons XP) */}
             <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 16 }}>

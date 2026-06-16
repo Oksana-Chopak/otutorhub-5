@@ -1656,6 +1656,8 @@ export const uk = {
 
   lessonDetails: {
     fallbackTitle: "Урок",
+    doneBtn: "Готово",
+    deleteBtn: "Видалити урок",
   },
 
   // Dashboard hardcoded strings
@@ -1887,6 +1889,7 @@ export const uk = {
     meetingUrlPlaceholder: "https://zoom.us/j/... або https://meet.google.com/...",
   },
   studentPages: {
+    chatWithTutorAria: "Написати репетитору",
     tutorFallback: "Репетитор",
     greeting: "Привіт! 👋",
     greetingSub: "Тут зібрано все найважливіше для тебе.",
@@ -2073,6 +2076,19 @@ export const uk = {
     savedLabel: "Завдяки твоїм запрошенням ти зекономив",
   },
   studentAchievements: {
+    outOf: "з {{total}}",
+    heroTitle: "Твоя колекція",
+    heroEmptyTitle: "Почни збирати",
+    heroEmptyHint: "Перша медаль — за перший проведений урок. Уперед!",
+    heroNextHint: "Найближча — «{{title}}»: лишилось {{remaining}}.",
+    heroAllDone: "Усі бейджі зібрано! 🎉",
+    earnedLabel: "Здобуто",
+    earnedSection: "Здобуті · {{n}}",
+    upcomingSection: "Попереду · {{n}}",
+    allSection: "Усі досягнення · {{n}}",
+    emptyNote: "Ще жодної медалі — це нормально. Кожен урок наближає до першого бейджа.",
+    homework10: "Старанний",
+    homework10Desc: "Отримай 10 домашніх завдань",
     title: "Досягнення",
     subtitle: "Твоя колекція досягнень",
     collected: "{{count}} з {{total}} зібрано",
@@ -2834,6 +2850,14 @@ export const uk = {
     backToSignup: "Назад до реєстрації",
   },
   studentPagesExtra: {
+    homeworkTabActive: "Активні ({{count}})",
+    homeworkTabArchive: "Архів ({{count}})",
+    homeworkArchiveHint: "Завдання з минулих уроків — повтори матеріал будь-коли.",
+    summaryBtn: "Конспект",
+    downloadBtn: "Завантажити",
+    noAttachments: "Без вкладень",
+    archiveEmptyTitle: "Архів порожній",
+    myTutorsTitle: "Мої репетитори",
     prepaidLabel: "📦 Передплачено",
     lessonsBalance: "{{count}} ур.",
     lessonsBalance_one: "{{count}} ур.",

@@ -59,7 +59,23 @@ describe("computeStudentAchievements", () => {
     expect(a.early_bird.earned).toBe(true);
   });
 
-  it("covers exactly the 6 catalog achievements", () => {
-    expect(Object.keys(STUDENT_ACHIEVEMENT_DEFS)).toHaveLength(6);
+  it("homework10 reports threshold + progress on assigned homework", () => {
+    const a = byKey({ completedLessons: 0, lessonsWithHomework: 10, earlyBirdLessons: 0, maxConsecutiveWeeks: 0 });
+    expect(a.homework10.earned).toBe(true);
+    expect(a.homework10.current).toBe(10);
+    expect(a.homework10.target).toBe(10);
+    const b = byKey({ completedLessons: 0, lessonsWithHomework: 7, earlyBirdLessons: 0, maxConsecutiveWeeks: 0 });
+    expect(b.homework10.earned).toBe(false);
+    expect(b.homework10.current).toBe(7);
+  });
+
+  it("every def carries a teal or gold tier", () => {
+    for (const def of Object.values(STUDENT_ACHIEVEMENT_DEFS)) {
+      expect(["teal", "gold"]).toContain(def.tier);
+    }
+  });
+
+  it("covers exactly the 7 catalog achievements", () => {
+    expect(Object.keys(STUDENT_ACHIEVEMENT_DEFS)).toHaveLength(7);
   });
 });

@@ -1646,6 +1646,8 @@ export const en: LocaleTranslations = {
 
   lessonDetails: {
     fallbackTitle: "Lesson",
+    doneBtn: "Done",
+    deleteBtn: "Delete lesson",
   },
 
   dashboardExtra: {
@@ -1876,6 +1878,7 @@ export const en: LocaleTranslations = {
     meetingUrlPlaceholder: "https://zoom.us/j/... or https://meet.google.com/...",
   },
   studentPages: {
+    chatWithTutorAria: "Message tutor",
     tutorFallback: "Tutor",
     greeting: "Hello! 👋",
     greetingSub: "Here's everything important for you.",
@@ -2062,6 +2065,19 @@ export const en: LocaleTranslations = {
     savedLabel: "You saved thanks to your referrals",
   },
   studentAchievements: {
+    outOf: "of {{total}}",
+    heroTitle: "Your collection",
+    heroEmptyTitle: "Start collecting",
+    heroEmptyHint: "Your first medal is for your first completed lesson. Lets go!",
+    heroNextHint: "Closest one — {{title}}: {{remaining}} to go.",
+    heroAllDone: "All badges collected! 🎉",
+    earnedLabel: "Earned",
+    earnedSection: "Earned · {{n}}",
+    upcomingSection: "Up next · {{n}}",
+    allSection: "All achievements · {{n}}",
+    emptyNote: "No medals yet — thats okay. Every lesson brings you closer to your first badge.",
+    homework10: "Diligent",
+    homework10Desc: "Receive 10 homework assignments",
     title: "Achievements",
     subtitle: "Your achievements collection",
     collected: "{{count}} of {{total}} collected",
@@ -2823,6 +2839,14 @@ export const en: LocaleTranslations = {
     backToSignup: "Back to signup",
   },
   studentPagesExtra: {
+    homeworkTabActive: "Active ({{count}})",
+    homeworkTabArchive: "Archive ({{count}})",
+    homeworkArchiveHint: "Assignments from past lessons — review the material anytime.",
+    summaryBtn: "Summary",
+    downloadBtn: "Download",
+    noAttachments: "No attachments",
+    archiveEmptyTitle: "Archive is empty",
+    myTutorsTitle: "My tutors",
     prepaidLabel: "📦 Prepaid",
     lessonsBalance: "{{count}} lessons",
     lessonsBalance_one: "{{count}} lesson",

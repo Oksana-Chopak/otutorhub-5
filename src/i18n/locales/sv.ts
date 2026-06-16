@@ -1636,6 +1636,8 @@ export const sv: LocaleTranslations = {
 
   lessonDetails: {
     fallbackTitle: "Lektion",
+    doneBtn: "Klar",
+    deleteBtn: "Ta bort lektion",
   },
 
   dashboardExtra: {
@@ -1866,6 +1868,7 @@ export const sv: LocaleTranslations = {
     meetingUrlPlaceholder: "https://zoom.us/j/... eller https://meet.google.com/...",
   },
   studentPages: {
+    chatWithTutorAria: "Meddela läraren",
     tutorFallback: "Lärare",
     greeting: "Hej! 👋",
     greetingSub: "Här finns allt viktigt för dig.",
@@ -2052,6 +2055,19 @@ export const sv: LocaleTranslations = {
     savedLabel: "Du sparade tack vare dina remisser",
   },
   studentAchievements: {
+    outOf: "av {{total}}",
+    heroTitle: "Din samling",
+    heroEmptyTitle: "Börja samla",
+    heroEmptyHint: "Din första medalj får du för din första genomförda lektion. Kör!",
+    heroNextHint: "Närmast — {{title}}: {{remaining}} kvar.",
+    heroAllDone: "Alla märken insamlade! 🎉",
+    earnedLabel: "Erövrad",
+    earnedSection: "Erövrade · {{n}}",
+    upcomingSection: "Framöver · {{n}}",
+    allSection: "Alla utmärkelser · {{n}}",
+    emptyNote: "Inga medaljer ännu — det är helt okej. Varje lektion för dig närmare ditt första märke.",
+    homework10: "Flitig",
+    homework10Desc: "Få 10 läxor",
     title: "Prestationer",
     subtitle: "Din samling av prestationer",
     collected: "{{count}} av {{total}} insamlade",
@@ -2813,6 +2829,14 @@ export const sv: LocaleTranslations = {
     backToSignup: "Tillbaka till registrering",
   },
   studentPagesExtra: {
+    homeworkTabActive: "Aktiva ({{count}})",
+    homeworkTabArchive: "Arkiv ({{count}})",
+    homeworkArchiveHint: "Uppgifter från tidigare lektioner — repetera materialet när du vill.",
+    summaryBtn: "Sammanfattning",
+    downloadBtn: "Ladda ner",
+    noAttachments: "Inga bilagor",
+    archiveEmptyTitle: "Arkivet är tomt",
+    myTutorsTitle: "Mina lärare",
     prepaidLabel: "📦 Förbetalt",
     lessonsBalance: "{{count}} lektioner",
     lessonsBalance_one: "{{count}} lektion",

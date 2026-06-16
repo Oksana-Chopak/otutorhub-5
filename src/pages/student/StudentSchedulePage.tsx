@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
+import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video } from "lucide-react";
+import { Loader2, Video, MessageCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
@@ -100,12 +101,18 @@ export default function StudentSchedulePage() {
                     {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                   </p>
                 </div>
-                {l.meeting_url && l.status === "scheduled" && (
-                  <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                    style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
-                    <Video size={20} />
-                  </a>
-                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <Link to={`/chats?with=${l.tutor_id}`} aria-label={t("studentPages.chatWithTutorAria")}
+                    style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
+                    <MessageCircle size={18} />
+                  </Link>
+                  {l.meeting_url && l.status === "scheduled" && (
+                    <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
+                      style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                      <Video size={20} />
+                    </a>
+                  )}
+                </div>
               </div>
             </li>
           );

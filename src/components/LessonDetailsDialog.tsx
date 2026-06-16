@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 interface LessonRowFull {
@@ -37,6 +38,21 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const { t, i18n } = useTranslation();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!row) return;
+    if (!window.confirm(t("schedulePageExtra.deleteConfirmDesc"))) return;
+    setDeleting(true);
+    const { error } = await supabase.from("lessons").delete().eq("id", row.id);
+    setDeleting(false);
+    if (error) {
+      toast.error(t("schedule.deleteFailed"));
+      return;
+    }
+    onUpdated?.();
+    onOpenChange(false);
+  };
 
   const load = async (id: string) => {
     setLoading(true);
@@ -110,6 +126,27 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           />
         )}
         </div>
+        {/* Sticky edit footer: delete + done (fields auto-save inline) */}
+        {!loading && row && (
+          <div style={{ flexShrink: 0, padding: "14px 20px 22px", borderTop: "1px solid #f0f1f5", background: "#fff", display: "flex", gap: 11 }}>
+            <button
+              type="button"
+              aria-label={t("lessonDetails.deleteBtn")}
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "rgba(255,122,89,.12)", color: "#e0552f", display: "flex", alignItems: "center", justifyContent: "center" }}
+            >
+              {deleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 size={20} />}
+            </button>
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              style={{ flex: 1, height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, cursor: "pointer", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}
+            >
+              {t("lessonDetails.doneBtn")}
+            </button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

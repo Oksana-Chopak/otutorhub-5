@@ -33,12 +33,17 @@ export interface StudentAchievementResult {
   target: number;
 }
 
+/** Visual tier: `teal` = base achievements, `gold` = rare/harder ones. */
+export type StudentAchievementTier = "teal" | "gold";
+
 export interface StudentAchievementDef {
   key: string;
   emoji: string;
   /** i18n keys (resolved in the component so language switching works). */
   nameKey: string;
   descKey: string;
+  /** Visual tier — drives gradient/glow colour (base teal vs rare gold). */
+  tier: StudentAchievementTier;
   evaluate: (s: StudentAchievementStats) => StudentAchievementResult;
 }
 
@@ -60,6 +65,7 @@ export const STUDENT_ACHIEVEMENT_DEFS: Record<string, StudentAchievementDef> = {
     emoji: "🎯",
     nameKey: "studentAchievements.firstLesson",
     descKey: "studentAchievements.firstLessonDesc",
+    tier: "teal",
     evaluate: (s) => binary(s.completedLessons),
   },
   first_homework: {
@@ -67,6 +73,7 @@ export const STUDENT_ACHIEVEMENT_DEFS: Record<string, StudentAchievementDef> = {
     emoji: "📚",
     nameKey: "studentAchievements.firstHomework",
     descKey: "studentAchievements.firstHomeworkDesc",
+    tier: "teal",
     evaluate: (s) => binary(s.lessonsWithHomework),
   },
   ten_lessons: {
@@ -74,28 +81,40 @@ export const STUDENT_ACHIEVEMENT_DEFS: Record<string, StudentAchievementDef> = {
     emoji: "⭐",
     nameKey: "studentAchievements.tenLessons",
     descKey: "studentAchievements.tenLessonsDesc",
+    tier: "teal",
     evaluate: (s) => threshold(s.completedLessons, 10),
   },
-  fifty_lessons: {
-    key: "fifty_lessons",
-    emoji: "🏆",
-    nameKey: "studentAchievements.fiftyLessons",
-    descKey: "studentAchievements.fiftyLessonsDesc",
-    evaluate: (s) => threshold(s.completedLessons, 50),
-  },
-  week_streak: {
-    key: "week_streak",
-    emoji: "🔥",
-    nameKey: "studentAchievements.weekStreak",
-    descKey: "studentAchievements.weekStreakDesc",
-    evaluate: (s) => threshold(s.maxConsecutiveWeeks, 4),
+  homework10: {
+    key: "homework10",
+    emoji: "📖",
+    nameKey: "studentAchievements.homework10",
+    descKey: "studentAchievements.homework10Desc",
+    tier: "teal",
+    evaluate: (s) => threshold(s.lessonsWithHomework, 10),
   },
   early_bird: {
     key: "early_bird",
     emoji: "🌅",
     nameKey: "studentAchievements.earlyBird",
     descKey: "studentAchievements.earlyBirdDesc",
+    tier: "teal",
     evaluate: (s) => binary(s.earlyBirdLessons),
+  },
+  week_streak: {
+    key: "week_streak",
+    emoji: "🔥",
+    nameKey: "studentAchievements.weekStreak",
+    descKey: "studentAchievements.weekStreakDesc",
+    tier: "teal",
+    evaluate: (s) => threshold(s.maxConsecutiveWeeks, 4),
+  },
+  fifty_lessons: {
+    key: "fifty_lessons",
+    emoji: "🏆",
+    nameKey: "studentAchievements.fiftyLessons",
+    descKey: "studentAchievements.fiftyLessonsDesc",
+    tier: "gold",
+    evaluate: (s) => threshold(s.completedLessons, 50),
   },
 };
 

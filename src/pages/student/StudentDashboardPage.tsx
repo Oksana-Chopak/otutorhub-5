@@ -6,7 +6,7 @@ import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles } from "lucide-react";
+import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
@@ -202,14 +202,18 @@ export default function StudentDashboardPage() {
                         <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
                         <p style={{ fontSize: 13, color: DS.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.tutor_name}</p>
                       </div>
-                      {l.meeting_url ? (
-                        <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                          style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
-                          <Video size={20} />
-                        </a>
-                      ) : (
-                        <span style={{ flexShrink: 0, fontSize: 13, color: DS.muted, fontFamily: DS.body }}>{t("studentPages.noMeetingLink")}</span>
-                      )}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                        <Link to={`/chats?with=${l.tutor_id}`} aria-label={t("studentPages.chatWithTutorAria")}
+                          style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: DS.tealD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
+                          <MessageCircle size={18} />
+                        </Link>
+                        {l.meeting_url && (
+                          <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
+                            style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                            <Video size={20} />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </li>
                 );
