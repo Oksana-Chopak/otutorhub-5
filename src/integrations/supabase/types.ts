@@ -1945,6 +1945,8 @@ export type Database = {
       }
       tutor_workspace_settings: {
         Row: {
+          ai_notes_auto: boolean
+          ai_notes_auto_send: boolean
           auto_complete_lessons: boolean
           auto_complete_prompted: boolean
           cancel_fee_percent: number
@@ -1953,8 +1955,6 @@ export type Database = {
           current_plan: string | null
           custom_currencies: string[]
           daily_digest_enabled: boolean
-          ai_notes_auto: boolean
-          ai_notes_auto_send: boolean
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
@@ -1973,6 +1973,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
           cancel_fee_percent?: number
@@ -1981,8 +1983,6 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
-          ai_notes_auto?: boolean
-          ai_notes_auto_send?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
@@ -2001,6 +2001,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           auto_complete_lessons?: boolean
           auto_complete_prompted?: boolean
           cancel_fee_percent?: number
@@ -2009,8 +2011,6 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
-          ai_notes_auto?: boolean
-          ai_notes_auto_send?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
@@ -2331,6 +2331,7 @@ export type Database = {
           last_name: string
         }[]
       }
+      start_manager_chat: { Args: never; Returns: string }
       wallet_adjust: {
         Args: {
           _amount_delta: number
