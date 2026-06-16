@@ -31,14 +31,29 @@ export default function StudentHomeworkPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
-      const { data, error } = await supabase
-        .from("lesson_details")
-        .select("lesson_id, homework, summary, fireflies_summary, lessons!inner(subject, starts_at, tutor_id, student_id)")
-        .eq("lessons.student_id", user.id)
+      const { data: details, error } = await supabase
+        .from("lesson_details_student" as any)
+        .select("lesson_id, homework, summary, fireflies_summary")
         .not("homework", "is", null);
 
+      const lessonIds0 = Array.from(
+        new Set(((details ?? []) as any[]).map((d) => d.lesson_id).filter(Boolean)),
+      );
+      const { data: lessonRows } = lessonIds0.length
+        ? await supabase
+            .from("lessons")
+            .select("id, subject, starts_at, tutor_id, student_id")
+            .in("id", lessonIds0)
+        : { data: [] as any[] };
+      const lessonMap: Record<string, any> = {};
+      (lessonRows ?? []).forEach((l: any) => { lessonMap[l.id] = l; });
+      const data = ((details ?? []) as any[]).map((d) => ({
+        ...d,
+        lessons: lessonMap[d.lesson_id],
+      })).filter((d) => d.lessons);
+
       const tutorIds = Array.from(
-        new Set(((data ?? []) as any[]).map((d) => d.lessons?.tutor_id).filter(Boolean)),
+        new Set(data.map((d) => d.lessons?.tutor_id).filter(Boolean)),
       );
       const { data: profiles } = tutorIds.length
         ? await supabase.from("profiles").select("id, first_name, last_name").in("id", tutorIds)
