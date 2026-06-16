@@ -1349,7 +1349,6 @@ export type Database = {
           grade_level: string | null
           parent_contact: string | null
           parent_name: string | null
-          tutor_notes: string | null
           updated_at: string
           user_id: string
         }
@@ -1358,7 +1357,6 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
-          tutor_notes?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1367,7 +1365,6 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
-          tutor_notes?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -1958,14 +1955,10 @@ export type Database = {
           current_plan: string | null
           custom_currencies: string[]
           daily_digest_enabled: boolean
-          free_reschedules_per_month: number
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
           marketing_opt_in: boolean
-          noshow_charge: number
-          notify_email: boolean
-          notify_telegram: boolean
           onboarding_completed: boolean
           onboarding_step: number
           payment_due_days: number
@@ -1990,14 +1983,10 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
-          free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
           marketing_opt_in?: boolean
-          noshow_charge?: number
-          notify_email?: boolean
-          notify_telegram?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -2022,14 +2011,10 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
-          free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
           marketing_opt_in?: boolean
-          noshow_charge?: number
-          notify_email?: boolean
-          notify_telegram?: boolean
           onboarding_completed?: boolean
           onboarding_step?: number
           payment_due_days?: number
@@ -2112,6 +2097,35 @@ export type Database = {
       }
     }
     Views: {
+      lesson_details_student: {
+        Row: {
+          created_at: string | null
+          fireflies_summary: string | null
+          homework: string | null
+          lesson_id: string | null
+          student_paid_at: string | null
+          student_payment_status: string | null
+          student_price: number | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons_visible: {
         Row: {
           created_at: string | null

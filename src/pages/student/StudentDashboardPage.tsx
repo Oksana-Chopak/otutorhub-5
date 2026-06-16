@@ -81,9 +81,8 @@ export default function StudentDashboardPage() {
         .order("starts_at", { ascending: true })
         .limit(3),
       supabase
-        .from("lesson_details")
-        .select("lesson_id, homework, student_payment_status, lessons!inner(student_id)")
-        .eq("lessons.student_id", user.id),
+        .from("lesson_details_student" as any)
+        .select("lesson_id, homework, student_payment_status"),
       supabase
         .from("lessons")
         .select("starts_at")

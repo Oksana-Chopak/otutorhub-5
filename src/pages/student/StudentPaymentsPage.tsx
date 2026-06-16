@@ -38,17 +38,26 @@ export default function StudentPaymentsPage() {
     (async () => {
       const { data: lessons } = await supabase
         .from("lessons")
-        .select("id, subject, starts_at, tutor_id, status, lesson_details(student_price, student_payment_status)")
+        .select("id, subject, starts_at, tutor_id, status")
         .eq("student_id", user.id)
         .neq("status", "cancelled")
         .order("starts_at", { ascending: false });
+      const lessonIds0 = ((lessons ?? []) as any[]).map((l) => l.id);
+      const { data: detailsRows } = lessonIds0.length
+        ? await supabase
+            .from("lesson_details_student" as any)
+            .select("lesson_id, student_price, student_payment_status")
+            .in("lesson_id", lessonIds0)
+        : { data: [] as any[] };
+      const detailsMap: Record<string, any> = {};
+      (detailsRows ?? []).forEach((d: any) => { detailsMap[d.lesson_id] = d; });
       const list = ((lessons ?? []) as any[]).map((l) => ({
         id: l.id,
         subject: l.subject,
         starts_at: l.starts_at,
         tutor_id: l.tutor_id,
-        student_price: Number(l.lesson_details?.student_price ?? 0),
-        student_payment_status: l.lesson_details?.student_payment_status ?? "unpaid",
+        student_price: Number(detailsMap[l.id]?.student_price ?? 0),
+        student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
       }));
       const tutorIds = Array.from(new Set(list.map((l) => l.tutor_id)));
       const [{ data: profiles }, { data: rates }] = await Promise.all([
