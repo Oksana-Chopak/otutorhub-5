@@ -2097,6 +2097,35 @@ export type Database = {
       }
     }
     Views: {
+      lesson_details_student: {
+        Row: {
+          created_at: string | null
+          fireflies_summary: string | null
+          homework: string | null
+          lesson_id: string | null
+          student_paid_at: string | null
+          student_payment_status: string | null
+          student_price: number | null
+          summary: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_details_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons_visible: {
         Row: {
           created_at: string | null
