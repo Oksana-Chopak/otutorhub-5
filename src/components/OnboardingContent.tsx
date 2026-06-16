@@ -213,7 +213,6 @@ function buildSteps(t: TFn): Step[] {
     icon: Sparkles,
     emoji: "✨",
     xp: 150,
-    badge: t("onboardingExtra.aiSoonBadge"),
   },
   ];
 }
@@ -886,13 +885,6 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
                           {t("onboardingExtra.remindLater")}
                         </Button>
                       )}
-                    </div>
-                  )}
-                  {!isDone && step.id === 11 && (
-                    <div className="mt-3">
-                      <span className="gamify-sticker warning text-[13px]">
-                        {t("onboardingExtra.aiSoonBadge")}
-                      </span>
                     </div>
                   )}
                 </div>

@@ -854,7 +854,7 @@ export function LessonWorkspace({
         lessonId={lessonId}
         tutorId={tutorId}
         meetingUrl={(meetingUrl && meetingUrl.trim()) || defaultUrl || null}
-        canRecord={isTutor}
+        canRecord={isTutor && aiAllowed}
         canView={isTutor || isStudent || isManager}
       />
 

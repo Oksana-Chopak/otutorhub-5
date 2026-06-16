@@ -19,7 +19,7 @@ export async function maybeAutoStartFireflies(
     if (!uid) return false;
 
     // Tutor opted in?
-    const { data: ws } = await (supabase as any)
+    const { data: ws } = await supabase
       .from("tutor_workspace_settings")
       .select("ai_notes_auto")
       .eq("tutor_id", uid)

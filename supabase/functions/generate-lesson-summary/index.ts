@@ -1,5 +1,6 @@
-import { corsHeaders } from "npm:@supabase/supabase-js/cors";
-import { createClient } from "npm:@supabase/supabase-js";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { tutorAiAllowed } from "../_shared/aiGate.ts";
 
 interface RequestBody {
   lessonId: string;
@@ -79,6 +80,16 @@ Deno.serve(async (req) => {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // 3b. Pro gate — AI конспект is free for hub tutors, Pro for independents.
+    //     Enforced server-side so the paywall can't be bypassed by calling
+    //     this function directly.
+    if (!(await tutorAiAllowed(userClient, callerId))) {
+      return new Response(
+        JSON.stringify({ error: "AI-конспект доступний у Pro-плані." }),
+        { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // 4. Build prompt

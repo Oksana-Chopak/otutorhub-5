@@ -535,6 +535,15 @@ export type Database = {
       lesson_details: {
         Row: {
           created_at: string
+          fireflies_action_items: string[] | null
+          fireflies_audio_url: string | null
+          fireflies_completed_at: string | null
+          fireflies_meeting_id: string | null
+          fireflies_recording_url: string | null
+          fireflies_requested_at: string | null
+          fireflies_status: string | null
+          fireflies_summary: string | null
+          fireflies_transcript: Json | null
           homework: string | null
           lesson_id: string
           student_notes: string | null
@@ -549,6 +558,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          fireflies_action_items?: string[] | null
+          fireflies_audio_url?: string | null
+          fireflies_completed_at?: string | null
+          fireflies_meeting_id?: string | null
+          fireflies_recording_url?: string | null
+          fireflies_requested_at?: string | null
+          fireflies_status?: string | null
+          fireflies_summary?: string | null
+          fireflies_transcript?: Json | null
           homework?: string | null
           lesson_id: string
           student_notes?: string | null
@@ -563,6 +581,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          fireflies_action_items?: string[] | null
+          fireflies_audio_url?: string | null
+          fireflies_completed_at?: string | null
+          fireflies_meeting_id?: string | null
+          fireflies_recording_url?: string | null
+          fireflies_requested_at?: string | null
+          fireflies_status?: string | null
+          fireflies_summary?: string | null
+          fireflies_transcript?: Json | null
           homework?: string | null
           lesson_id?: string
           student_notes?: string | null
@@ -1926,6 +1953,8 @@ export type Database = {
           current_plan: string | null
           custom_currencies: string[]
           daily_digest_enabled: boolean
+          ai_notes_auto: boolean
+          ai_notes_auto_send: boolean
           independent_workspace: boolean
           liqpay_card_token: string | null
           liqpay_recurring_active: boolean
@@ -1952,6 +1981,8 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean
@@ -1978,6 +2009,8 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          ai_notes_auto?: boolean
+          ai_notes_auto_send?: boolean
           independent_workspace?: boolean
           liqpay_card_token?: string | null
           liqpay_recurring_active?: boolean

@@ -6,6 +6,14 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 //   https://<PROJECT_REF>.supabase.co/functions/v1/fireflies-webhook
 // No JWT verification (verify_jwt = false in config.toml).
 
+// Constant-time string compare to avoid leaking the secret via timing.
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let r = 0;
+  for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return r === 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") {
@@ -21,7 +29,7 @@ Deno.serve(async (req) => {
   const providedSecret =
     req.headers.get("x-fireflies-webhook-secret") ||
     req.headers.get("x-webhook-secret");
-  if (providedSecret !== expectedSecret) {
+  if (!providedSecret || !safeEqual(providedSecret, expectedSecret)) {
     return new Response("Forbidden", { status: 403, headers: corsHeaders });
   }
 
@@ -184,6 +192,70 @@ Deno.serve(async (req) => {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // ─── Auto-send to student (ai_notes_auto_send) ───
+    // If the lesson's tutor opted in, surface the Fireflies summary as the
+    // lesson summary the student sees and notify them — mirroring the manual
+    // "Зберегти і надіслати" path. Best-effort; never fails the webhook.
+    if (summaryText) {
+      try {
+        const { data: lessonRow } = await admin
+          .from("lessons")
+          .select("tutor_id, student_id")
+          .eq("id", lessonId)
+          .maybeSingle();
+        const tutorId = lessonRow?.tutor_id as string | undefined;
+        const studentId = lessonRow?.student_id as string | undefined;
+
+        if (tutorId && studentId) {
+          const { data: ws } = await admin
+            .from("tutor_workspace_settings")
+            .select("ai_notes_auto_send")
+            .eq("tutor_id", tutorId)
+            .maybeSingle();
+
+          if (ws?.ai_notes_auto_send) {
+            // Only fill summary if the tutor hasn't written one manually.
+            const { data: existing } = await admin
+              .from("lesson_details")
+              .select("summary")
+              .eq("lesson_id", lessonId)
+              .maybeSingle();
+            if (!existing?.summary) {
+              await admin
+                .from("lesson_details")
+                .update({ summary: summaryText })
+                .eq("lesson_id", lessonId);
+            }
+
+            // Notify the student. The create_notification RPC requires
+            // auth.uid() (which a service-role call lacks), so insert directly
+            // and replicate its 24h dedup on (user_id, type).
+            const notifType = `summary_added_${lessonId}`;
+            const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            const { data: dupe } = await admin
+              .from("notifications")
+              .select("id")
+              .eq("user_id", studentId)
+              .eq("type", notifType)
+              .gte("created_at", since)
+              .limit(1)
+              .maybeSingle();
+            if (!dupe) {
+              await admin.from("notifications").insert({
+                user_id: studentId,
+                type: notifType,
+                title: "✨ Конспект уроку готовий",
+                body: "Репетитор надіслав AI-конспект цього уроку.",
+                link: "/schedule",
+              });
+            }
+          }
+        }
+      } catch (e) {
+        console.error("fireflies-webhook auto-send failed (non-blocking):", e);
+      }
     }
 
     console.log("Fireflies webhook stored transcript for lesson", lessonId, "event:", eventType);

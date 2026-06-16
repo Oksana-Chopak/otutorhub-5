@@ -51,6 +51,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.fireflies-start-recording]
     verify_jwt = true
+  [functions.fireflies-auto-join]
+    verify_jwt = false
   [functions.confirm-pending-signup]
     verify_jwt = false
   [functions.send-push]
