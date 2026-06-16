@@ -1538,7 +1538,7 @@ export const sv: LocaleTranslations = {
 
   hubTutor: {
     hubChip: "Hubb \"{{name}}\"",
-    hubFallbackName: "Hubb",
+    hubFallbackName: "oTutorHub",
     payoutDueTitle: "Utbetalning från hubben",
     payoutOn: "Utbetalning {{date}}",
     payoutBySchedule: "Utbetalning enligt hubbens schema",

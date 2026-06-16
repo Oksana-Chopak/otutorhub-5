@@ -2,6 +2,7 @@
 // Each template entry exports its React component and a subject (string or function).
 import { template as studentInvite } from './student-invite.tsx'
 import { template as paymentReminder } from './payment-reminder.tsx'
+import { template as cancellationRules } from './cancellation-rules.tsx'
 
 export type TemplateEntry = {
   component: (props: any) => any
@@ -15,4 +16,5 @@ export type TemplateEntry = {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'student-invite': studentInvite,
   'payment-reminder': paymentReminder,
+  'cancellation-rules': cancellationRules,
 }

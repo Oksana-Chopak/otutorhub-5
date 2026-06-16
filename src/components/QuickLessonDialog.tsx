@@ -354,6 +354,15 @@ export function QuickLessonDialog({
             body: rules,
             link: "/schedule",
           });
+
+          // Also deliver the rules to the student via Telegram + email.
+          // Fire-and-forget: the edge function re-reads settings server-side and
+          // hardcodes the uk copy. Must NEVER block or fail lesson creation.
+          void supabase.functions
+            .invoke("notify-lesson-rules", { body: { lessonId: created.id } })
+            .catch((err) =>
+              console.error("[QuickLessonDialog] notify-lesson-rules failed:", err)
+            );
         }
       } catch (e) {
         // Best-effort only — never block lesson creation on a notification failure.

@@ -33,6 +33,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.notify-cancellation-fee]
     verify_jwt = false
+  [functions.notify-lesson-rules]
+    verify_jwt = true
   [functions.google-calendar-auth]
     verify_jwt = false
   [functions.google-calendar-callback]

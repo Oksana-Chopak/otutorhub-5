@@ -1558,7 +1558,7 @@ export const uk = {
 
   hubTutor: {
     hubChip: "Хаб «{{name}}»",
-    hubFallbackName: "Хаб",
+    hubFallbackName: "oTutorHub",
     payoutDueTitle: "До виплати від хабу",
     payoutOn: "Виплата {{date}}",
     payoutBySchedule: "Виплата за графіком хабу",
