@@ -69,20 +69,21 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
     load();
   }, [load]);
 
-  // Live update when webhook lands
+  // Poll while the Fireflies job is in progress. (lesson_details was removed from the
+  // realtime publication for confidentiality — it carries tutor payout and full
+  // transcripts — so we refetch instead of subscribing to the base table.)
+  // "requested" is the only non-terminal status the backend writes; the webhook sets
+  // "ready" when done, which stops the poll. Capped so a stuck job can't poll forever.
   useEffect(() => {
-    const channel = supabase
-      .channel(`lesson-details-${lessonId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "lesson_details", filter: `lesson_id=eq.${lessonId}` },
-        () => load()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [lessonId, load]);
+    if (state.status !== "requested") return;
+    let attempts = 0;
+    const id = setInterval(() => {
+      attempts += 1;
+      if (attempts > 30) { clearInterval(id); return; }
+      void load();
+    }, 10000);
+    return () => clearInterval(id);
+  }, [state.status, load]);
 
   const startRecording = async () => {
     if (!meetingUrl) {

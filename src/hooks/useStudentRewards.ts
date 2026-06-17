@@ -46,10 +46,11 @@ export function useStudentRewards() {
     if (!user) return;
     const [{ data: lessons }, { data: hw }] = await Promise.all([
       supabase.from("lessons").select("starts_at, status").eq("student_id", user.id),
-      supabase
-        .from("lesson_details")
-        .select("homework, lessons!inner(student_id)")
-        .eq("lessons.student_id", user.id)
+      // lesson_details_student is the student-safe view (self-filters by student_id =
+      // auth.uid()); the base lesson_details table is tutor/manager-only now.
+      (supabase as any)
+        .from("lesson_details_student")
+        .select("homework")
         .not("homework", "is", null),
     ]);
     const completed = ((lessons ?? []) as { starts_at: string; status: string }[]).filter(

@@ -536,7 +536,12 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
 
   const enableIndependent = async () => {
     setActivatingIndependent(true);
-    await updateSettings({ independent_workspace: true, onboarding_step: 0 });
+    // independent_workspace is a guarded column (only managers can set it directly);
+    // a tutor enables their OWN workspace via this SECURITY DEFINER RPC.
+    const { error } = await (supabase as any).rpc("set_own_independent_workspace");
+    // refetch settings (updateSettings calls load()); onboarding_step is non-guarded.
+    await updateSettings({ onboarding_step: 0 });
+    if (error) console.error("set_own_independent_workspace failed", error);
     setActivatingIndependent(false);
   };
 
