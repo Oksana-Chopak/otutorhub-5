@@ -2386,10 +2386,18 @@ export type Database = {
         }
         Returns: string
       }
+      wallet_balance_internal: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: {
+          amount_balance: number
+          lessons_balance: number
+        }[]
+      }
       wallet_delete_transaction: {
         Args: { _hard?: boolean; _tx_id: string }
         Returns: string
       }
+      wallet_resettle_all: { Args: never; Returns: number }
       wallet_topup: {
         Args: {
           _amount_delta: number
