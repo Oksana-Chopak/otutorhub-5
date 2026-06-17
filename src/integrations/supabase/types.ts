@@ -2375,6 +2375,7 @@ export type Database = {
           last_name: string
         }[]
       }
+      set_own_independent_workspace: { Args: never; Returns: undefined }
       start_manager_chat: { Args: never; Returns: string }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
       wallet_adjust: {
