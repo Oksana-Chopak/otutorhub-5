@@ -1470,6 +1470,23 @@ export default function SchedulePage() {
             </div>
           </div>
           <DialogFooter className="px-6 py-3 border-t border-border shrink-0 bg-card">
+            {editingLesson &&
+              (isManager ||
+                (isTutor &&
+                  editingLesson.tutor_id === user?.id &&
+                  (editingLesson.status === "pending" || editingLesson.status === "scheduled"))) && (
+                <Button
+                  variant="destructive"
+                  className="mr-auto"
+                  onClick={() => {
+                    const id = editingLesson.id;
+                    setEditingLesson(null);
+                    setPendingDelete(id);
+                  }}
+                >
+                  {t("schedulePageExtra.deleteBtn")}
+                </Button>
+              )}
             <Button variant="outline" onClick={() => setEditingLesson(null)}>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? t('common.cancel') : t('common.close')}
             </Button>

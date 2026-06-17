@@ -47,6 +47,7 @@ import {
   CalendarPlus,
   ChevronDown,
   Check,
+  Trash2,
 } from "lucide-react";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { toast } from "sonner";
@@ -615,6 +616,26 @@ export default function MyStudentsPage() {
     await Promise.all([load(), refresh()]);
   };
 
+  // Full deletion (mirror of the manager purge, scoped to this tutor). A ghost
+  // student solely yours is removed entirely; a registered/shared student keeps
+  // their account — only your relationship is removed. Guarded server-side.
+  const fullDelete = async (s: MyStudent) => {
+    const name = `${s.first_name} ${s.last_name}`.trim() || t("common.noName");
+    if (!window.confirm(t("myStudents.deleteConfirm", { name }))) return;
+    if (window.prompt(t("myStudents.deleteTypeDELETE")) !== "DELETE") {
+      toast.info(t("myStudents.deleteCancelled"));
+      return;
+    }
+    const { error } = await (supabase as any).rpc("tutor_delete_student", { _student_id: s.id });
+    if (error) {
+      toast.error(t("myStudents.deleteFailed", { message: error.message }));
+      return;
+    }
+    setSelectedStudentId(null);
+    toast.success(t("myStudents.deleteSuccess", { name }));
+    await Promise.all([load(), refresh()]);
+  };
+
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [subjectOpen, setSubjectOpen] = useState(false);
@@ -775,6 +796,10 @@ export default function MyStudentsPage() {
                     <button onClick={() => s.archived_at ? unarchive(s) : archive(s)} aria-label={s.archived_at ? t("people.unarchiveBtn") : t("people.archiveBtn")}
                       style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                       {s.archived_at ? <ArchiveRestore size={20} /> : <Archive size={20} />}
+                    </button>
+                    <button onClick={() => fullDelete(s)} aria-label={t("myStudents.deleteBtn")}
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      <Trash2 size={20} />
                     </button>
                   </div>
                 </div>
