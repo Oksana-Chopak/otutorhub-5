@@ -1125,6 +1125,7 @@ export const en: LocaleTranslations = {
     deleteTypeDELETE: "Type DELETE in capitals to confirm:",
     deleteCancelled: "Deletion cancelled",
     deleteSuccess: "{{name}} deleted",
+    unlinkSuccess: "Link to {{name}} removed",
     deleteFailed: "Could not delete: {{message}}",
     perLessonSuffix: "/lesson",
     walletLessonsShort: "{{count}} less.",

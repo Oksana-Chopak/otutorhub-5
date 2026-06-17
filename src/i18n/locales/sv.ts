@@ -1115,6 +1115,7 @@ export const sv: LocaleTranslations = {
     deleteTypeDELETE: "Skriv DELETE med versaler för att bekräfta:",
     deleteCancelled: "Radering avbruten",
     deleteSuccess: "{{name}} raderad",
+    unlinkSuccess: "Koppling till {{name}} borttagen",
     deleteFailed: "Kunde inte radera: {{message}}",
     perLessonSuffix: "/lektion",
     walletLessonsShort: "{{count}} lekt.",

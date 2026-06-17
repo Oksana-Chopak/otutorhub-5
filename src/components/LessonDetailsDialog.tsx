@@ -5,6 +5,7 @@ import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { Loader2, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 
 interface LessonRowFull {
   id: string;
@@ -36,9 +37,20 @@ interface Props {
  */
 export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }: Props) {
   const { t, i18n } = useTranslation();
+  const { user, roles } = useAuth();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Guard parity with the schedule card: only a manager, or the owning tutor on a
+  // pending/scheduled lesson, may delete. (RLS also rejects, but don't offer a
+  // button that will fail on completed/cancelled lessons.)
+  const canDelete =
+    !!row &&
+    (roles.includes("manager") ||
+      (roles.includes("tutor") &&
+        row.tutor_id === user?.id &&
+        (row.status === "pending" || row.status === "scheduled")));
 
   const handleDelete = async () => {
     if (!row) return;
@@ -129,15 +141,17 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
         {/* Sticky edit footer: delete + done (fields auto-save inline) */}
         {!loading && row && (
           <div style={{ flexShrink: 0, padding: "14px 20px 22px", borderTop: "1px solid #f0f1f5", background: "#fff", display: "flex", gap: 11 }}>
-            <button
-              type="button"
-              aria-label={t("lessonDetails.deleteBtn")}
-              onClick={handleDelete}
-              disabled={deleting}
-              style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "rgba(255,122,89,.12)", color: "#e0552f", display: "flex", alignItems: "center", justifyContent: "center" }}
-            >
-              {deleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 size={20} />}
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                aria-label={t("lessonDetails.deleteBtn")}
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "rgba(255,122,89,.12)", color: "#e0552f", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                {deleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 size={20} />}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onOpenChange(false)}

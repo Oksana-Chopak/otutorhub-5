@@ -68,7 +68,11 @@ export function useWorkspaceSettings() {
   };
 
   const isIndependent = settings?.independent_workspace ?? false;
-  const isActiveSub = settings?.subscription_status === "active";
+  // A paid sub is only valid until it lapses; a failed LiqPay renewal leaves
+  // status='active' until the downgrade cron runs (mirror of the trial check).
+  const subUntil = settings?.subscription_until ? new Date(settings.subscription_until).getTime() : null;
+  const isActiveSub =
+    settings?.subscription_status === "active" && (subUntil === null || subUntil > Date.now());
   const trialActive =
     settings?.subscription_status === "trial" &&
     !!settings?.trial_until &&

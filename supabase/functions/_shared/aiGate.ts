@@ -11,17 +11,23 @@
 export async function tutorAiAllowed(client: any, tutorId: string): Promise<boolean> {
   const { data } = await client
     .from("tutor_workspace_settings")
-    .select("independent_workspace, subscription_status, trial_until")
+    .select("independent_workspace, subscription_status, subscription_until, trial_until")
     .eq("tutor_id", tutorId)
     .maybeSingle();
 
   if (!data) return false;
   if (!data.independent_workspace) return true; // hub tutor — free
 
-  const active = data.subscription_status === "active";
+  const now = Date.now();
+  // A paid sub is only valid while it hasn't lapsed (a failed LiqPay renewal
+  // leaves status='active' until the downgrade cron runs — don't grant Pro past
+  // subscription_until). A null until = an open-ended/manual grant.
+  const active =
+    data.subscription_status === "active" &&
+    (!data.subscription_until || new Date(data.subscription_until).getTime() > now);
   const trial =
     data.subscription_status === "trial" &&
     !!data.trial_until &&
-    new Date(data.trial_until).getTime() > Date.now();
+    new Date(data.trial_until).getTime() > now;
   return active || trial;
 }

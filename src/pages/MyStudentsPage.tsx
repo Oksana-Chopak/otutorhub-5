@@ -626,13 +626,15 @@ export default function MyStudentsPage() {
       toast.info(t("myStudents.deleteCancelled"));
       return;
     }
-    const { error } = await (supabase as any).rpc("tutor_delete_student", { _student_id: s.id });
+    const { data, error } = await (supabase as any).rpc("tutor_delete_student", { _student_id: s.id });
     if (error) {
       toast.error(t("myStudents.deleteFailed", { message: error.message }));
       return;
     }
     setSelectedStudentId(null);
-    toast.success(t("myStudents.deleteSuccess", { name }));
+    // A registered/shared student keeps their account — only the link is removed.
+    const purged = (data as { purged?: boolean } | null)?.purged;
+    toast.success(purged ? t("myStudents.deleteSuccess", { name }) : t("myStudents.unlinkSuccess", { name }));
     await Promise.all([load(), refresh()]);
   };
 

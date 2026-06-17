@@ -1134,6 +1134,7 @@ export const uk = {
     deleteTypeDELETE: "Для підтвердження введіть DELETE великими літерами:",
     deleteCancelled: "Видалення скасовано",
     deleteSuccess: "{{name}} видалено",
+    unlinkSuccess: "Звʼязок з {{name}} видалено",
     deleteFailed: "Не вдалося видалити: {{message}}",
     perLessonSuffix: "/урок",
     walletLessonsShort: "{{count}} ур.",
