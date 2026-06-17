@@ -2376,6 +2376,7 @@ export type Database = {
         }[]
       }
       start_manager_chat: { Args: never; Returns: string }
+      tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
       wallet_adjust: {
         Args: {
           _amount_delta: number
