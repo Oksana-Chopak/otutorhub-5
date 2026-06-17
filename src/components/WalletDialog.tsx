@@ -145,23 +145,30 @@ export function WalletDialog({
   const [loadingUnpaid, setLoadingUnpaid] = useState(false);
   const [marking, setMarking] = useState(false);
 
-  // Fetch unpaid lessons when tab = mark
+  // Fetch unpaid lessons when tab = mark.
+  // subject/starts_at live on `lessons` (not lesson_details), currency on student_rates —
+  // query the RLS-safe lessons_visible view, oldest first (matches wallet settlement order).
   useEffect(() => {
     if (!open || !tutorId || !studentId) return;
     setLoadingUnpaid(true);
-    (supabase as any)
-      .from("lesson_details")
-      .select("lesson_id, starts_at, subject, student_price, currency")
-      .eq("tutor_id", tutorId)
-      .eq("student_id", studentId)
-      .eq("student_payment_status", "unpaid")
-      .order("starts_at", { ascending: false })
-      .then(({ data }: { data: any[] | null }) => {
-        const rows = (data ?? []).map((l: any) => ({ ...l, id: l.lesson_id }));
-        setUnpaidLessons(rows);
-        setCheckedIds(new Set(rows.map((l: any) => l.id)));
-        setLoadingUnpaid(false);
-      });
+    (async () => {
+      const [{ data: rateRow }, { data }] = await Promise.all([
+        (supabase as any).from("student_rates")
+          .select("currency").eq("tutor_id", tutorId).eq("student_id", studentId).limit(1).maybeSingle(),
+        (supabase as any).from("lessons_visible")
+          .select("id, subject, starts_at, student_price")
+          .eq("tutor_id", tutorId).eq("student_id", studentId)
+          .eq("student_payment_status", "unpaid").neq("status", "cancelled")
+          .order("starts_at", { ascending: true }),
+      ]);
+      const cur = rateRow?.currency ?? "UAH";
+      const rows = (data ?? [])
+        .filter((l: any) => Number(l.student_price ?? 0) > 0)
+        .map((l: any) => ({ id: l.id, starts_at: l.starts_at, subject: l.subject, student_price: Number(l.student_price ?? 0), currency: cur }));
+      setUnpaidLessons(rows);
+      setCheckedIds(new Set(rows.map((l: any) => l.id)));
+      setLoadingUnpaid(false);
+    })();
   }, [open, tutorId, studentId]);
 
   const handleMarkPaid = async () => {
