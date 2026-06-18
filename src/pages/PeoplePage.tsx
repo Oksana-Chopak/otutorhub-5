@@ -1954,6 +1954,13 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   </div>
                 )}
 
+                {/* Payout schedule — manager sets when to pay THIS tutor (Ср / Пт / ...) */}
+                {isManager && u.role === "tutor" && !u.is_pending && (
+                  <div className="px-4 py-3 border-b border-border">
+                    <PayoutScheduleCard tutorId={u.id} />
+                  </div>
+                )}
+
                 {/* Student actions: Репетитор / Гаманець / Ставка */}
                 {isManager && u.role === "student" && !u.archived_at && !u.is_pending && (
                   <div className="grid grid-cols-3 gap-2 px-4 pt-3">
