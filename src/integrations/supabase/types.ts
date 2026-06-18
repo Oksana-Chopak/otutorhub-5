@@ -2361,6 +2361,10 @@ export type Database = {
         }
         Returns: number
       }
+      notify_managers: {
+        Args: { _body?: string; _link?: string; _title: string; _type: string }
+        Returns: number
+      }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }
         Returns: {
