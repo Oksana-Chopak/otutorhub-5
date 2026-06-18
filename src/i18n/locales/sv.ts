@@ -2807,6 +2807,12 @@ export const sv: LocaleTranslations = {
     noMembers: "Inga medlemmar ännu",
     addStudentLabel: "Lägg till elev",
     noStudents: "Alla elever är redan i gruppen ✨",
+    priceLabel: "Pris per lektion",
+    pricePlaceholder: "Pris",
+    priceHint: "Pris för en grupplektion för denna elev (kan skilja sig per elev).",
+    setPrice: "Ange pris",
+    priceInvalid: "Ogiltigt pris",
+    priceSaved: "Pris sparat",
     doneBtn: "Klar",
   },
   inviteLinkExtra: {

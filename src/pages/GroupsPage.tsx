@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
+import { currencySymbol } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -53,6 +54,8 @@ interface Enrollment {
   group_id: string;
   student_id: string;
   status: "active" | "inactive";
+  price_per_lesson: number | null;
+  currency: string;
 }
 
 interface StudentOption {
@@ -87,7 +90,7 @@ export default function GroupsPage() {
     if (groupIds.length) {
       const { data: ens } = await supabase
         .from("group_enrollments")
-        .select("id, group_id, student_id, status")
+        .select("id, group_id, student_id, status, price_per_lesson, currency")
         .in("group_id", groupIds);
       setEnrollments((ens ?? []) as Enrollment[]);
       const studentIds = Array.from(new Set((ens ?? []).map((e: any) => e.student_id)));
@@ -334,8 +337,33 @@ function GroupDetailsDialog({
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [available, setAvailable] = useState<StudentOption[]>([]);
   const [pickedStudent, setPickedStudent] = useState<string>("");
+  const [pickedPrice, setPickedPrice] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  // Inline per-student price edit in the member list (enrollmentId being edited).
+  const [editPrice, setEditPrice] = useState<{ id: string; value: string } | null>(null);
+
+  // Each student in a group has their OWN price (owner decision). Persisted on
+  // group_enrollments.price_per_lesson; snapshotted onto lesson_participants when a
+  // group lesson is scheduled.
+  const saveEnrollmentPrice = async (enrollmentId: string, priceStr: string) => {
+    const price = priceStr.trim() === "" ? null : Number(priceStr.replace(",", "."));
+    if (price !== null && (!Number.isFinite(price) || price < 0)) {
+      toast.error(t("groupsPageExtra.priceInvalid"));
+      return;
+    }
+    const { error } = await supabase
+      .from("group_enrollments")
+      .update({ price_per_lesson: price })
+      .eq("id", enrollmentId);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setEditPrice(null);
+    toast.success(t("groupsPageExtra.priceSaved"));
+    load();
+  };
   // When a not-yet-registered (ghost) student is enrolled, surface the invite so
   // they actually get onto the platform and can see the group lesson.
   const [invite, setInvite] = useState<{ open: boolean; name: string; email: string | null; phone: string | null; studentId: string } | null>(null);
@@ -355,7 +383,7 @@ function GroupDetailsDialog({
     setLoading(true);
     const [{ data: g }, { data: ens }] = await Promise.all([
       supabase.from("lesson_groups").select("*").eq("id", groupId).maybeSingle(),
-      supabase.from("group_enrollments").select("id, group_id, student_id, status").eq("group_id", groupId),
+      supabase.from("group_enrollments").select("id, group_id, student_id, status, price_per_lesson, currency").eq("group_id", groupId),
     ]);
     setGroup(g as Group);
     setEnrollments((ens ?? []) as Enrollment[]);
@@ -412,11 +440,17 @@ function GroupDetailsDialog({
     if (!pickedStudent) return;
     const picked = pickedStudent;
     const pickedName = available.find((s) => s.student_id === picked)?.name ?? t("shared.student");
+    const priceVal = pickedPrice.trim() === "" ? null : Number(pickedPrice.replace(",", "."));
+    if (priceVal !== null && (!Number.isFinite(priceVal) || priceVal < 0)) {
+      toast.error(t("groupsPageExtra.priceInvalid"));
+      return;
+    }
     setBusy(true);
     const { error } = await supabase.from("group_enrollments").insert({
       group_id: groupId,
       student_id: picked,
       status: "active",
+      price_per_lesson: priceVal,
     });
     setBusy(false);
     if (error) {
@@ -427,7 +461,7 @@ function GroupDetailsDialog({
         // Учень уже був у групі (можливо неактивний) — реактивуємо.
         const { error: upErr } = await supabase
           .from("group_enrollments")
-          .update({ status: "active" })
+          .update({ status: "active", price_per_lesson: priceVal })
           .eq("group_id", groupId)
           .eq("student_id", picked);
         if (upErr) {
@@ -435,6 +469,7 @@ function GroupDetailsDialog({
           return;
         }
         setPickedStudent("");
+        setPickedPrice("");
         toast.success(t("groupsPageExtra.studentAdded"));
         void maybeInviteGhost(picked, pickedName);
         load();
@@ -449,6 +484,7 @@ function GroupDetailsDialog({
       return;
     }
     setPickedStudent("");
+    setPickedPrice("");
     toast.success(t("groupsPageExtra.studentAdded"));
     void maybeInviteGhost(picked, pickedName);
     load();
@@ -505,13 +541,38 @@ function GroupDetailsDialog({
                   {active.map((e) => (
                     <li
                       key={e.id}
-                      className="flex items-center justify-between rounded-lg border border-border px-3 py-2 text-sm"
+                      className="flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm"
                     >
-                      <span>{studentNames.get(e.student_id) ?? t("shared.student")}</span>
+                      <span className="min-w-0 flex-1 truncate">{studentNames.get(e.student_id) ?? t("shared.student")}</span>
+                      {editPrice?.id === e.id ? (
+                        <Input
+                          autoFocus
+                          inputMode="decimal"
+                          value={editPrice.value}
+                          onChange={(ev) => setEditPrice({ id: e.id, value: ev.target.value.replace(/[^\d.,]/g, "") })}
+                          onBlur={() => saveEnrollmentPrice(e.id, editPrice.value)}
+                          onKeyDown={(ev) => { if (ev.key === "Enter") saveEnrollmentPrice(e.id, editPrice.value); }}
+                          className="h-9 w-24 text-[15px]"
+                          placeholder={t("groupsPageExtra.pricePlaceholder")}
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setEditPrice({ id: e.id, value: e.price_per_lesson != null ? String(e.price_per_lesson) : "" })}
+                          className="flex-shrink-0 rounded-full px-2.5 py-1 text-[13px] font-bold"
+                          style={ e.price_per_lesson != null
+                            ? { background: "rgba(43,191,170,.12)", color: "#1f8e7e" }
+                            : { background: "rgba(245,181,68,.16)", color: "#9a6a12" } }
+                        >
+                          {e.price_per_lesson != null
+                            ? `${e.price_per_lesson} ${currencySymbol(e.currency || "UAH")}`
+                            : t("groupsPageExtra.setPrice")}
+                        </button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                        className="h-9 w-9 flex-shrink-0 text-muted-foreground hover:text-destructive"
                         onClick={() => removeStudent(e.id)}
                         disabled={busy}
                       >
@@ -538,10 +599,19 @@ function GroupDetailsDialog({
                     ))}
                   </SelectContent>
                 </Select>
+                <Input
+                  inputMode="decimal"
+                  value={pickedPrice}
+                  onChange={(e) => setPickedPrice(e.target.value.replace(/[^\d.,]/g, ""))}
+                  className="h-10 w-24 text-[15px]"
+                  placeholder={t("groupsPageExtra.pricePlaceholder")}
+                  aria-label={t("groupsPageExtra.priceLabel")}
+                />
                 <Button onClick={addStudent} disabled={!pickedStudent || busy}>
                   <UserPlus className="h-4 w-4" />
                 </Button>
               </div>
+              <p className="text-[13px] text-muted-foreground">{t("groupsPageExtra.priceHint")}</p>
             </div>
           </div>
         )}

@@ -2817,6 +2817,12 @@ export const en: LocaleTranslations = {
     noMembers: "No members yet",
     addStudentLabel: "Add student",
     noStudents: "All students are already in the group ✨",
+    priceLabel: "Price per lesson",
+    pricePlaceholder: "Price",
+    priceHint: "Price for a group lesson for this student (each can differ).",
+    setPrice: "Set price",
+    priceInvalid: "Invalid price",
+    priceSaved: "Price saved",
     doneBtn: "Done",
   },
   inviteLinkExtra: {

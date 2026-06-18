@@ -2828,6 +2828,12 @@ export const uk = {
     noMembers: "Поки немає учасників",
     addStudentLabel: "Додати учня",
     noStudents: "Усі учні вже в групі ✨",
+    priceLabel: "Ціна за урок",
+    pricePlaceholder: "Ціна",
+    priceHint: "Ціна за груповий урок для цього учня (у кожного може бути своя).",
+    setPrice: "Вказати ціну",
+    priceInvalid: "Невірна ціна",
+    priceSaved: "Ціну збережено",
     doneBtn: "Готово",
   },
   inviteLinkExtra: {
