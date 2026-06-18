@@ -2847,6 +2847,16 @@ export const uk = {
     notifNewTitle: "Новий груповий урок: {{subject}}",
     notifCancelledTitle: "Груповий урок скасовано: {{subject}}",
   },
+  groupPayments: {
+    title: "Учасники та оплати",
+    paidOfTotal: "{{paid}} з {{total}} оплатили",
+    paid: "Оплачено",
+    markPaid: "Позначити оплату",
+    markedPaid: "💰 Оплата від {{name}}!",
+    markFailed: "Не вдалося оновити оплату",
+    noParticipants: "У цьому уроці немає учасників",
+    noPrice: "Ціну не вказано",
+  },
   inviteLinkExtra: {
     contactEmail: "email",
     contactGeneric: "контакт",

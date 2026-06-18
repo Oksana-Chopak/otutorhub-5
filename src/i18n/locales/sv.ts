@@ -2826,6 +2826,16 @@ export const sv: LocaleTranslations = {
     notifNewTitle: "Ny grupplektion: {{subject}}",
     notifCancelledTitle: "Grupplektion inställd: {{subject}}",
   },
+  groupPayments: {
+    title: "Deltagare & betalningar",
+    paidOfTotal: "{{paid}} av {{total}} har betalat",
+    paid: "Betald",
+    markPaid: "Markera betald",
+    markedPaid: "💰 Betalning från {{name}}!",
+    markFailed: "Kunde inte uppdatera betalningen",
+    noParticipants: "Inga deltagare i denna lektion",
+    noPrice: "Inget pris angett",
+  },
   inviteLinkExtra: {
     contactEmail: "e-postadress",
     contactGeneric: "kontaktuppgift",

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
+import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
 import { Loader2, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -22,6 +23,7 @@ interface LessonRowFull {
   summary: string | null;
   student_notes: string | null;
   source: "hub" | "independent";
+  group_id: string | null;
 }
 
 interface Props {
@@ -71,7 +73,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     const { data } = await supabase
       .from("lessons_visible")
       .select(
-        "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, student_payment_status, meeting_url, homework, summary, student_notes, source"
+        "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, student_payment_status, meeting_url, homework, summary, student_notes, source, group_id"
       )
       .eq("id", id)
       .maybeSingle();
@@ -118,6 +120,14 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
           </div>
+        ) : row.group_id ? (
+          /* Group lesson: per-participant roster + payment marking (student_id is
+             NULL on the lesson; each student's price/payment is on lesson_participants). */
+          <GroupLessonParticipants
+            lessonId={row.id}
+            canEdit={roles.includes("manager") || (roles.includes("tutor") && row.tutor_id === user?.id)}
+            onUpdated={() => onUpdated?.()}
+          />
         ) : (
           <LessonWorkspace
             lessonId={row.id}

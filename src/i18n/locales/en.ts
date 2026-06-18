@@ -2836,6 +2836,16 @@ export const en: LocaleTranslations = {
     notifNewTitle: "New group lesson: {{subject}}",
     notifCancelledTitle: "Group lesson cancelled: {{subject}}",
   },
+  groupPayments: {
+    title: "Participants & payments",
+    paidOfTotal: "{{paid}} of {{total}} paid",
+    paid: "Paid",
+    markPaid: "Mark paid",
+    markedPaid: "💰 Payment from {{name}}!",
+    markFailed: "Couldn't update payment",
+    noParticipants: "No participants in this lesson",
+    noPrice: "No price set",
+  },
   inviteLinkExtra: {
     contactEmail: "email",
     contactGeneric: "contact",
