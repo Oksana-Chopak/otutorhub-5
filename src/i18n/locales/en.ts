@@ -3191,6 +3191,13 @@ export const en: LocaleTranslations = {
     sectionPayout: "Payout details",
     securityNote: "For security we store only the last 4 digits of the card. The full number is never saved.",
   },
+  studentEdit: {
+    nameRequired: "Enter a first or last name",
+    saveFailed: "Couldn't save",
+    subjectsRatesTitle: "Subjects & rates",
+    ratesPerTutorHint: "Rate is set per tutor (edit it in the student card)",
+    noTutorYet: "No tutor yet — assign one in the student card",
+  },
   assignTutorExtra: {
     tutorFallback: "tutor",
     rateCreatedReqFailed: "Rate created but request not updated: {{error}}",

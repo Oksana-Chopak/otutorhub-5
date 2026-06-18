@@ -59,6 +59,7 @@ import {
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
+import { StudentEditSheet } from "@/components/StudentEditSheet";
 import { WalletDialog } from "@/components/WalletDialog";
 import {
   Sheet,
@@ -192,6 +193,16 @@ export default function PeoplePage() {
     open: false,
     user: null,
   });
+  // Editing a STUDENT uses the SF_A «Один потік» form (design ТЗ: ✏️ → форма учня),
+  // not the contacts-only ContactEditDialog (kept for tutors/managers).
+  const [studentEdit, setStudentEdit] = useState<{ open: boolean; user: UserRow | null }>({
+    open: false,
+    user: null,
+  });
+  const openEditFor = (u: UserRow) =>
+    u.role === "student"
+      ? setStudentEdit({ open: true, user: u })
+      : setContactDialog({ open: true, user: u });
 
   const [propagate, setPropagate] = useState<{
     open: boolean;
@@ -1044,7 +1055,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               className="h-9 w-9 text-muted-foreground hover:text-foreground"
               onClick={(e) => {
                 e.stopPropagation();
-                setContactDialog({ open: true, user: u });
+                openEditFor(u);
               }}
               title={t("people.editContactsBtn")}
             >
@@ -1608,6 +1619,27 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         />
       )}
 
+      {studentEdit.user && (
+        <StudentEditSheet
+          open={studentEdit.open}
+          onOpenChange={(o) => setStudentEdit((s) => ({ ...s, open: o }))}
+          student={{
+            id: studentEdit.user.id,
+            first_name: studentEdit.user.first_name,
+            last_name: studentEdit.user.last_name,
+            phone: studentEdit.user.phone,
+            email: studentEdit.user.email,
+            telegram: studentEdit.user.telegram,
+          }}
+          pairs={studentRates.filter((r) => r.student_id === studentEdit.user!.id)}
+          tutorNameOf={(id) => {
+            const tu = users.find((x) => x.id === id);
+            return tu ? fullName(tu) : t("shared.tutor");
+          }}
+          onSaved={loadData}
+        />
+      )}
+
       <InviteLinkDialog
         open={invite.open}
         onOpenChange={(v) => setInvite((prev) => ({ ...prev, open: v }))}
@@ -1845,7 +1877,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                         type="button"
                         className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#6b7088)" }}
-                        onClick={() => setContactDialog({ open: true, user: u })}
+                        onClick={() => openEditFor(u)}
                         title={t("people.editContactsBtn")}
                       >
                         <Pencil className="h-4 w-4" />

@@ -3203,6 +3203,13 @@ export const uk = {
     sectionPayout: "Реквізити для виплат",
     securityNote: "З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.",
   },
+  studentEdit: {
+    nameRequired: "Вкажіть ім'я або прізвище",
+    saveFailed: "Не вдалося зберегти",
+    subjectsRatesTitle: "Предмети та ставки",
+    ratesPerTutorHint: "Ставка — окремо для кожного репетитора (редагується в картці учня)",
+    noTutorYet: "Ще без репетитора — призначте його в картці учня",
+  },
   assignTutorExtra: {
     tutorFallback: "репетитор",
     rateCreatedReqFailed: "Ставку створено, але запит не оновлено: {{error}}",

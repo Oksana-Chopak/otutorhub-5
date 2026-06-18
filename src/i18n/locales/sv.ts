@@ -3181,6 +3181,13 @@ export const sv: LocaleTranslations = {
     sectionPayout: "Utbetalningsuppgifter",
     securityNote: "Av säkerhetsskäl sparar vi bara kortets sista 4 siffror. Det fullständiga numret sparas aldrig.",
   },
+  studentEdit: {
+    nameRequired: "Ange för- eller efternamn",
+    saveFailed: "Kunde inte spara",
+    subjectsRatesTitle: "Ämnen & taxor",
+    ratesPerTutorHint: "Taxan sätts per lärare (redigeras i elevkortet)",
+    noTutorYet: "Ingen lärare än — tilldela en i elevkortet",
+  },
   assignTutorExtra: {
     tutorFallback: "lärare",
     rateCreatedReqFailed: "Taxa skapad men förfrågan inte uppdaterad: {{error}}",

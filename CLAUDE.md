@@ -161,7 +161,13 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 **Tap on card → bottom sheet:**
 - Drag handle
 - Header: avatar 52px + name + role | [🗄 archive][🗑 delete][✏️ edit][✕ close]
-  Archive/delete small icons (subtle), pencil=edit contacts
+  Archive/delete small icons (subtle). ✏️ edit is role-aware (`openEditFor`):
+  **student → `StudentEditSheet` (the SF_A «Один потік» form: name + subjects/rates
+  summary + contacts + 🔒 manager note)**; tutor/manager → `ContactEditDialog`
+  (contacts/bank). Binding ТЗ (PEOPLE-HANDOFF: ✏️ → форма учня). Do NOT route the
+  student ✏️ back to ContactEditDialog. Rates stay per-tutor (editable in the rate
+  rows / RatePropagation), shown read-only in the SF_A form's gold card — a single
+  price field would misrepresent the hub's multi-tutor model.
 - Phone row + copy icon
 - Email row + copy icon
 - Subject · rate row + pencil (opens RatePropagationDialog)
@@ -171,7 +177,8 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - **Pending**: [Нагадати (teal)] [Видалити (red)] — NOT "Запросити"
 
 **All forms as bottom sheet:**
-- `ContactEditDialog`: bottom sheet, teal submit
+- `StudentEditSheet`: SF_A bottom sheet — student ✏️ on People (manager)
+- `ContactEditDialog`: bottom sheet, teal submit — tutor/manager ✏️ (contacts/bank)
 - `InviteLinkDialog`: bottom sheet, teal send button
 - `RatePropagationDialog`: bottom sheet, teal confirm
 - `WalletDialog`: already bottom sheet, teal submit
