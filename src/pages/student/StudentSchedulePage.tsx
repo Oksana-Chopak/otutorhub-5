@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video, MessageCircle } from "lucide-react";
+import { Loader2, Video, MessageCircle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
@@ -75,6 +75,15 @@ export default function StudentSchedulePage() {
           const sm = STATUS_META[l.status] ?? STATUS_META.scheduled;
           const d = new Date(l.starts_at);
           const isCancelled = l.status === "cancelled";
+          // Time-aware join: "live" from 15 min before start through lesson end.
+          const startMs = d.getTime();
+          const endMs = startMs + (l.duration_minutes ?? 60) * 60000;
+          const live = l.status === "scheduled" && now >= startMs - 15 * 60000 && now <= endMs;
+          const minsTo = Math.round((startMs - now) / 60000);
+          const isToday = d.toDateString() === new Date().toDateString();
+          const joinStatus = live
+            ? (now >= startMs ? t("studentPages.lessonLive") : t("studentPages.startsInMin", { min: Math.max(1, minsTo) }))
+            : null;
           return (
             <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
@@ -89,30 +98,42 @@ export default function StudentSchedulePage() {
                   {d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })}
                 </span>
               </div>
-              <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                    <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
-                    <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg }}>
-                      {statusLabel[l.status]}
-                    </span>
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 9, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                      <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                      <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 13, background: live ? "rgba(43,191,170,.18)" : sm.bg, color: live ? "#1f8e7e" : sm.fg }}>
+                        {joinStatus ?? statusLabel[l.status]}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: 13, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                      {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
+                    </p>
                   </div>
-                  <p style={{ fontSize: 13, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                   <Link to={`/chats?with=${l.tutor_id}`} aria-label={t("studentPages.chatWithTutorAria")}
                     style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
                     <MessageCircle size={18} />
                   </Link>
-                  {l.meeting_url && l.status === "scheduled" && (
-                    <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                      style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: "#2BBFAA", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
-                      <Video size={20} />
-                    </a>
-                  )}
                 </div>
+                {l.meeting_url && l.status === "scheduled" ? (
+                  <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer"
+                    aria-label={live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
+                    style={{
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                      height: 46, borderRadius: 13, fontFamily: D, fontWeight: 800, fontSize: 15, textDecoration: "none",
+                      background: live ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.12)",
+                      color: live ? "#0f0f1a" : "#1f8e7e",
+                      boxShadow: live ? "0 8px 20px -6px rgba(43,191,170,.7)" : "inset 0 0 0 1px rgba(43,191,170,.28)",
+                      animation: live ? "joinPulse 1.8s ease-in-out infinite" : "none",
+                    }}>
+                    <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
+                  </a>
+                ) : (!l.meeting_url && l.status === "scheduled" && isToday) ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "#9398b0", fontSize: 13, fontWeight: 600 }}>
+                    <Clock size={15} /> {t("studentPages.linkComingSoon")}
+                  </div>
+                ) : null}
               </div>
             </li>
           );

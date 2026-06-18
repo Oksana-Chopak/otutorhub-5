@@ -3,9 +3,13 @@ import { getLocale } from "@/lib/locale";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Sparkles, Download, Clock } from "lucide-react";
+import { Loader2, Sparkles, Download, Clock, Check } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
+import { readHomeworkDone, writeHomeworkDone } from "@/lib/homeworkDone";
 
 interface HomeworkRow {
   lesson_id: string;
@@ -27,6 +31,31 @@ export default function StudentHomeworkPage() {
   const [loading, setLoading] = useState(true);
   const [openNoteId, setOpenNoteId] = useState<string | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [doneSet, setDoneSet] = useState<Set<string>>(new Set());
+  const haptic = useHaptic();
+
+  useEffect(() => {
+    setDoneSet(readHomeworkDone(user?.id));
+  }, [user?.id]);
+
+  // Personal "done" marker (local, per device). Marking complete celebrates;
+  // unmarking is silent. Closes the homework loop without tutor-facing submission.
+  const toggleDone = (lessonId: string) => {
+    if (!user) return;
+    setDoneSet((prev) => {
+      const next = new Set(prev);
+      const wasDone = next.has(lessonId);
+      if (wasDone) next.delete(lessonId);
+      else next.add(lessonId);
+      writeHomeworkDone(user.id, next);
+      if (!wasDone) {
+        haptic.success();
+        burstConfetti({ count: 14 });
+        toast.success(t("studentPagesExtra.homeworkDoneToast"));
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -157,46 +186,73 @@ export default function StudentHomeworkPage() {
     border: "1px solid #eceef3", background: "#fff", color: "#0f0f1a",
   };
 
-  const renderCard = (r: HomeworkRow) => (
-    <li key={r.lesson_id} style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 14 }}>
+  const renderCard = (r: HomeworkRow) => {
+    const done = doneSet.has(r.lesson_id);
+    return (
+    <li key={r.lesson_id} style={{ borderRadius: 18, border: done ? "1px solid rgba(34,197,94,.4)" : "1px solid #eceef3", background: done ? "#f6fdf8" : "#fff", padding: 14, transition: "background .2s, border-color .2s" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
-        <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>📚</span>
+        <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? "rgba(34,197,94,.14)" : "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{done ? "✅" : "📚"}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
           <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
           <p style={{ fontSize: 13, color: "#6b7088", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
         </div>
+        {done && (
+          <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 12, fontWeight: 800 }}>
+            <Check size={13} strokeWidth={2.6} />{t("studentPagesExtra.markedDone")}
+          </span>
+        )}
       </div>
       <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "#fbfbfc", border: "1px solid #eceef3", padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55, color: "#0f0f1a" }}>
         {r.homework}
       </p>
-      <div style={{ display: "flex", gap: 9, marginTop: 11 }}>
-        {r.hasAiNote && (
-          <button type="button" style={goldBtn} onClick={() => setOpenNoteId(openNoteId === r.lesson_id ? null : r.lesson_id)} aria-expanded={openNoteId === r.lesson_id}>
-            <Sparkles size={16} strokeWidth={1.8} />{t("studentPagesExtra.summaryBtn")}
-          </button>
-        )}
-        {r.hasFile && (
-          <button type="button" style={plainBtn} onClick={() => handleDownload(r)} disabled={downloadingId === r.lesson_id}>
-            {downloadingId === r.lesson_id
-              ? <Loader2 size={16} strokeWidth={1.8} className="animate-spin" />
-              : <Download size={16} strokeWidth={1.8} />}
-            {t("studentPagesExtra.downloadBtn")}
-          </button>
-        )}
-        {!r.hasAiNote && !r.hasFile && (
-          <span style={{ fontSize: 12, color: "#b0b4c8", padding: "8px 2px" }}>{t("studentPagesExtra.noAttachments")}</span>
-        )}
-      </div>
+      {(r.hasAiNote || r.hasFile) && (
+        <div style={{ display: "flex", gap: 9, marginTop: 11 }}>
+          {r.hasAiNote && (
+            <button type="button" style={goldBtn} onClick={() => setOpenNoteId(openNoteId === r.lesson_id ? null : r.lesson_id)} aria-expanded={openNoteId === r.lesson_id}>
+              <Sparkles size={16} strokeWidth={1.8} />{t("studentPagesExtra.summaryBtn")}
+            </button>
+          )}
+          {r.hasFile && (
+            <button type="button" style={plainBtn} onClick={() => handleDownload(r)} disabled={downloadingId === r.lesson_id}>
+              {downloadingId === r.lesson_id
+                ? <Loader2 size={16} strokeWidth={1.8} className="animate-spin" />
+                : <Download size={16} strokeWidth={1.8} />}
+              {t("studentPagesExtra.downloadBtn")}
+            </button>
+          )}
+        </div>
+      )}
+      {/* Completion loop — the student's core action gets a clear, rewarding control */}
+      <button
+        type="button"
+        onClick={() => toggleDone(r.lesson_id)}
+        aria-pressed={done}
+        style={{
+          marginTop: 11, width: "100%", height: 46, borderRadius: 13, cursor: "pointer",
+          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+          fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14.5,
+          border: done ? "1px solid #eceef3" : "none",
+          background: done ? "#fff" : "linear-gradient(135deg,#2BBFAA,#25a896)",
+          color: done ? "#6b7088" : "#0f0f1a",
+          boxShadow: done ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
+        }}
+      >
+        <Check size={17} strokeWidth={2.4} />
+        {done ? t("studentPagesExtra.markedDone") : t("studentPagesExtra.markDone")}
+      </button>
       {r.hasAiNote && openNoteId === r.lesson_id && (
         <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55, color: "#0f0f1a" }}>
           {r.aiNote}
         </p>
       )}
     </li>
-  );
+    );
+  };
 
-  const renderList = (items: HomeworkRow[], emptyTitle: string) =>
-    items.length === 0 ? (
+  const renderList = (itemsRaw: HomeworkRow[], emptyTitle: string) => {
+    // Completed homework sinks to the bottom so the next thing to do is on top.
+    const items = [...itemsRaw].sort((a, b) => Number(doneSet.has(a.lesson_id)) - Number(doneSet.has(b.lesson_id)));
+    return items.length === 0 ? (
       <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
         <div style={{ fontSize: 38 }}>📚</div>
         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{emptyTitle}</p>
@@ -207,6 +263,7 @@ export default function StudentHomeworkPage() {
         {items.map(renderCard)}
       </ul>
     );
+  };
 
   return (
     <StudentLayout>

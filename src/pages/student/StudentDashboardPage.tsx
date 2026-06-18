@@ -6,13 +6,14 @@ import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle } from "lucide-react";
+import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle, Clock } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { RewardCollection } from "@/components/student/RewardCollection";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
+import { readHomeworkDone } from "@/lib/homeworkDone";
 
 interface UpcomingLesson {
   id: string;
@@ -108,7 +109,12 @@ export default function StudentDashboardPage() {
     setUpcoming(upcomingList);
 
     const detailsArr = (details ?? []) as any[];
-    setHomeworkCount(detailsArr.filter((d) => d.homework && d.homework.trim()).length);
+    // Drop homework the student has personally marked done (local checklist),
+    // so finishing it on the Homework page is reflected here too.
+    const hwDone = readHomeworkDone(user.id);
+    setHomeworkCount(
+      detailsArr.filter((d) => d.homework && d.homework.trim() && !hwDone.has(d.lesson_id)).length,
+    );
     setPendingPaymentsCount(
       detailsArr.filter((d) => d.student_payment_status === "unpaid").length
     );
@@ -181,6 +187,16 @@ export default function StudentDashboardPage() {
               {upcoming.map((l) => {
                 const d = new Date(l.starts_at);
                 const isToday = d.toDateString() === new Date().toDateString();
+                // Time-aware join: "live" from 15 min before start through the
+                // lesson's end. That window pins the lesson and shows a glowing CTA.
+                const startMs = d.getTime();
+                const endMs = startMs + (l.duration_minutes ?? 60) * 60000;
+                const now = Date.now();
+                const live = now >= startMs - 15 * 60000 && now <= endMs;
+                const minsTo = Math.round((startMs - now) / 60000);
+                const joinStatus = live
+                  ? (now >= startMs ? t("studentPages.lessonLive") : t("studentPages.startsInMin", { min: Math.max(1, minsTo) }))
+                  : null;
                 return (
                   <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "#fff" }}>
                     <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
@@ -196,23 +212,39 @@ export default function StudentDashboardPage() {
                         {d.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
-                    <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 10, padding: "10px 12px" }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
-                        <p style={{ fontSize: 13, color: DS.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.tutor_name}</p>
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", gap: 9, padding: "10px 12px" }}>
+                      {/* Top row: subject / tutor + (live status) + chat shortcut */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                          <p style={{ fontSize: 13, color: live ? DS.tealD : DS.sub, fontWeight: live ? 700 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {joinStatus ? `${joinStatus} · ${l.tutor_name ?? ""}` : l.tutor_name}
+                          </p>
+                        </div>
                         <Link to={`/chats?with=${l.tutor_id}`} aria-label={t("studentPages.chatWithTutorAria")}
                           style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: DS.tealD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>
                           <MessageCircle size={18} />
                         </Link>
-                        {l.meeting_url && (
-                          <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer" aria-label="Zoom"
-                            style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, background: DS.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
-                            <Video size={20} />
-                          </a>
-                        )}
                       </div>
+                      {/* Action row: labeled, time-aware join — never an empty/dead state */}
+                      {l.meeting_url ? (
+                        <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer"
+                          aria-label={live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
+                          style={{
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                            height: 46, borderRadius: 13, fontFamily: DS.display, fontWeight: 800, fontSize: 15, textDecoration: "none",
+                            background: live ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.12)",
+                            color: live ? "#0f0f1a" : DS.tealD,
+                            boxShadow: live ? "0 8px 20px -6px rgba(43,191,170,.7)" : "inset 0 0 0 1px rgba(43,191,170,.28)",
+                            animation: live ? "joinPulse 1.8s ease-in-out infinite" : "none",
+                          }}>
+                          <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
+                        </a>
+                      ) : isToday ? (
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: DS.sub, fontSize: 13, fontWeight: 600 }}>
+                          <Clock size={15} /> {t("studentPages.linkComingSoon")}
+                        </div>
+                      ) : null}
                     </div>
                   </li>
                 );

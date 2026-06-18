@@ -19,8 +19,9 @@ The owner approved building **all four** packages. Status updated as work lands.
 - [x] Bonus (HIGH-3): People add-sheet role is now a primary segmented toggle; FAB is role-contextual («Додати репетитора/учня/менеджера») and deep-linkable via `?add=tutor|student`
 
 ### Package 2 — Loud student actions
-- [ ] Student «Приєднатися» — labeled, time-aware, never-empty fallback (HIGH-9, HIGH-10)
-- [ ] Student homework completion loop + micro-celebration (HIGH-11)
+- [x] Student «Приєднатися» — labeled + time-aware (glowing «зараз» within 15 min of start through end, «через X хв»/«йде зараз» status) + never-empty «Посилання зʼявиться перед уроком» fallback; applied on both Student dashboard **and** schedule (HIGH-9, HIGH-10)
+- [x] Student homework completion loop: per-card «Позначити виконаним» toggle (local per-student checklist), confetti + haptic + warm toast, done cards sink + dashboard homework count drops (HIGH-11)
+- [x] Shared `burstConfetti` util + `joinPulse` keyframe extracted for reuse
 
 ### Package 3 — Hub-tutor + manager accents
 - [ ] Hub-tutor dashboard: today's lessons + inline mark-done above payout; promote «Написати менеджеру» (HIGH-12)
