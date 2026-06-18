@@ -327,7 +327,8 @@ function GroupDetailsDialog({
   studentNames: Map<string, string>;
   onChanged: () => void;
 }) {
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const isManager = roles.includes("manager");
   const [group, setGroup] = useState<Group | null>(null);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [available, setAvailable] = useState<StudentOption[]>([]);
@@ -346,18 +347,31 @@ function GroupDetailsDialog({
     setEnrollments((ens ?? []) as Enrollment[]);
 
     const groupTutorId = (g as any)?.tutor_id ?? user.id;
-    // available = tutor's students not already enrolled (active).
-    // Джерело істини — tutor_student_pairs (учень репетитора через урок АБО ставку),
-    // а не лише student_rates: учень, доданий через урок без окремої ставки, теж має
-    // бути доступним для групи. Фолбек на student_rates про всяк випадок.
     const enrolledIds = new Set((ens ?? []).filter((e: any) => e.status === "active").map((e: any) => e.student_id));
-    const [{ data: pairs }, { data: rates }] = await Promise.all([
-      supabase.from("tutor_student_pairs").select("student_id").eq("tutor_id", groupTutorId),
-      supabase.from("student_rates").select("student_id, archived_at").eq("tutor_id", groupTutorId),
-    ]);
     const candidateIds = new Set<string>();
-    (pairs ?? []).forEach((p: any) => candidateIds.add(p.student_id));
-    (rates ?? []).forEach((r: any) => { if (!r.archived_at) candidateIds.add(r.student_id); });
+    if (isManager) {
+      // MANAGER: a group is a hub teaching unit — any of the hub's students can be
+      // added (enrolling them in the group IS the act of putting them in this
+      // tutor's class). Restricting to students already individually assigned to the
+      // group's tutor made it impossible to build a brand-new group, which is the
+      // reported bug. Source of truth = the same student set People shows:
+      // user_roles(role='student'); profiles RLS keeps it scoped to the hub.
+      const { data: studentRoleRows } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "student");
+      (studentRoleRows ?? []).forEach((r: any) => candidateIds.add(r.user_id));
+    } else {
+      // INDEPENDENT TUTOR: only their own students (via lesson OR rate).
+      // Джерело істини — tutor_student_pairs (учень репетитора через урок АБО ставку),
+      // фолбек на student_rates про всяк випадок.
+      const [{ data: pairs }, { data: rates }] = await Promise.all([
+        supabase.from("tutor_student_pairs").select("student_id").eq("tutor_id", groupTutorId),
+        supabase.from("student_rates").select("student_id, archived_at").eq("tutor_id", groupTutorId),
+      ]);
+      (pairs ?? []).forEach((p: any) => candidateIds.add(p.student_id));
+      (rates ?? []).forEach((r: any) => { if (!r.archived_at) candidateIds.add(r.student_id); });
+    }
     const ids = Array.from(candidateIds).filter((sid) => !enrolledIds.has(sid));
     if (ids.length) {
       const { data: profs } = await supabase

@@ -113,13 +113,20 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 ### DashboardPage
 **Mobile layout (top → bottom):**
 1. Hero: `linear-gradient(135deg, #0f0f1a, #1a1a3e)` — greeting + bell + (no burger)
-2. Profit dark card (mobile only — lg hides it, lg shows 4-col grid)
-3. NeedsMarkingCard
-4. SmartTasks (colored left borders: warn=#f59e0b, info=#3b82f6, muted=#d0d3e0)
+2. Profit dark card + stat cards (the "bubbles") (mobile only — lg hides it, lg shows 4-col grid)
+3. **TutorNotesCard — see the INVARIANT below**
+4. NeedsMarkingCard
+5. SmartTasks (colored left borders: warn=#f59e0b, info=#3b82f6, muted=#d0d3e0)
    - One action button max per task + arrow › on right — NO "Переглянути" duplicate
-5. Today's lessons — `LessonCard` unchanged (same as SchedulePage)
-6. TutorNotesCard
+6. Today's lessons — `LessonCard` unchanged (same as SchedulePage)
 7. FAB
+
+> **🔒 INVARIANT — TutorNotesCard position (binding ТЗ, has regressed twice):**
+> The notes card renders **directly under that role's stat "bubbles" (profit card + metric/stat cards), ALWAYS, and NOWHERE else.** It must NOT drift below NeedsMarkingCard, pending-payments, or the lessons list. There are exactly **three** gated renders in `DashboardPage.tsx`, each immediately after that role's bubbles:
+> - **Independent tutor** — after the independent profit/stat grid (`{isIndependentTutor && …}`).
+> - **Manager** — immediately after the manager profit+stat grid, BEFORE NeedsMarkingCard / pending payments (`{isManager && …}`).
+> - **Hub tutor** — INSIDE the hub block, immediately after the payout card + the two stat tiles, BEFORE the «Pro активний» chip.
+> Never collapse these into one render placed after the marking/payments sections — that is the regression. Verify all three roles after any DashboardPage edit.
 
 **Desktop (lg):**
 - 4 metrics in ONE row: Profit (dark) + Tutors + Students + Lessons today
@@ -369,3 +376,25 @@ node scripts/check-ux.mjs    # 0 errors, <115 warnings
 3. After every push → check each changed page via Chrome extension
 4. Fix runtime errors immediately — don't wait for user report
 5. Missing imports (Menu, Link, X etc.) = crash — always verify imports after adding JSX
+
+## Quality bar & no-regression (READ — the owner has flagged repeated sloppy/regressed work)
+Do it RIGHT the first time. A task is not done until ALL of the below hold — verify
+regressions with the SAME diligence as verifying changes reached prod:
+1. **Build it to the binding ТЗ.** The approved design handoffs + the invariants in
+   this file are the spec, not suggestions. If the code diverges from the design,
+   fix the code to the design and adjust the flow — don't leave a half-match.
+2. **Trace ALL interdependent logic, across every role.** A change to a shared
+   component/flow (dashboard, People, groups, payments, notifications) must be
+   checked for manager / hub-tutor / independent-tutor / student. Hub model:
+   managers don't own `student_rates`; students link to hub tutors via
+   `student_rates` source='hub'; logic written only for the independent-tutor case
+   is the #1 source of these bugs (manager FAB, group student-picker, etc.).
+3. **No regressions of documented invariants.** Before finishing a DashboardPage /
+   People / layout edit, re-check the 🔒 invariants in this file (e.g. notes
+   directly under the bubbles) for every role. Skim the diff for anything that moved
+   a pinned element.
+4. **Empty-state / message text must match the code's actual logic.** A placeholder
+   that says something the query doesn't do (e.g. "all students already have tutors"
+   on a list that filters by tutor) is a bug, not just copy.
+5. **Run all gates green** (tsc 0 · vitest · check-i18n · check-ux · check-hardcode)
+   AND eyeball the affected pages per role before reporting done.

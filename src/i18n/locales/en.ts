@@ -2816,7 +2816,7 @@ export const en: LocaleTranslations = {
     members: "Members ({{count}})",
     noMembers: "No members yet",
     addStudentLabel: "Add student",
-    noStudents: "All students already have a tutor ✨",
+    noStudents: "All students are already in the group ✨",
     doneBtn: "Done",
   },
   inviteLinkExtra: {

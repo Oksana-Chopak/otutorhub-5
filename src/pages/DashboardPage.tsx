@@ -1666,6 +1666,13 @@ export default function DashboardPage() {
             </>
           )}
 
+          {/* Notes — ALWAYS directly under the bubbles, nowhere else (manager). */}
+          {isManager && (
+            <div className="mt-4">
+              <TutorNotesCard />
+            </div>
+          )}
+
           {/* Top-10% badge */}
           {isTutor && !isManager && topPercentile !== null && topPercentile < 10 && (
             <TopTutorBadge percentile={topPercentile} />
@@ -1821,6 +1828,10 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Notes — ALWAYS directly under the bubbles, nowhere else (hub tutor:
+                  the payout card + these two stat tiles ARE the hub "bubbles"). */}
+              <TutorNotesCard />
+
               {/* «Pro активний — від хабу» — replaces any upsell for hub tutors. */}
               <div
                 className="flex items-center gap-3 rounded-[16px] p-[14px]"
@@ -1907,13 +1918,6 @@ export default function DashboardPage() {
                 ))}
               </div>
             </section>
-          )}
-
-          {/* Notes — ALWAYS right under the profit bubble (manager + hub tutor) */}
-          {(isManager || (isTutor && !isManager && !isIndependentTutor)) && (
-            <div className="mt-4">
-              <TutorNotesCard />
-            </div>
           )}
 
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}

@@ -2827,7 +2827,7 @@ export const uk = {
     members: "Учасники ({{count}})",
     noMembers: "Поки немає учасників",
     addStudentLabel: "Додати учня",
-    noStudents: "Усі учні вже з репетиторами ✨",
+    noStudents: "Усі учні вже в групі ✨",
     doneBtn: "Готово",
   },
   inviteLinkExtra: {

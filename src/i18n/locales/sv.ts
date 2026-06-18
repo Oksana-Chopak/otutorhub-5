@@ -2806,7 +2806,7 @@ export const sv: LocaleTranslations = {
     members: "Medlemmar ({{count}})",
     noMembers: "Inga medlemmar ännu",
     addStudentLabel: "Lägg till elev",
-    noStudents: "Alla elever har redan en lärare ✨",
+    noStudents: "Alla elever är redan i gruppen ✨",
     doneBtn: "Klar",
   },
   inviteLinkExtra: {
