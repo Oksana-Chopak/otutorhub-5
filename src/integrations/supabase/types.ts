@@ -2238,6 +2238,7 @@ export type Database = {
         Args: { payload: Json; queue_name: string }
         Returns: number
       }
+      expire_lapsed_subscriptions: { Args: never; Returns: number }
       generate_referral_code: { Args: { _tutor_id: string }; Returns: string }
       generate_telegram_link_code: {
         Args: { _user_id: string }
