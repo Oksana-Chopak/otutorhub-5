@@ -14,6 +14,7 @@ export interface WorkspaceSettings {
   reward_theme: string;
   ai_notes_auto?: boolean;
   ai_notes_auto_send?: boolean;
+  liqpay_recurring_active?: boolean;
 }
 
 /**

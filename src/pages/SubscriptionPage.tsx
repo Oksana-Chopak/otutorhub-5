@@ -101,6 +101,24 @@ export default function SubscriptionPage() {
   // ── IAP (iOS StoreKit через RevenueCat) ────────────────────────────────────
   const [iapOffer, setIapOffer] = useState<IapOffer>({});
   const [iapBusy, setIapBusy] = useState<null | "buy" | "restore">(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  // Stop LiqPay auto-renew (web). Pro stays until subscription_until; only
+  // future charges stop. iOS cancels via App Store, so this is web-only.
+  const cancelSubscription = async () => {
+    if (!window.confirm(t("subscriptionPageExtra.cancelConfirm"))) return;
+    setCancelling(true);
+    const { data, error } = await supabase.functions.invoke("liqpay-cancel", { body: {} });
+    setCancelling(false);
+    const errMsg = error?.message || (data as { error?: string } | null)?.error;
+    const { toast } = await import("sonner");
+    if (errMsg) {
+      toast.error(t("subscriptionPageExtra.cancelFailed"));
+      return;
+    }
+    toast.success(t("subscriptionPageExtra.cancelled"));
+    await refresh?.();
+  };
   useEffect(() => {
     if (!iosApp || !user) return;
     let alive = true;
@@ -312,6 +330,16 @@ export default function SubscriptionPage() {
                 <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>{t("subscriptionPageExtra.heroActiveTitle")}</div>
                 <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
+                {!iosApp && settings?.liqpay_recurring_active && (
+                  <button
+                    type="button"
+                    onClick={cancelSubscription}
+                    disabled={cancelling}
+                    style={{ marginTop: 14, height: 40, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.22)", background: "transparent", color: "rgba(255,255,255,.85)", fontFamily: S.display, fontWeight: 600, fontSize: 13.5, cursor: cancelling ? "default" : "pointer" }}
+                  >
+                    {cancelling ? "…" : t("subscriptionPageExtra.cancelBtn")}
+                  </button>
+                )}
               </>
             ) : isTrial ? (
               <>

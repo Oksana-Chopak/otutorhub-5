@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useGlobalChatToasts } from "@/hooks/useGlobalChatToasts";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ClarityIdentify } from "./components/ClarityIdentify";
+import { CookieConsent } from "./components/CookieConsent";
 import { Loader2 } from "lucide-react";
 
 // Route-level code splitting: each page becomes its own chunk, loaded on demand.
@@ -74,6 +75,7 @@ function AppRoutes() {
   return (
     <>
       <ClarityIdentify />
+      <CookieConsent />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
