@@ -200,8 +200,33 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 
 ### GroupsPage, ChatsPage
 - Bell + burger in header (right side)
-- Create buttons removed from header — FAB handles them
+- Create buttons removed from header — FAB handles them (incl. Chats new-chat:
+  mobile = bottom-right PageFAB on the list view; desktop = list-header button)
 - Skeleton loading (not Loader2 spinner)
+
+### Group lessons & billing (multi-phase, in progress 2026-06-18)
+**Pricing model (owner decision): each student in a group has their OWN price** for
+group lessons ("своя ціна для кожного учня в групі"). Data model:
+- `group_enrollments.price_per_lesson` (+ currency, + tutor_payout for hub) = the
+  configured per-student group rate (analogous to `student_rates` for individual).
+- `lesson_participants.student_price` / `student_payment_status` / `student_paid_at`
+  (+ tutor_payout fields) = per-(group lesson, student) SNAPSHOT + payment status
+  (analogous to `lesson_details` for individual, but ONE ROW PER PARTICIPANT, since a
+  group lesson has `lessons.student_id = NULL` and links students via
+  `lesson_participants`).
+- Foundation migration: `20260618160000_group_lesson_billing.sql` — **must be applied
+  via Lovable**. RLS unchanged (tutor-of-group + manager already FOR ALL; student
+  SELECTs own).
+
+**Phases:** ✅(1) per-student price on enrollment + invite unregistered students on
+enroll (InviteLinkDialog) · ◻️(2) schedule group lessons from manager/hub (Schedule
+dialog) + independent (QuickLessonDialog) writing per-participant price · ◻️(3) make
+students SEE group lessons (schedule/dashboard/payments query `lesson_participants`,
+not just `student_id`) + notify every participant on create/cancel · ◻️(4) mark
+per-participant payments (group-mode LessonCard / sheet) across all money surfaces.
+**Invariant:** anything reading group lessons must go through `lesson_participants`
+(NOT `lessons.student_id`, which is NULL for groups). The `lesson_details_student`
+view already handles group visibility — reuse it on the student side.
 
 ### Student pages (`/pages/student/`)
 - All empty states use positive framing (see below)

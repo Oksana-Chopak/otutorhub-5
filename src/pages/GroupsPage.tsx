@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SubjectSelect } from "@/components/SubjectSelect";
+import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -335,6 +336,19 @@ function GroupDetailsDialog({
   const [pickedStudent, setPickedStudent] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  // When a not-yet-registered (ghost) student is enrolled, surface the invite so
+  // they actually get onto the platform and can see the group lesson.
+  const [invite, setInvite] = useState<{ open: boolean; name: string; email: string | null; phone: string | null; studentId: string } | null>(null);
+
+  const maybeInviteGhost = async (studentId: string, name: string) => {
+    const [{ data: prof }, { data: contact }] = await Promise.all([
+      supabase.from("profiles").select("is_pending").eq("id", studentId).maybeSingle(),
+      supabase.from("profile_contacts").select("email, phone").eq("user_id", studentId).maybeSingle(),
+    ]);
+    if ((prof as { is_pending?: boolean } | null)?.is_pending) {
+      setInvite({ open: true, name, email: (contact as any)?.email ?? null, phone: (contact as any)?.phone ?? null, studentId });
+    }
+  };
 
   const load = async () => {
     if (!user) return;
@@ -396,10 +410,12 @@ function GroupDetailsDialog({
 
   const addStudent = async () => {
     if (!pickedStudent) return;
+    const picked = pickedStudent;
+    const pickedName = available.find((s) => s.student_id === picked)?.name ?? t("shared.student");
     setBusy(true);
     const { error } = await supabase.from("group_enrollments").insert({
       group_id: groupId,
-      student_id: pickedStudent,
+      student_id: picked,
       status: "active",
     });
     setBusy(false);
@@ -413,13 +429,14 @@ function GroupDetailsDialog({
           .from("group_enrollments")
           .update({ status: "active" })
           .eq("group_id", groupId)
-          .eq("student_id", pickedStudent);
+          .eq("student_id", picked);
         if (upErr) {
           toast.error(upErr.message);
           return;
         }
         setPickedStudent("");
         toast.success(t("groupsPageExtra.studentAdded"));
+        void maybeInviteGhost(picked, pickedName);
         load();
         onChanged();
         return;
@@ -433,6 +450,7 @@ function GroupDetailsDialog({
     }
     setPickedStudent("");
     toast.success(t("groupsPageExtra.studentAdded"));
+    void maybeInviteGhost(picked, pickedName);
     load();
     onChanged();
   };
@@ -465,6 +483,7 @@ function GroupDetailsDialog({
   const active = enrollments.filter((e) => e.status === "active");
 
   return (
+    <>
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -535,5 +554,17 @@ function GroupDetailsDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {invite && (
+      <InviteLinkDialog
+        open={invite.open}
+        onOpenChange={(o) => setInvite((s) => (s ? { ...s, open: o } : s))}
+        personName={invite.name}
+        email={invite.email}
+        phone={invite.phone}
+        role="student"
+        studentId={invite.studentId}
+      />
+    )}
+    </>
   );
 }
