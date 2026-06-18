@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { getLocale } from "@/lib/locale";
 import { NotificationBell } from "@/components/NotificationBell";
+import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -844,10 +845,13 @@ export default function ChatsPage() {
                       : t("chats.pageSubtitleOther")}
                   </p>
                 </div>
+                {/* Desktop two-pane keeps the list-header button (a corner FAB would
+                    overlap the desktop composer). Mobile uses the unified bottom-right
+                    PageFAB instead — see below. */}
                 {isManager && (
                   <button
                     onClick={openNewChatDialog}
-                    className="flex items-center gap-1.5 h-11 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
+                    className="hidden lg:flex items-center gap-1.5 h-11 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
                     style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -1537,6 +1541,12 @@ export default function ChatsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Unified new-chat action: bottom-right FAB on mobile (manager only), shown on
+          the thread-list view so it never overlaps an open conversation's composer. */}
+      {isManager && !selectedId && (
+        <PageFAB onClick={openNewChatDialog} label={t("chats.startChat")} className="lg:hidden" />
+      )}
     </AppLayout>
   );
 }
