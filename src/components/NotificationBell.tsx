@@ -20,6 +20,7 @@ function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
 const TYPE_ICON: Record<string, string> = {
   badge_unlocked: "🏆",
   lesson_request: "📅",
+  tutor_request: "🙋",
   lesson_cancelled: "❌",
   payout_confirmed: "💰",
   pro_request: "⭐",

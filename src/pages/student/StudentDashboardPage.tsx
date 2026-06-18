@@ -14,6 +14,7 @@ import { RewardCollection } from "@/components/student/RewardCollection";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { readHomeworkDone } from "@/lib/homeworkDone";
 
 interface UpcomingLesson {
@@ -42,7 +43,6 @@ export default function StudentDashboardPage() {
   const { user } = useAuth();
   const { loading: ctxLoading, hasQuiz, hasTutor, refresh } = useStudentContext();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [showQuizAgain, setShowQuizAgain] = useState(false);
 
   const [upcoming, setUpcoming] = useState<UpcomingLesson[]>([]);
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
@@ -146,13 +146,12 @@ export default function StudentDashboardPage() {
     );
   }
 
-  if (showOnboarding || showQuizAgain) {
+  if (showOnboarding) {
     return (
       <StudentLayout>
         <StudentOnboarding
           onComplete={async () => {
             setShowOnboarding(false);
-            setShowQuizAgain(false);
             await refresh();
           }}
         />
@@ -190,7 +189,28 @@ export default function StudentDashboardPage() {
           {loading ? (
             <SkeletonList count={2} />
           ) : upcoming.length === 0 ? (
-            <p style={{ fontSize: 14, color: DS.sub }}>{t("studentPages.noLessons")}</p>
+            !hasTutor ? (
+              // No tutor yet → don't promise a phantom "lesson coming soon".
+              // Offer the real first action: request a tutor.
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "4px 2px 2px" }}>
+                <p style={{ fontSize: 14, color: DS.sub, lineHeight: 1.5 }}>{t("studentPages.noTutorYet")}</p>
+                <FindTutorDialog
+                  onCreated={refresh}
+                  trigger={
+                    <button
+                      style={{ alignSelf: "flex-start", height: 44, padding: "0 18px", borderRadius: 12, border: "none", cursor: "pointer",
+                        background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
+                        fontFamily: DS.display, fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", gap: 8,
+                        boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}
+                    >
+                      <Sparkles size={17} /> {t("studentPages.requestTutorCta")}
+                    </button>
+                  }
+                />
+              </div>
+            ) : (
+              <p style={{ fontSize: 14, color: DS.sub }}>{t("studentPages.noLessons")}</p>
+            )
           ) : (
             <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
               {upcoming.map((l) => {
@@ -310,12 +330,17 @@ export default function StudentDashboardPage() {
                 <p style={{ fontSize: 13.5, color: DS.sub, marginTop: 3, lineHeight: 1.5 }}>
                   {t("studentPagesExtra.searchingTutorDesc")}
                 </p>
-                <button onClick={() => setShowQuizAgain(true)}
-                  style={{ marginTop: 12, height: 42, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer",
-                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                    fontFamily: DS.display, fontWeight: 700, fontSize: 14, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
-                  {t("studentPagesExtra.findTutorBtn")}
-                </button>
+                <FindTutorDialog
+                  onCreated={refresh}
+                  trigger={
+                    <button
+                      style={{ marginTop: 12, height: 42, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer",
+                        background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
+                        fontFamily: DS.display, fontWeight: 700, fontSize: 14, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+                      {t("studentPagesExtra.findTutorBtn")}
+                    </button>
+                  }
+                />
               </div>
             </div>
           </div>

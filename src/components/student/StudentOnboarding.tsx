@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
+import { notifyManagers } from "@/lib/notifications";
 import { useAuth } from "@/hooks/useAuth";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,30 @@ export function StudentOnboarding({ onComplete }: Props) {
       setSaveErr(human);
       setStep(4);
       return;
+    }
+    // First-value: turn the completed intake into a REAL, manager-actionable tutor
+    // request (this is what the success screen promises — "менеджер отримав твою
+    // заявку … підберемо за 24 год"). RLS lets a student insert their own request.
+    // Best-effort: never block onboarding completion if this fails.
+    try {
+      const subjectSummary = subjects.join(", ");
+      await supabase.from("tutor_referral_requests").insert({
+        student_id: user.id,
+        subject: subjectSummary || null,
+        preferred_level: level || null,
+        preferred_times: schedule.length ? schedule.join(", ") : null,
+        message: goal === "other" ? goalOther.trim() || null : goal || null,
+        quiz_data: { subjects, level, schedule, goal, goal_other: goal === "other" ? goalOther.trim() || null : null },
+        source: "onboarding",
+      });
+      const studentName = user.email?.split("@")[0] || t("shared.student");
+      void notifyManagers({
+        type: "tutor_request",
+        title: t("notifications.tutorRequestTitle", { name: studentName, subject: subjectSummary || "—" }),
+        link: "/referrals",
+      });
+    } catch (e) {
+      console.error("[onboarding] tutor request creation failed:", e);
     }
     fireConfetti();
     setStep("success");

@@ -17,6 +17,7 @@ import {
 import { HandHeart, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SubjectSelect } from "@/components/SubjectSelect";
+import { notifyManagers } from "@/lib/notifications";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -53,6 +54,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
       preferred_days: form.preferred_days.trim() || null,
       preferred_times: form.preferred_times.trim() || null,
       message: form.message.trim() || null,
+      source: "self_service",
     });
     setSubmitting(false);
     if (error) {
@@ -61,6 +63,13 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
       return;
     }
     toast.success(t("findTutor.requestSent"));
+    // Ping managers so the request doesn't sit unseen in /referrals (best-effort).
+    const studentName = user.email?.split("@")[0] || t("shared.student");
+    void notifyManagers({
+      type: "tutor_request",
+      title: t("notifications.tutorRequestTitle", { name: studentName, subject: form.subject.trim() }),
+      link: "/referrals",
+    });
     setOpen(false);
     setForm({ subject: "", preferred_level: "", budget_note: "", preferred_days: "", preferred_times: "", message: "" });
     onCreated?.();

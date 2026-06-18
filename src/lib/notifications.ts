@@ -35,3 +35,28 @@ export async function insertNotification({ userId, type, title, body, link }: In
   // also invoke send-push from the client — it would 403 (needs service-role) and
   // would double-send. See migration *_notifications_push_trigger.sql.
 }
+
+interface NotifyManagers {
+  type: string;
+  title: string;
+  body?: string;
+  link?: string;
+}
+
+// Fan a notification out to every manager. A non-manager (e.g. a student filing a
+// tutor request) cannot read user_roles to find managers under RLS, so this goes
+// through the notify_managers SECURITY DEFINER RPC (migration
+// 20260618130000_notify_managers_rpc.sql). The caller passes a pre-localized
+// title/body so i18n stays client-side. Best-effort: if the RPC isn't applied yet
+// it errors harmlessly and managers still see the request via the dashboard task.
+export async function notifyManagers({ type, title, body, link }: NotifyManagers) {
+  const { error } = await db.rpc("notify_managers", {
+    _type: type,
+    _title: title,
+    _body: body ?? null,
+    _link: link ?? null,
+  });
+  if (error) {
+    console.error("[notifications] notify_managers failed:", error);
+  }
+}

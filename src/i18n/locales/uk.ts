@@ -1768,6 +1768,7 @@ export const uk = {
     badgeUnlockedTitle: "🏆 Новий бейдж: {{name}}!",
     lessonCancelledTitle: "Урок скасовано: {{subject}}",
     proRequestTitle: "{{name}} хоче підписку",
+    tutorRequestTitle: "{{name}} шукає репетитора · {{subject}}",
   },
   shared: {
     noName: "Без імені",
@@ -1946,6 +1947,8 @@ export const uk = {
     greeting: "Привіт! 👋",
     greetingSub: "Тут зібрано все найважливіше для тебе.",
     noLessons: "☀️ Поки вільно — незабаром буде урок!",
+    noTutorYet: "Ще немає репетитора — це легко виправити ✨ Надішли запит, і менеджер підбере тобі викладача.",
+    requestTutorCta: "Знайти репетитора",
     noMeetingLink: "без посилання",
     joinLesson: "Приєднатися",
     joinNow: "Приєднатися зараз",

@@ -1747,6 +1747,7 @@ export const sv: LocaleTranslations = {
     badgeUnlockedTitle: "🏆 Nytt märke: {{name}}!",
     lessonCancelledTitle: "Lektion inställd: {{subject}}",
     proRequestTitle: "{{name}} vill ha prenumeration",
+    tutorRequestTitle: "{{name}} söker en lärare · {{subject}}",
   },
   shared: {
     noName: "Okänt",
@@ -1925,6 +1926,8 @@ export const sv: LocaleTranslations = {
     greeting: "Hej! 👋",
     greetingSub: "Här finns allt viktigt för dig.",
     noLessons: "Inga kommande lektioner ännu.",
+    noTutorYet: "Ingen lärare än — lätt att fixa ✨ Skicka en förfrågan så matchar en chef dig med en lärare.",
+    requestTutorCta: "Hitta en lärare",
     noMeetingLink: "ingen länk",
     joinLesson: "Anslut",
     joinNow: "Anslut nu",

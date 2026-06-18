@@ -1757,6 +1757,7 @@ export const en: LocaleTranslations = {
     badgeUnlockedTitle: "🏆 New badge: {{name}}!",
     lessonCancelledTitle: "Lesson cancelled: {{subject}}",
     proRequestTitle: "{{name}} wants subscription",
+    tutorRequestTitle: "{{name}} is looking for a tutor · {{subject}}",
   },
   shared: {
     noName: "Unknown",
@@ -1935,6 +1936,8 @@ export const en: LocaleTranslations = {
     greeting: "Hello! 👋",
     greetingSub: "Here's everything important for you.",
     noLessons: "No upcoming lessons yet.",
+    noTutorYet: "No tutor yet — easy to fix ✨ Send a request and a manager will match you with one.",
+    requestTutorCta: "Find a tutor",
     noMeetingLink: "no link",
     joinLesson: "Join",
     joinNow: "Join now",
