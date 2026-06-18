@@ -3183,6 +3183,10 @@ export const en: LocaleTranslations = {
     bankLabel: "Bank",
     bankPlaceholder: "E.g. Monobank",
     cardLabel: "Card (full number)",
+    sectionContacts: "Contacts",
+    sectionSocial: "Social media",
+    sectionPayout: "Payout details",
+    securityNote: "For security we store only the last 4 digits of the card. The full number is never saved.",
   },
   assignTutorExtra: {
     tutorFallback: "tutor",

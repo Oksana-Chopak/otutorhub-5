@@ -9,9 +9,42 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { Loader2, X } from "lucide-react";
+import {
+  Loader2, X, Mail, Phone, Send, MessageCircle, Facebook, Instagram,
+  Landmark, CreditCard, ShieldCheck,
+} from "lucide-react";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
+
+/** One labelled input with a leading icon — the DS field shape used across the form. */
+function Field({
+  icon: Icon, label, htmlFor, children,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  htmlFor: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label htmlFor={htmlFor} className="text-[13px] font-medium text-[#6b7088]">{label}</Label>
+      <div className="relative">
+        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9398b0]" />
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/** A titled group of fields with the DS section label. */
+function Section({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <div className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#9398b0]">{label}</div>
+      {children}
+    </section>
+  );
+}
 
 export interface ContactFields {
   email: string | null;
@@ -218,100 +251,52 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
           </button>
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 16px" }}>
-        <div className="space-y-3 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="c-email">Email</Label>
-              <Input
-                id="c-email"
-                type="email"
-                value={form.email ?? ""}
-                onChange={(e) => setField("email", e.target.value)}
-                maxLength={255}
-              />
-            </div>
-            <div>
-              <Label htmlFor="c-phone">{t("contactEditExtra.phoneLabel")}</Label>
-              <Input
-                id="c-phone"
-                type="tel"
-                value={form.phone ?? ""}
-                onChange={(e) => setField("phone", e.target.value)}
-                placeholder="+380..."
-                maxLength={32}
-              />
-            </div>
-          </div>
-          <div>
-            <Label htmlFor="c-tg">{t("contactEditExtra.telegramLabel")}</Label>
-            <Input
-              id="c-tg"
-              value={form.telegram ?? ""}
-              onChange={(e) => setField("telegram", e.target.value)}
-              placeholder="@username"
-              maxLength={64}
-            />
-          </div>
-          <div>
-            <Label htmlFor="c-msg">{t("contactEditExtra.messengerLabel")}</Label>
-            <Input
-              id="c-msg"
-              type="url"
-              value={form.messenger_url ?? ""}
-              onChange={(e) => setField("messenger_url", e.target.value)}
-              placeholder="https://m.me/..."
-              maxLength={500}
-            />
-          </div>
-          <div>
-            <Label htmlFor="c-fb">Facebook</Label>
-            <Input
-              id="c-fb"
-              type="url"
-              value={form.facebook_url ?? ""}
-              onChange={(e) => setField("facebook_url", e.target.value)}
-              placeholder="https://facebook.com/..."
-              maxLength={500}
-            />
-          </div>
-          <div>
-            <Label htmlFor="c-ig">Instagram</Label>
-            <Input
-              id="c-ig"
-              type="url"
-              value={form.instagram_url ?? ""}
-              onChange={(e) => setField("instagram_url", e.target.value)}
-              placeholder="https://instagram.com/..."
-              maxLength={500}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label htmlFor="c-bank">{t("contactEditExtra.bankLabel")}</Label>
-              <Input
-                id="c-bank"
-                value={form.bank_name ?? ""}
-                onChange={(e) => setField("bank_name", e.target.value)}
-                placeholder={t("contactEditExtra.bankPlaceholder")}
-                maxLength={64}
-              />
-            </div>
-            <div>
-              <Label htmlFor="c-card">{t("contactEditExtra.cardLabel")}</Label>
-              <Input
-                id="c-card"
-                value={cardInput}
-                onChange={(e) => setCardInput(e.target.value)}
+        <div className="space-y-5 py-2">
+          <Section label={t("contactEditExtra.sectionContacts")}>
+            <Field icon={Mail} label="Email" htmlFor="c-email">
+              <Input id="c-email" type="email" className="pl-10" placeholder="name@email.com"
+                value={form.email ?? ""} onChange={(e) => setField("email", e.target.value)} maxLength={255} />
+            </Field>
+            <Field icon={Phone} label={t("contactEditExtra.phoneLabel")} htmlFor="c-phone">
+              <Input id="c-phone" type="tel" className="pl-10" placeholder="+380..."
+                value={form.phone ?? ""} onChange={(e) => setField("phone", e.target.value)} maxLength={32} />
+            </Field>
+            <Field icon={Send} label={t("contactEditExtra.telegramLabel")} htmlFor="c-tg">
+              <Input id="c-tg" className="pl-10" placeholder="@username"
+                value={form.telegram ?? ""} onChange={(e) => setField("telegram", e.target.value)} maxLength={64} />
+            </Field>
+          </Section>
+
+          <Section label={t("contactEditExtra.sectionSocial")}>
+            <Field icon={MessageCircle} label={t("contactEditExtra.messengerLabel")} htmlFor="c-msg">
+              <Input id="c-msg" type="url" className="pl-10" placeholder="https://m.me/..."
+                value={form.messenger_url ?? ""} onChange={(e) => setField("messenger_url", e.target.value)} maxLength={500} />
+            </Field>
+            <Field icon={Facebook} label="Facebook" htmlFor="c-fb">
+              <Input id="c-fb" type="url" className="pl-10" placeholder="https://facebook.com/..."
+                value={form.facebook_url ?? ""} onChange={(e) => setField("facebook_url", e.target.value)} maxLength={500} />
+            </Field>
+            <Field icon={Instagram} label="Instagram" htmlFor="c-ig">
+              <Input id="c-ig" type="url" className="pl-10" placeholder="https://instagram.com/..."
+                value={form.instagram_url ?? ""} onChange={(e) => setField("instagram_url", e.target.value)} maxLength={500} />
+            </Field>
+          </Section>
+
+          <Section label={t("contactEditExtra.sectionPayout")}>
+            <Field icon={Landmark} label={t("contactEditExtra.bankLabel")} htmlFor="c-bank">
+              <Input id="c-bank" className="pl-10" placeholder={t("contactEditExtra.bankPlaceholder")}
+                value={form.bank_name ?? ""} onChange={(e) => setField("bank_name", e.target.value)} maxLength={64} />
+            </Field>
+            <Field icon={CreditCard} label={t("contactEditExtra.cardLabel")} htmlFor="c-card">
+              <Input id="c-card" className="pl-10" inputMode="numeric" autoComplete="off" maxLength={25}
                 placeholder={form.bank_card_last4 ? `•••• ${form.bank_card_last4}` : "0000 0000 0000 0000"}
-                maxLength={25}
-                inputMode="numeric"
-                autoComplete="off"
-              />
+                value={cardInput} onChange={(e) => setCardInput(e.target.value)} />
+            </Field>
+            <div className="flex items-start gap-2 rounded-[12px] bg-[#F5F4F0] px-3 py-2.5">
+              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[#9398b0]" />
+              <p className="text-[12.5px] leading-snug text-[#6b7088]">{t("contactEditExtra.securityNote")}</p>
             </div>
-          </div>
-          <p className="text-[13px] text-muted-foreground -mt-1">
-            З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.
-          </p>
+          </Section>
         </div>
         <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end px-0">
           <Button variant="outline" className="h-11 rounded-[12px] border-[0.5px]" onClick={() => onOpenChange(false)} disabled={saving}>

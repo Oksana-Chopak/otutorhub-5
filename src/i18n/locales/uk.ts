@@ -3195,6 +3195,10 @@ export const uk = {
     bankLabel: "Банк",
     bankPlaceholder: "Напр. Monobank",
     cardLabel: "Картка (повний номер)",
+    sectionContacts: "Контакти",
+    sectionSocial: "Соцмережі",
+    sectionPayout: "Реквізити для виплат",
+    securityNote: "З міркувань безпеки зберігаємо лише останні 4 цифри картки. Повний номер не зберігається.",
   },
   assignTutorExtra: {
     tutorFallback: "репетитор",

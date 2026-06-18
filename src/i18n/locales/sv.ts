@@ -3173,6 +3173,10 @@ export const sv: LocaleTranslations = {
     bankLabel: "Bank",
     bankPlaceholder: "T.ex. Monobank",
     cardLabel: "Kort (fullständigt nummer)",
+    sectionContacts: "Kontakter",
+    sectionSocial: "Sociala medier",
+    sectionPayout: "Utbetalningsuppgifter",
+    securityNote: "Av säkerhetsskäl sparar vi bara kortets sista 4 siffror. Det fullständiga numret sparas aldrig.",
   },
   assignTutorExtra: {
     tutorFallback: "lärare",
