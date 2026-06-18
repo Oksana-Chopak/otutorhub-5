@@ -405,7 +405,6 @@ export type Database = {
           price_per_lesson: number | null
           status: string
           student_id: string
-          tutor_payout: number | null
           updated_at: string
         }
         Insert: {
@@ -417,7 +416,6 @@ export type Database = {
           price_per_lesson?: number | null
           status?: string
           student_id: string
-          tutor_payout?: number | null
           updated_at?: string
         }
         Update: {
@@ -429,7 +427,6 @@ export type Database = {
           price_per_lesson?: number | null
           status?: string
           student_id?: string
-          tutor_payout?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -710,9 +707,6 @@ export type Database = {
           student_paid_at: string | null
           student_payment_status: string
           student_price: number | null
-          tutor_paid_at: string | null
-          tutor_payout: number | null
-          tutor_payout_status: string
         }
         Insert: {
           attendance_status?: string
@@ -724,9 +718,6 @@ export type Database = {
           student_paid_at?: string | null
           student_payment_status?: string
           student_price?: number | null
-          tutor_paid_at?: string | null
-          tutor_payout?: number | null
-          tutor_payout_status?: string
         }
         Update: {
           attendance_status?: string
@@ -738,9 +729,6 @@ export type Database = {
           student_paid_at?: string | null
           student_payment_status?: string
           student_price?: number | null
-          tutor_paid_at?: string | null
-          tutor_payout?: number | null
-          tutor_payout_status?: string
         }
         Relationships: [
           {
