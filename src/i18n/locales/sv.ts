@@ -2826,6 +2826,7 @@ export const sv: LocaleTranslations = {
   groupLessons: {
     notifNewTitle: "Ny grupplektion: {{subject}}",
     notifCancelledTitle: "Grupplektion inställd: {{subject}}",
+    cardLabel: "Grupplektion",
   },
   groupPayments: {
     title: "Deltagare & betalningar",

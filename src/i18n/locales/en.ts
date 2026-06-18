@@ -2836,6 +2836,7 @@ export const en: LocaleTranslations = {
   groupLessons: {
     notifNewTitle: "New group lesson: {{subject}}",
     notifCancelledTitle: "Group lesson cancelled: {{subject}}",
+    cardLabel: "Group lesson",
   },
   groupPayments: {
     title: "Participants & payments",

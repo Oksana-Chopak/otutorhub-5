@@ -2847,6 +2847,7 @@ export const uk = {
   groupLessons: {
     notifNewTitle: "Новий груповий урок: {{subject}}",
     notifCancelledTitle: "Груповий урок скасовано: {{subject}}",
+    cardLabel: "Груповий урок",
   },
   groupPayments: {
     title: "Учасники та оплати",

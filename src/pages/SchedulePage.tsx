@@ -1658,7 +1658,8 @@ export default function SchedulePage() {
                 <div className="space-y-2">
                   {dayLessons.map((lesson) => {
                     const tutorName = profilesMap[lesson.tutor_id] ?? "?";
-                    const studentName = profilesMap[lesson.student_id] ?? "?";
+                    // Group lessons have no student_id — label the card honestly.
+                    const studentName = lesson.student_id ? (profilesMap[lesson.student_id] ?? "?") : t("groupLessons.cardLabel");
                     const canEditStatus =
                       isManager || (isTutor && lesson.tutor_id === user?.id);
                     const canDelete =

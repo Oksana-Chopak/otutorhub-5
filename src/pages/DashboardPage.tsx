@@ -1922,7 +1922,7 @@ export default function DashboardPage() {
                     key={lesson.id}
                     lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
                     role="tutor"
-                    studentName={profiles[lesson.student_id] ?? '—'}
+                    studentName={lesson.student_id ? (profiles[lesson.student_id] ?? '—') : t("groupLessons.cardLabel")}
                     chatPartnerId={lesson.student_id}
                     onContentClick={() => setOpenLessonId(lesson.id)}
                     className={lessonSourceTint(lesson.source)}
@@ -1970,7 +1970,7 @@ export default function DashboardPage() {
                 <div className="space-y-2.5">
                   {pendingPayments.slice(0, 5).map((lesson) => {
                     const tutorName = profiles[lesson.tutor_id] ?? "—";
-                    const studentName = profiles[lesson.student_id] ?? "—";
+                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : t("groupLessons.cardLabel");
                     const meetingHref = effectiveMeetingUrl(lesson);
                     return (
                       <LessonCard
@@ -2079,7 +2079,7 @@ export default function DashboardPage() {
                     const isParticipant = user?.id === lesson.tutor_id || user?.id === lesson.student_id;
                     const meetingHref = effectiveMeetingUrl(lesson);
                     const tutorName = profiles[lesson.tutor_id] ?? "—";
-                    const studentName = profiles[lesson.student_id] ?? "—";
+                    const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : t("groupLessons.cardLabel");
 
                     if (isManager && !isParticipant) {
                       const canEditStatus = true;
