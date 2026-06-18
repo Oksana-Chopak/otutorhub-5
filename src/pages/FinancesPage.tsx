@@ -32,6 +32,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
 import {
   Select,
   SelectContent,
@@ -135,6 +137,7 @@ function legacyFilterToTab(value: string | null): TabKey {
 
 export default function FinancesPage() {
   const { t } = useTranslation();
+  const haptic = useHaptic();
   const { roles } = useAuth();
   const { isIndependent } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
@@ -665,10 +668,12 @@ export default function FinancesPage() {
             : l
         )
       );
+      haptic.error();
       toast.error(t("finances.updateStatusFailed"));
       return;
     }
     if (next === "paid") {
+      haptic.success();
       const revert = async () => {
         setLessons((prev) =>
           prev.map((l) =>
@@ -682,14 +687,24 @@ export default function FinancesPage() {
           : { tutor_payout_status: lesson.tutor_payout_status };
         await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
       };
+      // Money IN (student paid the hub) is the manager's most rewarding beat —
+      // give it the same warm "💰 +amount from {name}!" toast as the Dashboard,
+      // not a cold "✓ marked". Payout OUT stays a calm confirmation.
+      const warm = field === "student_payment_status";
       toast.success(
-        field === "student_payment_status" ? t("finances.markedAsPaid") : t("finances.markedAsPayout"),
+        warm
+          ? t("dashboardExtra.paymentReceivedToast", {
+              amount: `${Number(lesson.student_price).toLocaleString(getLocale())} ₴`,
+              name: nameOf(lesson.student_id),
+            })
+          : t("finances.markedAsPayout"),
         {
           duration: 5000,
           action: { label: t("finances.undoAction"), onClick: () => { void revert(); } },
         },
       );
     } else {
+      haptic.tap();
       toast.success(t("finances.resetToUnpaid"));
     }
   };
@@ -746,10 +761,14 @@ export default function FinancesPage() {
     const { error } = await supabase.from("lesson_details").update(payload).in("lesson_id", ids);
     setBulkBusy(false);
     if (error) {
+      haptic.error();
       toast.error(t("finances.bulkUpdateFailed"));
       setLessons(previousLessons);
       return;
     }
+    // Clearing a whole debt list at once is a real win — celebrate it.
+    haptic.success();
+    if (field === "student_payment_status") burstConfetti();
     toast.success(t("finances.bulkUpdated", { count: ids.length }));
     setSelected(new Set());
   };

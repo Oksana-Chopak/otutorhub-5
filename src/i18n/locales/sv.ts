@@ -1732,6 +1732,9 @@ export const sv: LocaleTranslations = {
     lessonCompletedStreak: "🔥 {{count}} dagar i rad!",
     lessonCompletedGood: "Bra jobbat! 💪",
     paymentReceivedToast: "💰 +{{amount}} från {{name}}!",
+    firstLessonToast: "🎉 Första lektionen klar! Grattis!",
+    studentPaidQuestion: "Betalade eleven?",
+    paidAction: "Betald ✓",
   },
   notifications: {
     title: "Aviseringar",
@@ -3488,6 +3491,10 @@ export const sv: LocaleTranslations = {
   offline: {
     noConnection: "Ingen anslutning — kontrollera internet",
     restored: "Anslutning återställd ✅",
+  },
+  pullToRefresh: {
+    pull: "Dra för att uppdatera",
+    release: "Släpp för att uppdatera",
   },
   onboardingFlowB: {
     step: {

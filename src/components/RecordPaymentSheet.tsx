@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useHaptic } from "@/hooks/useHaptic";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -63,6 +64,7 @@ export function RecordPaymentSheet({
   onMarkLessonPaid,
   onWalletTopUp,
 }: Props) {
+  const haptic = useHaptic();
   const [tab, setTab] = useState<"lesson" | "prepay">("lesson");
   const [search, setSearch] = useState("");
   const [pickedPair, setPickedPair] = useState<PairOption | null>(null);
@@ -116,6 +118,7 @@ export function RecordPaymentSheet({
   const handleMarkPaid = async (lessonId: string) => {
     setMarkingId(lessonId);
     await onMarkLessonPaid(lessonId);
+    haptic.success();
     setMarkingId(null);
   };
 
@@ -169,11 +172,13 @@ export function RecordPaymentSheet({
 
       if (!writtenTx) {
         setBusy(false);
+        haptic.error();
         toast.error(t("recordPayment.saveFailed"), { description: error.message });
         return;
       }
     }
 
+    haptic.success();
     toast.success(t("recordPayment.saved"));
     await onWalletTopUp();
     setBusy(false);

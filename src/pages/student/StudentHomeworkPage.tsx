@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Sparkles, Download, Clock, Check } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
+import { SkeletonList } from "@/components/SkeletonCard";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
@@ -270,7 +271,7 @@ export default function StudentHomeworkPage() {
       <div className="space-y-4">
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.homeworkTitle")}</h1>
         {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <SkeletonList count={3} />
         ) : rows.length === 0 ? (
           <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
             <div style={{ fontSize: 38 }}>📚</div>

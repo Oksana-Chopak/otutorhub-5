@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video, MessageCircle, Clock } from "lucide-react";
+import { Video, MessageCircle, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
+import { SkeletonList } from "@/components/SkeletonCard";
 
 interface Lesson {
   id: string;
@@ -67,7 +68,7 @@ export default function StudentSchedulePage() {
 
   const D = "Inter, system-ui, sans-serif";
   const renderList = (items: Lesson[]) => {
-    if (loading) return <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+    if (loading) return <SkeletonList count={3} />;
     if (items.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsInTab")}</p>;
     return (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>

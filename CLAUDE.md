@@ -220,9 +220,33 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 ---
 
 ## UX Polish
-- `useHaptic` hook: `tap(10ms)` / `success([15,50,30])` / `error([50,30,50])` — applied to key actions
-- `usePullToRefresh` — Dashboard: pull indicator "↓ Потягни / ↻ Відпусти"
+- `useHaptic` hook: `tap(10ms)` / `success([15,50,30])` / `error([50,30,50])` — applied to
+  lesson-complete, FinancesPage mark/bulk-paid, CloseDayDialog batch-close, RecordPaymentSheet,
+  homework-done, NeedsMarkingCard. Wire it into every new "win"/"task done"/"error" tap.
+- `usePullToRefresh` — Dashboard renders a real indicator driven by `pullProgress`
+  (`pullToRefresh.pull` / `.release`), not just the bare reload.
+- `burstConfetti` lives in `src/lib/confetti.ts` (reuses the `confetti-pop` keyframe). Use it
+  for every celebration — do NOT re-copy the inline version. `joinPulse` keyframe is in index.css.
+- Celebrations: per-lesson complete (confetti+haptic+toast, first-ever lesson gets an escalated
+  one-time milestone), FinancesPage bulk debt-clear (confetti), DayClosedCelebration + CloseDay
+  batch-close (haptic+confetti).
 - `OfflineBanner` — fixed top, dark bg, auto-hides 3s after restore — in AppLayout (all pages)
+
+### Student core actions (loud + time-aware)
+- Join: labeled «Приєднатися» on Student dashboard **and** schedule; goes glowing
+  «Приєднатися зараз» (`joinPulse`) from 15 min before start through lesson end, with a
+  «через X хв» / «йде зараз» status; never-empty «Посилання зʼявиться перед уроком» fallback.
+- Homework: per-card «Позначити виконаним» completion toggle. Local per-device checklist in
+  `src/lib/homeworkDone.ts` (students read the read-only `lesson_details_student` view, so there's
+  no server flag). Marking done celebrates; dashboard homework count subtracts done items.
+
+### Role-aware dashboard FAB & onboarding (do not regress)
+- The Dashboard `AddFab` is role-aware: managers route to the canonical `/schedule?create=1`,
+  `/people?add=student`, `/finances`. Never point a manager at QuickLessonDialog/
+  QuickAddStudentDialog — those query only the tutor's own `source:'independent'` rows.
+- `tutor_details` is keyed on `user_id` (there is NO `tutor_id` column) — never write/read `tutor_id`.
+- Onboarding is `OnboardingFlowB` (route `/onboarding`). `OnboardingContent`/`OnboardingDialog`
+  are retired (banner + sidebar both navigate to `/onboarding`).
 
 ---
 
@@ -298,6 +322,11 @@ fields below before building anything money-related.
 Already implemented (do NOT re-build): LiqPay + RevenueCat IAP scaffolding, onboarding
 (3 steps + confetti), weekly/daily digest functions, dynamic SPOTS_LEFT, account deletion,
 TrialCountdownBanner.
+
+**UX backlog:** the full deep UX/flow audit lives in `docs/UX-AUDIT.md` (79 findings).
+The 4 highest-leverage packages (manager FAB/onboarding/chats bugs, loud student actions,
+hub-tutor + manager accents, delight propagation) are DONE — see the remediation tracker at the
+top of that file. The remaining MED/DELIGHT items there are the next UX backlog.
 
 **Real remaining work = release/ops, mostly owner-side (see docs/RELEASE-GUIDE.md):**
 - iOS native project not yet created (`npx cap add ios` on a Mac) — App Store blocker.

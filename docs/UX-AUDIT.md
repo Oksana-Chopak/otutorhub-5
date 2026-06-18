@@ -29,11 +29,12 @@ The owner approved building **all four** packages. Status updated as work lands.
 - [x] People role-first add-sheet + contextual FAB (HIGH-3) — landed in Package 1
 
 ### Package 4 — Delight propagation
-- [ ] `useHaptic` across key taps (HIGH-21)
-- [ ] Pull-to-refresh visible indicator (HIGH-19)
-- [ ] Warm payment-received toast + haptic on FinancesPage (HIGH-20)
-- [ ] DayClosedCelebration / first-lesson milestone moments (DELIGHT)
-- [ ] Student skeleton loaders
+- [x] `useHaptic` across key taps: lesson-complete, FinancesPage mark/bulk-paid + errors, CloseDayDialog batch-close, RecordPaymentSheet mark/topup (HIGH-21)
+- [x] Pull-to-refresh visible indicator (driven by `pullProgress`, «Потягни/Відпусти») (HIGH-19)
+- [x] Warm «💰 +{amount} від {name}!» toast + haptic on FinancesPage; confetti on bulk debt-clear (HIGH-20)
+- [x] DayClosedCelebration fires haptic + confetti; CloseDayDialog batch-close celebrates; first-ever-lesson milestone toast + heavier confetti (one-time) (DELIGHT)
+- [x] Student skeleton loaders on dashboard / schedule / homework (replaced bare spinners)
+- [x] Shared `burstConfetti` util adopted (removed the duplicate local copy in DashboardPage); i18n'd the last hardcoded toast strings («Учень оплатив?», «Оплачено ✓»)
 
 > Remaining MED/DELIGHT items below are catalogued for follow-up; the four packages above target the highest-leverage HIGH findings first.
 

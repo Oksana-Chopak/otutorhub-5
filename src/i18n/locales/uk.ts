@@ -1753,6 +1753,9 @@ export const uk = {
     lessonCompletedStreak: "🔥 {{count}} днів поспіль!",
     lessonCompletedGood: "Чудово! 💪",
     paymentReceivedToast: "💰 +{{amount}} від {{name}}!",
+    firstLessonToast: "🎉 Перший урок проведено! Вітаємо!",
+    studentPaidQuestion: "Учень оплатив?",
+    paidAction: "Оплачено ✓",
   },
   notifications: {
     title: "Сповіщення",
@@ -3510,6 +3513,10 @@ export const uk = {
   offline: {
     noConnection: "Немає зʼєднання — перевір інтернет",
     restored: "Зʼєднання відновлено ✅",
+  },
+  pullToRefresh: {
+    pull: "Потягни, щоб оновити",
+    release: "Відпусти, щоб оновити",
   },
   onboardingFlowB: {
     step: {

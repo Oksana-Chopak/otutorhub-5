@@ -6,13 +6,14 @@ import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle, Clock } from "lucide-react";
+import { Video, CalendarDays, DollarSign, BookOpen, Sparkles, MessageCircle, Clock } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { RewardCollection } from "@/components/student/RewardCollection";
 import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
+import { SkeletonList } from "@/components/SkeletonCard";
 import { readHomeworkDone } from "@/lib/homeworkDone";
 
 interface UpcomingLesson {
@@ -130,8 +131,16 @@ export default function StudentDashboardPage() {
   if (ctxLoading) {
     return (
       <StudentLayout>
-        <div className="flex min-h-[300px] items-center justify-center">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="space-y-5">
+          <div className="space-y-2">
+            <div className="h-7 w-40 animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-56 animate-pulse rounded bg-muted" />
+          </div>
+          <SkeletonList count={2} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-white" />
+            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-white" />
+          </div>
         </div>
       </StudentLayout>
     );
@@ -179,7 +188,7 @@ export default function StudentDashboardPage() {
             </Link>
           </div>
           {loading ? (
-            <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+            <SkeletonList count={2} />
           ) : upcoming.length === 0 ? (
             <p style={{ fontSize: 14, color: DS.sub }}>{t("studentPages.noLessons")}</p>
           ) : (

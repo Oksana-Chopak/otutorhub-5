@@ -1742,6 +1742,9 @@ export const en: LocaleTranslations = {
     lessonCompletedStreak: "🔥 {{count}} days in a row!",
     lessonCompletedGood: "Great job! 💪",
     paymentReceivedToast: "💰 +{{amount}} from {{name}}!",
+    firstLessonToast: "🎉 First lesson done! Congrats!",
+    studentPaidQuestion: "Did the student pay?",
+    paidAction: "Paid ✓",
   },
   notifications: {
     title: "Notifications",
@@ -3498,6 +3501,10 @@ export const en: LocaleTranslations = {
   offline: {
     noConnection: "No connection — check your internet",
     restored: "Connection restored ✅",
+  },
+  pullToRefresh: {
+    pull: "Pull to refresh",
+    release: "Release to refresh",
   },
   onboardingFlowB: {
     step: {

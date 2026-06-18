@@ -48,6 +48,8 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
+import { burstConfetti } from "@/lib/confetti";
+import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
 import { isPayoutDueToday, nextPayoutDate, type PayoutSchedule } from "@/lib/payoutSchedule";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
@@ -74,6 +76,7 @@ import {
   Bell,
   Menu,
   UserCircle,
+  RefreshCw,
 } from "lucide-react";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -197,39 +200,12 @@ const dayAffirmations = [
   "Я справляюся — крок за кроком, урок за уроком.",
 ];
 
-function burstConfetti() {
-  const colors = ["#2BBFAA", "#22c55e", "#f59e0b", "#3b82f6", "#a855f7"];
-  for (let i = 0; i < 18; i++) {
-    const el = document.createElement("div");
-    const dx = (Math.random() - 0.5) * 220;
-    const dy = -(80 + Math.random() * 120);
-    const rot = Math.random() * 540;
-    el.style.cssText = [
-      "position:fixed",
-      "left:50%",
-      "top:45%",
-      "width:8px",
-      "height:8px",
-      "border-radius:2px",
-      `background:${colors[i % colors.length]}`,
-      "z-index:9999",
-      "pointer-events:none",
-      `--dx:${dx}px`,
-      `--dy:${dy}px`,
-      `--rot:${rot}deg`,
-      `animation:confetti-pop ${0.7 + Math.random() * 0.4}s ease-out forwards`,
-      `animation-delay:${i * 25}ms`,
-    ].join(";");
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1600);
-  }
-}
-
 type ProfitPeriod = "all" | "month" | "week";
 
 export default function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const haptic = useHaptic();
   const { user, roles, loading: authLoading } = useAuth();
   const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
@@ -701,20 +677,34 @@ export default function DashboardPage() {
       }
     }
     if (newStatus === "completed") {
-      burstConfetti();
+      haptic.success();
+      // First-ever completion gets its own escalated milestone moment (one-time,
+      // gated by localStorage like the day-closed celebration).
+      const completedBefore = lessons.filter((l) => l.status === "completed").length;
+      const firstKey = user ? `first_lesson_done_${user.id}` : "";
+      const isFirstLesson = !!firstKey && completedBefore === 0 && !localStorage.getItem(firstKey);
+      if (isFirstLesson) {
+        localStorage.setItem(firstKey, "1");
+        burstConfetti({ count: 40, originY: 40 });
+      } else {
+        burstConfetti();
+      }
       const lesson = lessons.find((l) => l.id === lessonId);
       const canMarkPay = !!lesson && lesson.student_payment_status !== "paid" && (isManager || lesson.tutor_id === user?.id);
-      toast.success(t("dashboardExtra.lessonCompletedToast"), {
-        description: canMarkPay
-          ? "Учень оплатив?"
-          : streak?.current_streak
-            ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
-            : t("dashboardExtra.lessonCompletedGood"),
-        duration: canMarkPay ? 6000 : 4000,
-        action: canMarkPay
-          ? { label: "Оплачено ✓", onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) }
-          : undefined,
-      });
+      toast.success(
+        isFirstLesson ? t("dashboardExtra.firstLessonToast") : t("dashboardExtra.lessonCompletedToast"),
+        {
+          description: canMarkPay
+            ? t("dashboardExtra.studentPaidQuestion")
+            : streak?.current_streak
+              ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
+              : t("dashboardExtra.lessonCompletedGood"),
+          duration: canMarkPay ? 6000 : 4000,
+          action: canMarkPay
+            ? { label: t("dashboardExtra.paidAction"), onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) }
+            : undefined,
+        },
+      );
       gamification.refresh();
 
       // Award reward emoji to student
@@ -1301,6 +1291,25 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
+      {/* Pull-to-refresh indicator — driven by pullProgress (0→1). Without this the
+          pull gesture silently reloaded with no feedback and read as broken. */}
+      {isPulling && (
+        <div
+          className="pointer-events-none fixed left-0 right-0 top-0 z-[60] flex justify-center"
+          style={{ transform: `translateY(${Math.min(pullProgress, 1) * 10}px)` }}
+        >
+          <div
+            className="mt-2 flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold text-white shadow-lg"
+            style={{ background: "#0f0f1a", opacity: Math.max(0.35, Math.min(pullProgress, 1)) }}
+          >
+            <RefreshCw
+              className="h-4 w-4"
+              style={{ color: "var(--teal)", transform: `rotate(${pullProgress * 270}deg)`, transition: "transform .08s linear" }}
+            />
+            {pullProgress >= 1 ? t("pullToRefresh.release") : t("pullToRefresh.pull")}
+          </div>
+        </div>
+      )}
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       {/* Hero: dark bg on mobile for readability, transparent on desktop */}
       <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:mx-0 lg:mt-0 lg:mb-6 lg:rounded-[18px]">

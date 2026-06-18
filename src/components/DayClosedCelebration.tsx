@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
 
 interface Props {
   show: boolean;
@@ -9,11 +11,17 @@ interface Props {
 
 export function DayClosedCelebration({ show, lessonCount, onDone }: Props) {
   const { t } = useTranslation();
+  const haptic = useHaptic();
 
   useEffect(() => {
     if (!show) return;
+    // This is the app's most celebratory full-screen moment — make it land on
+    // the device too (haptic + confetti), not arrive silently.
+    haptic.success();
+    burstConfetti({ count: 28, originY: 38 });
     const id = setTimeout(onDone, 4000);
     return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show, onDone]);
 
   if (!show) return null;

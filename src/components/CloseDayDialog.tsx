@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Loader2, X, Check } from "lucide-react";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
+import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
 
 export interface CloseDayRow {
   id: string;
@@ -34,6 +36,7 @@ const C = {
 /** Evening batch: mark today's past lessons completed + paid in one move. */
 export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
   const { t } = useTranslation();
+  const haptic = useHaptic();
   const { user } = useAuth();
   const [state, setState] = useState<Record<string, { done: boolean; paid: boolean }>>({});
   const [busy, setBusy] = useState(false);
@@ -84,10 +87,15 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
             .upsert({ lesson_id: r.id, student_payment_status: "paid" }, { onConflict: "lesson_id" })
         )
       );
+      // Closing the whole day in one tap is a real win — celebrate it like the
+      // per-lesson path does, not with a silent toast.
+      haptic.success();
+      if (doneIds.length) burstConfetti({ count: 24, originY: 40 });
       toast.success(t("closeDayDialog.dayClosedToast", { count: doneIds.length }));
       onOpenChange(false);
       onDone?.();
     } catch (e: any) {
+      haptic.error();
       toast.error(t("closeDayDialog.closeDayError"), { description: e?.message });
     } finally {
       setBusy(false);
