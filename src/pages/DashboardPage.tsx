@@ -274,7 +274,9 @@ export default function DashboardPage() {
   const [paymentPairs, setPaymentPairs] = useState<PairOption[]>([]);
   const [paymentUnpaid, setPaymentUnpaid] = useState<UnpaidLessonOption[]>([]);
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
-  const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("all");
+  // Default to THIS MONTH — the profit bubble is a "this month" metric, not lifetime
+  // ("За весь час" misread as monthly). Applies to every role's profit card.
+  const [profitPeriod, setProfitPeriod] = useState<ProfitPeriod>("month");
   const [myStudentCount, setMyStudentCount] = useState<number | null>(null);
   // Hub tutor (source "hub", in a hub): own payout schedule + own per-lesson rate
   // + count of hub students. PRIVACY: never load/derive student_price or hub margin.
@@ -1573,9 +1575,10 @@ export default function DashboardPage() {
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
-              {/* Profit card — mobile/tablet only; lg uses 4-col grid */}
-              <div
-                className="overflow-hidden rounded-[18px] p-4 sm:p-5 lg:hidden"
+              {/* Profit card — mobile/tablet only; lg uses 4-col grid. Tap → Finances. */}
+              <Link
+                to="/finances"
+                className="block overflow-hidden rounded-[18px] p-4 sm:p-5 lg:hidden hover:shadow-sm transition-shadow"
                 style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
               >
                 <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
@@ -1594,7 +1597,7 @@ export default function DashboardPage() {
                     <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                   ))}
                 </div>
-              </div>
+              </Link>
               {/* 3 stat cards — hidden on mobile, visible on desktop */}
               <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3 lg:hidden">
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
@@ -1624,20 +1627,21 @@ export default function DashboardPage() {
               </div>
               {/* Desktop lg: all 4 in one row */}
               <div className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
-                <div
-                  className="overflow-hidden rounded-[16px] p-4"
+                <Link
+                  to="/finances"
+                  className="block overflow-hidden rounded-[16px] p-4 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
                   <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
-<p className="mt-0.5 text-[13px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
+                  <p className="mt-0.5 text-[13px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {weeklyIncomeBars.map((h, i) => (
                       <div key={i} className="flex-1 rounded-sm"
                         style={{ height: `max(${h}%, 3px)`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                     ))}
                   </div>
-                </div>
+                </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
@@ -1741,9 +1745,11 @@ export default function DashboardPage() {
               )}
 
               {/* «До виплати від хабу» — dark gradient card. Money = own
-                  tutor_payout + own rate ONLY. Never student_price / hub margin. */}
-              <div
-                className="overflow-hidden rounded-[16px] p-[18px] text-white"
+                  tutor_payout + own rate ONLY. Never student_price / hub margin.
+                  Tap → Finances (the money bubble is clickable for every role). */}
+              <Link
+                to="/finances"
+                className="block overflow-hidden rounded-[16px] p-[18px] text-white hover:shadow-sm transition-shadow"
                 style={{
                   background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)",
                   boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)",
@@ -1782,7 +1788,7 @@ export default function DashboardPage() {
                     )}
                   </span>
                 </div>
-              </div>
+              </Link>
 
               {/* Two stat tiles: hub students + lessons today (COUNTS only) */}
               <div className="grid grid-cols-2 gap-3">
