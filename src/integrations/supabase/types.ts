@@ -398,29 +398,38 @@ export type Database = {
       group_enrollments: {
         Row: {
           created_at: string
+          currency: string
           group_id: string
           id: string
           joined_at: string
+          price_per_lesson: number | null
           status: string
           student_id: string
+          tutor_payout: number | null
           updated_at: string
         }
         Insert: {
           created_at?: string
+          currency?: string
           group_id: string
           id?: string
           joined_at?: string
+          price_per_lesson?: number | null
           status?: string
           student_id: string
+          tutor_payout?: number | null
           updated_at?: string
         }
         Update: {
           created_at?: string
+          currency?: string
           group_id?: string
           id?: string
           joined_at?: string
+          price_per_lesson?: number | null
           status?: string
           student_id?: string
+          tutor_payout?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -694,23 +703,44 @@ export type Database = {
         Row: {
           attendance_status: string
           created_at: string
+          currency: string
           id: string
           lesson_id: string
           student_id: string
+          student_paid_at: string | null
+          student_payment_status: string
+          student_price: number | null
+          tutor_paid_at: string | null
+          tutor_payout: number | null
+          tutor_payout_status: string
         }
         Insert: {
           attendance_status?: string
           created_at?: string
+          currency?: string
           id?: string
           lesson_id: string
           student_id: string
+          student_paid_at?: string | null
+          student_payment_status?: string
+          student_price?: number | null
+          tutor_paid_at?: string | null
+          tutor_payout?: number | null
+          tutor_payout_status?: string
         }
         Update: {
           attendance_status?: string
           created_at?: string
+          currency?: string
           id?: string
           lesson_id?: string
           student_id?: string
+          student_paid_at?: string | null
+          student_payment_status?: string
+          student_price?: number | null
+          tutor_paid_at?: string | null
+          tutor_payout?: number | null
+          tutor_payout_status?: string
         }
         Relationships: [
           {
