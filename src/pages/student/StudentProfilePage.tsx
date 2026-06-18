@@ -216,6 +216,11 @@ export default function StudentProfilePage() {
             </button>
 
             <DeleteAccountSection />
+
+            <div style={{ display: "flex", justifyContent: "center", gap: 16, paddingTop: 2, fontSize: 13 }}>
+              <Link to="/privacy" style={{ color: C.sub, textDecoration: "underline" }}>{t("landing.footer.privacy")}</Link>
+              <Link to="/terms" style={{ color: C.sub, textDecoration: "underline" }}>{t("landing.footer.terms")}</Link>
+            </div>
           </>
         )}
       </div>

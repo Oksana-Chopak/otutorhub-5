@@ -917,6 +917,11 @@ export default function ProfilePage() {
 
         <DeleteAccountSection />
 
+        <div className="flex justify-center gap-4 pt-1 pb-4 text-[13px]">
+          <Link to="/privacy" className="text-muted-foreground underline hover:text-foreground">{t("landing.footer.privacy")}</Link>
+          <Link to="/terms" className="text-muted-foreground underline hover:text-foreground">{t("landing.footer.terms")}</Link>
+        </div>
+
       </div>
     </AppLayout>
   );

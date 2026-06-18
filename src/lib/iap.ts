@@ -6,8 +6,13 @@
  * Public SDK-ключ прокидається через VITE_REVENUECAT_IOS_KEY на збірці.
  */
 import { isNativeApp } from "@/lib/platform";
+import { Capacitor } from "@capacitor/core";
 
-const RC_KEY = (import.meta.env.VITE_REVENUECAT_IOS_KEY as string | undefined) ?? "";
+// Platform-specific RevenueCat public SDK key (App Store IAP on iOS, Play Billing on
+// Android). Set VITE_REVENUECAT_IOS_KEY / VITE_REVENUECAT_ANDROID_KEY at build time.
+const RC_KEY = (Capacitor.getPlatform() === "android"
+  ? (import.meta.env.VITE_REVENUECAT_ANDROID_KEY as string | undefined)
+  : (import.meta.env.VITE_REVENUECAT_IOS_KEY as string | undefined)) ?? "";
 const ENTITLEMENT = "pro";
 
 export type IapPlan = "monthly" | "yearly";

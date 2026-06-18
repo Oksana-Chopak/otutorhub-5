@@ -285,20 +285,28 @@ fields below before building anything money-related.
   subscription. An independent tutor screen must never show `tutor_payout`/margin.
 
 - Referral: 21-day trial (friend) + 1 month Pro (referrer) — independent side.
-- LiqPay integration: **pending** (not yet implemented).
+- Payments are **implemented**: LiqPay on web (`liqpay-create-payment`/`liqpay-callback`),
+  RevenueCat store-billing (IAP) on native via `src/lib/iap.ts`. On **native** builds
+  (iOS+Android) the SubscriptionPage shows the IAP card only (LiqPay hidden) — store policy
+  (Apple 3.1.1 / Play) forbids external payment for digital subscriptions.
 - `TrialCountdownBanner`: only shows if `trial_until` was set AND expired
   (never shows for new registrations with `trial_until=null`).
 
 ---
 
-## Known Pending Work
-- **LiqPay** payment integration (critical before release)
-- Onboarding flow for new manager/tutor (3 steps + confetti)
-- "First lesson" celebration moment
-- Weekly digest notification
-- `uk.ts.new` cleanup
-- Dynamic SPOTS_LEFT counter from DB
-- Mobile app via Capacitor (iOS/Android)
+## Known Pending Work (DONE items removed — were stale)
+Already implemented (do NOT re-build): LiqPay + RevenueCat IAP scaffolding, onboarding
+(3 steps + confetti), weekly/daily digest functions, dynamic SPOTS_LEFT, account deletion,
+TrialCountdownBanner.
+
+**Real remaining work = release/ops, mostly owner-side (see docs/RELEASE-GUIDE.md):**
+- iOS native project not yet created (`npx cap add ios` on a Mac) — App Store blocker.
+- Store-billing config (owner): RevenueCat keys (`VITE_REVENUECAT_IOS_KEY`/`_ANDROID_KEY`),
+  App Store Connect + Play products, deploy `revenuecat-webhook`.
+- Android signing keystore; store screenshots; demo/review account; privacy/support URLs.
+- Apply digest migrations (`telegram_*_digest` cols + cron not yet live).
+- Native push (`@capacitor/push-notifications` + APNs/FCM) — Web Push hidden on native for now.
+- `uk.ts.new` cleanup.
 
 ---
 

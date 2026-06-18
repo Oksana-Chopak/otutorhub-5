@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { isIosApp } from "@/lib/platform";
+import { isNativeApp } from "@/lib/platform";
 import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/AppLayout";
@@ -77,8 +77,9 @@ const statusMeta: Record<
 
 export default function SubscriptionPage() {
   const navigate = useNavigate();
-  // App Store 3.1.1: в iOS-збірці не показуємо ціни та зовнішні оплати
-  const iosApp = isIosApp();
+  // App Store 3.1.1 / Play Payments: у НАТИВНИХ збірках (iOS+Android) не показуємо
+  // зовнішню оплату (LiqPay) і веб-ціни — лише store-білінг (IAP) через RevenueCat.
+  const nativeApp = isNativeApp();
   const [searchParams] = useSearchParams();
   const { user, roles } = useAuth();
   const { trackPaywallClick } = usePaywallTracking();
@@ -120,7 +121,7 @@ export default function SubscriptionPage() {
     await refresh?.();
   };
   useEffect(() => {
-    if (!iosApp || !user) return;
+    if (!nativeApp || !user) return;
     let alive = true;
     (async () => {
       await configureIap(user.id);
@@ -128,7 +129,7 @@ export default function SubscriptionPage() {
       if (alive) setIapOffer(offer);
     })();
     return () => { alive = false; };
-  }, [iosApp, user]);
+  }, [nativeApp, user]);
 
   const handleIapPurchase = async () => {
     setIapBusy("buy");
@@ -352,19 +353,19 @@ export default function SubscriptionPage() {
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{iosApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             ) : (
               <>
                 <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>{t("subscriptionPageExtra.heroFreeTitle")}</div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{iosApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             )}
           </div>
 
           {/* ── iOS StoreKit (App Store IAP через RevenueCat) ───────────── */}
-          {!isActive && iosApp && (
+          {!isActive && nativeApp && (
             <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
@@ -396,7 +397,7 @@ export default function SubscriptionPage() {
           )}
 
           {/* ── Path 1 — pay (прихована в iOS-збірці: App Store 3.1.1) ──── */}
-          {!isActive && !iosApp && (
+          {!isActive && !nativeApp && (
             <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                 <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</span>
@@ -422,7 +423,7 @@ export default function SubscriptionPage() {
           )}
 
           {/* ── або не плати ─────────────────────────────────────────────── */}
-          {!isActive && !iosApp && (
+          {!isActive && !nativeApp && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
               <div style={{ flex: 1, height: 1, background: S.border }} />
               <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, color: S.muted }}>{t("subscriptionPageExtra.orDontPay")}</span>
@@ -438,7 +439,7 @@ export default function SubscriptionPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>{t("subscriptionPageExtra.inviteTitle")}</div>
-                <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{iosApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
+                <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
               </div>
             </div>
             <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -465,7 +466,7 @@ export default function SubscriptionPage() {
           </div>
 
           {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
-          {!isActive && !iosApp && (
+          {!isActive && !nativeApp && (
             <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
