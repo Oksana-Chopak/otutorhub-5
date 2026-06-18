@@ -45,17 +45,26 @@ Deno.serve(async (req) => {
     }
 
     const admin = createClient(supabaseUrl, serviceKey);
-    const { error } = await admin
+    // tutor_workspace_settings is keyed by tutor_id (== the tutor's auth user id ==
+    // RevenueCat app_user_id). There is NO user_id column, so the old .eq('user_id')
+    // filter matched zero rows and silently failed to revoke — keeping users Pro after
+    // a cancellation/expiration. Mirror the LiqPay callback, which uses tutor_id.
+    const { error, count } = await admin
       .from('tutor_workspace_settings')
-      .update({ subscription_status: status })
-      .eq('user_id', appUserId);
+      .update({ subscription_status: status }, { count: 'exact' })
+      .eq('tutor_id', appUserId);
 
     if (error) {
       console.error('RC webhook update failed', error, { appUserId, type });
       return new Response(JSON.stringify({ error: error.message }), { status: 500 });
     }
+    if (count === 0) {
+      // No workspace row for this app_user_id — surfaces a config drift between
+      // RevenueCat's app_user_id and the tutor's auth id instead of failing silently.
+      console.warn('RC webhook matched no tutor', { appUserId, type, status });
+    }
 
-    return new Response(JSON.stringify({ ok: true, status }), {
+    return new Response(JSON.stringify({ ok: true, status, updated: count ?? 0 }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
