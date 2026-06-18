@@ -7,6 +7,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.payment-reminders]
     verify_jwt = false
+  [functions.payout-reminders]
+    verify_jwt = false
   [functions.tutor-daily-digest]
     verify_jwt = false
   [functions.telegram-poll]
