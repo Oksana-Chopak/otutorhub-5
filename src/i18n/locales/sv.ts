@@ -940,6 +940,7 @@ export const sv: LocaleTranslations = {
     copyAriaLabel: "Kopiera",
     copied: "Kopierat",
     actionWallet: "Plånbok",
+    assignTutorCta: "Tilldela en lärare",
     actionRate: "Pris",
     subjectRateHint: "ämne · pris · valuta",
     remindBtn: "Påminn",

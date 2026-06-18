@@ -950,6 +950,7 @@ export const en: LocaleTranslations = {
     copyAriaLabel: "Copy",
     copied: "Copied",
     actionWallet: "Wallet",
+    assignTutorCta: "Assign a tutor",
     actionRate: "Rate",
     subjectRateHint: "subject · rate · currency",
     remindBtn: "Remind",

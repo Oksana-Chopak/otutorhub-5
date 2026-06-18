@@ -24,8 +24,9 @@ The owner approved building **all four** packages. Status updated as work lands.
 - [x] Shared `burstConfetti` util + `joinPulse` keyframe extracted for reuse
 
 ### Package 3 — Hub-tutor + manager accents
-- [ ] Hub-tutor dashboard: today's lessons + inline mark-done above payout; promote «Написати менеджеру» (HIGH-12)
-- [ ] First-class add-tutor / assign-tutor / set-rate on People (HIGH-3, HIGH-4)
+- [x] Hub-tutor dashboard re-ranked around the job: `NeedsMarkingCard` (inline mark-done) now sits at the TOP of the hub block, above the payout card; the lower duplicate render is excluded for hub tutors; «Написати менеджеру» promoted from a gray outline to a prominent teal action (HIGH-12)
+- [x] People student sheet: when a student has no tutor, the 3-tile grid is replaced by a single dominant «Призначити репетитора» CTA (also kills the confusing Wallet/Ставка reroute-on-tap) (HIGH-4)
+- [x] People role-first add-sheet + contextual FAB (HIGH-3) — landed in Package 1
 
 ### Package 4 — Delight propagation
 - [ ] `useHaptic` across key taps (HIGH-21)

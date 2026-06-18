@@ -959,6 +959,7 @@ export const uk = {
     copyAriaLabel: "Копіювати",
     copied: "Скопійовано",
     actionWallet: "Гаманець",
+    assignTutorCta: "Призначити репетитора",
     actionRate: "Ставка",
     subjectRateHint: "предмет · ставка · валюта",
     remindBtn: "Нагадати",

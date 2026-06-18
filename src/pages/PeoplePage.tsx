@@ -1995,8 +1995,24 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                   </div>
                 )}
 
-                {/* Student actions: Репетитор / Гаманець / Ставка */}
+                {/* Student actions. Without a tutor, the only sensible next step is
+                    "assign a tutor" — so show ONE dominant CTA instead of a 3-tile
+                    grid where Wallet/Ставка look equal but secretly reroute on tap.
+                    Once a tutor exists, show the full Репетитор / Гаманець / Ставка grid. */}
                 {isManager && u.role === "student" && !u.archived_at && !u.is_pending && (
+                  studentPairs.length === 0 ? (
+                    <div className="px-4 pt-3">
+                      <button
+                        type="button"
+                        className="flex h-12 w-full items-center justify-center gap-2 rounded-[14px] text-[15px] font-bold text-white transition-opacity active:opacity-90"
+                        style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}
+                        onClick={openAssignTutor}
+                      >
+                        <GraduationCap className="h-5 w-5" />
+                        {t("people.assignTutorCta")}
+                      </button>
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-3 gap-2 px-4 pt-3">
                     <button
                       type="button"
@@ -2012,11 +2028,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
                       style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
                       onClick={() => {
-                        if (studentPairs.length === 0) {
-                          toast.info(t("people.assignTutorFirst"));
-                          openAssignTutor();
-                          return;
-                        }
                         const pair = studentPairs[0];
                         setWalletPair({ student: u, tutorId: pair.tutor_id, tutorName: tutorNameOf(pair.tutor_id) });
                         setWalletOpen(true);
@@ -2030,19 +2041,13 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                       type="button"
                       className="flex flex-col items-center gap-1.5 rounded-[14px] py-3 text-center transition-colors hover:bg-muted"
                       style={{ background: "var(--bg,#F5F4F0)", border: "0.5px solid var(--border,#eceef3)" }}
-                      onClick={() => {
-                        if (studentPairs.length === 0) {
-                          toast.info(t("people.assignTutorFirst"));
-                          openAssignTutor();
-                          return;
-                        }
-                        openRateFor(studentPairs[0]);
-                      }}
+                      onClick={() => openRateFor(studentPairs[0])}
                     >
                       <Tag className="h-5 w-5" style={{ color: "var(--sub,#6b7088)" }} />
                       <span className="text-[13px] font-medium" style={{ color: "var(--sub,#6b7088)" }}>{t("people.actionRate")}</span>
                     </button>
                   </div>
+                  )
                 )}
 
                 {/* Pending: Нагадати button */}

@@ -1713,6 +1713,17 @@ export default function DashboardPage() {
                 </span>
               </div>
 
+              {/* #1 hub-tutor job — mark conducted lessons done — surfaced at the
+                  TOP of the hub block, above the payout figure (which is only
+                  checked occasionally). Renders nothing when there's nothing to mark. */}
+              {user && (
+                <NeedsMarkingCard
+                  lessons={lessons.filter((l) => l.status === "scheduled" && l.tutor_id === user.id)}
+                  studentNames={profiles}
+                  onChanged={loadData}
+                />
+              )}
+
               {/* «До виплати від хабу» — dark gradient card. Money = own
                   tutor_payout + own rate ONLY. Never student_price / hub margin. */}
               <div
@@ -1826,15 +1837,18 @@ export default function DashboardPage() {
               </div>
 
               <PendingPaymentsCard />
-              <Button
-                variant="outline"
-                className="h-11 w-full justify-center gap-2 rounded-[12px]"
+              {/* «Написати менеджеру» — one of the two things a hub tutor opens the
+                  app to do, so it's a prominent teal action, not a quiet gray outline. */}
+              <button
+                type="button"
                 disabled={openingManagerChat}
                 onClick={openManagerChat}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-[13px] text-[15px] font-bold transition-opacity active:opacity-80 disabled:opacity-70"
+                style={{ background: "rgba(43,191,170,.12)", color: "#1f8e7e", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.32)" }}
               >
                 {openingManagerChat ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquare className="h-4 w-4" />}
                 {t("dashboard.hubManager")}
-              </Button>
+              </button>
             </div>
           )}
 
@@ -1844,8 +1858,11 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* "До уваги" — past scheduled lessons not yet marked. Manager: across all tutors. Tutor: own only. */}
-          {(isManager || (isTutor && !isManager)) && user && (
+          {/* "До уваги" — past scheduled lessons not yet marked. Manager: across all
+              tutors; independent tutor: own. Hub tutors get this at the TOP of their
+              hub block instead (see above), so they're excluded here to avoid a
+              duplicate marking card. */}
+          {(isManager || isIndependentTutor) && user && (
             <NeedsMarkingCard
               lessons={lessons.filter((l) => {
                 if (l.status !== "scheduled") return false;
