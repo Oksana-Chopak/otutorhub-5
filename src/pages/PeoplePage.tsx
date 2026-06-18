@@ -1703,7 +1703,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       <Sheet open={!!selectedPerson} onOpenChange={(open) => !open && setSelectedPerson(null)}>
         <SheetContent
           side="bottom"
-          className="rounded-t-[20px] px-0 pb-6 pt-0 max-h-[90vh] overflow-y-auto"
+          className="rounded-t-[20px] px-0 pb-6 pt-0 max-h-[90vh] overflow-y-auto [&>button.absolute]:hidden"
         >
           {selectedPerson && (() => {
             const u = selectedPerson;
