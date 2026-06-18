@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { safeHref } from "@/lib/safeUrl";
 import { useTranslation } from "react-i18next";
 import { SkeletonList } from "@/components/SkeletonCard";
+import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 interface Lesson {
   id: string;
@@ -47,7 +48,7 @@ export default function StudentSchedulePage() {
       const { data } = await supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, status, meeting_url, tutor_id")
-        .eq("student_id", user.id)
+        .or(await studentLessonsOrFilter(user.id))
         .order("starts_at", { ascending: false });
       const tutorIds = Array.from(new Set(((data ?? []) as Lesson[]).map((l) => l.tutor_id)));
       const { data: profiles } = tutorIds.length

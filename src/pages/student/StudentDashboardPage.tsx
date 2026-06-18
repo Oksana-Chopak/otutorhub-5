@@ -16,6 +16,7 @@ import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { readHomeworkDone } from "@/lib/homeworkDone";
+import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 interface UpcomingLesson {
   id: string;
@@ -73,11 +74,12 @@ export default function StudentDashboardPage() {
     if (!user) return;
     setLoading(true);
     const nowIso = new Date().toISOString();
+    const orFilter = await studentLessonsOrFilter(user.id);
     const [{ data: lessons }, { data: details }, { data: completed }] = await Promise.all([
       supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status, student_payment_status")
-        .eq("student_id", user.id)
+        .or(orFilter)
         .eq("status", "scheduled")
         .gte("starts_at", nowIso)
         .order("starts_at", { ascending: true })
@@ -88,7 +90,7 @@ export default function StudentDashboardPage() {
       supabase
         .from("lessons")
         .select("starts_at")
-        .eq("student_id", user.id)
+        .or(orFilter)
         .eq("status", "completed"),
     ]);
     setCompletedLessons((completed as CompletedLessonStat[] | null) ?? []);
