@@ -331,7 +331,7 @@ export default function SubscriptionPage() {
                 <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>{t("subscriptionPageExtra.heroActiveTitle")}</div>
                 <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
-                {!iosApp && settings?.liqpay_recurring_active && (
+                {!nativeApp && settings?.liqpay_recurring_active && (
                   <button
                     type="button"
                     onClick={cancelSubscription}
