@@ -36,6 +36,12 @@ The owner approved building **all four** packages. Status updated as work lands.
 - [x] Student skeleton loaders on dashboard / schedule / homework (replaced bare spinners)
 - [x] Shared `burstConfetti` util adopted (removed the duplicate local copy in DashboardPage); i18n'd the last hardcoded toast strings («Учень оплатив?», «Оплачено ✓»)
 
+### Follow-up — Student first-value path (the last hard dead-end)
+- [x] Self-signup student onboarding quiz now **creates a real `tutor_referral_requests` row** (subject/level/schedule/goal + `quiz_data`, `source='onboarding'`) — the "менеджер отримав твою заявку" promise is now true. The request shows on `/referrals` + the manager Dashboard smart-task.
+- [x] Student cabinet: the no-tutor empty state (was a phantom "lesson coming soon" with no action) and Block 6 now open the real `FindTutorDialog`; removed the dead `showQuizAgain` quiz-relaunch path.
+- [x] Manager notification via new `notify_managers` `SECURITY DEFINER` RPC (students can't enumerate managers under RLS) — best-effort, fans `create_notification` to every manager. ⚠️ **Needs Lovable to apply migration `20260618130000_notify_managers_rpc.sql`** before manager bell-pings fire; until then managers still discover requests via `/referrals` + the dashboard task.
+- Adversarially reviewed (RLS/data, migration SQL, frontend regressions, i18n/honesty) — all pass.
+
 > Remaining MED/DELIGHT items below are catalogued for follow-up; the four packages above target the highest-leverage HIGH findings first.
 
 ---

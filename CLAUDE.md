@@ -240,6 +240,19 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   `src/lib/homeworkDone.ts` (students read the read-only `lesson_details_student` view, so there's
   no server flag). Marking done celebrates; dashboard homework count subtracts done items.
 
+### Student first-value path (do not regress)
+- A self-signup student's tutor request lives in `tutor_referral_requests` (RLS lets a
+  student insert their own; managers see all on `/referrals` + the Dashboard smart-task;
+  `AssignTutorDialog` fulfils it → writes `student_rates` source='hub' → `hasTutor` flips).
+- The in-app request path is `FindTutorDialog` (writes `tutor_referral_requests`). It is the
+  student dashboard's no-tutor CTA (empty state + Block 6). The onboarding quiz
+  (`StudentOnboarding`) ALSO creates a request on submit — that's why its "manager received
+  your request" copy is honest. Don't revert these to the old quiz-relaunch button.
+- Managers are notified via `notify_managers(_type,_title,_body,_link)` (SECURITY DEFINER) —
+  a student can't read `user_roles` to enumerate managers under RLS, so the fan-out MUST go
+  through that RPC, not a client-side `user_roles` query (which silently returns nothing for
+  non-managers). Call it best-effort via `notifyManagers()` in `src/lib/notifications.ts`.
+
 ### Role-aware dashboard FAB & onboarding (do not regress)
 - The Dashboard `AddFab` is role-aware: managers route to the canonical `/schedule?create=1`,
   `/people?add=student`, `/finances`. Never point a manager at QuickLessonDialog/
@@ -334,6 +347,9 @@ top of that file. The remaining MED/DELIGHT items there are the next UX backlog.
   App Store Connect + Play products, deploy `revenuecat-webhook`.
 - Android signing keystore; store screenshots; demo/review account; privacy/support URLs.
 - Apply digest migrations (`telegram_*_digest` cols + cron not yet live).
+- Apply `20260618130000_notify_managers_rpc.sql` (manager bell-ping when a student requests a
+  tutor). Depends on `create_notification` (should already be live — notifications work app-wide).
+  Until applied, requests still surface via `/referrals` + the dashboard task.
 - Native push (`@capacitor/push-notifications` + APNs/FCM) — Web Push hidden on native for now.
 - `uk.ts.new` cleanup.
 
