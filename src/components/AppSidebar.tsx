@@ -49,7 +49,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { OnboardingDialog } from "@/components/OnboardingDialog";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -125,7 +124,6 @@ export function AppSidebar() {
   const primaryRole = roles[0];
   const queryClient = useQueryClient();
   const [avatarOpen, setAvatarOpen] = useState(false);
-  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   // Cached across pages/mounts via react-query — sidebar mounts on every route.
@@ -357,7 +355,6 @@ export function AppSidebar() {
           </div>
         </div>
       </aside>
-      <OnboardingDialog open={onboardingOpen} onOpenChange={setOnboardingOpen} />
       <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
     </>
   );

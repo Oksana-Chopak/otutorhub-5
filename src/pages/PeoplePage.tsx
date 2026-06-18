@@ -4,7 +4,7 @@ import { PeopleSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -212,6 +212,14 @@ export default function PeoplePage() {
   const [walletOpen, setWalletOpen] = useState(false);
   const [walletPair, setWalletPair] = useState<{ student: UserRow; tutorId: string; tutorName: string } | null>(null);
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Open the add-person sheet with a preselected role (defaults to the active
+  // tab when called from the FAB; honours a ?add=tutor|student deep-link).
+  const openAddSheet = (role: AppRole) => {
+    setAddForm({ first_name: "", last_name: "", email: "", phone: "", role, subjects: [] });
+    setAddOpen(true);
+  };
 
   const openChatWith = (userId: string) => {
     navigate(`/chats?with=${userId}`);
@@ -392,6 +400,21 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Deep-link from the dashboard FAB (manager): ?add=tutor|student opens the
+  // add-person sheet preset to that role, then strips the param.
+  useEffect(() => {
+    const add = searchParams.get("add");
+    if (add === "tutor" || add === "student") {
+      openAddSheet(add);
+      if (add === "tutor") setActiveRoleTab("tutors");
+      else setActiveRoleTab("students");
+      const n = new URLSearchParams(searchParams);
+      n.delete("add");
+      setSearchParams(n, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refresh on window focus, but throttle to avoid hammering Postgres on every alt-tab.
@@ -1614,6 +1637,33 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 </button>
               </div>
               <div className="space-y-3 overflow-y-auto flex-1 min-h-0" style={{ padding: "4px 20px 14px" }}>
+                {/* Role is the primary choice — lead with a segmented toggle, not a
+                    buried Select, so adding a tutor vs a student is obvious up front. */}
+                <div>
+                  <Label>{t("people.fieldRole")}</Label>
+                  <div role="tablist" className="mt-1.5 grid grid-cols-3 gap-1 rounded-[12px] bg-[#F5F4F0] p-1">
+                    {(["tutor", "student", "manager"] as AppRole[]).map((r) => {
+                      const active = addForm.role === r;
+                      return (
+                        <button
+                          key={r}
+                          type="button"
+                          role="tab"
+                          aria-selected={active}
+                          onClick={() => setAddForm((f) => ({ ...f, role: r }))}
+                          className="h-10 rounded-[9px] text-[14px] font-semibold transition-colors"
+                          style={{
+                            background: active ? "#fff" : "transparent",
+                            color: active ? "#1f8e7e" : "#6b7088",
+                            boxShadow: active ? "0 1px 4px rgba(15,15,26,.08)" : "none",
+                          }}
+                        >
+                          {t(`roles.${r}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label htmlFor="fn">{t("people.fieldFirstName")}</Label>
@@ -1659,22 +1709,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <p className="text-[13px] text-muted-foreground">
                   {t("people.ghostHint")}
                 </p>
-                <div>
-                  <Label>{t("people.fieldRole")}</Label>
-                  <Select
-                    value={addForm.role}
-                    onValueChange={(v) => setAddForm((f) => ({ ...f, role: v as AppRole }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">{t("roles.student")}</SelectItem>
-                      <SelectItem value="tutor">{t("roles.tutor")}</SelectItem>
-                      <SelectItem value="manager">{t("roles.manager")}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 {addForm.role === "tutor" && (
                   <div>
                     <Label>{t("people.fieldSubjects")}</Label>
@@ -2063,9 +2097,14 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           onDone={loadData}
         />
       )}
-      {/* FAB — opens add person dialog */}
+      {/* FAB — opens add person dialog, preset to the active tab's role and labelled
+          for it (Додати репетитора / учня / менеджера) so the most common hub job —
+          populating tutors — is a one-tap, unambiguous action. */}
       {isManager && (
-        <PageFAB onClick={() => setAddOpen(true)} label={t("people.addPerson")} />
+        <PageFAB
+          onClick={() => openAddSheet(activeRoleTab === "tutors" ? "tutor" : activeRoleTab === "managers" ? "manager" : "student")}
+          label={activeRoleTab === "tutors" ? t("people.addTutor") : activeRoleTab === "managers" ? t("people.addManager") : t("people.addStudent")}
+        />
       )}
     </AppLayout>
   );

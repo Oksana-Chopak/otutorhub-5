@@ -175,8 +175,8 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
   const save = async () => {
     if (!user || !sel.length) return;
     setSaving(true);
-    await (supabase.from("tutor_details") as any).upsert(
-      { tutor_id: user.id, subjects: sel }, { onConflict: "tutor_id" }
+    await supabase.from("tutor_details").upsert(
+      { user_id: user.id, subjects: sel }, { onConflict: "user_id" }
     );
     setSaving(false);
     onComplete(sel);
@@ -1034,7 +1034,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
       });
       if (!cancelled) setProgressLoading(false);
 
-      safe((supabase.from("tutor_details") as any).select("subjects").eq("tutor_id", user.id).maybeSingle(), null as any)
+      safe(supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(), null as any)
         .then((r: any) => { if (r?.data?.subjects?.length > 0) patch({ hasSubject: true }); });
       safe(supabase.from("tutor_availability_weekly").select("id").eq("tutor_id", user.id).limit(1), {data:[]} as any)
         .then((r: any) => patch({ hasAvailability: (r.data?.length ?? 0) > 0 }));

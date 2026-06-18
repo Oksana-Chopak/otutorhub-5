@@ -950,6 +950,14 @@ export default function SchedulePage() {
     if (v === "list" || v === "week") setView(v);
     const f = searchParams.get("filter");
     if (f === "unpriced" || f === "nolink") { setListFocus(f); setView("list"); }
+    // Deep-link from the dashboard FAB (manager): open the create-lesson dialog,
+    // then strip the param so a refresh doesn't re-open it.
+    if (searchParams.get("create") === "1" && canCreate) {
+      setCreateOpen(true);
+      const n = new URLSearchParams(searchParams);
+      n.delete("create");
+      setSearchParams(n, { replace: true });
+    }
     // лише при першому відкритті за посиланням
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

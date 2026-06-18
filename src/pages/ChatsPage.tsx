@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { getLocale } from "@/lib/locale";
 import { NotificationBell } from "@/components/NotificationBell";
-import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -803,6 +802,18 @@ export default function ChatsPage() {
           <p className="mx-auto mt-2 max-w-md text-[13px] text-muted-foreground">
             {isManager ? t("chats.noChatsManager") : t("chats.noChatsOther")}
           </p>
+          {/* Managers can have zero chats and still need to start one — give the
+              empty state a forward action instead of dead-ending. */}
+          {isManager && (
+            <button
+              onClick={openNewChatDialog}
+              className="mx-auto mt-5 flex items-center gap-1.5 h-11 px-5 rounded-full font-bold text-[14px] transition-opacity active:opacity-80"
+              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
+            >
+              <Plus className="h-4 w-4" />
+              {t("chats.startChat")}
+            </button>
+          )}
         </div>
       ) : (
         <div

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
-import { OnboardingDialog } from "@/components/OnboardingDialog";
 import { useTranslation } from "react-i18next";
 
 const STORAGE_KEY = "tutorhub.welcomeBannerDismissed";
@@ -14,9 +14,9 @@ const TOTAL_STEPS = 6;
  */
 export function TutorWelcomeBanner() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { settings, isIndependent, loading } = useWorkspaceSettings();
   const [dismissed, setDismissed] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     setDismissed(localStorage.getItem(STORAGE_KEY));
@@ -67,7 +67,7 @@ export function TutorWelcomeBanner() {
             <Button
               size="sm"
               className="rounded-full shadow-md hover:scale-105 transition-transform"
-              onClick={() => setDialogOpen(true)}
+              onClick={() => navigate("/onboarding")}
             >
               {t("tutorWelcome.continueBtn")}
               <ArrowRight className="ml-1 h-3.5 w-3.5" />
@@ -85,7 +85,6 @@ export function TutorWelcomeBanner() {
           </div>
         </div>
       </div>
-      <OnboardingDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

@@ -2297,12 +2297,17 @@ export default function DashboardPage() {
 
 
 
-      {/* ── FAB: expandable + with Урок / Учня / Оплату ──────────────── */}
+      {/* ── FAB: expandable + with Урок / Учня / Оплату ──────────────────
+          Managers run the HUB flows (all tutors+students), not the independent
+          quick-dialogs — QuickLessonDialog/QuickAddStudentDialog query only the
+          tutor's own source:'independent' rows, so for a manager they create a
+          malformed record / show an empty list. Route managers to the canonical
+          Schedule / People / Finances surfaces instead. */}
       {(isTutor || isManager) && (
         <AddFab
-          onLesson={() => setQuickLessonOpen(true)}
-          onStudent={() => setAddStudentOpen(true)}
-          onPayment={() => { const first = todayLessons[0]; if (first) setWalletPair({ tutor_id: first.tutor_id, student_id: first.student_id, student_name: profiles[first.student_id] ?? "", tutor_name: profiles[first.tutor_id] ?? "" }); else openPaymentSheet(); }}
+          onLesson={() => (isManager ? navigate("/schedule?create=1") : setQuickLessonOpen(true))}
+          onStudent={() => (isManager ? navigate("/people?add=student") : setAddStudentOpen(true))}
+          onPayment={() => (isManager ? navigate("/finances") : openPaymentSheet())}
         />
       )}
       {walletPair && (
