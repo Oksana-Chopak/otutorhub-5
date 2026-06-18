@@ -1442,9 +1442,9 @@ export default function DashboardPage() {
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
             <>
-              {/* Mobile: Profit + Students side by side */}
-              <div className="grid grid-cols-2 gap-3 lg:hidden">
-                <Link to="/finances" className="block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
+              {/* Mobile: Profit (2/3) + Students (1/3) */}
+              <div className="grid grid-cols-3 gap-3 lg:hidden">
+                <Link to="/finances" className="col-span-2 block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
                   <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit") || "Твій дохід"}
@@ -1575,44 +1575,46 @@ export default function DashboardPage() {
           {/* ── MANAGER: Profit dark card + 3 stat cards ─────────────── */}
           {isManager && (
             <>
-              {/* Profit card — mobile/tablet only; lg uses 4-col grid. Tap → Finances. */}
-              <Link
-                to="/finances"
-                className="block overflow-hidden rounded-[18px] p-4 sm:p-5 lg:hidden hover:shadow-sm transition-shadow"
-                style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
-              >
-                <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
-                  💰 {t("dashboard.cardProfit")}
-                </p>
-                <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
-                  {formatPrice(profit, "UAH")}
-                </p>
-                {profitGrowthPct !== null && (
-                  <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
-                    {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth")}
+              {/* Mobile/tablet: Profit (2/3) + Students (1/3); then Tutors + Lessons.
+                  Desktop (lg) uses the 4-col grid below. Profit taps → Finances. */}
+              <div className="grid grid-cols-3 gap-3 lg:hidden">
+                <Link
+                  to="/finances"
+                  className="col-span-2 block overflow-hidden rounded-[18px] p-4 sm:p-5 hover:shadow-sm transition-shadow"
+                  style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+                >
+                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                    💰 {t("dashboard.cardProfit")}
                   </p>
-                )}
-                <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
-                  {weeklyIncomeBars.map((h, i) => (
-                    <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
-                  ))}
-                </div>
-              </Link>
-              {/* 3 stat cards — hidden on mobile, visible on desktop */}
-              <div className="hidden sm:grid sm:grid-cols-3 sm:gap-3 lg:hidden">
+                  <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
+                    {formatPrice(profit, "UAH")}
+                  </p>
+                  {profitGrowthPct !== null && (
+                    <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth")}
+                    </p>
+                  )}
+                  <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
+                    {weeklyIncomeBars.map((h, i) => (
+                      <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
+                    ))}
+                  </div>
+                </Link>
+                <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                  <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2" style={{ background: "rgba(43,191,170,0.1)" }}>
+                    <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
+                  </div>
+                  <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{studentCount}</p>
+                  <p className="mt-1 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
+                </Link>
+              </div>
+              {/* Tutors + Lessons today — mobile/tablet (lg uses the 4-col grid below) */}
+              <div className="grid grid-cols-2 gap-3 lg:hidden">
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
                     <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-slate-300" />
-                </Link>
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
-                  <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
-                    <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardStudentsSub") || "активних"}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
