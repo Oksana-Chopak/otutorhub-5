@@ -232,16 +232,37 @@ or the service-role LiqPay callback. NEVER add trial_until/subscription cols bac
 the tutor GRANT or drop them from the guard. (Lovable's apply pipeline once mangled a
 lock migration's newlines into an inert comment — after asking Lovable to apply a
 security migration, VERIFY it actually took via the Security panel re-scan.)
+**Status 2026-06-18: ALL 4 group/workspace criticals RESOLVED + confirmed LIVE.**
+Lovable re-applied 170000+170001 cleanly as `20260618171843…` (real newlines this time):
+trigger blocks all 7 cols, `REVOKE UPDATE … GRANT UPDATE (safe cols only)` excludes all
+7. Verified live via types.ts: `group_enrollments`/`lesson_participants` no longer have
+any `tutor_payout*` column (findings #1/#2); students SELECT only their own row on both
+group tables, so no price/margin leak. The only expected residual scanner note is the
+`lesson_details_student` "Security Definer View" — an accepted, documented exception.
 
-**Phases:** ✅(1) per-student price on enrollment + invite unregistered students on
-enroll (InviteLinkDialog) · ◻️(2) schedule group lessons from manager/hub (Schedule
-dialog) + independent (QuickLessonDialog) writing per-participant price · ◻️(3) make
-students SEE group lessons (schedule/dashboard/payments query `lesson_participants`,
-not just `student_id`) + notify every participant on create/cancel · ◻️(4) mark
-per-participant payments (group-mode LessonCard / sheet) across all money surfaces.
-**Invariant:** anything reading group lessons must go through `lesson_participants`
-(NOT `lessons.student_id`, which is NULL for groups). The `lesson_details_student`
-view already handles group visibility — reuse it on the student side.
+**Phases (ALL DONE 2026-06-18):** ✅(1) per-student price on enrollment + invite
+unregistered students on enroll (InviteLinkDialog) · ✅(2) schedule group lessons from
+manager/hub + independent via `createGroupLesson()` (src/lib/groupLessons.ts) writing
+per-participant price + notifying each participant · ✅(3) students SEE group lessons
+(StudentSchedulePage/Dashboard via `studentLessonsOrFilter`; StudentPaymentsPage via
+direct `lesson_participants` read) + notify on create AND cancel/delete
+(`notifyGroupLessonCancelled`, wired into Dashboard/Schedule status→cancelled + every
+delete site) · ✅(4a) per-participant payment marking (`GroupLessonParticipants` in
+`LessonDetailsDialog` for group lessons) · ✅(4b) group money on all surfaces:
+StudentPaymentsPage + dashboard pending-count include group participations; FinancesPage
+flattens each participant into its own income row (payment writes route to
+`lesson_participants`, payout/profit show "—" since no group payout is tracked) + a
+"group" tag. Group lessons also get an honest `groupLessons.cardLabel` on tutor/manager
+cards (student_id is NULL).
+**Invariants:**
+- Anything reading group lessons goes through `lesson_participants` (NOT
+  `lessons.student_id`, which is NULL for groups).
+- ⚠️ `lesson_details_student` handles group *visibility of homework/summary*, but its
+  price/payment columns come from `lesson_details`, which has NO row for group lessons —
+  so for per-student group PRICE/PAYMENT you MUST read `lesson_participants` directly
+  (createGroupLesson writes no lesson_details row). Do not "reuse the view" for money.
+- A group lesson has no shared `lesson_details` row → quick-pay toggles on
+  Schedule/Dashboard are guarded to no-op for groups (mark per-participant in the dialog).
 
 ### Student pages (`/pages/student/`)
 - All empty states use positive framing (see below)
