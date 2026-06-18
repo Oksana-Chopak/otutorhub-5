@@ -298,7 +298,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
                       </span>
                     </div>
                   ))}
-                  <p style={{ fontFamily: F.body, fontSize: 12, color: F.gold, opacity: .85, margin: "2px 2px 0" }}>{t("studentEdit.ratesPerTutorHint")}</p>
+                  <p style={{ fontFamily: F.body, fontSize: 13, color: F.gold, opacity: .85, margin: "2px 2px 0" }}>{t("studentEdit.ratesPerTutorHint")}</p>
                 </div>
               ) : (
                 <p style={{ fontFamily: F.body, fontSize: 13, color: F.gold }}>{t("studentEdit.noTutorYet")}</p>

@@ -207,7 +207,7 @@ export function WeekCalendar({
             >
               <div className="relative h-px bg-destructive">
                 <span className="absolute -left-1 -top-[3px] inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
-                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[11px] font-semibold text-destructive-foreground">
+                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[13px] font-semibold text-destructive-foreground">
                   {now.toLocaleTimeString(getLocale(), {
                     hour: "2-digit",
                     minute: "2-digit",

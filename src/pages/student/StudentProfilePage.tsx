@@ -147,7 +147,7 @@ export default function StudentProfilePage() {
             {/* Мої репетитори — student's tutors with compact teal-tint chat button */}
             {tutors.length > 0 && (
               <div>
-                <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 12, letterSpacing: ".09em", textTransform: "uppercase", color: C.sub, margin: "2px 2px 8px" }}>
+                <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: C.sub, margin: "2px 2px 8px" }}>
                   {t("studentPagesExtra.myTutorsTitle")}
                 </p>
                 <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", overflow: "hidden" }}>
@@ -158,7 +158,7 @@ export default function StudentProfilePage() {
                         <UserAvatar url={tt.avatarUrl} firstName={tt.firstName} lastName={tt.lastName} className="h-10 w-10" />
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</p>
-                          {tt.subject && <p style={{ fontFamily: C.body, fontSize: 12.5, color: C.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tt.subject}</p>}
+                          {tt.subject && <p style={{ fontFamily: C.body, fontSize: 13, color: C.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tt.subject}</p>}
                         </div>
                         <Link to={`/chats?with=${tt.id}`} aria-label={t("studentPages.chatWithTutorAria")}
                           style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", color: C.tealD, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 0 1px rgba(43,191,170,.28)" }}>

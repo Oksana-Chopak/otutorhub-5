@@ -165,7 +165,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                 <div className="flex items-center gap-3 px-3.5 py-2.5" style={{ borderBottom: contact.phone ? "1px solid #f3f4f8" : "none" }}>
                   <span style={{ color: "#6b7088", flexShrink: 0 }}>📧</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] uppercase tracking-wide" style={{ color: "#6b7088", fontFamily: "Inter, system-ui" }}>Email</p>
+                    <p className="text-[13px] uppercase tracking-wide" style={{ color: "#6b7088", fontFamily: "Inter, system-ui" }}>Email</p>
                     <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.email}</p>
                   </div>
                   <button onClick={() => { navigator.clipboard.writeText(contact.email!); toast.success(t("chatContextPanel.emailCopied"), { description: contact.email! }); }}
@@ -178,7 +178,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                 <div className="flex items-center gap-3 px-3.5 py-2.5">
                   <span style={{ color: "#6b7088", flexShrink: 0 }}>📞</span>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[12px] uppercase tracking-wide" style={{ color: "#6b7088", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
+                    <p className="text-[13px] uppercase tracking-wide" style={{ color: "#6b7088", fontFamily: "Inter, system-ui" }}>{t("chatContextPanel.phone")}</p>
                     <p className="text-[14px] truncate" style={{ color: "#0f0f1a" }}>{contact.phone}</p>
                   </div>
                   <a href={`tel:${contact.phone}`} className="p-1.5 rounded-full hover:bg-gray-100 flex-shrink-0" style={{ color: "#1f8e7e" }} title={t("chatContextPanel.call")}>

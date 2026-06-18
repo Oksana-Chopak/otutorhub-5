@@ -57,32 +57,40 @@ for (const file of getAllFiles(SRC)) {
   }
 }
 
-// ── Rule 2: text-[10px] or text-[11px] in readable content ──────────────────
-// These sizes are unreadable on mobile. Only text-xs (12px) minimum.
-// Exception: known badge/chip contexts are OK — but content sentences are not.
-
-const TINY_TEXT_PATTERN = /className=[^>]*text-\[1[01]px\][^>]*/g;
-const TINY_TEXT_SKIP = new Set([
-  // Known acceptable tiny text files
-]);
-
+// ── Rule 2: MINIMUM FONT SIZE 13px (accessibility — INVIOLABLE) ─────────────
+// Users with ~80% vision, often outdoors in sunlight, must be able to read the
+// app. NOTHING readable may be below 13px — whether a Tailwind `text-[Npx]` class
+// OR an inline `fontSize:` (this app sizes most text inline, which is exactly how
+// tiny fonts kept slipping back in). Hard ERROR, not a warning, so it can't
+// regress. See CLAUDE.md "Accessibility — minimum font size (binding ТЗ)".
+const FONT_FLOOR = 13;
 for (const file of getAllFiles(SRC)) {
   if (file.includes(".test.")) continue;
   const content = readFileSync(file, "utf8");
-  const matches = [...content.matchAll(TINY_TEXT_PATTERN)];
-  for (const m of matches) {
-    // Skip if it's on a div that's clearly a badge (contains "rounded-full" and short content)
-    const ctx = content.slice(Math.max(0, m.index - 50), m.index + 100);
-    const isBadge = ctx.includes("rounded-full") && !ctx.includes("font-normal");
-
-    if (!isBadge) {
+  let m;
+  const reTw = /text-\[(\d+(?:\.\d+)?)px\]/g;
+  while ((m = reTw.exec(content))) {
+    if (parseFloat(m[1]) < FONT_FLOOR) {
       const lineNum = content.slice(0, m.index).split("\n").length;
       issues.push({
-        rule: "text-[10px]/text-[11px]",
-        severity: "warning",
+        rule: "font < 13px (a11y floor)",
+        severity: "error",
         file: file.replace(ROOT, ""),
         line: lineNum,
-        detail: `Tiny text found: ${m[0].slice(0, 60)}. Min readable size is text-xs (12px).`,
+        detail: `text-[${m[1]}px] is below the 13px minimum (low vision + sunlight). Use >= 13px.`,
+      });
+    }
+  }
+  const reInline = /fontSize:\s*(\d+(?:\.\d+)?)/g;
+  while ((m = reInline.exec(content))) {
+    if (parseFloat(m[1]) < FONT_FLOOR) {
+      const lineNum = content.slice(0, m.index).split("\n").length;
+      issues.push({
+        rule: "font < 13px (a11y floor)",
+        severity: "error",
+        file: file.replace(ROOT, ""),
+        line: lineNum,
+        detail: `fontSize: ${m[1]} is below the 13px minimum (low vision + sunlight). Use >= 13.`,
       });
     }
   }

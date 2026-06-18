@@ -862,12 +862,12 @@ export default function MyStudentsPage() {
                   {/* Contacts */}
                   {contacts.length > 0 && (
                     <div>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                         {contacts.map((c) => (
                           <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "#fff" }}>
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 12, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
+                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
                               <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
                             </div>
                             {c.tel && (

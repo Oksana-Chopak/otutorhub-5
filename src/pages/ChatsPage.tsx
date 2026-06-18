@@ -950,7 +950,7 @@ export default function ChatsPage() {
                             >
                               {tName}
                             </p>
-                            <span className="text-[12.5px] flex-shrink-0" style={{ color: "#6b7088" }}>
+                            <span className="text-[13px] flex-shrink-0" style={{ color: "#6b7088" }}>
                               {timeShort(thread.last_message_at)}
                             </span>
                           </div>
@@ -968,7 +968,7 @@ export default function ChatsPage() {
                             {isUnread && (
                               <span
                                 className="flex items-center justify-center flex-shrink-0"
-                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 12 }}
+                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 13 }}
                               >
                                 {unreadDotFor(thread)}
                               </span>
@@ -984,7 +984,7 @@ export default function ChatsPage() {
                           style={{ borderTop: "1px solid #f3f4f8" }}
                         >
                           <span
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold"
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold"
                             style={{
                               fontFamily: "Inter, system-ui",
                               background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(43,191,170,.12)" : "rgba(37,99,235,.1)",
@@ -995,12 +995,12 @@ export default function ChatsPage() {
                             {thread.ctx.text}
                           </span>
                           {thread.ctx.kind === "debt" && (
-                            <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
+                            <span className="ml-auto text-[13px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
                               {t("chats.remindArrow")}
                             </span>
                           )}
                           {thread.ctx.kind === "new" && (
-                            <span className="ml-auto text-[12.5px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
+                            <span className="ml-auto text-[13px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
                               {t("chats.createLessonArrow")}
                             </span>
                           )}
@@ -1203,7 +1203,7 @@ export default function ChatsPage() {
                               {/* ЦЕНТР badge for manager sender */}
                               {!mine && senderIsManager && (
                                 <span
-                                  className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
+                                  className="inline-flex items-center gap-1 text-[13px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
                                   style={{
                                     background: "rgba(245,158,11,.18)",
                                     color: "#b45309",
@@ -1291,7 +1291,7 @@ export default function ChatsPage() {
                             ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString(getLocale()) })
                             : t("chats.smartCreateFirstLesson")}
                         </p>
-                        <p className="text-[12.5px] truncate" style={{ color: "#6b7088" }}>
+                        <p className="text-[13px] truncate" style={{ color: "#6b7088" }}>
                           {selectedThread.ctx.kind === "debt"
                             ? t("chats.smartLessonsAwaitingPayment", { count: selectedThread.ctx.count ?? 0 })
                             : t("chats.smartNoLessonsYet", { name: counterpartName(selectedThread) })}

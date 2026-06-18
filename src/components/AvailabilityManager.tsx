@@ -585,7 +585,7 @@ export function AvailabilityManager() {
                           <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13.5 }}>
                             {new Date(o.slot_date + "T00:00:00").toLocaleDateString(getLocale(), { day: "2-digit", month: "long", weekday: "short" })}
                           </span>
-                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 12,
+                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 13,
                             background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral, boxShadow: extra ? "inset 0 0 0 1px rgba(34,197,94,.3)" : "inset 0 0 0 1px rgba(255,122,89,.32)" }}>
                             {extra ? t("availabilityManagerExtra.extraHoursPill") : t("availabilityManagerExtra.holiday")}
                           </span>

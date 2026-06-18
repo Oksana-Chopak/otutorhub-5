@@ -287,7 +287,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               </div>
             </div>
             {tried && nameError && (
-              <div style={{ fontSize: 12, color: F.warnD, marginTop: -8, fontWeight: 600, fontFamily: F.body }}>
+              <div style={{ fontSize: 13, color: F.warnD, marginTop: -8, fontWeight: 600, fontFamily: F.body }}>
                 {t("quickAddStudent.nameRequired")}
               </div>
             )}

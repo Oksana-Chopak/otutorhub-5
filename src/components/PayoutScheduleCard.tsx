@@ -106,7 +106,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* День тижня */}
       {(freq === "weekly" || freq === "biweekly") && (
         <div>
-          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.weekdayLabel")}</p>
+          <p style={{ fontSize: 13, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.weekdayLabel")}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {WEEKDAY_ORDER.map((d) => (
               <button key={d} type="button" onClick={() => setWeekday(d)}
@@ -125,7 +125,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* Число місяця */}
       {freq === "monthly" && (
         <div>
-          <p style={{ fontSize: 12.5, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
+          <p style={{ fontSize: 13, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
           <input type="number" min={1} max={28} value={monthday}
             onChange={(e) => setMonthday(Math.min(28, Math.max(1, parseInt(e.target.value, 10) || 1)))}
             style={{ width: 90, height: 44, borderRadius: 12, border: `1.5px solid ${C.border}`, padding: "0 13px",

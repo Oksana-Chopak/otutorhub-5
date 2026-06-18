@@ -198,7 +198,7 @@ export default function StudentHomeworkPage() {
           <p style={{ fontSize: 13, color: "#6b7088", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
         </div>
         {done && (
-          <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 12, fontWeight: 800 }}>
+          <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 13, fontWeight: 800 }}>
             <Check size={13} strokeWidth={2.6} />{t("studentPagesExtra.markedDone")}
           </span>
         )}

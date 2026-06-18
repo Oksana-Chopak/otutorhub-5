@@ -53,9 +53,12 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 
 ### Typography
 - Page h1: `text-[22px] font-extrabold` (mobile), `sm:text-2xl`
-- Section labels: `text-[11px] font-bold uppercase tracking-[0.08em]` color `var(--sub)`
+- Section labels: `text-[13px] font-bold uppercase tracking-[0.08em]` color `var(--sub)` (13px is the FLOOR — see below)
 - Body: `text-[14px]–text-[15px]`
 - Inputs: `text-[15px]` — prevents iOS auto-zoom (critical)
+
+> **🔒 INVARIANT — Accessibility: minimum font size 13px (binding ТЗ, has regressed repeatedly):**
+> The owner's users have ~80% vision and often use the app **outdoors in sunlight**. **NO readable text may be below 13px** — this applies to BOTH Tailwind `text-[Npx]` classes AND inline `style={{ fontSize: N }}` (most of this app sizes text inline, which is how tiny fonts kept creeping back). Never "compact" a layout by shrinking text below 13px. Enforced as a **hard error** by `scripts/check-ux.mjs` (rule "font < 13px") — the build fails on any sub-13 font, inline or class. When in doubt, go bigger, not smaller.
 
 ### Inputs (base component already updated)
 - `rounded-xl border-[0.5px] border-input h-11 text-[15px]`

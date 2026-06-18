@@ -276,7 +276,7 @@ export function AppSidebar() {
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
             <span>{t("feedback.btn")}</span>
           </button>
-          <div className="flex items-center justify-center gap-3 pt-1 text-[12px] text-slate-500">
+          <div className="flex items-center justify-center gap-3 pt-1 text-[13px] text-slate-500">
             <button type="button" onClick={() => { setOpen(false); navigate("/privacy"); }} className="underline hover:text-slate-300">{t("landing.footer.privacy")}</button>
             <span>·</span>
             <button type="button" onClick={() => { setOpen(false); navigate("/terms"); }} className="underline hover:text-slate-300">{t("landing.footer.terms")}</button>
