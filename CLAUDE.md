@@ -207,16 +207,31 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 ### Group lessons & billing (multi-phase, in progress 2026-06-18)
 **Pricing model (owner decision): each student in a group has their OWN price** for
 group lessons ("своя ціна для кожного учня в групі"). Data model:
-- `group_enrollments.price_per_lesson` (+ currency, + tutor_payout for hub) = the
-  configured per-student group rate (analogous to `student_rates` for individual).
+- `group_enrollments.price_per_lesson` (+ currency) = the configured per-student
+  group rate (analogous to `student_rates` for individual).
 - `lesson_participants.student_price` / `student_payment_status` / `student_paid_at`
-  (+ tutor_payout fields) = per-(group lesson, student) SNAPSHOT + payment status
+  = per-(group lesson, student) SNAPSHOT + payment status
   (analogous to `lesson_details` for individual, but ONE ROW PER PARTICIPANT, since a
   group lesson has `lessons.student_id = NULL` and links students via
   `lesson_participants`).
 - Foundation migration: `20260618160000_group_lesson_billing.sql` — **must be applied
   via Lovable**. RLS unchanged (tutor-of-group + manager already FOR ALL; student
-  SELECTs own).
+  SELECTs own). ⚠️ **NEVER put tutor_payout / hub-margin on group_enrollments or
+  lesson_participants** — students can SELECT their own rows there, so any payout
+  column leaks the hub margin (caused a critical; removed in 20260618170000). Hub
+  group payout must live on a manager/service-role-only surface.
+
+### Security: tutor_workspace_settings is privilege-escalation-sensitive
+The 7 columns independent_workspace / subscription_status / subscription_until /
+current_plan / liqpay_recurring_active / liqpay_card_token / **trial_until** must be
+unwritable by tutors (else they self-promote / self-extend trials). Protected by BOTH
+a BEFORE UPDATE trigger (`guard_tutor_workspace_settings_update`) AND a column-level
+GRANT lock (latest: `20260618170001`). Legitimate writes go via SECURITY DEFINER RPCs
+(`grant_pro_days` — sets `app.allow_grant_pro_days`; `set_own_independent_workspace`)
+or the service-role LiqPay callback. NEVER add trial_until/subscription cols back to
+the tutor GRANT or drop them from the guard. (Lovable's apply pipeline once mangled a
+lock migration's newlines into an inert comment — after asking Lovable to apply a
+security migration, VERIFY it actually took via the Security panel re-scan.)
 
 **Phases:** ✅(1) per-student price on enrollment + invite unregistered students on
 enroll (InviteLinkDialog) · ◻️(2) schedule group lessons from manager/hub (Schedule
