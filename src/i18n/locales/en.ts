@@ -696,6 +696,7 @@ export const en: LocaleTranslations = {
     colTutor: "Tutor",
     colPayout: "Payout",
     colProfit: "Profit",
+    groupTag: "Group",
     prepayLabel: "Prepayment",
     noPaymentsFiltered: "No payments match this filter 🔎",
     noPaymentsDesc: "Try changing the month, tutor, or type. Completed lessons and prepayments appear here instantly.",

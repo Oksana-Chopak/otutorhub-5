@@ -75,7 +75,7 @@ export default function StudentDashboardPage() {
     setLoading(true);
     const nowIso = new Date().toISOString();
     const orFilter = await studentLessonsOrFilter(user.id);
-    const [{ data: lessons }, { data: details }, { data: completed }] = await Promise.all([
+    const [{ data: lessons }, { data: details }, { data: completed }, { data: groupParts }] = await Promise.all([
       supabase
         .from("lessons")
         .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status, student_payment_status")
@@ -92,6 +92,13 @@ export default function StudentDashboardPage() {
         .select("starts_at")
         .or(orFilter)
         .eq("status", "completed"),
+      // GROUP lessons: the view above (over lesson_details) has no row for them —
+      // the student's price/payment lives on lesson_participants. Pull unpaid ones.
+      supabase
+        .from("lesson_participants")
+        .select("student_payment_status, lessons!inner(status)")
+        .eq("student_id", user.id)
+        .neq("lessons.status", "cancelled"),
     ]);
     setCompletedLessons((completed as CompletedLessonStat[] | null) ?? []);
 
@@ -118,8 +125,11 @@ export default function StudentDashboardPage() {
     setHomeworkCount(
       detailsArr.filter((d) => d.homework && d.homework.trim() && !hwDone.has(d.lesson_id)).length,
     );
+    const unpaidGroup = ((groupParts ?? []) as any[]).filter(
+      (p) => (p.student_payment_status ?? "unpaid") === "unpaid",
+    ).length;
     setPendingPaymentsCount(
-      detailsArr.filter((d) => d.student_payment_status === "unpaid").length
+      detailsArr.filter((d) => d.student_payment_status === "unpaid").length + unpaidGroup,
     );
 
     setLoading(false);

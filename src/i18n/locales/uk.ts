@@ -703,6 +703,7 @@ export const uk = {
     colTutor: "Репетитор",
     colPayout: "Виплата",
     colProfit: "Прибуток",
+    groupTag: "Група",
     prepayLabel: "Передоплата",
     noPaymentsFiltered: "За цим фільтром платежів немає 🔎",
     noPaymentsDesc: "Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу.",

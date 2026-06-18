@@ -81,6 +81,15 @@ interface LessonRow {
   tutor_payout_status: PaymentStatus;
   student_paid_at: string | null;
   tutor_paid_at: string | null;
+  // Group lessons have lessons.student_id = NULL and one lesson_participants row per
+  // student (each with its own price/payment). We flatten each participant into its
+  // OWN LessonRow so income/debts/totals work unchanged. kind="group" rows carry the
+  // participant id and route payment writes to lesson_participants (not lesson_details);
+  // their id is synthetic (`${lessonId}::${participantId}`) so it never collides and is
+  // never used as a real lesson id. No tutor_payout is tracked for groups (it would leak
+  // the hub margin to students), so payout = 0 and payout_status = "paid".
+  kind?: "individual" | "group";
+  participant_id?: string;
 }
 
 interface Profile {
@@ -252,6 +261,7 @@ export default function FinancesPage() {
     setLoading(true);
     const [
       { data: lessonsData, error: lErr },
+      { data: groupLessonsData },
       { data: profilesData, error: pErr },
       { data: txData },
       { data: balData },
@@ -262,6 +272,20 @@ export default function FinancesPage() {
         let q = supabase
           .from("lessons")
           .select("id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)")
+          .gte("starts_at", oneYearAgo)
+          .limit(500);
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q.order("starts_at", { ascending: false });
+      })(),
+      // GROUP lessons (lessons.student_id = NULL) are excluded by the !inner join above.
+      // Pull them separately with their per-student participants so group income/debts
+      // show on this page too.
+      (() => {
+        const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        let q = supabase
+          .from("lessons")
+          .select("id, subject, starts_at, status, tutor_id, lesson_participants(id, student_id, student_price, student_payment_status, student_paid_at)")
+          .not("group_id", "is", null)
           .gte("starts_at", oneYearAgo)
           .limit(500);
         if (isManager) q = (q as any).neq("source", "independent");
@@ -296,8 +320,28 @@ export default function FinancesPage() {
       tutor_payout_status: (l.lesson_details?.tutor_payout_status ?? "unpaid") as PaymentStatus,
       student_paid_at: l.lesson_details?.student_paid_at ?? null,
       tutor_paid_at: l.lesson_details?.tutor_paid_at ?? null,
+      kind: "individual" as const,
     }));
-    setLessons(mapped);
+    // Flatten each group lesson into one row per participant (their own price/payment).
+    const groupRows: LessonRow[] = ((groupLessonsData ?? []) as any[]).flatMap((l) =>
+      ((l.lesson_participants ?? []) as any[]).map((p) => ({
+        id: `${l.id}::${p.id}`,
+        subject: l.subject,
+        starts_at: l.starts_at,
+        status: l.status as LessonStatus,
+        student_id: p.student_id,
+        tutor_id: l.tutor_id,
+        student_price: Number(p.student_price ?? 0),
+        tutor_payout: 0,
+        student_payment_status: (p.student_payment_status ?? "unpaid") as PaymentStatus,
+        tutor_payout_status: "paid" as PaymentStatus, // no group payout tracked → never a tutor debt
+        student_paid_at: p.student_paid_at ?? null,
+        tutor_paid_at: null,
+        kind: "group" as const,
+        participant_id: p.id as string,
+      })),
+    );
+    setLessons([...mapped, ...groupRows]);
     const map: Record<string, Profile> = {};
     (profilesData ?? []).forEach((p) => (map[p.id] = p as Profile));
     setProfiles(map);
@@ -633,10 +677,27 @@ export default function FinancesPage() {
   );
 
   // === Mutations (logic unchanged) ===
+  // Route a student-payment write to the correct table: individual lessons keep it on
+  // lesson_details (keyed by lesson_id; student_paid_at is set by a DB trigger there);
+  // group participants store it per-row on lesson_participants (keyed by participant id).
+  const writeStudentPayment = (lesson: LessonRow, status: PaymentStatus, paidAt: string | null) =>
+    lesson.kind === "group"
+      ? supabase
+          .from("lesson_participants")
+          .update({ student_payment_status: status, student_paid_at: paidAt })
+          .eq("id", lesson.participant_id ?? "")
+      : supabase
+          .from("lesson_details")
+          .update({ student_payment_status: status })
+          .eq("lesson_id", lesson.id);
+
   const togglePayment = async (
     lesson: LessonRow,
     field: "student_payment_status" | "tutor_payout_status"
   ) => {
+    // No tutor payout is tracked for group lessons (it would leak the hub margin to
+    // students via lesson_participants), so the payout toggle is a no-op for them.
+    if (field === "tutor_payout_status" && lesson.kind === "group") return;
     const next: PaymentStatus = lesson[field] === "paid" ? "unpaid" : "paid";
     const nextPaidAt = next === "paid" ? new Date().toISOString() : null;
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
@@ -649,10 +710,10 @@ export default function FinancesPage() {
       )
     );
 
-    const payload = field === "student_payment_status"
-      ? { student_payment_status: next }
-      : { tutor_payout_status: next };
-    const { error } = await supabase.from("lesson_details").update(payload).eq("lesson_id", lesson.id);
+    const { error } =
+      field === "student_payment_status"
+        ? await writeStudentPayment(lesson, next, nextPaidAt)
+        : await supabase.from("lesson_details").update({ tutor_payout_status: next }).eq("lesson_id", lesson.id);
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>
@@ -682,10 +743,11 @@ export default function FinancesPage() {
               : l
           )
         );
-        const revertPayload = field === "student_payment_status"
-          ? { student_payment_status: lesson.student_payment_status }
-          : { tutor_payout_status: lesson.tutor_payout_status };
-        await supabase.from("lesson_details").update(revertPayload).eq("lesson_id", lesson.id);
+        if (field === "student_payment_status") {
+          await writeStudentPayment(lesson, lesson.student_payment_status, lesson.student_paid_at);
+        } else {
+          await supabase.from("lesson_details").update({ tutor_payout_status: lesson.tutor_payout_status }).eq("lesson_id", lesson.id);
+        }
       };
       // Money IN (student paid the hub) is the manager's most rewarding beat —
       // give it the same warm "💰 +amount from {name}!" toast as the Dashboard,
@@ -748,17 +810,37 @@ export default function FinancesPage() {
     setBulkBusy(true);
     const ids = Array.from(selected);
     const nowIso = new Date().toISOString();
-    const payload = field === "student_payment_status"
-      ? { student_payment_status: "paid" as PaymentStatus }
-      : { tutor_payout_status: "paid" as PaymentStatus };
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
     const previousLessons = lessons;
+    // Group payout is never tracked, so a payout bulk must skip group rows entirely.
+    const selRows = lessons.filter((l) => selected.has(l.id));
     setLessons((prev) =>
       prev.map((l) =>
-        ids.includes(l.id) ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow) : l
+        ids.includes(l.id) && !(field === "tutor_payout_status" && l.kind === "group")
+          ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow)
+          : l
       )
     );
-    const { error } = await supabase.from("lesson_details").update(payload).in("lesson_id", ids);
+    let error: unknown = null;
+    if (field === "student_payment_status") {
+      const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
+      const grpIds = selRows.filter((l) => l.kind === "group").map((l) => l.participant_id!).filter(Boolean);
+      const results = await Promise.all([
+        indIds.length
+          ? supabase.from("lesson_details").update({ student_payment_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+          : Promise.resolve({ error: null }),
+        grpIds.length
+          ? supabase.from("lesson_participants").update({ student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }).in("id", grpIds)
+          : Promise.resolve({ error: null }),
+      ]);
+      error = results.find((r) => (r as any).error)?.error ?? null;
+    } else {
+      const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
+      const res = indIds.length
+        ? await supabase.from("lesson_details").update({ tutor_payout_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+        : { error: null };
+      error = (res as any).error;
+    }
     setBulkBusy(false);
     if (error) {
       haptic.error();
@@ -901,9 +983,10 @@ export default function FinancesPage() {
               );
             }
             const l = row.l;
+            const isGroup = l.kind === "group";
             const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
             const studentUnpaid = l.student_payment_status === "unpaid";
-            const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+            const tutorUnpaid = !isIndependentTutor && !isGroup && l.tutor_payout_status === "unpaid";
             const anyUnpaid = studentUnpaid || tutorUnpaid;
             return (
               <div
@@ -912,10 +995,13 @@ export default function FinancesPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{l.subject}</p>
+                    <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>
+                      <span className="truncate">{l.subject}</span>
+                      {isGroup && <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                    </p>
                     <p className="text-[13px]" style={{ color: "#6b7088", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
-                  {!isIndependentTutor && (
+                  {!isIndependentTutor && !isGroup && (
                     <div
                       className={`text-right shrink-0 font-semibold ${
                         lessonProfit >= 0 ? "text-foreground" : "text-destructive"
@@ -962,7 +1048,7 @@ export default function FinancesPage() {
                     </div>
                   </div>
 
-                  {!isIndependentTutor && (
+                  {!isIndependentTutor && !isGroup && (
                     <div className={cn(
                       "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
                       tutorUnpaid ? "bg-warning/10" : "bg-secondary/40",
@@ -1105,10 +1191,11 @@ export default function FinancesPage() {
                   );
                 }
                 const l = row.l;
+                const isGroup = l.kind === "group";
                 const lessonProfit = Number(l.student_price) - Number(l.tutor_payout);
                 const isSelected = selected.has(l.id);
                 const studentUnpaid = l.student_payment_status === "unpaid";
-                const tutorUnpaid = !isIndependentTutor && l.tutor_payout_status === "unpaid";
+                const tutorUnpaid = !isIndependentTutor && !isGroup && l.tutor_payout_status === "unpaid";
                 const anyUnpaid = studentUnpaid || tutorUnpaid;
                 return (
                   <tr
@@ -1127,7 +1214,12 @@ export default function FinancesPage() {
                       />
                     </td>
                     <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{formatDate(l.starts_at)}</td>
-                    <td className="px-3 py-3 text-foreground">{l.subject}</td>
+                    <td className="px-3 py-3 text-foreground">
+                      <span className="inline-flex items-center gap-1.5">
+                        {l.subject}
+                        {isGroup && <span style={{ fontSize: 13, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                      </span>
+                    </td>
                     <td className="px-3 py-3">
                       <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
                       {l.student_paid_at && (
@@ -1165,26 +1257,32 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className="px-3 py-3 text-right">
-                        <div className={cn(
-                          "font-semibold",
-                          tutorUnpaid ? "text-warning" : "text-destructive",
-                        )}>-{l.tutor_payout} ₴</div>
-                        <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
-                          <Badge
-                            className={
-                              l.tutor_payout_status === "paid"
-                                ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
-                                : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
-                            }
-                          >
-                            {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
-                          </Badge>
-                        </button>
+                        {isGroup ? (
+                          <span className="text-muted-foreground">—</span>
+                        ) : (
+                          <>
+                            <div className={cn(
+                              "font-semibold",
+                              tutorUnpaid ? "text-warning" : "text-destructive",
+                            )}>-{l.tutor_payout} ₴</div>
+                            <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
+                              <Badge
+                                className={
+                                  l.tutor_payout_status === "paid"
+                                    ? "bg-success/10 text-success border-0 hover:bg-success/20 cursor-pointer"
+                                    : "bg-warning/10 text-warning border-0 hover:bg-warning/20 cursor-pointer"
+                                }
+                              >
+                                {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
+                              </Badge>
+                            </button>
+                          </>
+                        )}
                       </td>
                     )}
                     {!isIndependentTutor && (
-                      <td className={`px-3 py-3 text-right font-semibold ${lessonProfit >= 0 ? "text-foreground" : "text-destructive"}`}>
-                        {lessonProfit} ₴
+                      <td className={`px-3 py-3 text-right font-semibold ${!isGroup && lessonProfit < 0 ? "text-destructive" : "text-foreground"}`}>
+                        {isGroup ? <span className="text-muted-foreground">—</span> : `${lessonProfit} ₴`}
                       </td>
                     )}
                   </tr>
@@ -1528,11 +1626,11 @@ export default function FinancesPage() {
                         <button
                           onClick={async () => {
                             const ids = debtList.map(l => l.id);
-                            await Promise.all(ids.map(id =>
-                              supabase.from("lesson_details").update({student_payment_status:"paid"}).eq("lesson_id",id)
-                            ));
+                            const nowIso = new Date().toISOString();
+                            // Route each debt to the right table (group → lesson_participants).
+                            await Promise.all(debtList.map(l => writeStudentPayment(l, "paid", nowIso)));
                             setLessons(prev => prev.map(l =>
-                              ids.includes(l.id) ? {...l, student_payment_status:"paid"} : l
+                              ids.includes(l.id) ? {...l, student_payment_status:"paid", student_paid_at: nowIso} : l
                             ));
                             toast.success(t("finances.allMarkedPaid"));
                           }}

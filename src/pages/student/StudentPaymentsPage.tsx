@@ -51,7 +51,7 @@ export default function StudentPaymentsPage() {
         : { data: [] as any[] };
       const detailsMap: Record<string, any> = {};
       (detailsRows ?? []).forEach((d: any) => { detailsMap[d.lesson_id] = d; });
-      const list = ((lessons ?? []) as any[]).map((l) => ({
+      const individual = ((lessons ?? []) as any[]).map((l) => ({
         id: l.id,
         subject: l.subject,
         starts_at: l.starts_at,
@@ -59,6 +59,25 @@ export default function StudentPaymentsPage() {
         student_price: Number(detailsMap[l.id]?.student_price ?? 0),
         student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
       }));
+      // GROUP lessons: the student's price/payment lives on lesson_participants
+      // (the lesson row has student_id=NULL). Pull them in with their own currency.
+      const { data: gParts } = await supabase
+        .from("lesson_participants")
+        .select("lesson_id, student_price, currency, student_payment_status, lessons!inner(id, subject, starts_at, tutor_id, status)")
+        .eq("student_id", user.id)
+        .neq("lessons.status", "cancelled");
+      const groupRows = ((gParts ?? []) as any[])
+        .filter((p) => p.lessons)
+        .map((p) => ({
+          id: p.lessons.id,
+          subject: p.lessons.subject,
+          starts_at: p.lessons.starts_at,
+          tutor_id: p.lessons.tutor_id,
+          student_price: Number(p.student_price ?? 0),
+          student_payment_status: (p.student_payment_status ?? "unpaid") as string,
+          currency: p.currency ?? "UAH",
+        }));
+      const list = [...individual, ...groupRows];
       const tutorIds = Array.from(new Set(list.map((l) => l.tutor_id)));
       const [{ data: profiles }, { data: rates }] = await Promise.all([
         tutorIds.length
@@ -87,7 +106,9 @@ export default function StudentPaymentsPage() {
         list.map((l) => ({
           ...l,
           tutor_name: nameMap[l.tutor_id],
-          currency: payMap[l.tutor_id]?.currency ?? "UAH",
+          // group rows carry their own currency (from lesson_participants); individual
+          // rows take the per-tutor student_rates currency.
+          currency: (l as any).currency ?? payMap[l.tutor_id]?.currency ?? "UAH",
         }))
       );
       setTutorPayInfos(
