@@ -2834,7 +2834,18 @@ export const uk = {
     setPrice: "Вказати ціну",
     priceInvalid: "Невірна ціна",
     priceSaved: "Ціну збережено",
+    scheduleTitle: "Запланувати урок",
+    durationLabel: "Хв",
+    scheduleBtn: "Запланувати груповий урок",
+    scheduleNoMembers: "Спершу додайте учнів у групу",
+    scheduleNoTime: "Оберіть дату й час",
+    scheduleFailed: "Не вдалося запланувати урок",
+    scheduled: "Урок заплановано для {{count}} учнів 🎉",
     doneBtn: "Готово",
+  },
+  groupLessons: {
+    notifNewTitle: "Новий груповий урок: {{subject}}",
+    notifCancelledTitle: "Груповий урок скасовано: {{subject}}",
   },
   inviteLinkExtra: {
     contactEmail: "email",

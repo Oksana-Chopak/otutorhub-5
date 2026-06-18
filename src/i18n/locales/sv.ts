@@ -2813,7 +2813,18 @@ export const sv: LocaleTranslations = {
     setPrice: "Ange pris",
     priceInvalid: "Ogiltigt pris",
     priceSaved: "Pris sparat",
+    scheduleTitle: "Boka en lektion",
+    durationLabel: "Min",
+    scheduleBtn: "Boka grupplektion",
+    scheduleNoMembers: "Lägg till elever i gruppen först",
+    scheduleNoTime: "Välj datum och tid",
+    scheduleFailed: "Kunde inte boka lektionen",
+    scheduled: "Lektion bokad för {{count}} elever 🎉",
     doneBtn: "Klar",
+  },
+  groupLessons: {
+    notifNewTitle: "Ny grupplektion: {{subject}}",
+    notifCancelledTitle: "Grupplektion inställd: {{subject}}",
   },
   inviteLinkExtra: {
     contactEmail: "e-postadress",

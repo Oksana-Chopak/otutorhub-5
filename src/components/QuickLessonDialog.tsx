@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { insertNotification } from "@/lib/notifications";
+import { createGroupLesson } from "@/lib/groupLessons";
 import { useAuth } from "@/hooks/useAuth";
 import {
   Dialog,
@@ -218,44 +219,26 @@ export function QuickLessonDialog({
         return;
       }
       setSubmitting(true);
-      const lessonType: "pair" | "group" =
-        selectedGroup.participants.length === 2 ? "pair" : "group";
-      const subj = selectedGroup.subject || t("shared.lesson");
-      const { data: created, error } = await supabase
-        .from("lessons")
-        .insert({
-          tutor_id: user.id,
-          student_id: null,
-          group_id: selectedGroup.id,
-          lesson_type: lessonType,
-          subject: subj,
-          starts_at: effStartsAt.toISOString(),
-          duration_minutes: parseInt(duration) || 60,
-          status: "scheduled" as const,
-          created_by: user.id,
-          source: "independent",
-        } as any)
-        .select("id")
-        .single();
-      if (error || !created) {
-        setSubmitting(false);
-        toast.error(error?.message || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
+      // Shared helper: snapshots each participant's group price into
+      // lesson_participants + notifies every enrolled student.
+      const { lessonId, error } = await createGroupLesson({
+        tutorId: user.id,
+        groupId: selectedGroup.id,
+        subject: selectedGroup.subject || t("shared.lesson"),
+        startsAt: effStartsAt.toISOString(),
+        durationMinutes: parseInt(duration) || 60,
+        source: "independent",
+        createdBy: user.id,
+      });
+      setSubmitting(false);
+      if (error || !lessonId) {
+        toast.error(error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
         return;
       }
-      // Auto-create participants
-      if (selectedGroup.participants.length) {
-        await supabase.from("lesson_participants").insert(
-          selectedGroup.participants.map((p) => ({
-            lesson_id: created.id,
-            student_id: p.student_id,
-          })) as any
-        );
-      }
-      setSubmitting(false);
       localStorage.setItem(LAST_MODE_KEY, "group");
       localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
       toast.success(t("quickLessonDialogExtra.groupCreated", { name: selectedGroup.name }));
-      void syncLessonToGoogleCalendar(created.id, "upsert");
+      void syncLessonToGoogleCalendar(lessonId, "upsert");
       onOpenChange(false);
       onCreated?.();
       return;

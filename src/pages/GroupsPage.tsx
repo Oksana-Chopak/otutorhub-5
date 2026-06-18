@@ -26,10 +26,11 @@ import {
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { currencySymbol } from "@/lib/currency";
+import { createGroupLesson } from "@/lib/groupLessons";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, Users2, UserPlus, Archive, Menu,
+import { Loader2, Plus, Trash2, Users2, UserPlus, Archive, Menu, CalendarClock,
 } from "lucide-react";
 import { EmptyState } from "@/components/EmptyState";
 import i18nInstance from "@/i18n";
@@ -364,6 +365,49 @@ function GroupDetailsDialog({
     toast.success(t("groupsPageExtra.priceSaved"));
     load();
   };
+
+  // Schedule a group lesson straight from the group (works for every role: the
+  // lesson's tutor = the group's tutor; source = hub when a manager schedules it,
+  // else independent). Snapshots each student's price + notifies them via the helper.
+  const defaultStart = (() => {
+    const d = new Date(Date.now() + 60 * 60 * 1000);
+    d.setMinutes(0, 0, 0);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  })();
+  const [schedStart, setSchedStart] = useState<string>(defaultStart);
+  const [schedDuration, setSchedDuration] = useState<string>("60");
+  const [scheduling, setScheduling] = useState(false);
+
+  const scheduleGroupLesson = async () => {
+    if (!user || !group) return;
+    if (active.length === 0) {
+      toast.error(t("groupsPageExtra.scheduleNoMembers"));
+      return;
+    }
+    if (!schedStart) {
+      toast.error(t("groupsPageExtra.scheduleNoTime"));
+      return;
+    }
+    setScheduling(true);
+    const { lessonId, error } = await createGroupLesson({
+      tutorId: group.tutor_id,
+      groupId,
+      subject: group.subject || t("shared.lesson"),
+      startsAt: new Date(schedStart).toISOString(),
+      durationMinutes: parseInt(schedDuration, 10) || 60,
+      source: isManager ? "hub" : "independent",
+      createdBy: user.id,
+    });
+    setScheduling(false);
+    if (error || !lessonId) {
+      toast.error(error || t("groupsPageExtra.scheduleFailed"));
+      return;
+    }
+    toast.success(t("groupsPageExtra.scheduled", { count: active.length }));
+    onChanged();
+  };
+
   // When a not-yet-registered (ghost) student is enrolled, surface the invite so
   // they actually get onto the platform and can see the group lesson.
   const [invite, setInvite] = useState<{ open: boolean; name: string; email: string | null; phone: string | null; studentId: string } | null>(null);
@@ -612,6 +656,36 @@ function GroupDetailsDialog({
                 </Button>
               </div>
               <p className="text-[13px] text-muted-foreground">{t("groupsPageExtra.priceHint")}</p>
+            </div>
+
+            {/* Schedule a group lesson for the whole group (any role). */}
+            <div className="space-y-1 border-t border-border pt-4">
+              <Label>{t("groupsPageExtra.scheduleTitle")}</Label>
+              <div className="flex gap-2">
+                <Input
+                  type="datetime-local"
+                  value={schedStart}
+                  onChange={(e) => setSchedStart(e.target.value)}
+                  className="h-10 flex-1 text-[15px]"
+                  aria-label={t("groupsPageExtra.scheduleTitle")}
+                />
+                <Input
+                  inputMode="numeric"
+                  value={schedDuration}
+                  onChange={(e) => setSchedDuration(e.target.value.replace(/[^\d]/g, ""))}
+                  className="h-10 w-16 text-[15px]"
+                  aria-label={t("groupsPageExtra.durationLabel")}
+                  title={t("groupsPageExtra.durationLabel")}
+                />
+              </div>
+              <Button
+                onClick={scheduleGroupLesson}
+                disabled={scheduling || active.length === 0}
+                className="mt-1 w-full"
+              >
+                {scheduling ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CalendarClock className="mr-2 h-4 w-4" />}
+                {t("groupsPageExtra.scheduleBtn")}
+              </Button>
             </div>
           </div>
         )}

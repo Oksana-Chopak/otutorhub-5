@@ -2823,7 +2823,18 @@ export const en: LocaleTranslations = {
     setPrice: "Set price",
     priceInvalid: "Invalid price",
     priceSaved: "Price saved",
+    scheduleTitle: "Schedule a lesson",
+    durationLabel: "Min",
+    scheduleBtn: "Schedule group lesson",
+    scheduleNoMembers: "Add students to the group first",
+    scheduleNoTime: "Pick a date & time",
+    scheduleFailed: "Couldn't schedule the lesson",
+    scheduled: "Lesson scheduled for {{count}} students 🎉",
     doneBtn: "Done",
+  },
+  groupLessons: {
+    notifNewTitle: "New group lesson: {{subject}}",
+    notifCancelledTitle: "Group lesson cancelled: {{subject}}",
   },
   inviteLinkExtra: {
     contactEmail: "email",
