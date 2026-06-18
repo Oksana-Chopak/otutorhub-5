@@ -3198,6 +3198,9 @@ export const en: LocaleTranslations = {
     ratesPerTutorHint: "Rate is set per tutor (edit it in the student card)",
     noTutorYet: "No tutor yet — assign one in the student card",
   },
+  personEdit: {
+    title: "Edit profile",
+  },
   assignTutorExtra: {
     tutorFallback: "tutor",
     rateCreatedReqFailed: "Rate created but request not updated: {{error}}",

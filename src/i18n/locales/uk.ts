@@ -3210,6 +3210,9 @@ export const uk = {
     ratesPerTutorHint: "Ставка — окремо для кожного репетитора (редагується в картці учня)",
     noTutorYet: "Ще без репетитора — призначте його в картці учня",
   },
+  personEdit: {
+    title: "Редагувати профіль",
+  },
   assignTutorExtra: {
     tutorFallback: "репетитор",
     rateCreatedReqFailed: "Ставку створено, але запит не оновлено: {{error}}",

@@ -161,13 +161,16 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 **Tap on card → bottom sheet:**
 - Drag handle
 - Header: avatar 52px + name + role | [🗄 archive][🗑 delete][✏️ edit][✕ close]
-  Archive/delete small icons (subtle). ✏️ edit is role-aware (`openEditFor`):
-  **student → `StudentEditSheet` (the SF_A «Один потік» form: name + subjects/rates
-  summary + contacts + 🔒 manager note)**; tutor/manager → `ContactEditDialog`
-  (contacts/bank). Binding ТЗ (PEOPLE-HANDOFF: ✏️ → форма учня). Do NOT route the
-  student ✏️ back to ContactEditDialog. Rates stay per-tutor (editable in the rate
-  rows / RatePropagation), shown read-only in the SF_A form's gold card — a single
-  price field would misrepresent the hub's multi-tutor model.
+  Archive/delete small icons (subtle). **✏️ edit (`openEditFor`) opens the ONE
+  canonical `PersonEditSheet` for EVERY role** (the SF_A «Один потік» form: avatar +
+  name, role section, contacts, 🔒 manager note). Binding ТЗ (PEOPLE-HANDOFF: ✏️ →
+  форма). **🔒 INVARIANT: never reintroduce a separate per-role edit dialog** (the old
+  `ContactEditDialog`/`StudentEditSheet` split was the divergence the owner flagged —
+  both retired from People). Role section inside `PersonEditSheet`:
+  student → read-only gold per-tutor rates summary (rates stay per-tutor, edited in
+  the rate rows / RatePropagation — one price field would misrepresent the hub's
+  multi-tutor model); tutor → editable subjects + payout (bank/card); manager →
+  identity + contacts only.
 - Phone row + copy icon
 - Email row + copy icon
 - Subject · rate row + pencil (opens RatePropagationDialog)
@@ -177,8 +180,8 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - **Pending**: [Нагадати (teal)] [Видалити (red)] — NOT "Запросити"
 
 **All forms as bottom sheet:**
-- `StudentEditSheet`: SF_A bottom sheet — student ✏️ on People (manager)
-- `ContactEditDialog`: bottom sheet, teal submit — tutor/manager ✏️ (contacts/bank)
+- `PersonEditSheet`: SF_A bottom sheet — the single ✏️ edit form for ALL roles on People (manager)
+- `ContactEditDialog`: retired from People; remains ONLY for self-profile contacts on `ProfilePage` (editing your own profile ≠ a manager editing a person, so it keeps its own contacts editor)
 - `InviteLinkDialog`: bottom sheet, teal send button
 - `RatePropagationDialog`: bottom sheet, teal confirm
 - `WalletDialog`: already bottom sheet, teal submit

@@ -3188,6 +3188,9 @@ export const sv: LocaleTranslations = {
     ratesPerTutorHint: "Taxan sätts per lärare (redigeras i elevkortet)",
     noTutorYet: "Ingen lärare än — tilldela en i elevkortet",
   },
+  personEdit: {
+    title: "Redigera profil",
+  },
   assignTutorExtra: {
     tutorFallback: "lärare",
     rateCreatedReqFailed: "Taxa skapad men förfrågan inte uppdaterad: {{error}}",

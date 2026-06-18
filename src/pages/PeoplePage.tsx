@@ -58,8 +58,7 @@ import {
   Search,
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
-import { ContactEditDialog, ContactFields } from "@/components/ContactEditDialog";
-import { StudentEditSheet } from "@/components/StudentEditSheet";
+import { PersonEditSheet } from "@/components/PersonEditSheet";
 import { WalletDialog } from "@/components/WalletDialog";
 import {
   Sheet,
@@ -188,21 +187,14 @@ export default function PeoplePage() {
     emailSent: boolean;
   }>({ open: false, name: "", email: null, phone: null, role: "student", studentId: null, emailSent: false });
 
-  // Contact edit dialog
-  const [contactDialog, setContactDialog] = useState<{ open: boolean; user: UserRow | null }>({
+  // ✏️ Edit → the ONE canonical person form (PersonEditSheet, SF_A «Один потік»
+  // design ТЗ: ✏️ → форма). Every role (student / tutor / manager) edits through
+  // the same sheet — no separate contacts-only ContactEditDialog.
+  const [personEdit, setPersonEdit] = useState<{ open: boolean; user: UserRow | null }>({
     open: false,
     user: null,
   });
-  // Editing a STUDENT uses the SF_A «Один потік» form (design ТЗ: ✏️ → форма учня),
-  // not the contacts-only ContactEditDialog (kept for tutors/managers).
-  const [studentEdit, setStudentEdit] = useState<{ open: boolean; user: UserRow | null }>({
-    open: false,
-    user: null,
-  });
-  const openEditFor = (u: UserRow) =>
-    u.role === "student"
-      ? setStudentEdit({ open: true, user: u })
-      : setContactDialog({ open: true, user: u });
+  const openEditFor = (u: UserRow) => setPersonEdit({ open: true, user: u });
 
   const [propagate, setPropagate] = useState<{
     open: boolean;
@@ -1599,39 +1591,26 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
         </DialogContent>
       </Dialog>
 
-      {contactDialog.user && (
-        <ContactEditDialog
-          open={contactDialog.open}
-          onOpenChange={(o) => setContactDialog((s) => ({ ...s, open: o }))}
-          userId={contactDialog.user.id}
-          userName={fullName(contactDialog.user)}
-          initial={{
-            email: contactDialog.user.email,
-            phone: contactDialog.user.phone,
-            telegram: contactDialog.user.telegram,
-            messenger_url: contactDialog.user.messenger_url,
-            facebook_url: contactDialog.user.facebook_url,
-            instagram_url: contactDialog.user.instagram_url,
-            bank_card_last4: contactDialog.user.bank_card_last4,
-            bank_name: contactDialog.user.bank_name,
+      {personEdit.user && (
+        <PersonEditSheet
+          open={personEdit.open}
+          onOpenChange={(o) => setPersonEdit((s) => ({ ...s, open: o }))}
+          role={personEdit.user.role}
+          person={{
+            id: personEdit.user.id,
+            first_name: personEdit.user.first_name,
+            last_name: personEdit.user.last_name,
+            phone: personEdit.user.phone,
+            email: personEdit.user.email,
+            telegram: personEdit.user.telegram,
+            messenger_url: personEdit.user.messenger_url,
+            facebook_url: personEdit.user.facebook_url,
+            instagram_url: personEdit.user.instagram_url,
+            bank_name: personEdit.user.bank_name,
+            bank_card_last4: personEdit.user.bank_card_last4,
+            subjects: personEdit.user.subjects ?? [],
           }}
-          onSaved={loadData}
-        />
-      )}
-
-      {studentEdit.user && (
-        <StudentEditSheet
-          open={studentEdit.open}
-          onOpenChange={(o) => setStudentEdit((s) => ({ ...s, open: o }))}
-          student={{
-            id: studentEdit.user.id,
-            first_name: studentEdit.user.first_name,
-            last_name: studentEdit.user.last_name,
-            phone: studentEdit.user.phone,
-            email: studentEdit.user.email,
-            telegram: studentEdit.user.telegram,
-          }}
-          pairs={studentRates.filter((r) => r.student_id === studentEdit.user!.id)}
+          pairs={studentRates.filter((r) => r.student_id === personEdit.user!.id)}
           tutorNameOf={(id) => {
             const tu = users.find((x) => x.id === id);
             return tu ? fullName(tu) : t("shared.tutor");
