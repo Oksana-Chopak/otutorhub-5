@@ -51,6 +51,7 @@ import { formatPrice } from "@/lib/currency";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
+import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { isPayoutDueToday, nextPayoutDate, type PayoutSchedule } from "@/lib/payoutSchedule";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
 import { DayClosedCelebration } from "@/components/DayClosedCelebration";
@@ -732,6 +733,9 @@ export default function DashboardPage() {
           title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
           link: "/student/schedule",
         });
+      } else if (lesson) {
+        // Group lesson (student_id NULL): fan out to every participant.
+        void notifyGroupLessonCancelled(lessonId, lesson.subject);
       }
     }
   };
@@ -741,6 +745,9 @@ export default function DashboardPage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus,
   ) => {
+    // Group lessons have no shared lesson_details row — per-participant payments are
+    // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
+    if (!lessons.find((l) => l.id === lessonId)?.student_id) return;
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
     const { error } = await supabase
       .from("lesson_details")

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
+import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { Loader2, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -58,6 +59,8 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     if (!row) return;
     if (!window.confirm(t("schedulePageExtra.deleteConfirmDesc"))) return;
     setDeleting(true);
+    // Group lesson: notify participants BEFORE delete (their rows cascade away).
+    if (row.group_id) await notifyGroupLessonCancelled(row.id, row.subject);
     const { error } = await supabase.from("lessons").delete().eq("id", row.id);
     setDeleting(false);
     if (error) {

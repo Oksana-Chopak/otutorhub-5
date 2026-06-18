@@ -79,3 +79,25 @@ export async function createGroupLesson(
 
   return { lessonId: created.id, error: null };
 }
+
+/**
+ * Notify every participant of a group lesson that it was cancelled/deleted. Safe to
+ * call for ANY lesson id — individual lessons have no lesson_participants rows, so it's
+ * a no-op there. Call BEFORE deleting the lesson (the participant rows cascade away on
+ * delete), or any time for a status→cancelled change. Best-effort; never throws.
+ */
+export async function notifyGroupLessonCancelled(lessonId: string, subject: string): Promise<void> {
+  const { data: parts } = await supabase
+    .from("lesson_participants")
+    .select("student_id")
+    .eq("lesson_id", lessonId);
+  ((parts ?? []) as { student_id: string }[]).forEach((p) => {
+    if (!p.student_id) return;
+    void insertNotification({
+      userId: p.student_id,
+      type: `group_lesson_cancelled_${lessonId}`,
+      title: t("groupLessons.notifCancelledTitle", { subject }),
+      link: "/student/schedule",
+    });
+  });
+}

@@ -58,6 +58,7 @@ import { cn } from "@/lib/utils";
 import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
 import { useScheduleFilters } from "@/hooks/useScheduleFilters";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 type PaymentStatus = "unpaid" | "paid";
@@ -809,6 +810,10 @@ export default function SchedulePage() {
     } else {
       toast.success(t('schedule.statusUpdated'));
     }
+    // Group lesson cancelled (student_id NULL) → notify every participant.
+    if (newStatus === "cancelled" && lsn && !lsn.student_id) {
+      void notifyGroupLessonCancelled(lessonId, lsn.subject);
+    }
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
 
@@ -817,6 +822,9 @@ export default function SchedulePage() {
     field: "student_payment_status" | "tutor_payout_status",
     value: PaymentStatus
   ) => {
+    // Group lessons have no shared lesson_details row — per-participant payments are
+    // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
+    if (!lessons.find((l) => l.id === lessonId)?.student_id) return;
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
@@ -841,6 +849,11 @@ export default function SchedulePage() {
 
   const deleteLesson = async (lessonId: string) => {
     const prev = lessons;
+    // Group lesson: notify participants BEFORE delete (their rows cascade away).
+    const lsn = prev.find((l) => l.id === lessonId);
+    if (lsn && !lsn.student_id) {
+      await notifyGroupLessonCancelled(lessonId, lsn.subject);
+    }
     setLessons((curr) => curr.filter((l) => l.id !== lessonId));
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);
     if (error) {
