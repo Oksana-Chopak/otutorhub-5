@@ -20,7 +20,7 @@ const t = i18nInstance.t.bind(i18nInstance);
 function Field({
   icon: Icon, label, htmlFor, children,
 }: {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<{ size?: number | string; className?: string }>;
   label: string;
   htmlFor: string;
   children: React.ReactNode;
