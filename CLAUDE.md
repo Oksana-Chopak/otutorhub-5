@@ -271,6 +271,21 @@ the scanner still flagged trial self-extension + a realtime channel:
 - RevenueCat `tutor_id` fix was redeployed by Lovable ("Applied 2 migrations &
   redeployed", `20260619071130`); clears on rescan.
 
+**Status 2026-06-19 (round 3): the trial fix didn't apply — MIGRATION ORDERING TRAP
+(`20260620000000`).** Multi-agent audit found `20260619000000` has a timestamp BELOW the
+already-applied Lovable hash `20260619071130`, so Supabase's runner **silently skipped
+it** (it runs only versions > the recorded high-water mark). So the trial column-lock /
+grant_pro_days revoke / realtime fix never applied via the normal path, and the live
+column GRANT still exposed `trial_until` (the scanner reads LIVE DB state — proven by the
+RevenueCat finding reading the deployed fn). Migrations `20260618150000`/`150457` had
+`trial_until` INSIDE their GRANT-back block = the live source. Fix re-issued as
+`20260620000000` (timestamp > `071130`, guaranteed to run): explicit
+`REVOKE UPDATE(trial_until + 6 billing cols) FROM authenticated, anon, PUBLIC` + safe-col
+GRANT + grant_pro_days EXECUTE revoke + realtime restriction. Adversarially verified (3
+reviewers PASS). **INVARIANT: every new migration must be timestamped strictly ABOVE the
+latest applied (incl. Lovable hash files) or it is silently skipped.** RevenueCat: code is
+correct (`tutor_id`); only needs the function redeployed.
+
 **Phases (ALL DONE 2026-06-18):** ✅(1) per-student price on enrollment + invite
 unregistered students on enroll (InviteLinkDialog) · ✅(2) schedule group lessons from
 manager/hub + independent via `createGroupLesson()` (src/lib/groupLessons.ts) writing
