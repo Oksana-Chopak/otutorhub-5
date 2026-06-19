@@ -256,6 +256,21 @@ non-active tutor to a fresh 30-day trial (they registered during development, ne
 it). Two other scanner items fixed alongside: dropped orphan `student_details.tutor_notes`
 (`20260618180000`); RevenueCat webhook now filters `tutor_id` not `user_id`.
 
+**Status 2026-06-19 (round 2): remaining findings (`20260619000000`).** After the above,
+the scanner still flagged trial self-extension + a realtime channel:
+- **Trial:** `trial_until` is written only by `grant_pro_days()` (adds N days/call). It's
+  reachable ONLY via the SECURITY DEFINER referral/streak flows (run as owner), managers,
+  service role — NO frontend/edge calls it. Re-asserted `REVOKE EXECUTE … FROM PUBLIC,
+  anon, authenticated` on it + re-asserted the column UPDATE lock (trial_until + 6
+  billing cols never directly writable). **INVARIANT: grant_pro_days must NOT be
+  EXECUTE-grantable to authenticated — it's an unbounded trial/Pro granter.**
+- **Realtime:** the `lesson-details:<id>` broadcast topic is UNUSED anywhere in the app
+  (no sender/subscriber) but its policy let students subscribe to a channel that could
+  carry tutor_payout/Fireflies. Restricted "Lesson details realtime" policy to the
+  lesson's tutor + managers only.
+- RevenueCat `tutor_id` fix was redeployed by Lovable ("Applied 2 migrations &
+  redeployed", `20260619071130`); clears on rescan.
+
 **Phases (ALL DONE 2026-06-18):** ✅(1) per-student price on enrollment + invite
 unregistered students on enroll (InviteLinkDialog) · ✅(2) schedule group lessons from
 manager/hub + independent via `createGroupLesson()` (src/lib/groupLessons.ts) writing
