@@ -1367,7 +1367,6 @@ export type Database = {
           grade_level: string | null
           parent_contact: string | null
           parent_name: string | null
-          tutor_notes: string | null
           updated_at: string
           user_id: string
         }
@@ -1376,7 +1375,6 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
-          tutor_notes?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1385,7 +1383,6 @@ export type Database = {
           grade_level?: string | null
           parent_contact?: string | null
           parent_name?: string | null
-          tutor_notes?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2411,6 +2408,10 @@ export type Database = {
       set_own_independent_workspace: { Args: never; Returns: undefined }
       start_manager_chat: { Args: never; Returns: string }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
+      update_my_workspace_settings: {
+        Args: { _patch: Json }
+        Returns: undefined
+      }
       wallet_adjust: {
         Args: {
           _amount_delta: number
