@@ -19,7 +19,6 @@ import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
 import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
-import { QuickPaymentFab } from "@/components/QuickPaymentFab";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
@@ -37,7 +36,6 @@ import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { StreakCard } from "@/components/StreakCard";
-import { QuickActionsFab } from "@/components/QuickActionsFab";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";

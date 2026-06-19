@@ -704,6 +704,8 @@ export const uk = {
     colPayout: "Виплата",
     colProfit: "Прибуток",
     groupTag: "Група",
+    noPaidLessonsYet: "Поки немає оплачених уроків",
+    noProfitData: "Поки немає даних за останні 4 тижні",
     prepayLabel: "Передоплата",
     noPaymentsFiltered: "За цим фільтром платежів немає 🔎",
     noPaymentsDesc: "Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу.",

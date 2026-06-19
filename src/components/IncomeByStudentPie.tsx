@@ -1,4 +1,6 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
 
 interface Slice {
   student_id: string;
@@ -20,7 +22,7 @@ export function IncomeByStudentPie({ data }: { data: Slice[] }) {
   if (data.length === 0) {
     return (
       <div className="flex h-44 items-center justify-center text-[13px] text-muted-foreground">
-        Поки немає оплачених уроків
+        {t("finances.noPaidLessonsYet")}
       </div>
     );
   }

@@ -18,7 +18,7 @@ export function ProfitSparkline({ data }: { data: Point[] }) {
   if (!hasAny) {
     return (
       <div className="flex h-24 items-center justify-center text-[13px] text-muted-foreground">
-        Поки немає даних за останні 4 тижні
+        {t("finances.noProfitData")}
       </div>
     );
   }

@@ -469,6 +469,8 @@ export const sv: LocaleTranslations = {
     colPayout: "Utbetalning",
     colProfit: "Vinst",
     groupTag: "Grupp",
+    noPaidLessonsYet: "Inga betalda lektioner ännu",
+    noProfitData: "Ingen data för de senaste 4 veckorna ännu",
     prepayLabel: "Förskott",
     noPaymentsFiltered: "Inga betalningar matchar filtret 🔎",
     noPaymentsDesc: "Försök ändra månad, lärare eller typ. Avslutade lektioner och förskott visas här direkt.",
