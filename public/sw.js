@@ -16,9 +16,21 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// Only ever navigate to a SAME-ORIGIN path. A notification link is attacker-influenceable
+// (it flows from create_notification's _link), so an absolute/protocol-relative URL could
+// redirect the logged-in tab to a phishing site. Resolve against our origin and keep only
+// same-origin links; anything else falls back to the app root.
+function safeLink(raw) {
+  try {
+    const u = new URL(raw ?? '/', self.location.origin);
+    if (u.origin === self.location.origin) return u.pathname + u.search + u.hash;
+  } catch { /* fall through */ }
+  return '/';
+}
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const link = event.notification.data?.link ?? '/';
+  const link = safeLink(event.notification.data?.link);
   event.waitUntil(
     clients
       .matchAll({ type: 'window', includeUncontrolled: true })

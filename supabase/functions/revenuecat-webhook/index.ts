@@ -49,9 +49,26 @@ Deno.serve(async (req) => {
     // RevenueCat app_user_id). There is NO user_id column, so the old .eq('user_id')
     // filter matched zero rows and silently failed to revoke — keeping users Pro after
     // a cancellation/expiration. Mirror the LiqPay callback, which uses tutor_id.
+    const update: Record<string, unknown> = { subscription_status: status };
+    if (status === 'active') {
+      // CRITICAL: persist an expiry so the daily expire_lapsed_subscriptions cron is a
+      // real safety net for IAP too. Without subscription_until, an 'active' row is
+      // treated as open-ended Pro and can NEVER be downgraded if a later
+      // cancellation/expiration webhook is missed → permanent unrevocable Pro.
+      const expMs: unknown = event.expiration_at_ms;
+      if (typeof expMs === 'number' && expMs > 0) {
+        update.subscription_until = new Date(expMs).toISOString();
+      } else {
+        console.warn('RC active event without expiration_at_ms', { appUserId, type });
+      }
+      const plan: unknown = event.product_id
+        ?? (Array.isArray(event.entitlement_ids) ? event.entitlement_ids[0] : undefined);
+      if (typeof plan === 'string' && plan) update.current_plan = plan;
+    }
+
     const { error, count } = await admin
       .from('tutor_workspace_settings')
-      .update({ subscription_status: status }, { count: 'exact' })
+      .update(update, { count: 'exact' })
       .eq('tutor_id', appUserId);
 
     if (error) {
@@ -62,6 +79,16 @@ Deno.serve(async (req) => {
       // No workspace row for this app_user_id — surfaces a config drift between
       // RevenueCat's app_user_id and the tutor's auth id instead of failing silently.
       console.warn('RC webhook matched no tutor', { appUserId, type, status });
+    }
+
+    // Reward the referrer if this tutor was referred (one-time), mirroring the LiqPay
+    // callback — otherwise native IAP purchases never trigger the referral Pro bonus.
+    if (status === 'active') {
+      try {
+        await admin.rpc('mark_referral_pro_upgrade', { _tutor_id: appUserId });
+      } catch (refErr) {
+        console.error('mark_referral_pro_upgrade failed:', refErr);
+      }
     }
 
     return new Response(JSON.stringify({ ok: true, status, updated: count ?? 0 }), {
