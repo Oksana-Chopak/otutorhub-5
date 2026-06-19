@@ -61,9 +61,11 @@ export function useWorkspaceSettings() {
 
   const updateSettings = async (patch: Partial<WorkspaceSettings>) => {
     if (!user) return;
-    const { error } = await (supabase as any)
-      .from("tutor_workspace_settings")
-      .upsert({ tutor_id: user.id, ...patch }, { onConflict: "tutor_id" });
+    // Tutors no longer have a direct write policy on tutor_workspace_settings (it would
+    // expose the privileged billing/subscription columns to a static security scan).
+    // Safe settings go through the SECURITY DEFINER RPC, which only applies whitelisted
+    // columns and physically cannot touch subscription/trial/workspace flags.
+    const { error } = await (supabase as any).rpc("update_my_workspace_settings", { _patch: patch });
     if (!error) await load();
     return error;
   };

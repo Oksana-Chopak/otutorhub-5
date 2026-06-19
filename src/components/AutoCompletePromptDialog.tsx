@@ -40,16 +40,11 @@ export function AutoCompletePromptDialog({ enabled }: { enabled: boolean }) {
   const choose = async (auto: boolean) => {
     if (!user) return;
     setSaving(true);
-    await supabase
-      .from("tutor_workspace_settings")
-      .upsert(
-        {
-          tutor_id: user.id,
-          auto_complete_lessons: auto,
-          auto_complete_prompted: true,
-        } as any,
-        { onConflict: "tutor_id" },
-      );
+    // Writes go through the SECURITY DEFINER RPC (tutors have no direct write policy
+    // on tutor_workspace_settings — it holds privileged billing columns).
+    await (supabase as any).rpc("update_my_workspace_settings", {
+      _patch: { auto_complete_lessons: auto, auto_complete_prompted: true },
+    });
     setSaving(false);
     setOpen(false);
   };

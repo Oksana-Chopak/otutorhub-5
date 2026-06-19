@@ -232,13 +232,29 @@ or the service-role LiqPay callback. NEVER add trial_until/subscription cols bac
 the tutor GRANT or drop them from the guard. (Lovable's apply pipeline once mangled a
 lock migration's newlines into an inert comment — after asking Lovable to apply a
 security migration, VERIFY it actually took via the Security panel re-scan.)
-**Status 2026-06-18: ALL 4 group/workspace criticals RESOLVED + confirmed LIVE.**
+**Status 2026-06-18: group findings #1/#2 RESOLVED + confirmed LIVE.**
 Lovable re-applied 170000+170001 cleanly as `20260618171843…` (real newlines this time):
 trigger blocks all 7 cols, `REVOKE UPDATE … GRANT UPDATE (safe cols only)` excludes all
 7. Verified live via types.ts: `group_enrollments`/`lesson_participants` no longer have
-any `tutor_payout*` column (findings #1/#2); students SELECT only their own row on both
-group tables, so no price/margin leak. The only expected residual scanner note is the
-`lesson_details_student` "Security Definer View" — an accepted, documented exception.
+any `tutor_payout*` column; students SELECT only their own row on both group tables, so
+no price/margin leak. Residual accepted note: `lesson_details_student` "Security Definer
+View" — documented exception.
+
+**Status 2026-06-19: workspace self-grant criticals — write path re-architected
+(`20260618190000`).** The scanner is POLICY-based: it kept flagging the trigger+GRANT
+approach because the tutor still had a row-level UPDATE *policy* on a table containing
+the 7 cols. Fix: **dropped ALL tutor INSERT/UPDATE policies** on tutor_workspace_settings;
+tutors now write safe settings ONLY through SECURITY DEFINER RPC
+`update_my_workspace_settings(_patch jsonb)` (strips the 7 privileged keys, applies a
+fixed safe-column whitelist via jsonb_populate_record). Tutors keep SELECT-own; the
+columns did NOT move, so reads / billing webhooks / grant_pro_days / expiry cron are
+untouched. The trigger + GRANT lock stay as defense-in-depth. **INVARIANT: never re-add a
+tutor INSERT/UPDATE policy on tutor_workspace_settings — all tutor writes go via the RPC.
+All 3 frontend writers (useWorkspaceSettings, AutoCompletePromptDialog,
+AutoCompleteLessonsCard) call the RPC, not `.upsert`.** Same migration reset every
+non-active tutor to a fresh 30-day trial (they registered during development, never used
+it). Two other scanner items fixed alongside: dropped orphan `student_details.tutor_notes`
+(`20260618180000`); RevenueCat webhook now filters `tutor_id` not `user_id`.
 
 **Phases (ALL DONE 2026-06-18):** ✅(1) per-student price on enrollment + invite
 unregistered students on enroll (InviteLinkDialog) · ✅(2) schedule group lessons from
