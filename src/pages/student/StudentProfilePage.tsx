@@ -15,6 +15,7 @@ import { GoogleCalendarCard } from "@/components/GoogleCalendarCard";
 import { Loader2, LogOut, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 interface MyTutor {
   id: string;
@@ -49,7 +50,7 @@ export default function StudentProfilePage() {
       const [{ data: profile }, { data: contact }, { data: lessons }, { data: rates }] = await Promise.all([
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("phone").eq("user_id", user.id).maybeSingle(),
-        supabase.from("lessons").select("starts_at, status").eq("student_id", user.id),
+        supabase.from("lessons").select("starts_at, status").or(await studentLessonsOrFilter(user.id)),
         supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
       setFirstName(profile?.first_name ?? "");

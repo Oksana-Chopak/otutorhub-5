@@ -8,6 +8,7 @@ import {
   maxConsecutiveWeeks,
   type StudentAchievementWithStatus,
 } from "@/lib/studentAchievements";
+import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 export interface StudentReward {
   id: string;
@@ -45,7 +46,9 @@ export function useStudentRewards() {
   const loadAchievements = async () => {
     if (!user) return;
     const [{ data: lessons }, { data: hw }] = await Promise.all([
-      supabase.from("lessons").select("starts_at, status").eq("student_id", user.id),
+      // Include GROUP lessons (student linked via lesson_participants; lessons.student_id
+      // is NULL) so achievements/streaks count them too.
+      supabase.from("lessons").select("starts_at, status").or(await studentLessonsOrFilter(user.id)),
       // lesson_details_student is the student-safe view (self-filters by student_id =
       // auth.uid()); the base lesson_details table is tutor/manager-only now.
       (supabase as any)

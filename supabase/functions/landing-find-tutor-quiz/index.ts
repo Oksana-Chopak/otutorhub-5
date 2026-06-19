@@ -27,6 +27,25 @@ const json = (status: number, body: unknown) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+// Best-effort in-memory rate limiter (per-isolate), keyed by IP+email — this is a public
+// (verify_jwt=false) endpoint that creates accounts + sends mail, so it must throttle
+// signup-spam / email-bombing / referral-request flooding. Mirrors confirm-pending-signup.
+const RL_MAX = 5;
+const RL_WINDOW_MS = 60_000;
+const rlHits = new Map<string, number[]>();
+function rateLimited(key: string): boolean {
+  const now = Date.now();
+  const arr = (rlHits.get(key) ?? []).filter((t) => now - t < RL_WINDOW_MS);
+  arr.push(now);
+  rlHits.set(key, arr);
+  if (rlHits.size > 5000) {
+    for (const [k, v] of rlHits) {
+      if (v.every((t) => now - t >= RL_WINDOW_MS)) rlHits.delete(k);
+    }
+  }
+  return arr.length > RL_MAX;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json(405, { error: "method_not_allowed" });
@@ -43,6 +62,15 @@ Deno.serve(async (req) => {
   const phone = (body.phone ?? "").trim() || null;
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return json(400, { error: "invalid_input" });
+  }
+
+  const ip =
+    req.headers.get("cf-connecting-ip") ??
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown";
+  if (rateLimited(`${ip}:${email}`)) {
+    console.error("landing-find-tutor-quiz rate-limited", { ip });
+    return json(429, { error: "rate_limited" });
   }
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;

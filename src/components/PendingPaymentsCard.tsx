@@ -26,13 +26,15 @@ import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface UnpaidRow {
-  id: string;
+  id: string;            // row key + payment target: lesson_id (individual) | participant_id (group)
+  lesson_id: string;     // the actual lesson id (for opening the dialog)
   starts_at: string;
   subject: string;
   student_id: string;
   student_price: number;
   student_name: string;
   currency: string;
+  kind: "individual" | "group";
 }
 
 interface StudentGroup {
@@ -70,15 +72,39 @@ export function PendingPaymentsCard() {
       .gt("student_price", 0)
       .limit(100);
 
-    const lessons = ((details ?? []) as any[])
-      .map((d) => ({
+    // GROUP lessons have no shared lesson_details row — the per-student unpaid amount
+    // lives on lesson_participants. Pull the tutor's group lessons' unpaid participants.
+    const { data: gParts } = await supabase
+      .from("lesson_participants")
+      .select("id, student_id, student_price, currency, student_payment_status, lessons!inner(id, starts_at, subject, tutor_id, status)")
+      .eq("lessons.tutor_id", user.id)
+      .eq("lessons.status", "completed")
+      .eq("student_payment_status", "unpaid")
+      .gt("student_price", 0)
+      .limit(100);
+
+    const lessons = [
+      ...((details ?? []) as any[]).map((d) => ({
         id: d.lessons.id,
+        lesson_id: d.lessons.id,
         starts_at: d.lessons.starts_at,
         subject: d.lessons.subject,
         student_id: d.lessons.student_id,
         student_price: Number(d.student_price ?? 0),
-      }))
-      .sort((a, b) => (a.starts_at < b.starts_at ? 1 : -1));
+        kind: "individual" as const,
+        currency: undefined as string | undefined,
+      })),
+      ...((gParts ?? []) as any[]).filter((p) => p.lessons).map((p) => ({
+        id: p.id,
+        lesson_id: p.lessons.id,
+        starts_at: p.lessons.starts_at,
+        subject: p.lessons.subject,
+        student_id: p.student_id,
+        student_price: Number(p.student_price ?? 0),
+        kind: "group" as const,
+        currency: (p.currency ?? "UAH") as string | undefined, // group rows carry own currency
+      })),
+    ].sort((a, b) => (a.starts_at < b.starts_at ? 1 : -1));
 
     const ids = Array.from(new Set(lessons.map((l) => l.student_id)));
     const names: Record<string, string> = {};
@@ -106,7 +132,8 @@ export function PendingPaymentsCard() {
       lessons.map((l) => ({
         ...l,
         student_name: names[l.student_id] ?? t("pendingPayments.studentFallback"),
-        currency: currencies[l.student_id] ?? "UAH",
+        // group rows carry their own currency; individual rows take the pair's rate currency
+        currency: l.currency ?? currencies[l.student_id] ?? "UAH",
       }))
     );
     setLoading(false);
@@ -119,12 +146,22 @@ export function PendingPaymentsCard() {
   const markPaid = async (ids: string[]) => {
     if (ids.length === 0) return;
     setBusyId(ids.join(","));
-    const { error } = await supabase
-      .from("lesson_details")
-      .update({ student_payment_status: "paid" })
-      .in("lesson_id", ids);
+    // Route each row to the right table: individual → lesson_details (by lesson_id),
+    // group participant → lesson_participants (by its own id).
+    const targeted = rows.filter((r) => ids.includes(r.id));
+    const indLessonIds = targeted.filter((r) => r.kind !== "group").map((r) => r.id);
+    const grpPartIds = targeted.filter((r) => r.kind === "group").map((r) => r.id);
+    const nowIso = new Date().toISOString();
+    const results = await Promise.all([
+      indLessonIds.length
+        ? supabase.from("lesson_details").update({ student_payment_status: "paid" }).in("lesson_id", indLessonIds)
+        : Promise.resolve({ error: null }),
+      grpPartIds.length
+        ? supabase.from("lesson_participants").update({ student_payment_status: "paid", student_paid_at: nowIso }).in("id", grpPartIds)
+        : Promise.resolve({ error: null }),
+    ]);
     setBusyId(null);
-    if (error) {
+    if (results.some((r) => (r as any).error)) {
       toast.error(t("pendingPayments.updateFailed"));
       return;
     }
@@ -270,7 +307,7 @@ export function PendingPaymentsCard() {
                               <button
                                 type="button"
                                 className="min-w-0 flex-1 text-left hover:opacity-80"
-                                onClick={() => setOpenLessonId(r.id)}
+                                onClick={() => setOpenLessonId(r.lesson_id)}
                                 title={t("pendingPaymentsExtra.openLesson")}
                               >
                                 <p className="truncate text-[13px] text-foreground">
@@ -284,21 +321,23 @@ export function PendingPaymentsCard() {
                                   {formatPrice(r.student_price, r.currency)}
                                 </p>
                               </button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-7 gap-1 px-2 text-[13px]"
-                                onClick={() => remindStudent(r.id)}
-                                disabled={remindingId === r.id}
-                                title={t("pendingPaymentsExtra.sendReminder")}
-                              >
-                                {remindingId === r.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
-                                ) : (
-                                  <Bell className="h-3 w-3" />
-                                )}
-                                Нагадати
-                              </Button>
+                              {r.kind !== "group" && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-7 gap-1 px-2 text-[13px]"
+                                  onClick={() => remindStudent(r.id)}
+                                  disabled={remindingId === r.id}
+                                  title={t("pendingPaymentsExtra.sendReminder")}
+                                >
+                                  {remindingId === r.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <Bell className="h-3 w-3" />
+                                  )}
+                                  Нагадати
+                                </Button>
+                              )}
                               <Button
                                 size="sm"
                                 variant="ghost"

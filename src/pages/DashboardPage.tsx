@@ -256,6 +256,9 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
+  // Group lessons (student_id NULL) carry payment per-participant on lesson_participants,
+  // not on the lesson row — track which ones still have an unpaid participant.
+  const [groupUnpaidLessonIds, setGroupUnpaidLessonIds] = useState<Set<string>>(new Set());
   const [payoutSchedules, setPayoutSchedules] = useState<Array<{ user_id: string; name: string; payout_frequency: string | null; payout_weekday: number | null; payout_monthday: number | null; payout_anchor: string | null }>>([]);
   const [payingTutor, setPayingTutor] = useState<string | null>(null);
   const [profiles, setProfiles] = useState<Record<string, string>>({});
@@ -564,6 +567,22 @@ export default function DashboardPage() {
       new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
     );
     setLessons(uniqueLessons);
+
+    // Group lessons have no shared lesson_details row; their pending state lives on
+    // lesson_participants. Flag group lessons (in the loaded set) with ≥1 unpaid
+    // participant so the pending-payments section surfaces them too. RLS scopes
+    // participants to the current manager/tutor.
+    const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
+    if (groupLessonIds.length) {
+      const { data: gParts } = await supabase
+        .from("lesson_participants")
+        .select("lesson_id, student_payment_status")
+        .in("lesson_id", groupLessonIds)
+        .eq("student_payment_status", "unpaid");
+      setGroupUnpaidLessonIds(new Set(((gParts ?? []) as Array<{ lesson_id: string }>).map((p) => p.lesson_id)));
+    } else {
+      setGroupUnpaidLessonIds(new Set());
+    }
     if (isManager) {
       try {
         const { data: sched, error: schedErr } = await supabase
@@ -962,12 +981,14 @@ export default function DashboardPage() {
         if (l.status === "cancelled" || l.status === "pending") return false;
         const isPast = new Date(l.starts_at).getTime() < nowMs;
         const counts = l.status === "completed" || isPast;
+        if (!counts) return false;
+        // Group lesson: pending if any participant is unpaid (per-participant billing).
+        if (!l.student_id) return groupUnpaidLessonIds.has(l.id);
         return (
-          counts &&
-          (l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid")
+          l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid"
         );
       }),
-    [lessons, nowMs]
+    [lessons, nowMs, groupUnpaidLessonIds]
   );
 
   const needsMarkLessons = useMemo(
@@ -979,6 +1000,9 @@ export default function DashboardPage() {
     () =>
       lessons.filter(
         (l) =>
+          // Group lessons (student_id NULL) price per-participant on group_enrollments,
+          // not on the lesson row — never count them as "needs a price".
+          l.student_id &&
           (l.status === "scheduled" || l.status === "completed") &&
           (Number(l.student_price) === 0 || Number(l.tutor_payout) === 0)
       ).length,
