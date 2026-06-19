@@ -8,6 +8,27 @@
 - **Code generator**: Lovable (publishes to `main` branch)
 - **Roles**: manager / tutor (hub) / tutor (independent) / student
 
+## Pre-release security/quality audit (2026-06-19) — fixes shipped, MUST be applied
+Deep audit (37 agents) found 20 confirmed issues; all fixed in the repo. **Nothing is live
+until Lovable applies/deploys it** (see Deploy model). Apply these in order:
+- **DB migrations (ask Lovable to apply, in this order):** `20260621000000` (P0 isolation:
+  managers↔independent), `20260622000000` (referral farming + notification spoofing/
+  phishing), `20260623000000` (LOW: reward insert, definer read guards). Each is
+  timestamped strictly above prior applied (ordering trap).
+- **Edge functions (ask Lovable to redeploy):** `revenuecat-webhook` (tutor_id filter +
+  subscription_until + referral bonus), `landing-find-tutor-quiz` (rate limit).
+- **Frontend (ships via Publish):** `public/sw.js` (same-origin link), DashboardPage /
+  PendingPaymentsCard / useStudentRewards / StudentProfilePage / chart i18n.
+- **Verify after apply:** manager anon-key probe → `lessons?source=eq.independent` &
+  `student_rates?source=eq.independent` return 0 rows (P0). Re-run the Lovable scan.
+- **Known repo quirk (verified NO live gap):** duplicate migration VERSIONS exist —
+  `20260617000000` (cancellation_rules + fix_ghost_role_carry) and `20260617000001`
+  (student_tutor_notes + tutor_delete_student). Supabase records one version, so one of
+  each pair was skipped, BUT: cancellation cols are live; merge_pending_profile is
+  superseded by `20260617175401`; tutor_delete hardened by `20260617100003`; tutor_notes
+  since dropped. Do NOT re-run the old files (would revert merge_pending_profile). Never
+  reuse a timestamp — always unique + above latest.
+
 ## Critical Rules
 
 ### Git workflow
