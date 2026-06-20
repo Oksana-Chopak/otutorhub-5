@@ -4,6 +4,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
+import { StudentLayout } from "@/components/student/StudentLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -790,8 +791,12 @@ export default function ChatsPage() {
     return d.toLocaleDateString(getLocale(), { day: "numeric", month: "long" });
   };
 
+  // A pure student must keep their OWN shell (white StudentLayout sidebar + student nav)
+  // on /chats — otherwise the sidebar flips to the dark manager/tutor AppLayout and back.
+  const isPureStudent = roles.includes("student") && !roles.includes("manager") && !roles.includes("tutor");
+  const Shell = isPureStudent ? StudentLayout : AppLayout;
   return (
-    <AppLayout>
+    <Shell>
       {loading ? (
         <ChatsSkeleton />
       ) : threads.length === 0 && !loading ? (
@@ -1547,6 +1552,6 @@ export default function ChatsPage() {
       {isManager && !selectedId && (
         <PageFAB onClick={openNewChatDialog} label={t("chats.startChat")} className="lg:hidden" />
       )}
-    </AppLayout>
+    </Shell>
   );
 }
