@@ -325,9 +325,7 @@ export function LessonWorkspace({
       const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
       error = res.error;
     } else {
-      const res = await supabase
-        .from("lesson_details")
-        .upsert({ lesson_id: lessonId, [field]: cleaned || null } as any, { onConflict: "lesson_id" });
+      const res = await updateLessonDetailsSafe(lessonId, { [field]: cleaned || null } as any);
       error = res.error;
     }
     setSaving(null);
