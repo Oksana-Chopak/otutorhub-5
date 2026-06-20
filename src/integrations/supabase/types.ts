@@ -1466,6 +1466,54 @@ export type Database = {
         }
         Relationships: []
       }
+      student_rewards: {
+        Row: {
+          created_at: string
+          earned_at: string
+          emoji: string
+          id: string
+          lesson_id: string | null
+          student_id: string
+          theme: string
+          tutor_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          earned_at?: string
+          emoji: string
+          id?: string
+          lesson_id?: string | null
+          student_id: string
+          theme?: string
+          tutor_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          earned_at?: string
+          emoji?: string
+          id?: string
+          lesson_id?: string | null
+          student_id?: string
+          theme?: string
+          tutor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_rewards_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_rewards_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_wallet_transactions: {
         Row: {
           amount_delta: number
