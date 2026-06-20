@@ -103,9 +103,7 @@ export function LessonWorkspace({
   const togglePayment = async () => {
     setPaymentBusy(true);
     const next = paidLocal === "paid" ? "unpaid" : "paid";
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert({ lesson_id: lessonId, student_payment_status: next }, { onConflict: "lesson_id" });
+    const { error } = await updateLessonDetailsSafe(lessonId, { student_payment_status: next });
     setPaymentBusy(false);
     if (error) {
       toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
