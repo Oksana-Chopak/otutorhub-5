@@ -837,7 +837,7 @@ export default function FinancesPage() {
     } else {
       const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
       const res = indIds.length
-        ? await supabase.from("lesson_details").update({ tutor_payout_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+        ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indIds, _status: "paid" })
         : { error: null };
       error = (res as any).error;
     }
