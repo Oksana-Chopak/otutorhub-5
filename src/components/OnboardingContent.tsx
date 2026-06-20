@@ -352,13 +352,10 @@ export function OnboardingContent({ onNavigate, onFinish }: OnboardingContentPro
               created_by: user.id,
             } as any).select("id").single();
             if (inserted?.id) {
-              await supabase.from("lesson_details").upsert({
-                lesson_id: inserted.id,
+              await updateLessonDetailsSafe(inserted.id, {
                 student_price: price,
-                tutor_payout: 0,
                 student_payment_status: "unpaid",
-                tutor_payout_status: "unpaid",
-              } as any, { onConflict: "lesson_id" });
+              });
             }
           }
         }
