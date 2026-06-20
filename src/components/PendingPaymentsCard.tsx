@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
