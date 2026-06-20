@@ -332,11 +332,10 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
       } as any).select("id").single();
 
     if (!error && created) {
-      await (supabase.from("lesson_details") as any).upsert(
-        { lesson_id: created.id, student_price: 0, tutor_payout: 0,
-          student_payment_status: "unpaid", tutor_payout_status: "unpaid" },
-        { onConflict: "lesson_id" }
-      );
+      await updateLessonDetailsSafe(created.id, {
+        student_price: 0,
+        student_payment_status: "unpaid",
+      });
       if (repeat) {
         for (let w = 1; w <= 3; w++) {
           const next = new Date(startsAt);
