@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Participants update own thread" ON public.chat_threads;
