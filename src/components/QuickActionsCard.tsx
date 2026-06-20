@@ -710,12 +710,10 @@ function AddPaymentForm({
         setBusy(false);
         return toast.error(t("quickActionsCard.selectLesson"));
       }
-      const { error } = await supabase
-        .from("lesson_details")
-        .upsert(
-          { lesson_id: lessonId, student_payment_status: "paid", student_paid_at: new Date().toISOString() } as any,
-          { onConflict: "lesson_id" },
-        );
+      const { error } = await updateLessonDetailsSafe(lessonId, {
+        student_payment_status: "paid",
+        student_paid_at: new Date().toISOString(),
+      });
       setBusy(false);
       if (error) return toast.error(error.message);
       toast.success(t("quickActionsCard.markedPaid"));
