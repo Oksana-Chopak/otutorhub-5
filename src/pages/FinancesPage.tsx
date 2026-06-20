@@ -713,7 +713,7 @@ export default function FinancesPage() {
     const { error } =
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
-        : await supabase.from("lesson_details").update({ tutor_payout_status: next }).eq("lesson_id", lesson.id);
+        : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>
