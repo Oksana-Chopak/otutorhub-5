@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import {
   ArrowDownLeft,
