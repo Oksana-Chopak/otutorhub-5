@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
@@ -57,7 +58,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
 
   const handleDelete = async () => {
     if (!row) return;
-    if (!window.confirm(t("schedulePageExtra.deleteConfirmDesc"))) return;
+    if (!(await confirmDialog({ description: t("schedulePageExtra.deleteConfirmDesc"), destructive: true, confirmText: t("common.delete") }))) return;
     setDeleting(true);
     // Group lesson: notify participants BEFORE delete (their rows cascade away).
     if (row.group_id) await notifyGroupLessonCancelled(row.id, row.subject);

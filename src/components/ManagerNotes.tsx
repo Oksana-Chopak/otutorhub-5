@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
@@ -68,7 +69,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
   };
 
   const deleteNote = async (id: string) => {
-    if (!confirm(t("managerNotes.confirmDelete"))) return;
+    if (!(await confirmDialog({ description: t("managerNotes.confirmDelete"), destructive: true, confirmText: t("common.delete") }))) return;
     const { error } = await supabase.from("manager_notes").delete().eq("id", id);
     if (error) {
       console.error("Failed to delete note", error);

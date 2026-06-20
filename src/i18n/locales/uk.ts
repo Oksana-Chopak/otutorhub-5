@@ -38,6 +38,7 @@ export const uk = {
     yes: "Так",
     no: "Ні",
     confirm: "Підтвердити",
+    pleaseConfirm: "Підтвердити дію?",
     today: "Сьогодні",
     tomorrow: "Завтра",
     week: "Тиждень",

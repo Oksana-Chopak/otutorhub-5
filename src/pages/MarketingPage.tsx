@@ -102,7 +102,7 @@ export default function MarketingPage() {
       toast.error("Заповніть тему й тіло листа");
       return;
     }
-    if (!confirm(`Надіслати листа сегменту "${SEGMENTS.find(s => s.value === segment)?.label}"?\n\nЦе незворотньо.`)) return;
+    if (!(await confirmDialog({ description: `Надіслати листа сегменту "${SEGMENTS.find(s => s.value === segment)?.label}"?\n\nЦе незворотньо.` }))) return;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-marketing-campaign", {

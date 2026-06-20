@@ -25,12 +25,26 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         // Split heavy vendor deps into their own long-cacheable chunks.
-        manualChunks: {
-          "react-vendor": ["react", "react-dom", "react-router-dom"],
-          "supabase": ["@supabase/supabase-js"],
-          "query": ["@tanstack/react-query"],
-          "icons": ["lucide-react"],
-          "i18n": ["i18next", "react-i18next"],
+        // Function form so the large @radix-ui/* set is split off the critical path.
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("@radix-ui")) return "radix-ui";
+          if (id.includes("@supabase")) return "supabase";
+          if (id.includes("@tanstack")) return "query";
+          if (id.includes("lucide-react")) return "icons";
+          if (id.includes("i18next")) return "i18n"; // i18next + react-i18next
+          if (id.includes("react-router")) return "react-vendor";
+          if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) return "react-vendor";
+          if (
+            id.includes("vaul") ||
+            id.includes("cmdk") ||
+            id.includes("sonner") ||
+            id.includes("embla-carousel") ||
+            id.includes("class-variance-authority") ||
+            id.includes("/clsx/") ||
+            id.includes("tailwind-merge")
+          )
+            return "ui-misc";
         },
       },
     },

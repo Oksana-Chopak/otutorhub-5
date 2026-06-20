@@ -39,6 +39,7 @@ export const en: LocaleTranslations = {
     yes: "Yes",
     no: "No",
     confirm: "Confirm",
+    pleaseConfirm: "Confirm action?",
     today: "Today",
     tomorrow: "Tomorrow",
     week: "Week",

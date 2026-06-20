@@ -40,6 +40,7 @@ export const sv: LocaleTranslations = {
     yes: "Ja",
     no: "Nej",
     confirm: "Bekräfta",
+    pleaseConfirm: "Bekräfta åtgärd?",
     today: "Idag",
     tomorrow: "Imorgon",
     week: "Vecka",

@@ -6,6 +6,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
@@ -589,7 +590,7 @@ export default function MyStudentsPage() {
 
   const archive = async (s: MyStudent) => {
     if (!s.rate_id) return;
-    if (!confirm(t("myStudents.archiveConfirm", { name: `${s.first_name} ${s.last_name}`.trim() || t("common.noName") }))) return;
+    if (!(await confirmDialog({ description: t("myStudents.archiveConfirm", { name: `${s.first_name} ${s.last_name}`.trim() || t("common.noName") }) }))) return;
     const { error } = await supabase
       .from("student_rates")
       .update({ archived_at: new Date().toISOString() } as any)
@@ -621,11 +622,15 @@ export default function MyStudentsPage() {
   // their account — only your relationship is removed. Guarded server-side.
   const fullDelete = async (s: MyStudent) => {
     const name = `${s.first_name} ${s.last_name}`.trim() || t("common.noName");
-    if (!window.confirm(t("myStudents.deleteConfirm", { name }))) return;
-    if (window.prompt(t("myStudents.deleteTypeDELETE")) !== "DELETE") {
-      toast.info(t("myStudents.deleteCancelled"));
-      return;
-    }
+    const confirmed = await confirmDialog({
+      title: t("common.delete"),
+      description: t("myStudents.deleteConfirm", { name }),
+      requireText: "DELETE",
+      requireTextLabel: t("myStudents.deleteTypeDELETE"),
+      confirmText: t("common.delete"),
+      destructive: true,
+    });
+    if (!confirmed) return;
     const { data, error } = await (supabase as any).rpc("tutor_delete_student", { _student_id: s.id });
     if (error) {
       toast.error(t("myStudents.deleteFailed", { message: error.message }));

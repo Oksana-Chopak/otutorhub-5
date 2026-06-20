@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import {
   Dialog,
   DialogContent,
@@ -74,7 +75,7 @@ export function WalletDialog({
 
   const handleDelete = async (txId: string, hard: boolean) => {
     const label = hard ? t("walletDialog.confirmDeleteHard") : t("walletDialog.confirmDeleteSoft");
-    if (!window.confirm(t("walletDialogExtra.confirmPrompt", { action: label }))) return;
+    if (!(await confirmDialog({ description: t("walletDialogExtra.confirmPrompt", { action: label }), destructive: true }))) return;
     setDeletingId(txId);
     const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
       _tx_id: txId,

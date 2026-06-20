@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -107,7 +108,7 @@ export default function SubscriptionPage() {
   // Stop LiqPay auto-renew (web). Pro stays until subscription_until; only
   // future charges stop. iOS cancels via App Store, so this is web-only.
   const cancelSubscription = async () => {
-    if (!window.confirm(t("subscriptionPageExtra.cancelConfirm"))) return;
+    if (!(await confirmDialog({ description: t("subscriptionPageExtra.cancelConfirm") }))) return;
     setCancelling(true);
     const { data, error } = await supabase.functions.invoke("liqpay-cancel", { body: {} });
     setCancelling(false);

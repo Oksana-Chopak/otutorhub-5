@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth, AppRole } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -736,7 +737,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       toast.error(t("people.cannotArchiveOwn"));
       return;
     }
-    if (!confirm(t("peoplePage.archiveConfirm", { name: fullName(u) }))) {
+    if (!(await confirmDialog({ description: t("peoplePage.archiveConfirm", { name: fullName(u) }) }))) {
       return;
     }
     const { error } = await supabase
@@ -776,17 +777,15 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       return;
     }
     const name = fullName(u);
-    const first = window.confirm(
-      t("peoplePage.deleteConfirm", { name })
-    );
-    if (!first) return;
-    const typed = window.prompt(
-      t("peoplePage.deleteTypeDELETE")
-    );
-    if (typed !== "DELETE") {
-      toast.info(t("people.deleteCancelled"));
-      return;
-    }
+    const confirmed = await confirmDialog({
+      title: t("common.delete"),
+      description: t("peoplePage.deleteConfirm", { name }),
+      requireText: "DELETE",
+      requireTextLabel: t("peoplePage.deleteTypeDELETE"),
+      confirmText: t("common.delete"),
+      destructive: true,
+    });
+    if (!confirmed) return;
     // Full delete via Edge function (service role): purges data AND removes the
     // auth login so the email is freed (a plain DB RPC cannot touch auth.users).
     const { data, error } = await supabase.functions.invoke("manager-delete-user", {

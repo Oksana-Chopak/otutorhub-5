@@ -28,6 +28,7 @@ import { InviteLinkDialog } from "@/components/InviteLinkDialog";
 import { currencySymbol } from "@/lib/currency";
 import { createGroupLesson } from "@/lib/groupLessons";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, Users2, UserPlus, Archive, Menu, CalendarClock,
@@ -549,7 +550,7 @@ function GroupDetailsDialog({
   };
 
   const archiveGroup = async () => {
-    if (!confirm(t("groupsPageExtra.confirmDelete"))) return;
+    if (!(await confirmDialog({ description: t("groupsPageExtra.confirmDelete"), destructive: true, confirmText: t("common.delete") }))) return;
     const { error } = await supabase.from("lesson_groups").delete().eq("id", groupId);
     if (error) {
       toast.error(error.message);

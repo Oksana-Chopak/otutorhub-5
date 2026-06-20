@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mic, ExternalLink, AlertCircle, ListChecks, FileAudio } from "lucide-react";
 import { safeHref } from "@/lib/safeUrl";
@@ -94,9 +95,9 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
       });
       return;
     }
-    const ok = window.confirm(
-      t("firefliesPanel.confirmStartRecording")
-    );
+    const ok = await confirmDialog({
+      description: t("firefliesPanel.confirmStartRecording"),
+    });
     if (!ok) return;
     setStarting(true);
     try {

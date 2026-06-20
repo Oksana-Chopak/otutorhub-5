@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
@@ -123,7 +124,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
   };
 
   const handleDelete = async (item: AttachmentRow) => {
-    if (!confirm(t("lessonAttachmentsExtra.confirmDelete", { name: item.file_name }))) return;
+    if (!(await confirmDialog({ description: t("lessonAttachmentsExtra.confirmDelete", { name: item.file_name }), destructive: true, confirmText: t("common.delete") }))) return;
     setBusyId(item.id);
     const { error: storageErr } = await supabase.storage.from("lesson-attachments").remove([item.storage_path]);
     if (storageErr) {
