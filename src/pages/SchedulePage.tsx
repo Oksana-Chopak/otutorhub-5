@@ -4,6 +4,7 @@ import { PageFAB } from "@/components/PageFAB";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { ScheduleSkeleton } from "@/components/PageSkeletons";
@@ -279,9 +280,7 @@ export default function SchedulePage() {
       }
     }
     if (Object.keys(detailsPayload).length > 0) {
-      const { error } = await supabase
-        .from("lesson_details")
-        .upsert({ lesson_id: editingLesson.id, ...detailsPayload }, { onConflict: "lesson_id" });
+      const { error } = await updateLessonDetailsSafe(editingLesson.id, detailsPayload);
       if (error) {
         setEditSubmitting(false);
         console.error(error);
@@ -761,10 +760,18 @@ export default function SchedulePage() {
       return d;
     }).filter((d) => Object.keys(d).length > 1);
     if (detailRows.length > 0) {
-      const { error: detErr } = await supabase
-        .from("lesson_details")
-        .upsert(detailRows, { onConflict: "lesson_id" });
-      if (detErr) console.warn("lesson_details upsert after create failed", detErr);
+      if (isManager) {
+        // Manager writes include tutor_payout/_status — go through the manager RLS policy.
+        const { error: detErr } = await supabase
+          .from("lesson_details")
+          .upsert(detailRows, { onConflict: "lesson_id" });
+        if (detErr) console.warn("lesson_details upsert after create failed", detErr);
+      } else {
+        // Tutor side: route per-row through the safe RPC (whitelisted columns only).
+        await Promise.all(
+          detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any))
+        );
+      }
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
@@ -829,16 +836,22 @@ export default function SchedulePage() {
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert(
-        {
-          lesson_id: lessonId,
-          [field]: value,
-          [paidAtField]: value === "paid" ? new Date().toISOString() : null,
-        } as any,
-        { onConflict: "lesson_id" },
-      );
+    const { error } =
+      field === "student_payment_status"
+        ? await updateLessonDetailsSafe(lessonId, {
+            student_payment_status: value,
+            student_paid_at: value === "paid" ? new Date().toISOString() : null,
+          })
+        : await supabase
+            .from("lesson_details")
+            .upsert(
+              {
+                lesson_id: lessonId,
+                [field]: value,
+                [paidAtField]: value === "paid" ? new Date().toISOString() : null,
+              } as any,
+              { onConflict: "lesson_id" },
+            );
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error(t('schedule.paymentUpdateFailed'));

@@ -2510,6 +2510,10 @@ export type Database = {
       }
       start_manager_chat: { Args: never; Returns: string }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
+      update_lesson_details_safe: {
+        Args: { _lesson_id: string; _patch: Json }
+        Returns: undefined
+      }
       update_my_workspace_settings: {
         Args: { _patch: Json }
         Returns: undefined

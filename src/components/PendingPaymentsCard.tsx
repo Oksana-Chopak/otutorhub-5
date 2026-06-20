@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -154,7 +155,7 @@ export function PendingPaymentsCard() {
     const nowIso = new Date().toISOString();
     const results = await Promise.all([
       indLessonIds.length
-        ? supabase.from("lesson_details").update({ student_payment_status: "paid" }).in("lesson_id", indLessonIds)
+        ? updateLessonDetailsSafeBulk(indLessonIds, { student_payment_status: "paid" })
         : Promise.resolve({ error: null }),
       grpPartIds.length
         ? supabase.from("lesson_participants").update({ student_payment_status: "paid", student_paid_at: nowIso }).in("id", grpPartIds)

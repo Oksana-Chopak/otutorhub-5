@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -109,10 +110,7 @@ export function QuickPaymentFab() {
 
   const markPaid = async (id: string) => {
     setBusyId(id);
-    const { error } = await supabase
-      .from("lesson_details")
-      .update({ student_payment_status: "paid" })
-      .eq("lesson_id", id);
+    const { error } = await updateLessonDetailsSafe(id, { student_payment_status: "paid" });
     setBusyId(null);
     if (error) {
       toast.error(t("quickPayment.updateFailed"));

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import {
   ArrowDownLeft,
@@ -686,10 +687,7 @@ export default function FinancesPage() {
           .from("lesson_participants")
           .update({ student_payment_status: status, student_paid_at: paidAt })
           .eq("id", lesson.participant_id ?? "")
-      : supabase
-          .from("lesson_details")
-          .update({ student_payment_status: status })
-          .eq("lesson_id", lesson.id);
+      : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
   const togglePayment = async (
     lesson: LessonRow,
@@ -827,7 +825,7 @@ export default function FinancesPage() {
       const grpIds = selRows.filter((l) => l.kind === "group").map((l) => l.participant_id!).filter(Boolean);
       const results = await Promise.all([
         indIds.length
-          ? supabase.from("lesson_details").update({ student_payment_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+          ? updateLessonDetailsSafeBulk(indIds, { student_payment_status: "paid" as PaymentStatus })
           : Promise.resolve({ error: null }),
         grpIds.length
           ? supabase.from("lesson_participants").update({ student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }).in("id", grpIds)

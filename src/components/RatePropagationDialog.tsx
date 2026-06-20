@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,10 +78,7 @@ export function RatePropagationDialog({
       onDone?.();
       return;
     }
-    const { error } = await supabase
-      .from("lesson_details")
-      .update({ student_price: newPrice })
-      .in("lesson_id", ids);
+    const { error } = await updateLessonDetailsSafeBulk(ids, { student_price: newPrice });
     setBusy(false);
     if (error) {
       toast.error(t("ratePropagation.updateFailed"));

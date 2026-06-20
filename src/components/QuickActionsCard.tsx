@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -573,12 +574,7 @@ function AddLessonForm({
       .select("id")
       .single();
     if (!error && created) {
-      await supabase
-        .from("lesson_details")
-        .upsert(
-          { lesson_id: created.id, student_price: selected.price || 0, tutor_payout: 0 } as any,
-          { onConflict: "lesson_id" },
-        );
+      await updateLessonDetailsSafe(created.id, { student_price: selected.price || 0 });
     }
     setBusy(false);
     if (error) return toast.error(error.message || t("quickActionsCard.lessonCreateFailed"));
@@ -714,12 +710,10 @@ function AddPaymentForm({
         setBusy(false);
         return toast.error(t("quickActionsCard.selectLesson"));
       }
-      const { error } = await supabase
-        .from("lesson_details")
-        .upsert(
-          { lesson_id: lessonId, student_payment_status: "paid", student_paid_at: new Date().toISOString() } as any,
-          { onConflict: "lesson_id" },
-        );
+      const { error } = await updateLessonDetailsSafe(lessonId, {
+        student_payment_status: "paid",
+        student_paid_at: new Date().toISOString(),
+      });
       setBusy(false);
       if (error) return toast.error(error.message);
       toast.success(t("quickActionsCard.markedPaid"));

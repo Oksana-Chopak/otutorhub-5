@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
@@ -102,9 +103,7 @@ export function LessonWorkspace({
   const togglePayment = async () => {
     setPaymentBusy(true);
     const next = paidLocal === "paid" ? "unpaid" : "paid";
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert({ lesson_id: lessonId, student_payment_status: next }, { onConflict: "lesson_id" });
+    const { error } = await updateLessonDetailsSafe(lessonId, { student_payment_status: next });
     setPaymentBusy(false);
     if (error) {
       toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
@@ -326,9 +325,7 @@ export function LessonWorkspace({
       const res = await supabase.from("lessons").update({ meeting_url: cleaned || null }).eq("id", lessonId);
       error = res.error;
     } else {
-      const res = await supabase
-        .from("lesson_details")
-        .upsert({ lesson_id: lessonId, [field]: cleaned || null } as any, { onConflict: "lesson_id" });
+      const res = await updateLessonDetailsSafe(lessonId, { [field]: cleaned || null } as any);
       error = res.error;
     }
     setSaving(null);
