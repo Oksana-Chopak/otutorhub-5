@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
