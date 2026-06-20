@@ -764,8 +764,15 @@ export default function DashboardPage() {
   ) => {
     // Group lessons have no shared lesson_details row — per-participant payments are
     // marked in the lesson dialog (lesson_participants). Never write a bogus shared row.
-    if (!lessons.find((l) => l.id === lessonId)?.student_id) return;
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson?.student_id) return;
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    // OPTIMISTIC + HAPTIC FIRST so the tap is felt and seen INSTANTLY (no dead ~2s wait
+    // while the DB round-trips, then a confusing blink). Revert if the write fails.
+    const prevLessons = lessons;
+    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
+    if (value === "paid") haptic.success();
+    else haptic.tap();
     const { error } = await supabase
       .from("lesson_details")
       .upsert(
@@ -777,11 +784,11 @@ export default function DashboardPage() {
         { onConflict: "lesson_id" },
       );
     if (error) {
+      setLessons(prevLessons); // revert the optimistic change
+      haptic.error();
       toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
-    setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
-    const lesson = lessons.find((l) => l.id === lessonId);
     if (value === "paid" && field === "student_payment_status" && lesson) {
       if (lesson.student_price > 0) {
         const firstName = profiles[lesson.student_id]?.split(" ")[0] ?? t("shared.student");

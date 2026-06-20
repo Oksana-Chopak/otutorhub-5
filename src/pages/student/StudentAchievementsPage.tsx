@@ -73,7 +73,7 @@ export default function StudentAchievementsPage() {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className="font-display text-[22px] font-extrabold leading-none text-white">{earnedN}</span>
-                    <span className="font-display text-xs font-bold" style={{ color: "rgba(255,255,255,.55)" }}>
+                    <span className="font-display text-[13px] font-bold" style={{ color: "rgba(255,255,255,.55)" }}>
                       {t("studentAchievements.outOf", { total })}
                     </span>
                   </div>
@@ -118,7 +118,7 @@ export default function StudentAchievementsPage() {
             {/* Earned section */}
             {earnedN > 0 && (
               <div className="space-y-3">
-                <div className="text-xs font-bold uppercase tracking-[0.09em]" style={{ color: "#9398b0" }}>
+                <div className="text-[13px] font-bold uppercase tracking-[0.09em]" style={{ color: "#9398b0" }}>
                   {t("studentAchievements.earnedSection", { n: earnedN })}
                 </div>
                 <StudentAchievementsGrid achievements={earned} />
@@ -128,7 +128,7 @@ export default function StudentAchievementsPage() {
             {/* Locked / upcoming section */}
             {locked.length > 0 && (
               <div className="space-y-3">
-                <div className="text-xs font-bold uppercase tracking-[0.09em]" style={{ color: "#9398b0" }}>
+                <div className="text-[13px] font-bold uppercase tracking-[0.09em]" style={{ color: "#9398b0" }}>
                   {earnedN > 0
                     ? t("studentAchievements.upcomingSection", { n: locked.length })
                     : t("studentAchievements.allSection", { n: locked.length })}

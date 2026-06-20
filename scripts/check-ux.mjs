@@ -94,6 +94,20 @@ for (const file of getAllFiles(SRC)) {
       });
     }
   }
+  // NAMED Tailwind classes below the floor. text-xs = 12px (< 13). text-sm = 14px (OK).
+  // This was the BLIND SPOT: the regexes above only catch text-[Npx] + inline fontSize,
+  // so text-xs slipped through repeatedly. Treat any sub-floor named size as an error.
+  const reNamed = /\btext-xs\b/g; // 12px; add other sub-13 named sizes here if introduced
+  while ((m = reNamed.exec(content))) {
+    const lineNum = content.slice(0, m.index).split("\n").length;
+    issues.push({
+      rule: "font < 13px (a11y floor)",
+      severity: "error",
+      file: file.replace(ROOT, ""),
+      line: lineNum,
+      detail: `text-xs is 12px, below the 13px minimum (low vision + sunlight). Use text-[13px] or larger.`,
+    });
+  }
 }
 
 // ── Rule 3: TabsList without bg-muted ────────────────────────────────────────

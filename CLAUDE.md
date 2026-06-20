@@ -80,6 +80,7 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 
 > **🔒 INVARIANT — Accessibility: minimum font size 13px (binding ТЗ, has regressed repeatedly):**
 > The owner's users have ~80% vision and often use the app **outdoors in sunlight**. **NO readable text may be below 13px** — this applies to BOTH Tailwind `text-[Npx]` classes AND inline `style={{ fontSize: N }}` (most of this app sizes text inline, which is how tiny fonts kept creeping back). Never "compact" a layout by shrinking text below 13px. Enforced as a **hard error** by `scripts/check-ux.mjs` (rule "font < 13px") — the build fails on any sub-13 font, inline or class. When in doubt, go bigger, not smaller.
+> ⚠️ **`text-xs` = 12px = VIOLATION** (use `text-[13px]`+). check-ux used to scan ONLY `text-[Npx]` + inline `fontSize`, so named classes like `text-xs` slipped through "green" gates repeatedly (the recurring regression). The gate now flags `text-xs` too (2026-06-19), but a passing gate is NOT proof — grep your changed files for `text-xs` yourself. `text-sm`=14px is OK.
 
 ### Inputs (base component already updated)
 - `rounded-xl border-[0.5px] border-input h-11 text-[15px]`
@@ -371,6 +372,16 @@ cards (student_id is NULL).
 - `useHaptic` hook: `tap(10ms)` / `success([15,50,30])` / `error([50,30,50])` — applied to
   lesson-complete, FinancesPage mark/bulk-paid, CloseDayDialog batch-close, RecordPaymentSheet,
   homework-done, NeedsMarkingCard. Wire it into every new "win"/"task done"/"error" tap.
+> **🔒 INVARIANT — Marking a payment must give INSTANT feedback (binding ТЗ, regressed):**
+> Any "mark paid / received" action MUST update the UI OPTIMISTICALLY first (so the tap is
+> seen instantly), fire `haptic.success()`, and show a confirmation toast — THEN await the
+> DB and revert on error. NEVER `await` the DB write before the visual change: that gives a
+> dead ~1–2s hang, then a confusing blink as the card flips + drops out of a filtered list,
+> leaving the owner unsure whether anything happened. Canonical good pattern:
+> `FinancesPage.togglePayment` (optimistic → haptic → warm "💰 …" toast → await → revert).
+> `DashboardPage.updatePayment` regressed to await-first (fixed 2026-06-19). Re-check this
+> on every payments/finances/dashboard edit. See memory
+> requirements-remember-and-recheck-every-iteration.
 - `usePullToRefresh` — Dashboard renders a real indicator driven by `pullProgress`
   (`pullToRefresh.pull` / `.release`), not just the bare reload.
 - `burstConfetti` lives in `src/lib/confetti.ts` (reuses the `confetti-pop` keyframe). Use it
