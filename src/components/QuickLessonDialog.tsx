@@ -274,12 +274,7 @@ export function QuickLessonDialog({
     if (!error && createdRows?.length) {
       await Promise.all(
         createdRows.map((r) =>
-          supabase
-            .from("lesson_details")
-            .upsert(
-              { lesson_id: r.id, student_price: selected.price || 0, tutor_payout: 0 } as any,
-              { onConflict: "lesson_id" }
-            )
+          updateLessonDetailsSafe(r.id, { student_price: selected.price || 0 })
         )
       );
     }
