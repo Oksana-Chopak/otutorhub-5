@@ -1449,6 +1449,8 @@ export default function ChatsPage() {
                   <ChatContextPanel
                     tutorId={selectedThread.tutor_id}
                     studentId={selectedThread.student_id}
+                    viewerIsManager={isManager}
+                    viewerId={myId}
                     onClose={() => {}}
                     className="flex-1 overflow-y-auto border-none"
                   />
@@ -1482,6 +1484,8 @@ export default function ChatsPage() {
             <ChatContextPanel
               tutorId={selectedThread?.tutor_id ?? null}
               studentId={selectedThread?.student_id ?? null}
+              viewerIsManager={isManager}
+              viewerId={myId}
               onClose={() => setShowContextPanel(false)}
               className="border-none bg-transparent pt-0 flex-1"
             />

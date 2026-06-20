@@ -1,24 +1,14 @@
 import { useEffect, useState } from "react";
-import { getLocale } from "@/lib/locale";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
+import { prettyRequestValue } from "@/lib/tutorRequestLabels";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { EmptyState } from "@/components/EmptyState";
-import { UserAvatar } from "@/components/UserAvatar";
-import { HandHeart, Loader2, MessageCircle, CheckCircle2, X, UserCheck, Mail, Phone, Send } from "lucide-react";
-import { toast } from "sonner";
 import { AssignTutorDialog } from "@/components/AssignTutorDialog";
+import { HandHeart, Loader2, Users, MessageSquare, Copy, ChevronDown, Check, Mail, Phone, Send, ChevronRight } from "lucide-react";
+import { toast } from "sonner";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -41,27 +31,72 @@ interface ReferralRow {
   studentTelegram?: string | null;
 }
 
+const F = "Inter, system-ui, sans-serif";
+const AVC = ["#2BBFAA", "#5b6bf5", "#FF7A59", "#F59E0B", "#8B5CF6"];
+const initials = (n: string) =>
+  n.split(" ").map((w) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?";
+const avColor = (n: string) => AVC[(((n.charCodeAt(0) || 0) + (n.charCodeAt(1) || 0)) % AVC.length)];
+
+function Avatar({ name, size = 50 }: { name: string; size?: number }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: 999, flexShrink: 0, background: avColor(name), color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: F, fontWeight: 800, fontSize: size * 0.35 }}>
+      {initials(name)}
+    </div>
+  );
+}
+
+const STATUSES: ReferralRow["status"][] = ["open", "in_progress", "fulfilled", "closed"];
 const statusLabel: Record<ReferralRow["status"], string> = {
   open: t("referralsPage.statusOpen"),
   in_progress: t("referralsPage.statusInProgress"),
   fulfilled: t("referralsPage.statusFulfilled"),
   closed: t("referralsPage.statusClosed"),
 };
-
-const statusClass: Record<ReferralRow["status"], string> = {
-  open: "bg-warning/10 text-warning",
-  in_progress: "bg-primary/10 text-primary",
-  fulfilled: "bg-success/10 text-success",
-  closed: "bg-muted text-muted-foreground",
+const ST: Record<ReferralRow["status"], { dot: string; bg: string; color: string }> = {
+  open: { dot: "#F59E0B", bg: "rgba(245,158,11,.16)", color: "#B4740B" },
+  in_progress: { dot: "#2BBFAA", bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },
+  fulfilled: { dot: "#22c55e", bg: "rgba(34,197,94,.16)", color: "#16a34a" },
+  closed: { dot: "#9aa0b4", bg: "rgba(147,152,176,.18)", color: "#7b8198" },
 };
+
+function StatusPicker({ status, onChange }: { status: ReferralRow["status"]; onChange: (s: ReferralRow["status"]) => void }) {
+  const [open, setOpen] = useState(false);
+  const cur = ST[status];
+  return (
+    <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
+      <button type="button" onClick={() => setOpen((o) => !o)}
+        style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 44, padding: "0 14px", borderRadius: 999, cursor: "pointer", border: "none", fontFamily: F, fontWeight: 700, fontSize: 15, background: cur.bg, color: cur.color }}>
+        <span style={{ width: 9, height: 9, borderRadius: 999, background: cur.dot }} />
+        {statusLabel[status]}
+        <ChevronDown size={16} strokeWidth={2.2} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s" }} />
+      </button>
+      {open && (
+        <>
+          <button type="button" aria-hidden onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 29, background: "transparent", border: "none", cursor: "default" }} />
+          <div style={{ position: "absolute", top: 48, right: 0, zIndex: 30, background: "#fff", border: "1px solid #eceef3", borderRadius: 14, boxShadow: "0 18px 40px -16px rgba(15,15,26,.3)", padding: 6, minWidth: 188 }}>
+            {STATUSES.map((k) => (
+              <button key={k} type="button" onClick={() => { onChange(k); setOpen(false); }}
+                style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", border: "none", background: k === status ? "#F5F4F0" : "transparent", cursor: "pointer", padding: "12px 13px", borderRadius: 10, fontFamily: F, fontWeight: 700, fontSize: 16, color: "#0f0f1a", textAlign: "left" }}>
+                <span style={{ width: 10, height: 10, borderRadius: 999, background: ST[k].dot, flexShrink: 0 }} />
+                {statusLabel[k]}
+                {k === status && <Check size={17} strokeWidth={2.4} style={{ marginLeft: "auto", color: "#25a896" }} />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function ReferralsPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<ReferralRow[]>([]);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
   const [assignTarget, setAssignTarget] = useState<ReferralRow | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -79,17 +114,10 @@ export default function ReferralsPage() {
         supabase.from("profile_contacts").select("user_id, email, phone, telegram").in("user_id", ids),
       ]);
       (profilesRes.data ?? []).forEach((p: any) => {
-        profileMap.set(p.id, {
-          name: `${p.first_name} ${p.last_name}`.trim() || t("shared.noName"),
-          avatar: p.avatar_url,
-        });
+        profileMap.set(p.id, { name: `${p.first_name} ${p.last_name}`.trim() || t("shared.noName"), avatar: p.avatar_url });
       });
       (contactsRes.data ?? []).forEach((c: any) => {
-        contactMap.set(c.user_id, {
-          email: c.email ?? null,
-          phone: c.phone ?? null,
-          telegram: c.telegram ?? null,
-        });
+        contactMap.set(c.user_id, { email: c.email ?? null, phone: c.phone ?? null, telegram: c.telegram ?? null });
       });
     }
 
@@ -102,70 +130,52 @@ export default function ReferralsPage() {
       studentTelegram: contactMap.get(r.student_id)?.telegram ?? null,
     }));
     setRequests(enriched);
+    // Auto-expand the first open request so the priority flow is one tap closer.
+    setOpenId((cur) => cur ?? enriched.find((r) => r.status === "open")?.id ?? enriched[0]?.id ?? null);
     setLoading(false);
   };
 
   useEffect(() => {
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   const updateStatus = async (id: string, status: ReferralRow["status"]) => {
     setSavingId(id);
+    // Optimistic — flip immediately, revert on error.
+    const prev = requests;
+    setRequests((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
     const patch: any = { status };
-    if (status === "fulfilled" || status === "closed") {
-      patch.resolved_at = new Date().toISOString();
-    }
-    const { error } = await supabase
-      .from("tutor_referral_requests")
-      .update(patch)
-      .eq("id", id);
+    if (status === "fulfilled" || status === "closed") patch.resolved_at = new Date().toISOString();
+    const { error } = await supabase.from("tutor_referral_requests").update(patch).eq("id", id);
     setSavingId(null);
     if (error) {
+      setRequests(prev);
       toast.error(t("referralsPage.updateFailed"));
       return;
     }
     toast.success(t("referralsPage.updated"));
-    load();
   };
 
-  const saveResponse = async (id: string) => {
-    const response = drafts[id]?.trim();
-    if (!response) {
-      toast.error(t("referralsPageExtra.replyRequired"));
-      return;
-    }
-    setSavingId(id);
-    const { error } = await supabase
-      .from("tutor_referral_requests")
-      .update({ manager_response: response, status: "in_progress" })
-      .eq("id", id);
-    setSavingId(null);
-    if (error) {
-      toast.error(t("referralsPageExtra.replyFailed"));
-      return;
-    }
-    toast.success(t("referralsPageExtra.replySent"));
-    setDrafts((d) => ({ ...d, [id]: "" }));
-    load();
+  const copy = (text: string) => {
+    navigator.clipboard?.writeText(text);
+    toast.success(t("referralsPageExtra.copied"));
   };
 
-  const openChat = async (studentId: string) => {
-    if (!user) return;
-    // Manager can create thread directly. We need a tutor_id pair — for direct manager↔student
-    // we don't have a thread (managers see all threads). Easiest: navigate to /chats and let
-    // them filter, or create a minimal helper later. For now show toast hint.
-    toast.info(t("referralsPageExtra.openChatsHint"));
-  };
+  // Priority flow action — message the student. Uses the existing ChatsPage
+  // ?with= deep-link, which opens an existing thread with that student.
+  const writeStudent = (studentId: string) => navigate(`/chats?with=${studentId}`);
+
+  const openCount = requests.filter((r) => r.status === "open").length;
 
   return (
     <AppLayout>
-      <div className="mb-6">
-        <h1 className="" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+      {/* Desktop header (mobile title/bell/burger come from AppLayout) */}
+      <div className="mb-4 hidden items-center justify-between lg:flex">
+        <h1 style={{ fontFamily: F, fontWeight: 800, fontSize: 25, letterSpacing: "-.01em", color: "#0f0f1a" }}>
           Запити на репетиторів
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Учні просять підібрати їм нового репетитора з вашого хабу.
-        </p>
+        <NotificationBell />
       </div>
 
       {loading ? (
@@ -179,185 +189,109 @@ export default function ReferralsPage() {
           description={t("referralsPageExtra.noRequestsDesc")}
         />
       ) : (
-        <div className="space-y-3">
-          {requests.map((r) => (
-            <Card key={r.id}>
-              <CardContent className="space-y-3 p-4">
-                <div className="flex items-start gap-3">
-                  <UserAvatar
-                    url={r.studentAvatar ?? null}
-                    firstName={r.studentName?.split(" ")[0] ?? "?"}
-                    lastName={r.studentName?.split(" ")[1]}
-                    className="h-10 w-10"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-medium text-foreground">{r.studentName}</p>
-                      <Badge className={statusClass[r.status]}>{statusLabel[r.status]}</Badge>
-                      <span className="text-[13px]" style={{ color: "#6b7088" }}>
-                        {new Date(r.created_at).toLocaleString(getLocale(), {
-                          day: "numeric",
-                          month: "short",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
+        <>
+          {/* New-requests banner */}
+          {openCount > 0 && (
+            <div style={{ marginBottom: 14, borderRadius: 16, padding: "16px 18px", background: "linear-gradient(135deg,#0f0f1a,#1a1a3e)", color: "#fff", display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ fontFamily: F, fontWeight: 800, fontSize: 34, letterSpacing: "-.02em", color: "#2BBFAA", lineHeight: 1 }}>{openCount}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: F, fontWeight: 800, fontSize: 19 }}>{t("referralsPageExtra.newBannerTitle")}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.65)", marginTop: 1 }}>{t("referralsPageExtra.newBannerSub")}</div>
+              </div>
+              <ChevronRight size={22} strokeWidth={2.2} style={{ color: "rgba(255,255,255,.5)", flexShrink: 0 }} />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {requests.map((r) => {
+              const on = openId === r.id;
+              const done = r.status === "fulfilled" || r.status === "closed";
+              const facts = [
+                ["referralsPageExtra.levelChip", r.preferred_level],
+                ["referralsPageExtra.daysChip", r.preferred_days],
+                ["referralsPageExtra.hoursChip", r.preferred_times],
+              ].filter(([, v]) => v) as [string, string][];
+              const contacts = [
+                ["email", Mail, r.studentEmail],
+                ["phone", Phone, r.studentPhone],
+                ["telegram", Send, r.studentTelegram ? "@" + r.studentTelegram.replace(/^@/, "") : null],
+              ].filter(([, , v]) => v) as [string, typeof Mail, string][];
+
+              return (
+                <div key={r.id} style={{ borderRadius: 20, border: `1.5px solid ${on ? "#2BBFAA" : r.status === "open" ? "rgba(245,158,11,.4)" : "#eceef3"}`, background: "#fff", boxShadow: "0 1px 2px rgba(15,15,26,.05)", overflow: "hidden" }}>
+                  {/* Collapsed row */}
+                  <button type="button" onClick={() => setOpenId(on ? null : r.id)}
+                    style={{ width: "100%", border: "none", background: "transparent", cursor: "pointer", textAlign: "left", padding: 15, display: "flex", alignItems: "center", gap: 13 }}>
+                    <Avatar name={r.studentName ?? "?"} size={50} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: F, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject || t("referralsPageExtra.subjectAny")}</div>
+                      <div style={{ fontWeight: 600, fontSize: 16, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
                     </div>
-                    <div className="mt-2 grid gap-1 text-sm">
-                      {r.subject && (
-                        <p>
-                          <span className="text-muted-foreground">{t("referralsPageExtra.subjectLabel")}</span> {r.subject}
-                        </p>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7, flexShrink: 0 }}>
+                      {r.budget_note && <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#25a896", whiteSpace: "nowrap" }}>{r.budget_note}</span>}
+                      <StatusPicker status={r.status} onChange={(s) => updateStatus(r.id, s)} />
+                    </div>
+                  </button>
+
+                  {/* Expanded */}
+                  {on && (
+                    <div style={{ padding: "0 16px 16px", display: "flex", flexDirection: "column", gap: 16 }}>
+                      {facts.length > 0 && (
+                        <div style={{ borderTop: "1px solid #eceef3", paddingTop: 15, display: "grid", gridTemplateColumns: `repeat(${facts.length}, 1fr)`, gap: 10 }}>
+                          {facts.map(([labelKey, val], i) => (
+                            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5, borderRadius: 14, background: "#fbfbfc", border: "1px solid #eceef3", padding: "12px 13px", minWidth: 0 }}>
+                              <span style={{ fontFamily: F, fontWeight: 700, fontSize: 13, color: "#b0b4c8" }}>{t(labelKey)}</span>
+                              <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#0f0f1a", lineHeight: 1.2 }}>{prettyRequestValue(val)}</span>
+                            </div>
+                          ))}
+                        </div>
                       )}
-                      {r.preferred_level && (
-                        <p>
-                          <span className="text-muted-foreground">{t("referralsPageExtra.levelLabel")}</span>{" "}
-                          {r.preferred_level}
-                        </p>
+
+                      {r.message && <div style={{ fontSize: 17, lineHeight: 1.55, color: "#0f0f1a" }}>“{r.message}”</div>}
+
+                      <div>
+                        <div style={{ fontFamily: F, fontWeight: 700, fontSize: 15, color: "#6b7088", marginBottom: 11 }}>{t("referralsPageExtra.studentContacts")}</div>
+                        {contacts.length === 0 ? (
+                          <div style={{ fontSize: 16, color: "#b0b4c8" }}>{t("referralsPageExtra.noContacts")}</div>
+                        ) : (
+                          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+                            {contacts.map(([, IconC, val], i) => (
+                              <div key={i} style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                                <IconC size={19} style={{ color: "#b0b4c8", flexShrink: 0 }} />
+                                <span style={{ flex: 1, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{val}</span>
+                                <button type="button" aria-label={t("chatContextPanel.copy")} onClick={() => copy(val.replace(/^@/, ""))}
+                                  style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "#25a896", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
+                                  <Copy size={20} strokeWidth={2} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {done && r.manager_response && (
+                        <div style={{ borderRadius: 14, border: "1px solid rgba(43,191,170,.3)", background: "var(--teal-l, #f0fdf9)", padding: "13px 15px", fontSize: 16, color: "#0f0f1a" }}>{r.manager_response}</div>
                       )}
-                      {r.budget_note && (
-                        <p>
-                          <span className="text-muted-foreground">{t("referralsPageExtra.budgetLabel")}</span>{" "}
-                          {r.budget_note}
-                        </p>
-                      )}
-                      {r.preferred_days && (
-                        <p>
-                          <span className="text-muted-foreground">{t("referralsPageExtra.daysLabel")}</span>{" "}
-                          {r.preferred_days}
-                        </p>
-                      )}
-                      {r.preferred_times && (
-                        <p>
-                          <span className="text-muted-foreground">{t("referralsPageExtra.hoursLabel")}</span>{" "}
-                          {r.preferred_times}
-                        </p>
-                      )}
-                      {r.message && (
-                        <p className="whitespace-pre-wrap rounded-md bg-muted/40 p-2 text-sm text-foreground">
-                          {r.message}
-                        </p>
+
+                      {!done && (
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <button type="button" onClick={() => setAssignTarget(r)}
+                            style={{ flex: 1, height: 56, borderRadius: 15, border: "1.5px solid #eceef3", background: "#fff", color: "#0f0f1a", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            <Users size={20} strokeWidth={2} style={{ color: "#25a896" }} />{t("referralsPageExtra.assignBtn")}
+                          </button>
+                          <button type="button" onClick={() => writeStudent(r.student_id)}
+                            style={{ flex: 1, height: 56, borderRadius: 15, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", fontFamily: F, fontWeight: 700, fontSize: 16, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            <MessageSquare size={21} strokeWidth={2.1} />{t("referralsPageExtra.writeBtn")}
+                          </button>
+                        </div>
                       )}
                     </div>
-                  </div>
+                  )}
                 </div>
-
-                {r.manager_response && (
-                  <div className="rounded-md border border-primary/30 bg-primary/5 p-2 text-sm text-foreground">
-                    <p className="text-[13px] font-medium text-primary">{t("referralsPageExtra.yourReply")}</p>
-                    <p className="mt-1 whitespace-pre-wrap">{r.manager_response}</p>
-                  </div>
-                )}
-
-                {(r.studentEmail || r.studentPhone || r.studentTelegram) && (
-                  <div className="flex flex-wrap gap-2 rounded-md border border-border bg-muted/30 p-2 text-[13px]">
-                    <span className="text-muted-foreground">{t("referralsPageExtra.studentContacts")}</span>
-                    {r.studentEmail && (
-                      <a
-                        href={`mailto:${r.studentEmail}`}
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <Mail className="h-3 w-3" />
-                        {r.studentEmail}
-                      </a>
-                    )}
-                    {r.studentPhone && (
-                      <a
-                        href={`tel:${r.studentPhone}`}
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <Phone className="h-3 w-3" />
-                        {r.studentPhone}
-                      </a>
-                    )}
-                    {r.studentTelegram && (
-                      <a
-                        href={`https://t.me/${r.studentTelegram.replace(/^@/, "")}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-primary hover:underline"
-                      >
-                        <Send className="h-3 w-3" />@{r.studentTelegram.replace(/^@/, "")}
-                      </a>
-                    )}
-                  </div>
-                )}
-                {!(r.studentEmail || r.studentPhone || r.studentTelegram) && (
-                  <p className="text-[13px]" style={{ color: "#6b7088" }}>
-                    Учень не вказав контактів у профілі. Напишіть йому через чат.
-                  </p>
-                )}
-
-                {r.status !== "fulfilled" && r.status !== "closed" && (
-                  <div className="space-y-2">
-                    <Textarea
-                      rows={2}
-                      placeholder={t("referralsPageExtra.replyPlaceholder")}
-                      value={drafts[r.id] ?? ""}
-                      onChange={(e) => setDrafts((d) => ({ ...d, [r.id]: e.target.value }))}
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => saveResponse(r.id)}
-                        disabled={savingId === r.id}
-                      >
-                        {savingId === r.id && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-                        Зберегти відповідь
-                      </Button>
-                      <Select
-                        value={r.status}
-                        onValueChange={(v) => updateStatus(r.id, v as ReferralRow["status"])}
-                      >
-                        <SelectTrigger className="h-9 w-[160px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="open">{t("referralsPage.statusOpen")}</SelectItem>
-                          <SelectItem value="in_progress">{t("referralsPage.statusInProgress")}</SelectItem>
-                          <SelectItem value="fulfilled">{t("referralsPage.statusFulfilled")}</SelectItem>
-                          <SelectItem value="closed">{t("referralsPage.statusClosed")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Button size="sm" variant="outline" onClick={() => openChat(r.student_id)}>
-                        <MessageCircle className="mr-1 h-3 w-3" />
-                        Чат з учнем
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {(r.status === "open" || r.status === "in_progress") && (
-                  <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-2">
-                    <Button
-                      size="sm"
-                      onClick={() => setAssignTarget(r)}
-                    >
-                      <UserCheck className="mr-1 h-3 w-3" />
-                      Призначити репетитора
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => updateStatus(r.id, "fulfilled")}
-                    >
-                      <CheckCircle2 className="mr-1 h-3 w-3" />
-                      Позначити виконаним
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => updateStatus(r.id, "closed")}
-                    >
-                      <X className="mr-1 h-3 w-3" />
-                      Закрити
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        </>
       )}
 
       <AssignTutorDialog

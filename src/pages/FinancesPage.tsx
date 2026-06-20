@@ -869,7 +869,9 @@ export default function FinancesPage() {
       t("finances.csvPayoutAt"),
       t("finances.csvProfit"),
     ];
-    const rows = visibleLessons.map((l) => [
+    // Export the whole selected period (every tab), not just the active tab's
+    // visible rows — otherwise the CSV silently dropped most lessons.
+    const rows = periodBillable.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
@@ -1660,23 +1662,15 @@ export default function FinancesPage() {
                               color:F.warnD, flexShrink:0 }}>
                               {Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
-                            <button
-                              onClick={() => {
-                                insertNotification({
-                                  userId: l.student_id,
-                                  type: `payment_reminder_${l.id}_${Date.now()}`,
-                                  title: t("finances.paymentReminderPushTitle"),
-                                  body: t("finances.paymentReminderPushBody", { date: new Date(l.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }), sum: Number(l.student_price).toLocaleString(getLocale()) }),
-                                  link: "/schedule",
-                                });
-                                toast.success(t("finances.reminderSent"), { description: nameOf(l.student_id) });
-                              }}
-                              style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
+                            <Link
+                              to="/profile"
+                              title={t("finances.configureLink")}
+                              style={{ height:32, padding:"0 12px", borderRadius:9,
                                 background:"rgba(245,158,11,.18)", color:F.warnD,
                                 fontFamily:F.display, fontWeight:700, fontSize: 13, cursor:"pointer",
-                                flexShrink:0 }}>
+                                flexShrink:0, display:"inline-flex", alignItems:"center", textDecoration:"none" }}>
                               {t("finances.remindBtn")}
-                            </button>
+                            </Link>
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
                               aria-label={t("finances.statusPaid")}

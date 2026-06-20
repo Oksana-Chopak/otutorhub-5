@@ -1,0 +1,128 @@
+import { useEffect, useState } from "react";
+import { AppLayout } from "@/components/AppLayout";
+import { NotificationBell } from "@/components/NotificationBell";
+import { supabase } from "@/integrations/supabase/client";
+import { EmptyState } from "@/components/EmptyState";
+import { ShieldCheck, Loader2, Trash2, RefreshCw, ChevronDown } from "lucide-react";
+import { getLocale } from "@/lib/locale";
+import { toast } from "sonner";
+import i18nInstance from "@/i18n";
+const t = i18nInstance.t.bind(i18nInstance);
+
+interface ErrorRow {
+  id: string;
+  created_at: string;
+  user_id: string | null;
+  message: string;
+  stack: string | null;
+  url: string | null;
+  user_agent: string | null;
+}
+
+export default function ErrorLogPage() {
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<ErrorRow[]>([]);
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await (supabase as any)
+      .from("error_log")
+      .select("id, created_at, user_id, message, stack, url, user_agent")
+      .order("created_at", { ascending: false })
+      .limit(200);
+    setRows((data ?? []) as ErrorRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const clearAll = async () => {
+    const { error } = await (supabase as any)
+      .from("error_log")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(t("errorLog.cleared"));
+    setRows([]);
+  };
+
+  return (
+    <AppLayout>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("errorLog.title")}</h1>
+        <div className="hidden items-center gap-2 lg:flex">
+          <NotificationBell />
+        </div>
+      </div>
+
+      <div className="mb-4 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={load}
+          className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-white px-3 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
+        >
+          <RefreshCw className="h-4 w-4" /> {t("errorLog.refresh")}
+        </button>
+        {rows.length > 0 && (
+          <button
+            type="button"
+            onClick={clearAll}
+            className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-white px-3 text-[14px] font-semibold text-destructive transition-colors hover:bg-destructive/5"
+          >
+            <Trash2 className="h-4 w-4" /> {t("errorLog.clear")}
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        </div>
+      ) : rows.length === 0 ? (
+        <EmptyState icon={ShieldCheck} title={t("errorLog.empty")} description={t("errorLog.emptyDesc")} />
+      ) : (
+        <div className="flex flex-col gap-2">
+          {rows.map((r) => {
+            const on = openId === r.id;
+            return (
+              <div key={r.id} className="rounded-[16px] border border-border bg-white">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(on ? null : r.id)}
+                  className="flex w-full items-start gap-3 p-3.5 text-left"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-[15px] font-semibold text-foreground">{r.message}</p>
+                    <p className="mt-1 text-[13px] text-muted-foreground">
+                      {new Date(r.created_at).toLocaleString(getLocale())}
+                      {r.url ? ` · ${r.url}` : ""}
+                    </p>
+                  </div>
+                  {r.stack && (
+                    <ChevronDown className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${on ? "rotate-180" : ""}`} />
+                  )}
+                </button>
+                {on && (r.stack || r.user_agent) && (
+                  <div className="border-t border-border bg-muted/30 p-3">
+                    {r.stack && (
+                      <pre className="overflow-x-auto whitespace-pre-wrap text-[13px] leading-relaxed text-muted-foreground">{r.stack}</pre>
+                    )}
+                    {r.user_agent && (
+                      <p className="mt-2 text-[13px] text-muted-foreground/70">{r.user_agent}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </AppLayout>
+  );
+}

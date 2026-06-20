@@ -29,7 +29,8 @@ import {
   Mail,
   ChevronLeft,
   UserRound,
-  ChevronRight} from "lucide-react";
+  ChevronRight,
+  AlertTriangle} from "lucide-react";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth, AppRole } from "@/hooks/useAuth";
@@ -79,6 +80,7 @@ const allNavItems: NavItem[] = [
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },
   { to: "/marketing", labelKey: "nav.marketing", icon: Mail, roles: ["manager"] },
+  { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"] },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
   // Student
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },

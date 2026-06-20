@@ -957,27 +957,35 @@ export default function DashboardPage() {
 
   const profitGrowthPct = useMemo(() => {
     if (profitPeriod !== "month") return null;
-    if (prevMonthProfit === 0) return null; // can't calculate % from 0 base
+    if (prevMonthProfit <= 0) return null; // need a positive prior-month base for a meaningful %
     return Math.round(((profit - prevMonthProfit) / Math.abs(prevMonthProfit)) * 100);
   }, [profit, prevMonthProfit, profitPeriod]);
 
-  // Real weekly income bars (last 7 weeks) for PROFIT card chart
-  const weeklyIncomeBars = useMemo(() => {
+  // Real monthly PROFIT bars (last 6 months) for the PROFIT card chart.
+  // Matches the headline metric (profit = paid income − paid payout) and its
+  // monthly framing. Previously this showed 7 weeks of GROSS INCOME, which
+  // mismatched both the metric (income ≠ profit for a hub) and the timeframe
+  // (weekly under a "this month" card) — the source of the "graph is wrong" bug.
+  const monthlyProfitBars = useMemo(() => {
     const now = new Date();
-    const bars = Array.from({ length: 7 }, (_, w) => {
-      const ws = new Date(now);
-      ws.setDate(ws.getDate() - ((ws.getDay() + 6) % 7) - (6 - w) * 7);
-      ws.setHours(0, 0, 0, 0);
-      const we = new Date(ws); we.setDate(ws.getDate() + 7);
-      return lessons
-        .filter((l) => {
-          const ts = new Date(l.starts_at).getTime();
-          return ts >= ws.getTime() && ts < we.getTime() && l.student_payment_status === "paid";
-        })
+    const vals = Array.from({ length: 6 }, (_, m) => {
+      const ms = new Date(now.getFullYear(), now.getMonth() - (5 - m), 1).getTime();
+      const me = new Date(now.getFullYear(), now.getMonth() - (5 - m) + 1, 1).getTime();
+      const inMonth = lessons.filter((l) => {
+        if (l.status === "cancelled" || l.status === "pending") return false;
+        const ts = new Date(l.starts_at).getTime();
+        return ts >= ms && ts < me;
+      });
+      const inc = inMonth
+        .filter((l) => l.student_payment_status === "paid")
         .reduce((s, l) => s + Number(l.student_price), 0);
+      const exp = inMonth
+        .filter((l) => l.tutor_payout_status === "paid")
+        .reduce((s, l) => s + Number(l.tutor_payout), 0);
+      return inc - exp;
     });
-    const max = Math.max(...bars, 1);
-    return bars.map((v) => Math.round((v / max) * 100));
+    const max = Math.max(...vals, 1);
+    return vals.map((v) => Math.round((Math.max(v, 0) / max) * 100));
   }, [lessons]);
 
   const pendingPayments = useMemo(
@@ -1492,14 +1500,14 @@ export default function DashboardPage() {
                   {profitGrowthPct !== null && (
                     <p className="mt-1 text-[13px] font-bold"
                       style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
-                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% за місяць
+                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
                   <div className="mt-2 relative" style={{ height: 14 }}>
                     <div className="absolute bottom-0 left-0 right-0 flex items-end gap-0.5" style={{ height: "100%" }}>
-                      {weeklyIncomeBars.map((h, i) => (
+                      {monthlyProfitBars.map((h, i) => (
                         <div key={i} className="flex-1 rounded-sm"
-                          style={{ height: `max(${h}%, 3px)`, background: i === 6 ? "#2BBFAA" : "rgba(43,191,170,0.2)" }} />
+                          style={{ height: `max(${h}%, 3px)`, background: i === 5 ? "#2BBFAA" : "rgba(43,191,170,0.2)" }} />
                       ))}
                     </div>
                   </div>
@@ -1627,12 +1635,12 @@ export default function DashboardPage() {
                   </p>
                   {profitGrowthPct !== null && (
                     <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
-                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.periodMonth")}
+                      {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
                   <div className="mt-3 flex items-end gap-1" style={{ height: "20px" }}>
-                    {weeklyIncomeBars.map((h, i) => (
-                      <div key={i} className="flex-1 rounded-sm" style={{ height: `${h}%`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
+                    {monthlyProfitBars.map((h, i) => (
+                      <div key={i} className="flex-1 rounded-sm" style={{ height: `max(${h}%, 3px)`, background: i === 5 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                     ))}
                   </div>
                 </Link>
@@ -1674,9 +1682,9 @@ export default function DashboardPage() {
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
                   <p className="mt-0.5 text-[13px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
-                    {weeklyIncomeBars.map((h, i) => (
+                    {monthlyProfitBars.map((h, i) => (
                       <div key={i} className="flex-1 rounded-sm"
-                        style={{ height: `max(${h}%, 3px)`, background: i === 6 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
+                        style={{ height: `max(${h}%, 3px)`, background: i === 5 ? "var(--teal)" : "rgba(43,191,170,0.2)" }} />
                     ))}
                   </div>
                 </Link>

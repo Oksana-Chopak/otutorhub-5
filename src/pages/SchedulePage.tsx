@@ -165,6 +165,7 @@ export default function SchedulePage() {
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
+  const [showAllPast, setShowAllPast] = useState(false);
 
   // Filters — centralized in a hook so desktop + mobile share state/logic.
   const filters = useScheduleFilters();
@@ -1645,6 +1646,9 @@ export default function SchedulePage() {
         <div className="space-y-6">
           {grouped.map(([bucketLabel, dayLessons]) => {
             const isToday = bucketLabel === t('common.today');
+            const isPast = bucketLabel === t('schedule.bucketPast');
+            const shown = isPast && !showAllPast ? dayLessons.slice(0, 8) : dayLessons;
+            const hiddenPast = dayLessons.length - shown.length;
             return (
               <div key={bucketLabel}>
                 <h3
@@ -1656,7 +1660,7 @@ export default function SchedulePage() {
                   <span className="ml-2 text-[13px] font-normal opacity-70">· {dayLessons.length}</span>
                 </h3>
                 <div className="space-y-2">
-                  {dayLessons.map((lesson) => {
+                  {shown.map((lesson) => {
                     const tutorName = profilesMap[lesson.tutor_id] ?? "?";
                     // Group lessons have no student_id — label the card honestly.
                     const studentName = lesson.student_id ? (profilesMap[lesson.student_id] ?? "?") : t("groupLessons.cardLabel");
@@ -1717,6 +1721,15 @@ export default function SchedulePage() {
                     );
                   })}
                 </div>
+                {isPast && hiddenPast > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllPast(true)}
+                    className="mt-2 w-full rounded-[12px] border border-border bg-white py-2.5 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
+                  >
+                    {t("schedule.showMorePast", { count: hiddenPast })}
+                  </button>
+                )}
               </div>
             );
           })}

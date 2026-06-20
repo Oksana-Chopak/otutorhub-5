@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useGlobalChatToasts } from "@/hooks/useGlobalChatToasts";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConfirmProvider } from "@/hooks/useConfirm";
+import { installGlobalErrorLogging } from "@/lib/errorLog";
 import { ClarityIdentify } from "./components/ClarityIdentify";
 import { CookieConsent } from "./components/CookieConsent";
 import { Loader2 } from "lucide-react";
@@ -23,6 +24,10 @@ const ChatsPage = lazy(() => import("./pages/ChatsPage"));
 const PeoplePage = lazy(() => import("./pages/PeoplePage"));
 const AvailabilityPage = lazy(() => import("./pages/AvailabilityPage"));
 const AuditLogPage = lazy(() => import("./pages/AuditLogPage"));
+const ErrorLogPage = lazy(() => import("./pages/ErrorLogPage"));
+
+// Capture uncaught errors + rejections globally → error_log (managers see them on /errors).
+installGlobalErrorLogging();
 const FeedbackInboxPage = lazy(() => import("./pages/FeedbackInboxPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
@@ -129,6 +134,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["manager"]}>
                 <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/errors"
+            element={
+              <ProtectedRoute allowedRoles={["manager"]}>
+                <ErrorLogPage />
               </ProtectedRoute>
             }
           />

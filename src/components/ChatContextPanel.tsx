@@ -15,6 +15,11 @@ interface ChatContextPanelProps {
   studentId: string | null;
   className?: string;
   onClose?: () => void;
+  /** Student-payment / debt context is shown ONLY to the party actually owed:
+   *  the manager (hub receivable) or the independent tutor of record. A hub tutor
+   *  must never see what the student owes the hub. */
+  viewerIsManager?: boolean;
+  viewerId?: string | null;
 }
 
 interface NextLesson {
@@ -34,13 +39,14 @@ interface LastHomework {
 
 const localeMap: Record<string, typeof ukLocale> = { uk: ukLocale, en: enUS, sv: svLocale };
 
-export function ChatContextPanel({ tutorId, studentId, className, onClose }: ChatContextPanelProps) {
+export function ChatContextPanel({ tutorId, studentId, className, onClose, viewerIsManager, viewerId }: ChatContextPanelProps) {
   const { t, i18n } = useTranslation();
   const dateLocale = localeMap[i18n.language] ?? ukLocale;
   const [loading, setLoading] = useState(false);
   const [nextLesson, setNextLesson] = useState<NextLesson | null>(null);
   const [lastHomework, setLastHomework] = useState<LastHomework | null>(null);
   const [unpaidCount, setUnpaidCount] = useState(0);
+  const [rateSource, setRateSource] = useState<string | null>(null);
   const [contact, setContact] = useState<{ name: string; email: string | null; phone: string | null } | null>(null);
 
   useEffect(() => {
@@ -48,6 +54,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
       setNextLesson(null);
       setLastHomework(null);
       setUnpaidCount(0);
+      setRateSource(null);
       return;
     }
     let cancelled = false;
@@ -66,7 +73,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
         });
       }
       const nowIso = new Date().toISOString();
-      const [nextRes, hwRes, unpaidRes] = await Promise.all([
+      const [nextRes, hwRes, unpaidRes, srcRes] = await Promise.all([
         supabase
           .from("lessons")
           .select("id, starts_at, subject, duration_minutes, lesson_details(student_payment_status)")
@@ -94,6 +101,13 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
           .eq("student_id", studentId)
           .eq("status", "completed")
           .eq("lesson_details.student_payment_status", "unpaid"),
+        supabase
+          .from("student_rates")
+          .select("source")
+          .eq("tutor_id", tutorId)
+          .eq("student_id", studentId)
+          .limit(1)
+          .maybeSingle(),
       ]);
 
       if (cancelled) return;
@@ -132,6 +146,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
       }
 
       setUnpaidCount(unpaidRes.count ?? 0);
+      setRateSource((srcRes.data as any)?.source ?? null);
       setLoading(false);
     })();
 
@@ -139,6 +154,12 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
       cancelled = true;
     };
   }, [tutorId, studentId]);
+
+  // Only the party actually owed sees student-payment status: the manager (hub
+  // receivable) or the independent tutor of record. A hub tutor (rateSource ===
+  // "hub") never sees what the student owes the hub.
+  const canSeePayments =
+    !!viewerIsManager || (viewerId != null && viewerId === tutorId && rateSource !== "hub");
 
   return (
     <div className={cn("flex flex-col gap-4 border-l border-border bg-muted/30 p-4 overflow-y-auto", className)}>
@@ -209,18 +230,20 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
                   <p className="text-[13px] text-muted-foreground">{nextLesson.subject}</p>
                 )}
                 <div className="mt-2 flex items-center gap-1.5">
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-semibold",
-                      nextLesson.student_payment_status === "paid"
-                        ? "border-transparent bg-success/15 text-success"
-                        : "border-transparent bg-warning/15 text-warning"
-                    )}
-                  >
-                    {nextLesson.student_payment_status === "paid"
-                      ? t("chatContext.paid")
-                      : t("chatContext.unpaid")}
-                  </span>
+                  {canSeePayments && (
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full border px-2 py-0.5 text-[13px] font-semibold",
+                        nextLesson.student_payment_status === "paid"
+                          ? "border-transparent bg-success/15 text-success"
+                          : "border-transparent bg-warning/15 text-warning"
+                      )}
+                    >
+                      {nextLesson.student_payment_status === "paid"
+                        ? t("chatContext.paid")
+                        : t("chatContext.unpaid")}
+                    </span>
+                  )}
                   <span className="text-[13px] text-muted-foreground ml-auto">
                     {t("chatContextPanel.openLesson")}
                   </span>
@@ -231,7 +254,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose }: Cha
             )}
           </div>
 
-          {unpaidCount > 0 && (
+          {canSeePayments && unpaidCount > 0 && (
             <div className="rounded-[16px] border border-warning/40 bg-warning/8 p-3">
               <p className="mb-1 text-[13px] font-medium uppercase tracking-wide text-warning">
                 {t("chatContext.debt")}
