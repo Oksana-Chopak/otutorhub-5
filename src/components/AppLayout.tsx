@@ -27,6 +27,7 @@ const routeTitleKey: Record<string, string> = {
   "/onboarding": "nav.setupGuide",
   "/availability": "nav.availability",
   "/feedback-inbox": "feedbackInbox.title",
+  "/marketing": "nav.marketing",
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {

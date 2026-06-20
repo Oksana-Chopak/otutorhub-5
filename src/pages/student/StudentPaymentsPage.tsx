@@ -3,7 +3,8 @@ import { getLocale } from "@/lib/locale";
 import { StudentLayout } from "@/components/student/StudentLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Loader2, Check, Clock, Wallet } from "lucide-react";
+import { Check, Clock, Wallet } from "lucide-react";
+import { SkeletonList } from "@/components/SkeletonCard";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -244,7 +245,7 @@ export default function StudentPaymentsPage() {
         )}
 
         {loading ? (
-          <div className="flex justify-center py-8"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>
+          <SkeletonList count={3} />
         ) : rows.length === 0 ? (
           <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff", fontSize: 14, color: "#6b7088" }}>{t("studentPagesExtra.noLessonsCard")}</div>
         ) : (

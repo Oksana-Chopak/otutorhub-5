@@ -16,6 +16,7 @@ import { Loader2, LogOut, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
+import { SkeletonList } from "@/components/SkeletonCard";
 
 interface MyTutor {
   id: string;
@@ -125,7 +126,7 @@ export default function StudentProfilePage() {
         </h1>
 
         {loading ? (
-          <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin" style={{ color: C.sub }} /></div>
+          <SkeletonList count={3} />
         ) : (
           <>
             {/* Identity card with avatar */}

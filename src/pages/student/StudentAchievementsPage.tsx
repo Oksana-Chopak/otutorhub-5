@@ -3,7 +3,7 @@ import { StudentLayout } from "@/components/student/StudentLayout";
 import { StudentAchievementsGrid } from "@/components/student/StudentAchievementsGrid";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
-import { Loader2 } from "lucide-react";
+import { SkeletonList } from "@/components/SkeletonCard";
 import { useTranslation } from "react-i18next";
 
 export default function StudentAchievementsPage() {
@@ -44,9 +44,7 @@ export default function StudentAchievementsPage() {
         </div>
 
         {loading ? (
-          <div className="flex h-48 items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
+          <SkeletonList count={3} />
         ) : (
           <>
             {/* Hero progress card (dark --grad-income) */}

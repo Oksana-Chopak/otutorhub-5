@@ -124,8 +124,11 @@ export default function MarketingPage() {
   return (
     <AppLayout>
       <div className="container mx-auto max-w-6xl space-y-6 py-6">
-        <div>
-          <h1 className="" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>Email-розсилки</h1>
+        {/* Mobile title comes from AppLayout's sticky header (with bell + burger);
+            show this inline header only on desktop to avoid a duplicate + a header-less
+            (nav-trapped) mobile page. */}
+        <div className="hidden lg:block">
+          <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>Email-розсилки</h1>
           <p className="text-sm text-muted-foreground">Анонси та новини для самостійних репетиторів</p>
         </div>
 
