@@ -176,13 +176,8 @@ export function WalletDialog({
   const handleMarkPaid = async () => {
     if (checkedIds.size === 0) return;
     setMarking(true);
-    const upsertRows = Array.from(checkedIds).map(lid => ({
-      lesson_id: lid,
-      student_payment_status: "paid",
-    }));
-    const { error } = await (supabase as any)
-      .from("lesson_details")
-      .upsert(upsertRows, { onConflict: "lesson_id" });
+    const ids = Array.from(checkedIds);
+    const { error } = await updateLessonDetailsSafeBulk(ids, { student_payment_status: "paid" });
     setMarking(false);
     if (error) { toast.error(t("walletDialog.markFailed")); return; }
     toast.success(t("walletDialog.markedPaid", { count: checkedIds.size }));
