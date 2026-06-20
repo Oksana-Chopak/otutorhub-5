@@ -687,10 +687,7 @@ export default function FinancesPage() {
           .from("lesson_participants")
           .update({ student_payment_status: status, student_paid_at: paidAt })
           .eq("id", lesson.participant_id ?? "")
-      : supabase
-          .from("lesson_details")
-          .update({ student_payment_status: status })
-          .eq("lesson_id", lesson.id);
+      : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
   const togglePayment = async (
     lesson: LessonRow,
