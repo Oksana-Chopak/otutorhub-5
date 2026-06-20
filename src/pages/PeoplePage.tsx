@@ -1033,7 +1033,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-transform active:scale-95"
               style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", color: "#0f0f1a" }}
               onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
-              title={t("people.writeBtn")}
+              aria-label={t("people.writeBtn")}
               aria-label={t("people.writeBtn")}
             >
               <MessageCircle className="h-[21px] w-[21px]" />
@@ -1043,12 +1043,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              className="h-11 w-11 text-muted-foreground hover:text-foreground"
               onClick={(e) => {
                 e.stopPropagation();
                 openEditFor(u);
               }}
-              title={t("people.editContactsBtn")}
+              aria-label={t("people.editContactsBtn")}
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -1059,12 +1059,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-primary"
+                  className="h-11 w-11 text-muted-foreground hover:text-primary"
                   onClick={(e) => {
                     e.stopPropagation();
                     unarchivePerson(u);
                   }}
-                  title={t("people.unarchiveBtn")}
+                  aria-label={t("people.unarchiveBtn")}
                 >
                   <ArchiveRestore className="h-3.5 w-3.5" />
                 </Button>
@@ -1072,12 +1072,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-foreground"
+                  className="h-11 w-11 text-muted-foreground hover:text-foreground"
                   onClick={(e) => {
                     e.stopPropagation();
                     archivePerson(u);
                   }}
-                  title={t("people.archiveBtn")}
+                  aria-label={t("people.archiveBtn")}
                 >
                   <Archive className="h-3.5 w-3.5" />
                 </Button>
@@ -1086,12 +1086,12 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-muted-foreground hover:text-destructive"
+                  className="h-11 w-11 text-muted-foreground hover:text-destructive"
                   onClick={(e) => {
                     e.stopPropagation();
                     purgePerson(u);
                   }}
-                  title={t("people.deleteBtn")}
+                  aria-label={t("people.deleteBtn")}
                 >
                   <FlameKindling className="h-3.5 w-3.5" />
                 </Button>
@@ -1101,7 +1101,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
           <button
             type="button"
             onClick={toggleExpanded}
-            className="ml-0.5 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            className="ml-0.5 inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
             aria-label={isExpanded ? t("people.collapse") : t("people.expand")}
           >
             <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
@@ -1831,10 +1831,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {isManager && !u.archived_at && u.id !== currentUser?.id && (
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#6b7088)" }}
                         onClick={() => archivePerson(u)}
-                        title={t("people.archiveBtn")}
+                        aria-label={t("people.archiveBtn")}
                       >
                         <Archive className="h-4 w-4" />
                       </button>
@@ -1842,10 +1842,10 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {isManager && u.id !== currentUser?.id && u.role !== "manager" && (
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-red-50 transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-red-50 transition-colors"
                         style={{ color: "#E24B4A" }}
                         onClick={() => purgePerson(u)}
-                        title={t("people.deleteBtn")}
+                        aria-label={t("people.deleteBtn")}
                       >
                         <FlameKindling className="h-4 w-4" />
                       </button>
@@ -1853,20 +1853,20 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {isManager && (
                       <button
                         type="button"
-                        className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#6b7088)" }}
                         onClick={() => openEditFor(u)}
-                        title={t("people.editContactsBtn")}
+                        aria-label={t("people.editContactsBtn")}
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                     )}
                     <button
                       type="button"
-                      className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                      className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
                       style={{ color: "var(--sub,#6b7088)" }}
                       onClick={() => setSelectedPerson(null)}
-                      title={t("common.close")}
+                      aria-label={t("common.close")}
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -1925,7 +1925,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                     {isManager && (
                       <button
                         type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                        className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-muted transition-colors"
                         style={{ color: "var(--sub,#6b7088)" }}
                         onClick={() => {
                           setTutorDialog({
@@ -1958,7 +1958,7 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
                           {isManager && (
                             <button
                               type="button"
-                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
                               style={{ color: "var(--sub,#6b7088)" }}
                               onClick={() => openRateFor(r)}
                               aria-label={t("people.actionRate")}

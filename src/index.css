@@ -135,7 +135,13 @@
     --ds-bg: #F5F4F0;
     --ds-surface: #ffffff;
     --ds-txt: #0f0f1a;
-    --ds-sub: #9398b0;
+    /* --sub is the name components actually reference, but it was never defined,
+       so they fell back inconsistently. Defining it here fixes muted-text
+       contrast app-wide: the old fallbacks
+       (#9398b0 = 2.85:1, fails WCAG AA) now resolve to #6b7088 (4.89:1 on white),
+       which also matches the dominant hardcoded grey so the palette unifies. */
+    --sub: #6b7088;
+    --ds-sub: #6b7088;
     --ds-muted: #b0b4c8;
     --ds-border: #eceef3;
   }
