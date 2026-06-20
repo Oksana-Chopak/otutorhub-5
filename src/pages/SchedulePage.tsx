@@ -836,16 +836,22 @@ export default function SchedulePage() {
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert(
-        {
-          lesson_id: lessonId,
-          [field]: value,
-          [paidAtField]: value === "paid" ? new Date().toISOString() : null,
-        } as any,
-        { onConflict: "lesson_id" },
-      );
+    const { error } =
+      field === "student_payment_status"
+        ? await updateLessonDetailsSafe(lessonId, {
+            student_payment_status: value,
+            student_paid_at: value === "paid" ? new Date().toISOString() : null,
+          })
+        : await supabase
+            .from("lesson_details")
+            .upsert(
+              {
+                lesson_id: lessonId,
+                [field]: value,
+                [paidAtField]: value === "paid" ? new Date().toISOString() : null,
+              } as any,
+              { onConflict: "lesson_id" },
+            );
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error(t('schedule.paymentUpdateFailed'));
