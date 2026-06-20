@@ -110,10 +110,7 @@ export function QuickPaymentFab() {
 
   const markPaid = async (id: string) => {
     setBusyId(id);
-    const { error } = await supabase
-      .from("lesson_details")
-      .update({ student_payment_status: "paid" })
-      .eq("lesson_id", id);
+    const { error } = await updateLessonDetailsSafe(id, { student_payment_status: "paid" });
     setBusyId(null);
     if (error) {
       toast.error(t("quickPayment.updateFailed"));
