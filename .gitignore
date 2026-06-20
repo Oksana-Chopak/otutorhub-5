@@ -28,3 +28,6 @@ test-results/
 
 # Generated test artifacts
 playwright-report/
+
+# Vite/Vitest temp config files (created transiently when loading a TS config)
+*.timestamp-*.mjs
