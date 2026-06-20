@@ -713,7 +713,7 @@ export default function FinancesPage() {
     const { error } =
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
-        : await supabase.from("lesson_details").update({ tutor_payout_status: next }).eq("lesson_id", lesson.id);
+        : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>
@@ -746,7 +746,7 @@ export default function FinancesPage() {
         if (field === "student_payment_status") {
           await writeStudentPayment(lesson, lesson.student_payment_status, lesson.student_paid_at);
         } else {
-          await supabase.from("lesson_details").update({ tutor_payout_status: lesson.tutor_payout_status }).eq("lesson_id", lesson.id);
+          await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: lesson.tutor_payout_status });
         }
       };
       // Money IN (student paid the hub) is the manager's most rewarding beat —
@@ -837,7 +837,7 @@ export default function FinancesPage() {
     } else {
       const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
       const res = indIds.length
-        ? await supabase.from("lesson_details").update({ tutor_payout_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+        ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indIds, _status: "paid" })
         : { error: null };
       error = (res as any).error;
     }

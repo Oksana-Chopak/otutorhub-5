@@ -2453,6 +2453,14 @@ export type Database = {
           last_name: string
         }[]
       }
+      set_lesson_tutor_payout_status: {
+        Args: { _lesson_id: string; _status: string }
+        Returns: undefined
+      }
+      set_lesson_tutor_payout_status_bulk: {
+        Args: { _lesson_ids: string[]; _status: string }
+        Returns: undefined
+      }
       set_own_independent_workspace: { Args: never; Returns: undefined }
       start_manager_chat: { Args: never; Returns: string }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
