@@ -280,9 +280,7 @@ export default function SchedulePage() {
       }
     }
     if (Object.keys(detailsPayload).length > 0) {
-      const { error } = await supabase
-        .from("lesson_details")
-        .upsert({ lesson_id: editingLesson.id, ...detailsPayload }, { onConflict: "lesson_id" });
+      const { error } = await updateLessonDetailsSafe(editingLesson.id, detailsPayload);
       if (error) {
         setEditSubmitting(false);
         console.error(error);
