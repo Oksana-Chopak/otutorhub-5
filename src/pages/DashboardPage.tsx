@@ -434,12 +434,10 @@ export default function DashboardPage() {
   };
 
   const markPaymentLessonPaid = async (lessonId: string) => {
-    await supabase
-      .from("lesson_details")
-      .upsert(
-        { lesson_id: lessonId, student_payment_status: "paid", student_paid_at: new Date().toISOString() } as never,
-        { onConflict: "lesson_id" },
-      );
+    await updateLessonDetailsSafe(lessonId, {
+      student_payment_status: "paid",
+      student_paid_at: new Date().toISOString(),
+    });
     setPaymentUnpaid((prev) => prev.filter((l) => l.id !== lessonId));
     loadData();
   };
