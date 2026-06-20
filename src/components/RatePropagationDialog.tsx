@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import {
   AlertDialog,
   AlertDialogAction,
