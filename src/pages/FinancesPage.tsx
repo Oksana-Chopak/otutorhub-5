@@ -825,7 +825,7 @@ export default function FinancesPage() {
       const grpIds = selRows.filter((l) => l.kind === "group").map((l) => l.participant_id!).filter(Boolean);
       const results = await Promise.all([
         indIds.length
-          ? supabase.from("lesson_details").update({ student_payment_status: "paid" as PaymentStatus }).in("lesson_id", indIds)
+          ? updateLessonDetailsSafeBulk(indIds, { student_payment_status: "paid" as PaymentStatus })
           : Promise.resolve({ error: null }),
         grpIds.length
           ? supabase.from("lesson_participants").update({ student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }).in("id", grpIds)
