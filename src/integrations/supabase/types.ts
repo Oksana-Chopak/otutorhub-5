@@ -2462,6 +2462,16 @@ export type Database = {
         Returns: undefined
       }
       set_own_independent_workspace: { Args: never; Returns: undefined }
+      set_tutor_payout_schedule: {
+        Args: {
+          _anchor: string
+          _frequency: string
+          _monthday: number
+          _tutor_id: string
+          _weekday: number
+        }
+        Returns: undefined
+      }
       start_manager_chat: { Args: never; Returns: string }
       tutor_delete_student: { Args: { _student_id: string }; Returns: Json }
       update_my_workspace_settings: {
