@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
