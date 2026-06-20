@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import { createGroupLesson } from "@/lib/groupLessons";
 import { useAuth } from "@/hooks/useAuth";
