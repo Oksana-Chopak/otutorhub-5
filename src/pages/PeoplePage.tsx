@@ -1034,7 +1034,6 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
               style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)", color: "#0f0f1a" }}
               onClick={(e) => { e.stopPropagation(); openChatWith(u.id); }}
               aria-label={t("people.writeBtn")}
-              aria-label={t("people.writeBtn")}
             >
               <MessageCircle className="h-[21px] w-[21px]" />
             </button>
