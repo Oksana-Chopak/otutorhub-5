@@ -346,11 +346,10 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
               created_by: user.id, source: "independent" } as any)
             .select("id").single();
           if (r) {
-            await (supabase.from("lesson_details") as any).upsert(
-              { lesson_id: r.id, student_price: 0, tutor_payout: 0,
-                student_payment_status: "unpaid", tutor_payout_status: "unpaid" },
-              { onConflict: "lesson_id" }
-            );
+            await updateLessonDetailsSafe(r.id, {
+              student_price: 0,
+              student_payment_status: "unpaid",
+            });
           }
         }
       }
