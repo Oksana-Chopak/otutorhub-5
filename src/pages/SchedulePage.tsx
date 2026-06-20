@@ -760,10 +760,18 @@ export default function SchedulePage() {
       return d;
     }).filter((d) => Object.keys(d).length > 1);
     if (detailRows.length > 0) {
-      const { error: detErr } = await supabase
-        .from("lesson_details")
-        .upsert(detailRows, { onConflict: "lesson_id" });
-      if (detErr) console.warn("lesson_details upsert after create failed", detErr);
+      if (isManager) {
+        // Manager writes include tutor_payout/_status — go through the manager RLS policy.
+        const { error: detErr } = await supabase
+          .from("lesson_details")
+          .upsert(detailRows, { onConflict: "lesson_id" });
+        if (detErr) console.warn("lesson_details upsert after create failed", detErr);
+      } else {
+        // Tutor side: route per-row through the safe RPC (whitelisted columns only).
+        await Promise.all(
+          detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any))
+        );
+      }
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
