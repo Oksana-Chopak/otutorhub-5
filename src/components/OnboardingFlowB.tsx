@@ -711,10 +711,9 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
   const togglePaid = async () => {
     if (!lessonId) { setPaid(v => !v); return; }
     setSaving(true);
-    await (supabase.from("lesson_details") as any).upsert(
-      { lesson_id: lessonId, student_payment_status: paid ? "unpaid" : "paid" },
-      { onConflict: "lesson_id" }
-    );
+    await updateLessonDetailsSafe(lessonId, {
+      student_payment_status: paid ? "unpaid" : "paid",
+    });
     setPaid(v => !v);
     setSaving(false);
   };
