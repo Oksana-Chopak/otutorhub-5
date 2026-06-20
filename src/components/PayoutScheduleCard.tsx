@@ -49,21 +49,28 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
 
   const save = async () => {
     setSaving(true);
-    const patch: any = {
-      user_id: tutorId,
-      payout_frequency: freq || null,
-      payout_weekday: freq === "weekly" || freq === "biweekly" ? weekday : null,
-      payout_monthday: freq === "monthly" ? monthday : null,
-    };
-    if (freq === "biweekly") patch.payout_anchor = new Date().toISOString().slice(0, 10);
-    const { error } = await supabase.from("tutor_details").upsert(patch, { onConflict: "user_id" });
+    const wd = freq === "weekly" || freq === "biweekly" ? weekday : null;
+    const md = freq === "monthly" ? monthday : null;
+    const anchor = freq === "biweekly" ? new Date().toISOString().slice(0, 10) : null;
+    const { error } = await supabase.rpc("set_tutor_payout_schedule", {
+      _tutor_id: tutorId,
+      _frequency: freq || null,
+      _weekday: wd,
+      _monthday: md,
+      _anchor: anchor,
+    });
     setSaving(false);
     if (error) {
       toast.error(t("payoutScheduleCard.saveErrorTitle"), { description: error.message });
       return;
     }
     toast.success(t("payoutScheduleCard.saveSuccessTitle"), {
-      description: describePayoutSchedule(patch as PayoutSchedule) ?? t("payoutScheduleCard.noSchedule"),
+      description: describePayoutSchedule({
+        payout_frequency: freq || null,
+        payout_weekday: wd,
+        payout_monthday: md,
+        payout_anchor: anchor,
+      } as PayoutSchedule) ?? t("payoutScheduleCard.noSchedule"),
     });
   };
 
