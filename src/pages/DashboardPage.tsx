@@ -772,16 +772,22 @@ export default function DashboardPage() {
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     if (value === "paid") haptic.success();
     else haptic.tap();
-    const { error } = await supabase
-      .from("lesson_details")
-      .upsert(
-        {
-          lesson_id: lessonId,
-          [field]: value,
-          [paidAtField]: value === "paid" ? new Date().toISOString() : null,
-        } as any,
-        { onConflict: "lesson_id" },
-      );
+    const { error } =
+      field === "student_payment_status"
+        ? await updateLessonDetailsSafe(lessonId, {
+            student_payment_status: value,
+            student_paid_at: value === "paid" ? new Date().toISOString() : null,
+          })
+        : await supabase
+            .from("lesson_details")
+            .upsert(
+              {
+                lesson_id: lessonId,
+                [field]: value,
+                [paidAtField]: value === "paid" ? new Date().toISOString() : null,
+              } as any,
+              { onConflict: "lesson_id" },
+            );
     if (error) {
       setLessons(prevLessons); // revert the optimistic change
       haptic.error();
