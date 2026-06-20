@@ -83,9 +83,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
       const paidRows = rows.filter((r) => state[r.id]?.done && state[r.id]?.paid && !r.paid);
       await Promise.all(
         paidRows.map((r) =>
-          supabase
-            .from("lesson_details")
-            .upsert({ lesson_id: r.id, student_payment_status: "paid" }, { onConflict: "lesson_id" })
+          updateLessonDetailsSafe(r.id, { student_payment_status: "paid" })
         )
       );
       // Closing the whole day in one tap is a real win — celebrate it like the
