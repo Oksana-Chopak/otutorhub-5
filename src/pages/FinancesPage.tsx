@@ -746,7 +746,7 @@ export default function FinancesPage() {
         if (field === "student_payment_status") {
           await writeStudentPayment(lesson, lesson.student_payment_status, lesson.student_paid_at);
         } else {
-          await supabase.from("lesson_details").update({ tutor_payout_status: lesson.tutor_payout_status }).eq("lesson_id", lesson.id);
+          await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: lesson.tutor_payout_status });
         }
       };
       // Money IN (student paid the hub) is the manager's most rewarding beat —
