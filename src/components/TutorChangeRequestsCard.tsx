@@ -196,9 +196,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         return;
       }
 
-      const { error: priceErr } = await supabase
-        .from("lesson_details")
-        .upsert({ lesson_id: lesson.id, student_price: newPrice } as any, { onConflict: "lesson_id" });
+      const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, { student_price: newPrice });
       if (priceErr) {
         setSubmitting(false);
         toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
