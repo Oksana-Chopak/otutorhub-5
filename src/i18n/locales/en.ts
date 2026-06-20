@@ -698,8 +698,8 @@ export const en: LocaleTranslations = {
     colPayout: "Payout",
     colProfit: "Profit",
     groupTag: "Group",
-    noPaidLessonsYet: "No paid lessons yet",
-    noProfitData: "No data for the last 4 weeks yet",
+    noPaidLessonsYet: "Your first payment is on the way ✨",
+    noProfitData: "Data will appear after your first lesson ✨",
     prepayLabel: "Prepayment",
     noPaymentsFiltered: "No payments match this filter 🔎",
     noPaymentsDesc: "Try changing the month, tutor, or type. Completed lessons and prepayments appear here instantly.",
@@ -3139,6 +3139,7 @@ export const en: LocaleTranslations = {
     replyPlaceholder: "Reply to student (e.g. who you recommend)…",
   },
   subscriptionRequestsExtra: {
+    empty: "All quiet 🎉 New requests will show up here.",
     updated: "Status updated",
     tutorFallback: "Tutor",
     msgPlaceholder: "Comment for tutor (optional)",

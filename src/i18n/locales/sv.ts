@@ -470,8 +470,8 @@ export const sv: LocaleTranslations = {
     colPayout: "Utbetalning",
     colProfit: "Vinst",
     groupTag: "Grupp",
-    noPaidLessonsYet: "Inga betalda lektioner ännu",
-    noProfitData: "Ingen data för de senaste 4 veckorna ännu",
+    noPaidLessonsYet: "Din första betalning är på väg ✨",
+    noProfitData: "Data visas efter din första lektion ✨",
     prepayLabel: "Förskott",
     noPaymentsFiltered: "Inga betalningar matchar filtret 🔎",
     noPaymentsDesc: "Försök ändra månad, lärare eller typ. Avslutade lektioner och förskott visas här direkt.",
@@ -3129,6 +3129,7 @@ export const sv: LocaleTranslations = {
     replyPlaceholder: "Svar till elev (t.ex. vem du rekommenderar)…",
   },
   subscriptionRequestsExtra: {
+    empty: "Lugnt just nu 🎉 Nya förfrågningar dyker upp här.",
     updated: "Status uppdaterad",
     tutorFallback: "Lärare",
     msgPlaceholder: "Kommentar för lärare (valfritt)",

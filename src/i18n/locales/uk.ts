@@ -705,8 +705,8 @@ export const uk = {
     colPayout: "Виплата",
     colProfit: "Прибуток",
     groupTag: "Група",
-    noPaidLessonsYet: "Поки немає оплачених уроків",
-    noProfitData: "Поки немає даних за останні 4 тижні",
+    noPaidLessonsYet: "Перший платіж ще попереду ✨",
+    noProfitData: "Дані зʼявляться після першого уроку ✨",
     prepayLabel: "Передоплата",
     noPaymentsFiltered: "За цим фільтром платежів немає 🔎",
     noPaymentsDesc: "Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу.",
@@ -3150,6 +3150,7 @@ export const uk = {
     replyPlaceholder: "Відповідь учневі (наприклад, кого ви рекомендуєте)…",
   },
   subscriptionRequestsExtra: {
+    empty: "Поки тихо 🎉 Нові запити зʼявляться тут.",
     updated: "Статус оновлено",
     tutorFallback: "Репетитор",
     msgPlaceholder: "Коментар для репетитора (опційно)",

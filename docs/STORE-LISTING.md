@@ -91,7 +91,7 @@ Start with a free trial with all features included.
 ## Категорії й вікове обмеження
 - Категорія: **Education** (Освіта). Друга (App Store): Productivity.
 - Вік: 4+ / Everyone (немає чутливого контенту).
-- Контакт підтримки: <твій email>. Privacy URL: https://<домен>/privacy. Terms: https://<домен>/terms.
+- Контакт підтримки: <вкажи email для підтримки>. Privacy URL: https://otutorhub.com/privacy. Terms: https://otutorhub.com/terms.
 
 ## Промо-текст (App Store, ≤170 зн., можна міняти без рев'ю)
 `Новий AI-конспект: учень отримує структуроване резюме уроку автоматично. Спробуй безкоштовно.`

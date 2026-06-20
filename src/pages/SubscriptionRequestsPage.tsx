@@ -148,7 +148,7 @@ export default function SubscriptionRequestsPage() {
         ) : requests.length === 0 ? (
           <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
-              Поки що немає жодного запиту на підписку.
+              {t("subscriptionRequestsExtra.empty")}
             </CardContent>
           </Card>
         ) : (
