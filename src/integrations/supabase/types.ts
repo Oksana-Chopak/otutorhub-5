@@ -2214,7 +2214,6 @@ export type Database = {
       lesson_details_student: {
         Row: {
           created_at: string | null
-          fireflies_summary: string | null
           homework: string | null
           lesson_id: string | null
           student_paid_at: string | null
