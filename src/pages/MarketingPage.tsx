@@ -174,10 +174,10 @@ export default function MarketingPage() {
                   placeholder={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
                   maxLength={100000}
                 />
-                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                   Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
                 </p>
-                <p className="text-[13px] mt-1">
+                <p className="text-[14px] mt-1">
                   Підтримується HTML. Порожній рядок = новий абзац.
                 </p>
               </div>
@@ -233,12 +233,12 @@ export default function MarketingPage() {
                           {isOpen ? <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" /> : <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />}
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
-                            <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                            <div className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                               {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
                             </div>
                           </div>
                         </div>
-                        <div className="text-right text-[13px] shrink-0">
+                        <div className="text-right text-[14px] shrink-0">
                           <div className="font-semibold">
                             {c.recipients_sent}/{c.recipients_total}
                             {c.recipients_failed > 0 && <span className="text-destructive"> ({c.recipients_failed} помилок)</span>}
@@ -250,7 +250,7 @@ export default function MarketingPage() {
                       {isOpen && (
                         <div className="border-t bg-muted/20 p-3 space-y-3">
                           <div>
-                            <div className="text-[13px] font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
+                            <div className="text-[14px] font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
                             <iframe
                               srcDoc={c.html_body}
                               sandbox=""
@@ -260,21 +260,21 @@ export default function MarketingPage() {
                           </div>
 
                           <div>
-                            <div className="text-[13px] font-semibold text-muted-foreground mb-1">
+                            <div className="text-[14px] font-semibold text-muted-foreground mb-1">
                               Помилки доставки ({errs.length})
                             </div>
                             {errs.length === 0 ? (
                               c.recipients_failed > 0 ? (
-                                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                                <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                                   Деталі помилок не збережені для цієї розсилки (старі дані). Нові розсилки будуть писати деталі сюди.
                                 </p>
                               ) : (
-                                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>Усі листи доставлено.</p>
+                                <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>Усі листи доставлено.</p>
                               )
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">
                                 {errs.map((e, i) => (
-                                  <div key={i} className="rounded border bg-background p-2 text-[13px]">
+                                  <div key={i} className="rounded border bg-background p-2 text-[14px]">
                                     <div className="flex items-center justify-between gap-2">
                                       <span className="font-mono truncate">{e.email}</span>
                                       {e.status != null && (

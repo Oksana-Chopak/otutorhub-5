@@ -97,7 +97,7 @@ export default function FeedbackInboxPage() {
             return (
               <button key={key} type="button" onClick={() => setFilter(key as any)}
                 style={{ height: 34, padding: "0 14px", borderRadius: 999, cursor: "pointer",
-                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                   background: on ? "#f0fdf9" : "#fff",
                   border: `1.5px solid ${on ? "#2BBFAA" : "#eceef3"}`,
                   color: on ? "#1f8e7e" : "#9398b0" }}>
@@ -154,7 +154,7 @@ export default function FeedbackInboxPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
                           {r.user_id ? (names[r.user_id] ?? "…") : t("feedbackInbox.anonymous")}
                         </p>
-                        <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                        <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                           <span style={{ color: cat.color, fontWeight: 700 }}>{t(`feedbackInbox.category_${r.category}`)}</span>
                           {" · "}{new Date(r.created_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
                           {r.rating ? ` · ${"★".repeat(r.rating)}` : ""}
@@ -162,7 +162,7 @@ export default function FeedbackInboxPage() {
                       </div>
                     </div>
                     {r.status === "new" && (
-                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center" }}>NEW</span>
+                      <span style={{ flexShrink: 0, height: 22, padding: "0 9px", borderRadius: 999, background: "rgba(43,191,170,.15)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center" }}>NEW</span>
                     )}
                   </div>
 
@@ -170,26 +170,26 @@ export default function FeedbackInboxPage() {
                     {r.message}
                   </p>
                   {r.page_url && (
-                    <p className="mt-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{r.page_url}</p>
+                    <p className="mt-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{r.page_url}</p>
                   )}
 
                   {!resolved && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {r.status !== "in_progress" && (
                         <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "in_progress")}
-                          style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "#b4740b", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
+                          style={{ height: 36, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: "1px solid rgba(245,158,11,.35)", background: "rgba(245,158,11,.12)", color: "#b4740b", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                           {t("feedbackInbox.takeInProgress")}
                         </button>
                       )}
                       <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "resolved")}
-                        style={{ height: 36, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
+                        style={{ height: 36, padding: "0 14px", borderRadius: 10, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, display: "inline-flex", alignItems: "center", gap: 6, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                         <Check className="h-3.5 w-3.5" /> {t("feedbackInbox.markResolved")}
                       </button>
                     </div>
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
-                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
+                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                       {t("feedbackInbox.reopen")}
                     </button>
                   )}

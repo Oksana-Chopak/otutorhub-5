@@ -327,19 +327,19 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       {nameOf(req.student_id)} ·{" "}
                       <span className="text-muted-foreground">{lesson.subject}</span>
                     </p>
-                    <p className="text-[13px] text-muted-foreground">
+                    <p className="text-[14px] text-muted-foreground">
                       Урок: {lessonDate}
                       {proposedDate && t("tutorChangeRequestsExtra.proposedTime", { time: proposedDate })}
                     </p>
                     {req.reason && (
-                      <p className="mt-1 text-[13px] text-foreground/80 italic">
+                      <p className="mt-1 text-[14px] text-foreground/80 italic">
                         «{req.reason}»
                       </p>
                     )}
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <Badge variant="secondary" className="text-[13px]">
+                  <Badge variant="secondary" className="text-[14px]">
                     {req.kind === "cancel" ? t("tutorChangeRequestsExtra.kindCancel") : t("tutorChangeRequestsExtra.kindReschedule")}
                   </Badge>
                   <Button size="sm" onClick={() => openRequest(req)}>
@@ -372,7 +372,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
               {active.reason && (
                 <div className="rounded-lg bg-muted/40 p-3 text-sm">
-                  <p className="text-[13px] text-muted-foreground mb-1">{t("tutorChangeRequestsExtra.studentComment")}</p>
+                  <p className="text-[14px] text-muted-foreground mb-1">{t("tutorChangeRequestsExtra.studentComment")}</p>
                   <p className="text-foreground italic">«{active.reason}»</p>
                 </div>
               )}
@@ -381,7 +381,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                 <div className="space-y-3">
                   <div
                     className={cn(
-                      "rounded-lg border p-3 text-[13px]",
+                      "rounded-lg border p-3 text-[14px]",
                       isLate
                         ? "border-warning/40 bg-warning/10 text-warning"
                         : "border-success/30 bg-success/5 text-success"
@@ -426,7 +426,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                         <RadioGroupItem value={opt.value} className="mt-0.5" />
                         <div className="min-w-0">
                           <p className="font-medium text-foreground">{opt.title}</p>
-                          <p className="text-[13px] text-muted-foreground">{opt.desc}</p>
+                          <p className="text-[14px] text-muted-foreground">{opt.desc}</p>
                         </div>
                       </label>
                     ))}
@@ -458,7 +458,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     onChange={(e) => setProposedAt(e.target.value)}
                   />
                   {active.proposed_starts_at && (
-                    <p className="text-[13px] text-muted-foreground">
+                    <p className="text-[14px] text-muted-foreground">
                       Учень запропонував:{" "}
                       {format(new Date(active.proposed_starts_at), "d MMMM, HH:mm", {
                         locale: uk,

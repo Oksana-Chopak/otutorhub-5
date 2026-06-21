@@ -809,7 +809,7 @@ export default function ChatsPage() {
             <MessageSquare className="h-5 w-5 text-primary" />
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
-          <p className="mx-auto mt-2 max-w-md text-[13px] text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-md text-[14px] text-muted-foreground">
             {isManager ? t("chats.noChatsManager") : t("chats.noChatsOther")}
           </p>
           {/* Managers can have zero chats and still need to start one — give the
@@ -848,7 +848,7 @@ export default function ChatsPage() {
                   <p className="hidden lg:block font-black text-[20px] leading-tight" style={{ fontFamily: "Inter, system-ui" }}>
                     {t("chats.title")}
                   </p>
-                  <p className="hidden lg:block text-[13px] mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
+                  <p className="hidden lg:block text-[14px] mt-0.5" style={{ color: "var(--sub,#6b7088)" }}>
                     {isManager
                       ? t("chats.activeDialogsCount", { count: threads.length })
                       : t("chats.pageSubtitleOther")}
@@ -860,7 +860,7 @@ export default function ChatsPage() {
                 {isManager && (
                   <button
                     onClick={openNewChatDialog}
-                    className="hidden lg:flex items-center gap-1.5 h-11 px-3.5 rounded-full font-bold text-[13px] flex-shrink-0 transition-opacity active:opacity-80"
+                    className="hidden lg:flex items-center gap-1.5 h-11 px-3.5 rounded-full font-bold text-[14px] flex-shrink-0 transition-opacity active:opacity-80"
                     style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -893,7 +893,7 @@ export default function ChatsPage() {
                   <button
                     key={mode}
                     onClick={() => setSortMode(mode)}
-                    className="flex-1 h-7 rounded-[8px] text-[13px] font-bold transition-all"
+                    className="flex-1 h-7 rounded-[8px] text-[14px] font-bold transition-all"
                     style={
                       sortMode === mode
                         ? { background: "#fff", color: "var(--txt,#0f0f1a)", boxShadow: "0 1px 3px rgba(15,15,26,.1)", fontFamily: "Inter, system-ui" }
@@ -918,12 +918,12 @@ export default function ChatsPage() {
                     {search ? t("chats.noResults") : t("chats.noChats")}
                   </p>
                   {!search && !isManager && (
-                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("chats.searchHint")}
                     </p>
                   )}
                   {!search && isManager && (
-                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("chats.managerStartHint")}
                     </p>
                   )}
@@ -963,13 +963,13 @@ export default function ChatsPage() {
                             >
                               {tName}
                             </p>
-                            <span className="text-[13px] flex-shrink-0" style={{ color: "var(--sub,#6b7088)" }}>
+                            <span className="text-[14px] flex-shrink-0" style={{ color: "var(--sub,#6b7088)" }}>
                               {timeShort(thread.last_message_at)}
                             </span>
                           </div>
                           <div className="flex items-center justify-between gap-2 mt-0.5">
                             <p
-                              className="text-[13px] truncate"
+                              className="text-[14px] truncate"
                               style={{
                                 color: isUnread ? "#0f0f1a" : "#9398b0",
                                 fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
@@ -981,7 +981,7 @@ export default function ChatsPage() {
                             {isUnread && (
                               <span
                                 className="flex items-center justify-center flex-shrink-0"
-                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 13 }}
+                                style={{ minWidth: 21, height: 21, padding: "0 6px", borderRadius: 999, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 14 }}
                               >
                                 {unreadDotFor(thread)}
                               </span>
@@ -997,7 +997,7 @@ export default function ChatsPage() {
                           style={{ borderTop: "1px solid #f3f4f8" }}
                         >
                           <span
-                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[13px] font-bold"
+                            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[14px] font-bold"
                             style={{
                               fontFamily: "Inter, system-ui",
                               background: thread.ctx.kind === "debt" ? "rgba(245,158,11,.12)" : thread.ctx.kind === "lesson" ? "rgba(43,191,170,.12)" : "rgba(37,99,235,.1)",
@@ -1008,12 +1008,12 @@ export default function ChatsPage() {
                             {thread.ctx.text}
                           </span>
                           {thread.ctx.kind === "debt" && (
-                            <span className="ml-auto text-[13px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
+                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "#B4740B", fontFamily: "Inter, system-ui" }}>
                               {t("chats.remindArrow")}
                             </span>
                           )}
                           {thread.ctx.kind === "new" && (
-                            <span className="ml-auto text-[13px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
+                            <span className="ml-auto text-[14px] font-bold whitespace-nowrap" style={{ color: "#2563eb", fontFamily: "Inter, system-ui" }}>
                               {t("chats.createLessonArrow")}
                             </span>
                           )}
@@ -1050,7 +1050,7 @@ export default function ChatsPage() {
                   </button>
 
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[13px] flex-shrink-0"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-[14px] flex-shrink-0"
                     style={{ background: avatarGradient(counterpartName(selectedThread)), fontFamily: "Inter, system-ui" }}
                   >
                     {computeInitials(counterpartName(selectedThread))}
@@ -1069,7 +1069,7 @@ export default function ChatsPage() {
                       </button>
                       {isManager && (
                         <span
-                          className="inline-flex items-center gap-1 text-[13px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
+                          className="inline-flex items-center gap-1 text-[14px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full flex-shrink-0"
                           style={{ background: "rgba(245,158,11,.15)", color: "#b45309", border: "1px solid rgba(245,158,11,.3)" }}
                         >
                           <ShieldCheck className="h-2.5 w-2.5" />
@@ -1078,11 +1078,11 @@ export default function ChatsPage() {
                       )}
                     </div>
                     {isManager ? (
-                      <p className="text-[13px] truncate" style={{ color: "var(--sub,#6b7088)" }}>
+                      <p className="text-[14px] truncate" style={{ color: "var(--sub,#6b7088)" }}>
                         {t("chats.centerThreadSubtitle", { name: fullName(profiles[selectedThread.tutor_id]) })}
                       </p>
                     ) : (
-                      <p className="text-[13px] font-semibold" style={{ color: "hsl(var(--success))" }}>
+                      <p className="text-[14px] font-semibold" style={{ color: "hsl(var(--success))" }}>
                         {t("chats.online")}
                       </p>
                     )}
@@ -1111,7 +1111,7 @@ export default function ChatsPage() {
                   {selectedThread && !showArchived[selectedThread.id] && messages.length > 0 && (
                     <div className="flex justify-center mb-4">
                       <button
-                        className="px-3 py-1 rounded-full text-[13px] transition-colors hover:bg-black/5"
+                        className="px-3 py-1 rounded-full text-[14px] transition-colors hover:bg-black/5"
                         style={{ color: "var(--sub,#6b7088)" }}
                         onClick={() =>
                           setShowArchived((prev) => ({ ...prev, [selectedThread.id]: true }))
@@ -1127,14 +1127,14 @@ export default function ChatsPage() {
                       <button
                         type="button"
                         onClick={() => setMsgLimit((l) => l + 50)}
-                        className="rounded-full border border-border bg-card px-4 py-1.5 text-[13px] font-medium text-muted-foreground hover:text-foreground"
+                        className="rounded-full border border-border bg-card px-4 py-1.5 text-[14px] font-medium text-muted-foreground hover:text-foreground"
                       >
                         {t("chats.loadEarlier")}
                       </button>
                     </div>
                   )}
                   {messages.length === 0 ? (
-                    <p className="text-center text-[13px] py-8" style={{ color: "var(--sub,#6b7088)" }}>
+                    <p className="text-center text-[14px] py-8" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("chats.noMessagesYet")}
                     </p>
                   ) : (
@@ -1153,7 +1153,7 @@ export default function ChatsPage() {
                           {showDateSep && (
                             <div className="flex justify-center my-4">
                               <span
-                                className="px-3 py-1 rounded-full text-[13px] font-semibold"
+                                className="px-3 py-1 rounded-full text-[14px] font-semibold"
                                 style={{
                                   background: "rgba(15,15,26,.08)",
                                   color: "var(--sub,#6b7088)",
@@ -1174,7 +1174,7 @@ export default function ChatsPage() {
                             {/* Sender name for manager threads (not mine) */}
                             {!mine && isManager && (
                               <p
-                                className="text-[13px] mb-1 px-3 truncate max-w-[75%]"
+                                className="text-[14px] mb-1 px-3 truncate max-w-[75%]"
                                 style={{
                                   color: senderIsManager ? "#b45309" : "var(--sub,#9398b0)",
                                   fontFamily: "Inter, system-ui",
@@ -1216,7 +1216,7 @@ export default function ChatsPage() {
                               {/* ЦЕНТР badge for manager sender */}
                               {!mine && senderIsManager && (
                                 <span
-                                  className="inline-flex items-center gap-1 text-[13px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
+                                  className="inline-flex items-center gap-1 text-[14px] font-bold uppercase tracking-wide mb-1.5 px-1.5 py-0.5 rounded-full"
                                   style={{
                                     background: "rgba(245,158,11,.18)",
                                     color: "#b45309",
@@ -1247,14 +1247,14 @@ export default function ChatsPage() {
 
                               <div className="flex items-center justify-end gap-1 mt-1">
                                 <span
-                                  className="text-[13px]"
+                                  className="text-[14px]"
                                   style={{ color: mine ? "rgba(255,255,255,0.6)" : "var(--muted,#b0b4c8)" }}
                                 >
                                   {timeShort(m.created_at)}
                                 </span>
                                 {mine && (
                                   <span
-                                    className="text-[13px]"
+                                    className="text-[14px]"
                                     style={{ color: readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id]) ? "#bdfaee" : "rgba(255,255,255,0.5)" }}
                                   >
                                     {readMap[selectedThread.id] && new Date(m.created_at) <= new Date(readMap[selectedThread.id])
@@ -1304,7 +1304,7 @@ export default function ChatsPage() {
                             ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString(getLocale()) })
                             : t("chats.smartCreateFirstLesson")}
                         </p>
-                        <p className="text-[13px] truncate" style={{ color: "var(--sub,#6b7088)" }}>
+                        <p className="text-[14px] truncate" style={{ color: "var(--sub,#6b7088)" }}>
                           {selectedThread.ctx.kind === "debt"
                             ? t("chats.smartLessonsAwaitingPayment", { count: selectedThread.ctx.count ?? 0 })
                             : t("chats.smartNoLessonsYet", { name: counterpartName(selectedThread) })}
@@ -1319,7 +1319,7 @@ export default function ChatsPage() {
                             window.location.href = "/schedule";
                           }
                         }}
-                        className="flex-shrink-0 rounded-[10px] px-3.5 h-[34px] text-[13px] font-bold text-white"
+                        className="flex-shrink-0 rounded-[10px] px-3.5 h-[34px] text-[14px] font-bold text-white"
                         style={{
                           fontFamily: "Inter, system-ui",
                           background: selectedThread.ctx.kind === "debt"
@@ -1341,7 +1341,7 @@ export default function ChatsPage() {
                 {/* Pending file preview */}
                 {pendingFile && (
                   <div
-                    className="flex items-center gap-2 px-3 py-2 text-[13px] flex-shrink-0"
+                    className="flex items-center gap-2 px-3 py-2 text-[14px] flex-shrink-0"
                     style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}
                   >
                     <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
@@ -1436,7 +1436,7 @@ export default function ChatsPage() {
                 </form>
               </>
             ) : (
-              <div className="flex flex-1 items-center justify-center text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+              <div className="flex flex-1 items-center justify-center text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                 {t("chats.selectChat")}
               </div>
             )}
@@ -1461,7 +1461,7 @@ export default function ChatsPage() {
                 </>
               ) : (
                 <div
-                  className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[13px]"
+                  className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[14px]"
                   style={{ color: "var(--sub,#6b7088)" }}
                 >
                   <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
@@ -1538,7 +1538,7 @@ export default function ChatsPage() {
                   const existing = threads.find((t) => t.tutor_id === tId && t.student_id === sId);
                   if (!existing) return null;
                   return (
-                    <p className="text-[13px] text-warning">{t("chats.chatExistsWarning")}</p>
+                    <p className="text-[14px] text-warning">{t("chats.chatExistsWarning")}</p>
                   );
                 })()}
               </>

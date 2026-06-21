@@ -307,7 +307,7 @@ export default function SubscriptionPage() {
 
   const tealRing = "rgba(43,191,170,.28)";
   const Label = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
+    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
   );
 
   return (
@@ -315,7 +315,7 @@ export default function SubscriptionPage() {
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
-          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
+          <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub }}>{t("subscriptionPage.kicker") || "Підписка"}</div>
           <h1 style={{ fontFamily: S.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>{t("subscriptionPageExtra.pageTitle")}</h1>
         </div>
 
@@ -323,21 +323,21 @@ export default function SubscriptionPage() {
           {/* ── Trial hero (dark) ─────────────────────────────────────────── */}
           <div style={{ position: "relative", overflow: "hidden", borderRadius: 22, padding: 22, background: S.gradIncome, color: "#fff", boxShadow: "0 18px 44px -22px rgba(15,15,26,.7)" }}>
             {earlyBirdLeft !== null && (
-              <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 13, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
+              <div style={{ position: "absolute", top: 14, right: 14, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, padding: "5px 11px", fontFamily: S.display, fontWeight: 700, fontSize: 14, background: "rgba(245,181,68,.18)", color: "#F5B400" }}>
                 {t("subscriptionPageExtra.earlyBirdLeft", { count: earlyBirdLeft })}
               </div>
             )}
             {isActive ? (
               <>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>{t("subscriptionPageExtra.heroActiveTitle")}</div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
+                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
                 {!nativeApp && settings?.liqpay_recurring_active && (
                   <button
                     type="button"
                     onClick={cancelSubscription}
                     disabled={cancelling}
-                    style={{ marginTop: 14, height: 40, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.22)", background: "transparent", color: "rgba(255,255,255,.85)", fontFamily: S.display, fontWeight: 600, fontSize: 13.5, cursor: cancelling ? "default" : "pointer" }}
+                    style={{ marginTop: 14, height: 40, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.22)", background: "transparent", color: "rgba(255,255,255,.85)", fontFamily: S.display, fontWeight: 600, fontSize: 14.5, cursor: cancelling ? "default" : "pointer" }}
                   >
                     {cancelling ? "…" : t("subscriptionPageExtra.cancelBtn")}
                   </button>
@@ -345,22 +345,22 @@ export default function SubscriptionPage() {
               </>
             ) : isTrial ? (
               <>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroTrialEyebrow")}</div>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroTrialEyebrow")}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 8 }}>
                   <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 40, letterSpacing: "-.02em", color: S.teal }}>{Math.max(0, trialDaysLeft ?? 0)}</span>
                   <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 17, color: "#fff" }}>{t("subscriptionPageExtra.daysOfSubscription")}</span>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,.6)" }}>{t("subscriptionPageExtra.remaining")}</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,.6)" }}>{t("subscriptionPageExtra.remaining")}</span>
                 </div>
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             ) : (
               <>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>{t("subscriptionPageExtra.heroFreeTitle")}</div>
-                <div style={{ fontSize: 13.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             )}
           </div>
@@ -374,9 +374,9 @@ export default function SubscriptionPage() {
                   const on = billing === o.v;
                   const price = o.v === "yearly" ? iapOffer.yearlyPrice : iapOffer.monthlyPrice;
                   return (
-                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, lineHeight: 1.25, background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 10px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, lineHeight: 1.25, background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>
                       <div>{o.l}</div>
-                      {price && <div style={{ fontSize: 13, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
+                      {price && <div style={{ fontSize: 14, color: on ? S.tealD : S.muted, marginTop: 1 }}>{price}</div>}
                     </button>
                   );
                 })}
@@ -387,11 +387,11 @@ export default function SubscriptionPage() {
                 {t("subscriptionPageExtra.subscribeBtn")}
               </button>
               <button onClick={handleIapRestore} disabled={iapBusy !== null}
-                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 13.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 {iapBusy === "restore" && <Loader2 size={15} className="animate-spin" />}
                 {t("subscriptionPageExtra.restorePurchases")}
               </button>
-              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
+              <div style={{ fontSize: 14, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
                 {t("subscriptionPageExtra.appStoreNote")}
               </div>
             </div>
@@ -404,22 +404,22 @@ export default function SubscriptionPage() {
                 <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</span>
                 <span>
                   <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 28, color: S.tealD }}>{proPrice}</span>
-                  <span style={{ fontSize: 13, color: S.sub }}> {t("subscriptionPageExtra.perMonthUnit")}</span>
+                  <span style={{ fontSize: 14, color: S.sub }}> {t("subscriptionPageExtra.perMonthUnit")}</span>
                 </span>
               </div>
               {billing === "yearly" && (
-                <div style={{ fontSize: 13, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.yearlyTotalNote", { total: PRO_PRICE_YEARLY_TOTAL })}</div>
+                <div style={{ fontSize: 14, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.yearlyTotalNote", { total: PRO_PRICE_YEARLY_TOTAL })}</div>
               )}
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearlyDiscount") }]).map((o) => {
                   const on = billing === o.v;
                   return (
-                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 13, whiteSpace: "nowrap", background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
+                    <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
                   );
                 })}
               </div>
               <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
-              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 8 }}>{t("subscriptionPageExtra.liqPayNote")}</div>
+              <div style={{ fontSize: 14, color: S.muted, textAlign: "center", marginTop: 8 }}>{t("subscriptionPageExtra.liqPayNote")}</div>
             </div>
           )}
 
@@ -427,7 +427,7 @@ export default function SubscriptionPage() {
           {!isActive && !nativeApp && (
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "0 4px" }}>
               <div style={{ flex: 1, height: 1, background: S.border }} />
-              <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13, color: S.muted }}>{t("subscriptionPageExtra.orDontPay")}</span>
+              <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, color: S.muted }}>{t("subscriptionPageExtra.orDontPay")}</span>
               <div style={{ flex: 1, height: 1, background: S.border }} />
             </div>
           )}
@@ -440,7 +440,7 @@ export default function SubscriptionPage() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15.5 }}>{t("subscriptionPageExtra.inviteTitle")}</div>
-                <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
+                <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
               </div>
             </div>
             <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -458,7 +458,7 @@ export default function SubscriptionPage() {
                     <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{b.e}</div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14.5 }}>{b.t}</div>
-                      <div style={{ fontSize: 13, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
+                      <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
                     </div>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ export default function SubscriptionPage() {
                 </div>
                 <div style={{ flex: 1 }}><div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 15 }}>{t("subscriptionPageExtra.cardNotWorkingTitle")}</div></div>
               </div>
-              <div style={{ fontSize: 13, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>{t("subscriptionPageExtra.cardNotWorkingDesc")}</div>
+              <div style={{ fontSize: 14, color: S.sub, margin: "8px 0 12px", lineHeight: 1.45 }}>{t("subscriptionPageExtra.cardNotWorkingDesc")}</div>
               <button onClick={handleUpgrade} disabled={!!pendingRequest} style={{ width: "100%", height: 44, borderRadius: 12, border: "none", cursor: pendingRequest ? "default" : "pointer", background: "rgba(15,15,26,.05)", color: S.txt, fontFamily: S.display, fontWeight: 700, fontSize: 15, opacity: pendingRequest ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <Headset size={18} /> {pendingRequest ? t("subscriptionPageExtra.requestPending") : t("subscriptionPageExtra.contactManager")}
               </button>
@@ -489,15 +489,15 @@ export default function SubscriptionPage() {
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                       <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
                         <StatusIcon className={cn("h-4 w-4", latestRequest.status === "in_progress" && "animate-spin")} style={{ color: S.tealD }} />
-                        <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 13 }}>{t("subscriptionPageExtra.yourRequest")}</span>
+                        <span style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14 }}>{t("subscriptionPageExtra.yourRequest")}</span>
                       </span>
                       <Badge variant={meta.tone}>{meta.label}</Badge>
                     </div>
-                    {meta.description && <p style={{ fontSize: 13, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
+                    {meta.description && <p style={{ fontSize: 14, color: S.sub, marginTop: 6, lineHeight: 1.4 }}>{meta.description}</p>}
                     {latestRequest.manager_response && (
                       <div style={{ marginTop: 8, borderRadius: 10, border: `1px solid ${S.border}`, padding: 10 }}>
-                        <div style={{ fontSize: 13, color: S.sub, marginBottom: 2 }}>{t("subscriptionPageExtra.managerResponse")}</div>
-                        <p style={{ fontSize: 13, color: S.txt }}>{latestRequest.manager_response}</p>
+                        <div style={{ fontSize: 14, color: S.sub, marginBottom: 2 }}>{t("subscriptionPageExtra.managerResponse")}</div>
+                        <p style={{ fontSize: 14, color: S.txt }}>{latestRequest.manager_response}</p>
                       </div>
                     )}
                     {(latestRequest.status === "completed" || latestRequest.status === "rejected") && (

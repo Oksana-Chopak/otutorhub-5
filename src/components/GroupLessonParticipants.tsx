@@ -110,10 +110,10 @@ export function GroupLessonParticipants({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0" }}>
+        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0" }}>
           {t("groupPayments.title")}
         </p>
-        <span style={{ fontSize: 13, fontWeight: 700, color: paidCount === rows.length ? "#16a34a" : "#9a6a12" }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: paidCount === rows.length ? "#16a34a" : "#9a6a12" }}>
           {t("groupPayments.paidOfTotal", { paid: paidCount, total: rows.length })}
         </span>
       </div>
@@ -124,7 +124,7 @@ export function GroupLessonParticipants({
             <li key={p.id} className="flex items-center gap-2 rounded-[13px] border border-border bg-white px-3 py-2.5">
               <div className="min-w-0 flex-1">
                 <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</p>
-                <p style={{ fontSize: 13, color: "var(--sub,#6b7088)" }}>
+                <p style={{ fontSize: 14, color: "var(--sub,#6b7088)" }}>
                   {p.student_price != null ? `${p.student_price} ${currencySymbol(p.currency)}` : t("groupPayments.noPrice")}
                 </p>
               </div>
@@ -134,7 +134,7 @@ export function GroupLessonParticipants({
                 onClick={() => togglePaid(p)}
                 style={{
                   flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, cursor: canEdit ? "pointer" : "default",
-                  display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13.5,
+                  display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14.5,
                   border: "none",
                   background: paid ? "rgba(34,197,94,.16)" : "rgba(245,181,68,.16)",
                   color: paid ? "#15803d" : "#9a6a12",

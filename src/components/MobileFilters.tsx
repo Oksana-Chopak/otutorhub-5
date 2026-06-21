@@ -58,7 +58,7 @@ export function MobileFilters({
             >
               {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
               {activeCount > 0 && !open && (
-                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[13px] font-semibold text-primary-foreground shadow-sm">
+                <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[14px] font-semibold text-primary-foreground shadow-sm">
                   {activeCount}
                 </span>
               )}
@@ -74,7 +74,7 @@ export function MobileFilters({
                 {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
                 {t("filters.label")}
                 {activeCount > 0 && (
-                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[13px] font-semibold text-primary-foreground">
+                  <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[14px] font-semibold text-primary-foreground">
                     {activeCount}
                   </span>
                 )}

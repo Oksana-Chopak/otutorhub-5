@@ -23,7 +23,7 @@ export function WalletBadge({ lessons, amount, onClick, className }: WalletBadge
       type={onClick ? "button" : undefined}
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[13px] font-medium transition-colors",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[14px] font-medium transition-colors",
         hasAny
           ? "bg-primary/10 text-primary hover:bg-primary/20"
           : "bg-muted text-muted-foreground hover:bg-muted/80",

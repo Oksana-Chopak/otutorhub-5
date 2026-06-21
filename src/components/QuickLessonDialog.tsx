@@ -448,13 +448,13 @@ export function QuickLessonDialog({
                 <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
+                      <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: F.display, fontWeight: 700, whiteSpace: "nowrap" }}>{heroDate}</div>
                       <div style={{ fontFamily: F.display, fontWeight: 800, fontSize: 30, letterSpacing: "-.02em", marginTop: 2 }}>{heroTime}</div>
                     </div>
                     <button type="button" onClick={() => setTimeEditOpen((v) => !v)}
                       style={{ height: 40, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", flexShrink: 0,
                         background: timeEditOpen ? "rgba(43,191,170,.35)" : "rgba(255,255,255,.14)", color: "#fff",
-                        fontFamily: F.display, fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        fontFamily: F.display, fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <Clock size={16} /> {t("quickLessonDialog.changeTimeBtn")}
                     </button>
                   </div>
@@ -497,7 +497,7 @@ export function QuickLessonDialog({
                         border: `1.5px solid ${repeatWeeks > 0 ? F.teal : F.border}`,
                         background: repeatWeeks > 0 ? F.tealL : F.surface,
                         color: repeatWeeks > 0 ? F.tealD : F.sub,
-                        fontFamily: F.display, fontWeight: 700, fontSize: 13.5,
+                        fontFamily: F.display, fontWeight: 700, fontSize: 14.5,
                         display: "inline-flex", alignItems: "center", gap: 6 }}>
                       🔁 {t("quickLessonDialog.weeklyToggle")}
                     </button>
@@ -507,12 +507,12 @@ export function QuickLessonDialog({
                           border: `1.5px solid ${repeatWeeks === n ? F.teal : F.border}`,
                           background: repeatWeeks === n ? F.tealL : F.surface,
                           color: repeatWeeks === n ? F.tealD : F.txt,
-                          fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
                         ×{n}
                       </button>
                     ))}
                     {repeatWeeks > 0 && (
-                      <span style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>
+                      <span style={{ fontSize: 14, color: F.muted, fontFamily: F.body }}>
                         {t("quickLessonDialog.weeksInARow", { count: repeatWeeks })}
                       </span>
                     )}
@@ -527,7 +527,7 @@ export function QuickLessonDialog({
                         style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
                           background: mode === m ? F.surface : "transparent",
                           boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.06)" : "none",
-                          fontFamily: F.display, fontWeight: 700, fontSize: 13.5,
+                          fontFamily: F.display, fontWeight: 700, fontSize: 14.5,
                           color: mode === m ? F.txt : F.sub }}>
                         {l}
                       </button>
@@ -555,7 +555,7 @@ export function QuickLessonDialog({
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt,
                               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
-                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{s.subject} · {formatPrice(s.price, s.currency)}</div>
+                            <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>{s.subject} · {formatPrice(s.price, s.currency)}</div>
                           </div>
                           <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
                             border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -591,7 +591,7 @@ export function QuickLessonDialog({
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt }}>{g.name}</div>
-                            <div style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{g.subject} · {g.participants.length} {t("quickLessonDialog.studentsShort")}</div>
+                            <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>{g.subject} · {g.participants.length} {t("quickLessonDialog.studentsShort")}</div>
                           </div>
                           <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
                             border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -607,7 +607,7 @@ export function QuickLessonDialog({
                 {effStartsAt && onWantFullForm && mode === "individual" && (
                   <button onClick={() => { onOpenChange(false); onWantFullForm!(effStartsAt!); }}
                     style={{ alignSelf: "center", background: "transparent", border: "none", cursor: "pointer",
-                      fontFamily: F.display, fontWeight: 700, fontSize: 13.5, color: F.sub, padding: "2px 8px" }}>
+                      fontFamily: F.display, fontWeight: 700, fontSize: 14.5, color: F.sub, padding: "2px 8px" }}>
                     {t("quickLessonDialog.openFullEditor")} →
                   </button>
                 )}

@@ -127,7 +127,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
   const focusOff = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.target.style.borderColor = F.border; e.target.style.boxShadow = "none"; e.target.style.background = F.bg;
   };
-  const lbl: React.CSSProperties = { fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub, marginBottom: 7, display: "block" };
+  const lbl: React.CSSProperties = { fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.sub, marginBottom: 7, display: "block" };
 
   const fInit = ((firstName?.[0] ?? "") + (lastName?.[0] ?? "")).toUpperCase();
   const filled = !!(firstName || lastName);
@@ -280,7 +280,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
           {/* STUDENT: read-only per-tutor rates summary (rates are per pair on the hub) */}
           {isStudent && (
             <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-              <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.gold, marginBottom: pairs.length ? 10 : 6 }}>
+              <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.gold, marginBottom: pairs.length ? 10 : 6 }}>
                 {t("studentEdit.subjectsRatesTitle")}
               </div>
               {pairs.length ? (
@@ -290,7 +290,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
                       <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {p.subject || t("shared.lesson")}
                       </span>
-                      <span style={{ fontFamily: F.body, fontSize: 13, color: F.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
+                      <span style={{ fontFamily: F.body, fontSize: 14, color: F.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
                         · {tutorNameOf?.(p.tutor_id) ?? ""}
                       </span>
                       <span style={{ fontFamily: F.display, fontWeight: 800, fontSize: 14, color: F.gold, flexShrink: 0 }}>
@@ -298,10 +298,10 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
                       </span>
                     </div>
                   ))}
-                  <p style={{ fontFamily: F.body, fontSize: 13, color: F.gold, opacity: .85, margin: "2px 2px 0" }}>{t("studentEdit.ratesPerTutorHint")}</p>
+                  <p style={{ fontFamily: F.body, fontSize: 14, color: F.gold, opacity: .85, margin: "2px 2px 0" }}>{t("studentEdit.ratesPerTutorHint")}</p>
                 </div>
               ) : (
-                <p style={{ fontFamily: F.body, fontSize: 13, color: F.gold }}>{t("studentEdit.noTutorYet")}</p>
+                <p style={{ fontFamily: F.body, fontSize: 14, color: F.gold }}>{t("studentEdit.noTutorYet")}</p>
               )}
             </div>
           )}
@@ -309,7 +309,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
           {/* TUTOR: editable subjects (gold card) */}
           {isTutor && (
             <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-              <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.gold, marginBottom: 10 }}>
+              <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.gold, marginBottom: 10 }}>
                 {t("people.fieldSubjects")}
               </div>
               <SubjectMultiSelect value={subjects} onChange={setSubjects} />
@@ -355,8 +355,8 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
           {/* 🔒 Private manager note */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
-              <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub }}>{t("myStudents.notesLabel")}</span>
+              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔒</span>
+              <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.sub }}>{t("myStudents.notesLabel")}</span>
             </div>
             <textarea rows={3} aria-label={t("myStudents.notesPlaceholder")} value={notes} placeholder={t("myStudents.notesPlaceholder")}
               onChange={(e) => setNotes(e.target.value)}

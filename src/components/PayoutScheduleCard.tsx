@@ -83,7 +83,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
 
   const chip = (active: boolean) => ({
     height: 36, padding: "0 13px", borderRadius: 11, cursor: "pointer",
-    fontFamily: C.display, fontWeight: 700, fontSize: 13.5,
+    fontFamily: C.display, fontWeight: 700, fontSize: 14.5,
     background: active ? "#f0fdf9" : "#fff",
     border: `1.5px solid ${active ? C.teal : C.border}`,
     color: active ? C.tealD : C.sub,
@@ -113,12 +113,12 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* День тижня */}
       {(freq === "weekly" || freq === "biweekly") && (
         <div>
-          <p style={{ fontSize: 13, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.weekdayLabel")}</p>
+          <p style={{ fontSize: 14, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.weekdayLabel")}</p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {WEEKDAY_ORDER.map((d) => (
               <button key={d} type="button" onClick={() => setWeekday(d)}
                 style={{ width: 40, height: 36, borderRadius: 10, cursor: "pointer",
-                  fontFamily: C.display, fontWeight: 700, fontSize: 13,
+                  fontFamily: C.display, fontWeight: 700, fontSize: 14,
                   background: weekday === d ? C.teal : "#fff",
                   border: `1.5px solid ${weekday === d ? C.teal : C.border}`,
                   color: weekday === d ? "#0f0f1a" : C.sub }}>
@@ -132,12 +132,12 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {/* Число місяця */}
       {freq === "monthly" && (
         <div>
-          <p style={{ fontSize: 13, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
+          <p style={{ fontSize: 14, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
           <input type="number" min={1} max={28} value={monthday}
             onChange={(e) => setMonthday(Math.min(28, Math.max(1, parseInt(e.target.value, 10) || 1)))}
             style={{ width: 90, height: 44, borderRadius: 12, border: `1.5px solid ${C.border}`, padding: "0 13px",
               fontSize: 17, fontFamily: C.display, fontWeight: 700, color: C.tealD, outline: "none" }} />
-          <span style={{ marginLeft: 8, fontSize: 13, color: C.sub }}>1–28</span>
+          <span style={{ marginLeft: 8, fontSize: 14, color: C.sub }}>1–28</span>
         </div>
       )}
 

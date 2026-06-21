@@ -231,7 +231,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     fontSize: 15, fontFamily: F.body, color: F.txt, background: F.bg,
     border: `1.5px solid ${F.border}`, outline: "none", boxSizing: "border-box" as const,
   });
-  const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 13, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
+  const lblSt: React.CSSProperties = { fontFamily: F.display, fontSize: 14, fontWeight: 700, color: F.sub, marginBottom: 7, display: "block" };
   const focusOn = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     e.target.style.borderColor = F.teal; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.12)"; e.target.style.background = "#fff";
   };
@@ -253,7 +253,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, color: F.txt, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
               {t("quickAddStudent.title")}
             </p>
-            <p style={{ fontSize: 13.5, color: F.sub, marginTop: 4, lineHeight: 1.45, fontFamily: F.body }}>
+            <p style={{ fontSize: 14.5, color: F.sub, marginTop: 4, lineHeight: 1.45, fontFamily: F.body }}>
               {t("quickAddStudent.desc")}
             </p>
           </div>
@@ -314,7 +314,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               </div>
             </div>
             {tried && nameError && (
-              <div style={{ fontSize: 13, color: F.warnD, marginTop: -8, fontWeight: 600, fontFamily: F.body }}>
+              <div style={{ fontSize: 14, color: F.warnD, marginTop: -8, fontWeight: 600, fontFamily: F.body }}>
                 {t("quickAddStudent.nameRequired")}
               </div>
             )}
@@ -440,7 +440,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     </div>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8,
-                    fontSize: 13, lineHeight: 1.4, fontFamily: F.body,
+                    fontSize: 14, lineHeight: 1.4, fontFamily: F.body,
                     color: tried && contactError ? F.warnD : F.muted,
                     fontWeight: tried && contactError ? 600 : 400 }}>
                     <Info size={13} style={{ flexShrink: 0 }} />

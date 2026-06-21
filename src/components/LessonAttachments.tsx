@@ -154,11 +154,11 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <div className="flex items-center gap-2 text-[14px] text-muted-foreground">
           <Loader2 className="h-3 w-3 animate-spin" /> Завантаження…
         </div>
       ) : items.length === 0 ? (
-        <p className="text-[13px] text-muted-foreground">{t("lessonAttachmentsExtra.noFiles")}</p>
+        <p className="text-[14px] text-muted-foreground">{t("lessonAttachmentsExtra.noFiles")}</p>
       ) : (
         <ul className="space-y-1.5">
           {items.map((it) => (
@@ -179,7 +179,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
               >
                 {it.file_name}
               </button>
-              <span className="shrink-0 text-[13px] text-muted-foreground">{formatSize(it.size_bytes)}</span>
+              <span className="shrink-0 text-[14px] text-muted-foreground">{formatSize(it.size_bytes)}</span>
               <Button
                 size="icon"
                 variant="ghost"
@@ -228,7 +228,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
             {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
             Додати файл
           </Button>
-          <p className="mt-1 text-[13px] text-muted-foreground">{t("lessonAttachmentsExtra.sizeHint")}</p>
+          <p className="mt-1 text-[14px] text-muted-foreground">{t("lessonAttachmentsExtra.sizeHint")}</p>
         </div>
       )}
     </div>

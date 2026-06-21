@@ -151,7 +151,7 @@ export function PersonBadges({
     return (
       <span style={{
         display: "inline-flex", alignItems: "center", height: 22, padding: "0 8px",
-        borderRadius: 999, fontSize: 13, fontFamily: T.display, fontWeight: 700,
+        borderRadius: 999, fontSize: 14, fontFamily: T.display, fontWeight: 700,
         background: c.bg, color: c.color, border: `1px solid ${c.border}`,
       }}>
         {children}

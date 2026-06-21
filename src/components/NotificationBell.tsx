@@ -64,7 +64,7 @@ export function NotificationBell({ className, golden }: Props) {
         >
           <Bell className="h-5 w-5 text-white" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))" }} />
           {unreadCount > 0 && (
-            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[13px] font-bold text-white border-2 border-white">
+            <span className="absolute right-0.5 top-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[14px] font-bold text-white border-2 border-white">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
@@ -84,7 +84,7 @@ export function NotificationBell({ className, golden }: Props) {
           {unreadCount > 0 && (
             <button
               onClick={markAllRead}
-              className="text-[13px] text-primary hover:underline"
+              className="text-[14px] text-primary hover:underline"
             >
               {t("notifications.markAllRead")}
             </button>
@@ -97,7 +97,7 @@ export function NotificationBell({ className, golden }: Props) {
             <div className="px-4 py-8 text-center">
               <div className="text-3xl mb-2">✨</div>
               <p className="text-[15px] font-semibold text-foreground">{t("notifications.empty")}</p>
-              <p className="mt-1 text-[13px] text-muted-foreground">{t("notifications.emptyDesc")}</p>
+              <p className="mt-1 text-[14px] text-muted-foreground">{t("notifications.emptyDesc")}</p>
             </div>
           ) : (
             <ul>
@@ -118,9 +118,9 @@ export function NotificationBell({ className, golden }: Props) {
                         {n.title}
                       </p>
                       {n.body && (
-                        <p className="mt-0.5 text-[13px] text-muted-foreground line-clamp-2">{n.body}</p>
+                        <p className="mt-0.5 text-[14px] text-muted-foreground line-clamp-2">{n.body}</p>
                       )}
-                      <p className="mt-1 text-[13px] text-muted-foreground/70">
+                      <p className="mt-1 text-[14px] text-muted-foreground/70">
                         {timeAgo(n.created_at, t as unknown as (k: string, o?: object) => string)}
                       </p>
                     </div>

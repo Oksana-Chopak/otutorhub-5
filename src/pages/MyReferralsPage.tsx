@@ -186,7 +186,7 @@ export default function MyReferralsPage() {
     </div>
   );
   const Label = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub, margin: "2px 2px" }}>
+    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub, margin: "2px 2px" }}>
       {children}
     </div>
   );
@@ -197,7 +197,7 @@ export default function MyReferralsPage() {
         {/* Header — desktop only. On mobile AppLayout already renders the title + bell + menu;
             on desktop the bell lives in the sidebar. So this page must NOT add its own bell. */}
         <div className="mb-4 hidden lg:block">
-          <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
+          <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub }}>
             {t("myReferrals.kicker") || "Реферальна програма"}
           </div>
           <h1 style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.02em", marginTop: 2 }}>
@@ -219,11 +219,11 @@ export default function MyReferralsPage() {
                 <div key={i} style={{ display: "flex", gap: 13, padding: "13px 10px", borderBottom: i < STEPS.length - 1 ? `1px solid ${R.border}` : "none" }}>
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{s.e}</div>
-                    <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 13, boxShadow: R.shadowTeal }}>{s.n}</div>
+                    <div style={{ position: "absolute", top: -4, left: -4, width: 20, height: 20, borderRadius: 999, background: R.gradTeal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 14, boxShadow: R.shadowTeal }}>{s.n}</div>
                   </div>
                   <div style={{ flex: 1, paddingTop: 2 }}>
                     <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 15 }}>{t(s.titleKey)}</div>
-                    <div style={{ fontSize: 13, color: R.sub, lineHeight: 1.45, marginTop: 2 }}>{t(s.descKey)}</div>
+                    <div style={{ fontSize: 14, color: R.sub, lineHeight: 1.45, marginTop: 2 }}>{t(s.descKey)}</div>
                   </div>
                 </div>
               ))}
@@ -237,7 +237,7 @@ export default function MyReferralsPage() {
                 </div>
                 <div>
                   <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 16 }}>{t("myReferrals.yourLinkTitle") || "Твоє посилання"}</div>
-                  <div style={{ fontSize: 13, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці підписки"}</div>
+                  <div style={{ fontSize: 14, color: R.sub }}>{t("myReferrals.yourLinkSub") || "Поділись — і отримуй місяці підписки"}</div>
                 </div>
               </div>
 
@@ -245,7 +245,7 @@ export default function MyReferralsPage() {
               <div style={{ display: "flex", gap: 8 }}>
                 <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, height: 46, padding: "0 14px", borderRadius: 12, background: R.surface2, border: `1px solid ${R.border}`, minWidth: 0 }}>
                   <Link2 size={16} style={{ color: R.muted, flexShrink: 0 }} />
-                  <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  <span style={{ fontFamily: R.display, fontWeight: 600, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {linkLabel || "…"}
                   </span>
                 </div>
@@ -265,7 +265,7 @@ export default function MyReferralsPage() {
                     </button>
                   </PopoverTrigger>
                   <PopoverContent align="end" className="w-60 p-2" style={{ borderRadius: 16 }}>
-                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 13, color: R.sub, padding: "4px 8px 8px", letterSpacing: ".04em", textTransform: "uppercase" }}>
+                    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, color: R.sub, padding: "4px 8px 8px", letterSpacing: ".04em", textTransform: "uppercase" }}>
                       {t("referralWidget.shareVia") || "Поділитися через"}
                     </div>
                     {shareTargets().map((s) => (
@@ -298,7 +298,7 @@ export default function MyReferralsPage() {
               {/* Reward line */}
               <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center", padding: "11px 13px", borderRadius: 12, background: "rgba(43,191,170,.08)", border: `1px solid ${R.tealRing}` }}>
                 <span style={{ fontSize: 20 }}>🎁</span>
-                <div style={{ fontSize: 13, lineHeight: 1.45 }}>
+                <div style={{ fontSize: 14, lineHeight: 1.45 }}>
                   {t("myReferrals.rewardLinePart1")} <b>{t("myReferrals.rewardLineBold1")}</b>{t("myReferrals.rewardLinePart2")} <b>{t("myReferrals.rewardLineBold2")}</b> {t("myReferrals.rewardLinePart3")}
                 </div>
               </div>
@@ -308,7 +308,7 @@ export default function MyReferralsPage() {
             <div>
               <Label>{t("myReferrals.thisMonth") || "Цього місяця"}</Label>
               <Card style={{ padding: 16 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 6 }}>
                   <span style={{ color: R.sub }}>
                     {t("myReferrals.monthlyProgressPrefix")} <b style={{ color: R.txt }}>{t("myReferrals.monthlyProgressCount", { monthly })}</b> {t("myReferrals.monthlyProgressSuffix")}
                   </span>
@@ -317,7 +317,7 @@ export default function MyReferralsPage() {
                 <div style={{ height: 8, borderRadius: 999, background: "rgba(15,15,26,.07)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${progress}%`, borderRadius: 999, background: R.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 13, color: R.muted, marginTop: 5 }}>
+                <div style={{ fontSize: 14, color: R.muted, marginTop: 5 }}>
                   {toBigBonus > 0 ? t("myReferrals.bonusRemaining", { count: toBigBonus }) : t("myReferrals.bonusUnlocked")}
                 </div>
               </Card>
@@ -326,13 +326,13 @@ export default function MyReferralsPage() {
             {/* Bubbles */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <Card style={{ padding: 14 }}>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: R.sub, fontFamily: R.display, fontWeight: 700 }}>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: R.sub, fontFamily: R.display, fontWeight: 700 }}>
                   {t("myReferrals.invitedLabel") || "Запрошено"}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 28, marginTop: 4 }}>{referrals.length}</div>
               </Card>
               <Card style={{ padding: 14, background: "rgba(34,197,94,.07)", border: "1px solid rgba(34,197,94,.25)" }}>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: R.successD, fontFamily: R.display, fontWeight: 700 }}>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: R.successD, fontFamily: R.display, fontWeight: 700 }}>
                   {t("myReferrals.savedLabel") || "Заощаджено"}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, marginTop: 4, color: R.successD }}>
@@ -346,7 +346,7 @@ export default function MyReferralsPage() {
               <Label>{t("myReferrals.yourInvitees") || "Твої запрошені"}</Label>
               <Card style={{ padding: referrals.length ? 6 : 18 }}>
                 {referrals.length === 0 ? (
-                  <p style={{ fontSize: 13.5, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 14.5, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
                     {t("myReferrals.inviteesEmpty") || "Ще нікого — поділись посиланням, і запрошені з'являться тут 🌱"}
                   </p>
                 ) : (
@@ -366,9 +366,9 @@ export default function MyReferralsPage() {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</div>
-                          <div style={{ fontSize: 13, color: R.sub }}>{note}</div>
+                          <div style={{ fontSize: 14, color: R.sub }}>{note}</div>
                         </div>
-                        <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: R.display, fontWeight: 700, fontSize: 13, background: pill.bg, color: pill.fg, boxShadow: `inset 0 0 0 1px ${pill.ring}`, whiteSpace: "nowrap" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: R.display, fontWeight: 700, fontSize: 14, background: pill.bg, color: pill.fg, boxShadow: `inset 0 0 0 1px ${pill.ring}`, whiteSpace: "nowrap" }}>
                           {pill.label}
                         </span>
                       </div>
@@ -377,7 +377,7 @@ export default function MyReferralsPage() {
                 )}
               </Card>
               {referrals.length > 0 && (
-                <div style={{ fontSize: 13, color: R.muted, marginTop: 8, paddingLeft: 2 }}>
+                <div style={{ fontSize: 14, color: R.muted, marginTop: 8, paddingLeft: 2 }}>
                   {t("myReferrals.summaryLine", { total: referrals.length, pro: proUpgrades }) ||
                     `Усього запрошень: ${referrals.length} · з підпискою: ${proUpgrades}`}
                 </div>
@@ -395,14 +395,14 @@ export default function MyReferralsPage() {
                     const medal = idx === 0 ? "#F5B400" : idx === 1 ? "#9ca3af" : idx === 2 ? "#cd7f32" : null;
                     return (
                       <div key={row.referrer_id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "10px 8px", borderRadius: 12, background: isMe ? "rgba(43,191,170,.07)" : "transparent", borderBottom: idx < Math.min(10, leaderboard.length) - 1 ? `1px solid ${R.border}` : "none" }}>
-                        <div style={{ width: 26, height: 26, borderRadius: 999, background: medal ? medal : "rgba(15,15,26,.06)", color: medal ? "#fff" : R.sub, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 13, flexShrink: 0 }}>
+                        <div style={{ width: 26, height: 26, borderRadius: 999, background: medal ? medal : "rgba(15,15,26,.06)", color: medal ? "#fff" : R.sub, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 14, flexShrink: 0 }}>
                           {idx + 1}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                             {isMe ? `${name} ${t("myReferrals.you")}` : name}
                           </div>
-                          <div style={{ fontSize: 13, color: R.sub }}>
+                          <div style={{ fontSize: 14, color: R.sub }}>
                             {t("myReferrals.signupsProLabel", { signups: row.total_signups, pro: row.pro_upgrades })}
                           </div>
                         </div>

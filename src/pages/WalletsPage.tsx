@@ -207,7 +207,7 @@ export default function WalletsPage() {
                     </div>
                     <div className="min-w-0">
                       <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{r.student_name}</div>
-                      <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>↔ {r.tutor_name}</div>
+                      <div className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>↔ {r.tutor_name}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
@@ -222,13 +222,13 @@ export default function WalletsPage() {
                       </span>
                     </div>
                     <button type="button" onClick={() => setActive(r)}
-                      className="flex items-center gap-1.5 rounded-[11px] px-3 h-9 text-[13px] font-bold"
+                      className="flex items-center gap-1.5 rounded-[11px] px-3 h-9 text-[14px] font-bold"
                       style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                       <Plus className="h-3.5 w-3.5" />
                       Поповнити
                     </button>
                   </div>
-                  <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                  <div className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                     Остання операція: {fmtDate(r.last_transaction_at)}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function WalletsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block overflow-x-auto rounded-[16px]" style={{ border: "1px solid #eceef3" }}>
               <table className="w-full text-[15px]">
-                <thead className="text-[13px] uppercase" style={{ background: "#fbfbfc", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                <thead className="text-[14px] uppercase" style={{ background: "#fbfbfc", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                   <tr>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
@@ -272,12 +272,12 @@ export default function WalletsPage() {
                           <span style={{ color: "var(--sub,#6b7088)" }}>—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                      <td className="px-4 py-3 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                         {fmtDate(r.last_transaction_at)}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setActive(r)}
-                          className="rounded-[10px] px-3 h-9 text-[13px] font-bold"
+                          className="rounded-[10px] px-3 h-9 text-[14px] font-bold"
                           style={{ border: "1px solid #eceef3", background: "#f0fdf9", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}>
                           Відкрити
                         </button>

@@ -39,7 +39,7 @@ export function MobileBottomNav() {
                   end={item.to === "/student-dashboard"}
                   className={({ isActive }) =>
                     cn(
-                      "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[13px] font-medium transition-colors",
+                      "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[14px] font-medium transition-colors",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )
                   }
@@ -47,7 +47,7 @@ export function MobileBottomNav() {
                   <span className="relative">
                     <item.icon className="h-6 w-6" />
                     {badge > 0 && (
-                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[13px] font-semibold text-primary-foreground">
+                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[14px] font-semibold text-primary-foreground">
                         {badge > 9 ? "9+" : badge}
                       </span>
                     )}

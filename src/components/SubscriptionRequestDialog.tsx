@@ -162,11 +162,11 @@ export function SubscriptionRequestDialog({
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-medium text-foreground">{t("subscriptionDialog.yearly")}</span>
-                      <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[13px] font-semibold text-success">
+                      <span className="rounded-full bg-success/15 px-1.5 py-0.5 text-[14px] font-semibold text-success">
                         −20%
                       </span>
                     </div>
-                    <p className="text-[13px] text-muted-foreground">
+                    <p className="text-[14px] text-muted-foreground">
                       {PRICE_YEARLY_PER_MONTH} ₴/міс ·{" "}
                       {PRICE_YEARLY_TOTAL} ₴ на рік
                     </p>
@@ -184,7 +184,7 @@ export function SubscriptionRequestDialog({
                   <RadioGroupItem id="bill-monthly" value="monthly" className="mt-0.5" />
                   <div className="min-w-0">
                     <span className="font-medium text-foreground">{t("subscriptionDialog.monthly")}</span>
-                    <p className="text-[13px] text-muted-foreground">
+                    <p className="text-[14px] text-muted-foreground">
                       {PRICE_MONTHLY} ₴/міс
                     </p>
                   </div>

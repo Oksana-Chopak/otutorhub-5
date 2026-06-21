@@ -168,7 +168,7 @@ export function ProRulesCard() {
           </button>
         </div>
         {disabled && (
-          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 13, color: C.sub, flexShrink: 0 }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 14, color: C.sub, flexShrink: 0 }}>
             <Lock className="h-3 w-3" /> {t("proRulesCard.availableInPro")}
           </span>
         )}
@@ -194,7 +194,7 @@ export function ProRulesCard() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17 }}>{p.title}</span>
-                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 13, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
+                  {on && <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "2px 9px", fontFamily: C.display, fontWeight: 700, fontSize: 14, background: "rgba(43,191,170,.12)", color: C.tealD, boxShadow: `inset 0 0 0 1px ${C.tealRing}` }}>{t("proRulesCard.chosen") || "Обрано"}</span>}
                 </div>
                 <div style={{ fontSize: 14, color: C.sub, marginTop: 2, lineHeight: 1.4 }}>{p.desc}</div>
               </div>
@@ -208,7 +208,7 @@ export function ProRulesCard() {
 
       {/* Summary */}
       <div style={{ marginTop: 14, borderRadius: 16, padding: 16, background: "rgba(43,191,170,.06)", border: `1px solid ${C.tealRing}` }}>
-        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
+        <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".08em", color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>
           {t("proRulesCard.summary") || "Підсумок"}{activePreset ? ` · ${activePreset.title}` : ` · ${t("proRulesCard.custom") || "Власні"}`}
         </div>
         <div style={{ fontSize: 15, lineHeight: 1.5, marginTop: 8 }}>{summaryText()}</div>
@@ -223,7 +223,7 @@ export function ProRulesCard() {
           </span>
           <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
             <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("proRulesCard.fineTune") || "Тонке налаштування"}</span>
-            <span style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.fineTuneSub") || "Зміни вікно, оплати й перенесення"}</span>
+            <span style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>{t("proRulesCard.fineTuneSub") || "Зміни вікно, оплати й перенесення"}</span>
           </span>
         </span>
         <ChevronDown size={18} style={{ color: C.muted, transform: tuneOpen ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
@@ -251,7 +251,7 @@ export function ProRulesCard() {
               <Input type="number" min={0} max={168} value={state.cancel_free_hours}
                 onChange={(e) => set("cancel_free_hours", Number(e.target.value) || 0)}
                 className="w-20 h-11 text-[15px] rounded-[12px]" />
-              <span style={{ fontSize: 13, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
+              <span style={{ fontSize: 14, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
             </div>
           </div>
 
@@ -327,7 +327,7 @@ export function ProRulesCard() {
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15 }}>{t("proRulesCard.notifyTelegram")}</div>
-                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyTelegramSub")}</div>
+                  <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyTelegramSub")}</div>
                 </div>
                 <Switch checked={state.notify_telegram} disabled={disabled}
                   onCheckedChange={(v) => set("notify_telegram", v)} />
@@ -338,7 +338,7 @@ export function ProRulesCard() {
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15 }}>{t("proRulesCard.notifyEmail")}</div>
-                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyEmailSub")}</div>
+                  <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>{t("proRulesCard.notifyEmailSub")}</div>
                 </div>
                 <Switch checked={state.notify_email} disabled={disabled}
                   onCheckedChange={(v) => set("notify_email", v)} />
@@ -379,7 +379,7 @@ export function ProRulesCard() {
                         </span>
                         <span style={{ minWidth: 0 }}>
                           <span style={{ display: "block", fontFamily: C.display, fontWeight: 700, fontSize: 16, color: on ? C.tealD : C.txt }}>{opt.title}</span>
-                          <span style={{ display: "block", fontSize: 13, color: C.sub, marginTop: 1 }}>{opt.desc}</span>
+                          <span style={{ display: "block", fontSize: 14, color: C.sub, marginTop: 1 }}>{opt.desc}</span>
                         </span>
                       </button>
                     );
@@ -387,7 +387,7 @@ export function ProRulesCard() {
                 </div>
                 {state.payment_due_mode !== "prepaid" && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                    <span style={{ fontSize: 13, color: C.sub }}>
+                    <span style={{ fontSize: 14, color: C.sub }}>
                       {state.payment_due_mode === "before_lesson" ? t("proRulesCard.daysBefore") : t("proRulesCard.daysAfter")}
                     </span>
                     <Input type="number" min={0} max={30} value={state.payment_due_days}

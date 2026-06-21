@@ -272,7 +272,6 @@ export default function FinancesPage() {
     const [
       { data: lessonsData, error: lErr },
       { data: groupLessonsData },
-      { data: profilesData, error: pErr },
       { data: txData },
       { data: balData },
       { data: ratesData },
@@ -301,7 +300,6 @@ export default function FinancesPage() {
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
-      supabase.from("profiles").select("id, first_name, last_name").limit(300),
       supabase
         .from("student_wallet_transactions" as any)
         .select("id, tutor_id, student_id, kind, lessons_delta, amount_delta, lesson_id, note, created_at")
@@ -316,7 +314,46 @@ export default function FinancesPage() {
         .is("archived_at", null),
     ]);
     if (lErr) toast.error(t("finances.loadLessonsError"));
-    if (pErr) toast.error(t("finances.loadProfilesError"));
+
+    // Fetch profiles for EVERY referenced user id (individual student/tutor +
+    // GROUP participant student ids + wallet/rate pairs) via .in() — a blind
+    // .limit(300) page silently dropped group participants, so their name showed "—".
+    const profileIds = new Set<string>();
+    ((lessonsData ?? []) as any[]).forEach((l) => {
+      if (l.student_id) profileIds.add(l.student_id);
+      if (l.tutor_id) profileIds.add(l.tutor_id);
+    });
+    ((groupLessonsData ?? []) as any[]).forEach((l) => {
+      if (l.tutor_id) profileIds.add(l.tutor_id);
+      ((l.lesson_participants ?? []) as any[]).forEach((p) => {
+        if (p.student_id) profileIds.add(p.student_id);
+      });
+    });
+    ((txData ?? []) as any[]).forEach((tx) => {
+      if (tx.tutor_id) profileIds.add(tx.tutor_id);
+      if (tx.student_id) profileIds.add(tx.student_id);
+    });
+    ((balData ?? []) as any[]).forEach((b) => {
+      if (b.tutor_id) profileIds.add(b.tutor_id);
+      if (b.student_id) profileIds.add(b.student_id);
+    });
+    ((ratesData ?? []) as any[]).forEach((r) => {
+      if (r.tutor_id) profileIds.add(r.tutor_id);
+      if (r.student_id) profileIds.add(r.student_id);
+    });
+    const idList = Array.from(profileIds);
+    // Chunk to stay well under URL/`in` limits on large hubs.
+    const CHUNK = 200;
+    const profileChunks = await Promise.all(
+      Array.from({ length: Math.ceil(idList.length / CHUNK) }, (_, i) =>
+        supabase
+          .from("profiles")
+          .select("id, first_name, last_name")
+          .in("id", idList.slice(i * CHUNK, (i + 1) * CHUNK)),
+      ),
+    );
+    const profilesData = profileChunks.flatMap((c) => c.data ?? []);
+    if (profileChunks.some((c) => c.error)) toast.error(t("finances.loadProfilesError"));
     const mapped: LessonRow[] = ((lessonsData ?? []) as any[]).map((l) => ({
       id: l.id,
       subject: l.subject,
@@ -706,15 +743,20 @@ export default function FinancesPage() {
     const { data, error } = await supabase.functions.invoke("remind-payment", { body: { lessonId } });
     setRemindingId(null);
     if (error) {
-      toast.error(t("pendingPayments.reminderFailed"));
+      // A non-2xx (404 lesson-not-found, 409 already-paid, transport, …) — NOT a
+      // missing-contact case, so don't blame the student's contact details.
+      toast.error(t("pendingPaymentsExtra.reminderGeneric"));
       return;
     }
     if ((data as any)?.success) {
       const channels = ((data as any).channels ?? []) as string[];
       const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
       toast.success(t("pendingPayments.reminderSent", { labels: labels.join(" + ") || "email" }), { description: nameOf(studentId) });
+    } else if ((data as any)?.reason === "no_channels") {
+      // The function explicitly reported the student has neither Telegram nor email.
+      toast.error(t("pendingPaymentsExtra.noContact"), { description: nameOf(studentId) });
     } else {
-      toast.error(t("pendingPaymentsExtra.noContact"));
+      toast.error(t("pendingPaymentsExtra.reminderGeneric"));
     }
   };
 
@@ -979,7 +1021,7 @@ export default function FinancesPage() {
     return (
       <div className="overflow-hidden rounded-xl border border-border bg-card">
         {/* Mobile sort controls */}
-        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[13px] lg:hidden">
+        <div className="flex items-center gap-1 border-b border-border bg-secondary/30 px-2 py-2 text-[14px] lg:hidden">
           <span className="mr-1 text-muted-foreground">{t("finances.sortBy", { defaultValue: "Сорт.:" })}</span>
           <MobileSortChip
             label={t("finances.colDate")}
@@ -1016,11 +1058,11 @@ export default function FinancesPage() {
                       <p className="flex items-center gap-1.5 truncate text-sm font-medium text-primary">
                         <Package className="h-3.5 w-3.5" /> {t("finances.prepayLabel")}
                       </p>
-                      <p className="text-[13px] text-muted-foreground">
+                      <p className="text-[14px] text-muted-foreground">
                         {formatDate(tx.created_at)} · {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                       </p>
                       {tx.note && (
-                        <p className="mt-0.5 truncate text-[13px] text-muted-foreground">{tx.note}</p>
+                        <p className="mt-0.5 truncate text-[14px] text-muted-foreground">{tx.note}</p>
                       )}
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
@@ -1060,9 +1102,9 @@ export default function FinancesPage() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>
                       <span className="truncate">{l.subject}</span>
-                      {isGroup && <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                      {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                     </p>
-                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && !isGroup && (
                     <div
@@ -1076,7 +1118,7 @@ export default function FinancesPage() {
                   )}
                 </div>
 
-                <div className="mt-2 grid grid-cols-1 gap-2 text-[13px]">
+                <div className="mt-2 grid grid-cols-1 gap-2 text-[14px]">
                   <div className={cn(
                     "flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5",
                     studentUnpaid ? "bg-warning/10" : "bg-success/5",
@@ -1084,7 +1126,7 @@ export default function FinancesPage() {
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-medium text-foreground">{nameOf(l.student_id)}</p>
                       {l.student_paid_at && (
-                        <p className="truncate text-[13px] text-muted-foreground">
+                        <p className="truncate text-[14px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                         </p>
                       )}
@@ -1101,8 +1143,8 @@ export default function FinancesPage() {
                         <Badge
                           className={
                             l.student_payment_status === "paid"
-                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[13px]"
-                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[13px]"
+                              ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[14px]"
+                              : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[14px]"
                           }
                         >
                           {l.student_payment_status === "paid" ? t("finances.statusPaid") : t("finances.statusPending")}
@@ -1119,7 +1161,7 @@ export default function FinancesPage() {
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-foreground">{nameOf(l.tutor_id)}</p>
                         {l.tutor_paid_at && (
-                          <p className="truncate text-[13px] text-muted-foreground">
+                          <p className="truncate text-[14px] text-muted-foreground">
                             {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                           </p>
                         )}
@@ -1136,8 +1178,8 @@ export default function FinancesPage() {
                           <Badge
                             className={
                               l.tutor_payout_status === "paid"
-                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[13px]"
-                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[13px]"
+                                ? "bg-success/15 text-success border-0 hover:bg-success/25 cursor-pointer text-[14px]"
+                                : "bg-warning/15 text-warning border-0 hover:bg-warning/25 cursor-pointer text-[14px]"
                             }
                           >
                             {l.tutor_payout_status === "paid" ? t("finances.statusPaidOut") : t("finances.statusPending")}
@@ -1226,7 +1268,7 @@ export default function FinancesPage() {
                             {nameOf(tx.student_id)} ↔ {nameOf(tx.tutor_id)}
                           </span>
                           {tx.note && (
-                            <span className="truncate text-[13px] text-muted-foreground">— {tx.note}</span>
+                            <span className="truncate text-[14px] text-muted-foreground">— {tx.note}</span>
                           )}
                         </div>
                       </td>
@@ -1280,13 +1322,13 @@ export default function FinancesPage() {
                     <td className="px-3 py-3 text-foreground">
                       <span className="inline-flex items-center gap-1.5">
                         {l.subject}
-                        {isGroup && <span style={{ fontSize: 13, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                        {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                       </span>
                     </td>
                     <td className="px-3 py-3">
                       <div className="font-medium text-foreground">{nameOf(l.student_id)}</div>
                       {l.student_paid_at && (
-                        <div className="text-[13px] text-muted-foreground">
+                        <div className="text-[14px] text-muted-foreground">
                           {t("finances.paidDate")} {formatDate(l.student_paid_at)}
                         </div>
                       )}
@@ -1312,7 +1354,7 @@ export default function FinancesPage() {
                       <td className="px-3 py-3">
                         <div className="font-medium text-foreground">{nameOf(l.tutor_id)}</div>
                         {l.tutor_paid_at && (
-                          <div className="text-[13px] text-muted-foreground">
+                          <div className="text-[14px] text-muted-foreground">
                             {t("finances.payoutDate")} {formatDate(l.tutor_paid_at)}
                           </div>
                         )}
@@ -1515,7 +1557,7 @@ export default function FinancesPage() {
       <AppLayout>
         <div className="mb-4">
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
-          <p className="text-[13px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
+          <p className="text-[14px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
         </div>
 
         {/* Period pills */}
@@ -1531,7 +1573,7 @@ export default function FinancesPage() {
                 background: "linear-gradient(135deg,#0f0f1a,#1a1a2e)", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100,
                   borderRadius: "50%", background: "radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
-                <p style={{ fontFamily: H.display, fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.5)",
+                <p style={{ fontFamily: H.display, fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,.5)",
                   textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
                   💰 {t("finances.payoutReceived")}
                 </p>
@@ -1539,7 +1581,7 @@ export default function FinancesPage() {
                   {totalExpense.toLocaleString(getLocale())} ₴
                 </p>
                 {pendingExpense > 0 && (
-                  <p style={{ fontFamily: H.body, fontSize: 13, color: "rgba(255,255,255,.45)", marginTop: 6 }}>
+                  <p style={{ fontFamily: H.body, fontSize: 14, color: "rgba(255,255,255,.45)", marginTop: 6 }}>
                     + {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
                   </p>
                 )}
@@ -1547,14 +1589,14 @@ export default function FinancesPage() {
 
               <div style={{ gridColumn: "1/-1", borderRadius: 16, padding: "14px 16px",
                 background: H.warnBg, border: `1px solid ${H.warnBorder}` }}>
-                <p style={{ fontFamily: H.display, fontSize: 13, fontWeight: 700, color: H.warnD,
+                <p style={{ fontFamily: H.display, fontSize: 14, fontWeight: 700, color: H.warnD,
                   textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>
                   ⏳ {t("finances.payoutPendingLabel")}
                 </p>
                 <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 22, color: H.warnD }}>
                   {pendingExpense.toLocaleString(getLocale())} ₴
                 </p>
-                <p style={{ fontFamily: H.body, fontSize: 13, color: H.warnD, opacity: 0.7, marginTop: 2 }}>
+                <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.7, marginTop: 2 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
                 </p>
               </div>
@@ -1567,7 +1609,7 @@ export default function FinancesPage() {
                 <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 16, color: H.txt }}>
                   {t("finances.payoutHistoryTitle")}
                 </p>
-                <p style={{ fontFamily: H.body, fontSize: 13, color: H.sub, marginTop: 2 }}>
+                <p style={{ fontFamily: H.body, fontSize: 14, color: H.sub, marginTop: 2 }}>
                   {t("finances.payoutHistorySubtitle")}
                 </p>
               </div>
@@ -1594,7 +1636,7 @@ export default function FinancesPage() {
                             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                             {l.subject}
                           </p>
-                          <p style={{ fontFamily: H.body, fontSize: 13, color: H.sub }}>
+                          <p style={{ fontFamily: H.body, fontSize: 14, color: H.sub }}>
                             {new Date(l.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })} · {nameOf(l.student_id)}
                           </p>
                         </div>
@@ -1602,7 +1644,7 @@ export default function FinancesPage() {
                           <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 15, color: paid ? "#16a34a" : H.warnD }}>
                             {l.tutor_payout.toLocaleString(getLocale())} ₴
                           </p>
-                          <span style={{ fontFamily: H.display, fontWeight: 700, fontSize: 13,
+                          <span style={{ fontFamily: H.display, fontWeight: 700, fontSize: 14,
                             color: paid ? "#16a34a" : H.warnD }}>
                             {paid ? t("finances.payoutPaidChip") : t("finances.payoutPendingChip")}
                           </span>
@@ -1630,7 +1672,7 @@ export default function FinancesPage() {
                 <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: H.warnD, marginBottom: 4 }}>
                   ⏳ {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
                 </p>
-                <p style={{ fontFamily: H.body, fontSize: 13, color: H.warnD, opacity: 0.8 }}>
+                <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.8 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
                 </p>
               </div>
@@ -1639,7 +1681,7 @@ export default function FinancesPage() {
               <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "#16a34a", marginBottom: 4 }}>
                 ✓ {t("finances.payoutReceived")}: {totalExpense.toLocaleString(getLocale())} ₴
               </p>
-              <p style={{ fontFamily: H.body, fontSize: 13, color: "#15803d", opacity: 0.85 }}>
+              <p style={{ fontFamily: H.body, fontSize: 14, color: "#15803d", opacity: 0.85 }}>
                 {t("finances.lessonsCount", { count: paidCount })}
               </p>
             </div>
@@ -1720,7 +1762,7 @@ export default function FinancesPage() {
         }}>
         {label}
         {count !== undefined && count > 0 && (
-          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 13,
+          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 14,
             fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
             {count}
           </span>
@@ -1748,7 +1790,7 @@ export default function FinancesPage() {
                 background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)", position:"relative", overflow:"hidden" }}>
                 <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100,
                   borderRadius:"50%", background:"radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
-                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"rgba(255,255,255,.5)",
+                <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"rgba(255,255,255,.5)",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
                   💰 {t("finances.received")}
                 </p>
@@ -1757,7 +1799,7 @@ export default function FinancesPage() {
                   {totalIncome.toLocaleString(getLocale())} ₴
                 </p>
                 {pendingIncome > 0 && (
-                  <p style={{ fontFamily:F.body, fontSize:13, color:"rgba(255,255,255,.45)", marginTop:6 }}>
+                  <p style={{ fontFamily:F.body, fontSize:14, color:"rgba(255,255,255,.45)", marginTop:6 }}>
                     + {t("finances.pendingAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                   </p>
                 )}
@@ -1766,14 +1808,14 @@ export default function FinancesPage() {
               {/* Pending — warn */}
               <div style={{ borderRadius:16, padding:"14px 16px",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
-                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.warnD,
+                <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.warnD,
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   ⏳ {t("finances.pendingLabel")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
                   {pendingIncome.toLocaleString(getLocale())} ₴
                 </p>
-                <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.7, marginTop:2 }}>
+                <p style={{ fontFamily:F.body, fontSize: 14, color:F.warnD, opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: debtList.length })}
                 </p>
               </div>
@@ -1781,14 +1823,14 @@ export default function FinancesPage() {
               {/* Avg */}
               <div style={{ borderRadius:16, padding:"14px 16px",
                 background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
-                <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:"#7c3aed",
+                <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"#7c3aed",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   📊 {t("finances.avgLesson")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
                   {avgLesson.toLocaleString(getLocale())} ₴
                 </p>
-                <p style={{ fontFamily:F.body, fontSize: 13, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
+                <p style={{ fontFamily:F.body, fontSize: 14, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: paidLessonsCount })}
                 </p>
               </div>
@@ -1815,7 +1857,7 @@ export default function FinancesPage() {
                           height:`${bar.pct}%`, minHeight:4,
                           background: bar.isToday ? F.teal : bar.amt>0 ? "rgba(43,191,170,.3)" : F.border,
                           transition:"height .3s" }} />
-                        <span style={{ fontFamily:F.display, fontSize: 13, fontWeight:700,
+                        <span style={{ fontFamily:F.display, fontSize: 14, fontWeight:700,
                           color: bar.isToday ? F.teal : F.muted }}>{bar.label}</span>
                       </div>
                     ))}
@@ -1839,7 +1881,7 @@ export default function FinancesPage() {
                               whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                               {nameOf(l.student_id)}
                             </p>
-                            <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
+                            <p style={{ fontFamily:F.body, fontSize: 14, color:F.sub }}>
                               {new Date(l.starts_at).toLocaleDateString(getLocale(),{day:"numeric",month:"short"})} · {l.subject}
                             </p>
                           </div>
@@ -1849,7 +1891,7 @@ export default function FinancesPage() {
                               {paid ? "+" : ""}{Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
                             <button onClick={() => togglePayment(l, "student_payment_status")}
-                              style={{ fontFamily:F.display, fontWeight:700, fontSize: 13,
+                              style={{ fontFamily:F.display, fontWeight:700, fontSize: 14,
                                 background: paid ? "rgba(34,197,94,.15)" : F.warnBg,
                                 color: paid ? "#16a34a" : F.warnD,
                                 border:`1px solid ${paid?"rgba(34,197,94,.3)":F.warnBorder}`,
@@ -1884,15 +1926,16 @@ export default function FinancesPage() {
                     </div>
                   ) : (
                     <>
-                      {/* Auto-reminder hint */}
-                      <Link to="/profile" style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12,
+                      {/* Auto-reminder hint — deep-link to the reminders toggle in
+                          ProfilePage's <div id="rules"> (ProfilePage scrolls to the hash). */}
+                      <Link to="/profile#rules" style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12,
                         padding:"10px 13px", borderRadius:12, textDecoration:"none",
                         background:"rgba(43,191,170,.07)", border:"1px solid rgba(43,191,170,.25)" }}>
                         <span style={{ fontSize:15 }}>🔔</span>
-                        <span style={{ flex:1, fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.35 }}>
+                        <span style={{ flex:1, fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.35 }}>
                           {t("finances.autoReminderHintPre")} <b>{t("finances.autoReminderHintBold")}</b> {t("finances.autoReminderHintPost")}
                         </span>
-                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:"#1f8e7e", flexShrink:0 }}>{t("finances.configureLink")}</span>
+                        <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:"#1f8e7e", flexShrink:0 }}>{t("finances.configureLink")}</span>
                       </Link>
                       {/* Summary warning */}
                       <div style={{ borderRadius:14, padding:"12px 14px", marginBottom:14,
@@ -1902,7 +1945,7 @@ export default function FinancesPage() {
                           <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD }}>
                             ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                           </p>
-                          <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
+                          <p style={{ fontFamily:F.body, fontSize:14, color:F.warnD, opacity:0.8 }}>
                             {t("finances.lessonsUnpaid", { count: debtList.length })}
                           </p>
                         </div>
@@ -1919,7 +1962,7 @@ export default function FinancesPage() {
                           }}
                           style={{ height:38, padding:"0 14px", borderRadius:10, border:"none",
                             background:"rgba(245,158,11,.25)", color:F.warnD,
-                            fontFamily:F.display, fontWeight:700, fontSize:13, cursor:"pointer",
+                            fontFamily:F.display, fontWeight:700, fontSize:14, cursor:"pointer",
                             whiteSpace:"nowrap" }}>
                           {t("finances.markAll")}
                         </button>
@@ -1935,7 +1978,7 @@ export default function FinancesPage() {
                                 whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                                 {nameOf(l.student_id)}
                               </p>
-                              <p style={{ fontFamily:F.body, fontSize: 13, color:F.sub }}>
+                              <p style={{ fontFamily:F.body, fontSize: 14, color:F.sub }}>
                                 {new Date(l.starts_at).toLocaleDateString(getLocale(),{day:"numeric",month:"short"})} · {l.subject}
                               </p>
                             </div>
@@ -1943,18 +1986,32 @@ export default function FinancesPage() {
                               color:F.warnD, flexShrink:0 }}>
                               {Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
-                            <button
-                              type="button"
-                              onClick={() => remindLesson(l.id, l.student_id)}
-                              disabled={remindingId === l.id}
-                              style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
-                                background:"rgba(245,158,11,.18)", color:F.warnD,
-                                fontFamily:F.display, fontWeight:700, fontSize: 13,
-                                cursor: remindingId === l.id ? "default" : "pointer",
-                                flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
-                              {remindingId === l.id && <Loader2 className="h-3 w-3 animate-spin" />}
-                              {t("finances.remindBtn")}
-                            </button>
+                            {l.kind === "group" ? (
+                              // The remind-payment edge fn is individual-only (404s on a
+                              // group lesson's synthetic id), so offer a chat link instead.
+                              <Link
+                                to={`/chats?with=${l.student_id}`}
+                                title={t("finances.groupChatHint")}
+                                style={{ height:32, padding:"0 12px", borderRadius:9, textDecoration:"none",
+                                  background:"rgba(43,191,170,.12)", color:"#1f8e7e",
+                                  fontFamily:F.display, fontWeight:700, fontSize: 14,
+                                  flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
+                                💬 {t("finances.groupChatHint")}
+                              </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => remindLesson(l.id, l.student_id)}
+                                disabled={remindingId === l.id}
+                                style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
+                                  background:"rgba(245,158,11,.18)", color:F.warnD,
+                                  fontFamily:F.display, fontWeight:700, fontSize: 14,
+                                  cursor: remindingId === l.id ? "default" : "pointer",
+                                  flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
+                                {remindingId === l.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                                {t("finances.remindBtn")}
+                              </button>
+                            )}
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
                               aria-label={t("finances.statusPaid")}
@@ -1978,14 +2035,14 @@ export default function FinancesPage() {
 
                   {/* This month + month-over-month */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>{t("finances.thisMonth")}</p>
+                    <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>{t("finances.thisMonth")}</p>
                     <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
                       <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
                         {analyticsStats.thisMonth.toLocaleString(getLocale())} ₴
                       </span>
                       {analyticsStats.momPct !== null && (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:4, borderRadius:999, padding:"4px 10px",
-                          fontFamily:F.display, fontWeight:700, fontSize: 13,
+                          fontFamily:F.display, fontWeight:700, fontSize: 14,
                           background: analyticsStats.momPct >= 0 ? "rgba(34,197,94,.12)" : "rgba(245,158,11,.14)",
                           color: analyticsStats.momPct >= 0 ? "#16a34a" : F.warnD }}>
                           {analyticsStats.momPct >= 0 ? "▲" : "▼"} {t("finances.vsLastMonth", { pct: Math.abs(analyticsStats.momPct) })}
@@ -1993,7 +2050,7 @@ export default function FinancesPage() {
                       )}
                     </div>
                     {analyticsStats.projected > analyticsStats.thisMonth && (
-                      <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:7, lineHeight:1.45 }}>
+                      <p style={{ fontFamily:F.body, fontSize:14, color:F.sub, marginTop:7, lineHeight:1.45 }}>
                         {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString(getLocale())} ₴</b> {t("finances.forecastPost")}
                       </p>
                     )}
@@ -2007,13 +2064,13 @@ export default function FinancesPage() {
                           <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
                             {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                           </p>
-                          <p style={{ fontFamily:F.body, fontSize: 13, color:F.warnD, opacity:0.85, marginTop:1 }}>
+                          <p style={{ fontFamily:F.body, fontSize: 14, color:F.warnD, opacity:0.85, marginTop:1 }}>
                             {t("finances.lessonsAwaitPayment", { count: debtList.length })}
                           </p>
                         </div>
                         <button onClick={() => setFinTab("debts")}
                           style={{ flexShrink:0, height:36, padding:"0 14px", borderRadius:10, border:"none", cursor:"pointer",
-                            background:"rgba(245,158,11,.18)", color:F.warnD, fontFamily:F.display, fontWeight:700, fontSize:13 }}>
+                            background:"rgba(245,158,11,.18)", color:F.warnD, fontFamily:F.display, fontWeight:700, fontSize:14 }}>
                           {t("finances.whoOwes")}
                         </button>
                       </div>
@@ -2022,7 +2079,7 @@ export default function FinancesPage() {
 
                   {/* 6-month trend */}
                   <div>
-                    <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>{t("finances.income6Months")}</p>
+                    <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:12 }}>{t("finances.income6Months")}</p>
                     <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:84 }}>
                       {sixMonthBars.map(bar => (
                         <div key={bar.month} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
@@ -2034,15 +2091,15 @@ export default function FinancesPage() {
                               <div style={{ width:"100%", borderRadius: bar.pendingPct>0?"0":"3px 3px 0 0", height:`${bar.earnedPct}%`, minHeight:bar.earned>0?4:0, background:F.teal }} />
                             )}
                           </div>
-                          <span style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted }}>{bar.month}</span>
+                          <span style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted }}>{bar.month}</span>
                         </div>
                       ))}
                     </div>
                     <div style={{ display:"flex", gap:14, marginTop:10 }}>
-                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 14, color:F.sub }}>
                         <span style={{ width:9, height:9, borderRadius:2, background:F.teal }} /> {t("finances.received")}
                       </span>
-                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 13, color:F.sub }}>
+                      <span style={{ display:"inline-flex", alignItems:"center", gap:5, fontFamily:F.body, fontSize: 14, color:F.sub }}>
                         <span style={{ width:9, height:9, borderRadius:2, background:"rgba(245,158,11,.55)" }} /> {t("finances.pendingLabel")}
                       </span>
                     </div>
@@ -2051,7 +2108,7 @@ export default function FinancesPage() {
                   {/* Top students */}
                   {byStudentCockpit.length > 0 && (
                     <div>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>{t("finances.topStudentsByIncome")}</p>
+                      <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>{t("finances.topStudentsByIncome")}</p>
                       <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {byStudentCockpit.map(s => {
                           const maxAmt = byStudentCockpit[0]?.amount ?? 1;
@@ -2059,8 +2116,8 @@ export default function FinancesPage() {
                           return (
                             <div key={s.student_id}>
                               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                                <span style={{ fontFamily:F.body, fontSize:13, color:F.txt }}>{s.name}</span>
-                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:13, color:F.txt }}>{s.amount.toLocaleString(getLocale())} ₴</span>
+                                <span style={{ fontFamily:F.body, fontSize:14, color:F.txt }}>{s.name}</span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt }}>{s.amount.toLocaleString(getLocale())} ₴</span>
                               </div>
                               <div style={{ height:7, borderRadius:999, background:F.border }}>
                                 <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:s.color, transition:"width .4s ease" }} />
@@ -2075,11 +2132,11 @@ export default function FinancesPage() {
                   {/* Stats */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.lessonsThisMonth")}</p>
+                      <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.lessonsThisMonth")}</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.completedCount}</p>
                     </div>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
-                      <p style={{ fontFamily:F.display, fontSize: 13, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.avgLesson")}</p>
+                      <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.avgLesson")}</p>
                       <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString(getLocale())} ₴</p>
                     </div>
                   </div>
@@ -2088,7 +2145,7 @@ export default function FinancesPage() {
                   {analyticsStats.cancelledLost > 0 && (
                     <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ fontSize:18 }}>🚫</span>
-                      <p style={{ fontFamily:F.body, fontSize:13, color:F.txt, lineHeight:1.4 }}>
+                      <p style={{ fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.4 }}>
                         {t("finances.cancellationsPre")} <b>{analyticsStats.cancelledLost.toLocaleString(getLocale())} ₴</b>{t("finances.cancellationsPost")}
                       </p>
                     </div>
@@ -2115,7 +2172,7 @@ export default function FinancesPage() {
                 <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD, marginBottom:4 }}>
                   ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
                 </p>
-                <p style={{ fontFamily:F.body, fontSize:13, color:F.warnD, opacity:0.8 }}>
+                <p style={{ fontFamily:F.body, fontSize:14, color:F.warnD, opacity:0.8 }}>
                   {t("finances.lessonsUnpaid", { count: debtList.length })}
                 </p>
               </div>
@@ -2131,6 +2188,39 @@ export default function FinancesPage() {
           </div>
 
         </div>
+
+        {/* CSV export options. An independent tutor only has their OWN data, so the
+            tutor select is omitted — just kind (all / paid / unpaid) + download.
+            Was missing from this subtree entirely, so the export buttons were dead. */}
+        <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t("finances.exportTitle")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                    <button key={val} type="button" onClick={() => setExportKind(val)}
+                      className={cn(
+                        "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
+                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                      )}>
+                      {t(`finances.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button type="button"
+                onClick={() => { exportCsv({ kind: exportKind }); setExportOpen(false); }}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
+                style={{ background: "var(--teal,#2BBFAA)" }}>
+                <Download className="h-4 w-4" /> {t("finances.exportDownload")}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </AppLayout>
     );
   }
@@ -2141,7 +2231,7 @@ export default function FinancesPage() {
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
-          <p className="text-[13px] text-muted-foreground sm:text-sm">
+          <p className="text-[14px] text-muted-foreground sm:text-sm">
             {isIndependentTutor ? t("finances.pageSubtitleTutor") : t("finances.pageSubtitleManager")}
           </p>
         </div>
@@ -2188,7 +2278,7 @@ export default function FinancesPage() {
           <div className="sticky top-0 z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6">
             <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-[13px] font-medium text-muted-foreground">{periodLabel}</span>
+                <span className="text-[14px] font-medium text-muted-foreground">{periodLabel}</span>
                 <div role="radiogroup" aria-label={t("finances.periodFilterAria")} className="flex gap-1.5">
                   {(["week", "month", "all"] as Period[]).map((p) => (
                     <button
@@ -2204,7 +2294,7 @@ export default function FinancesPage() {
                       onClick={() => setPeriod(p)}
                       style={{
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
-                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
                         color: period === p ? "#0f0f1a" : "var(--sub,#9398b0)",
                         boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
@@ -2276,7 +2366,7 @@ export default function FinancesPage() {
                   <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
                     {t("finances.debtTitle", { sum: totalDebt })}
                   </p>
-                  <p className="text-[13px]" style={{ color: "#b45309", opacity: 0.8 }}>
+                  <p className="text-[14px]" style={{ color: "#b45309", opacity: 0.8 }}>
                     {t("finances.debtAwaiting", { count: debtsRows.length })}
                   </p>
                 </div>
@@ -2284,13 +2374,20 @@ export default function FinancesPage() {
               <button
                 onClick={async () => {
                   // One REAL reminder (email / Telegram) per student — anchor on their first debt lesson.
+                  // Group debts are skipped: remind-payment is individual-only and 404s on a
+                  // group row's synthetic id (write to those students in chat instead).
                   const seen = new Set<string>();
                   const reps = debtList.filter((l) => {
-                    if (!l.id || seen.has(l.student_id)) return false;
+                    if (!l.id || l.kind === "group" || seen.has(l.student_id)) return false;
                     seen.add(l.student_id);
                     return true;
                   });
-                  if (reps.length === 0) return;
+                  if (reps.length === 0) {
+                    // Nothing remindable (e.g. only group debts) — don't blame contacts.
+                    toast.error(t("pendingPaymentsExtra.reminderGeneric"));
+                    handleTabChange("debts");
+                    return;
+                  }
                   const results = await Promise.all(
                     reps.map((l) => supabase.functions.invoke("remind-payment", { body: { lessonId: l.id } })),
                   );
@@ -2298,11 +2395,11 @@ export default function FinancesPage() {
                   if (sent > 0) {
                     toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
                   } else {
-                    toast.error(t("pendingPaymentsExtra.noContact"));
+                    toast.error(t("pendingPaymentsExtra.reminderGeneric"));
                   }
                   handleTabChange("debts");
                 }}
-                className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[13px] font-bold transition-opacity hover:opacity-80"
+                className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[14px] font-bold transition-opacity hover:opacity-80"
                 style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
                 {t("people.remindBtn")}
               </button>
@@ -2314,7 +2411,7 @@ export default function FinancesPage() {
             <div className="flex-1" />
             <button
               onClick={() => setExportOpen(true)}
-              className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-muted"
+              className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors hover:bg-muted"
               style={{ color: "var(--sub,#6b7088)", border: "1px solid var(--border,#eceef3)" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
@@ -2329,13 +2426,13 @@ export default function FinancesPage() {
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
                 <span className="sm:hidden">{t("finances.incomeTabShort", { defaultValue: "Доходи" })}</span>
-                <span className="ml-1 text-[13px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
+                <span className="ml-1 text-[14px] text-muted-foreground">({incomeRows.filter((r) => r.type === "lesson").length})</span>
               </TabsTrigger>
               <TabsTrigger value="debts" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.debtsTab", { defaultValue: "Заборгованості" })}</span>
                 <span className="sm:hidden">{t("finances.debtsTabShort", { defaultValue: "Борги" })}</span>
-                <span className="ml-1 text-[13px] text-muted-foreground">({debtsRows.length})</span>
+                <span className="ml-1 text-[14px] text-muted-foreground">({debtsRows.length})</span>
               </TabsTrigger>
             </TabsList>
 
@@ -2393,7 +2490,7 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
-                  <span className="text-[13px] text-muted-foreground">
+                  <span className="text-[14px] text-muted-foreground">
                     {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
                   </span>
                 </div>
@@ -2402,7 +2499,7 @@ export default function FinancesPage() {
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}</h2>
-                  <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
+                  <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
                 </div>
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
               </div>
@@ -2413,7 +2510,7 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.marginByTutor")}</h2>
-                <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.marginFormula")}</span>
+                <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.marginFormula")}</span>
               </div>
               {markupByTutor.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("finances.noMarginData")}</p>
@@ -2421,7 +2518,7 @@ export default function FinancesPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-[15px]">
                     <thead>
-                      <tr className="border-b border-border text-[13px] text-muted-foreground">
+                      <tr className="border-b border-border text-[14px] text-muted-foreground">
                         <th className="px-2 py-2 text-left font-medium">{t("finances.colTutor")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("finances.colLessonsCount")}</th>
                         <th className="px-2 py-2 text-right font-medium">{t("finances.colMargin")}</th>
@@ -2452,7 +2549,7 @@ export default function FinancesPage() {
             <div className="mt-4 rounded-xl border border-border bg-card p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
-                <span className="hidden text-[13px] text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
+                <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
               <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart
                 tutorNames={Object.fromEntries(
@@ -2622,7 +2719,7 @@ function SummaryStat({
       : "text-foreground";
   return (
     <div className="min-w-0 rounded-lg bg-secondary/40 px-2.5 py-2">
-      <div className="flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground sm:text-[13px]">
+      <div className="flex items-center gap-1.5 text-[14px] font-medium text-muted-foreground sm:text-[14px]">
         <Icon className="h-3 w-3" />
         <span className="truncate">{label}</span>
       </div>
@@ -2669,7 +2766,7 @@ function SortHeader({
       >
         <span>{label}</span>
         {sublabel && (
-          <span className="text-[13px] font-normal text-muted-foreground normal-case">{sublabel}</span>
+          <span className="text-[14px] font-normal text-muted-foreground normal-case">{sublabel}</span>
         )}
       </span>
       <Icon className={cn("h-3.5 w-3.5 shrink-0", active ? "opacity-100 text-primary" : "opacity-70")} />

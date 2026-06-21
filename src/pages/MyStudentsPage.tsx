@@ -737,7 +737,7 @@ export default function MyStudentsPage() {
           {([["active", t("myStudents.tabActive", { count: activeStudents.length })],
              ["archived", t("myStudents.tabArchived", { count: archivedStudents.length })]] as const).map(([key, label]) => (
             <button key={key} onClick={() => { setView(key); setSearchQuery(""); }}
-              className="px-4 h-10 rounded-[9px] text-[13px] font-bold transition-all"
+              className="px-4 h-10 rounded-[9px] text-[14px] font-bold transition-all"
               style={view === key
               ? { background: "#fff", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
               : { background: "transparent", color: T.sub, fontFamily: T.display }}>
@@ -842,7 +842,7 @@ export default function MyStudentsPage() {
                         </div>
                       )}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7, flexWrap: "wrap" }}>
-                        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, padding: "2px 10px", borderRadius: 999, background: statusBg, color: statusFg }}>{statusLabel}</span>
+                        <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, padding: "2px 10px", borderRadius: 999, background: statusBg, color: statusFg }}>{statusLabel}</span>
                         <span style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{s.subject} · {formatPrice(s.price, s.currency)}{t("myStudents.perLessonSuffix")}</span>
                       </div>
                     </div>
@@ -888,12 +888,12 @@ export default function MyStudentsPage() {
                   {/* Contacts */}
                   {contacts.length > 0 && (
                     <div>
-                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
+                      <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                         {contacts.map((c) => (
                           <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "#fff" }}>
                             <div style={{ minWidth: 0, flex: 1 }}>
-                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
+                              <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
                               <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
                             </div>
                             {c.tel && (
@@ -964,7 +964,7 @@ export default function MyStudentsPage() {
               e.target.style.background = F.bg;
             };
             const lbl: React.CSSProperties = {
-              fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub,
+              fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.sub,
               marginBottom: 7, display: "block",
             };
             const close = () => setDialog({ open: false, mode: "create", studentId: null });
@@ -1031,7 +1031,7 @@ export default function MyStudentsPage() {
                           </span>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent side="bottom" align="start" className="w-64 text-[13.5px] leading-relaxed" style={{ fontFamily: F.body, color: F.txt }}>
+                      <PopoverContent side="bottom" align="start" className="w-64 text-[14.5px] leading-relaxed" style={{ fontFamily: F.body, color: F.txt }}>
                         {t("myStudents.photoFromProfileHint")}
                       </PopoverContent>
                     </Popover>
@@ -1075,13 +1075,13 @@ export default function MyStudentsPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
                           {subMatches.map((s) => (
                             <button key={s} type="button" onClick={() => addSubject(s)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 13.5 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 14.5 }}>
                               {s}
                             </button>
                           ))}
                           {draftIsCustom && (
                             <button type="button" onClick={() => addSubject(subjectDraft)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 13.5 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
                               + «{subjectDraft.trim()}»
                             </button>
                           )}
@@ -1092,7 +1092,7 @@ export default function MyStudentsPage() {
 
                   {/* 💛 Price card */}
                   <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")}</div>
+                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")}</div>
                     <div style={{ display: "flex", gap: 10 }}>
                       <div style={{ flex: 1 }}>
                         <input aria-label={t("myStudents.priceCardTitle")} inputMode="decimal" placeholder="500" value={form.price}
@@ -1145,8 +1145,8 @@ export default function MyStudentsPage() {
                   {/* 🔒 Private notes */}
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-                      <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
-                      <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 13, color: F.sub }}>{t("myStudents.notesLabel")}</span>
+                      <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: F.gold, display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔒</span>
+                      <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.sub }}>{t("myStudents.notesLabel")}</span>
                     </div>
                     <textarea rows={3} aria-label={t("myStudents.notesPlaceholder")} value={form.tutor_notes} placeholder={t("myStudents.notesPlaceholder")}
                       onChange={(e) => setForm({ ...form, tutor_notes: e.target.value })}

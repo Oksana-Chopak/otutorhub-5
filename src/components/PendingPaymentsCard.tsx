@@ -232,7 +232,7 @@ export function PendingPaymentsCard() {
             <CardTitle className="font-display text-base">
               Очікують оплати
             </CardTitle>
-            <Badge variant="outline" className="ml-1 text-[13px]">
+            <Badge variant="outline" className="ml-1 text-[14px]">
               {t("pendingPaymentsExtra.studentCount", { count: groups.length })} · {summaryCurrency ? formatPrice(totalSum, summaryCurrency) : totalSum}
             </Badge>
             <ChevronDown
@@ -241,7 +241,7 @@ export function PendingPaymentsCard() {
               }`}
             />
           </CollapsibleTrigger>
-          <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-[13px]">
+          <Button asChild size="sm" variant="ghost" className="h-7 px-2 text-[14px]">
             <Link to="/finances?filter=need_pay">
               <ArrowRight className="h-3 w-3" />
             </Link>
@@ -273,7 +273,7 @@ export function PendingPaymentsCard() {
                         <span className="truncate text-sm font-medium text-foreground">
                           {g.student_name}
                         </span>
-                        <span className="text-[13px] text-muted-foreground">
+                        <span className="text-[14px] text-muted-foreground">
                           · {t("pendingPaymentsExtra.lessonCount", { count: g.lessons.length })}
                         </span>
                         <span className="ml-auto text-sm font-semibold text-foreground">
@@ -311,14 +311,14 @@ export function PendingPaymentsCard() {
                                 onClick={() => setOpenLessonId(r.lesson_id)}
                                 title={t("pendingPaymentsExtra.openLesson")}
                               >
-                                <p className="truncate text-[13px] text-foreground">
+                                <p className="truncate text-[14px] text-foreground">
                                   {r.subject} ·{" "}
                                   {d.toLocaleDateString(getLocale(), {
                                     day: "numeric",
                                     month: "short",
                                   })}
                                 </p>
-                                <p className="text-[13px] font-medium text-muted-foreground">
+                                <p className="text-[14px] font-medium text-muted-foreground">
                                   {formatPrice(r.student_price, r.currency)}
                                 </p>
                               </button>
@@ -326,7 +326,7 @@ export function PendingPaymentsCard() {
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-7 gap-1 px-2 text-[13px]"
+                                  className="h-7 gap-1 px-2 text-[14px]"
                                   onClick={() => remindStudent(r.id)}
                                   disabled={remindingId === r.id}
                                   title={t("pendingPaymentsExtra.sendReminder")}
@@ -342,7 +342,7 @@ export function PendingPaymentsCard() {
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="h-7 gap-1 text-[13px]"
+                                className="h-7 gap-1 text-[14px]"
                                 onClick={() => markPaid([r.id])}
                                 disabled={oneBusy}
                               >

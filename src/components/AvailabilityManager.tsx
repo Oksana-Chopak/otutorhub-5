@@ -399,11 +399,11 @@ export function AvailabilityManager() {
       {/* How it works (collapsible) */}
       <div style={{ marginBottom: 14 }}>
         <button type="button" onClick={() => setShowHint((v) => !v)} aria-expanded={showHint}
-          style={{ display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", borderRadius: 999, padding: "7px 13px", cursor: "pointer", fontFamily: A.display, fontWeight: 700, fontSize: 13, color: A.sub }}>
+          style={{ display: "inline-flex", alignItems: "center", gap: 6, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", borderRadius: 999, padding: "7px 13px", cursor: "pointer", fontFamily: A.display, fontWeight: 700, fontSize: 14, color: A.sub }}>
           <Info className="h-3.5 w-3.5" style={{ color: A.tealD }} /> {t("availability.howItWorks")}
         </button>
         {showHint && (
-          <div style={{ marginTop: 8, borderRadius: 14, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", padding: 13, fontSize: 13, lineHeight: 1.5, color: A.sub }}>
+          <div style={{ marginTop: 8, borderRadius: 14, border: `1px solid ${A.border}`, background: "rgba(15,15,26,.03)", padding: 13, fontSize: 14, lineHeight: 1.5, color: A.sub }}>
             {t("availability.scheduleInfo")}
           </div>
         )}
@@ -436,13 +436,13 @@ export function AvailabilityManager() {
               return (
                 <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, background: A.surface, border: `1px solid ${A.border}`, borderRadius: 12, padding: "10px 12px" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 13.5 }}>
+                    <div style={{ fontSize: 14.5 }}>
                       <b style={{ fontFamily: A.display }}>{fullName(requester)}</b>
                       <span style={{ color: A.sub }}> {t("availabilityManagerExtra.requestsHours")} </span>
                       <b style={{ fontFamily: A.display }}>{fullName(tutorProfile)}</b>
                     </div>
-                    {r.message && <div style={{ fontSize: 13, color: A.sub, marginTop: 2 }}>{r.message}</div>}
-                    <div style={{ fontSize: 13, color: A.muted, marginTop: 2 }}>{new Date(r.created_at).toLocaleString(getLocale())}</div>
+                    {r.message && <div style={{ fontSize: 14, color: A.sub, marginTop: 2 }}>{r.message}</div>}
+                    <div style={{ fontSize: 14, color: A.muted, marginTop: 2 }}>{new Date(r.created_at).toLocaleString(getLocale())}</div>
                   </div>
                   {(isManager || (isTutor && r.tutor_id === user?.id)) && (
                     <Button size="sm" variant="outline" onClick={() => acknowledgeRequest(r.id)}>
@@ -468,7 +468,7 @@ export function AvailabilityManager() {
           <div style={{ borderRadius: 18, padding: 16, background: A.gradIncome, color: "#fff", boxShadow: "0 14px 32px -18px rgba(15,15,26,.6)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: A.display, fontWeight: 700 }}>{t("availabilityManagerExtra.openThisWeek")}</div>
+                <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: A.display, fontWeight: 700 }}>{t("availabilityManagerExtra.openThisWeek")}</div>
                 <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 30, color: A.teal, marginTop: 4 }}>
                   {totalWeeklyHours} <span style={{ fontSize: 15, color: "#fff" }}>{t("availabilityManagerExtra.hoursShort")}</span>
                 </div>
@@ -480,7 +480,7 @@ export function AvailabilityManager() {
           </div>
 
           {/* Weekly template */}
-          <div style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13, letterSpacing: ".09em", textTransform: "uppercase", color: A.sub, margin: "4px 2px -2px" }}>
+          <div style={{ fontFamily: A.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: A.sub, margin: "4px 2px -2px" }}>
             {t("availabilityManagerExtra.weeklyTemplate")}
           </div>
           <div style={{ background: A.surface, border: `1px solid ${A.border}`, borderRadius: 18, boxShadow: A.shadowSm, padding: 6 }}>
@@ -490,18 +490,18 @@ export function AvailabilityManager() {
               const canCopy = canEdit && off && Array.from(groupedWeekly.values()).some((l) => l.length > 0);
               return (
                 <div key={day} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 8px", borderBottom: idx < DAY_ORDER.length - 1 ? `1px solid ${A.border}` : "none" }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: A.display, fontWeight: 800, fontSize: 13,
+                  <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: A.display, fontWeight: 800, fontSize: 14,
                     background: off ? "rgba(147,152,176,.14)" : A.tealL, color: off ? A.muted : A.tealD }}>
                     {WEEKDAYS_UK[day]}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {off ? (
-                      <span style={{ fontSize: 13, color: A.muted, fontStyle: "italic" }}>{t("availabilityManagerExtra.holiday")}</span>
+                      <span style={{ fontSize: 14, color: A.muted, fontStyle: "italic" }}>{t("availabilityManagerExtra.holiday")}</span>
                     ) : (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {items.map((w) => (
                           <span key={w.id} style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 28, padding: canEdit ? "0 4px 0 9px" : "0 9px", borderRadius: 999, background: A.tealL, boxShadow: `inset 0 0 0 1px ${A.tealRing}` }}>
-                            <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13, color: A.tealD, fontVariantNumeric: "tabular-nums" }}>
+                            <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 14, color: A.tealD, fontVariantNumeric: "tabular-nums" }}>
                               {minutesToHHMM(w.start_minute)}–{minutesToHHMM(w.end_minute)}
                             </span>
                             {canEdit && (
@@ -555,7 +555,7 @@ export function AvailabilityManager() {
           <div style={{ marginTop: 4 }}>
             <div style={{ margin: "2px 2px 4px" }}>
               <div style={{ fontFamily: A.display, fontWeight: 800, fontSize: 16 }}>{t("availabilityManagerExtra.dateExceptions")}</div>
-              <div style={{ fontSize: 13, color: A.sub, marginTop: 1, lineHeight: 1.4 }}>{t("availabilityManagerExtra.dateExceptionsDesc")}</div>
+              <div style={{ fontSize: 14, color: A.sub, marginTop: 1, lineHeight: 1.4 }}>{t("availabilityManagerExtra.dateExceptionsDesc")}</div>
             </div>
             {canEdit && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: 8, margin: "10px 0 12px" }}>
@@ -582,15 +582,15 @@ export function AvailabilityManager() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 13.5 }}>
+                          <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 14.5 }}>
                             {new Date(o.slot_date + "T00:00:00").toLocaleDateString(getLocale(), { day: "2-digit", month: "long", weekday: "short" })}
                           </span>
-                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 13,
+                          <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 14,
                             background: extra ? "rgba(34,197,94,.14)" : "rgba(255,122,89,.15)", color: extra ? A.successD : A.coral, boxShadow: extra ? "inset 0 0 0 1px rgba(34,197,94,.3)" : "inset 0 0 0 1px rgba(255,122,89,.32)" }}>
                             {extra ? t("availabilityManagerExtra.extraHoursPill") : t("availabilityManagerExtra.holiday")}
                           </span>
                         </div>
-                        <div style={{ fontSize: 13, color: A.sub, fontVariantNumeric: "tabular-nums", marginTop: 1 }}>
+                        <div style={{ fontSize: 14, color: A.sub, fontVariantNumeric: "tabular-nums", marginTop: 1 }}>
                           {isFullDay ? t("availabilityManagerExtra.allDay") : `${minutesToHHMM(o.start_minute)}–${minutesToHHMM(o.end_minute)}`}
                         </div>
                       </div>

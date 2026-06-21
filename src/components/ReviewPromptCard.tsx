@@ -149,7 +149,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
           <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 16, color: "#0f0f1a", lineHeight: 1.25 }}>
             {t("reviewPrompt.title", { tutor: current.tutor_name }) || `Як пройшов урок з ${current.tutor_name}?`}
           </p>
-          <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "#6b7280", marginTop: 3 }}>
+          <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "#6b7280", marginTop: 3 }}>
             {current.subject} · {fmtDate}
           </p>
         </div>

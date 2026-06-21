@@ -186,7 +186,7 @@ export default function SubscriptionRequestsPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>
                           {name}
                         </p>
-                        <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>
+                        <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
                             locale: uk,
                           })}{" "}
@@ -195,11 +195,11 @@ export default function SubscriptionRequestsPage() {
                         </div>
                       </div>
                       <span style={{ height: 26, padding: "0 11px", borderRadius: 999, display: "inline-flex", alignItems: "center",
-                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+                        fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: meta.bg, color: meta.color }}>{meta.label}</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 text-[13.5px]" style={{ color: "#6b7280" }}>
+                    <div className="flex flex-wrap gap-3 text-[14.5px]" style={{ color: "#6b7280" }}>
                       {r.tutor?.email && (
                         <a
                           href={`mailto:${r.tutor.email}`}
@@ -220,7 +220,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.message && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
-                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> Повідомлення
                         </div>
                         {r.message}
@@ -229,7 +229,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.manager_response && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
-                        <div className="mb-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           Ваша відповідь
                         </div>
                         {r.manager_response}
@@ -273,7 +273,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
                               background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5 }}
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5 }}
                           >
                             Взяти в роботу
                           </button>
@@ -283,7 +283,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
                               background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >
                             Завершити
@@ -294,7 +294,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(224,85,47,.3)",
                               background: "transparent", color: "#b3441f", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5 }}
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5 }}
                           >
                             Відхилити
                           </button>

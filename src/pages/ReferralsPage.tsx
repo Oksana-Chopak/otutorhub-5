@@ -240,7 +240,7 @@ export default function ReferralsPage() {
                         <div style={{ borderTop: "1px solid #eceef3", paddingTop: 15, display: "grid", gridTemplateColumns: `repeat(${facts.length}, 1fr)`, gap: 10 }}>
                           {facts.map(([labelKey, val], i) => (
                             <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5, borderRadius: 14, background: "#fbfbfc", border: "1px solid #eceef3", padding: "12px 13px", minWidth: 0 }}>
-                              <span style={{ fontFamily: F, fontWeight: 700, fontSize: 13, color: "#b0b4c8" }}>{t(labelKey)}</span>
+                              <span style={{ fontFamily: F, fontWeight: 700, fontSize: 14, color: "#b0b4c8" }}>{t(labelKey)}</span>
                               <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#0f0f1a", lineHeight: 1.2 }}>{prettyRequestValue(val)}</span>
                             </div>
                           ))}

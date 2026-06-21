@@ -40,7 +40,7 @@ export function CookieConsent() {
         fontFamily: "Inter, system-ui, sans-serif",
       }}
     >
-      <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.5, color: "#d7d9e6" }}>
+      <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: "#d7d9e6" }}>
         {t("cookieConsent.text")}{" "}
         <Link to="/privacy" style={{ color: "#2BBFAA", textDecoration: "underline" }}>
           {t("cookieConsent.learnMore")}

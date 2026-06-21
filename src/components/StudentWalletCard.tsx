@@ -93,7 +93,7 @@ export function StudentWalletCard({ studentId }: { studentId: string }) {
             </li>
           ))}
         </ul>
-        <p className="mt-3 text-[13px] text-muted-foreground">
+        <p className="mt-3 text-[14px] text-muted-foreground">
           Уроки списуються з балансу автоматично, як тільки репетитор їх створить.
         </p>
       </CardContent>

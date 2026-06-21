@@ -72,16 +72,16 @@ export function StudentRewardsShelf() {
     <div style={{ fontFamily: C.body, color: C.txt, display: "flex", flexDirection: "column", gap: 16 }}>
       {/* Hero */}
       <div style={{ borderRadius: 20, padding: "20px 22px", background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", boxShadow: "0 16px 40px -20px rgba(15,15,26,.7)" }}>
-        <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: C.display, fontWeight: 700 }}>
+        <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: C.display, fontWeight: 700 }}>
           {t("studentRewardsShelf.heroTitle")}
         </div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
           <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 38, letterSpacing: "-.02em", color: C.teal }}>{rewards.length}</span>
           <span style={{ fontFamily: C.display, fontWeight: 700, fontSize: 16 }}>{t("studentRewardsShelf.allTime")}</span>
-          {monthCount > 0 && <span style={{ fontSize: 13, color: "rgba(255,255,255,.65)" }}>· {t("studentRewardsShelf.thisMonth", { count: monthCount })}</span>}
+          {monthCount > 0 && <span style={{ fontSize: 14, color: "rgba(255,255,255,.65)" }}>· {t("studentRewardsShelf.thisMonth", { count: monthCount })}</span>}
         </div>
         {weekStreak > 1 && (
-          <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 999, padding: "5px 12px", background: "rgba(245,181,68,.18)", color: "#F5B400", fontFamily: C.display, fontWeight: 700, fontSize: 13 }}>
+          <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 6, borderRadius: 999, padding: "5px 12px", background: "rgba(245,181,68,.18)", color: "#F5B400", fontFamily: C.display, fontWeight: 700, fontSize: 14 }}>
             🔥 {t("studentRewardsShelf.weekStreak", { count: weekStreak })}
           </div>
         )}
@@ -98,7 +98,7 @@ export function StudentRewardsShelf() {
         </div>
       ) : (
         <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
-          <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, color: C.sub, marginBottom: 10, textTransform: "uppercase", letterSpacing: ".07em" }}>
+          <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.sub, marginBottom: 10, textTransform: "uppercase", letterSpacing: ".07em" }}>
             {t("studentRewardsShelf.collectionLabel")}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

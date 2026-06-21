@@ -140,7 +140,7 @@ export function WeekCalendar({
         <button
           type="button"
           onClick={onToday}
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[13.5px] font-bold transition-colors hover:bg-[#f0fdf9]"
+          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[14.5px] font-bold transition-colors hover:bg-[#f0fdf9]"
           style={{ borderColor: "var(--border,#eceef3)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
         >
           <CalendarDays className="h-3.5 w-3.5" />
@@ -161,7 +161,7 @@ export function WeekCalendar({
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
-        <span className="text-[13px] text-muted-foreground hidden sm:block">
+        <span className="text-[14px] text-muted-foreground hidden sm:block">
           {start.getFullYear()}
         </span>
       </div>
@@ -175,7 +175,7 @@ export function WeekCalendar({
             <div
               key={i}
               className={cn(
-                "px-1 py-2 text-center text-[13px]",
+                "px-1 py-2 text-center text-[14px]",
                 isToday ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
               )}
             >
@@ -207,7 +207,7 @@ export function WeekCalendar({
             >
               <div className="relative h-px bg-destructive">
                 <span className="absolute -left-1 -top-[3px] inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
-                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[13px] font-semibold text-destructive-foreground">
+                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[14px] font-semibold text-destructive-foreground">
                   {now.toLocaleTimeString(getLocale(), {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -221,7 +221,7 @@ export function WeekCalendar({
             {Array.from({ length: HOURS }, (_, i) => (
               <div
                 key={i}
-                className="text-[13px] text-muted-foreground text-right pr-1 border-b border-border/50"
+                className="text-[14px] text-muted-foreground text-right pr-1 border-b border-border/50"
                 style={{ height: HOUR_HEIGHT }}
               >
                 {String(START_HOUR + i).padStart(2, "0")}:00
@@ -278,7 +278,7 @@ export function WeekCalendar({
                         onLessonClick?.(l);
                       }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[13px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[14px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}

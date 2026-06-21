@@ -21,7 +21,7 @@ const COLORS = [
 export function IncomeByStudentPie({ data }: { data: Slice[] }) {
   if (data.length === 0) {
     return (
-      <div className="flex h-44 items-center justify-center text-[13px] text-muted-foreground">
+      <div className="flex h-44 items-center justify-center text-[14px] text-muted-foreground">
         {t("finances.noPaidLessonsYet")}
       </div>
     );
@@ -50,14 +50,14 @@ export function IncomeByStudentPie({ data }: { data: Slice[] }) {
                 backgroundColor: "hsl(var(--card))",
                 border: "1px solid hsl(var(--border))",
                 borderRadius: 8,
-                fontSize: 13,
+                fontSize: 14,
               }}
               formatter={(v: number, n: string) => [`${v} ₴`, n]}
             />
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <ul className="flex-1 space-y-1 text-[13px]">
+      <ul className="flex-1 space-y-1 text-[14px]">
         {data.map((d, i) => {
           const pct = total > 0 ? Math.round((d.amount / total) * 100) : 0;
           return (

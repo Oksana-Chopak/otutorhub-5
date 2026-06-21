@@ -61,13 +61,13 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
             {t(`studentProgress.level_${level.key}`)}
           </span>
           {next && (
-            <span style={{ fontSize: 13, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600 }}>
+            <span style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 600 }}>
               {next.min - completedCount} {t("studentProgress.toNext")}
             </span>
           )}
         </div>
         <Progress value={progress} className="h-2.5" />
-        <p style={{ marginTop: 6, fontSize: 13, color: "var(--sub,#6b7088)" }}>
+        <p style={{ marginTop: 6, fontSize: 14, color: "var(--sub,#6b7088)" }}>
           {t("studentProgress.progressTitle")}: <span style={{ color: "#0f0f1a", fontWeight: 700 }}>{completedCount}</span>{next ? ` / ${next.min}` : ""}
         </p>
       </div>
@@ -75,10 +75,10 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
       {/* Weekly record */}
       {weeklyRecord > 0 && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 13, padding: "10px 13px", background: "linear-gradient(135deg, rgba(245,181,68,.14), rgba(245,181,68,.05))", border: "1px solid rgba(245,181,68,.3)" }}>
-          <span style={{ fontSize: 13.5, color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+          <span style={{ fontSize: 14.5, color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
             🏆 {t("studentRecord.weeklyRecord", { count: weeklyRecord })}
           </span>
-          <span style={{ fontSize: 13, color: "#9a6a12", fontWeight: 600 }}>
+          <span style={{ fontSize: 14, color: "#9a6a12", fontWeight: 600 }}>
             {t("studentRecord.thisWeek", { count: weeklyCount })}
           </span>
         </div>

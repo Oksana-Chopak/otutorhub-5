@@ -144,20 +144,20 @@ export function FinanceWeeklyChart({
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
           <XAxis
             dataKey="week"
-            tick={{ fontSize: 13, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }}
             interval="preserveStartEnd"
           />
-          <YAxis tick={{ fontSize: 13, fill: "hsl(var(--muted-foreground))" }} />
+          <YAxis tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} />
           <Tooltip
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",
               borderRadius: 8,
-              fontSize: 13,
+              fontSize: 14,
             }}
             formatter={(v: number) => `${v} ₴`}
           />
-          <Legend wrapperStyle={{ fontSize: 13 }} />
+          <Legend wrapperStyle={{ fontSize: 14 }} />
           {tutorIds.map((tid, idx) => {
             const name = tutorNames[tid] ?? t("shared.noName");
             return (

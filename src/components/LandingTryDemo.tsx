@@ -157,7 +157,7 @@ export function LandingTryDemo({ personaVars, personaId, isAnimating, onFindClic
                       <Link to="/auth?signup=1&role=tutor&from_demo=1" className="ltd-btn-primary">
                         Створити кабінет безкоштовно →
                       </Link>
-                      <Link to="/auth" className="ltd-link" style={{ marginTop: 12, fontSize: 13 }}>
+                      <Link to="/auth" className="ltd-link" style={{ marginTop: 12, fontSize: 14 }}>
                         Вже є акаунт? Увійти
                       </Link>
                       <button type="button" className="ltd-link" onClick={() => setDone(null)} style={{ marginTop: 8 }}>

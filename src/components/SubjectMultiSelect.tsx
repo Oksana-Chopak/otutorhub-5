@@ -56,7 +56,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
               type="button"
               onClick={() => toggle(s)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] transition-colors",
+                "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[14px] transition-colors",
                 active
                   ? "border-primary bg-primary text-primary-foreground"
                   : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -85,7 +85,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={t("subjectSelect.customPlaceholder")}
-          className="h-10 text-[13px]"
+          className="h-10 text-[14px]"
         />
         <Button
           type="button"

@@ -127,7 +127,7 @@ function SegSwitch<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[13.5px] transition-all"
+          className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[14.5px] transition-all"
           style={
             value === o.value
               ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
@@ -998,7 +998,7 @@ export default function SchedulePage() {
             <span className="truncate">{t('schedule.pageTitle')}</span>
           </h1>
           {!isManager && (
-            <p className="text-[13px] text-muted-foreground sm:text-sm">
+            <p className="text-[14px] text-muted-foreground sm:text-sm">
               {isTutor ? t("schedule.tutorSubtitle") : t("schedule.studentSubtitle")}
             </p>
           )}
@@ -1043,12 +1043,12 @@ export default function SchedulePage() {
               <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
                 <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                   <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
-                  <div className="mt-2 flex items-center gap-2 text-[13px] text-muted-foreground">
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-semibold",
+                  <div className="mt-2 flex items-center gap-2 text-[14px] text-muted-foreground">
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[14px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
                     <span className={step === 1 ? "text-foreground font-medium" : ""}>{t('schedule.step1')}</span>
                     <span className="h-px flex-1 bg-border" />
-                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[13px] font-semibold",
+                    <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[14px] font-semibold",
                       step === 2 ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground")}>2</span>
                     <span className={step === 2 ? "text-foreground font-medium" : ""}>{t('schedule.step2')}</span>
                   </div>
@@ -1084,7 +1084,7 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.tutor_id && (
-                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectTutor')}</p>
+                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
@@ -1116,17 +1116,17 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.student_id && (
-                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectStudent')}</p>
+                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectStudent')}</p>
                   )}
                   {students.length === 0 && isTutor && !isManager && (
-                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-[13px]">
+                    <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-[14px]">
                       <p className="text-muted-foreground mb-2">
                         {isIndependentTutor
                           ? t('schedule.noStudentsIndependent')
                           : t('schedule.noStudentsHub')}
                       </p>
                       {isIndependentTutor && (
-                        <Button asChild size="sm" variant="outline" className="h-7 text-[13px]">
+                        <Button asChild size="sm" variant="outline" className="h-7 text-[14px]">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
                             {t("myStudents.addStudentBtn")}
@@ -1155,7 +1155,7 @@ export default function SchedulePage() {
                     )}
                   />
                   {formErrors.subject && (
-                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.selectSubject')}</p>
+                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectSubject')}</p>
                   )}
                 </div>
                 <div>
@@ -1178,7 +1178,7 @@ export default function SchedulePage() {
                     )}
                   />
                   {formErrors.starts_at && (
-                    <p className="mt-1 text-[13px] text-destructive">{t('schedule.dateTime')}</p>
+                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.dateTime')}</p>
                   )}
                 </div>
                 </>)}
@@ -1208,7 +1208,7 @@ export default function SchedulePage() {
                       value={form.student_price}
                       onChange={(e) => setForm((f) => ({ ...f, student_price: e.target.value }))}
                     />
-                    <p className="mt-1 text-[13px] text-muted-foreground">
+                    <p className="mt-1 text-[14px] text-muted-foreground">
                       {existingRateForPair
                         ? `💡 ${t('schedule.priceHintExisting')}`
                         : `🆕 ${t('schedule.priceHintNew')}`}
@@ -1267,11 +1267,11 @@ export default function SchedulePage() {
                     {form.tutor_id && form.student_id && form.subject && !autoFilling && (
                       <>
                         {(!form.student_price || form.student_price === "0") && (
-                          <p className="text-[13px] text-warning -mt-2">
+                          <p className="text-[14px] text-warning -mt-2">
                             {t('schedule.noPriceSetWarning')}
                           </p>
                         )}
-                        <p className="text-[13px] text-muted-foreground -mt-2">
+                        <p className="text-[14px] text-muted-foreground -mt-2">
                           {t('schedule.priceSourceHint')}
                         </p>
                       </>
@@ -1311,12 +1311,12 @@ export default function SchedulePage() {
                   </>
                 )}
                 {isStudent && !isManager && !isTutor && (
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-[14px] text-muted-foreground">
                     {t("schedule.studentRequestHint")}
                   </p>
                 )}
                 {conflictWarning && (
-                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-[13px] text-warning">
+                  <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-[14px] text-warning">
                     ⚠ {conflictWarning}
                   </div>
                 )}
@@ -1339,7 +1339,7 @@ export default function SchedulePage() {
                   <button
                     type="button"
                     onClick={() => setNotesOpen((v) => !v)}
-                    className="flex items-center gap-2 text-[13px] text-muted-foreground hover:text-foreground transition-colors w-full"
+                    className="flex items-center gap-2 text-[14px] text-muted-foreground hover:text-foreground transition-colors w-full"
                   >
                     <span className="flex-1 text-left">
                       {t('schedule.notes')} {form.notes ? `(${form.notes.length})` : `(${t('common.optional')})`}
@@ -1487,7 +1487,7 @@ export default function SchedulePage() {
                 onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
               />
               {canEditTeachingFields(editingLesson) && (
-                <p className="text-[13px] text-muted-foreground mt-1">
+                <p className="text-[14px] text-muted-foreground mt-1">
                   {t("schedule.studentNotifiedHint")}
                 </p>
               )}
@@ -1615,12 +1615,12 @@ export default function SchedulePage() {
           <div className="mb-3 flex items-center gap-2">
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 34, padding: "0 8px 0 13px",
               borderRadius: 999, background: "rgba(245,158,11,.14)", border: "1px solid rgba(245,158,11,.35)",
-              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, color: "#b4740b" }}>
+              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, color: "#b4740b" }}>
               {listFocus === "unpriced" ? t("schedule.focusUnpriced") : t("schedule.focusNoLink")}
               <button type="button" aria-label={t("schedule.clearFilterAria")}
                 onClick={() => { setListFocus(null); const n = new URLSearchParams(searchParams); n.delete("filter"); setSearchParams(n, { replace: true }); }}
                 style={{ width: 22, height: 22, borderRadius: 999, border: "none", cursor: "pointer",
-                  background: "rgba(180,116,11,.15)", color: "#b4740b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, lineHeight: 1 }}>
+                  background: "rgba(180,116,11,.15)", color: "#b4740b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, lineHeight: 1 }}>
                 ✕
               </button>
             </span>
@@ -1670,7 +1670,7 @@ export default function SchedulePage() {
                   }`}
                 >
                   {bucketLabel}
-                  <span className="ml-2 text-[13px] font-normal opacity-70">· {dayLessons.length}</span>
+                  <span className="ml-2 text-[14px] font-normal opacity-70">· {dayLessons.length}</span>
                 </h3>
                 <div className="space-y-2">
                   {shown.map((lesson) => {

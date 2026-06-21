@@ -41,7 +41,7 @@ export function LanguageSwitcher({
       <DropdownMenuTrigger asChild>
         <Button variant={variant} size={size} className={className}>
           <Globe className="h-4 w-4" />
-          {showLabel && <span className="ml-1.5 text-[13px] font-semibold">{currentShort}</span>}
+          {showLabel && <span className="ml-1.5 text-[14px] font-semibold">{currentShort}</span>}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -51,7 +51,7 @@ export function LanguageSwitcher({
             onClick={() => change(l.code)}
             className={current === l.code ? "font-semibold" : ""}
           >
-            <span className="mr-2 text-[13px] text-muted-foreground">{l.short}</span>
+            <span className="mr-2 text-[14px] text-muted-foreground">{l.short}</span>
             {t(`languageSwitcher.${l.labelKey}`)}
           </DropdownMenuItem>
         ))}

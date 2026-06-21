@@ -189,8 +189,8 @@ export function AppSidebar() {
                 : 0;
             const badgeClass =
               item.badgeKey === "chats"
-                ? "bg-primary px-1.5 text-[13px] font-semibold text-primary-foreground"
-                : "bg-warning px-1.5 text-[13px] font-semibold text-warning-foreground";
+                ? "bg-primary px-1.5 text-[14px] font-semibold text-primary-foreground"
+                : "bg-warning px-1.5 text-[14px] font-semibold text-warning-foreground";
             return (
               <RouterNavLink
                 key={item.to}
@@ -247,7 +247,7 @@ export function AppSidebar() {
         {/* Help: setup guide (independent only) + feedback (everyone) — kept under the
             same "Допомога" heading so support is always in one place. */}
         <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <p className="mb-1.5 px-3 text-[13px] font-semibold uppercase tracking-wider text-slate-500">
+          <p className="mb-1.5 px-3 text-[14px] font-semibold uppercase tracking-wider text-slate-500">
             {t("nav.help")}
           </p>
           {showOnboardingHelp && (
@@ -262,7 +262,7 @@ export function AppSidebar() {
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
               {isIndependent && !settings?.onboarding_completed && (
-                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[13px] font-semibold text-white animate-pulse">
+                <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[14px] font-semibold text-white animate-pulse">
                   {t("nav.newBadge")}
                 </span>
               )}
@@ -282,7 +282,7 @@ export function AppSidebar() {
         </div>
 
         <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <div className="flex items-center justify-center gap-3 pt-1 text-[13px] text-slate-500">
+          <div className="flex items-center justify-center gap-3 pt-1 text-[14px] text-slate-500">
             <button type="button" onClick={() => { setOpen(false); navigate("/privacy"); }} className="underline hover:text-slate-300">{t("landing.footer.privacy")}</button>
             <span>·</span>
             <button type="button" onClick={() => { setOpen(false); navigate("/terms"); }} className="underline hover:text-slate-300">{t("landing.footer.terms")}</button>
@@ -332,7 +332,7 @@ export function AppSidebar() {
                   ? `${profile.first_name} ${profile.last_name}`.trim()
                   : user?.email ?? "—"}
               </p>
-              <p className="text-[13px] text-slate-400">
+              <p className="text-[14px] text-slate-400">
                 {primaryRole ? t(roleLabelKey[primaryRole]) : t("roles.none")}
               </p>
             </div>

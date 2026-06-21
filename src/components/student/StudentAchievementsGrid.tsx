@@ -99,7 +99,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
             {/* earned line / progress */}
             {earned ? (
               <div
-                className="inline-flex items-center gap-1 text-[13px] font-bold"
+                className="inline-flex items-center gap-1 text-[14px] font-bold"
                 style={{ color: TIER_EARNED_TEXT[tier] }}
               >
                 <Check className="h-3.5 w-3.5" strokeWidth={2.6} />
@@ -108,7 +108,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
             ) : (
               <div className="flex w-full flex-col items-center gap-1.5">
                 <div
-                  className="min-h-[31px] text-[13px] leading-snug"
+                  className="min-h-[31px] text-[14px] leading-snug"
                   style={{ color: "#b0b4c8" }}
                 >
                   {t(def.descKey)}
@@ -119,7 +119,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                     style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}
                   />
                 </div>
-                <div className="text-[13px] font-bold tabular-nums" style={{ color: "#9398b0" }}>
+                <div className="text-[14px] font-bold tabular-nums" style={{ color: "#9398b0" }}>
                   {Math.min(current, target)} / {target}
                 </div>
               </div>

@@ -59,7 +59,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                 <item.icon className="h-4 w-4" />
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
-                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[13px] font-semibold text-primary-foreground">
+                  <span className="ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[14px] font-semibold text-primary-foreground">
                     {badge}
                   </span>
                 )}
@@ -68,7 +68,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-border px-4 py-4 space-y-2">
-          <p className="truncate text-[13px] text-muted-foreground">{user?.email}</p>
+          <p className="truncate text-[14px] text-muted-foreground">{user?.email}</p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1" onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" /> {t("studentNav.logout")}
@@ -105,7 +105,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                   end={item.to === "/student-dashboard"}
                   className={({ isActive }) =>
                     cn(
-                      "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[13px] font-medium transition-colors",
+                      "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[14px] font-medium transition-colors",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )
                   }
@@ -113,7 +113,7 @@ export function StudentLayout({ children }: { children: ReactNode }) {
                   <span className="relative">
                     <item.icon className="h-6 w-6" />
                     {badge > 0 && (
-                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[13px] font-semibold text-primary-foreground">
+                      <span className="absolute -right-2.5 -top-1.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-primary px-1 text-[14px] font-semibold text-primary-foreground">
                         {badge > 9 ? "9+" : badge}
                       </span>
                     )}

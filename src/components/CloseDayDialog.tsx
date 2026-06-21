@@ -105,7 +105,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     <button type="button" onClick={onClick}
       style={{
         height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
-        fontFamily: C.display, fontWeight: 700, fontSize: 13, whiteSpace: "nowrap",
+        fontFamily: C.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap",
         border: `1.5px solid ${on ? (gold ? C.goldRing : C.teal) : C.border}`,
         background: on ? (gold ? C.goldBg : C.tealL) : "#fff",
         color: on ? (gold ? C.gold : C.tealD) : C.muted,
@@ -126,7 +126,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div>
             <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>{t("closeDayDialog.title")}</div>
-            <div style={{ fontSize: 13.5, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
+            <div style={{ fontSize: 14.5, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
           </div>
           <button onClick={() => onOpenChange(false)} aria-label="✕"
             style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -144,7 +144,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {r.time} · {r.name}
                   </div>
-                  <div style={{ fontSize: 13, color: C.sub, marginTop: 1 }}>
+                  <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>
                     {formatPrice(r.price, r.currency)}
                     {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
                       <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[r.student_id] })}</span>

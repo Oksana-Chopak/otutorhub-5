@@ -1348,7 +1348,7 @@ export default function DashboardPage() {
           style={{ transform: `translateY(${Math.min(pullProgress, 1) * 10}px)` }}
         >
           <div
-            className="mt-2 flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-semibold text-white shadow-lg"
+            className="mt-2 flex items-center gap-2 rounded-full px-4 py-2 text-[14px] font-semibold text-white shadow-lg"
             style={{ background: "#0f0f1a", opacity: Math.max(0.35, Math.min(pullProgress, 1)) }}
           >
             <RefreshCw
@@ -1393,17 +1393,18 @@ export default function DashboardPage() {
               {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
                   to="/subscription"
-                  className="mt-3 hidden lg:inline-flex items-center gap-2 self-start rounded-full px-4 py-1.5 text-[15px] font-semibold transition-opacity hover:opacity-80"
+                  className="mt-3 inline-flex max-w-full items-center gap-2 self-start rounded-full px-4 py-1.5 text-[15px] font-semibold transition-opacity hover:opacity-80"
                   style={{
                     background: trialDaysLeft <= 3 ? "rgba(245,158,11,.15)" : "rgba(43,191,170,.12)",
                     color: trialDaysLeft <= 3 ? "#b45309" : "#25a896",
                     border: `1px solid ${trialDaysLeft <= 3 ? "rgba(245,158,11,.35)" : "rgba(43,191,170,.35)"}`,
                   }}
                 >
-                  <Sparkles className="h-4 w-4" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
+                  <Sparkles className="h-4 w-4 shrink-0" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
                   🎁 Пробний період: залишилось{" "}
                   <strong>{trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}</strong>
-                  {" "}· Підключити за 249 ₴/міс →
+                  <span className="hidden sm:inline">{" "}· Підключити за 249 ₴/міс →</span>
+                  <span className="sm:hidden">{" "}→</span>
                 </Link>
               )}
             </div>
@@ -1414,7 +1415,7 @@ export default function DashboardPage() {
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
                   trigger={
-                    <Button size="sm" className="h-11 rounded-xl text-[13px]" style={{ background: "var(--teal)" }}>
+                    <Button size="sm" className="h-11 rounded-xl text-[14px]" style={{ background: "var(--teal)" }}>
                       <HandHeart className="h-4 w-4" />
                     </Button>
                   }
@@ -1451,13 +1452,13 @@ export default function DashboardPage() {
               <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15.5, color: "#7a5a14" }}>
                 ⏳ Пробний період закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
               </p>
-              <p style={{ fontSize: 13.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
+              <p style={{ fontSize: 14.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
                 Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString(getLocale())} ₴</b> зафіксовано. Оформи підписку — нічого не загубиться.
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5,
+                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5,
                   boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Оформити підписку →
               </button>
@@ -1476,11 +1477,11 @@ export default function DashboardPage() {
                 <span style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16.5, color: "#fff" }}>
                   Закрити день
                 </span>
-                <span style={{ display: "block", fontSize: 13, color: "rgba(255,255,255,.65)", marginTop: 1 }}>
+                <span style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,.65)", marginTop: 1 }}>
                   {closeDayRows.length} {closeDayRows.length === 1 ? "урок чекає" : closeDayRows.length < 5 ? "уроки чекають" : "уроків чекають"} відмітки «проведено + оплачено»
                 </span>
               </span>
-              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Одним рухом
               </span>
             </button>
@@ -1493,7 +1494,7 @@ export default function DashboardPage() {
               <div className="grid grid-cols-3 gap-3 lg:hidden">
                 <Link to="/finances" className="col-span-2 block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
-                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                  <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit") || "Твій дохід"}
                   </p>
                   <p className="mt-2 font-extrabold leading-none"
@@ -1501,7 +1502,7 @@ export default function DashboardPage() {
                     {formatPrice(profit, "UAH")}
                   </p>
                   {profitGrowthPct !== null && (
-                    <p className="mt-1 text-[13px] font-bold"
+                    <p className="mt-1 text-[14px] font-bold"
                       style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
@@ -1525,7 +1526,7 @@ export default function DashboardPage() {
                     style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
                     {studentCount}
                   </p>
-                  <p className="mt-1 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                     {t("dashboard.cardStudents") || "учні"} · активних
                   </p>
                 </Link>
@@ -1537,7 +1538,7 @@ export default function DashboardPage() {
                 <Link to="/finances" className="overflow-hidden rounded-[14px] px-3 py-2 flex items-center gap-3 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", minHeight: 56 }}>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
+                    <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "#8a96b3" }}>
                       💰 Дохід
                     </p>
                     <p className="font-black leading-none mt-0.5"
@@ -1545,7 +1546,7 @@ export default function DashboardPage() {
                       {formatPrice(profit, "UAH")}
                     </p>
                     {profitGrowthPct !== null && (
-                      <p className="text-[13px] font-bold mt-0.5"
+                      <p className="text-[14px] font-bold mt-0.5"
                         style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                         {profitGrowthPct >= 0 ? "↑ +" : "↓ "}{profitGrowthPct}%
                       </p>
@@ -1561,7 +1562,7 @@ export default function DashboardPage() {
                     <GraduationCap className="h-3.5 w-3.5" style={{ color: "#2BBFAA" }} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
+                    <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
                       Учні
                     </p>
                     <p className="font-black leading-none mt-0.5"
@@ -1577,7 +1578,7 @@ export default function DashboardPage() {
                     className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
+                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
                         🏅 Рівень
                       </p>
                       <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1597,7 +1598,7 @@ export default function DashboardPage() {
                              background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
                     <div className="min-w-0">
-                      <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
+                      <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
                         Серія
                       </p>
                       <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
@@ -1632,14 +1633,14 @@ export default function DashboardPage() {
                   className="col-span-2 block overflow-hidden rounded-[18px] p-4 sm:p-5 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
-                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                  <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit")}
                   </p>
                   <p className="mt-2 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
                     {formatPrice(profit, "UAH")}
                   </p>
                   {profitGrowthPct !== null && (
-                    <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
+                    <p className="mt-1 text-[14px] font-medium" style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
@@ -1654,24 +1655,24 @@ export default function DashboardPage() {
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
                   <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{studentCount}</p>
-                  <p className="mt-1 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
+                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
                 </Link>
               </div>
               {/* Tutors + Lessons today — mobile/tablet (lg uses the 4-col grid below) */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length === 0 ? "var(--muted)" : "var(--teal)" }}>{todayLessons.length === 0 ? (t("dashboard.todayFree") || "вільний день") : t("dashboard.lessonsToday")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1683,9 +1684,9 @@ export default function DashboardPage() {
                   className="block overflow-hidden rounded-[16px] p-4 hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
-                  <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
+                  <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
                   <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
-                  <p className="mt-0.5 text-[13px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
+                  <p className="mt-0.5 text-[14px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {monthlyProfitBars.map((h, i) => (
                       <div key={i} className="flex-1 rounded-sm"
@@ -1695,25 +1696,25 @@ export default function DashboardPage() {
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
-                    <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.todayLessons")}</p>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1740,7 +1741,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground">Ви ще не запросили учня</p>
-                  <p className="mt-0.5 text-[13px] text-muted-foreground">
+                  <p className="mt-0.5 text-[14px] text-muted-foreground">
                     Запросіть першого учня — це займе хвилину, а ваш простір одразу оживе.
                   </p>
                   <div className="mt-2 flex gap-2">
@@ -1772,7 +1773,7 @@ export default function DashboardPage() {
                   so falls back to «Хаб» (see followups). */}
               <div className="flex">
                 <span
-                  className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold"
+                  className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[14px] font-bold"
                   style={{
                     background: "rgba(124,58,237,.12)",
                     color: "#7c3aed",
@@ -1808,13 +1809,13 @@ export default function DashboardPage() {
               >
                 <div className="flex items-start justify-between gap-2.5">
                   <span
-                    className="text-[13px] font-bold uppercase tracking-[0.08em]"
+                    className="text-[14px] font-bold uppercase tracking-[0.08em]"
                     style={{ color: "rgba(255,255,255,.6)" }}
                   >
                     💼 {t("hubTutor.payoutDueTitle")}
                   </span>
                   <span
-                    className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[13px] font-bold"
+                    className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[14px] font-bold"
                     style={{ background: "rgba(255,255,255,.16)", color: "#fff" }}
                   >
                     <GraduationCap className="h-[15px] w-[15px]" />
@@ -1960,7 +1961,7 @@ export default function DashboardPage() {
               <div className="mb-3 flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 text-amber-500" />
                 <h2 className="text-base font-semibold">{t("dashboardPageExtra.needsMarkingTitle")}</h2>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[13px] font-medium text-amber-700">{needsMarkLessons.length}</span>
+                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[14px] font-medium text-amber-700">{needsMarkLessons.length}</span>
               </div>
               <div className="space-y-2">
                 {needsMarkLessons.map((lesson) => (
@@ -1985,11 +1986,11 @@ export default function DashboardPage() {
           {isManager && (
             <div className="mt-4">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #6b7088)" }}>
+                <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #6b7088)" }}>
                   💰 {t("pendingPayments.title")}
                 </p>
                 {pendingPayments.length > 0 && (
-                  <span className="text-[13px] font-semibold" style={{ color: "#f59e0b" }}>
+                  <span className="text-[14px] font-semibold" style={{ color: "#f59e0b" }}>
                     {pendingPayments.length} {pendingPayments.length === 1 ? t("lessonCard.lesson") : t("lessonCard.lessons")}
                   </span>
                 )}
@@ -2006,7 +2007,7 @@ export default function DashboardPage() {
                     <p className="text-[15px] font-semibold" style={{ color: "var(--txt, #0f0f1a)" }}>
                       {t("dashboard.allPaidTitle") || "Так тримати!"}
                     </p>
-                    <p className="mt-1 text-[13px]" style={{ color: "var(--sub, #6b7088)" }}>
+                    <p className="mt-1 text-[14px]" style={{ color: "var(--sub, #6b7088)" }}>
                       {t("dashboard.allPaidDesc") || "Усі уроки оплачені — все під контролем 🎉"}
                     </p>
                   </div>
@@ -2039,7 +2040,7 @@ export default function DashboardPage() {
                   })}
                   {pendingPayments.length > 5 && (
                     <button
-                      className="w-full rounded-[14px] py-2.5 text-[13px] font-medium transition-colors"
+                      className="w-full rounded-[14px] py-2.5 text-[14px] font-medium transition-colors"
                       style={{ background: "var(--teal-l, #f0fdf9)", color: "var(--teal, #2BBFAA)" }}
                       onClick={() => window.location.href = "/finances"}
                     >
@@ -2060,7 +2061,7 @@ export default function DashboardPage() {
                     : t("dashboard.upcomingLessons")}
                 </p>
                 <button
-                  className="text-[13px] font-semibold transition-colors hover:underline"
+                  className="text-[14px] font-semibold transition-colors hover:underline"
                   style={{ color: "var(--teal)" }}
                   onClick={() => navigate("/schedule")}
                 >
@@ -2077,7 +2078,7 @@ export default function DashboardPage() {
                       {isIndependentTutor && (myStudentCount ?? 0) === 0 ? (
                         <>
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.addFirstStudent")}</p>
-                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardPageExtra.addFirstStudentHint")}</p>
+                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardPageExtra.addFirstStudentHint")}</p>
                           <Button
                             size="sm"
                             className="mt-3 rounded-xl"
@@ -2093,7 +2094,7 @@ export default function DashboardPage() {
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>
                             {t("dashboard.noUpcoming")}
                           </p>
-                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>Сьогодні вільний день</p>
+                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>Сьогодні вільний день</p>
                           {isTutor && !isManager && (
                             <Button
                               size="sm"
@@ -2175,7 +2176,7 @@ export default function DashboardPage() {
             </section>
 
             <section className="order-2 min-w-0">
-              <p className="mb-3 text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
+              <p className="mb-3 text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, var(--ds-sub))" }}>
                 {t("dashboard.nextSteps")}
               </p>
 
@@ -2189,7 +2190,7 @@ export default function DashboardPage() {
                         <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                       </div>
                       <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("emptyState.allClear")}</p>
-                      <p className="mt-1 text-[13px]" style={{ color: "var(--ds-sub)" }}>
+                      <p className="mt-1 text-[14px]" style={{ color: "var(--ds-sub)" }}>
                         {t("dashboardPageExtra.allClearDesc")}
                       </p>
                     </div>
@@ -2218,11 +2219,11 @@ export default function DashboardPage() {
                             </div>
                             <Link to={task.to} className="min-w-0 flex-1">
                               <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
-                              <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
+                              <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
                             </Link>
                             <button type="button" disabled={payingTutor === task.payTutorId}
                               onClick={() => markPayoutPaid(task.payTutorId!)}
-                              className="flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] px-3 text-[13px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                              className="flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] px-3 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                               style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                               {payingTutor === task.payTutorId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
                               Виплачено
@@ -2244,7 +2245,7 @@ export default function DashboardPage() {
                               <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>
                                 {task.title}
                               </p>
-                              <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>
+                              <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>
                                 {task.description}
                               </p>
                             </div>
@@ -2269,7 +2270,7 @@ export default function DashboardPage() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.tutorAssignsLessons")}</p>
-                              <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.tutorScheduleHint") ?? "Розклад"}</p>
+                              <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.tutorScheduleHint") ?? "Розклад"}</p>
                             </div>
                             <ChevronRight className="h-4 w-4 text-slate-300" />
                           </div>
@@ -2277,7 +2278,7 @@ export default function DashboardPage() {
                       ) : (
                         <div className="ds-pop-in rounded-[18px] bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #3b82f6" }}>
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.findTutor")}</p>
-                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
+                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint") ?? "Знайдіть репетитора"}</p>
                           <div className="mt-3">
                             <FindTutorDialog trigger={
                               <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#0f0f1a" }}>
@@ -2298,7 +2299,7 @@ export default function DashboardPage() {
                             <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                           </div>
                           <p className="text-[15px] font-semibold" style={{ color: "var(--ds-txt)" }}>Кабінет налаштовано на 100% 🎉</p>
-                          <p className="mt-1 text-[13px]" style={{ color: "var(--ds-sub)" }}>Всі підсилювачі підключені. Чудова робота!</p>
+                          <p className="mt-1 text-[14px]" style={{ color: "var(--ds-sub)" }}>Всі підсилювачі підключені. Чудова робота!</p>
                         </div>
                       ) : (
                         pendingBonusTasks.map((task) => (
@@ -2309,7 +2310,7 @@ export default function DashboardPage() {
                                 <span className="text-xl flex-shrink-0">{task.emoji}</span>
                                 <div className="min-w-0 flex-1">
                                   <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
-                                  <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
+                                  <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
                                 </div>
                                 <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
                               </button>
@@ -2318,7 +2319,7 @@ export default function DashboardPage() {
                               <span className="text-xl flex-shrink-0">{task.emoji}</span>
                               <div className="min-w-0 flex-1">
                                 <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
-                                <p className="mt-0.5 text-[13px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
+                                <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.desc}</p>
                               </div>
                               <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
                             </Link>
@@ -2335,7 +2336,7 @@ export default function DashboardPage() {
                         ))
                       )}
                       {pendingBonusTasks.length > 0 && (
-                        <Link to="/profile" className="flex items-center justify-center gap-1 mt-1 text-[13px] transition-colors hover:opacity-70"
+                        <Link to="/profile" className="flex items-center justify-center gap-1 mt-1 text-[14px] transition-colors hover:opacity-70"
                           style={{ color: "var(--sub,#6b7088)" }}>
                           Завжди можна підключити у Профілі →
                         </Link>
@@ -2351,7 +2352,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.updateHours")}</p>
-                          <p className="mt-0.5 text-[13px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним"}</p>
+                          <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("availabilityManagerExtra.clickToAdd") ?? "Тримайте календар актуальним"}</p>
                         </div>
                         <ChevronRight className="h-4 w-4 text-slate-300" />
                       </div>

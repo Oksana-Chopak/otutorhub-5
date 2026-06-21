@@ -24,7 +24,7 @@ export function RewardCollection({ rewards, loading }: Props) {
           <Sparkles className="h-4 w-4" style={{ color: C.teal }} />
           {t("rewardCollection.title")}
         </h2>
-        <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13, color: C.tealD, textDecoration: "none" }}>
+        <Link to="/student/achievements" style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.tealD, textDecoration: "none" }}>
           {t("rewardCollection.seeAll")} →
         </Link>
       </div>
@@ -32,7 +32,7 @@ export function RewardCollection({ rewards, loading }: Props) {
       {loading ? null : rewards.length === 0 ? (
         <div style={{ textAlign: "center", padding: "20px 12px" }}>
           <div style={{ fontSize: 34 }}>🍎</div>
-          <p style={{ fontSize: 13.5, color: C.sub, marginTop: 6, lineHeight: 1.5 }}>{t("rewardCollection.empty")}</p>
+          <p style={{ fontSize: 14.5, color: C.sub, marginTop: 6, lineHeight: 1.5 }}>{t("rewardCollection.empty")}</p>
         </div>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

@@ -225,7 +225,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
 
         {step !== "done" && step !== "submitting" && (
           <div className="mb-2">
-            <div className="mb-2 flex items-center justify-between text-[13px] text-muted-foreground">
+            <div className="mb-2 flex items-center justify-between text-[14px] text-muted-foreground">
               <span>Крок {step} з 5</span>
               <span>Підберемо ідеального репетитора</span>
             </div>
@@ -257,7 +257,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                     )}
                   >
                     <span className="text-2xl">{SUBJECT_EMOJI[s] ?? "📖"}</span>
-                    <span className="text-[13px] font-medium leading-tight">{s}</span>
+                    <span className="text-[14px] font-medium leading-tight">{s}</span>
                   </button>
                 );
               })}
@@ -273,7 +273,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
                 )}
               >
                 <span className="text-2xl">✏️</span>
-                <span className="text-[13px] font-medium leading-tight">Інше</span>
+                <span className="text-[14px] font-medium leading-tight">Інше</span>
               </button>
             </div>
             {otherSubjectActive && (
@@ -335,7 +335,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
             <div className="grid grid-cols-2 gap-3">
               {(["weekday", "weekend"] as const).map((group) => (
                 <div key={group} className="space-y-2">
-                  <div className="text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <div className="text-[14px] font-medium uppercase tracking-wide text-muted-foreground">
                     {group === "weekday" ? "Будні" : "Вихідні"}
                   </div>
                   <div className="space-y-2">

@@ -41,7 +41,7 @@ function PushSettingsCard() {
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
         {t("pushNotif.cardTitle")}
       </p>
-      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+      <p className="mt-0.5 mb-3 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
         {t("pushNotif.cardDesc")}
       </p>
       <PushNotificationToggle />
@@ -60,7 +60,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
       <CardContent className="space-y-5">
         {nonEmpty.map((group) => (
           <div key={group.title}>
-            <p className="mb-2 text-[13px] font-medium uppercase tracking-wide text-muted-foreground">
+            <p className="mb-2 text-[14px] font-medium uppercase tracking-wide text-muted-foreground">
               {group.title}
             </p>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -146,18 +146,27 @@ export default function ProfilePage() {
     : [];
 
   const [loading, setLoading] = useState(true);
-
-  // Scroll to anchor if hash is present (for onboarding deep-links)
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash) return;
-    const el = document.getElementById(hash.slice(1));
-    if (el) {
-      setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
-    }
-  }, []);
   const [saving, setSaving] = useState(false);
   const [activeSheet, setActiveSheet] = useState<"rules"|"automark"|"subjects"|"calendar"|"availability"|"editProfile"|null>(null);
+
+  // Deep-link via hash (e.g. Finances "Налаштувати →" → /profile#rules). Settings live
+  // INSIDE bottom-sheets, so the target element only exists once its sheet is open — so
+  // first OPEN the matching sheet, then scroll its anchor into view. Plain anchors (no
+  // matching sheet) just scroll.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    if (!hash) return;
+    const sheetKeys = ["rules", "automark", "subjects", "calendar", "availability"] as const;
+    if ((sheetKeys as readonly string[]).includes(hash)) {
+      setActiveSheet(hash as typeof activeSheet);
+    }
+    // Wait for the sheet to mount before scrolling to the anchor.
+    const id = setTimeout(() => {
+      const el = document.getElementById(hash);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 350);
+    return () => clearTimeout(id);
+  }, []);
   const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
@@ -381,7 +390,7 @@ export default function ProfilePage() {
   const Sec = ({ title, children }: { title?: string; children: React.ReactNode }) => (
     <div className="rounded-[18px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
       {title && (
-        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 13, fontWeight: 700,
+        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 14, fontWeight: 700,
           letterSpacing: "0.07em", textTransform: "uppercase" as const, color: P.muted }}>
           {title}
         </p>
@@ -486,13 +495,13 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
                 <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
                 <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
@@ -562,7 +571,7 @@ export default function ProfilePage() {
                 ].map(({ val, label }) => (
                   <div key={label}>
                     <span style={{ fontFamily: P.display, fontWeight: 800, fontSize: 20, color: P.txt }}>{val}</span>
-                    <span style={{ fontFamily: P.body, fontSize: 13, color: P.sub, marginLeft: 5 }}>{label}</span>
+                    <span style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginLeft: 5 }}>{label}</span>
                   </div>
                 ))}
               </div>
@@ -584,7 +593,7 @@ export default function ProfilePage() {
                     <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 17, color: "#fff" }}>
                       {t("profile.subscriptionTitle")}
                     </p>
-                    <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
+                    <p style={{ fontFamily: P.body, fontSize: 14.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
                       {/* Use the live trial/pro state, NOT a raw trial_until date: a paying
                           subscriber keeps an old (expired) trial_until, which previously
                           showed them a stale "trial until <past date>" instead of "Active". */}
@@ -624,7 +633,7 @@ export default function ProfilePage() {
                     style={{ height: 50, borderRadius: 12, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4,
                       border: active ? `1.5px solid ${P.teal}` : `1px solid ${P.border}`,
                       background: active ? P.tealL : P.bg, cursor: "pointer",
-                      fontFamily: P.display, fontSize: 13, fontWeight: 700,
+                      fontFamily: P.display, fontSize: 14, fontWeight: 700,
                       color: active ? P.tealD : P.muted }}>
                     <span style={{ fontSize: 20 }}>{emoji}</span>
                     {label}
@@ -699,7 +708,7 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "var(--sub,#6b7088)", marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "var(--sub,#6b7088)", marginBottom: 16 }}>
                 {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
@@ -712,7 +721,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
                 <Input
@@ -723,7 +732,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 13, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
                 <Input
@@ -757,7 +766,7 @@ export default function ProfilePage() {
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
                       {t("profile.editContacts") || "Контактні дані"}
                     </span>
-                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "var(--sub,#6b7088)" }}>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#6b7088)" }}>
                       {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
                     </span>
                   </span>
@@ -780,7 +789,7 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {reviews.length === 0 ? (
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "var(--sub,#6b7088)", padding: "10px 0" }}>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "var(--sub,#6b7088)", padding: "10px 0" }}>
                     {t("profile.reviewsEmpty") || "Відгуки з'являться, коли учні оцінять твої уроки 🌟"}
                   </p>
                 ) : (
@@ -792,7 +801,7 @@ export default function ProfilePage() {
                             <Star key={s} size={12} style={{ color: s < r.rating ? "#F5B400" : "#e5e7eb", fill: s < r.rating ? "#F5B400" : "#e5e7eb" }} />
                           ))}
                         </div>
-                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#0f0f1a", lineHeight: 1.5 }}>
+                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "#0f0f1a", lineHeight: 1.5 }}>
                           {r.comment}
                         </p>
                       </div>
@@ -945,7 +954,7 @@ export default function ProfilePage() {
           <DeleteAccountSection />
         </div>
 
-        <div className="flex justify-center gap-4 pt-1 pb-4 text-[13px]">
+        <div className="flex justify-center gap-4 pt-1 pb-4 text-[14px]">
           <Link to="/privacy" className="text-muted-foreground underline hover:text-foreground">{t("landing.footer.privacy")}</Link>
           <Link to="/terms" className="text-muted-foreground underline hover:text-foreground">{t("landing.footer.terms")}</Link>
         </div>

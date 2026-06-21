@@ -32,19 +32,19 @@ export function LevelBadge({ level, variant = "compact", className }: Props) {
           {level.emoji}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[13px] uppercase tracking-wide text-muted-foreground">{t("levelBadge.yourLevel")}</div>
+          <div className="text-[14px] uppercase tracking-wide text-muted-foreground">{t("levelBadge.yourLevel")}</div>
           <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>{level.name}</div>
         </div>
       </div>
       {level.next_threshold ? (
         <>
           <Progress value={progress} className="h-2" />
-          <p className="mt-2 text-[13px] text-muted-foreground">
+          <p className="mt-2 text-[14px] text-muted-foreground">
             {level.completed_lessons} / {level.next_threshold} уроків до наступного рівня
           </p>
         </>
       ) : (
-        <p className="text-[13px] text-muted-foreground">{t("levelBadge.maxLevel")}</p>
+        <p className="text-[14px] text-muted-foreground">{t("levelBadge.maxLevel")}</p>
       )}
     </div>
   );

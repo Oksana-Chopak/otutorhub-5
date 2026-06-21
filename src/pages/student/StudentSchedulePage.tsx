@@ -101,10 +101,10 @@ export default function StudentSchedulePage() {
             <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
-                <span style={{ fontFamily: D, fontWeight: 700, fontSize: 13, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
+                <span style={{ fontFamily: D, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
                   {d.toLocaleDateString(getLocale(), { weekday: "short" }).replace(".", "")}
                 </span>
-                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 13 }}>
+                <span style={{ fontFamily: D, fontWeight: 800, fontSize: 14 }}>
                   {d.toLocaleDateString(getLocale(), { day: "numeric", month: "short" }).replace(".", "")}
                 </span>
                 <span style={{ fontFamily: D, fontWeight: 800, fontSize: 19, letterSpacing: "-.02em", color: sm.accent, marginTop: 2 }}>
@@ -116,11 +116,11 @@ export default function StudentSchedulePage() {
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                       <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
-                      <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 13, background: live ? "rgba(43,191,170,.18)" : sm.bg, color: live ? "#1f8e7e" : sm.fg }}>
+                      <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 14, background: live ? "rgba(43,191,170,.18)" : sm.bg, color: live ? "#1f8e7e" : sm.fg }}>
                         {joinStatus ?? statusLabel[l.status]}
                       </span>
                     </div>
-                    <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                     </p>
                   </div>
@@ -143,7 +143,7 @@ export default function StudentSchedulePage() {
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
                 ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "#9398b0", fontSize: 13, fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "#9398b0", fontSize: 14, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}

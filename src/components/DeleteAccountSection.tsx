@@ -56,13 +56,13 @@ export function DeleteAccountSection() {
       <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5, color: "#b3441f" }}>
         {t("accountDeletion.title")}
       </div>
-      <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 4, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 4, lineHeight: 1.5 }}>
         {t("accountDeletion.desc")}
       </p>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "1.5px solid rgba(224,85,47,.45)", background: "#fff", color: "#b3441f", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13.5 }}
+        style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "1.5px solid rgba(224,85,47,.45)", background: "#fff", color: "#b3441f", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5 }}
       >
         <Trash2 size={16} /> {t("accountDeletion.btn")}
       </button>

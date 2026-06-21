@@ -262,7 +262,7 @@ export default function AuditLogPage() {
             </button>
           )}
           <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger className="h-10 w-[160px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[160px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActors")}</SelectItem>
               {actorOptions.map((a) => (
@@ -271,7 +271,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-10 w-[180px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[180px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
@@ -280,7 +280,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-10 w-[140px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[140px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allEntities")}</SelectItem>
               {entityOptions.map((a) => (
@@ -289,7 +289,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as Period)}>
-            <SelectTrigger className="h-10 w-[130px] text-[13px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
+            <SelectTrigger className="h-10 w-[130px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allTime")}</SelectItem>
               <SelectItem value="today">{t("auditLogExtra.today")}</SelectItem>
@@ -301,7 +301,7 @@ export default function AuditLogPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-10 text-[13px]"
+              className="h-10 text-[14px]"
               onClick={() => {
                 setActorFilter("all");
                 setActionFilter("all");
@@ -313,7 +313,7 @@ export default function AuditLogPage() {
               Скинути
             </Button>
           )}
-          <span className="ml-auto text-[13px] text-muted-foreground">
+          <span className="ml-auto text-[14px] text-muted-foreground">
             {filtered.length} з {entries.length}
           </span>
         </div>
@@ -351,7 +351,7 @@ export default function AuditLogPage() {
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge variant={meta.variant}>{meta.label}</Badge>
-                        <span className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                        <span className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                           {formatDate(e.created_at)}
                         </span>
                       </div>
@@ -366,7 +366,7 @@ export default function AuditLogPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 text-[13px]"
+                        className="h-7 text-[14px]"
                         onClick={() => toggleOpen(e.id)}
                       >
                         {isOpen ? (
@@ -383,7 +383,7 @@ export default function AuditLogPage() {
                   </div>
                   {hasPayload && isOpen && (
                     <div className="mt-3 overflow-x-auto rounded border border-border">
-                      <table className="w-full text-[13px]">
+                      <table className="w-full text-[14px]">
                         <thead>
                           <tr className="bg-secondary/50">
                             <th className="px-3 py-2 text-left font-medium text-muted-foreground">{t("auditLogExtra.fieldHeader")}</th>

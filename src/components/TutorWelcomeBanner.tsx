@@ -43,7 +43,7 @@ export function TutorWelcomeBanner() {
           <div className="flex items-start gap-4">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-lg animate-bounce-soft">
               <Sparkles className="h-6 w-6" />
-              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-warning text-[13px] font-black text-warning-foreground shadow-sm animate-pop">
+              <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-warning text-[14px] font-black text-warning-foreground shadow-sm animate-pop">
                 {step}
               </span>
             </div>

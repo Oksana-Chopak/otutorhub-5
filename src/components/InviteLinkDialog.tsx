@@ -168,7 +168,7 @@ export function InviteLinkDialog({
 
           {/* Registration link */}
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
               {t("inviteLinkExtra.linkLabel")}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "7px 7px 7px 14px", minWidth: 0 }}>
@@ -182,7 +182,7 @@ export function InviteLinkDialog({
 
           {/* Ready message */}
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
               {t("inviteLinkExtra.messageLabel")}
             </div>
             <div style={{ position: "relative", whiteSpace: "pre-wrap", borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "13px 56px 13px 15px", fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a", wordBreak: "break-word" }}>

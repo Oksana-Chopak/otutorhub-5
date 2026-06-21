@@ -104,7 +104,7 @@ export default function ErrorLogPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="break-words text-[15px] font-semibold text-foreground">{r.message}</p>
-                    <p className="mt-1 text-[13px] text-muted-foreground">
+                    <p className="mt-1 text-[14px] text-muted-foreground">
                       {new Date(r.created_at).toLocaleString(getLocale())}
                       {r.url ? ` · ${r.url}` : ""}
                     </p>
@@ -116,10 +116,10 @@ export default function ErrorLogPage() {
                 {on && (r.stack || r.user_agent) && (
                   <div className="border-t border-border bg-muted/30 p-3">
                     {r.stack && (
-                      <pre className="overflow-x-auto whitespace-pre-wrap text-[13px] leading-relaxed text-muted-foreground">{r.stack}</pre>
+                      <pre className="overflow-x-auto whitespace-pre-wrap text-[14px] leading-relaxed text-muted-foreground">{r.stack}</pre>
                     )}
                     {r.user_agent && (
-                      <p className="mt-2 text-[13px] text-muted-foreground/70">{r.user_agent}</p>
+                      <p className="mt-2 text-[14px] text-muted-foreground/70">{r.user_agent}</p>
                     )}
                   </div>
                 )}

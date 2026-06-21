@@ -163,7 +163,7 @@ export default function StudentPaymentsPage() {
 
         {walletBalances.length > 0 && (
           <div style={{ borderRadius: 18, padding: "16px 18px", background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)" }}>
-            <div style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+            <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
               {t("studentPagesExtra.prepaidLabel")}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
@@ -171,7 +171,7 @@ export default function StudentPaymentsPage() {
                 const info = tutorPayInfos.find((ti) => ti.tutor_id === b.tutor_id);
                 return (
                   <div key={b.tutor_id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-                    <span style={{ fontSize: 13.5, color: "rgba(255,255,255,.75)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 14.5, color: "rgba(255,255,255,.75)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {info?.tutor_name ?? t("studentPages.tutorFallback")}
                     </span>
                     <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#2BBFAA", flexShrink: 0 }}>
@@ -183,25 +183,25 @@ export default function StudentPaymentsPage() {
                 );
               })}
             </div>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,.5)", marginTop: 8 }}>{t("studentPagesExtra.autoDeductHint")}</p>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,.5)", marginTop: 8 }}>{t("studentPagesExtra.autoDeductHint")}</p>
           </div>
         )}
 
         {currencyEntries.length === 0 ? (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#b4740b" }}>0</p>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#16a34a" }}>0</p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#b4740b" }}>
@@ -211,7 +211,7 @@ export default function StudentPaymentsPage() {
               </div>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#16a34a" }}>
@@ -232,7 +232,7 @@ export default function StudentPaymentsPage() {
             <ul className="space-y-2">
               {tutorsWithDetails.map((t) => (
                 <li key={t.tutor_id} style={{ borderRadius: 12, background: "rgba(255,255,255,.6)", padding: "11px 13px" }}>
-                  <p style={{ fontSize: 13, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
+                  <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
                     {t.tutor_name} · {currencySymbol(t.currency)} {t.currency}
                   </p>
                   <p style={{ marginTop: 4, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 14, color: "#0f0f1a" }}>
@@ -256,11 +256,11 @@ export default function StudentPaymentsPage() {
                 <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "11px 13px" }}>
                     <div className="min-w-0">
                       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
-                      <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+                      <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>
-                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, background: paid ? "rgba(34,197,94,.16)" : "rgba(245,158,11,.16)", color: paid ? "#16a34a" : "#b4740b" }}>
+                      <span className="flex items-center gap-1" style={{ height: 24, padding: "0 9px", borderRadius: 999, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, background: paid ? "rgba(34,197,94,.16)" : "rgba(245,158,11,.16)", color: paid ? "#16a34a" : "#b4740b" }}>
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>

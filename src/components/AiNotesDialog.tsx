@@ -55,7 +55,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 13.5, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
+        <div style={{ fontSize: 14.5, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
       </div>
     </div>
   );
@@ -64,7 +64,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
     <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "#fff", opacity: disabled ? 0.5 : 1 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 13, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
+        <div style={{ fontSize: 14, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
       </div>
       <Switch checked={on} onCheckedChange={onChange} disabled={disabled} />
     </div>
@@ -98,9 +98,9 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 14, background: C.warnBg, border: `1px solid ${C.warnBorder}`, marginBottom: 14 }}>
               <Lock size={18} style={{ color: C.warnD, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 13.5, color: C.warnD }}>{t("aiNotesDialog.lockedTitle")}</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.warnD }}>{t("aiNotesDialog.lockedTitle")}</div>
                 <button onClick={() => { onOpenChange(false); navigate("/subscription?from=ai_summary"); }}
-                  style={{ border: "none", background: "transparent", cursor: "pointer", color: C.tealD, fontFamily: C.display, fontWeight: 700, fontSize: 13, padding: 0, marginTop: 2 }}>
+                  style={{ border: "none", background: "transparent", cursor: "pointer", color: C.tealD, fontFamily: C.display, fontWeight: 700, fontSize: 14, padding: 0, marginTop: 2 }}>
                   {t("aiNotesDialog.subscribeCta")}
                 </button>
               </div>
@@ -128,7 +128,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
             {t("aiNotesDialog.tryCta")} <Check size={18} />
           </button>
-          <p style={{ fontSize: 13, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
+          <p style={{ fontSize: 14, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
             {t("aiNotesDialog.footerHint")}
           </p>
         </div>

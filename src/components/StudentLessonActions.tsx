@@ -162,7 +162,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       <Button
         size="sm"
         variant="ghost"
-        className="h-11 px-2 text-[13px] text-muted-foreground hover:text-primary"
+        className="h-11 px-2 text-[14px] text-muted-foreground hover:text-primary"
         onClick={() => setRescheduleOpen(true)}
         title={t("studentLessonActionsExtra.rescheduleTitle")}
       >
@@ -172,7 +172,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       <Button
         size="sm"
         variant="ghost"
-        className="h-11 px-2 text-[13px] text-muted-foreground hover:text-destructive"
+        className="h-11 px-2 text-[14px] text-muted-foreground hover:text-destructive"
         onClick={() => setCancelOpen(true)}
         title={t("studentLessonActionsExtra.cancelTitle2")}
       >

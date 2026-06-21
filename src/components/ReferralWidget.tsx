@@ -123,19 +123,19 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
           </div>
           <div>
             <h3 className="font-bold text-foreground">{t("referralWidget.title")}</h3>
-            <p className="text-[13px] text-muted-foreground">{t("referralWidget.desc")}</p>
+            <p className="text-[14px] text-muted-foreground">{t("referralWidget.desc")}</p>
           </div>
         </div>
 
         {savedUah > 0 && (
           <div className="mb-3 rounded-[12px] border border-success/30 bg-success/5 p-3">
-            <p className="text-[13px] text-muted-foreground">{t("referralWidget.savedLabel")}</p>
+            <p className="text-[14px] text-muted-foreground">{t("referralWidget.savedLabel")}</p>
             <p className="text-2xl font-bold text-success">{savedUah.toLocaleString(getLocale())} ₴</p>
           </div>
         )}
 
         <div className="mb-3 flex gap-2">
-          <Input value={link} readOnly className="font-mono text-[13px]" onClick={(e) => (e.target as HTMLInputElement).select()} />
+          <Input value={link} readOnly className="font-mono text-[14px]" onClick={(e) => (e.target as HTMLInputElement).select()} />
           <Button onClick={handleCopy} variant="outline" size="icon" className="shrink-0">
             {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
           </Button>
@@ -146,7 +146,7 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
 
         {!compact && (
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between text-[13px]">
+            <div className="flex items-center justify-between text-[14px]">
               <span className="text-muted-foreground">
                 {t("referralWidget.thisMonthPrefix")} <strong className="text-foreground">{t("referralWidget.thisMonthCount", { monthly })}</strong> {t("referralWidget.thisMonthSuffix")}
               </span>
@@ -154,18 +154,18 @@ export function ReferralWidget({ compact = false }: { compact?: boolean }) {
             </div>
             <Progress value={progress} className="h-2" />
             {toBigBonus > 0 ? (
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[14px] text-muted-foreground">
                 {t("referralWidget.toBigBonus", { count: toBigBonus })}
               </p>
             ) : (
-              <p className="text-[13px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
+              <p className="text-[14px] font-semibold text-success">{t("referralWidget.savedLabel")}</p>
             )}
           </div>
         )}
       </div>
 
       {!compact && referrals.length > 0 && (
-        <div className="border-t border-border p-3 text-[13px] text-muted-foreground">
+        <div className="border-t border-border p-3 text-[14px] text-muted-foreground">
           {t("referralWidget.totalInvitesPrefix")} <strong className="text-foreground">{referrals.length}</strong> {t("referralWidget.totalInvitesProSep")} <strong className="text-foreground">{proUpgrades}</strong>
         </div>
       )}

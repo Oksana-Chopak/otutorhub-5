@@ -237,18 +237,18 @@ export function WalletDialog({
             </p>
             <div style={{ display: "flex", gap: 14, marginTop: 5 }}>
               {loading ? (
-                <span style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>…</span>
+                <span style={{ fontSize: 14, color: F.muted, fontFamily: F.body }}>…</span>
               ) : (
                 <>
                   <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
                     <strong>{balance?.lessons_balance ?? 0}</strong>
-                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.lessonsLabel")}</span>
+                    <span style={{ fontSize: 14, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.lessonsLabel")}</span>
                   </span>
                   <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
                     <strong style={{ color: (balance?.amount_balance ?? 0) > 0 ? F.tealD : F.txt }}>
                       {balance?.amount_balance ?? 0}₴
                     </strong>
-                    <span style={{ fontSize: 13, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.balanceLabel")}</span>
+                    <span style={{ fontSize: 14, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.balanceLabel")}</span>
                   </span>
                 </>
               )}
@@ -298,7 +298,7 @@ export function WalletDialog({
                 </div>
               ) : (
                 <>
-                  <p style={{ fontSize: 13, fontFamily: F.display, fontWeight: 700,
+                  <p style={{ fontSize: 14, fontFamily: F.display, fontWeight: 700,
                     color: "#b45309", marginBottom: 4 }}>
                     {t("walletDialog.unpaidHeader", { count: unpaidLessons.length })}
                   </p>
@@ -316,14 +316,14 @@ export function WalletDialog({
                           background: checked ? F.teal : "transparent",
                           border: checked ? "none" : `2px solid ${F.muted}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "#0f0f1a", fontSize: 13, fontWeight: 700 }}>
+                          color: "#0f0f1a", fontSize: 14, fontWeight: 700 }}>
                           {checked && "✓"}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.txt }}>
                             {fmt(lesson.starts_at)}
                           </p>
-                          <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>
+                          <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>
                             {lesson.subject}
                           </p>
                         </div>
@@ -359,7 +359,7 @@ export function WalletDialog({
 
               {mode === "lessons" ? (
                 <div>
-                  <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                  <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 700,
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                     {t("walletDialog.lessonsCountLabel")}
                   </p>
@@ -383,14 +383,14 @@ export function WalletDialog({
                     ))}
                   </div>
                   {ratePerLesson && lessonsCount && parseInt(lessonsCount) > 0 && (
-                    <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body, marginTop: 8 }}>
+                    <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body, marginTop: 8 }}>
                       {t("walletDialog.rateHint", { total: parseInt(lessonsCount) * ratePerLesson, rate: ratePerLesson })}
                     </p>
                   )}
                 </div>
               ) : (
                 <div>
-                  <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                  <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 700,
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                     {t("walletDialog.amountLabel")}
                   </p>
@@ -407,7 +407,7 @@ export function WalletDialog({
               )}
 
               <div>
-                <p style={{ fontFamily: F.display, fontSize: 13, fontWeight: 700,
+                <p style={{ fontFamily: F.display, fontSize: 14, fontWeight: 700,
                   color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                   {t("walletDialog.noteLabel")}
                 </p>
@@ -451,8 +451,8 @@ export function WalletDialog({
                         <p style={{ fontFamily: F.display, fontWeight: 600, fontSize: 14, color: F.txt }}>
                           {KIND_LABEL[tx.kind] ?? tx.kind}
                         </p>
-                        {tx.note && <p style={{ fontSize: 13, color: F.sub, fontFamily: F.body }}>{tx.note}</p>}
-                        <p style={{ fontSize: 13, color: F.muted, fontFamily: F.body }}>
+                        {tx.note && <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>{tx.note}</p>}
+                        <p style={{ fontSize: 14, color: F.muted, fontFamily: F.body }}>
                           {formatDateTime(tx.created_at)}
                         </p>
                       </div>

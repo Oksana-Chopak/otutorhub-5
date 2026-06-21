@@ -409,7 +409,7 @@ export function LessonWorkspace({
           <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
           <span style={{ flex: 1, minWidth: 0 }}>
             <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>{title}</span>
-            {!open && preview && <span style={{ display: "block", fontSize: 13, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
+            {!open && preview && <span style={{ display: "block", fontSize: 14, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
           </span>
           <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
         </button>
@@ -426,7 +426,7 @@ export function LessonWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.notCompleted")}</div>
-              <div className="text-[13px] text-muted-foreground mt-0.5">
+              <div className="text-[14px] text-muted-foreground mt-0.5">
                 {t("lessonWorkspaceExtra.notCompletedHint")}
               </div>
             </div>
@@ -444,7 +444,7 @@ export function LessonWorkspace({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">
               <div className="font-medium">{t("lessonWorkspaceExtra.studentPaidQuestion")}</div>
-              <div className="text-[13px] text-muted-foreground mt-0.5">
+              <div className="text-[14px] text-muted-foreground mt-0.5">
                 {studentPrice ? t("lessonWorkspaceExtra.pricePrefix", { price: studentPrice }) : ""}{t("lessonWorkspaceExtra.recordPaymentHint")}
               </div>
             </div>
@@ -458,7 +458,7 @@ export function LessonWorkspace({
 
       {/* 0c. Hub tutor info — payment is handled by manager */}
       {isTutor && source === "hub" && statusLocal === "completed" && (
-        <section className="rounded-[16px] border border-border bg-muted/30 p-3 md:col-span-2 text-[13px] text-muted-foreground">
+        <section className="rounded-[16px] border border-border bg-muted/30 p-3 md:col-span-2 text-[14px] text-muted-foreground">
           {t("lessonWorkspaceExtra.hubPaymentInfo")}
         </section>
       )}
@@ -478,8 +478,8 @@ export function LessonWorkspace({
               <span
                 className={
                   paidLocal === "paid"
-                    ? "rounded-full bg-success/10 px-2 py-0.5 text-[13px] font-medium text-success"
-                    : "rounded-full bg-warning/10 px-2 py-0.5 text-[13px] font-medium text-warning"
+                    ? "rounded-full bg-success/10 px-2 py-0.5 text-[14px] font-medium text-success"
+                    : "rounded-full bg-warning/10 px-2 py-0.5 text-[14px] font-medium text-warning"
                 }
               >
                 {paidLocal === "paid" ? t("lessonWorkspaceExtra.paid") : t("lessonWorkspaceExtra.unpaid")}
@@ -522,11 +522,11 @@ export function LessonWorkspace({
                 style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", padding: "11px 13px", border: "none", background: "transparent", cursor: "pointer" }}>
                 <span style={{ fontSize: 16 }}>🧠</span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, color: L.txt }}>
+                  <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>
                     {t("lessonWorkspaceExtra.prevLessonHeader", { date: new Date(prevLesson.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }) })}
                   </span>
                   {!prevOpen && (
-                    <span style={{ display: "block", fontSize: 13, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
+                    <span style={{ display: "block", fontSize: 14, color: L.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>
                       {(prevLesson.summary || prevLesson.homework || "").split("\n")[0]}
                     </span>
                   )}
@@ -537,14 +537,14 @@ export function LessonWorkspace({
                 <div style={{ padding: "0 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
                   {prevLesson.summary && (
                     <div>
-                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevCovered")}</div>
-                      <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevCovered")}</div>
+                      <p style={{ fontSize: 14.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
                     </div>
                   )}
                   {prevLesson.homework && (
                     <div>
-                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevHomework")}</div>
-                      <p style={{ fontSize: 13.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
+                      <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevHomework")}</div>
+                      <p style={{ fontSize: 14.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
                     </div>
                   )}
                 </div>
@@ -555,15 +555,15 @@ export function LessonWorkspace({
           {/* 🔒 Private per-lesson notes */}
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
-              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13 }}>🔒</span>
-              <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 13, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
+              <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔒</span>
+              <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
             </div>
             <textarea rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
               placeholder={t("lessonWorkspaceExtra.privateNotesPlaceholder")}
               style={{ ...fieldCss, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)" }} />
             {privateNotesDraft !== privateNotesSaved && (
               <button type="button" onClick={savePrivateNotes} disabled={saving === "private_notes"}
-                style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
                 {saving === "private_notes" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {t("lessonWorkspaceExtra.saveBtn")}
               </button>
@@ -579,7 +579,7 @@ export function LessonWorkspace({
                 placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
               {homeworkDraft !== (homework ?? "") && (
                 <button type="button" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
-                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
                   {saving === "homework" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {t("lessonWorkspaceExtra.saveBtn")}
                 </button>
@@ -590,7 +590,7 @@ export function LessonWorkspace({
             <Row emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}
               preview={summaryDraft ? summaryDraft.split("\n")[0] : t("lessonWorkspaceExtra.summaryEmptyPreview")} k="ai">
               {aiAllowed && settings?.ai_notes_auto && (
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 13, color: L.txt, lineHeight: 1.45 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
                   <Sparkles className="mt-0.5 h-4 w-4 shrink-0" style={{ color: L.teal }} />
                   <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
                 </div>
@@ -600,19 +600,19 @@ export function LessonWorkspace({
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 9, alignItems: "center" }}>
                 {aiAllowed ? (
                   <button type="button" onClick={generateAiSummary} disabled={aiLoading}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
                     {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
                     <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
                   </button>
                 )}
                 {summaryDraft !== (summary ?? "") && (
                   <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                     {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {t("lessonWorkspaceExtra.saveAndSend")}
                   </button>
@@ -626,7 +626,7 @@ export function LessonWorkspace({
                         else { await navigator.clipboard.writeText(text); toast({ title: t("lessonWorkspaceExtra.copied"), description: t("lessonWorkspaceExtra.copiedDesc") }); }
                       } catch { /* user cancelled */ }
                     }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 13.5 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
                     <Share2 className="h-4 w-4" /> {t("lessonWorkspaceExtra.shareBtn")}
                   </button>
                 )}
@@ -642,7 +642,7 @@ export function LessonWorkspace({
                   const on = p.k === platform;
                   return (
                     <button key={p.k} type="button" onClick={() => setPlatform(p.k)}
-                      style={{ height: 34, padding: "0 12px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 13 }}>
+                      style={{ height: 34, padding: "0 12px", borderRadius: 999, cursor: "pointer", border: `1.5px solid ${on ? L.teal : L.border}`, background: on ? L.tealL : "#fff", color: on ? L.tealD : L.txt, fontFamily: L.display, fontWeight: 700, fontSize: 14 }}>
                       {p.label}
                     </button>
                   );
@@ -666,13 +666,13 @@ export function LessonWorkspace({
                   const on = k === linkMode;
                   return (
                     <button key={k} type="button" onClick={() => setLinkMode(k as "permanent" | "once")}
-                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
+                      style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 0", borderRadius: 9, fontFamily: L.display, fontWeight: 700, fontSize: 14, background: on ? "#fff" : "transparent", color: on ? L.txt : L.sub, boxShadow: on ? "0 1px 4px rgba(15,15,26,.06)" : "none" }}>
                       {l}
                     </button>
                   );
                 })}
               </div>
-              <div style={{ fontSize: 13, color: L.muted, marginTop: 7, lineHeight: 1.4 }}>
+              <div style={{ fontSize: 14, color: L.muted, marginTop: 7, lineHeight: 1.4 }}>
                 {linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentHint") : t("lessonWorkspaceExtra.onceHint")}
               </div>
               {effectiveMeetingUrl && (
@@ -715,7 +715,7 @@ export function LessonWorkspace({
         ) : homework ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{homework}</p>
         ) : (
-          <p className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
+          <p className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.noHomework")}</p>
         )}
       </section>
       )}
@@ -725,7 +725,7 @@ export function LessonWorkspace({
         <section className="rounded-lg border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <NotebookPen className="h-4 w-4 text-primary" />
-            {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.studentNotesTag")}</span>}
+            {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.studentNotesTag")}</span>}
           </div>
           {canEditStudentNotes ? (
             <>
@@ -799,7 +799,7 @@ export function LessonWorkspace({
           )}
         </div>
         {aiAllowed && settings?.ai_notes_auto && (
-          <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-[13px] text-foreground/80">
+          <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/30 bg-primary/10 p-2.5 text-[14px] text-foreground/80">
             <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
             <p>
               <span className="font-medium text-foreground">{t("lessonWorkspaceExtra.autoSummaryOnTitle")}</span> {t("lessonWorkspaceExtra.autoSummaryOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoSummaryOnSend") : ""}.
@@ -809,7 +809,7 @@ export function LessonWorkspace({
         {canEditTutorFields ? (
           <>
             {aiAllowed && (
-              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-[13px] text-foreground/80">
+              <div className="mb-2 flex items-start gap-2 rounded-md border border-primary/20 bg-primary/5 p-2.5 text-[14px] text-foreground/80">
                 <Lightbulb className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                 <p>
                   <span className="font-medium text-foreground">{t("lessonWorkspaceExtra.tipLabel")}</span> {t("lessonWorkspaceExtra.tipBody")}
@@ -836,7 +836,7 @@ export function LessonWorkspace({
         ) : summary ? (
           <p className="whitespace-pre-wrap text-sm text-foreground">{summary}</p>
         ) : (
-          <p className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
+          <p className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.noSummary")}</p>
         )}
       </section>
       )}
@@ -881,9 +881,9 @@ export function LessonWorkspace({
                 <Video className="h-4 w-4 text-primary" />
                 {t("lessonWorkspaceExtra.onlineMeeting")}
                 {effectiveMeetingUrl ? (
-                  <span className="text-[13px] font-normal text-success">{t("lessonWorkspaceExtra.linkExists")}</span>
+                  <span className="text-[14px] font-normal text-success">{t("lessonWorkspaceExtra.linkExists")}</span>
                 ) : (
-                  <span className="text-[13px] font-normal text-warning">{t("lessonWorkspaceExtra.linkMissing")}</span>
+                  <span className="text-[14px] font-normal text-warning">{t("lessonWorkspaceExtra.linkMissing")}</span>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -914,7 +914,7 @@ export function LessonWorkspace({
             </div>
             <CollapsibleContent className="mt-3 space-y-3">
               <div>
-                <Label className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
+                <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://meet.google.com/…"
@@ -932,7 +932,7 @@ export function LessonWorkspace({
                 </div>
               </div>
               <div>
-                <Label className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
+                <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
                   <Input
                     placeholder="https://us02web.zoom.us/j/…"
@@ -943,7 +943,7 @@ export function LessonWorkspace({
                     {saving === "default" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-[13px] text-muted-foreground">
+                <p className="mt-1 text-[14px] text-muted-foreground">
                   {t("lessonWorkspaceExtra.permanentLinkHint")}
                 </p>
               </div>
@@ -964,7 +964,7 @@ export function LessonWorkspace({
                   </a>
                 </Button>
               ) : (
-                <span className="text-[13px] text-muted-foreground">{t("lessonWorkspaceExtra.noLink")}</span>
+                <span className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.noLink")}</span>
               )}
               {(isStudent || isTutor) && (
                 <Button

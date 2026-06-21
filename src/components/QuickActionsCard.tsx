@@ -583,7 +583,7 @@ function AddLessonForm({
   };
 
   if (students.length === 0) {
-    return <p className="text-[13px] text-muted-foreground">{t("quickActionsCard.firstAddStudent")}</p>;
+    return <p className="text-[14px] text-muted-foreground">{t("quickActionsCard.firstAddStudent")}</p>;
   }
 
   return (
@@ -602,7 +602,7 @@ function AddLessonForm({
             </SelectContent>
           </Select>
           {selected && (
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-[14px] text-muted-foreground">
               {t("quickActionsCard.lessonPriceInline", { price: formatPrice(selected.price, selected.currency) })}
             </p>
           )}
@@ -649,7 +649,7 @@ function AddLessonForm({
         </div>
       </div>
       <div className="rounded-md border border-border bg-muted/30 px-3 py-2">
-        <p className="text-[13px] font-medium uppercase text-muted-foreground">{t("quickActionsCard.dateTimeLabel")}</p>
+        <p className="text-[14px] font-medium uppercase text-muted-foreground">{t("quickActionsCard.dateTimeLabel")}</p>
         <p className="text-sm font-semibold text-foreground">{formatUkrainianDateTimeFromParts(date, time)}</p>
       </div>
       <div className="flex justify-end">
@@ -756,7 +756,7 @@ function AddPaymentForm({
   };
 
   if (students.length === 0) {
-    return <p className="text-[13px] text-muted-foreground">{t("quickActionsCard.firstAddStudentPayment")}</p>;
+    return <p className="text-[14px] text-muted-foreground">{t("quickActionsCard.firstAddStudentPayment")}</p>;
   }
 
   return (
@@ -775,7 +775,7 @@ function AddPaymentForm({
             </SelectContent>
           </Select>
           {selected && (
-            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-[13px]">
+            <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-[14px]">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-muted-foreground">{t("quickActionsCard.currencyPayment")}</span>
                 <span className="font-semibold text-foreground">{selectedCurrency} · {selectedCurrencySymbol}</span>

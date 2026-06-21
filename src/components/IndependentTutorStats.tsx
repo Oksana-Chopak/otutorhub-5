@@ -188,7 +188,7 @@ export function IndependentTutorStats() {
               <p className="text-sm font-medium text-foreground">
                 {t("independentStatsExtra.proPromptTitle")}
               </p>
-              <p className="mt-0.5 text-[13px] text-muted-foreground">
+              <p className="mt-0.5 text-[14px] text-muted-foreground">
                 {t("independentStatsExtra.proPromptDesc")}
               </p>
             </div>

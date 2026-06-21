@@ -153,7 +153,7 @@ export function StudentOnboarding({ onComplete }: Props) {
         </Button>
         <button
           onClick={() => setStep("done")}
-          className="block w-full text-center text-[13px] text-muted-foreground hover:text-foreground"
+          className="block w-full text-center text-[14px] text-muted-foreground hover:text-foreground"
         >
           {t("studentOnboarding.skip")}
         </button>
@@ -208,7 +208,7 @@ export function StudentOnboarding({ onComplete }: Props) {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <div className="mb-2 flex items-center justify-between text-[13px] text-muted-foreground">
+        <div className="mb-2 flex items-center justify-between text-[14px] text-muted-foreground">
           <span>{t("studentOnboarding.stepOf", { step })}</span>
           <span>{t("studentOnboarding.findTutor")}</span>
         </div>
@@ -239,7 +239,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                   )}
                 >
                   <span className="text-3xl">{isCustom ? "✏️" : (SUBJECT_EMOJI[s] ?? "📖")}</span>
-                  <span className="text-[13px] font-medium leading-tight">{s}</span>
+                  <span className="text-[14px] font-medium leading-tight">{s}</span>
                 </button>
               );
             })}
@@ -399,7 +399,7 @@ export function StudentOnboarding({ onComplete }: Props) {
                 rows={3}
                 maxLength={300}
               />
-              <p className="mt-1 text-right text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{goalOther.trim().length}/300</p>
+              <p className="mt-1 text-right text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{goalOther.trim().length}/300</p>
             </div>
           )}
 
@@ -409,7 +409,7 @@ export function StudentOnboarding({ onComplete }: Props) {
               <span style={{ fontSize: 20, lineHeight: 1 }}>⚠️</span>
               <div>
                 <p className="text-[14px] font-bold" style={{ color: "#b3441f", fontFamily: "Inter, system-ui" }}>{t("studentOnboarding.saveFailedTitle")}</p>
-                <p className="text-[13px] mt-0.5" style={{ color: "#9a4a35", lineHeight: 1.5 }}>{saveErr}</p>
+                <p className="text-[14px] mt-0.5" style={{ color: "#9a4a35", lineHeight: 1.5 }}>{saveErr}</p>
               </div>
             </div>
           )}

@@ -101,7 +101,7 @@ export default function UnsubscribePage() {
                 Ви впевнені, що хочете відписатися від листів oTutorHub на адресу{" "}
                 <strong>{state.email}</strong>?
               </p>
-              <p className="text-[13px] text-muted-foreground">
+              <p className="text-[14px] text-muted-foreground">
                 Після підтвердження ми не будемо надсилати вам сповіщення, нагадування й
                 запрошення на цю пошту. Системні повідомлення про вхід та зміну паролю
                 продовжать надходити.

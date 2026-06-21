@@ -178,12 +178,12 @@ export default function StudentHomeworkPage() {
 
   const goldBtn: React.CSSProperties = {
     flex: 1, height: 44, borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
-    fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+    fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
     border: "1px solid rgba(245,181,68,.45)", background: "rgba(245,181,68,.14)", color: "#9a6a12",
   };
   const plainBtn: React.CSSProperties = {
     flex: 1, height: 44, borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
-    fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13,
+    fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
     border: "1px solid #eceef3", background: "#fff", color: "#0f0f1a",
   };
 
@@ -195,10 +195,10 @@ export default function StudentHomeworkPage() {
         <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? "rgba(34,197,94,.14)" : "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{done ? "✅" : "📚"}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
           <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
-          <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+          <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
         </div>
         {done && (
-          <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 13, fontWeight: 800 }}>
+          <span style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "rgba(34,197,94,.16)", color: "#15803d", fontSize: 14, fontWeight: 800 }}>
             <Check size={13} strokeWidth={2.6} />{t("studentPagesExtra.markedDone")}
           </span>
         )}
@@ -288,7 +288,7 @@ export default function StudentHomeworkPage() {
               {renderList(active, t("studentPagesExtra.noHomeworkTitle"))}
             </TabsContent>
             <TabsContent value="archive" className="mt-4">
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--sub,#6b7088)", margin: "0 2px 14px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--sub,#6b7088)", margin: "0 2px 14px" }}>
                 <Clock size={15} strokeWidth={1.8} style={{ color: "#b0b4c8", flexShrink: 0 }} />
                 {t("studentPagesExtra.homeworkArchiveHint")}
               </div>

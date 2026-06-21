@@ -259,15 +259,15 @@ export default function PaywallMetricsPage() {
                     <div className="mb-2 text-sm font-medium text-foreground">{f.label}</div>
                     <div className="grid grid-cols-3 gap-2 text-center">
                       <div>
-                        <div className="text-[13px] uppercase text-muted-foreground">{t("paywallMetricsExtra.clicksCol")}</div>
+                        <div className="text-[14px] uppercase text-muted-foreground">{t("paywallMetricsExtra.clicksCol")}</div>
                         <div className="text-sm font-semibold">{f.clicks}</div>
                       </div>
                       <div>
-                        <div className="text-[13px] uppercase text-muted-foreground">{t("paywallMetricsExtra.usersSmall")}</div>
+                        <div className="text-[14px] uppercase text-muted-foreground">{t("paywallMetricsExtra.usersSmall")}</div>
                         <div className="text-sm font-semibold">{f.uniqueUsers}</div>
                       </div>
                       <div>
-                        <div className="text-[13px] uppercase text-muted-foreground">{t("paywallMetricsExtra.ratioShort")}</div>
+                        <div className="text-[14px] uppercase text-muted-foreground">{t("paywallMetricsExtra.ratioShort")}</div>
                         <div className="text-sm font-semibold">
                           {(f.clicks / Math.max(1, f.uniqueUsers)).toFixed(1)}
                         </div>
@@ -339,12 +339,12 @@ export default function PaywallMetricsPage() {
                               ? "secondary"
                               : "outline"
                         }
-                        className="shrink-0 text-[13px]"
+                        className="shrink-0 text-[14px]"
                       >
                         {STATUS_LABELS[e.subscription_status ?? "free"] ?? e.subscription_status}
                       </Badge>
                     </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[13px] text-muted-foreground">
+                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[14px] text-muted-foreground">
                       <span className="whitespace-nowrap">
                         {new Date(e.created_at).toLocaleString(getLocale(), {
                           day: "2-digit",
@@ -382,7 +382,7 @@ export default function PaywallMetricsPage() {
                   ) : (
                     recent.map((e) => (
                       <TableRow key={e.id}>
-                        <TableCell className="whitespace-nowrap text-[13px] text-muted-foreground">
+                        <TableCell className="whitespace-nowrap text-[14px] text-muted-foreground">
                           {new Date(e.created_at).toLocaleString(getLocale(), {
                             day: "2-digit",
                             month: "2-digit",
@@ -393,7 +393,7 @@ export default function PaywallMetricsPage() {
                         <TableCell className="text-sm">
                           {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
                         </TableCell>
-                        <TableCell className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{e.source}</TableCell>
+                        <TableCell className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{e.source}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
@@ -407,7 +407,7 @@ export default function PaywallMetricsPage() {
                             {STATUS_LABELS[e.subscription_status ?? "free"] ?? e.subscription_status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="font-mono text-[13px] text-muted-foreground">
+                        <TableCell className="font-mono text-[14px] text-muted-foreground">
                           {e.user_id.slice(0, 8)}…
                         </TableCell>
                       </TableRow>

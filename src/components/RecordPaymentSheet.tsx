@@ -196,7 +196,7 @@ export function RecordPaymentSheet({
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               {t("recordPayment.title")}
             </div>
-            <div style={{ fontSize: 13.5, color: "var(--sub,#6b7088)", marginTop: 2 }}>
+            <div style={{ fontSize: 14.5, color: "var(--sub,#6b7088)", marginTop: 2 }}>
               {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
@@ -244,7 +244,7 @@ export function RecordPaymentSheet({
                       >
                         <div className="min-w-0">
                           <div className="truncate font-medium text-foreground">{l.subject}</div>
-                          <div className="text-[13px] text-muted-foreground">
+                          <div className="text-[14px] text-muted-foreground">
                             {formatDate(l.starts_at)} · {t("recordPaymentExtra.priceUah", { price: l.student_price })}
                           </div>
                         </div>
@@ -298,7 +298,7 @@ export function RecordPaymentSheet({
 
                 {/* Велике поле на ДС-картці */}
                 <div style={{ borderRadius: 16, padding: 14, background: "#fbfbfc", border: "1px solid #eceef3" }}>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
                   {mode === "lessons" ? (
@@ -323,12 +323,12 @@ export function RecordPaymentSheet({
                     />
                   )}
                   {mode === "lessons" && pickedPair.rate && lessonsCount ? (
-                    <p style={{ marginTop: 8, fontSize: 13, color: "var(--sub,#6b7088)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#6b7088)" }}>
                       ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.priceUah", { price: (parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0) })}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && pickedPair.rate && amount ? (
-                    <p style={{ marginTop: 8, fontSize: 13, color: "var(--sub,#6b7088)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#6b7088)" }}>
                       ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
                     </p>
                   ) : null}
@@ -336,7 +336,7 @@ export function RecordPaymentSheet({
 
                 {/* Коментар */}
                 <div>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 6 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 6 }}>
                     {t("recordPaymentExtra.commentLabel")}
                   </p>
                   <input
@@ -408,12 +408,12 @@ function PairPicker({
                   <span className="block truncate font-medium text-foreground">
                     {p.student_name}
                   </span>
-                  <span className="block truncate text-[13px] text-muted-foreground">
+                  <span className="block truncate text-[14px] text-muted-foreground">
                     ↔ {p.tutor_name}
                   </span>
                 </span>
                 {p.rate ? (
-                  <Badge variant="outline" className="shrink-0 text-[13px]">
+                  <Badge variant="outline" className="shrink-0 text-[14px]">
                     {t("recordPaymentExtra.ratePerLesson", { rate: p.rate })}
                   </Badge>
                 ) : null}
@@ -431,7 +431,7 @@ function PickedHeader({ pair, onBack }: { pair: PairOption; onBack: () => void }
     <div className="flex items-center justify-between gap-2 rounded-md bg-secondary/40 px-3 py-2 text-sm">
       <div className="min-w-0">
         <div className="truncate font-medium text-foreground">{pair.student_name}</div>
-        <div className="truncate text-[13px] text-muted-foreground">↔ {pair.tutor_name}</div>
+        <div className="truncate text-[14px] text-muted-foreground">↔ {pair.tutor_name}</div>
       </div>
       <Button size="sm" variant="ghost" onClick={onBack}>
         <ArrowLeft className="mr-1 h-3.5 w-3.5" />

@@ -134,7 +134,7 @@ export function TelegramLinkCard() {
                 <p className="text-sm font-medium text-warning flex items-center gap-1.5">
                   <AlertTriangle className="h-4 w-4" /> З'єднання перервано
                 </p>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">
+                <p className="mt-0.5 text-[14px] text-muted-foreground">
                   Бот більше не може надсилати вам повідомлення. Ймовірно, ви заблокували його або видалили чат.
                 </p>
                 <div className="mt-2 flex gap-2">
@@ -153,7 +153,7 @@ export function TelegramLinkCard() {
                 <p className="text-sm font-medium text-success flex items-center gap-1.5">
                   <Check className="h-4 w-4" /> Telegram підключено
                 </p>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">
+                <p className="mt-0.5 text-[14px] text-muted-foreground">
                   Ви отримуватимете сповіщення про нові повідомлення в чатах.
                 </p>
                 <Button size="sm" variant="ghost" className="mt-2" onClick={unlink}>
@@ -165,7 +165,7 @@ export function TelegramLinkCard() {
           ) : link?.link_code ? (
             <>
               <p className="text-sm font-medium text-foreground">{t("telegramLink.connecting")}</p>
-              <p className="mt-0.5 text-[13px] text-muted-foreground">
+              <p className="mt-0.5 text-[14px] text-muted-foreground">
                 1. Відкрийте бота{" "}
                 {botUsername ? (
                   <a
@@ -196,7 +196,7 @@ export function TelegramLinkCard() {
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
-              <p className="mt-2 text-[13px] text-muted-foreground">
+              <p className="mt-2 text-[14px] text-muted-foreground">
                 Код діє 30 хвилин. Якщо протермінувався — згенеруйте новий.
               </p>
               <Button size="sm" variant="outline" className="mt-2" onClick={generate} disabled={generating}>
@@ -207,7 +207,7 @@ export function TelegramLinkCard() {
           ) : (
             <>
               <p className="text-sm font-medium text-foreground">{t("telegramLinkExtra.notificationsTitle")}</p>
-              <p className="mt-0.5 text-[13px] text-muted-foreground">
+              <p className="mt-0.5 text-[14px] text-muted-foreground">
                 Підʼєднайте Telegram, щоб отримувати сповіщення про нові повідомлення в чатах, навіть коли застосунок закритий.
               </p>
               <Button size="sm" className="mt-3" onClick={generate} disabled={generating}>

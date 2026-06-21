@@ -83,7 +83,7 @@ export default function FeedbackPreviewPage() {
                       >
                         <Icon className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
                         <span className="text-sm font-medium">{c.label}</span>
-                        <span className="text-[13px] text-muted-foreground">{c.description}</span>
+                        <span className="text-[14px] text-muted-foreground">{c.description}</span>
                       </button>
                     );
                   })}
@@ -122,7 +122,7 @@ export default function FeedbackPreviewPage() {
                   maxLength={1000}
                   rows={5}
                 />
-                <p className="text-right text-[13px] text-muted-foreground">{message.length}/1000</p>
+                <p className="text-right text-[14px] text-muted-foreground">{message.length}/1000</p>
               </div>
 
               <div className="flex justify-end gap-2">

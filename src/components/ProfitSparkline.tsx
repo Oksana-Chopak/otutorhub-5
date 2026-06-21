@@ -17,7 +17,7 @@ export function ProfitSparkline({ data }: { data: Point[] }) {
   const hasAny = data.some((d) => d.profit !== 0);
   if (!hasAny) {
     return (
-      <div className="flex h-24 items-center justify-center text-[13px] text-muted-foreground">
+      <div className="flex h-24 items-center justify-center text-[14px] text-muted-foreground">
         {t("finances.noProfitData")}
       </div>
     );
@@ -33,13 +33,13 @@ export function ProfitSparkline({ data }: { data: Point[] }) {
               <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <XAxis dataKey="label" tick={{ fontSize: 13, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+          <XAxis dataKey="label" tick={{ fontSize: 14, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
           <Tooltip
             contentStyle={{
               backgroundColor: "hsl(var(--card))",
               border: "1px solid hsl(var(--border))",
               borderRadius: 8,
-              fontSize: 13,
+              fontSize: 14,
             }}
             formatter={(v: number) => [`${v} ₴`, t("profitSparkline.profit")]}
             labelFormatter={(l) => t("profitSparkline.weekFrom", { date: l })}
