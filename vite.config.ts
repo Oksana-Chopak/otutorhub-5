@@ -29,12 +29,13 @@ export default defineConfig(({ mode }) => ({
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
           if (id.includes("@supabase")) return "supabase";
-          if (id.includes("@tanstack")) return "query";
           if (id.includes("lucide-react")) return "icons";
-          // Keep React-dependent libraries in the React chunk. Splitting Radix/i18n
-          // separately caused production-only ESM init cycles where React was undefined
-          // at module evaluation time (`createContext` / `forwardRef` white screens).
-          if (id.includes("@radix-ui") || id.includes("i18next")) return "react-vendor";
+          // Keep ALL React-dependent libraries in the React chunk. Splitting Radix / i18n /
+          // react-query into separate chunks caused (or risks) production-only ESM init
+          // cycles where React was `undefined` at module-eval (`createContext`/`forwardRef`
+          // white screens — this took prod down once via Radix). @tanstack/react-query also
+          // calls React.createContext at eval and wraps the whole app, so it MUST live here.
+          if (id.includes("@radix-ui") || id.includes("i18next") || id.includes("@tanstack")) return "react-vendor";
           if (id.includes("react-router")) return "react-vendor";
           if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) return "react-vendor";
           if (
