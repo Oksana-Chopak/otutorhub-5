@@ -2439,6 +2439,15 @@ export type Database = {
       is_pending_email: { Args: { _email: string }; Returns: boolean }
       is_pending_profile: { Args: { _user_id: string }; Returns: boolean }
       is_tutor_pro: { Args: { _tutor_id: string }; Returns: boolean }
+      link_student_by_email: {
+        Args: {
+          _currency?: string
+          _email: string
+          _price: number
+          _subject: string
+        }
+        Returns: string
+      }
       list_lesson_financials: {
         Args: never
         Returns: {
