@@ -2800,7 +2800,7 @@ export const en: LocaleTranslations = {
     sendFailed: "Failed to send request",
     sent: "Request sent to manager",
     sentDesc: "We will contact you shortly.",
-    title: "Get subscription subscription",
+    title: "Get subscription",
     requestDescription: "Choose a billing period — your school manager will receive the request and reach out for payment.",
     alreadySent: "Request already sent",
     submit: "Send request",

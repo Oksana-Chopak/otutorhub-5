@@ -275,7 +275,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error(t('schedule.saveFailed'));
+        toast.error(t('schedule.saveFailed') + (error?.message ? `: ${error.message}` : ""));
         return;
       }
     }
@@ -284,7 +284,7 @@ export default function SchedulePage() {
       if (error) {
         setEditSubmitting(false);
         console.error(error);
-        toast.error(t('schedule.saveFailed'));
+        toast.error(t('schedule.saveFailed') + (error?.message ? `: ${error.message}` : ""));
         return;
       }
     }
