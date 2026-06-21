@@ -439,11 +439,25 @@ export default function MyStudentsPage() {
         await supabase.from("student_rates").delete().eq("tutor_id", user.id).eq("student_id", newId);
         await supabase.from("user_roles").delete().eq("user_id", newId);
         await supabase.from("profiles").delete().eq("id", newId);
-        toast.error(
-          String(contErr.message || "").includes("email_lower")
-            ? t("myStudents.emailTaken")
-            : t("myStudents.saveContactsFailed")
-        );
+        const emailTaken = String(contErr.message || "").includes("email_lower");
+        // One student can have several tutors — on an email collision, link the
+        // EXISTING student to this tutor instead of blocking.
+        if (emailTaken && email) {
+          const { data: linkedId, error: linkErr } = await supabase.rpc("link_student_by_email", {
+            _email: email, _subject: subject, _price: price, _currency: form.currency || "UAH",
+          } as any);
+          if (!linkErr && linkedId) {
+            toast.success(t("quickAddStudent.studentLinked"));
+            await load();
+            setDialog({ open: false, mode: "create", studentId: null });
+            setSubmitting(false);
+            return;
+          }
+          toast.error(linkErr?.message || t("myStudents.emailTaken"));
+          setSubmitting(false);
+          return;
+        }
+        toast.error(emailTaken ? t("myStudents.emailTaken") : t("myStudents.saveContactsFailed"));
         setSubmitting(false);
         return;
       }

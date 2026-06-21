@@ -1615,7 +1615,8 @@ export const en: LocaleTranslations = {
   },
   quickAddStudent: {
     addContactsDetails: "Add contacts and details",
-    hideExtra: "Hide optional fields",
+    hideExtra: "Collapse contact info",
+    studentLinked: "Student linked to you ✨",
     contactHint: "At least one is needed so the student can join.",
     notesLabel: "Notes — only you can see them",
     notesPlaceholder: "E.g.: preparing for the exam, enjoys game-based exercises…",
@@ -3761,6 +3762,7 @@ export const en: LocaleTranslations = {
     lessonSubmit: "Create lesson",
     lessonSkip: "I will set the time later →",
     exitToApp: "I will do this later — go to app",
+    lessonNeedStudent: "Add a student first (previous step) to create a lesson.",
     proRulesModePrepaidTitle: "Prepayment",
     proRulesModePrepaidDesc: "A reminder right after the lesson is created.",
     proRulesModeBeforeTitle: "Before the lesson",

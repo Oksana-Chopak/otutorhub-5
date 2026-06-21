@@ -1625,7 +1625,8 @@ export const uk = {
   },
   quickAddStudent: {
     addContactsDetails: "Додати контакти та деталі",
-    hideExtra: "Сховати необов'язкові поля",
+    hideExtra: "Згорнути контактну інформацію",
+    studentLinked: "Учня прикріплено до тебе ✨",
     contactHint: "Потрібен хоча б один — щоб учень міг приєднатися.",
     notesLabel: "Нотатки — бачиш лише ти",
     notesPlaceholder: "Напр.: готується до ІСПО, любить ігрові вправи…",
@@ -3773,6 +3774,7 @@ export const uk = {
     lessonSubmit: "Створити урок",
     lessonSkip: "Узгоджу час пізніше →",
     exitToApp: "Зроблю пізніше — до застосунку",
+    lessonNeedStudent: "Спочатку додай учня на попередньому кроці — тоді зможеш створити урок.",
     proRulesModePrepaidTitle: "Передоплата",
     proRulesModePrepaidDesc: "Нагадування одразу після створення уроку.",
     proRulesModeBeforeTitle: "До уроку",

@@ -1605,7 +1605,8 @@ export const sv: LocaleTranslations = {
   },
   quickAddStudent: {
     addContactsDetails: "Lägg till kontakter och detaljer",
-    hideExtra: "Dölj valfria fält",
+    hideExtra: "Dölj kontaktinfo",
+    studentLinked: "Eleven kopplad till dig ✨",
     contactHint: "Minst en behövs så att eleven kan ansluta.",
     notesLabel: "Anteckningar — bara du ser dem",
     notesPlaceholder: "T.ex.: förbereder sig för provet, gillar spelbaserade övningar…",
@@ -3751,6 +3752,7 @@ export const sv: LocaleTranslations = {
     lessonSubmit: "Skapa lektion",
     lessonSkip: "Bestäm tid senare →",
     exitToApp: "Gör det senare — till appen",
+    lessonNeedStudent: "Lägg till en elev först (föregående steg) för att skapa en lektion.",
     proRulesModePrepaidTitle: "Förskottsbetalning",
     proRulesModePrepaidDesc: "En påminnelse direkt efter att lektionen skapats.",
     proRulesModeBeforeTitle: "Före lektionen",

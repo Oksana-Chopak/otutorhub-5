@@ -311,10 +311,50 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
   const [repeat,  setRepeat]  = useState(true);
   const [saving,  setSaving]  = useState(false);
 
+  // Resolve a billable student. The lessons INSERT policy requires a matching
+  // student_rates row, so a null / rate-less student_id is rejected by RLS
+  // ("new row violates row-level security policy for table lessons"). For a
+  // RETURNING tutor the add-student step auto-shows "done" and never passes a
+  // studentId here, so fall back to the tutor's most recent independent student.
+  const [resolvedId,      setResolvedId]      = useState<string | null>(studentId);
+  const [resolvedName,    setResolvedName]    = useState<string>(studentName);
+  const [resolvedSubject, setResolvedSubject] = useState<string>(subject);
+  const [resolving,       setResolving]       = useState<boolean>(!studentId);
+
+  useEffect(() => {
+    if (studentId) {
+      setResolvedId(studentId); setResolvedName(studentName); setResolvedSubject(subject); setResolving(false);
+      return;
+    }
+    let active = true;
+    (async () => {
+      setResolving(true);
+      const { data } = await supabase
+        .from("student_rates")
+        .select("student_id, subject")
+        .eq("tutor_id", user?.id)
+        .eq("source", "independent")
+        .is("archived_at", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (!active) return;
+      if (data?.student_id) {
+        setResolvedId(data.student_id);
+        setResolvedSubject((prev) => prev || (data as any).subject || "");
+        const { data: p } = await supabase.from("profiles")
+          .select("first_name, last_name").eq("id", data.student_id).maybeSingle();
+        if (active && p) setResolvedName(`${(p as any).first_name ?? ""} ${(p as any).last_name ?? ""}`.trim());
+      }
+      if (active) setResolving(false);
+    })();
+    return () => { active = false; };
+  }, [studentId, studentName, subject, user?.id]);
+
   const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
   const MINUTES = ["00", "15", "30", "45"];
   const timeStr = hour ? `${hour}:${minute}` : "";
-  const ok = Boolean(hour);
+  const ok = Boolean(hour) && Boolean(resolvedId);
 
   const selStyle = (hasVal: boolean) => ({
     height: 48, borderRadius: 12, border: `1px solid ${hasVal ? T.teal : T.border}`,
@@ -332,8 +372,8 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
     const startsAt = new Date(`${date}T${hour}:${minute}:00`);
     const { data: created, error } = await supabase.from("lessons")
       .insert({
-        tutor_id: user.id, student_id: studentId,
-        subject: subject || t("onboardingFlowB.lessonDefaultSubject"),
+        tutor_id: user.id, student_id: resolvedId,
+        subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
         starts_at: startsAt.toISOString(),
         duration_minutes: 60, status: "scheduled" as const,
         created_by: user.id, source: "independent",
@@ -349,7 +389,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
           const next = new Date(startsAt);
           next.setDate(next.getDate() + 7 * w);
           const { data: r } = await supabase.from("lessons")
-            .insert({ tutor_id: user.id, student_id: studentId, subject: subject || t("onboardingFlowB.lessonDefaultSubject"),
+            .insert({ tutor_id: user.id, student_id: resolvedId, subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
               starts_at: next.toISOString(), duration_minutes: 60, status: "scheduled" as const,
               created_by: user.id, source: "independent" } as any)
             .select("id").single();
@@ -371,12 +411,15 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
 
   return (
     <div className="flex flex-col gap-3.5">
-      {/* Student pre-filled */}
-      {studentName && (
+      {/* Student — the one added this session, or the tutor's existing student */}
+      {resolvedName && (
         <div className="h-12 rounded-xl border flex items-center justify-between px-3 text-[15px]"
           style={{ borderColor: T.border, background: "#fbfbfc", color: T.txt }}>
-          <span>{studentName}{subject ? ` · ${subject}` : ""}</span>
+          <span>{resolvedName}{resolvedSubject ? ` · ${resolvedSubject}` : ""}</span>
         </div>
+      )}
+      {!resolving && !resolvedId && (
+        <p className="text-[13px]" style={{ color: T.muted }}>{t("onboardingFlowB.lessonNeedStudent")}</p>
       )}
 
       {/* Date */}

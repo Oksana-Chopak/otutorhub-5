@@ -125,15 +125,30 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       telegram: form.telegram.trim() || null,
     });
     if (contErr) {
+      // Roll back the throwaway profile we just created.
       await supabase.from("student_rates").delete().eq("tutor_id", user.id).eq("student_id", newId);
       await supabase.from("user_roles").delete().eq("user_id", newId);
       await supabase.from("profiles").delete().eq("id", newId);
+      const emailTaken = String(contErr.message || "").includes("email_lower");
+      // One student can have several tutors. On an email collision, LINK the existing
+      // student to this tutor (new student_rates row) instead of blocking.
+      if (emailTaken && email) {
+        const { data: linkedId, error: linkErr } = await supabase.rpc("link_student_by_email", {
+          _email: email, _subject: subject, _price: price, _currency: currency,
+        } as any);
+        if (!linkErr && linkedId) {
+          setSubmitting(false);
+          toast.success(t("quickAddStudent.studentLinked"));
+          reset();
+          onOpenChange(false);
+          onCreated?.();
+          return;
+        }
+        setSubmitting(false);
+        return toast.error(linkErr?.message || t("quickAddStudent.emailTaken"));
+      }
       setSubmitting(false);
-      return toast.error(
-        String(contErr.message || "").includes("email_lower")
-          ? t("quickAddStudent.emailTaken")
-          : t("quickAddStudent.contactsFailed")
-      );
+      return toast.error(emailTaken ? t("quickAddStudent.emailTaken") : t("quickAddStudent.contactsFailed"));
     }
     // Ensure a student_details row exists (no per-student tutor_notes column).
     try {
