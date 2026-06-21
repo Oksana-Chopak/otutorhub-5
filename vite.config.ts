@@ -32,7 +32,9 @@ export default defineConfig(({ mode }) => ({
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("@tanstack")) return "query";
           if (id.includes("lucide-react")) return "icons";
-          if (id.includes("i18next")) return "i18n"; // i18next + react-i18next
+          // i18next + react-i18next bundled with React to avoid a cross-chunk
+          // circular import that left React undefined at i18n init (white screen).
+          if (id.includes("i18next")) return "react-vendor";
           if (id.includes("react-router")) return "react-vendor";
           if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) return "react-vendor";
           if (
