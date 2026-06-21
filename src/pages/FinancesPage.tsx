@@ -558,18 +558,17 @@ export default function FinancesPage() {
   const activeSort = (a: Row, b: Row) => (sort ? manualSort(a, b) : smartSort(a, b));
 
   const incomeRows: Row[] = useMemo(() => {
-    // Income = lessons PAID within the period (by payment date), not by lesson date — a
-    // lesson dated another month but paid this month still counts as this month's income.
-    // Falls back to starts_at for legacy rows with no stamped paid date.
-    const lessonRows: Row[] = billable
-      .filter((l) => l.student_payment_status === "paid" && inPeriod((l as any).student_paid_at ?? l.starts_at))
+    // Period-scoped by lesson date — kept identical to the summary total / CSV / chart
+    // (which all derive from periodBillable) so the list and the headline number agree.
+    const lessonRows: Row[] = periodBillable
+      .filter((l) => l.student_payment_status === "paid")
       .map((l) => ({ type: "lesson", l }));
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
     return [...lessonRows, ...prepayRows].sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billable, periodStart, periodTopups, canManagePrepay, sort]);
+  }, [periodBillable, periodTopups, canManagePrepay, sort]);
 
   const expensesRows: Row[] = useMemo(() => {
     if (isIndependentTutor) return [];
@@ -728,8 +727,9 @@ export default function FinancesPage() {
 
   // === Mutations (logic unchanged) ===
   // Route a student-payment write to the correct table: individual lessons keep it on
-  // lesson_details (keyed by lesson_id; student_paid_at is set by a DB trigger there);
-  // group participants store it per-row on lesson_participants (keyed by participant id).
+  // lesson_details (keyed by lesson_id; student_paid_at is auto-stamped INSIDE
+  // update_lesson_details_safe on the unpaid→paid transition — migration 20260703000000,
+  // NOT a trigger); group participants store it per-row on lesson_participants.
   const writeStudentPayment = (lesson: LessonRow, status: PaymentStatus, paidAt: string | null) =>
     lesson.kind === "group"
       ? supabase

@@ -166,7 +166,7 @@ export default function SchedulePage() {
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
-  const [showAllPast, setShowAllPast] = useState(false);
+  const [pastLimit, setPastLimit] = useState(8);
 
   // Filters — centralized in a hook so desktop + mobile share state/logic.
   const filters = useScheduleFilters();
@@ -1651,7 +1651,7 @@ export default function SchedulePage() {
           {grouped.map(([bucketLabel, dayLessons]) => {
             const isToday = bucketLabel === t('common.today');
             const isPast = bucketLabel === t('schedule.bucketPast');
-            const shown = isPast && !showAllPast ? dayLessons.slice(0, 8) : dayLessons;
+            const shown = isPast ? dayLessons.slice(0, pastLimit) : dayLessons;
             const hiddenPast = dayLessons.length - shown.length;
             return (
               <div key={bucketLabel}>
@@ -1728,7 +1728,7 @@ export default function SchedulePage() {
                 {isPast && hiddenPast > 0 && (
                   <button
                     type="button"
-                    onClick={() => setShowAllPast(true)}
+                    onClick={() => setPastLimit((n) => n + 12)}
                     className="mt-2 w-full rounded-[12px] border border-border bg-white py-2.5 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
                   >
                     {t("schedule.showMorePast", { count: hiddenPast })}

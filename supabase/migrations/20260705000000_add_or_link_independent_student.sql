@@ -73,6 +73,11 @@ BEGIN
               last_name  = COALESCE(EXCLUDED.last_name,  public.profiles.last_name);
       INSERT INTO public.user_roles (user_id, role) VALUES (_sid, 'student'::app_role)
         ON CONFLICT DO NOTHING;
+      -- Fill in freshly-typed phone/telegram on the reclaimed contact row (keep email).
+      UPDATE public.profile_contacts
+        SET phone    = COALESCE(NULLIF(trim(_phone), ''), phone),
+            telegram = COALESCE(NULLIF(regexp_replace(trim(_telegram), '^@', ''), ''), telegram)
+        WHERE user_id = _sid;
     END IF;
   ELSE
     -- Brand-new student.
