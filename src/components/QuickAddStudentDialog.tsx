@@ -98,76 +98,35 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     if (isNaN(price) || price < 0) return toast.error(t("quickAddStudent.invalidPrice"));
 
     setSubmitting(true);
-    const newId = crypto.randomUUID();
+    // Robust add-or-link: ONE SECURITY DEFINER RPC handles every email case
+    // (new / existing-student / already-mine / non-student account / ghost), so no
+    // email state can dead-end the add. Replaces the old insert→fail→rollback→link dance.
+    const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+      _first_name: fn ?? "", _last_name: ln ?? "",
+      _email: email ?? "", _phone: phone ?? "",
+      _telegram: form.telegram.trim(), _subject: subject,
+      _price: price, _currency: currency,
+    } as any);
+    if (rpcErr || !res) {
+      setSubmitting(false);
+      const msg = String(rpcErr?.message || "");
+      return toast.error(
+        msg.includes("EMAIL_NOT_STUDENT")
+          ? t("quickAddStudent.emailNotStudent")
+          : (rpcErr?.message || t("quickAddStudent.createFailed")),
+      );
+    }
+    const newId = (res as any).student_id as string;
+    const linked = (res as any).action === "linked";
+    setSubmitting(false);
 
-    const { error: profErr } = await supabase
-      .from("profiles")
-      .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
-    if (profErr) {
-      setSubmitting(false);
-      return toast.error(profErr.message || t("quickAddStudent.createFailed"));
-    }
-    const { error: roleErr } = await supabase
-      .from("user_roles")
-      .insert({ user_id: newId, role: "student" });
-    if (roleErr) {
-      await supabase.from("profiles").delete().eq("id", newId);
-      setSubmitting(false);
-      return toast.error(t("quickAddStudent.roleFailed"));
-    }
-    const { error: rateErr } = await supabase.from("student_rates").insert({
-      tutor_id: user.id,
-      student_id: newId,
-      subject,
-      price_per_lesson: price,
-      currency,
-      source: "independent",
-    });
-    if (rateErr) {
-      await supabase.from("user_roles").delete().eq("user_id", newId);
-      await supabase.from("profiles").delete().eq("id", newId);
-      setSubmitting(false);
-      return toast.error(t("quickAddStudent.priceFailed"));
-    }
-    const { error: contErr } = await supabase.from("profile_contacts").insert({
-      user_id: newId,
-      email,
-      phone,
-      telegram: form.telegram.trim() || null,
-    });
-    if (contErr) {
-      // Roll back the throwaway profile we just created.
-      await supabase.from("student_rates").delete().eq("tutor_id", user.id).eq("student_id", newId);
-      await supabase.from("user_roles").delete().eq("user_id", newId);
-      await supabase.from("profiles").delete().eq("id", newId);
-      const emailTaken = String(contErr.message || "").includes("email_lower");
-      // One student can have several tutors. On an email collision, LINK the existing
-      // student to this tutor (new student_rates row) instead of blocking.
-      if (emailTaken && email) {
-        const { data: linkedId, error: linkErr } = await supabase.rpc("link_student_by_email", {
-          _email: email, _subject: subject, _price: price, _currency: currency,
-        } as any);
-        if (!linkErr && linkedId) {
-          setSubmitting(false);
-          toast.success(t("quickAddStudent.studentLinked"));
-          reset();
-          onOpenChange(false);
-          onCreated?.();
-          return;
-        }
-        setSubmitting(false);
-        return toast.error(t("quickAddStudent.emailTaken"));
-      }
-      setSubmitting(false);
-      return toast.error(emailTaken ? t("quickAddStudent.emailTaken") : t("quickAddStudent.contactsFailed"));
-    }
-    // Ensure a student_details row exists (no per-student tutor_notes column).
-    try {
-      await supabase
-        .from("student_details")
-        .upsert({ user_id: newId }, { onConflict: "user_id" });
-    } catch {
-      /* best-effort */
+    if (linked) {
+      // Existing student linked to this tutor — already in the system, no invite needed.
+      toast.success(t("quickAddStudent.studentLinked"));
+      reset();
+      onOpenChange(false);
+      onCreated?.();
+      return;
     }
 
     toast.success(t("quickAddStudent.studentAdded"));
@@ -178,8 +137,6 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       });
       if ((resp as any)?.success) inviteSent = true;
     }
-
-    setSubmitting(false);
     reset();
     onOpenChange(false);
     setInvite({

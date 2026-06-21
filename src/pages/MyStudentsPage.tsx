@@ -381,89 +381,48 @@ export default function MyStudentsPage() {
     setSubmitting(true);
 
     if (dialog.mode === "create") {
-      const newId = crypto.randomUUID();
-
-      // 1. Ghost profile
-      const { error: profErr } = await supabase
-        .from("profiles")
-        .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true });
-      if (profErr) {
-        console.error(profErr);
-        toast.error(profErr.message || t("myStudents.createProfileFailed"));
-        setSubmitting(false);
-        return;
-      }
-
-      // 2. Student role (RLS allows independent tutor to assign 'student' role to a pending ghost profile)
-      const { error: roleErr } = await supabase
-        .from("user_roles")
-        .insert({ user_id: newId, role: "student" });
-      if (roleErr) {
-        console.error(roleErr);
-        await supabase.from("profiles").delete().eq("id", newId);
-        toast.error(t("myStudents.roleAssignFailed"));
-        setSubmitting(false);
-        return;
-      }
-
-      // 3. Rate (independent source) — must exist BEFORE contacts/details so RLS for independent tutor passes
-      const { error: rateErr } = await supabase.from("student_rates").insert({
-        tutor_id: user.id,
-        student_id: newId,
-        subject,
-        price_per_lesson: price,
-        source: "independent",
-        currency: form.currency || "UAH",
-        payment_details: form.payment_details.trim() || null,
+      // Robust add-or-link via ONE SECURITY DEFINER RPC — handles new / existing-student /
+      // already-mine / non-student-email / ghost. No insert→fail→rollback→link dance.
+      const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+        _first_name: fn ?? "", _last_name: ln ?? "",
+        _email: email ?? "", _phone: phone ?? "",
+        _telegram: form.telegram.trim(), _subject: subject,
+        _price: price, _currency: form.currency || "UAH",
       } as any);
-      if (rateErr) {
-        console.error(rateErr);
-        await supabase.from("user_roles").delete().eq("user_id", newId);
-        await supabase.from("profiles").delete().eq("id", newId);
-        toast.error(t("myStudents.savePriceFailed"));
+      if (rpcErr || !res) {
+        console.error(rpcErr);
+        const msg = String(rpcErr?.message || "");
+        toast.error(msg.includes("EMAIL_NOT_STUDENT")
+          ? t("myStudents.emailNotStudent")
+          : (rpcErr?.message || t("myStudents.createProfileFailed")));
+        setSubmitting(false);
+        return;
+      }
+      const newId = (res as any).student_id as string;
+      const linked = (res as any).action === "linked";
+
+      // Per-tutor payment details (the RPC's rate doesn't carry them). Best-effort.
+      if (form.payment_details.trim()) {
+        await supabase.from("student_rates").update({ payment_details: form.payment_details.trim() } as any)
+          .eq("tutor_id", user.id).eq("student_id", newId).eq("source", "independent");
+      }
+
+      if (linked) {
+        // Existing student linked to this tutor — already in the system, no invite needed.
+        toast.success(t("quickAddStudent.studentLinked"));
+        await load();
+        setDialog({ open: false, mode: "create", studentId: null });
         setSubmitting(false);
         return;
       }
 
-      // 4. Contacts (now allowed by 'Independent tutor manages own student contacts' RLS)
-      const { error: contErr } = await supabase.from("profile_contacts").insert({
-        user_id: newId,
-        email: email || null,
-        phone: phone || null,
-        telegram: form.telegram.trim() || null,
-        facebook_url: form.facebook_url.trim() || null,
-        instagram_url: form.instagram_url.trim() || null,
-      });
-      if (contErr) {
-        console.error(contErr);
-        await supabase.from("student_rates").delete().eq("tutor_id", user.id).eq("student_id", newId);
-        await supabase.from("user_roles").delete().eq("user_id", newId);
-        await supabase.from("profiles").delete().eq("id", newId);
-        const emailTaken = String(contErr.message || "").includes("email_lower");
-        // One student can have several tutors — on an email collision, link the
-        // EXISTING student to this tutor instead of blocking.
-        if (emailTaken && email) {
-          const { data: linkedId, error: linkErr } = await supabase.rpc("link_student_by_email", {
-            _email: email, _subject: subject, _price: price, _currency: form.currency || "UAH",
-          } as any);
-          if (!linkErr && linkedId) {
-            toast.success(t("quickAddStudent.studentLinked"));
-            await load();
-            setDialog({ open: false, mode: "create", studentId: null });
-            setSubmitting(false);
-            return;
-          }
-          toast.error(t("myStudents.emailTaken"));
-          setSubmitting(false);
-          return;
-        }
-        toast.error(emailTaken ? t("myStudents.emailTaken") : t("myStudents.saveContactsFailed"));
-        setSubmitting(false);
-        return;
+      // New/reclaimed student: add the extra social contacts the RPC didn't set.
+      if (form.facebook_url.trim() || form.instagram_url.trim()) {
+        await supabase.from("profile_contacts").update({
+          facebook_url: form.facebook_url.trim() || null,
+          instagram_url: form.instagram_url.trim() || null,
+        } as any).eq("user_id", newId);
       }
-
-      // 5. Student details
-      await supabase.from("student_details").upsert({ user_id: newId }, { onConflict: "user_id" });
 
       // 6. Default meeting URL (Zoom/Meet) — optional
       const meetingUrlRaw = form.default_meeting_url.trim();
