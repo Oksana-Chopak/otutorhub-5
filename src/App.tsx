@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -78,11 +78,16 @@ const RouteFallback = () => (
 function AppRoutes() {
   // Subscribe to global new-message toasts (no UI)
   useGlobalChatToasts();
+  const location = useLocation();
   return (
     <>
       <ClarityIdentify />
       <CookieConsent />
       <Suspense fallback={<RouteFallback />}>
+        {/* Per-route boundary: a runtime crash on one page shows the fallback but RESETS
+            on navigation (keyed by pathname), so one bad page can't brick the session.
+            The outer ErrorBoundary stays as the last-resort catch. */}
+        <ErrorBoundary key={location.pathname}>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -294,6 +299,7 @@ function AppRoutes() {
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ErrorBoundary>
       </Suspense>
     </>
   );
