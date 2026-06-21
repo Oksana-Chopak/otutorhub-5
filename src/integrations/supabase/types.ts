@@ -2320,6 +2320,19 @@ export type Database = {
       }
     }
     Functions: {
+      add_or_link_independent_student: {
+        Args: {
+          _currency?: string
+          _email: string
+          _first_name: string
+          _last_name: string
+          _phone: string
+          _price: number
+          _subject: string
+          _telegram: string
+        }
+        Returns: Json
+      }
       check_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
