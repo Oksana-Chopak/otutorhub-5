@@ -248,10 +248,10 @@ export default function ChatsPage() {
       const studentIds = Array.from(new Set(list.map((t) => t.student_id)));
       const { data: rows } = await supabase
         .from("lessons_visible")
-        .select("tutor_id, student_id, starts_at, status, student_price, student_payment_status")
+        .select("tutor_id, student_id, starts_at, status, student_price, student_payment_status, source")
         .in("tutor_id", tutorIds)
         .in("student_id", studentIds);
-      const byPair = new Map<string, Array<{ starts_at: string; status: string | null; student_price: number | null; student_payment_status: string | null }>>();
+      const byPair = new Map<string, Array<{ starts_at: string; status: string | null; student_price: number | null; student_payment_status: string | null; source: string | null }>>();
       (rows ?? []).forEach((l: any) => {
         const key = `${l.tutor_id}|${l.student_id}`;
         if (!byPair.has(key)) byPair.set(key, []);
@@ -261,7 +261,11 @@ export default function ChatsPage() {
       withCtx = list.map((th): Thread => {
         const lessons = byPair.get(`${th.tutor_id}|${th.student_id}`) ?? [];
         if (lessons.length === 0) return { ...th, ctx: { kind: "new", text: t("chats.ctxNewStudent") } };
-        const unpaid = lessons.filter((l) => l.student_payment_status === "unpaid" && l.status !== "cancelled");
+        const unpaidAll = lessons.filter((l) => l.student_payment_status === "unpaid" && l.status !== "cancelled");
+        // Only the party actually owed sees the debt context/reminder: a MANAGER
+        // (hub receivable) or an INDEPENDENT tutor (their own students). A hub tutor
+        // must NEVER see what the student owes the hub — exclude hub-source lessons.
+        const unpaid = isManager ? unpaidAll : unpaidAll.filter((l) => l.source !== "hub");
         if (unpaid.length > 0) {
           const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
           return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: sum.toLocaleString(getLocale()), count: unpaid.length }), amount: sum, count: unpaid.length } };

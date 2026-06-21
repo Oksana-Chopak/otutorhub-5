@@ -49,6 +49,7 @@ import { FinancesSkeleton } from "@/components/PageSkeletons";
 const IncomeByStudentPie = lazy(() => import("@/components/IncomeByStudentPie").then((m) => ({ default: m.IncomeByStudentPie })));
 const ProfitSparkline = lazy(() => import("@/components/ProfitSparkline").then((m) => ({ default: m.ProfitSparkline })));
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { WalletDialog } from "@/components/WalletDialog";
 import {
   AlertDialog,
@@ -162,6 +163,9 @@ export default function FinancesPage() {
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
   const [tutorFilter, setTutorFilter] = useState<string>("all");
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportTutor, setExportTutor] = useState("all");
+  const [exportKind, setExportKind] = useState<"all" | "paid" | "unpaid">("all");
   const [period, setPeriod] = useState<Period>("month");
   // Tab is sourced from URL (?tab=) with legacy ?filter= support so deep links keep working.
   const rawTab = searchParams.get("tab");
@@ -689,6 +693,26 @@ export default function FinancesPage() {
           .eq("id", lesson.participant_id ?? "")
       : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
+  const [remindingId, setRemindingId] = useState<string | null>(null);
+  // Send a REAL payment reminder (email / Telegram) via the remind-payment edge
+  // function — same path PendingPaymentsCard uses, so the student actually gets it.
+  const remindLesson = async (lessonId: string, studentId: string) => {
+    setRemindingId(lessonId);
+    const { data, error } = await supabase.functions.invoke("remind-payment", { body: { lessonId } });
+    setRemindingId(null);
+    if (error) {
+      toast.error(t("pendingPayments.reminderFailed"));
+      return;
+    }
+    if ((data as any)?.success) {
+      const channels = ((data as any).channels ?? []) as string[];
+      const labels = channels.map((c) => (c === "telegram" ? "Telegram" : "email"));
+      toast.success(t("pendingPayments.reminderSent", { labels: labels.join(" + ") || "email" }), { description: nameOf(studentId) });
+    } else {
+      toast.error(t("pendingPaymentsExtra.noContact"));
+    }
+  };
+
   const togglePayment = async (
     lesson: LessonRow,
     field: "student_payment_status" | "tutor_payout_status"
@@ -853,7 +877,7 @@ export default function FinancesPage() {
     setSelected(new Set());
   };
 
-  const exportCsv = () => {
+  const exportCsv = (opts?: { tutorId?: string; kind?: "all" | "paid" | "unpaid" }) => {
     const header = [
       t("finances.csvDate"),
       t("finances.csvSubject"),
@@ -867,9 +891,17 @@ export default function FinancesPage() {
       t("finances.csvPayoutAt"),
       t("finances.csvProfit"),
     ];
-    // Export the whole selected period (every tab), not just the active tab's
-    // visible rows — otherwise the CSV silently dropped most lessons.
-    const rows = periodBillable.map((l) => [
+    // Export the selected period (every tab), optionally narrowed by the export
+    // dialog (tutor + paid/unpaid). Was the active-tab subset, which dropped rows.
+    const tId = opts?.tutorId && opts.tutorId !== "all" ? opts.tutorId : null;
+    const kind = opts?.kind ?? "all";
+    const source = periodBillable.filter((l) => {
+      if (tId && l.tutor_id !== tId) return false;
+      if (kind === "paid" && l.student_payment_status !== "paid") return false;
+      if (kind === "unpaid" && l.student_payment_status !== "unpaid") return false;
+      return true;
+    });
+    const rows = source.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
@@ -1660,15 +1692,18 @@ export default function FinancesPage() {
                               color:F.warnD, flexShrink:0 }}>
                               {Number(l.student_price).toLocaleString(getLocale())} ₴
                             </p>
-                            <Link
-                              to="/profile"
-                              title={t("finances.configureLink")}
-                              style={{ height:32, padding:"0 12px", borderRadius:9,
+                            <button
+                              type="button"
+                              onClick={() => remindLesson(l.id, l.student_id)}
+                              disabled={remindingId === l.id}
+                              style={{ height:32, padding:"0 12px", borderRadius:9, border:"none",
                                 background:"rgba(245,158,11,.18)", color:F.warnD,
-                                fontFamily:F.display, fontWeight:700, fontSize: 13, cursor:"pointer",
-                                flexShrink:0, display:"inline-flex", alignItems:"center", textDecoration:"none" }}>
+                                fontFamily:F.display, fontWeight:700, fontSize: 13,
+                                cursor: remindingId === l.id ? "default" : "pointer",
+                                flexShrink:0, display:"inline-flex", alignItems:"center", gap:6 }}>
+                              {remindingId === l.id && <Loader2 className="h-3 w-3 animate-spin" />}
                               {t("finances.remindBtn")}
-                            </Link>
+                            </button>
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
                               aria-label={t("finances.statusPaid")}
@@ -1809,7 +1844,7 @@ export default function FinancesPage() {
                   )}
 
                   {/* Export */}
-                  <button onClick={exportCsv}
+                  <button onClick={() => setExportOpen(true)}
                     style={{ height:46, borderRadius:14, border:`1px solid ${F.border}`, background:F.surface, cursor:"pointer",
                       fontFamily:F.display, fontWeight:700, fontSize:14, color:F.sub,
                       display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
@@ -1835,7 +1870,7 @@ export default function FinancesPage() {
               </div>
             )}
             {/* Export */}
-            <button onClick={exportCsv}
+            <button onClick={() => setExportOpen(true)}
               style={{ height:44, borderRadius:14, border:`1px solid ${F.border}`,
                 background:F.surface, cursor:"pointer", fontFamily:F.display,
                 fontWeight:700, fontSize:14, color:F.sub,
@@ -1990,29 +2025,23 @@ export default function FinancesPage() {
               </div>
               <button
                 onClick={async () => {
-                  // Згрупувати борги по учнях і надіслати кожному одне нагадування
-                  const byStudent = new Map<string, { count: number; sum: number }>();
-                  debtsRows.forEach((row) => {
-                    const l = row as unknown as { student_id: string; student_price: number | null };
-                    const cur = byStudent.get(l.student_id) ?? { count: 0, sum: 0 };
-                    cur.count += 1;
-                    cur.sum += Number(l.student_price) || 0;
-                    byStudent.set(l.student_id, cur);
+                  // One REAL reminder (email / Telegram) per student — anchor on their first debt lesson.
+                  const seen = new Set<string>();
+                  const reps = debtList.filter((l) => {
+                    if (!l.id || seen.has(l.student_id)) return false;
+                    seen.add(l.student_id);
+                    return true;
                   });
-                  // Fire all reminders in parallel — they're independent inserts.
-                  await Promise.all(
-                    Array.from(byStudent).map(([studentId, agg]) =>
-                      insertNotification({
-                        userId: studentId,
-                        type: `payment_reminder_bulk_${Date.now()}_${studentId.slice(0, 8)}`,
-                        title: t("finances.remindPushTitle"),
-                        body: t("finances.remindPushBody", { count: agg.count, sum: agg.sum.toLocaleString(getLocale()) }),
-                        link: "/student/payments",
-                      }),
-                    ),
+                  if (reps.length === 0) return;
+                  const results = await Promise.all(
+                    reps.map((l) => supabase.functions.invoke("remind-payment", { body: { lessonId: l.id } })),
                   );
-                  const sent = byStudent.size;
-                  toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
+                  const sent = results.filter((r) => (r.data as any)?.success).length;
+                  if (sent > 0) {
+                    toast.success(t("finances.remindSentTitle"), { description: t("finances.remindSentDesc", { count: sent }) });
+                  } else {
+                    toast.error(t("pendingPaymentsExtra.noContact"));
+                  }
                   handleTabChange("debts");
                 }}
                 className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[13px] font-bold transition-opacity hover:opacity-80"
@@ -2026,7 +2055,7 @@ export default function FinancesPage() {
           <div className="flex items-center justify-between mb-0">
             <div className="flex-1" />
             <button
-              onClick={exportCsv}
+              onClick={() => setExportOpen(true)}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-gray-100"
               style={{ color: "var(--sub,#6b7088)", border: "1px solid var(--border,#eceef3)" }}
               title={t("finances.exportCsv")}>
@@ -2230,6 +2259,49 @@ export default function FinancesPage() {
           canDelete={isManager}
         />
       )}
+      {/* CSV export options */}
+      <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t("finances.exportTitle")}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportTutor")}</p>
+              <Select value={exportTutor} onValueChange={setExportTutor}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("finances.exportAllTutors")}</SelectItem>
+                  {Array.from(new Set(periodBillable.map((l) => l.tutor_id))).map((id) => (
+                    <SelectItem key={id} value={id}>{nameOf(id)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                  <button key={val} type="button" onClick={() => setExportKind(val)}
+                    className={cn(
+                      "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
+                      exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                    )}>
+                    {t(`finances.${key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button type="button"
+              onClick={() => { exportCsv({ tutorId: exportTutor, kind: exportKind }); setExportOpen(false); }}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
+              style={{ background: "var(--teal,#2BBFAA)" }}>
+              <Download className="h-4 w-4" /> {t("finances.exportDownload")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Підтвердження видалення передоплати */}
       <AlertDialog open={!!deletePrepayTx} onOpenChange={(o) => !deletingPrepay && !o && setDeletePrepayTx(null)}>
         <AlertDialogContent>
