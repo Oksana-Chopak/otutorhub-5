@@ -156,7 +156,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
           return;
         }
         setSubmitting(false);
-        return toast.error(linkErr?.message || t("quickAddStudent.emailTaken"));
+        return toast.error(t("quickAddStudent.emailTaken"));
       }
       setSubmitting(false);
       return toast.error(emailTaken ? t("quickAddStudent.emailTaken") : t("quickAddStudent.contactsFailed"));

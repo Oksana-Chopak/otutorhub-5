@@ -63,7 +63,7 @@ export default function StudentHomeworkPage() {
     (async () => {
       const { data: details, error } = await supabase
         .from("lesson_details_student" as any)
-        .select("lesson_id, homework, summary, fireflies_summary")
+        .select("lesson_id, homework, summary")
         .not("homework", "is", null);
 
       const lessonIds0 = Array.from(
@@ -127,8 +127,8 @@ export default function StudentHomeworkPage() {
           starts_at: d.lessons.starts_at,
           tutor_id: d.lessons.tutor_id,
           tutor_name: pmap[d.lessons.tutor_id],
-          hasAiNote: Boolean((d.summary && d.summary.trim()) || (d.fireflies_summary && d.fireflies_summary.trim())),
-          aiNote: (d.summary?.trim() || d.fireflies_summary?.trim() || ""),
+          hasAiNote: Boolean(d.summary && d.summary.trim()),
+          aiNote: (d.summary?.trim() || ""),
           // Attachment data comes from the separate lesson_attachments table (fetched above).
           hasFile: Boolean(fileMap[d.lesson_id]),
           storagePath: fileMap[d.lesson_id] ?? null,

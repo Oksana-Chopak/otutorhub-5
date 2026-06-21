@@ -453,7 +453,7 @@ export default function MyStudentsPage() {
             setSubmitting(false);
             return;
           }
-          toast.error(linkErr?.message || t("myStudents.emailTaken"));
+          toast.error(t("myStudents.emailTaken"));
           setSubmitting(false);
           return;
         }

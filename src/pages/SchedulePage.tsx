@@ -713,19 +713,10 @@ export default function SchedulePage() {
         created_by: user.id,
         source: isIndependentTutor ? "independent" : "hub",
       };
-      if (isManager) {
-        payload.student_price = Number(form.student_price) || 0;
-        payload.tutor_payout = Number(form.tutor_payout) || 0;
-        payload.student_payment_status = form.student_payment_status;
-        payload.tutor_payout_status = form.tutor_payout_status;
-      } else if (isIndependentTutor) {
-        // Pass the price explicitly so even if the trigger fallback misses (e.g.
-        // the rate upsert failed), the lesson still has the right price.
-        const priceFromForm = Number(form.student_price);
-        if (priceFromForm > 0) {
-          payload.student_price = priceFromForm;
-        }
-      }
+      // Financial fields (student_price / tutor_payout / *_status) live in
+      // lesson_details, NOT on `lessons` — those columns were dropped. Sending them in
+      // the lessons insert made the whole create fail ("column does not exist"). They
+      // are written to lesson_details via detailRows right after the insert below.
       payloads.push(payload);
     }
 
@@ -739,7 +730,7 @@ export default function SchedulePage() {
       if (isIndependentTutor && students.length === 0) {
         toast.error(t("schedule.addStudentFirst"));
       } else {
-        toast.error(t('schedule.createFailed'));
+        toast.error(t('schedule.createFailed') + (error?.message ? `: ${error.message}` : ""));
       }
       return;
     }

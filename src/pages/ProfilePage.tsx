@@ -582,7 +582,7 @@ export default function ProfilePage() {
           {isIndependent && (
             <Link to="/subscription" style={{ textDecoration: "none" }}>
               <div className="rounded-[20px] cursor-pointer hover:opacity-90 transition-opacity"
-                style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1a2e)", boxShadow: "0 2px 10px -4px rgba(15,15,26,.25)", padding: "20px 18px", height: "100%" }}>
+                style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1a2e)", boxShadow: "0 2px 10px -4px rgba(15,15,26,.25)", padding: "18px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   {/* Crown icon with glow */}
                   <div style={{ width: 48, height: 48, borderRadius: 15, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
@@ -593,7 +593,7 @@ export default function ProfilePage() {
                     <p style={{ fontFamily: P.display, fontWeight: 800, fontSize: 17, color: "#fff" }}>
                       {t("profile.subscriptionTitle")}
                     </p>
-                    <p style={{ fontFamily: P.body, fontSize: 14.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
+                    <p style={{ fontFamily: P.body, fontSize: 15.5, color: "rgba(255,255,255,0.82)", marginTop: 3 }}>
                       {/* Use the live trial/pro state, NOT a raw trial_until date: a paying
                           subscriber keeps an old (expired) trial_until, which previously
                           showed them a stale "trial until <past date>" instead of "Active". */}

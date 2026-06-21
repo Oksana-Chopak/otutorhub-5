@@ -558,15 +558,18 @@ export default function FinancesPage() {
   const activeSort = (a: Row, b: Row) => (sort ? manualSort(a, b) : smartSort(a, b));
 
   const incomeRows: Row[] = useMemo(() => {
-    const lessonRows: Row[] = periodBillable
-      .filter((l) => l.student_payment_status === "paid")
+    // Income = lessons PAID within the period (by payment date), not by lesson date — a
+    // lesson dated another month but paid this month still counts as this month's income.
+    // Falls back to starts_at for legacy rows with no stamped paid date.
+    const lessonRows: Row[] = billable
+      .filter((l) => l.student_payment_status === "paid" && inPeriod((l as any).student_paid_at ?? l.starts_at))
       .map((l) => ({ type: "lesson", l }));
     const prepayRows: Row[] = canManagePrepay
       ? periodTopups.map((tx) => ({ type: "prepay", tx }))
       : [];
     return [...lessonRows, ...prepayRows].sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, periodTopups, canManagePrepay, sort]);
+  }, [billable, periodStart, periodTopups, canManagePrepay, sort]);
 
   const expensesRows: Row[] = useMemo(() => {
     if (isIndependentTutor) return [];
