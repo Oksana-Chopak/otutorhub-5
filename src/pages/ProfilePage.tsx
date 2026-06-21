@@ -41,7 +41,7 @@ function PushSettingsCard() {
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
         {t("pushNotif.cardTitle")}
       </p>
-      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "#6b7088" }}>
+      <p className="mt-0.5 mb-3 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
         {t("pushNotif.cardDesc")}
       </p>
       <PushNotificationToggle />
@@ -90,7 +90,10 @@ export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
-  const { isIndependent, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
+  const { isIndependent, isTrial, isPro, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
+  // NOTE: a hub tutor is `isTutor && !isManager && !isIndependent`. Hub tutors are PAID
+  // by the hub, so the subscription/Pro/referral/payment-rule features below are gated
+  // behind `isIndependent` — they render only for independent tutors.
 
   const tutorGroups: SectionGroup[] = isTutor
     ? [
@@ -357,7 +360,7 @@ export default function ProfilePage() {
     noBorder?: boolean;
   };
   const NavRow = ({ icon, label, val, valColor, onClick, noBorder }: NavRowProps) => (
-    <button onClick={onClick} className="flex items-center gap-3 w-full text-left transition-colors hover:bg-gray-50/70 active:bg-gray-100"
+    <button onClick={onClick} className="flex items-center gap-3 w-full text-left transition-colors hover:bg-muted/50 active:bg-muted"
       style={{ height: 52, padding: "0 16px", borderBottom: noBorder ? "none" : `1px solid ${P.border}`, background: "transparent", border: "none", cursor: "pointer" }}>
       <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
         background: "rgba(43,191,170,.1)", color: P.tealD }}>
@@ -424,7 +427,7 @@ export default function ProfilePage() {
                     <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>{t("profile.managerSub")}</p>
                   </div>
                   <button onClick={openEditProfile} aria-label={t("profile.editTitle") || "Редагувати профіль"}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted"
                     style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                     <Pencil size={14} style={{ color: P.sub }} />
                   </button>
@@ -539,14 +542,14 @@ export default function ProfilePage() {
                     {displayName}
                   </p>
                   <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>
-                    {t("profile.independentTutorSub")}
+                    {isIndependent ? t("profile.independentTutorSub") : t("profile.hubTutorSub")}
                   </p>
                 </div>
                 {/* Edit button */}
                 <button
                   onClick={openEditProfile}
                   aria-label={t("profile.editTitle") || "Редагувати профіль"}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted"
                   style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                   <Pencil size={14} style={{ color: P.sub }} />
                 </button>
@@ -582,7 +585,14 @@ export default function ProfilePage() {
                       {t("profile.subscriptionTitle")}
                     </p>
                     <p style={{ fontFamily: P.body, fontSize: 13.5, color: "rgba(255,255,255,0.55)", marginTop: 3 }}>
-                      {settings?.trial_until ? t("profile.trialUntil", { date: new Date(settings.trial_until).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" }) }) : t("profile.subscriptionActive")}
+                      {/* Use the live trial/pro state, NOT a raw trial_until date: a paying
+                          subscriber keeps an old (expired) trial_until, which previously
+                          showed them a stale "trial until <past date>" instead of "Active". */}
+                      {isTrial
+                        ? t("profile.trialUntil", { date: new Date(settings!.trial_until!).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" }) })
+                        : isPro
+                        ? t("profile.subscriptionActive")
+                        : t("profile.subscriptionFree")}
                     </p>
                   </div>
                   <ChevronRight size={18} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -592,12 +602,16 @@ export default function ProfilePage() {
           )}
 
           {/* ── Account section ────────────────────────────────────────────── */}
-          <Sec>
-            <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
-              onClick={() => { window.location.href = "/achievements"; }} />
-            <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
-              val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
-          </Sec>
+          {/* Achievements + Referrals are independent-only features (gamified Pro/
+              referral rewards). Hub tutors are paid by the hub and don't use them. */}
+          {isIndependent && (
+            <Sec>
+              <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
+                onClick={() => { window.location.href = "/achievements"; }} />
+              <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
+                val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
+            </Sec>
+          )}
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
           <Sec title={t("profile.sectionRewards") || "СТИЛЬ НАГОРОД"}>
@@ -625,10 +639,16 @@ export default function ProfilePage() {
         {/* ── Settings section (full-width) ──────────────────────────────────── */}
         <div className="mt-4">
           <Sec title={t("profile.sectionSettings") || "НАЛАШТУВАННЯ"}>
-            <NavRow icon={<ShieldAlert size={18} />} label={t("profile.rowPayRules") || "Правила оплати"}
-              val={payRuleVal} onClick={() => setActiveSheet("rules")} />
-            <NavRow icon={<CheckCircle2 size={18} />} label={t("profile.rowAutoMark") || "Відмітка уроків"}
-              val={autoMarkVal} onClick={() => setActiveSheet("automark")} />
+            {/* Payment-rules (cancellation/prepay policy) + auto-mark are independent-tutor
+                billing features. A hub tutor's billing is the hub's job, so hide them. */}
+            {isIndependent && (
+              <NavRow icon={<ShieldAlert size={18} />} label={t("profile.rowPayRules") || "Правила оплати"}
+                val={payRuleVal} onClick={() => setActiveSheet("rules")} />
+            )}
+            {isIndependent && (
+              <NavRow icon={<CheckCircle2 size={18} />} label={t("profile.rowAutoMark") || "Відмітка уроків"}
+                val={autoMarkVal} onClick={() => setActiveSheet("automark")} />
+            )}
             <NavRow icon={<BookOpen size={18} />} label={t("profile.rowSubjects") || "Предмети"}
               val={subjectsVal} onClick={() => setActiveSheet("subjects")} />
             <NavRow icon={<Calendar size={18} />} label={t("profile.rowCalendar") || "Google Calendar"}
@@ -640,12 +660,16 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Guide row ──────────────────────────────────────────────────────── */}
-        <div className="mt-4">
-          <Sec>
-            <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide") || "Гайд по налаштуванню"}
-              onClick={() => { window.location.href = "/onboarding"; }} noBorder />
-          </Sec>
-        </div>
+        {/* The setup guide (/onboarding) walks an independent tutor through their own
+            workspace setup; it's independent-only (hub tutors are onboarded by the hub). */}
+        {isIndependent && (
+          <div className="mt-4">
+            <Sec>
+              <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide") || "Гайд по налаштуванню"}
+                onClick={() => { window.location.href = "/onboarding"; }} noBorder />
+            </Sec>
+          </div>
+        )}
 
         {/* ── Sheets for settings components ─────────────────────────────────── */}
         <Sheet open={activeSheet === "rules"} onOpenChange={o => { if (!o) { setActiveSheet(null); refreshSettings(); } }}>
@@ -675,7 +699,7 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#6b7088", marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "var(--sub,#6b7088)", marginBottom: 16 }}>
                 {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
@@ -723,17 +747,17 @@ export default function ProfilePage() {
               {/* Contact details */}
               <button
                 onClick={() => setContactDialogOpen(true)}
-                className="hover:bg-gray-50"
+                className="hover:bg-muted/50"
                 style={{ marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
                   gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid #eceef3",
                   background: "#fff", cursor: "pointer" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <Mail size={18} style={{ color: "#6b7088" }} />
+                  <Mail size={18} style={{ color: "var(--sub,#6b7088)" }} />
                   <span style={{ textAlign: "left" }}>
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
                       {t("profile.editContacts") || "Контактні дані"}
                     </span>
-                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "#6b7088" }}>
+                    <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13, color: "var(--sub,#6b7088)" }}>
                       {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
                     </span>
                   </span>
@@ -751,13 +775,13 @@ export default function ProfilePage() {
                     <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "#0f0f1a" }}>
                       <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
                       {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
-                      <span style={{ color: "#6b7088", fontWeight: 600 }}>({reviews.length})</span>
+                      <span style={{ color: "var(--sub,#6b7088)", fontWeight: 600 }}>({reviews.length})</span>
                     </span>
                   )}
                 </div>
                 {reviews.length === 0 ? (
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "#6b7088", padding: "10px 0" }}>
-                    {t("profile.reviewsEmpty") || "Поки що немає відгуків. Вони з'являться, коли учні оцінять твої уроки 🌟"}
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 13.5, color: "var(--sub,#6b7088)", padding: "10px 0" }}>
+                    {t("profile.reviewsEmpty") || "Відгуки з'являться, коли учні оцінять твої уроки 🌟"}
                   </p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -822,7 +846,7 @@ export default function ProfilePage() {
                     <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
                       style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
                         background: "transparent", border: "1px solid #eceef3", cursor: "pointer",
-                        color: "#6b7088" }}>
+                        color: "var(--sub,#6b7088)" }}>
                       + {s}
                     </button>
                   ))}

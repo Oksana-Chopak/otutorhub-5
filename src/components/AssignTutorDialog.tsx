@@ -252,13 +252,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontFamily: F, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("assignTutorExtra.title")}</div>
-            <div style={{ fontSize: 15, color: "#6b7088", marginTop: 2 }}>
+            <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 2 }}>
               {t("assignTutorExtra.studentPrefix")}: <b style={{ color: "#0f0f1a" }}>{request?.studentName}</b>
               {subject ? <> · {subject}</> : null}
             </div>
           </div>
           <button type="button" aria-label={t("common.close")} onClick={() => onOpenChange(false)}
-            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#F5F4F0", color: "#6b7088", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#6b7088)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={20} strokeWidth={2.2} />
           </button>
         </div>
@@ -269,11 +269,11 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           <div>
             <Lbl>{t("assignTutorExtra.tutorLabel")}</Lbl>
             {loadingTutors ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", color: "#6b7088", fontSize: 15 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", color: "var(--sub,#6b7088)", fontSize: 15 }}>
                 <Loader2 className="h-4 w-4 animate-spin" /> {t("common.loading")}
               </div>
             ) : tutors.length === 0 ? (
-              <div style={{ fontSize: 15, color: "#6b7088", padding: "6px 0" }}>{t("assignTutorExtra.noTutors")}</div>
+              <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", padding: "6px 0" }}>{t("assignTutorExtra.noTutors")}</div>
             ) : !selected ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {tutors.map((tu) => (
@@ -283,7 +283,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tu.name}</div>
                       {tu.defaultRate != null && (
-                        <div style={{ fontSize: 15, color: "#6b7088", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: tu.defaultRate })}</div>
+                        <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: tu.defaultRate })}</div>
                       )}
                     </div>
                     {tu.defaultRate != null && (
@@ -298,7 +298,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</div>
                   {selected.defaultRate != null && (
-                    <div style={{ fontSize: 15, color: "#6b7088", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: selected.defaultRate })}</div>
+                    <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: selected.defaultRate })}</div>
                   )}
                 </div>
                 <button type="button" onClick={() => setTutorId("")}
@@ -308,6 +308,22 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               </div>
             )}
           </div>
+
+          {/* Subject fallback — the request carries no subject, so let the manager set
+              it here (otherwise handleAssign fails on the required-subject check). */}
+          {!request?.subject && (
+            <div>
+              <Lbl>{t("assignTutorExtra.subjectLabel")}</Lbl>
+              <input
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                placeholder={t("assignTutorExtra.subjectPlaceholder")}
+                style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: "1.5px solid #eceef3", outline: "none", fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a" }}
+                onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.border = "1.5px solid #2BBFAA"; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.14)"; }}
+                onBlur={(e) => { e.target.style.background = "#fbfbfc"; e.target.style.border = "1.5px solid #eceef3"; e.target.style.boxShadow = "none"; }}
+              />
+            </div>
+          )}
 
           {/* Prices */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -336,7 +352,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         {/* Footer */}
         <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: "1px solid #eceef3", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onOpenChange(false)} disabled={submitting}
-            style={{ height: 56, padding: "0 22px", borderRadius: 15, border: "1.5px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: submitting ? "default" : "pointer" }}>
+            style={{ height: 56, padding: "0 22px", borderRadius: 15, border: "1.5px solid #eceef3", background: "#fff", color: "var(--sub,#6b7088)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: submitting ? "default" : "pointer" }}>
             {t("common.cancel")}
           </button>
           <button type="button" onClick={handleAssign} disabled={!canAssign}

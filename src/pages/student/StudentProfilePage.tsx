@@ -40,6 +40,9 @@ export default function StudentProfilePage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [telegram, setTelegram] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [facebook, setFacebook] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [completed, setCompleted] = useState(0);
   const [weekly, setWeekly] = useState(0);
@@ -50,7 +53,7 @@ export default function StudentProfilePage() {
     (async () => {
       const [{ data: profile }, { data: contact }, { data: lessons }, { data: rates }] = await Promise.all([
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
-        supabase.from("profile_contacts").select("phone").eq("user_id", user.id).maybeSingle(),
+        supabase.from("profile_contacts").select("phone, telegram, instagram_url, facebook_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("starts_at, status").or(await studentLessonsOrFilter(user.id)),
         supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
@@ -58,6 +61,9 @@ export default function StudentProfilePage() {
       setLastName(profile?.last_name ?? "");
       setAvatarUrl((profile as { avatar_url?: string | null } | null)?.avatar_url ?? null);
       setPhone(contact?.phone ?? "");
+      setTelegram((contact as any)?.telegram ?? "");
+      setInstagram((contact as any)?.instagram_url ?? "");
+      setFacebook((contact as any)?.facebook_url ?? "");
       const done = (lessons ?? []).filter((l: any) => l.status === "completed");
       setCompleted(done.length);
       const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -107,7 +113,13 @@ export default function StudentProfilePage() {
       .eq("id", user.id);
     const { error: cErr } = await supabase
       .from("profile_contacts")
-      .upsert({ user_id: user.id, phone: phone.trim() || null }, { onConflict: "user_id" });
+      .upsert({
+        user_id: user.id,
+        phone: phone.trim() || null,
+        telegram: telegram.trim().replace(/^@/, "") || null,
+        instagram_url: instagram.trim() || null,
+        facebook_url: facebook.trim() || null,
+      } as any, { onConflict: "user_id" });
     setSaving(false);
     if (pErr || cErr) {
       toast.error(t("studentPages.saveFailed"), { description: (pErr || cErr)?.message });
@@ -193,6 +205,20 @@ export default function StudentProfilePage() {
               <div className="space-y-1.5">
                 <Label htmlFor="ph">{t("studentPages.phoneLabel")}</Label>
                 <Input id="ph" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11 rounded-[12px] text-[15px]" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tg">{t("contactEditExtra.telegramLabel")}</Label>
+                <Input id="tg" value={telegram} onChange={(e) => setTelegram(e.target.value)} placeholder="@username" className="h-11 rounded-[12px] text-[15px]" />
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ig">Instagram</Label>
+                  <Input id="ig" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="instagram.com/..." className="h-11 rounded-[12px] text-[15px]" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="fb">Facebook</Label>
+                  <Input id="fb" value={facebook} onChange={(e) => setFacebook(e.target.value)} placeholder="facebook.com/..." className="h-11 rounded-[12px] text-[15px]" />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>

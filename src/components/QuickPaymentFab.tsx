@@ -148,7 +148,7 @@ export function QuickPaymentFab() {
           </div>
         ) : rows.length === 0 ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
-            Немає неоплачених уроків 🎉
+            Усе оплачено! 🎉
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-border">

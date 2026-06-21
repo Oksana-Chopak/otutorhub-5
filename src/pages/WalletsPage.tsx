@@ -145,7 +145,7 @@ export default function WalletsPage() {
             <Wallet className="h-6 w-6 text-primary" />
             <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("walletsPage.title")}</h1>
           </div>
-          <p className="text-sm" style={{ color: "#6b7088" }}>
+          <p className="text-sm" style={{ color: "var(--sub,#6b7088)" }}>
             Передоплати учнів за майбутні уроки. Списання відбувається автоматично, як тільки створюється новий урок.
           </p>
         </header>
@@ -153,7 +153,7 @@ export default function WalletsPage() {
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
-              <Search size={20} style={{ color: "#6b7088", flexShrink: 0 }} />
+              <Search size={20} style={{ color: "var(--sub,#6b7088)", flexShrink: 0 }} />
               <input
                 autoFocus
                 placeholder={t("walletsPage.searchPlaceholder")}
@@ -162,13 +162,13 @@ export default function WalletsPage() {
                 style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
               />
               <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "#6b7088", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#6b7088)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={17} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("walletsPage.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "#6b7088", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "var(--sub,#6b7088)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -207,7 +207,7 @@ export default function WalletsPage() {
                     </div>
                     <div className="min-w-0">
                       <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{r.student_name}</div>
-                      <div className="text-[13px]" style={{ color: "#6b7088" }}>↔ {r.tutor_name}</div>
+                      <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>↔ {r.tutor_name}</div>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
@@ -217,7 +217,7 @@ export default function WalletsPage() {
                         {r.lessons_balance > 0 && r.amount_balance > 0 && " · "}
                         {r.amount_balance > 0 && `${r.amount_balance.toFixed(0)} ₴`}
                         {r.lessons_balance === 0 && r.amount_balance === 0 && (
-                          <span style={{ color: "#6b7088" }}>—</span>
+                          <span style={{ color: "var(--sub,#6b7088)" }}>—</span>
                         )}
                       </span>
                     </div>
@@ -228,7 +228,7 @@ export default function WalletsPage() {
                       Поповнити
                     </button>
                   </div>
-                  <div className="text-[13px]" style={{ color: "#6b7088" }}>
+                  <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                     Остання операція: {fmtDate(r.last_transaction_at)}
                   </div>
                 </div>
@@ -238,7 +238,7 @@ export default function WalletsPage() {
             {/* Desktop: table */}
             <div className="hidden md:block overflow-x-auto rounded-[16px]" style={{ border: "1px solid #eceef3" }}>
               <table className="w-full text-[15px]">
-                <thead className="text-[13px] uppercase" style={{ background: "#fbfbfc", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                <thead className="text-[13px] uppercase" style={{ background: "#fbfbfc", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                   <tr>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
@@ -252,15 +252,15 @@ export default function WalletsPage() {
                   {filtered.map((r) => (
                     <tr
                       key={`${r.tutor_id}:${r.student_id}`}
-                      style={{ borderTop: "1px solid #eceef3" }} className="hover:bg-gray-50/60"
+                      style={{ borderTop: "1px solid #eceef3" }} className="hover:bg-muted/50"
                     >
                       <td className="px-4 py-3 font-medium">{r.student_name}</td>
-                      <td className="px-4 py-3" style={{ color: "#6b7088" }}>{r.tutor_name}</td>
+                      <td className="px-4 py-3" style={{ color: "var(--sub,#6b7088)" }}>{r.tutor_name}</td>
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.lessons_balance > 0 ? (
                           <span className="font-semibold" style={{ color: "#1f8e7e" }}>{r.lessons_balance}</span>
                         ) : (
-                          <span style={{ color: "#6b7088" }}>—</span>
+                          <span style={{ color: "var(--sub,#6b7088)" }}>—</span>
                         )}
                       </td>
                       <td className="px-4 py-3 text-right tabular-nums">
@@ -269,10 +269,10 @@ export default function WalletsPage() {
                             {r.amount_balance.toFixed(0)} ₴
                           </span>
                         ) : (
-                          <span style={{ color: "#6b7088" }}>—</span>
+                          <span style={{ color: "var(--sub,#6b7088)" }}>—</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: "#6b7088" }}>
+                      <td className="px-4 py-3 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                         {fmtDate(r.last_transaction_at)}
                       </td>
                       <td className="px-4 py-3 text-right">

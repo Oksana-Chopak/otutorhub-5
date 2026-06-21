@@ -459,13 +459,13 @@ export function WalletDialog({
                       <div style={{ textAlign: "right", flexShrink: 0 }}>
                         {(tx.lessons_delta ?? 0) !== 0 && (
                           <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
-                            color: (tx.lessons_delta ?? 0) > 0 ? F.tealD : "#ef4444" }}>
+                            color: (tx.lessons_delta ?? 0) > 0 ? F.tealD : "hsl(var(--destructive))" }}>
                             {(tx.lessons_delta ?? 0) > 0 ? "+" : ""}{tx.lessons_delta} {t("walletDialog.lessonsShort")}
                           </p>
                         )}
                         {(tx.amount_delta ?? 0) !== 0 && (
                           <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
-                            color: (tx.amount_delta ?? 0) > 0 ? F.tealD : "#ef4444" }}>
+                            color: (tx.amount_delta ?? 0) > 0 ? F.tealD : "hsl(var(--destructive))" }}>
                             {(tx.amount_delta ?? 0) > 0 ? "+" : ""}{tx.amount_delta}₴
                           </p>
                         )}

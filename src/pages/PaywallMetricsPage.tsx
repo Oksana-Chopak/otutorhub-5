@@ -29,7 +29,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { BarChart3, Loader2, MousePointerClick, Users, TrendingUp } from "lucide-react";
+import { BarChart3, MousePointerClick, Users, TrendingUp } from "lucide-react";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -194,8 +194,16 @@ export default function PaywallMetricsPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="flex h-[300px] items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="space-y-3 py-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-4 w-28 shrink-0 animate-pulse rounded-md bg-muted" />
+                    <div
+                      className="h-7 animate-pulse rounded-[6px] bg-muted"
+                      style={{ width: `${85 - i * 14}%` }}
+                    />
+                  </div>
+                ))}
               </div>
             ) : featureStats.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">
@@ -385,7 +393,7 @@ export default function PaywallMetricsPage() {
                         <TableCell className="text-sm">
                           {FEATURE_LABELS[e.feature_key] ?? e.feature_key}
                         </TableCell>
-                        <TableCell className="text-[13px]" style={{ color: "#6b7088" }}>{e.source}</TableCell>
+                        <TableCell className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{e.source}</TableCell>
                         <TableCell>
                           <Badge
                             variant={

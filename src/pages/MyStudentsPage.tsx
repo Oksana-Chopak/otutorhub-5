@@ -176,11 +176,15 @@ export default function MyStudentsPage() {
     | null
   >(null);
 
-  // Роут уже захищений ProtectedRoute allowedRoles={["tutor"]} в App.tsx.
-  // Раніше тут було додаткове викидання на /onboarding при !isIndependent, але
-  // воно спрацьовувало через timing useWorkspaceSettings (поки isIndependent ще
-  // не догрузилось) і відкидало незалежного репетитора назад — через що клік по
-  // бульбашці «Учні» виглядав як «нічого не відбувається». Прибрано.
+  // Роут захищений ProtectedRoute allowedRoles={["tutor"]} в App.tsx, але це впускає
+  // і HUB-репетиторів. MyStudents — суто незалежна сторінка (створює записи з
+  // source='independent', які менеджер не бачить), тож хаб-репетитора відправляємо на
+  // дашборд. ВАЖЛИВО: чекаємо, поки wsLoading завершиться — інакше редірект спрацює на
+  // ще-не-завантаженому isIndependent і відкине незалежного репетитора (минулий баг).
+  useEffect(() => {
+    if (wsLoading) return;
+    if (!isIndependent) navigate("/", { replace: true });
+  }, [wsLoading, isIndependent, navigate]);
 
   const load = async () => {
     if (!user) return;
@@ -837,9 +841,12 @@ export default function MyStudentsPage() {
                         <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 16, color: "#B4740B" }}>{t("myStudents.debtLabel", { amount: formatPrice(s.unpaid_total, s.currency) })}</div>
                         <div style={{ fontFamily: T.body, fontSize: 14, color: "#9a7a34", marginTop: 2 }}>{t("myStudents.unpaidLessonsCount", { count: s.unpaid_count })}</div>
                       </div>
+                      {/* This opens the WalletDialog (record a payment / manage prepay
+                          balance), so the label must say that — it previously read
+                          "Remind", which did NOT match the action (dead-label bug). */}
                       <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
                         style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 14.5, cursor: "pointer", flexShrink: 0 }}>
-                        {t("myStudents.remindBtn")}
+                        {t("myStudents.recordPaymentBtn")}
                       </button>
                     </div>
                   )}

@@ -150,10 +150,15 @@ export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
   const { roles } = useAuth();
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isIndependentTutor = isTutor && !isManager && isIndependent;
+  // A HUB tutor is PAID a payout by the hub. They must NEVER see student_price, the
+  // hub margin (student_price − tutor_payout), student→hub debt, the profit/margin
+  // analytics, or mark student payments. They get a dedicated payout-only view below;
+  // the leaking manager-style render is reserved for managers.
+  const isHubTutor = isTutor && !isManager && !isIndependent;
   const canManagePrepay = isManager || isIndependentTutor;
   const [studentFilter, setStudentFilter] = useState("all");
 
@@ -878,41 +883,67 @@ export default function FinancesPage() {
   };
 
   const exportCsv = (opts?: { tutorId?: string; kind?: "all" | "paid" | "unpaid" }) => {
+    // The CSV must match what each role is allowed to see on screen:
+    //  - independent tutor: student-billing only, NO payout/profit (no hub margin exists);
+    //  - hub tutor: their PAYOUT only, NO student_price / student-payment / profit (margin);
+    //  - manager: everything.
     const header = [
       t("finances.csvDate"),
       t("finances.csvSubject"),
       t("finances.csvStudent"),
-      t("finances.csvStudentPrice"),
-      t("finances.csvStudentPayStatus"),
-      t("finances.csvStudentPaidAt"),
-      t("finances.csvTutor"),
-      t("finances.csvPayout"),
-      t("finances.csvPayoutStatus"),
-      t("finances.csvPayoutAt"),
-      t("finances.csvProfit"),
+      ...(!isHubTutor
+        ? [
+            t("finances.csvStudentPrice"),
+            t("finances.csvStudentPayStatus"),
+            t("finances.csvStudentPaidAt"),
+          ]
+        : []),
+      ...(!isIndependentTutor
+        ? [
+            t("finances.csvTutor"),
+            t("finances.csvPayout"),
+            t("finances.csvPayoutStatus"),
+            t("finances.csvPayoutAt"),
+          ]
+        : []),
+      ...(!isIndependentTutor && !isHubTutor ? [t("finances.csvProfit")] : []),
     ];
     // Export the selected period (every tab), optionally narrowed by the export
     // dialog (tutor + paid/unpaid). Was the active-tab subset, which dropped rows.
     const tId = opts?.tutorId && opts.tutorId !== "all" ? opts.tutorId : null;
     const kind = opts?.kind ?? "all";
+    // For a hub tutor the paid/unpaid filter follows THEIR payout status, not the
+    // student's (whose status they can't see).
+    const kindStatusOf = (l: LessonRow) =>
+      isHubTutor ? l.tutor_payout_status : l.student_payment_status;
     const source = periodBillable.filter((l) => {
       if (tId && l.tutor_id !== tId) return false;
-      if (kind === "paid" && l.student_payment_status !== "paid") return false;
-      if (kind === "unpaid" && l.student_payment_status !== "unpaid") return false;
+      if (kind === "paid" && kindStatusOf(l) !== "paid") return false;
+      if (kind === "unpaid" && kindStatusOf(l) !== "unpaid") return false;
       return true;
     });
     const rows = source.map((l) => [
       formatDate(l.starts_at),
       l.subject,
       nameOf(l.student_id),
-      String(l.student_price),
-      l.student_payment_status === "paid" ? t("finances.csvPaid") : t("finances.csvPending"),
-      l.student_paid_at ? formatDate(l.student_paid_at) : "",
-      nameOf(l.tutor_id),
-      String(l.tutor_payout),
-      l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
-      l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
-      String(Number(l.student_price) - Number(l.tutor_payout)),
+      ...(!isHubTutor
+        ? [
+            String(l.student_price),
+            l.student_payment_status === "paid" ? t("finances.csvPaid") : t("finances.csvPending"),
+            l.student_paid_at ? formatDate(l.student_paid_at) : "",
+          ]
+        : []),
+      ...(!isIndependentTutor
+        ? [
+            nameOf(l.tutor_id),
+            String(l.tutor_payout),
+            l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
+            l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
+          ]
+        : []),
+      ...(!isIndependentTutor && !isHubTutor
+        ? [String(Number(l.student_price) - Number(l.tutor_payout))]
+        : []),
     ]);
     const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
     const csv = [header, ...rows].map((r) => r.map(escape).join(",")).join("\n");
@@ -1031,7 +1062,7 @@ export default function FinancesPage() {
                       <span className="truncate">{l.subject}</span>
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                     </p>
-                    <p className="text-[13px]" style={{ color: "#6b7088", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && !isGroup && (
                     <div
@@ -1432,6 +1463,224 @@ export default function FinancesPage() {
 
 
 
+  // While independence is still loading, a hub tutor would momentarily read as
+  // !isIndependent and could flash the leaking manager view — show a skeleton until
+  // we know the role for sure. (Managers resolve wsLoading instantly: not a tutor.)
+  if (isTutor && wsLoading) {
+    return (
+      <AppLayout>
+        <FinancesSkeleton />
+      </AppLayout>
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // HUB TUTOR: payout-only view. NEVER shows student_price, hub margin, student→hub
+  // debt, profit/margin analytics, or a student-payment toggle — a hub tutor is PAID
+  // by the hub. "Received" = Σ paid tutor_payout, "Pending" = Σ unpaid tutor_payout.
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (isHubTutor) {
+    const H = {
+      teal: "#2BBFAA", tealD: "#25a896",
+      warn: "#f59e0b", warnD: "#b4740b", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
+      border: "#eceef3", surface: "#fff",
+      txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+      display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+    };
+    // Their own lessons, individual only (group lessons carry no tutor payout), newest
+    // first. Read ONLY payout fields — student_price is never referenced here.
+    const payoutLessons = [...periodBillable]
+      .filter((l) => l.kind !== "group")
+      .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());
+    const paidCount = payoutLessons.filter((l) => l.tutor_payout_status === "paid").length;
+    const pendingCount = payoutLessons.filter((l) => l.tutor_payout_status === "unpaid").length;
+
+    const pill = (p: Period) => (
+      <button key={p} onClick={() => setPeriod(p)}
+        role="radio" aria-checked={period === p}
+        aria-label={p === "week" ? t("finances.periodWeekShort") : p === "month" ? t("finances.periodMonthShort") : t("finances.periodAllShort")}
+        style={{
+          height: 34, padding: "0 16px", borderRadius: 999, border: "none", cursor: "pointer",
+          fontFamily: H.display, fontWeight: 700, fontSize: 14,
+          background: period === p ? H.teal : "#F5F4F0",
+          color: period === p ? "#0f0f1a" : H.sub,
+          boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
+          transition: "all .15s",
+        }}>
+        {p === "week" ? t("finances.periodWeekShort") : p === "month" ? t("finances.periodMonthShort") : t("finances.periodAllShort")}
+      </button>
+    );
+
+    return (
+      <AppLayout>
+        <div className="mb-4">
+          <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
+          <p className="text-[13px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
+        </div>
+
+        {/* Period pills */}
+        <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          {(["week", "month", "all"] as Period[]).map(pill)}
+        </div>
+
+        <div className="flex flex-col lg:flex-row gap-5">
+          <div className="flex-1 min-w-0 flex flex-col gap-4">
+            {/* Stat cards: Received (dark) + Pending */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div style={{ gridColumn: "1/-1", borderRadius: 20, padding: "18px 20px",
+                background: "linear-gradient(135deg,#0f0f1a,#1a1a2e)", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: -20, right: -20, width: 100, height: 100,
+                  borderRadius: "50%", background: "radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
+                <p style={{ fontFamily: H.display, fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.5)",
+                  textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 8 }}>
+                  💰 {t("finances.payoutReceived")}
+                </p>
+                <p style={{ fontFamily: H.display, fontWeight: 900, fontSize: 38, color: H.teal, letterSpacing: "-0.025em", lineHeight: 1 }}>
+                  {totalExpense.toLocaleString(getLocale())} ₴
+                </p>
+                {pendingExpense > 0 && (
+                  <p style={{ fontFamily: H.body, fontSize: 13, color: "rgba(255,255,255,.45)", marginTop: 6 }}>
+                    + {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
+                  </p>
+                )}
+              </div>
+
+              <div style={{ gridColumn: "1/-1", borderRadius: 16, padding: "14px 16px",
+                background: H.warnBg, border: `1px solid ${H.warnBorder}` }}>
+                <p style={{ fontFamily: H.display, fontSize: 13, fontWeight: 700, color: H.warnD,
+                  textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: 6 }}>
+                  ⏳ {t("finances.payoutPendingLabel")}
+                </p>
+                <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 22, color: H.warnD }}>
+                  {pendingExpense.toLocaleString(getLocale())} ₴
+                </p>
+                <p style={{ fontFamily: H.body, fontSize: 13, color: H.warnD, opacity: 0.7, marginTop: 2 }}>
+                  {t("finances.lessonsCount", { count: pendingCount })}
+                </p>
+              </div>
+            </div>
+
+            {/* Payout list (read-only — the hub marks payouts, not the tutor) */}
+            <div style={{ borderRadius: 18, background: H.surface, border: `1px solid ${H.border}`,
+              overflow: "hidden", boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+              <div style={{ padding: "14px 16px", borderBottom: `1px solid ${H.border}` }}>
+                <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 16, color: H.txt }}>
+                  {t("finances.payoutHistoryTitle")}
+                </p>
+                <p style={{ fontFamily: H.body, fontSize: 13, color: H.sub, marginTop: 2 }}>
+                  {t("finances.payoutHistorySubtitle")}
+                </p>
+              </div>
+              <div style={{ padding: "12px 16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {payoutLessons.length === 0 ? (
+                  <p style={{ textAlign: "center", padding: "20px 0", color: H.muted, fontFamily: H.body, fontSize: 14 }}>
+                    {t("finances.noData")}
+                  </p>
+                ) : (
+                  payoutLessons.slice(0, 60).map((l) => {
+                    const paid = l.tutor_payout_status === "paid";
+                    return (
+                      <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 12,
+                        padding: "10px 12px", borderRadius: 14,
+                        background: paid ? "rgba(34,197,94,.05)" : H.warnBg,
+                        border: `1px solid ${paid ? "rgba(34,197,94,.15)" : H.warnBorder}` }}>
+                        <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                          background: paid ? "rgba(34,197,94,.1)" : H.warnBg,
+                          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>
+                          {paid ? "✓" : "⏳"}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 14, color: H.txt,
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {l.subject}
+                          </p>
+                          <p style={{ fontFamily: H.body, fontSize: 13, color: H.sub }}>
+                            {new Date(l.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })} · {nameOf(l.student_id)}
+                          </p>
+                        </div>
+                        <div style={{ textAlign: "right", flexShrink: 0 }}>
+                          <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 15, color: paid ? "#16a34a" : H.warnD }}>
+                            {l.tutor_payout.toLocaleString(getLocale())} ₴
+                          </p>
+                          <span style={{ fontFamily: H.display, fontWeight: 700, fontSize: 13,
+                            color: paid ? "#16a34a" : H.warnD }}>
+                            {paid ? t("finances.payoutPaidChip") : t("finances.payoutPendingChip")}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Export — payout-only CSV (no student price / margin) */}
+            <button onClick={() => setExportOpen(true)}
+              style={{ height: 46, borderRadius: 14, border: `1px solid ${H.border}`, background: H.surface, cursor: "pointer",
+                fontFamily: H.display, fontWeight: 700, fontSize: 14, color: H.sub,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <Download className="h-4 w-4" /> {t("finances.downloadCsv")}
+            </button>
+          </div>
+
+          {/* RIGHT sidebar — desktop only */}
+          <div className="hidden lg:flex flex-col gap-4" style={{ width: 300, flexShrink: 0 }}>
+            {pendingExpense > 0 && (
+              <div style={{ borderRadius: 18, padding: "16px 18px", background: H.warnBg, border: `1px solid ${H.warnBorder}` }}>
+                <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: H.warnD, marginBottom: 4 }}>
+                  ⏳ {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
+                </p>
+                <p style={{ fontFamily: H.body, fontSize: 13, color: H.warnD, opacity: 0.8 }}>
+                  {t("finances.lessonsCount", { count: pendingCount })}
+                </p>
+              </div>
+            )}
+            <div style={{ borderRadius: 18, padding: "16px 18px", background: "rgba(34,197,94,.06)", border: "1px solid rgba(34,197,94,.2)" }}>
+              <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "#16a34a", marginBottom: 4 }}>
+                ✓ {t("finances.payoutReceived")}: {totalExpense.toLocaleString(getLocale())} ₴
+              </p>
+              <p style={{ fontFamily: H.body, fontSize: 13, color: "#15803d", opacity: 0.85 }}>
+                {t("finances.lessonsCount", { count: paidCount })}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* CSV export options (reuses the shared dialog; exportCsv emits payout-only
+            columns for a hub tutor). */}
+        <Dialog open={exportOpen} onOpenChange={setExportOpen}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>{t("finances.exportTitle")}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                    <button key={val} type="button" onClick={() => setExportKind(val)}
+                      className={cn(
+                        "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
+                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                      )}>
+                      {t(`finances.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button type="button"
+                onClick={() => { exportCsv({ kind: exportKind }); setExportOpen(false); }}
+                className="flex h-11 w-full items-center justify-center gap-2 rounded-[12px] text-[15px] font-semibold text-white"
+                style={{ background: "var(--teal,#2BBFAA)" }}>
+                <Download className="h-4 w-4" /> {t("finances.exportDownload")}
+              </button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </AppLayout>
+    );
+  }
+
   // ─────────────────────────────────────────────────────────────────────────────
   // INDEPENDENT TUTOR: Cockpit (Variant Б)
   // ─────────────────────────────────────────────────────────────────────────────
@@ -1446,6 +1695,8 @@ export default function FinancesPage() {
 
     const pill = (p: Period) => (
       <button key={p} onClick={() => setPeriod(p)}
+        role="radio" aria-checked={period === p}
+        aria-label={p==="week"?t("finances.periodWeekShort"):p==="month"?t("finances.periodMonthShort"):t("finances.periodAllShort")}
         style={{
           height:34, padding:"0 16px", borderRadius:999, border:"none", cursor:"pointer",
           fontFamily:F.display, fontWeight:700, fontSize:14,
@@ -1480,7 +1731,7 @@ export default function FinancesPage() {
     return (
       <AppLayout>
         {/* Period pills */}
-        <div style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
+        <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
           {(["week","month","all"] as Period[]).map(pill)}
         </div>
 
@@ -1898,7 +2149,7 @@ export default function FinancesPage() {
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder={t("finances.allTutors")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1914,7 +2165,7 @@ export default function FinancesPage() {
           {isIndependentTutor && studentOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={studentFilter} onValueChange={setStudentFilter}>
-                <SelectTrigger className="h-9">
+                <SelectTrigger className="h-11">
                   <SelectValue placeholder={t("finances.allStudents")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1938,11 +2189,18 @@ export default function FinancesPage() {
             <div className="rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <span className="text-[13px] font-medium text-muted-foreground">{periodLabel}</span>
-                <div className="flex gap-1.5">
+                <div role="radiogroup" aria-label={t("finances.periodFilterAria")} className="flex gap-1.5">
                   {(["week", "month", "all"] as Period[]).map((p) => (
                     <button
                       key={p}
                       type="button"
+                      role="radio"
+                      aria-checked={period === p}
+                      aria-label={p === "week"
+                        ? t("finances.periodWeekShort")
+                        : p === "month"
+                        ? t("finances.periodMonthShort")
+                        : t("finances.periodAllShort")}
                       onClick={() => setPeriod(p)}
                       style={{
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
@@ -2056,7 +2314,7 @@ export default function FinancesPage() {
             <div className="flex-1" />
             <button
               onClick={() => setExportOpen(true)}
-              className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-gray-100"
+              className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-colors hover:bg-muted"
               style={{ color: "var(--sub,#6b7088)", border: "1px solid var(--border,#eceef3)" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />

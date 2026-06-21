@@ -31,7 +31,7 @@ export function StreakCard({ streak, className }: Props) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="text-[13px] uppercase tracking-wide" style={{ color: "#6b7088" }}>{t("streak.title")}</div>
+            <div className="text-[13px] uppercase tracking-wide" style={{ color: "var(--sub,#6b7088)" }}>{t("streak.title")}</div>
             {/* Streak freeze indicator (Duolingo-style) */}
             <div
               className={cn(
@@ -46,7 +46,7 @@ export function StreakCard({ streak, className }: Props) {
                   : t("streak.freezeNextMonth")
               }
             >
-              <Snowflake className="h-3 w-3" style={freezes > 0 ? undefined : { color: "#6b7088" }} />
+              <Snowflake className="h-3 w-3" style={freezes > 0 ? undefined : { color: "var(--sub,#6b7088)" }} />
               {freezes} {freezes === 1 ? t("streak.freezeOne") : t("streak.freezeMany")}
             </div>
           </div>
@@ -54,7 +54,7 @@ export function StreakCard({ streak, className }: Props) {
             {current === 0 ? t("streak.startToday") : t("streak.daysStreak", { count: current })}
           </div>
           {longest > current && (
-            <div className="text-[13px]" style={{ color: "#6b7088" }}>{t("streak.record", { longest })}</div>
+            <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("streak.record", { longest })}</div>
           )}
         </div>
       </div>
@@ -65,7 +65,7 @@ export function StreakCard({ streak, className }: Props) {
         </p>
       )}
       {!usedFreeze && freezes === 0 && current > 0 && (
-        <p className="mt-3 rounded-[10px] p-2 text-[13px]" style={{ background: "#fbfbfc", color: "#6b7088", border: "1px solid #eceef3" }}>
+        <p className="mt-3 rounded-[10px] p-2 text-[13px]" style={{ background: "#fbfbfc", color: "var(--sub,#6b7088)", border: "1px solid #eceef3" }}>
           {t("streak.noFreeze")}
         </p>
       )}

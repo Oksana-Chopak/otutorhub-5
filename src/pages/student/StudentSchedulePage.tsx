@@ -63,7 +63,14 @@ export default function StudentSchedulePage() {
     })();
   }, [user?.id]);
 
-  const now = Date.now();
+  // Tick every 30s so the time-aware "live" join window flips on/off without a manual
+  // refresh (it was frozen at first render, so the glowing «Приєднатися зараз» never
+  // appeared on time).
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
   const upcoming = lessons.filter((l) => new Date(l.starts_at).getTime() >= now);
   const past = lessons.filter((l) => new Date(l.starts_at).getTime() < now);
 
@@ -86,6 +93,10 @@ export default function StudentSchedulePage() {
           const joinStatus = live
             ? (now >= startMs ? t("studentPages.lessonLive") : t("studentPages.startsInMin", { min: Math.max(1, minsTo) }))
             : null;
+          // A malformed meeting_url (no http/https scheme) → safeHref() = "#", a dead
+          // button. Treat it as NO link so we show the honest "coming soon" fallback.
+          const joinHref = safeHref(l.meeting_url);
+          const hasJoinLink = joinHref !== "#" && l.status === "scheduled";
           return (
             <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
@@ -109,7 +120,7 @@ export default function StudentSchedulePage() {
                         {joinStatus ?? statusLabel[l.status]}
                       </span>
                     </div>
-                    <p style={{ fontSize: 13, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <p style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                     </p>
                   </div>
@@ -118,8 +129,8 @@ export default function StudentSchedulePage() {
                     <MessageCircle size={18} />
                   </Link>
                 </div>
-                {l.meeting_url && l.status === "scheduled" ? (
-                  <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer"
+                {hasJoinLink ? (
+                  <a href={joinHref} target="_blank" rel="noreferrer"
                     aria-label={live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -131,7 +142,7 @@ export default function StudentSchedulePage() {
                     }}>
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
-                ) : (!l.meeting_url && l.status === "scheduled" && isToday) ? (
+                ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "#9398b0", fontSize: 13, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>

@@ -174,7 +174,7 @@ export default function MarketingPage() {
                   placeholder={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
                   maxLength={100000}
                 />
-                <p className="text-[13px]" style={{ color: "#6b7088" }}>
+                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                   Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
                 </p>
                 <p className="text-[13px] mt-1">
@@ -233,7 +233,7 @@ export default function MarketingPage() {
                           {isOpen ? <ChevronDown className="h-4 w-4 mt-0.5 shrink-0" /> : <ChevronRight className="h-4 w-4 mt-0.5 shrink-0" />}
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
-                            <div className="text-[13px]" style={{ color: "#6b7088" }}>
+                            <div className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                               {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
                             </div>
                           </div>
@@ -265,11 +265,11 @@ export default function MarketingPage() {
                             </div>
                             {errs.length === 0 ? (
                               c.recipients_failed > 0 ? (
-                                <p className="text-[13px]" style={{ color: "#6b7088" }}>
+                                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                                   Деталі помилок не збережені для цієї розсилки (старі дані). Нові розсилки будуть писати деталі сюди.
                                 </p>
                               ) : (
-                                <p className="text-[13px]" style={{ color: "#6b7088" }}>Усі листи доставлено.</p>
+                                <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>Усі листи доставлено.</p>
                               )
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">

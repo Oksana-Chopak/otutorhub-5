@@ -15,6 +15,7 @@ import { createGroupLesson } from "@/lib/groupLessons";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { toast } from "sonner";
 import {
   Loader2, Plus, Trash2, Users2, Check, ChevronRight, X, Search, CalendarClock,
@@ -187,7 +188,7 @@ export default function GroupsPage() {
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
                     {g.subject && (
-                      <p style={{ fontSize: 13.5, color: "#6b7088", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
+                      <p style={{ fontSize: 13.5, color: "var(--sub,#6b7088)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
                     )}
                   </div>
                 </div>
@@ -700,6 +701,10 @@ function GroupDetailsDialog({
 }) {
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
+  // Independence decides group-lesson source: ONLY a truly independent tutor's group
+  // lesson is "independent". A HUB tutor (not manager, not independent) must stamp "hub"
+  // so the lesson stays visible to the manager — `isManager` alone missed that case.
+  const { isIndependent } = useWorkspaceSettings();
   const [group, setGroup] = useState<Group | null>(null);
   const [tutorName, setTutorName] = useState<string>("");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -732,8 +737,9 @@ function GroupDetailsDialog({
   };
 
   // Schedule a group lesson straight from the group (works for every role: the
-  // lesson's tutor = the group's tutor; source = hub when a manager schedules it,
-  // else independent). Snapshots each student's price + notifies them via the helper.
+  // lesson's tutor = the group's tutor; source = "independent" ONLY for an independent
+  // tutor, otherwise "hub" — so a hub tutor's lesson stays visible to the manager).
+  // Snapshots each student's price + notifies them via the helper.
   const defaultStart = (() => {
     const d = new Date(Date.now() + 60 * 60 * 1000);
     d.setMinutes(0, 0, 0);
@@ -761,7 +767,9 @@ function GroupDetailsDialog({
       subject: group.subject || t("shared.lesson"),
       startsAt: new Date(schedStart).toISOString(),
       durationMinutes: parseInt(schedDuration, 10) || 60,
-      source: isManager ? "hub" : "independent",
+      // Only an independent tutor's group lesson is "independent". Hub tutors AND
+      // managers stamp "hub" so the manager keeps seeing the lesson.
+      source: isIndependent ? "independent" : "hub",
       createdBy: user.id,
     });
     setScheduling(false);

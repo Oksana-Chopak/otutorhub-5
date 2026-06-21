@@ -67,7 +67,7 @@ const allNavItems: NavItem[] = [
   // Tutor
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["tutor"] },
   { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["tutor"], badgeKey: "availability" },
-  { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"] },
+  { to: "/my-students", labelKey: "nav.myStudents", icon: GraduationCap, roles: ["tutor"], independentOnly: true },
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["tutor"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["tutor"] },
@@ -114,8 +114,10 @@ export function AppSidebar() {
   const { theme, toggleTheme } = useTheme();
   const { isIndependent, settings } = useWorkspaceSettings();
   const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
-  // Always show onboarding entry for tutors so they can revisit the setup guide at any time.
-  const showOnboardingHelp = isTutorRole;
+  // The setup guide (/onboarding) is INDEPENDENT-only (it sets up your own workspace) and
+  // OnboardingFlowB now redirects hub tutors away — so only show the entry to independent
+  // tutors, otherwise a hub tutor taps it and bounces straight back to the dashboard.
+  const showOnboardingHelp = isTutorRole && isIndependent;
 
   const navItems = allNavItems.filter((item) => {
     if (!item.roles.some((r) => roles.includes(r))) return false;

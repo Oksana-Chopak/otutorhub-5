@@ -3,7 +3,7 @@ import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox } from "lucide-react";
+import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox } from "lucide-react";
 
 type Category = "bug" | "idea" | "question" | "other";
 type Status = "new" | "in_progress" | "resolved";
@@ -82,7 +82,7 @@ export default function FeedbackInboxPage() {
           <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
             {t("feedbackInbox.title")}
           </h1>
-          <p className="mt-1 text-[14px]" style={{ color: "#6b7088" }}>{t("feedbackInbox.subtitle")}</p>
+          <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("feedbackInbox.subtitle")}</p>
         </div>
 
         {/* Фільтри статусу */}
@@ -118,11 +118,24 @@ export default function FeedbackInboxPage() {
             </p>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 15 }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="h-[38px] w-[38px] shrink-0 animate-pulse rounded-[11px] bg-muted" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 w-32 animate-pulse rounded-md bg-muted" />
+                    <div className="h-3 w-24 animate-pulse rounded-md bg-muted" />
+                  </div>
+                </div>
+                <div className="mt-3 h-3.5 w-3/4 animate-pulse rounded-md bg-muted" />
+              </div>
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: "center", padding: "44px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff" }}>
-            <Inbox className="mx-auto h-8 w-8" style={{ color: "#6b7088" }} />
-            <p className="mt-2 text-[14px]" style={{ color: "#6b7088" }}>{t("feedbackInbox.empty")}</p>
+            <Inbox className="mx-auto h-8 w-8" style={{ color: "var(--sub,#6b7088)" }} />
+            <p className="mt-2 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("feedbackInbox.empty")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -141,7 +154,7 @@ export default function FeedbackInboxPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
                           {r.user_id ? (names[r.user_id] ?? "…") : t("feedbackInbox.anonymous")}
                         </p>
-                        <p className="text-[13px]" style={{ color: "#6b7088" }}>
+                        <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                           <span style={{ color: cat.color, fontWeight: 700 }}>{t(`feedbackInbox.category_${r.category}`)}</span>
                           {" · "}{new Date(r.created_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" })}
                           {r.rating ? ` · ${"★".repeat(r.rating)}` : ""}
@@ -157,7 +170,7 @@ export default function FeedbackInboxPage() {
                     {r.message}
                   </p>
                   {r.page_url && (
-                    <p className="mt-1.5 text-[13px]" style={{ color: "#6b7088" }}>{r.page_url}</p>
+                    <p className="mt-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{r.page_url}</p>
                   )}
 
                   {!resolved && (
@@ -176,7 +189,7 @@ export default function FeedbackInboxPage() {
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
-                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
+                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 13 }}>
                       {t("feedbackInbox.reopen")}
                     </button>
                   )}

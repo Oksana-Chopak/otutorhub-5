@@ -131,7 +131,7 @@ function SegSwitch<T extends string>({
           style={
             value === o.value
               ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
-              : { color: "#6b7088", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
+              : { color: "var(--sub,#6b7088)", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
           }
         >
           {o.icon}

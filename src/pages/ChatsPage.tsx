@@ -873,7 +873,7 @@ export default function ChatsPage() {
               <div className="relative">
                 <Search
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
-                  style={{ color: "#6b7088" }}
+                  style={{ color: "var(--sub,#6b7088)" }}
                 />
                 <input
                   value={search}
@@ -918,12 +918,12 @@ export default function ChatsPage() {
                     {search ? t("chats.noResults") : t("chats.noChats")}
                   </p>
                   {!search && !isManager && (
-                    <p className="text-[13px]" style={{ color: "#6b7088" }}>
+                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("chats.searchHint")}
                     </p>
                   )}
                   {!search && isManager && (
-                    <p className="text-[13px]" style={{ color: "#6b7088" }}>
+                    <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("chats.managerStartHint")}
                     </p>
                   )}
@@ -963,7 +963,7 @@ export default function ChatsPage() {
                             >
                               {tName}
                             </p>
-                            <span className="text-[13px] flex-shrink-0" style={{ color: "#6b7088" }}>
+                            <span className="text-[13px] flex-shrink-0" style={{ color: "var(--sub,#6b7088)" }}>
                               {timeShort(thread.last_message_at)}
                             </span>
                           </div>
@@ -1042,7 +1042,7 @@ export default function ChatsPage() {
                   style={{ background: "#fff", borderBottom: "1px solid var(--border,#eceef3)" }}
                 >
                   <button
-                    className="lg:hidden w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100"
+                    className="lg:hidden h-11 w-11 -ml-1.5 rounded-full flex items-center justify-center hover:bg-muted"
                     onClick={() => setSelectedId(null)}
                     aria-label={t("chats.backToList")}
                   >
@@ -1082,7 +1082,7 @@ export default function ChatsPage() {
                         {t("chats.centerThreadSubtitle", { name: fullName(profiles[selectedThread.tutor_id]) })}
                       </p>
                     ) : (
-                      <p className="text-[13px]" style={{ color: "#22c55e" }}>
+                      <p className="text-[13px] font-semibold" style={{ color: "hsl(var(--success))" }}>
                         {t("chats.online")}
                       </p>
                     )}
@@ -1091,7 +1091,7 @@ export default function ChatsPage() {
                   <div className="flex items-center gap-1 flex-shrink-0">
                     {canShowContext && (
                       <button
-                        className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 lg:hidden"
+                        className="h-11 w-11 rounded-full flex items-center justify-center hover:bg-muted lg:hidden"
                         onClick={() => setShowContextPanel(true)}
                         aria-label={t("chatContext.openBtn")}
                       >
@@ -1304,7 +1304,7 @@ export default function ChatsPage() {
                             ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString(getLocale()) })
                             : t("chats.smartCreateFirstLesson")}
                         </p>
-                        <p className="text-[13px] truncate" style={{ color: "#6b7088" }}>
+                        <p className="text-[13px] truncate" style={{ color: "var(--sub,#6b7088)" }}>
                           {selectedThread.ctx.kind === "debt"
                             ? t("chats.smartLessonsAwaitingPayment", { count: selectedThread.ctx.count ?? 0 })
                             : t("chats.smartNoLessonsYet", { name: counterpartName(selectedThread) })}
@@ -1346,12 +1346,12 @@ export default function ChatsPage() {
                   >
                     <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
                     <span className="flex-1 truncate" style={{ color: "var(--txt,#0f0f1a)" }}>{pendingFile.name}</span>
-                    <span style={{ color: "#6b7088" }}>{formatBytes(pendingFile.size)}</span>
+                    <span style={{ color: "var(--sub,#6b7088)" }}>{formatBytes(pendingFile.size)}</span>
                     <button
                       type="button"
                       onClick={() => { setPendingFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
                       className="rounded p-1 hover:text-destructive"
-                      style={{ color: "#6b7088" }}
+                      style={{ color: "var(--sub,#6b7088)" }}
                       aria-label={t("chats.removeFile")}
                     >
                       <X className="h-3.5 w-3.5" />
@@ -1388,7 +1388,7 @@ export default function ChatsPage() {
                     disabled={sending}
                     title={t("chats.attach")}
                     aria-label={t("chats.attach")}
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-gray-100 flex-shrink-0"
+                    className="w-11 h-11 rounded-full flex items-center justify-center transition-colors hover:bg-muted flex-shrink-0"
                     style={{ color: "var(--sub,#6b7088)" }}
                   >
                     <Paperclip className="h-4 w-4" />
@@ -1462,7 +1462,7 @@ export default function ChatsPage() {
               ) : (
                 <div
                   className="flex flex-1 flex-col items-center justify-center p-6 text-center text-[13px]"
-                  style={{ color: "#6b7088" }}
+                  style={{ color: "var(--sub,#6b7088)" }}
                 >
                   <MessageSquare className="h-8 w-8 mb-3 opacity-30" />
                   <p>{t("chats.selectChatForContextLine1")}<br />{t("chats.selectChatForContextLine2")}</p>

@@ -241,12 +241,12 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               {t("contactEditExtra.titleFormat", { name: userName })}
             </div>
-            <div style={{ fontSize: 13, color: "#6b7088", marginTop: 2, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 13, color: "var(--sub,#6b7088)", marginTop: 2, lineHeight: 1.4 }}>
               {t("contactEdit.visibilityHint")}
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>

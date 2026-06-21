@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
-import { ShieldCheck, Loader2, Trash2, RefreshCw, ChevronDown } from "lucide-react";
+import { ShieldCheck, Trash2, RefreshCw, ChevronDown } from "lucide-react";
 import { getLocale } from "@/lib/locale";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
@@ -81,8 +81,13 @@ export default function ErrorLogPage() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-[16px] border border-border bg-white p-3.5">
+              <div className="h-4 w-3/4 animate-pulse rounded-md bg-muted" />
+              <div className="mt-2 h-3 w-40 animate-pulse rounded-md bg-muted" />
+            </div>
+          ))}
         </div>
       ) : rows.length === 0 ? (
         <EmptyState icon={ShieldCheck} title={t("errorLog.empty")} description={t("errorLog.emptyDesc")} />

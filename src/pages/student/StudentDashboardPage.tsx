@@ -51,6 +51,15 @@ export default function StudentDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [completedLessons, setCompletedLessons] = useState<CompletedLessonStat[]>([]);
 
+  // Tick every 30s so the time-aware "live" join window flips ON/OFF without a manual
+  // refresh. The window was computed once from a frozen Date.now(), so the glowing
+  // «Приєднатися зараз» state never appeared until the page was reloaded.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   const { rewards, loading: rewardsLoading } = useStudentRewards();
 
   const { completedCount, weeklyCount, weeklyRecord } = useMemo(() => {
@@ -230,10 +239,16 @@ export default function StudentDashboardPage() {
                 const isToday = d.toDateString() === new Date().toDateString();
                 // Time-aware join: "live" from 15 min before start through the
                 // lesson's end. That window pins the lesson and shows a glowing CTA.
+                // `nowTick` (30s interval) drives this so it goes live without a refresh.
                 const startMs = d.getTime();
                 const endMs = startMs + (l.duration_minutes ?? 60) * 60000;
-                const now = Date.now();
+                const now = nowTick;
                 const live = now >= startMs - 15 * 60000 && now <= endMs;
+                // A malformed meeting_url (no http/https scheme) makes safeHref() return
+                // "#", which renders a dead glowing button. Treat that as NO link and
+                // fall through to the honest "link coming soon" state instead.
+                const joinHref = safeHref(l.meeting_url);
+                const hasJoinLink = joinHref !== "#";
                 const minsTo = Math.round((startMs - now) / 60000);
                 const joinStatus = live
                   ? (now >= startMs ? t("studentPages.lessonLive") : t("studentPages.startsInMin", { min: Math.max(1, minsTo) }))
@@ -268,8 +283,8 @@ export default function StudentDashboardPage() {
                         </Link>
                       </div>
                       {/* Action row: labeled, time-aware join — never an empty/dead state */}
-                      {l.meeting_url ? (
-                        <a href={safeHref(l.meeting_url)} target="_blank" rel="noreferrer"
+                      {hasJoinLink ? (
+                        <a href={joinHref} target="_blank" rel="noreferrer"
                           aria-label={live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                           style={{
                             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,

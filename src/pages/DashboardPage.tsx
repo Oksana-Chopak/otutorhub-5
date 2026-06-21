@@ -19,7 +19,6 @@ import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
 import { ReferralWidget } from "@/components/ReferralWidget";
-import { PendingPaymentsCard } from "@/components/PendingPaymentsCard";
 import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
@@ -1002,8 +1001,12 @@ export default function DashboardPage() {
         if (!counts) return false;
         // Group lesson: pending if any participant is unpaid (per-participant billing).
         if (!l.student_id) return groupUnpaidLessonIds.has(l.id);
+        // Independent lessons carry NO tutor payout (the tutor collects from the student
+        // directly), so tutor_payout_status is permanently "unpaid" there — only the
+        // student side counts. Hub lessons count either side (student→hub or hub→tutor).
         return (
-          l.student_payment_status === "unpaid" || l.tutor_payout_status === "unpaid"
+          l.student_payment_status === "unpaid" ||
+          (l.source !== "independent" && l.tutor_payout_status === "unpaid")
         );
       }),
     [lessons, nowMs, groupUnpaidLessonIds]
@@ -1022,7 +1025,10 @@ export default function DashboardPage() {
           // not on the lesson row — never count them as "needs a price".
           l.student_id &&
           (l.status === "scheduled" || l.status === "completed") &&
-          (Number(l.student_price) === 0 || Number(l.tutor_payout) === 0)
+          // Independent lessons have no tutor_payout (it stays 0 by design), so a 0
+          // payout must NOT flag them as "missing a price" — only the student price does.
+          (Number(l.student_price) === 0 ||
+            (l.source !== "independent" && Number(l.tutor_payout) === 0))
       ).length,
     [lessons]
   );
@@ -1202,7 +1208,7 @@ export default function DashboardPage() {
         icon: Wallet,
         tone: "warning" as const,
         title: `💰 Час виплати: ${sch.name}`,
-        description: sum > 0 ? `${sum.toLocaleString(getLocale())} ₴ за ${unpaid.length} ${unpaid.length === 1 ? "урок" : unpaid.length < 5 ? "уроки" : "уроків"}` : "Невиплачених уроків немає",
+        description: sum > 0 ? `${sum.toLocaleString(getLocale())} ₴ за ${unpaid.length} ${unpaid.length === 1 ? "урок" : unpaid.length < 5 ? "уроки" : "уроків"}` : "Усе виплачено 🎉",
         to: "/finances",
         cta: "Позначити виплаченим",
         payTutorId: sch.user_id,
@@ -1504,7 +1510,7 @@ export default function DashboardPage() {
                   </p>
                   {profitGrowthPct !== null && (
                     <p className="mt-1 text-[13px] font-bold"
-                      style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                      style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
@@ -1548,7 +1554,7 @@ export default function DashboardPage() {
                     </p>
                     {profitGrowthPct !== null && (
                       <p className="text-[13px] font-bold mt-0.5"
-                        style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                        style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                         {profitGrowthPct >= 0 ? "↑ +" : "↓ "}{profitGrowthPct}%
                       </p>
                     )}
@@ -1639,7 +1645,7 @@ export default function DashboardPage() {
                     {formatPrice(profit, "UAH")}
                   </p>
                   {profitGrowthPct !== null && (
-                    <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "#22c55e" : "#ef4444" }}>
+                    <p className="mt-1 text-[13px] font-medium" style={{ color: profitGrowthPct >= 0 ? "hsl(var(--success))" : "hsl(var(--destructive))" }}>
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
@@ -1663,7 +1669,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub") || "активних"}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1697,7 +1703,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardTutorsSub")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1705,7 +1711,7 @@ export default function DashboardPage() {
                   <div>
                     <p className="text-[13px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
                     <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
-                    <p className="mt-0.5 text-[13px]" style={{ color: "#6b7088" }}>{t("dashboard.cardStudentsSub")}</p>
+                    <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
@@ -1913,7 +1919,11 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <PendingPaymentsCard />
+              {/* NO PendingPaymentsCard for hub tutors: it reads student_price and lets
+                  the viewer mark/remind student→HUB debt — money the hub is owed, not
+                  the tutor. The hub tutor's own due is the «До виплати від хабу» card
+                  above (hubPayoutDue). Showing student receivables here leaked the hub's
+                  revenue to the tutor. Manager/independent usages are untouched. */}
               {/* «Написати менеджеру» — one of the two things a hub tutor opens the
                   app to do, so it's a prominent teal action, not a quiet gray outline. */}
               <button
@@ -2301,7 +2311,7 @@ export default function DashboardPage() {
                           <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: "3.5px solid #2BBFAA" }}>
                             {task.action === "ai" ? (
-                              <button type="button" onClick={() => setAiNotesOpen(true)} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0 text-left">
+                              <button type="button" onClick={() => setAiNotesOpen(true)} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-muted/50 transition-colors min-w-0 text-left">
                                 <span className="text-xl flex-shrink-0">{task.emoji}</span>
                                 <div className="min-w-0 flex-1">
                                   <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
@@ -2310,7 +2320,7 @@ export default function DashboardPage() {
                                 <ChevronRight className="h-4 w-4 flex-shrink-0 text-slate-300 group-hover:translate-x-0.5 transition-transform" />
                               </button>
                             ) : (
-                            <Link to={task.to} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-gray-50/60 transition-colors min-w-0">
+                            <Link to={task.to} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-muted/50 transition-colors min-w-0">
                               <span className="text-xl flex-shrink-0">{task.emoji}</span>
                               <div className="min-w-0 flex-1">
                                 <p className="text-[15px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>

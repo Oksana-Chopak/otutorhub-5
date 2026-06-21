@@ -111,7 +111,7 @@ export function InviteLinkDialog({
         {/* Header — 🎉 medallion */}
         <div className="shrink-0 text-center relative" style={{ padding: "22px 20px 14px" }}>
           <button onClick={() => onOpenChange(false)} aria-label={t("common.close")}
-            style={{ position: "absolute", top: 16, right: 16, width: 34, height: 34, borderRadius: 10, border: "none", background: "#F5F4F0", color: "#6b7088", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ position: "absolute", top: 16, right: 16, width: 34, height: 34, borderRadius: 10, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X className="h-[17px] w-[17px]" strokeWidth={2.2} />
           </button>
           <div style={{ width: 64, height: 64, margin: "4px auto 0", borderRadius: 20, background: "linear-gradient(135deg,#2BBFAA,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, boxShadow: "0 14px 30px -12px rgba(43,191,170,.7)" }}>🎉</div>
@@ -121,7 +121,7 @@ export function InviteLinkDialog({
             </div>
           </DialogTitle>
           <DialogDescription asChild>
-            <div style={{ fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.5, color: "#6b7088", marginTop: 6, padding: "0 4px" }}>
+            <div style={{ fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.5, color: "var(--sub,#6b7088)", marginTop: 6, padding: "0 4px" }}>
               {email
                 ? (isTutor
                     ? t("inviteLinkExtra.descEmailTutor")
@@ -142,7 +142,7 @@ export function InviteLinkDialog({
                 <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, color: "#0f0f1a", wordBreak: "break-all" }}>
                   {t("inviteLinkExtra.emailSentLabel", { email })}
                 </div>
-                <div style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "#6b7088", marginTop: 3, lineHeight: 1.45 }}>
+                <div style={{ fontFamily: "var(--font-body)", fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 3, lineHeight: 1.45 }}>
                   {t("inviteLinkExtra.notReceived")}{" "}
                   <button onClick={handleResendEmail} disabled={resending}
                     style={{ border: "none", background: "none", padding: 0, cursor: resending ? "default" : "pointer", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "#16a34a", textDecoration: "underline", textUnderlineOffset: 2, whiteSpace: "nowrap" }}>
@@ -168,7 +168,7 @@ export function InviteLinkDialog({
 
           {/* Registration link */}
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "#6b7088", marginBottom: 8 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
               {t("inviteLinkExtra.linkLabel")}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "7px 7px 7px 14px", minWidth: 0 }}>
@@ -182,7 +182,7 @@ export function InviteLinkDialog({
 
           {/* Ready message */}
           <div>
-            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "#6b7088", marginBottom: 8 }}>
+            <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 13, letterSpacing: ".04em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
               {t("inviteLinkExtra.messageLabel")}
             </div>
             <div style={{ position: "relative", whiteSpace: "pre-wrap", borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "13px 56px 13px 15px", fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a", wordBreak: "break-word" }}>
@@ -197,7 +197,7 @@ export function InviteLinkDialog({
           {/* Open mail app — only with email */}
           {email && (
             <a href={`mailto:${email}?subject=${encodeURIComponent(t("inviteLinkExtra.inviteSubject"))}&body=${encodeURIComponent(message)}`} className="block">
-              <button style={{ width: "100%", height: 44, borderRadius: 12, border: "none", background: "transparent", color: "#6b7088", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <button style={{ width: "100%", height: 44, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#6b7088)", fontFamily: "var(--font-display)", fontWeight: 600, fontSize: 14, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 <Mail className="h-4 w-4" />
                 <span className="truncate">{t("inviteLinkExtra.openEmail")}</span>
               </button>

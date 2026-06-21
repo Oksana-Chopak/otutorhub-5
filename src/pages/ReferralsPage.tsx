@@ -225,7 +225,7 @@ export default function ReferralsPage() {
                     <Avatar name={r.studentName ?? "?"} size={50} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: F, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject || t("referralsPageExtra.subjectAny")}</div>
-                      <div style={{ fontWeight: 600, fontSize: 16, color: "#6b7088", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
+                      <div style={{ fontWeight: 600, fontSize: 16, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7, flexShrink: 0 }}>
                       {r.budget_note && <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#25a896", whiteSpace: "nowrap" }}>{r.budget_note}</span>}
@@ -250,7 +250,7 @@ export default function ReferralsPage() {
                       {r.message && <div style={{ fontSize: 17, lineHeight: 1.55, color: "#0f0f1a" }}>“{r.message}”</div>}
 
                       <div>
-                        <div style={{ fontFamily: F, fontWeight: 700, fontSize: 15, color: "#6b7088", marginBottom: 11 }}>{t("referralsPageExtra.studentContacts")}</div>
+                        <div style={{ fontFamily: F, fontWeight: 700, fontSize: 15, color: "var(--sub,#6b7088)", marginBottom: 11 }}>{t("referralsPageExtra.studentContacts")}</div>
                         {contacts.length === 0 ? (
                           <div style={{ fontSize: 16, color: "#b0b4c8" }}>{t("referralsPageExtra.noContacts")}</div>
                         ) : (

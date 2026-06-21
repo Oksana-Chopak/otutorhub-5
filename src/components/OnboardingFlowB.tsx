@@ -248,10 +248,18 @@ function StudentAction({ defaultSubject, onComplete, user }: {
     if (profErr) { setSaving(false); toast.error(t("onboardingFlowB.studentSaveError")); return; }
 
     await supabase.from("user_roles").insert({ user_id: newId, role: "student" } as any);
-    await supabase.from("student_rates").insert({
+    // The student_rates row is REQUIRED for the lesson INSERT policy to pass later.
+    // Surface + halt if it fails, instead of leaving a half-created student that
+    // makes the next "create lesson" step error with an RLS rejection.
+    const { error: rateErr } = await supabase.from("student_rates").insert({
       tutor_id: user.id, student_id: newId, subject: subject.trim(),
       price_per_lesson: Number(price) || 0, source: "independent",
     } as any);
+    if (rateErr) {
+      setSaving(false);
+      toast.error(t("onboardingFlowB.studentSaveError") + (rateErr.message ? `: ${rateErr.message}` : ""));
+      return;
+    }
     await (supabase.from("student_details") as any).upsert({ user_id: newId }, { onConflict: "user_id" });
 
     setSaving(false);
@@ -291,9 +299,9 @@ function StudentAction({ defaultSubject, onComplete, user }: {
 }
 
 // ── Lesson inline action ──────────────────────────────────────────────────────
-function LessonAction({ studentId, studentName, subject, onComplete, user }: {
+function LessonAction({ studentId, studentName, subject, onComplete, onSkip, user }: {
   studentId: string | null; studentName: string; subject: string;
-  onComplete: (lessonId: string) => void; user: any;
+  onComplete: (lessonId: string) => void; onSkip: () => void; user: any;
 }) {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
@@ -357,7 +365,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
       onComplete(created.id);
     } else {
       setSaving(false);
-      toast.error(t("onboardingFlowB.lessonSaveError"));
+      toast.error(t("onboardingFlowB.lessonSaveError") + (error?.message ? `: ${error.message}` : ""));
     }
   };
 
@@ -417,6 +425,13 @@ function LessonAction({ studentId, studentName, subject, onComplete, user }: {
       <Btn disabled={!ok || saving} onClick={saveLesson}>
         {saving ? <Loader2 className="h-4 w-4 animate-spin mx-auto" /> : t("onboardingFlowB.lessonSubmit")}
       </Btn>
+      {/* Skip — time/date not agreed with the student yet (binding ТЗ). Advances
+          without creating a lesson, so the essential step never hard-blocks. */}
+      <button type="button" onClick={onSkip} disabled={saving}
+        className="text-[14px] font-semibold py-2 -mt-1 mx-auto"
+        style={{ background: "transparent", border: "none", cursor: "pointer", color: T.sub, fontFamily: T.body }}>
+        {t("onboardingFlowB.lessonSkip")}
+      </button>
     </div>
   );
 }
@@ -980,7 +995,16 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user }  = useAuth();
-  const { settings, updateSettings, loading: wsLoading } = useWorkspaceSettings();
+  const { settings, updateSettings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
+
+  // This onboarding sets up an INDEPENDENT tutor's own workspace (subjects, prices,
+  // payment rules, referrals…). A hub tutor is onboarded by the hub and has none of
+  // these, so send them to the dashboard. Wait for wsLoading so we don't bounce a
+  // not-yet-loaded independent tutor (same timing trap as MyStudentsPage).
+  useEffect(() => {
+    if (wsLoading) return;
+    if (!isIndependent) navigate("/", { replace: true });
+  }, [wsLoading, isIndependent, navigate]);
 
   const [idx, setIdx]             = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
@@ -1246,7 +1270,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 <>
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); markDone(step.id); advance(); }} />}
                   {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); markDone(step.id); advance(); reload(); }} />}
-                  {step.action === "lesson"       && <LessonAction  user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
+                  {step.action === "lesson"       && <LessonAction  user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "autoMark"     && <AutoMarkAction onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
@@ -1266,6 +1290,13 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               <GhostBtn onClick={advance} style={{ color: T.muted }}>{t("onboardingFlowB.skip")}</GhostBtn>
             )}
           </div>
+          {/* Always-available escape — onboarding must NEVER hard-block the tutor,
+              even if an essential step errors (binding ТЗ: «не можу рухатися далі»). */}
+          <button type="button" onClick={() => navigate("/")}
+            className="mx-auto mt-1 text-[13px] font-medium py-1.5"
+            style={{ background: "transparent", border: "none", cursor: "pointer", color: T.muted, fontFamily: T.body }}>
+            {t("onboardingFlowB.exitToApp")}
+          </button>
         </div>
       </div>
     </>

@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Crown, Mail, Phone, MessageCircle } from "lucide-react";
+import { Crown, Mail, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { uk } from "date-fns/locale";
@@ -142,8 +142,21 @@ export default function SubscriptionRequestsPage() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i} className="rounded-[18px] border-[#eceef3] shadow-none">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 animate-pulse rounded-[13px] bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-40 animate-pulse rounded-md bg-muted" />
+                      <div className="h-3 w-56 max-w-full animate-pulse rounded-md bg-muted" />
+                    </div>
+                    <div className="h-6 w-20 shrink-0 animate-pulse rounded-full bg-muted" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : requests.length === 0 ? (
           <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
@@ -173,7 +186,7 @@ export default function SubscriptionRequestsPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>
                           {name}
                         </p>
-                        <p className="text-[13px]" style={{ color: "#6b7088", marginTop: 2 }}>
+                        <p className="text-[13px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
                             locale: uk,
                           })}{" "}
@@ -207,7 +220,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.message && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
-                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[13px]" style={{ color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> Повідомлення
                         </div>
                         {r.message}
@@ -216,7 +229,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.manager_response && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
-                        <div className="mb-1.5 text-[13px]" style={{ color: "#6b7088", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 text-[13px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           Ваша відповідь
                         </div>
                         {r.manager_response}

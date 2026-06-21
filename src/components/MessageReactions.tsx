@@ -61,13 +61,17 @@ export function MessageReactions({ reactions, myId, onToggle, mine }: Props) {
       {myId && (
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
+            {/* 44px tap target for accessibility; the visible chip stays compact so it
+                balances with the reaction-count pills (the box is transparent padding). */}
             <button
               type="button"
-              className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              className="group -my-2.5 inline-flex h-11 w-11 items-center justify-center rounded-full"
               title={t("chats.reactionTitle")}
               aria-label={t("chats.reactionAdd")}
             >
-              <SmilePlus className="h-3.5 w-3.5" />
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-border bg-background/60 text-muted-foreground transition-colors group-hover:border-primary/40 group-hover:text-foreground">
+                <SmilePlus className="h-3.5 w-3.5" />
+              </span>
             </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-1.5" align={mine ? "end" : "start"}>
