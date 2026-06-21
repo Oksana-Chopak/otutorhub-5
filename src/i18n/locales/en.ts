@@ -3896,7 +3896,7 @@ export const en: LocaleTranslations = {
     autoNoteDesc: "The bot records your lessons automatically — recording starts as soon as you join the call.",
     autoSendTitle: "Send to the student automatically",
     autoSendDesc: "The finished summary goes to the student right away — with no action from you.",
-    tryCta: "Try it in a lesson",
+    tryCta: "Done",
     footerHint: "Open any lesson → the \"AI notes\" block. A Zoom / Meet link is required for recording.",
   },
   chatContextPanel: {

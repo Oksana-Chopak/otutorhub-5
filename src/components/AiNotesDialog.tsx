@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Mic, FileText, Sparkles, Lock, ArrowRight } from "lucide-react";
+import { Mic, FileText, Sparkles, Lock, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -124,9 +124,9 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             />
           </div>
 
-          <button onClick={() => { onOpenChange(false); navigate("/schedule"); }}
+          <button onClick={() => onOpenChange(false)}
             style={{ marginTop: 18, width: "100%", height: 48, borderRadius: 14, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: C.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 10px 24px -10px rgba(43,191,170,.7)" }}>
-            {t("aiNotesDialog.tryCta")} <ArrowRight size={18} />
+            {t("aiNotesDialog.tryCta")} <Check size={18} />
           </button>
           <p style={{ fontSize: 13, color: C.ink2, textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
             {t("aiNotesDialog.footerHint")}

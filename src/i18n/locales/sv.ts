@@ -3886,7 +3886,7 @@ export const sv: LocaleTranslations = {
     autoNoteDesc: "Boten spelar in dina lektioner automatiskt — inspelningen startar så snart du ansluter till samtalet.",
     autoSendTitle: "Skicka till eleven automatiskt",
     autoSendDesc: "Den färdiga sammanfattningen skickas direkt till eleven — utan att du behöver göra något.",
-    tryCta: "Prova i en lektion",
+    tryCta: "Klar",
     footerHint: "Öppna valfri lektion → blocket \"AI-anteckningar\". En Zoom-/Meet-länk krävs för inspelning.",
   },
   chatContextPanel: {

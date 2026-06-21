@@ -1581,7 +1581,8 @@ export default function DashboardPage() {
 
                 {/* 3. Level */}
                 {level ? (
-                  <div className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5"
+                  <Link to="/achievements" aria-label={t("nav.achievements")}
+                    className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
                     <div className="min-w-0">
                       <p className="text-[13px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
@@ -1591,14 +1592,15 @@ export default function DashboardPage() {
                         {level.emoji} {level.name}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ) : (
                   <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
                 )}
 
                 {/* 4. Streak */}
                 {streak ? (
-                  <div className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5"
+                  <Link to="/achievements" aria-label={t("nav.achievements")}
+                    className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
                     style={{ borderColor: "var(--border,#eceef3)", minHeight: 56,
                              background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
@@ -1610,7 +1612,7 @@ export default function DashboardPage() {
                         {streak.current_streak} {streak.current_streak === 1 ? "день" : streak.current_streak < 5 ? "дні" : "днів"}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ) : (
                   <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
                 )}
