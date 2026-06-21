@@ -28,13 +28,13 @@ export default defineConfig(({ mode }) => ({
         // Function form so the large @radix-ui/* set is split off the critical path.
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
-          if (id.includes("@radix-ui")) return "radix-ui";
           if (id.includes("@supabase")) return "supabase";
           if (id.includes("@tanstack")) return "query";
           if (id.includes("lucide-react")) return "icons";
-          // i18next + react-i18next bundled with React to avoid a cross-chunk
-          // circular import that left React undefined at i18n init (white screen).
-          if (id.includes("i18next")) return "react-vendor";
+          // Keep React-dependent libraries in the React chunk. Splitting Radix/i18n
+          // separately caused production-only ESM init cycles where React was undefined
+          // at module evaluation time (`createContext` / `forwardRef` white screens).
+          if (id.includes("@radix-ui") || id.includes("i18next")) return "react-vendor";
           if (id.includes("react-router")) return "react-vendor";
           if (id.includes("/react-dom/") || id.includes("/react/") || id.includes("/scheduler/")) return "react-vendor";
           if (
