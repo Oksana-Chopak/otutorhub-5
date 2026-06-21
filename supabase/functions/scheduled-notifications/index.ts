@@ -42,8 +42,8 @@ Deno.serve(async (req) => {
   const results: string[] = [];
 
   // ── Deduplication helper ────────────────────────────────────────────────
-  async function upsertNotif(userId: string, type: string, title: string, body_: string, link: string) {
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  async function upsertNotif(userId: string, type: string, title: string, body_: string, link: string, dedupeMs = 24 * 60 * 60 * 1000) {
+    const since = new Date(Date.now() - dedupeMs).toISOString();
     const { data: existing } = await db
       .from("notifications")
       .select("id")
@@ -227,6 +227,7 @@ Deno.serve(async (req) => {
           "Давно не бачились 👋",
           "Як справи? Заплануй урок щоб не загубити учнів",
           "/schedule",
+          7 * 24 * 60 * 60 * 1000, // at most once a week, not daily
         );
       }
     }

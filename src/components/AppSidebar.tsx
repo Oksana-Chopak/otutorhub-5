@@ -244,11 +244,13 @@ export function AppSidebar() {
           </button>
         </div>
 
-        {showOnboardingHelp && (
-          <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-            <p className="mb-1.5 px-3 text-[13px] font-semibold uppercase tracking-wider text-slate-500">
-              {t("nav.help")}
-            </p>
+        {/* Help: setup guide (independent only) + feedback (everyone) — kept under the
+            same "Допомога" heading so support is always in one place. */}
+        <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          <p className="mb-1.5 px-3 text-[13px] font-semibold uppercase tracking-wider text-slate-500">
+            {t("nav.help")}
+          </p>
+          {showOnboardingHelp && (
             <button
               type="button"
               onClick={() => {
@@ -265,21 +267,21 @@ export function AppSidebar() {
                 </span>
               )}
             </button>
-          </div>
-        )}
-
-        <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+          )}
           <button
             type="button"
             onClick={() => {
               setOpen(false);
               setFeedbackOpen(true);
             }}
-            className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2 text-sm font-medium text-slate-400 transition-colors hover:bg-white/5 hover:text-white"
           >
             <MessageCircleHeart className="h-4 w-4 shrink-0" />
-            <span>{t("feedback.btn")}</span>
+            <span className="flex-1 text-left">{t("feedback.btn")}</span>
           </button>
+        </div>
+
+        <div className="px-3 py-2" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
           <div className="flex items-center justify-center gap-3 pt-1 text-[13px] text-slate-500">
             <button type="button" onClick={() => { setOpen(false); navigate("/privacy"); }} className="underline hover:text-slate-300">{t("landing.footer.privacy")}</button>
             <span>·</span>

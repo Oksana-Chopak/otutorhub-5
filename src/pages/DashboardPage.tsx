@@ -1147,14 +1147,6 @@ export default function DashboardPage() {
       done:  obProgress.hasMeetingUrl,
     },
     {
-      action: "telegram",
-      emoji: "📲",
-      title: "Підключіть Telegram-сповіщення",
-      desc:  "Щоденний дайджест і нагадування про уроки",
-      to:    "/profile#telegram",
-      done:  obProgress.hasTelegram,
-    },
-    {
       action: "calendar",
       emoji: "📆",
       title: "Підключіть Google Calendar",
@@ -1166,7 +1158,7 @@ export default function DashboardPage() {
       action: "referral",
       emoji: "🎁",
       title: "Запросіть колегу",
-      desc:  "249 грн в подарунок за кожного платного реферала",
+      desc:  "1 місяць Pro за кожного друга, що оплатив підписку",
       to:    "/referrals",
       done:  obProgress.hasReferral,
     },

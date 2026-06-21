@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -42,6 +42,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const [more, setMore] = useState(false);
   const [tried, setTried] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
+  // The tutor's own previously-used subjects — so a subject typed once reappears as a
+  // suggestion next time (custom subjects "persist" without a manager-only subjects row).
+  const [mySubjects, setMySubjects] = useState<string[]>([]);
   const [invite, setInvite] = useState<{
     open: boolean;
     name: string;
@@ -57,6 +60,14 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     setTried(false);
     setCurrencyOpen(false);
   };
+
+  useEffect(() => {
+    if (!user || !open) return;
+    supabase.from("student_rates").select("subject").eq("tutor_id", user.id).then(({ data }) => {
+      const uniq = Array.from(new Set((data ?? []).map((r: any) => (r.subject || "").trim()).filter(Boolean)));
+      setMySubjects(uniq as string[]);
+    });
+  }, [user?.id, open]);
 
   // ── validation (matches MyStudentsPage rules) ──────────────────────────────
   const fnTrim = form.first_name.trim();
@@ -193,7 +204,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const fInitials = ((form.first_name?.[0] ?? "") + (form.last_name?.[0] ?? "")).toUpperCase();
   const filled = !!(fnTrim || lnTrim);
 
-  const SUBS = [
+  const SUBS = Array.from(new Set([
+    ...mySubjects,
     t("quickAddStudent.subjectEnglish"),
     t("quickAddStudent.subjectMath"),
     t("quickAddStudent.subjectPhysics"),
@@ -202,7 +214,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     t("quickAddStudent.subjectBiology"),
     t("quickAddStudent.subjectInformatics"),
     t("quickAddStudent.subjectGerman"),
-  ];
+  ].map((s) => s.trim()).filter(Boolean)));
   const subMatches = (() => {
     const q = (form.subject || "").trim().toLowerCase();
     const selected = SUBS.filter(s => s.toLowerCase() === form.subject.toLowerCase());
