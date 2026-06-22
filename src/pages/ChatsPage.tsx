@@ -1316,7 +1316,12 @@ export default function ChatsPage() {
                           if (selectedThread.ctx?.kind === "debt") {
                             setDraft((d) => d || t("chats.debtReminderDraft"));
                           } else {
-                            window.location.href = "/schedule";
+                            // Open the create-lesson dialog with this student preselected,
+                            // instead of dumping the user on a blank Schedule page.
+                            const sid = selectedThread.student_id;
+                            window.location.href = sid
+                              ? `/schedule?create=1&student=${sid}`
+                              : "/schedule?create=1";
                           }
                         }}
                         className="flex-shrink-0 rounded-[10px] px-3.5 h-[34px] text-[14px] font-bold text-white"

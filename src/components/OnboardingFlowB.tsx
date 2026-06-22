@@ -1037,17 +1037,29 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
 export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user }  = useAuth();
+  const { user, roles, loading: authLoading } = useAuth();
   const { settings, updateSettings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
 
-  // This onboarding sets up an INDEPENDENT tutor's own workspace (subjects, prices,
-  // payment rules, referrals…). A hub tutor is onboarded by the hub and has none of
-  // these, so send them to the dashboard. Wait for wsLoading so we don't bounce a
-  // not-yet-loaded independent tutor (same timing trap as MyStudentsPage).
+  // Onboarding is for TUTORS — both independent and hub. Wait for auth roles AND
+  // workspace settings to load so we don't bounce a not-yet-loaded tutor; managers and
+  // students have no tutor onboarding, so send them to the dashboard.
+  const isTutor = (roles ?? []).includes("tutor");
   useEffect(() => {
-    if (wsLoading) return;
-    if (!isIndependent) navigate("/", { replace: true });
-  }, [wsLoading, isIndependent, navigate]);
+    if (wsLoading || authLoading) return;
+    if (!isTutor) navigate("/", { replace: true });
+  }, [wsLoading, authLoading, isTutor, navigate]);
+
+  // A hub tutor doesn't add their own students, set prices / payment rules, mark
+  // payments, create their own (independent-sourced) lessons, or earn referral Pro —
+  // those are the manager's job or Pro-only. The hub onboarding drops exactly those
+  // steps; subject, Telegram, availability, Zoom, chat, Google Calendar and AI-notes
+  // are shared. These role-aware CORE/BONUS/TOTAL_XP shadow the module-level full-list
+  // versions, so every reference below is automatically scoped to the visible steps.
+  const HUB_SKIP = new Set(["student", "lesson", "proRules", "autoMark", "referral", "finance"]);
+  const visibleSteps = isIndependent ? ALL_STEPS : ALL_STEPS.filter((s) => !HUB_SKIP.has(s.action));
+  const CORE  = visibleSteps.filter((s) => s.group !== "bonus");
+  const BONUS = visibleSteps.filter((s) => s.group === "bonus");
+  const TOTAL_XP = visibleSteps.reduce((sum, s) => sum + s.xp, 0);
 
   const [idx, setIdx]             = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());

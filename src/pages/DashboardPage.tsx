@@ -239,18 +239,19 @@ export default function DashboardPage() {
     }
   }, [isStudent, isManager, isTutor, navigate]);
 
-  // First-session redirect: new independent tutor → /onboarding.
-  // Source of truth: Supabase onboarding_completed field.
+  // First-session redirect: new tutor (independent OR hub) → /onboarding.
+  // Source of truth: Supabase onboarding_completed field. The onboarding flow itself
+  // renders the role-appropriate subset of steps (hub tutors get a lighter set).
   // sessionStorage prevents repeated redirects within the same browser session
   // but a new device/browser will always redirect until onboarding is done.
   useEffect(() => {
-    if (wsLoading || !user || !isIndependentTutor || !settings) return;
+    if (wsLoading || !user || !isTutor || isManager || !settings) return;
     if (settings.onboarding_completed) return;
     const sessionKey = `onboarding_redirected_${user.id}`;
     if (sessionStorage.getItem(sessionKey) === "1") return;
     sessionStorage.setItem(sessionKey, "1");
     navigate("/onboarding", { replace: true });
-  }, [wsLoading, user?.id, isIndependentTutor, settings, navigate]);
+  }, [wsLoading, user?.id, isTutor, isManager, settings, navigate]);
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);

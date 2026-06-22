@@ -116,13 +116,16 @@ Deno.serve(async (req) => {
     rolesByUser.get(r.user_id)!.add(r.role);
   }
 
-  // Tutor settings (digest opt-in)
+  // Tutor settings (digest opt-IN). The agreed default cadence is WEEKLY, so the daily
+  // digest must be strictly opt-in: only tutors who explicitly set daily_digest_enabled
+  // = true receive it. (Previously `!== false` defaulted every tutor to daily, which is
+  // why hub tutors were getting daily notifications they never asked for.)
   const { data: tutorSettings } = await sb
     .from("tutor_workspace_settings")
     .select("tutor_id, daily_digest_enabled")
     .in("tutor_id", allUserIds);
   const digestEnabled = new Map<string, boolean>(
-    (tutorSettings ?? []).map((s: any) => [s.tutor_id, s.daily_digest_enabled !== false])
+    (tutorSettings ?? []).map((s: any) => [s.tutor_id, s.daily_digest_enabled === true])
   );
 
   // Today's lessons — all

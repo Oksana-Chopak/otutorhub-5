@@ -244,7 +244,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col max-h-[92vh] rounded-[20px] [&>button.absolute]:hidden">
+      <DialogContent className="max-w-md p-0 gap-0 overflow-hidden flex flex-col max-h-[92vh] rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
         {/* Header */}
         <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: "1px solid #eceef3", display: "flex", alignItems: "center", gap: 13 }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>

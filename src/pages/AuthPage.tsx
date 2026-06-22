@@ -150,7 +150,13 @@ export default function AuthPage() {
 
   // Invite-link / preselected tab support: ?signup=1&email=...&role=student|tutor
   const isConfirmed = searchParams.get("confirmed") === "1";
-  const initialTab = searchParams.get("signup") === "1" ? "signup" : "signin";
+  // Any invite-shaped link must open on Registration, never on Вхід. We honour the
+  // explicit ?signup=1 contract AND, defensively, any link that carries an email+role
+  // (how every invite is built) as long as it's not the email-confirmed return.
+  const isInviteContext =
+    searchParams.get("signup") === "1" ||
+    (!isConfirmed && !!searchParams.get("email") && !!searchParams.get("role"));
+  const initialTab = isInviteContext ? "signup" : "signin";
   const [activeTab, setActiveTab] = useState<string>(isConfirmed ? "signin" : initialTab);
   const [pendingHint, setPendingHint] = useState<string | null>(null);
   const [showOptional, setShowOptional] = useState(false);

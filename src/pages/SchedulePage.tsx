@@ -972,8 +972,12 @@ export default function SchedulePage() {
     // then strip the param so a refresh doesn't re-open it.
     if (searchParams.get("create") === "1" && canCreate) {
       setCreateOpen(true);
+      // Optional student prefill (e.g. deep-link from Chats "create lesson").
+      const presetStudent = searchParams.get("student");
+      if (presetStudent) setForm((f) => ({ ...f, student_id: presetStudent }));
       const n = new URLSearchParams(searchParams);
       n.delete("create");
+      n.delete("student");
       setSearchParams(n, { replace: true });
     }
     // лише при першому відкритті за посиланням
@@ -1031,8 +1035,9 @@ export default function SchedulePage() {
               if (!open) setFormErrors({});
             }}>
               {/* Trigger moved to FAB */}
-              <DialogContent className="max-w-md max-h-[90vh] flex flex-col p-0">
-                <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
+              <DialogContent className="w-full max-w-[480px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] flex flex-col">
+                <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border sm:hidden" />
+                <DialogHeader className="px-6 pt-4 pb-2 shrink-0">
                   <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
                   <div className="mt-2 flex items-center gap-2 text-[14px] text-muted-foreground">
                     <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[14px] font-semibold",
@@ -1116,11 +1121,17 @@ export default function SchedulePage() {
                           ? t('schedule.noStudentsIndependent')
                           : t('schedule.noStudentsHub')}
                       </p>
-                      {isIndependentTutor && (
+                      {isIndependentTutor ? (
                         <Button asChild size="sm" variant="outline" className="h-7 text-[14px]">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
                             {t("myStudents.addStudentBtn")}
+                          </Link>
+                        </Button>
+                      ) : (
+                        <Button asChild size="sm" variant="outline" className="h-7 text-[14px]">
+                          <Link to="/chats" onClick={() => setCreateOpen(false)}>
+                            {t("schedule.messageManagerBtn")}
                           </Link>
                         </Button>
                       )}
@@ -1419,8 +1430,9 @@ export default function SchedulePage() {
 
       {/* Edit lesson dialog (opened from calendar / list) */}
       <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
-        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
-          <DialogHeader className="px-6 pt-6 pb-3 border-b border-border shrink-0">
+        <DialogContent className="w-full max-w-lg p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] flex flex-col">
+          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border sm:hidden" />
+          <DialogHeader className="px-6 pt-4 pb-3 border-b border-border shrink-0">
             <DialogTitle>
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
                 ? t('common.edit')

@@ -111,7 +111,10 @@ export default function ProfilePage() {
             { to: "/achievements", label: t("profile.itemAchievements"), icon: Trophy },
             { to: "/my-referrals", label: t("profile.itemReferrals"), icon: HandHeart },
           ].filter((it) => {
-            if (!isIndependent && ["/subscription", "/achievements", "/my-referrals"].includes(it.to)) return false;
+            // Subscription + referrals are independent-only (Pro billing / Pro-reward).
+            // Achievements (gamified teaching: level, streak, badges) apply to EVERY
+            // tutor — hub tutors teach lessons too, so they keep their achievements.
+            if (!isIndependent && ["/subscription", "/my-referrals"].includes(it.to)) return false;
             return true;
           }),
         },
@@ -611,16 +614,17 @@ export default function ProfilePage() {
           )}
 
           {/* ── Account section ────────────────────────────────────────────── */}
-          {/* Achievements + Referrals are independent-only features (gamified Pro/
-              referral rewards). Hub tutors are paid by the hub and don't use them. */}
-          {isIndependent && (
-            <Sec>
-              <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
-                onClick={() => { window.location.href = "/achievements"; }} />
+          {/* Achievements (level / streak / badges) belong to EVERY tutor — hub tutors
+              teach lessons and earn them too. Referrals stay independent-only (the bonus
+              is Pro months, which hub tutors don't use). */}
+          <Sec>
+            <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
+              onClick={() => { window.location.href = "/achievements"; }} noBorder={!isIndependent} />
+            {isIndependent && (
               <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
                 val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
-            </Sec>
-          )}
+            )}
+          </Sec>
 
           {/* ── Reward theme ───────────────────────────────────────────────── */}
           <Sec title={t("profile.sectionRewards") || "СТИЛЬ НАГОРОД"}>

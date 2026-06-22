@@ -355,7 +355,7 @@ function CreateGroupDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md gap-0 overflow-hidden p-0" style={{ borderRadius: 24 }}>
+      <DialogContent className="max-w-md gap-0 overflow-hidden p-0 rounded-t-[24px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
         {done ? (
           /* ── Success screen ───────────────────────────────────────────── */
           <div style={{ display: "flex", flexDirection: "column", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
@@ -709,6 +709,9 @@ function GroupDetailsDialog({
   const [tutorName, setTutorName] = useState<string>("");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [available, setAvailable] = useState<StudentOption[]>([]);
+  // true = the tutor/hub has NO students at all (vs. all students already enrolled) —
+  // lets the picker show the right empty message instead of a misleading "all in group".
+  const [noStudentsAtAll, setNoStudentsAtAll] = useState(false);
   const [pickedStudent, setPickedStudent] = useState<string>("");
   const [pickedPrice, setPickedPrice] = useState<string>("");
   const [pickOpen, setPickOpen] = useState(false);
@@ -843,6 +846,7 @@ function GroupDetailsDialog({
       (pairs ?? []).forEach((p: any) => candidateIds.add(p.student_id));
       (rates ?? []).forEach((r: any) => { if (!r.archived_at) candidateIds.add(r.student_id); });
     }
+    setNoStudentsAtAll(candidateIds.size === 0);
     const ids = Array.from(candidateIds).filter((sid) => !enrolledIds.has(sid));
     if (ids.length) {
       const { data: profs } = await supabase
@@ -962,7 +966,7 @@ function GroupDetailsDialog({
   return (
     <>
       <Dialog open onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md gap-0 overflow-hidden p-0" style={{ borderRadius: 24 }}>
+        <DialogContent className="max-w-md gap-0 overflow-hidden p-0 rounded-t-[24px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
           <div style={{ display: "flex", flexDirection: "column", maxHeight: "88vh", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
             {/* header */}
             <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 13 }}>
@@ -1064,7 +1068,7 @@ function GroupDetailsDialog({
                       ))}
                       {available.length === 0 && (
                         <div style={{ fontFamily: FONT_B, fontSize: 15, color: T.muted, textAlign: "center", padding: "16px 0" }}>
-                          {t("groupsPageExtra.noStudents")}
+                          {noStudentsAtAll ? t("groupsPageExtra.noStudentsYet") : t("groupsPageExtra.noStudents")}
                         </div>
                       )}
                     </div>

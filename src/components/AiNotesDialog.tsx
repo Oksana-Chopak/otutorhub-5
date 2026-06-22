@@ -72,7 +72,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[460px] p-0 overflow-hidden gap-0">
+      <DialogContent className="max-w-[460px] p-0 overflow-hidden gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh]">
         <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle asChild>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

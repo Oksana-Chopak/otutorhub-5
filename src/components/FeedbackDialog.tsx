@@ -71,7 +71,8 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
+        <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
         <DialogHeader>
           <DialogTitle>{t("feedback.subtitle")}</DialogTitle>
           <DialogDescription>{t("feedback.description")}</DialogDescription>

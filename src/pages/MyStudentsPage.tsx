@@ -964,6 +964,8 @@ export default function MyStudentsPage() {
                 {/* ── Body (scroll) ── */}
                 <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
                   {/* Avatar + name */}
+                  <div>
+                  <span style={lbl}>{t("myStudents.fieldFirstName")} <span style={{ color: F.teal }}>*</span></span>
                   <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -1000,6 +1002,7 @@ export default function MyStudentsPage() {
                       <input aria-label={t("myStudents.fieldLastName")} style={inp(false)} placeholder={t("myStudents.fieldLastName")} value={form.last_name}
                         onChange={(e) => setForm({ ...form, last_name: e.target.value })} onFocus={focusOn} onBlur={focusOff} />
                     </div>
+                  </div>
                   </div>
 
                   {/* Subjects — chips */}
@@ -1051,7 +1054,7 @@ export default function MyStudentsPage() {
 
                   {/* 💛 Price card */}
                   <div style={{ borderRadius: 16, padding: 14, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
-                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")}</div>
+                    <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.gold, marginBottom: 8 }}>{t("myStudents.priceCardTitle")} <span style={{ color: F.teal }}>*</span></div>
                     <div style={{ display: "flex", gap: 10 }}>
                       <div style={{ flex: 1 }}>
                         <input aria-label={t("myStudents.priceCardTitle")} inputMode="decimal" placeholder="500" value={form.price}

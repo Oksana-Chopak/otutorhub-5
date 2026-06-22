@@ -611,7 +611,8 @@ export function AvailabilityManager() {
 
       {/* Weekly add dialog */}
       <Dialog open={weeklyDialog.open} onOpenChange={(o) => setWeeklyDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
           <DialogHeader>
             <DialogTitle>{t("availabilityManagerExtra.addWeeklyTitle")}</DialogTitle>
             <DialogDescription>{t("availabilityManagerExtra.addWeeklyDesc")}</DialogDescription>
@@ -665,7 +666,8 @@ export function AvailabilityManager() {
 
       {/* Override add dialog */}
       <Dialog open={overrideDialog.open} onOpenChange={(o) => setOverrideDialog((s) => ({ ...s, open: o }))}>
-        <DialogContent className="max-w-sm">
+        <DialogContent className="max-w-sm rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
+          <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
           <DialogHeader>
             <DialogTitle>
               {overrideDialog.is_available ? t("availabilityManagerExtra.extraHoursTitle") : t("availabilityManagerExtra.dayOffTitle")}
