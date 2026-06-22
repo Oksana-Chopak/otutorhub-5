@@ -1,7 +1,7 @@
 // Self-service видалення акаунта (вимога App Store 5.1.1(v) та Google Play).
-// Викликається залогіненим користувачем; видаляє ЙОГО auth-користувача через
-// service role. Персональні таблиці (profiles, profile_contacts, user_roles,
-// push-токени тощо) мають ON DELETE CASCADE на auth.users, тож підуть разом.
+// Викликається залогіненим користувачем; ПОВНІСТЮ чистить ЙОГО персональні дані
+// через RPC purge_user_data (FK-каскаду на auth.users НЕМА — його давно прибрали,
+// тож профіль/контакти/ролі/ставки треба видаляти явно), а тоді зносить auth-юзера.
 // Бізнес-записи іншої сторони (уроки, оплати) лишаються — це транзакційна
 // історія контрагента, сторами дозволено.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
@@ -36,19 +36,19 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // 2. Best-effort зачистка таблиць без FK-каскаду на auth.users.
-    //    Помилки тут не блокують видалення (таблиці може не бути).
+    // 2. FULL personal-data purge. The profiles / profile_contacts / user_roles /
+    //    student_rates FK CASCADE on auth.users was DROPPED long ago, so deleting the auth
+    //    user alone left every personal row behind — the orphan profile_contacts (unique
+    //    email) then blocked re-registration / re-adding that email, and orphan profiles
+    //    were the "ghosts". purge_user_data wipes all personal tables for this user.
     const uid = user.id;
-    const cleanup: Array<{ table: string; col: string }> = [
-      { table: 'tutor_student_notes', col: 'tutor_id' },
-      { table: 'lesson_tutor_notes', col: 'tutor_id' },
-      { table: 'notifications', col: 'user_id' },
-    ];
-    for (const c of cleanup) {
-      try { await admin.from(c.table).delete().eq(c.col, uid); } catch (_) { /* ignore */ }
+    const { error: purgeErr } = await admin.rpc('purge_user_data', { _user_id: uid });
+    if (purgeErr) {
+      console.error('purge_user_data failed', purgeErr);
+      return new Response(JSON.stringify({ error: purgeErr.message }), { status: 500, headers: corsHeaders });
     }
 
-    // 3. Видаляємо auth-користувача — каскад зносить профіль/контакти/ролі.
+    // 3. Delete the auth user so the email is freed for future re-registration.
     const { error: delErr } = await admin.auth.admin.deleteUser(uid);
     if (delErr) {
       console.error('deleteUser failed', delErr);
