@@ -51,7 +51,8 @@ export function AutoCompletePromptDialog({ enabled }: { enabled: boolean }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] overflow-y-auto">
+        <div className="mx-auto -mt-1 mb-1 h-1.5 w-10 rounded-full bg-border sm:hidden" />
         <DialogHeader>
           <DialogTitle>{t("autoComplete.dialogTitle")}</DialogTitle>
           <DialogDescription>

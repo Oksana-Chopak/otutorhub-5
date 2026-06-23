@@ -162,6 +162,46 @@ for (const file of getAllFiles(SRC)) {
   }
 }
 
+// ── Rule 5: forms must be bottom-sheets (no old centered dialogs creeping back) ──
+// Every <DialogContent> should use the bottom-sheet pattern (rounded-t-[…] + bottom-0
+// + sm:translate-y-[-50%]). A plain centered DialogContent is exactly the "old form"
+// that kept reappearing across roles. AlertDialogContent (confirmations) is NOT matched
+// — only <DialogContent>. Allowlist genuinely non-form dialogs (image lightbox, the
+// marketing landing quiz) by filename.
+const DIALOG_CONTENT_PATTERN = /<DialogContent\b[^>]*>/g;
+const FORM_SHEET_ALLOW = new Set([
+  "ChatAttachment.tsx",              // image lightbox — a centered viewer is correct
+  "LandingFindTutorQuizDialog.tsx",  // marketing landing page, its own design language
+]);
+
+for (const file of getAllFiles(SRC)) {
+  if (file.includes(".test.") || file.includes("/ui/")) continue;
+  const fname = file.split("/").pop();
+  if (FORM_SHEET_ALLOW.has(fname)) continue;
+
+  const content = readFileSync(file, "utf8");
+  if (!content.includes("<DialogContent")) continue;
+
+  for (const m of content.matchAll(DIALOG_CONTENT_PATTERN)) {
+    const tag = m[0];
+    const isBottomSheet = tag.includes("rounded-t-[") || tag.includes("bottom-0");
+    if (!isBottomSheet) {
+      const lineNum = content.slice(0, m.index).split("\n").length;
+      issues.push({
+        rule: "form not a bottom-sheet",
+        severity: "error",
+        file: file.replace(ROOT, ""),
+        line: lineNum,
+        detail:
+          "Centered (old-style) DialogContent. Use the bottom-sheet pattern " +
+          "(rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 " +
+          "sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto), or add the file to " +
+          "FORM_SHEET_ALLOW in check-ux.mjs if it is intentionally a centered viewer.",
+      });
+    }
+  }
+}
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const errors = issues.filter((i) => i.severity === "error");

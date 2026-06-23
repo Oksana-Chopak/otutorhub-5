@@ -7,6 +7,7 @@ import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
+import { canSee, type RoleFlags } from "@/lib/roleCapabilities";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -91,6 +92,9 @@ export default function ProfilePage() {
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
   const { isIndependent, isTrial, isPro, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
+  // Cross-cutting visibility decisions go through canSee(roleFlags) — see
+  // src/lib/roleCapabilities.ts + role-capabilities.test.ts (the role×feature matrix).
+  const roleFlags: RoleFlags = { isManager, isTutor, isIndependent, isStudent: roles.includes("student") };
   // NOTE: a hub tutor is `isTutor && !isManager && !isIndependent`. Hub tutors are PAID
   // by the hub, so the subscription/Pro/referral/payment-rule features below are gated
   // behind `isIndependent` — they render only for independent tutors.
@@ -673,9 +677,9 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Guide row ──────────────────────────────────────────────────────── */}
-        {/* The setup guide (/onboarding) walks an independent tutor through their own
-            workspace setup; it's independent-only (hub tutors are onboarded by the hub). */}
-        {isIndependent && (
+        {/* The setup guide (/onboarding) is available to EVERY tutor — hub tutors now
+            have their own (lighter) onboarding, so they get the entry point too. */}
+        {canSee("setupGuide", roleFlags) && (
           <div className="mt-4">
             <Sec>
               <NavRow icon={<Sparkles size={18} />} label={t("profile.rowGuide") || "Гайд по налаштуванню"}
