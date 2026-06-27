@@ -91,17 +91,33 @@ Deno.serve(async (req) => {
   const dueIds = due.map((s: any) => s.user_id);
 
   // 2. Unpaid payout sums per due tutor.
-  const { data: lessons } = await admin
+  // NOTE: tutor_payout + tutor_payout_status live on lesson_details, NOT on lessons
+  // (the financial columns were moved off the lessons table). Reading them from lessons
+  // returned nothing, so payout reminders silently never fired. Source them from
+  // lesson_details, joined back to the lesson's tutor via lesson_id.
+  const { data: dueLessons } = await admin
     .from("lessons")
-    .select("tutor_id, tutor_payout")
+    .select("id, tutor_id")
     .in("tutor_id", dueIds)
-    .eq("tutor_payout_status", "unpaid")
     .neq("status", "cancelled");
+  const tutorByLesson = new Map<string, string>();
+  for (const l of (dueLessons ?? []) as any[]) tutorByLesson.set(l.id, l.tutor_id);
+
   const sumBy = new Map<string, number>();
   const cntBy = new Map<string, number>();
-  for (const l of (lessons ?? []) as any[]) {
-    sumBy.set(l.tutor_id, (sumBy.get(l.tutor_id) ?? 0) + (Number(l.tutor_payout) || 0));
-    cntBy.set(l.tutor_id, (cntBy.get(l.tutor_id) ?? 0) + 1);
+  const lessonIds = [...tutorByLesson.keys()];
+  if (lessonIds.length > 0) {
+    const { data: details } = await admin
+      .from("lesson_details")
+      .select("lesson_id, tutor_payout, tutor_payout_status")
+      .in("lesson_id", lessonIds)
+      .eq("tutor_payout_status", "unpaid");
+    for (const d of (details ?? []) as any[]) {
+      const tid = tutorByLesson.get(d.lesson_id);
+      if (!tid) continue;
+      sumBy.set(tid, (sumBy.get(tid) ?? 0) + (Number(d.tutor_payout) || 0));
+      cntBy.set(tid, (cntBy.get(tid) ?? 0) + 1);
+    }
   }
 
   // Only remind about tutors who actually have something to pay today.

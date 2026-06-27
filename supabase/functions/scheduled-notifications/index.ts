@@ -110,9 +110,10 @@ Deno.serve(async (req) => {
         .eq("role", "tutor");
 
       for (const { user_id } of tutorRoles ?? []) {
+        // student_price + student_payment_status live on lesson_details (not lessons).
         const { data: lessons } = await db
           .from("lessons")
-          .select("id, student_price, student_payment_status")
+          .select("id, lesson_details(student_price, student_payment_status)")
           .eq("tutor_id", user_id)
           .eq("status", "completed")
           .gte("starts_at", monthStart)
@@ -122,8 +123,9 @@ Deno.serve(async (req) => {
         if (count === 0) continue;
 
         const income = (lessons ?? [])
-          .filter((l: any) => l.student_payment_status === "paid")
-          .reduce((sum: number, l: any) => sum + Number(l.student_price ?? 0), 0);
+          .map((l: any) => (Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details))
+          .filter((d: any) => d?.student_payment_status === "paid")
+          .reduce((sum: number, d: any) => sum + Number(d?.student_price ?? 0), 0);
 
         await upsertNotif(
           user_id,
@@ -147,9 +149,10 @@ Deno.serve(async (req) => {
         .eq("role", "tutor");
 
       for (const { user_id } of tutorRolesW ?? []) {
+        // student_price + student_payment_status live on lesson_details (not lessons).
         const { data: wLessons } = await db
           .from("lessons")
-          .select("id, student_price, student_payment_status, status")
+          .select("id, status, lesson_details(student_price, student_payment_status)")
           .eq("tutor_id", user_id)
           .gte("starts_at", weekStart.toISOString())
           .lt("starts_at", weekEnd.toISOString());
@@ -159,8 +162,9 @@ Deno.serve(async (req) => {
         if (count === 0) continue;
 
         const income = completed
-          .filter((l: any) => l.student_payment_status === "paid")
-          .reduce((sum: number, l: any) => sum + Number(l.student_price ?? 0), 0);
+          .map((l: any) => (Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details))
+          .filter((d: any) => d?.student_payment_status === "paid")
+          .reduce((sum: number, d: any) => sum + Number(d?.student_price ?? 0), 0);
 
         await upsertNotif(
           user_id,
