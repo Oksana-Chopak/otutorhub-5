@@ -78,9 +78,13 @@ Deno.serve(async (req) => {
     // 5. Delete the auth login (frees the email). Profile/roles already gone.
     const { error: delErr } = await admin.auth.admin.deleteUser(targetId);
     if (delErr) {
-      console.error('deleteUser failed', delErr);
-      // Data was purged but the login remains — surface so the manager can retry.
-      return json({ error: `Data purged, but auth deletion failed: ${delErr.message}`, partial: true }, 500);
+      // 404 user_not_found means the auth row was already gone — treat as success.
+      const code = (delErr as { status?: number; code?: string }).status;
+      const isMissing = code === 404 || (delErr as { code?: string }).code === 'user_not_found' || /not found/i.test(delErr.message);
+      if (!isMissing) {
+        console.error('deleteUser failed', delErr);
+        return json({ error: `Data purged, but auth deletion failed: ${delErr.message}`, partial: true }, 500);
+      }
     }
 
     // 6. Audit the auth removal (manager_purge_user already logged 'profile.purged').
