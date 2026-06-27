@@ -378,13 +378,16 @@ export default function DashboardPage() {
         .from("student_rates")
         .select("tutor_id, student_id, price_per_lesson, archived_at")
         .eq("tutor_id", user.id),
+      // Read via lessons_visible (security_invoker view): for a HUB tutor it returns
+      // student_price = NULL and student_payment_status = NULL, so the unpaid filter
+      // matches nothing — a hub tutor never receives the hub's student_price here.
       supabase
-        .from("lesson_details")
-        .select("lesson_id, student_price, lessons!inner(id, starts_at, subject, student_id, tutor_id, status)")
+        .from("lessons_visible")
+        .select("id, starts_at, subject, student_id, tutor_id, status, student_price, student_payment_status")
+        .eq("tutor_id", user.id)
         .eq("student_payment_status", "unpaid")
-        .eq("lessons.tutor_id", user.id)
-        .neq("lessons.status", "cancelled")
-        .neq("lessons.status", "pending")
+        .neq("status", "cancelled")
+        .neq("status", "pending")
         .limit(200),
     ]);
 
@@ -420,15 +423,14 @@ export default function DashboardPage() {
     setPaymentPairs(pairs);
 
     const unpaid: UnpaidLessonOption[] = ((details ?? []) as Array<{
-      student_price: number | null;
-      lessons: { id: string; starts_at: string; subject: string; student_id: string; tutor_id: string };
+      id: string; starts_at: string; subject: string; student_id: string; tutor_id: string; student_price: number | null;
     }>).map((d) => ({
-      id: d.lessons.id,
-      subject: d.lessons.subject,
-      starts_at: d.lessons.starts_at,
+      id: d.id,
+      subject: d.subject,
+      starts_at: d.starts_at,
       student_price: Number(d.student_price ?? 0),
-      student_id: d.lessons.student_id,
-      tutor_id: d.lessons.tutor_id,
+      student_id: d.student_id,
+      tutor_id: d.tutor_id,
     }));
     setPaymentUnpaid(unpaid);
   };
@@ -778,16 +780,7 @@ export default function DashboardPage() {
             student_payment_status: value,
             student_paid_at: value === "paid" ? new Date().toISOString() : null,
           })
-        : await supabase
-            .from("lesson_details")
-            .upsert(
-              {
-                lesson_id: lessonId,
-                [field]: value,
-                [paidAtField]: value === "paid" ? new Date().toISOString() : null,
-              } as any,
-              { onConflict: "lesson_id" },
-            );
+        : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lessonId, _status: value });
     if (error) {
       setLessons(prevLessons); // revert the optimistic change
       haptic.error();

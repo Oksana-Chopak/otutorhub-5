@@ -17,6 +17,10 @@ export type LessonDetailsPatch = {
   student_price?: number | string | null;
   student_payment_status?: "paid" | "unpaid" | string | null;
   student_paid_at?: string | null;
+  // Manager-only: the RPC applies these ONLY when the caller has the manager role
+  // (the columns are GRANT-locked otherwise). Safe to pass as a tutor — ignored.
+  tutor_payout?: number | string | null;
+  tutor_payout_status?: "paid" | "unpaid" | string | null;
   fireflies_meeting_id?: string | null;
   fireflies_requested_at?: string | null;
   fireflies_status?: string | null;

@@ -269,6 +269,17 @@ export default function FinancesPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    // SECURITY (financial-data isolation): a HUB tutor must NEVER receive student_price /
+    // student-payment columns — that is the HUB's revenue, and student_price − tutor_payout
+    // is the hub's margin (the tutor only earns their agreed tutor_payout). So a hub tutor
+    // fetches the payout columns ONLY, exactly mirroring the lessons_visible view's CASE.
+    // Managers + independent tutors legitimately see student_price (their own income).
+    const indDetailCols = isHubTutor
+      ? "tutor_payout, tutor_payout_status, tutor_paid_at"
+      : "student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at";
+    const grpPartCols = isHubTutor
+      ? "id, student_id"
+      : "id, student_id, student_price, student_payment_status, student_paid_at";
     const [
       { data: lessonsData, error: lErr },
       { data: groupLessonsData },
@@ -280,7 +291,7 @@ export default function FinancesPage() {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select("id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at)")
+          .select(`id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(${indDetailCols})`)
           .gte("starts_at", oneYearAgo)
           .limit(500);
         if (isManager) q = (q as any).neq("source", "independent");
@@ -293,7 +304,7 @@ export default function FinancesPage() {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select("id, subject, starts_at, status, tutor_id, lesson_participants(id, student_id, student_price, student_payment_status, student_paid_at)")
+          .select(`id, subject, starts_at, status, tutor_id, lesson_participants(${grpPartCols})`)
           .not("group_id", "is", null)
           .gte("starts_at", oneYearAgo)
           .limit(500);

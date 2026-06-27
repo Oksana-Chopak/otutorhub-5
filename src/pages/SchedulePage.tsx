@@ -751,18 +751,16 @@ export default function SchedulePage() {
       return d;
     }).filter((d) => Object.keys(d).length > 1);
     if (detailRows.length > 0) {
-      if (isManager) {
-        // Manager writes include tutor_payout/_status — go through the manager RLS policy.
-        const { error: detErr } = await supabase
-          .from("lesson_details")
-          .upsert(detailRows, { onConflict: "lesson_id" });
-        if (detErr) console.warn("lesson_details upsert after create failed", detErr);
-      } else {
-        // Tutor side: route per-row through the safe RPC (whitelisted columns only).
-        await Promise.all(
-          detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any))
-        );
-      }
+      // ALL lesson_details writes go through the safe RPC. It applies the manager-only
+      // payout columns (tutor_payout, tutor_payout_status) server-side ONLY when the
+      // caller is a manager — so this single path is correct for both manager and tutor,
+      // and never hits the "permission denied for column tutor_payout*" GRANT lock that a
+      // direct upsert did.
+      const results = await Promise.all(
+        detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any)),
+      );
+      const detErr = results.find((r) => r.error)?.error;
+      if (detErr) console.warn("lesson_details write after create failed", detErr);
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     toast.success(
@@ -826,23 +824,17 @@ export default function SchedulePage() {
     if (!lessons.find((l) => l.id === lessonId)?.student_id) return;
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
-    const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+    // tutor_payout_status / tutor_paid_at are column-locked (only the SECURITY DEFINER
+    // RPC set_lesson_tutor_payout_status may write them) — a direct upsert from a manager
+    // key hits "permission denied for column". Route each field to its correct writer,
+    // exactly like FinancesPage.togglePayment does.
     const { error } =
       field === "student_payment_status"
         ? await updateLessonDetailsSafe(lessonId, {
             student_payment_status: value,
             student_paid_at: value === "paid" ? new Date().toISOString() : null,
           })
-        : await supabase
-            .from("lesson_details")
-            .upsert(
-              {
-                lesson_id: lessonId,
-                [field]: value,
-                [paidAtField]: value === "paid" ? new Date().toISOString() : null,
-              } as any,
-              { onConflict: "lesson_id" },
-            );
+        : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lessonId, _status: value });
     if (error) {
       console.error("Failed to update payment status", error);
       toast.error(t('schedule.paymentUpdateFailed'));
