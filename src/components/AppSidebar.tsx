@@ -60,6 +60,7 @@ type NavItem = {
   roles: AppRole[];
   badgeKey?: "availability" | "chats" | "subscription";
   independentOnly?: boolean;
+  superadminOnly?: boolean;
 };
 
 // Single 5-item navigation per role. All other pages live under /profile.
@@ -81,6 +82,7 @@ const allNavItems: NavItem[] = [
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },
   { to: "/marketing", labelKey: "nav.marketing", icon: Mail, roles: ["manager"] },
   { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"] },
+  { to: "/admin", labelKey: "nav.admin", icon: BarChart3, roles: ["manager"], superadminOnly: true },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
   // Student
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },
@@ -119,7 +121,19 @@ export function AppSidebar() {
   // tutors, otherwise a hub tutor taps it and bounces straight back to the dashboard.
   const showOnboardingHelp = isTutorRole && isIndependent;
 
+  // Platform superadmin (Oxy) — drives the /admin nav link only. Real enforcement is
+  // server-side in the admin-stats edge function; this just shows/hides the entry.
+  const [isSuperadmin, setIsSuperadmin] = useState(false);
+  useEffect(() => {
+    if (!roles.includes("manager")) return;
+    let active = true;
+    // cast: is_superadmin enters generated types only after the migration is applied
+    (supabase as any).rpc("is_superadmin").then(({ data }: { data: unknown }) => { if (active) setIsSuperadmin(data === true); });
+    return () => { active = false; };
+  }, [roles]);
+
   const navItems = allNavItems.filter((item) => {
+    if (item.superadminOnly && !isSuperadmin) return false;
     if (!item.roles.some((r) => roles.includes(r))) return false;
     if (item.independentOnly && !isIndependent && !roles.includes("manager")) return false;
     return true;

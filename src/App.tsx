@@ -24,6 +24,7 @@ const ChatsPage = lazy(() => import("./pages/ChatsPage"));
 const PeoplePage = lazy(() => import("./pages/PeoplePage"));
 const AvailabilityPage = lazy(() => import("./pages/AvailabilityPage"));
 const AuditLogPage = lazy(() => import("./pages/AuditLogPage"));
+const AdminStatsPage = lazy(() => import("./pages/AdminStatsPage"));
 const ErrorLogPage = lazy(() => import("./pages/ErrorLogPage"));
 
 // Capture uncaught errors + rejections globally → error_log (managers see them on /errors).
@@ -139,6 +140,14 @@ function AppRoutes() {
             element={
               <ProtectedRoute allowedRoles={["manager"]}>
                 <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <AdminStatsPage />
               </ProtectedRoute>
             }
           />

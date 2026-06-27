@@ -83,3 +83,5 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = true
   [functions.remind-payment]
     verify_jwt = true
+  [functions.admin-stats]
+    verify_jwt = true
