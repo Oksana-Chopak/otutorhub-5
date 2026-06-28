@@ -1843,6 +1843,7 @@ export const uk = {
     lessonCompletedStreak: "🔥 {{count}} днів поспіль!",
     lessonCompletedGood: "Чудово! 💪",
     paymentReceivedToast: "💰 +{{amount}} від {{name}}!",
+    paymentCheckFinances: "Позначено оплаченим — завжди можна перевірити у Фінансах",
     firstLessonToast: "🎉 Перший урок проведено! Вітаємо!",
     studentPaidQuestion: "Учень оплатив?",
     paidAction: "Оплачено ✓",

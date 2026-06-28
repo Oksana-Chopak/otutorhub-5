@@ -276,6 +276,9 @@ export default function DashboardPage() {
   const [paymentSheetOpen, setPaymentSheetOpen] = useState(false);
   const [paymentPairs, setPaymentPairs] = useState<PairOption[]>([]);
   const [paymentUnpaid, setPaymentUnpaid] = useState<UnpaidLessonOption[]>([]);
+  // Pending-payment cards currently animating OUT (marked paid) — kept rendered briefly
+  // so the manager SEES them leave instead of an instant vanish.
+  const [exitingPay, setExitingPay] = useState<Record<string, any>>({});
   const [openLessonId, setOpenLessonId] = useState<string | null>(null);
   // Default to THIS MONTH — the profit bubble is a "this month" metric, not lifetime
   // ("За весь час" misread as monthly). Applies to every role's profit card.
@@ -796,7 +799,11 @@ export default function DashboardPage() {
             amount: formatPrice(lesson.student_price, currency, { decimals: 0 }),
             name: firstName,
           }),
-          { duration: 4000 },
+          {
+            duration: 5000,
+            description: t("dashboardExtra.paymentCheckFinances"),
+            action: { label: t("nav.finances"), onClick: () => navigate("/finances") },
+          },
         );
       }
     }
@@ -810,6 +817,20 @@ export default function DashboardPage() {
         link: "/finances",
       });
     }
+  };
+
+  // Mark a pending-payment card paid WITH a visible exit: keep it on screen ~600ms with a
+  // slide-out animation (so the manager sees it leave + reads the toast), then drop it.
+  const markPendingPaid = (lesson: any) => {
+    setExitingPay((e) => ({ ...e, [lesson.id]: lesson }));
+    void updatePayment(lesson.id, "student_payment_status", "paid" as PaymentStatus);
+    window.setTimeout(() => {
+      setExitingPay((e) => {
+        const n = { ...e };
+        delete n[lesson.id];
+        return n;
+      });
+    }, 600);
   };
 
   const markPayoutPaid = async (tutorId: string) => {
@@ -2049,27 +2070,44 @@ export default function DashboardPage() {
               ) : (
                 /* Lesson cards — same style as schedule list */
                 <div className="space-y-2.5">
-                  {pendingPayments.slice(0, 5).map((lesson) => {
+                  {[
+                    ...pendingPayments.slice(0, 5),
+                    ...Object.values(exitingPay).filter((l: any) => !pendingPayments.some((p) => p.id === l.id)),
+                  ].map((lesson: any) => {
                     const tutorName = profiles[lesson.tutor_id] ?? "—";
                     const studentName = lesson.student_id ? (profiles[lesson.student_id] ?? "—") : t("groupLessons.cardLabel");
                     const meetingHref = effectiveMeetingUrl(lesson);
+                    const isExiting = !!exitingPay[lesson.id];
                     return (
-                      <LessonCard
+                      <div
                         key={lesson.id}
-                        lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                        role={isManager ? "manager" : "tutor"}
-                        studentName={studentName}
-                        tutorName={tutorName}
-                        showTutor
-                        meetingUrl={meetingHref}
-                        chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
-                        onContentClick={() => setOpenLessonId(lesson.id)}
-                        className={lessonSourceTint(lesson.source)}
-                        canEditStatus
-                        statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
-                        onStatusChange={(s) => updateStatus(lesson.id, s)}
-                        onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
-                      />
+                        className="transition-all duration-500 ease-out"
+                        style={isExiting ? { opacity: 0, transform: "translateX(32px) scale(0.97)" } : undefined}
+                      >
+                        <LessonCard
+                          lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                          role={isManager ? "manager" : "tutor"}
+                          studentName={studentName}
+                          tutorName={tutorName}
+                          showTutor
+                          meetingUrl={meetingHref}
+                          chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
+                          onContentClick={() => setOpenLessonId(lesson.id)}
+                          className={lessonSourceTint(lesson.source)}
+                          canEditStatus
+                          statusOptions={["scheduled","completed","cancelled"] as LessonStatus[]}
+                          onStatusChange={(s) => updateStatus(lesson.id, s)}
+                          onPayChange={(field, paid) =>
+                            field === "student" && paid
+                              ? markPendingPaid(lesson)
+                              : updatePayment(
+                                  lesson.id,
+                                  field === "student" ? "student_payment_status" : "tutor_payout_status",
+                                  (paid ? "paid" : "unpaid") as PaymentStatus,
+                                )
+                          }
+                        />
+                      </div>
                     );
                   })}
                   {pendingPayments.length > 5 && (

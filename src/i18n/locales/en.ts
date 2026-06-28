@@ -1832,6 +1832,7 @@ export const en: LocaleTranslations = {
     lessonCompletedStreak: "🔥 {{count}} days in a row!",
     lessonCompletedGood: "Great job! 💪",
     paymentReceivedToast: "💰 +{{amount}} from {{name}}!",
+    paymentCheckFinances: "Marked as paid — you can always double-check it in Finances",
     firstLessonToast: "🎉 First lesson done! Congrats!",
     studentPaidQuestion: "Did the student pay?",
     paidAction: "Paid ✓",

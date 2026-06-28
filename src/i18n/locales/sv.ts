@@ -1822,6 +1822,7 @@ export const sv: LocaleTranslations = {
     lessonCompletedStreak: "🔥 {{count}} dagar i rad!",
     lessonCompletedGood: "Bra jobbat! 💪",
     paymentReceivedToast: "💰 +{{amount}} från {{name}}!",
+    paymentCheckFinances: "Markerad som betald — du kan alltid dubbelkolla i Ekonomi",
     firstLessonToast: "🎉 Första lektionen klar! Grattis!",
     studentPaidQuestion: "Betalade eleven?",
     paidAction: "Betald ✓",
