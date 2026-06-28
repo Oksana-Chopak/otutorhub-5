@@ -1083,6 +1083,18 @@ export default function DashboardPage() {
       .reduce((sum, l) => sum + (Number(l.tutor_payout) || 0), 0);
   }, [isHubTutor, lessons, user?.id]);
 
+  // How many lessons make up the "до виплати" sum (for the premium payout card chip).
+  const hubPayoutLessonsCount = useMemo(() => {
+    if (!isHubTutor || !user) return 0;
+    return lessons.filter(
+      (l) =>
+        l.tutor_id === user.id &&
+        l.status !== "cancelled" &&
+        l.status !== "pending" &&
+        l.tutor_payout_status === "unpaid",
+    ).length;
+  }, [isHubTutor, lessons, user?.id]);
+
   // Next payout date from the tutor's own schedule (null if no schedule set).
   const hubNextPayout = useMemo(
     () => (hubPayoutSchedule ? nextPayoutDate(hubPayoutSchedule) : null),
@@ -1817,64 +1829,92 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <p
-                  className="mt-3 text-[32px] font-extrabold leading-none"
+                  className="mt-3 text-[40px] font-extrabold leading-none"
                   style={{ color: "var(--teal)", letterSpacing: "-0.02em" }}
                 >
                   {formatPrice(hubPayoutDue, "UAH")}
                 </p>
-                <div className="mt-2 flex flex-wrap items-center justify-between gap-2.5">
-                  <span className="text-[14px]" style={{ color: "rgba(255,255,255,.7)" }}>
+                {hubPayoutDue > 0 ? (
+                  <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                    {hubNextPayout && (
+                      <span
+                        className="inline-flex h-[32px] items-center gap-1.5 rounded-full px-3 text-[14px] font-bold"
+                        style={{ background: "rgba(255,255,255,.1)" }}
+                      >
+                        <CalendarDays className="h-4 w-4" />
+                        {hubNextPayout.toLocaleDateString(getLocale(), { day: "numeric", month: "long" })}
+                      </span>
+                    )}
+                    <span
+                      className="inline-flex h-[32px] items-center rounded-full px-3 text-[14px] font-bold"
+                      style={{ background: "rgba(255,255,255,.1)" }}
+                    >
+                      {t("hubTutor.payoutLessonsChip", { count: hubPayoutLessonsCount })}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="mt-2.5 text-[15px]" style={{ color: "rgba(255,255,255,.66)" }}>
                     {hubNextPayout
                       ? t("hubTutor.payoutOn", {
                           date: hubNextPayout.toLocaleDateString(getLocale(), { day: "numeric", month: "long" }),
                         })
-                      : t("hubTutor.payoutBySchedule")}
-                    {hubRate != null && hubRate > 0 && (
-                      <> · {t("hubTutor.rateLabel", { rate: formatPrice(hubRate, "UAH") })}</>
-                    )}
-                  </span>
-                </div>
+                      : t("hubTutor.payoutEmptyHint")}
+                  </p>
+                )}
+                {hubRate != null && hubRate > 0 && (
+                  <div
+                    className="mt-4 flex items-center justify-between border-t pt-3.5"
+                    style={{ borderColor: "rgba(255,255,255,.12)" }}
+                  >
+                    <span className="text-[15px]" style={{ color: "rgba(255,255,255,.6)" }}>
+                      {t("hubTutor.rateFooterLabel")}
+                    </span>
+                    <span className="text-[18px] font-extrabold" style={{ color: "#4ade80" }}>
+                      {formatPrice(hubRate, "UAH")}
+                    </span>
+                  </div>
+                )}
               </Link>
 
               {/* Two stat tiles: hub students + lessons today (COUNTS only) */}
               <div className="grid grid-cols-2 gap-3">
                 <div
-                  className="rounded-[16px] border bg-white p-[15px]"
+                  className="rounded-[18px] border bg-white p-[18px]"
                   style={{ borderColor: "var(--border,#eceef3)" }}
                 >
                   <div
-                    className="mb-2 flex h-8 w-8 items-center justify-center rounded-[10px]"
+                    className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px]"
                     style={{ background: "rgba(124,58,237,.1)" }}
                   >
-                    <GraduationCap className="h-4 w-4" style={{ color: "#7c3aed" }} />
+                    <GraduationCap className="h-5 w-5" style={{ color: "#7c3aed" }} />
                   </div>
                   <p
-                    className="text-[26px] font-extrabold leading-none"
+                    className="text-[30px] font-extrabold leading-none"
                     style={{ color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}
                   >
                     {hubStudentCount ?? 0}
                   </p>
-                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#9398b0)" }}>
                     {t("hubTutor.hubStudents")}
                   </p>
                 </div>
                 <div
-                  className="rounded-[16px] border bg-white p-[15px]"
+                  className="rounded-[18px] border bg-white p-[18px]"
                   style={{ borderColor: "var(--border,#eceef3)" }}
                 >
                   <div
-                    className="mb-2 flex h-8 w-8 items-center justify-center rounded-[10px]"
+                    className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px]"
                     style={{ background: "rgba(43,191,170,.1)" }}
                   >
-                    <CalendarDays className="h-4 w-4" style={{ color: "var(--teal)" }} />
+                    <CalendarDays className="h-5 w-5" style={{ color: "var(--teal)" }} />
                   </div>
                   <p
-                    className="text-[26px] font-extrabold leading-none"
+                    className="text-[30px] font-extrabold leading-none"
                     style={{ color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}
                   >
                     {hubLessonsTodayCount}
                   </p>
-                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#9398b0)" }}>
                     {t("hubTutor.lessonsToday")}
                   </p>
                 </div>
