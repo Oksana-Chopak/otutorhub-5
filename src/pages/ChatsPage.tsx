@@ -4,7 +4,6 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
-import { StudentLayout } from "@/components/student/StudentLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -795,10 +794,9 @@ export default function ChatsPage() {
     return d.toLocaleDateString(getLocale(), { day: "numeric", month: "long" });
   };
 
-  // A pure student must keep their OWN shell (white StudentLayout sidebar + student nav)
-  // on /chats — otherwise the sidebar flips to the dark manager/tutor AppLayout and back.
-  const isPureStudent = roles.includes("student") && !roles.includes("manager") && !roles.includes("tutor");
-  const Shell = isPureStudent ? StudentLayout : AppLayout;
+  // Everyone — including pure students — now rides the same shared AppLayout chrome
+  // (dark AppSidebar + golden bell + burger), so /chats no longer flips shells.
+  const Shell = AppLayout;
   return (
     <Shell>
       {loading ? (

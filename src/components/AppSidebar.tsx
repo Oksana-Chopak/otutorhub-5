@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   LayoutDashboard,
+  BookOpen,
   CalendarDays,
   DollarSign,
   MessageSquare,
@@ -84,11 +85,14 @@ const allNavItems: NavItem[] = [
   { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"] },
   { to: "/admin", labelKey: "nav.admin", icon: BarChart3, roles: ["manager"], superadminOnly: true },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["manager"] },
-  // Student
-  { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["student"] },
-  { to: "/schedule", labelKey: "nav.schedule", icon: CalendarDays, roles: ["student"] },
-  { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
-  { to: "/student/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["student"] },
+  // Student — mirrors STUDENT_NAV_DEFS so the student rides the SAME AppSidebar as
+  // every other role (was a separate light StudentLayout sidebar before).
+  { to: "/student-dashboard", labelKey: "studentNav.dashboard", icon: LayoutDashboard, roles: ["student"] },
+  { to: "/student/schedule", labelKey: "studentNav.schedule", icon: CalendarDays, roles: ["student"] },
+  { to: "/student/payments", labelKey: "studentNav.payments", icon: DollarSign, roles: ["student"] },
+  { to: "/student/homework", labelKey: "studentNav.homework", icon: BookOpen, roles: ["student"] },
+  { to: "/chats", labelKey: "studentNav.chats", icon: MessageSquare, roles: ["student"], badgeKey: "chats" },
+  { to: "/student/profile", labelKey: "studentNav.profile", icon: UserCircle, roles: ["student"] },
 ];
 
 const roleLabelKey: Record<AppRole, string> = {
@@ -116,10 +120,10 @@ export function AppSidebar() {
   const { theme, toggleTheme } = useTheme();
   const { isIndependent, settings } = useWorkspaceSettings();
   const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
-  // The setup guide (/onboarding) is INDEPENDENT-only (it sets up your own workspace) and
-  // OnboardingFlowB now redirects hub tutors away — so only show the entry to independent
-  // tutors, otherwise a hub tutor taps it and bounces straight back to the dashboard.
-  const showOnboardingHelp = isTutorRole && isIndependent;
+  // The setup guide (/onboarding) is for EVERY tutor: independent tutors set up their own
+  // workspace; hub tutors get the hub-scoped step set (OnboardingFlowB skips the
+  // manager-owned steps). Show the entry to both, never to managers/students.
+  const showOnboardingHelp = isTutorRole;
 
   // Platform superadmin (Oxy) — drives the /admin nav link only. Real enforcement is
   // server-side in the admin-stats edge function; this just shows/hides the entry.
@@ -285,7 +289,7 @@ export function AppSidebar() {
             >
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
-              {isIndependent && !settings?.onboarding_completed && (
+              {!settings?.onboarding_completed && (
                 <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[14px] font-semibold text-white animate-pulse">
                   {t("nav.newBadge")}
                 </span>

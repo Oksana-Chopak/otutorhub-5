@@ -1201,6 +1201,9 @@ export default function DashboardPage() {
 
   const pendingBonusTasks = TUTOR_BONUS_TASKS.filter(
     (t) => !t.done && !skippedTasks.includes(t.action)
+      // Hub tutors get the same setup helpers (availability, Zoom, calendar, AI notes)
+      // for parity — but NOT "referral" (Pro referrals are an independent-tutor concept).
+      && !(isHubTutor && t.action === "referral")
   );
 
   const smartTasks = useMemo(() => {
@@ -2437,8 +2440,8 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
-                  {/* Independent tutor: dynamic onboarding bonus tasks */}
-                  {isIndependentTutor && !obProgress.loading && (
+                  {/* Tutors (independent + hub): dynamic onboarding bonus tasks (parity) */}
+                  {(isIndependentTutor || isHubTutor) && !obProgress.loading && (
                     <>
                       {pendingBonusTasks.length === 0 ? (
                         <div className="rounded-[16px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
@@ -2542,7 +2545,12 @@ export default function DashboardPage() {
           tutor's own source:'independent' rows, so for a manager they create a
           malformed record / show an empty list. Route managers to the canonical
           Schedule / People / Finances surfaces instead. */}
-      {(isTutor || isManager) && (
+      {/* Hub tutor: ONE primary action — create a lesson via the canonical Schedule
+          form (its student picker reads the hub students). The independent quick
+          dialogs query source:'independent' rows → empty list for a hub tutor, and a
+          hub tutor must NOT add students (the manager owns them). So PageFAB, not AddFab. */}
+      {isHubTutor && <PageFAB onClick={() => navigate("/schedule?create=1")} />}
+      {(isManager || isIndependentTutor) && (
         <AddFab
           onLesson={() => (isManager ? navigate("/schedule?create=1") : setQuickLessonOpen(true))}
           onStudent={() => (isManager ? navigate("/people?add=student") : setAddStudentOpen(true))}

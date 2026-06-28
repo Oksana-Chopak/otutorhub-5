@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { StudentLayout } from "@/components/student/StudentLayout";
+import { AppLayout } from "@/components/AppLayout";
 import { StudentAchievementsGrid } from "@/components/student/StudentAchievementsGrid";
 import { useStudentRewards } from "@/hooks/useStudentRewards";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
@@ -34,7 +34,7 @@ export default function StudentAchievementsPage() {
   const ringOffset = total > 0 ? C * (1 - earnedN / total) : C;
 
   return (
-    <StudentLayout>
+    <AppLayout>
       <div className="mx-auto max-w-2xl space-y-4">
         <div>
           <h1 className="font-display text-[22px] font-extrabold text-foreground sm:text-2xl">
@@ -137,6 +137,6 @@ export default function StudentAchievementsPage() {
           </>
         )}
       </div>
-    </StudentLayout>
+    </AppLayout>
   );
 }

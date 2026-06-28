@@ -27,8 +27,23 @@ import { toast } from "sonner";
 import { Loader2, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
-import type { StepProgress } from "@/components/OnboardingContent";
 import i18nInstance from "@/i18n";
+
+// StepProgress lived in the now-removed dead OnboardingContent.tsx (this was its only
+// consumer). Tracks which setup steps the tutor has completed.
+export interface StepProgress {
+  hasSubject: boolean;
+  hasStudent: boolean;
+  hasLesson: boolean;
+  hasAvailability: boolean;
+  hasReferral: boolean;
+  hasMeetingUrl: boolean;
+  hasChat: boolean;
+  hasPaidLesson: boolean;
+  hasPaymentRules: boolean;
+  hasAutoCompleteChoice: boolean;
+  hasGoogleCalendar: boolean;
+}
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {

@@ -10,7 +10,7 @@ import { Home, CalendarDays, Wallet, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUnreadChats } from "@/hooks/useUnreadChats";
 import { useAuth } from "@/hooks/useAuth";
-import { STUDENT_NAV_DEFS } from "@/components/student/StudentLayout";
+import { STUDENT_NAV_DEFS } from "@/components/student/studentNav";
 import { cn } from "@/lib/utils";
 
 export function MobileBottomNav() {

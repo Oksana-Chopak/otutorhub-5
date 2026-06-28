@@ -8,7 +8,6 @@ import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { StudentRewardsShelf } from "@/components/StudentRewardsShelf";
-import { StudentLayout } from "@/components/student/StudentLayout";
 
 export default function AchievementsPage() {
   const { t } = useTranslation();
@@ -18,9 +17,9 @@ export default function AchievementsPage() {
 
   if (isPureStudent) {
     return (
-      <StudentLayout>
+      <AppLayout>
         <StudentRewardsShelf />
-      </StudentLayout>
+      </AppLayout>
     );
   }
 

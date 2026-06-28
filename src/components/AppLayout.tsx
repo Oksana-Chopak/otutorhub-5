@@ -28,6 +28,13 @@ const routeTitleKey: Record<string, string> = {
   "/availability": "nav.availability",
   "/feedback-inbox": "feedbackInbox.title",
   "/marketing": "nav.marketing",
+  // Student routes — now on the shared AppLayout chrome (was StudentLayout before)
+  "/student-dashboard": "studentNav.myDashboard",
+  "/student/schedule": "studentNav.schedule",
+  "/student/payments": "studentNav.payments",
+  "/student/homework": "studentNav.myHomework",
+  "/student/profile": "studentNav.profile",
+  "/student/achievements": "nav.achievements",
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -37,6 +44,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
+      {/* Offline banner — was imported but never rendered (so it never showed for any
+          role). Rendered here so the whole app, every role, gets it. */}
+      <OfflineBanner />
       <AppSidebar />
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
         {titleKey && (

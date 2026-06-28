@@ -28,7 +28,7 @@ interface Props {
   bottom?: number;
 }
 
-export function AddFab({ onLesson, onStudent, onPayment, bottom = 88 }: Props) {
+export function AddFab({ onLesson, onStudent, onPayment, bottom = 78 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
 
@@ -47,7 +47,7 @@ export function AddFab({ onLesson, onStudent, onPayment, bottom = 88 }: Props) {
           onClick={() => setOpen(false)} />
       )}
 
-      <div className="fixed right-4 z-40 flex flex-col items-end gap-2.5"
+      <div className="fixed right-4 z-50 flex flex-col items-end gap-2.5"
         style={{ bottom }}>
         {/* Action items — appear from bottom */}
         {open && ACTIONS.map((a, i) => (
@@ -72,16 +72,16 @@ export function AddFab({ onLesson, onStudent, onPayment, bottom = 88 }: Props) {
         {/* Main FAB */}
         <button
           onClick={() => setOpen(v => !v)}
-          className="w-[58px] h-[58px] rounded-[18px] border-0 cursor-pointer flex items-center justify-center transition-transform active:scale-95"
+          className="w-[52px] h-[52px] rounded-full border-0 cursor-pointer flex items-center justify-center transition-transform active:scale-95"
           style={{
-            background: "linear-gradient(135deg,#2BBFAA,#25a896)",
-            boxShadow: "0 12px 28px -8px rgba(43,191,170,.65)",
+            background: "var(--teal,#2BBFAA)",
+            boxShadow: "0 4px 16px rgba(43,191,170,0.4)",
             transform: open ? "rotate(45deg)" : "rotate(0deg)",
             transition: "transform .2s cubic-bezier(.34,1.56,.64,1)",
           }}
           aria-label={open ? t("addFab.close") : t("addFab.add")}>
-          {open ? <X size={28} strokeWidth={2.2} color="#fff" />
-                : <Plus size={28} strokeWidth={2.4} color="#fff" />}
+          {open ? <X size={24} strokeWidth={2.2} color="#fff" />
+                : <Plus size={24} strokeWidth={2.4} color="#fff" />}
         </button>
       </div>
 
