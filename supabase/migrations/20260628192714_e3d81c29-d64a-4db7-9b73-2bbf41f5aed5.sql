@@ -1,0 +1,89 @@
+-- Let managers write the payout columns (tutor_payout, tutor_payout_status) through the
+-- safe RPC. Those columns are GRANT-locked, so a direct upsert from a manager key fails
+-- with "permission denied for column tutor_payout*". The toggle paths already route
+-- through set_lesson_tutor_payout_status; this extends update_lesson_details_safe so the
+-- manager lesson-CREATE flow (which sets price + payout in one patch) also works through
+-- one safe path instead of a blocked direct upsert.
+--
+-- The payout columns are applied ONLY when the caller is a manager; for a tutor they are
+-- ignored (so a tutor still can't set their own payout). Everything else is unchanged
+-- from 20260703000000.
+
+CREATE OR REPLACE FUNCTION public.update_lesson_details_safe(_lesson_id uuid, _patch jsonb)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_tutor  uuid;
+  v_is_mgr boolean;
+BEGIN
+  IF _lesson_id IS NULL THEN RAISE EXCEPTION 'lesson_id required'; END IF;
+  IF _patch IS NULL OR jsonb_typeof(_patch) <> 'object' THEN RAISE EXCEPTION 'patch must be a jsonb object'; END IF;
+
+  SELECT tutor_id INTO v_tutor FROM public.lessons WHERE id = _lesson_id;
+  IF v_tutor IS NULL THEN RAISE EXCEPTION 'lesson not found'; END IF;
+
+  v_is_mgr := public.has_role(auth.uid(), 'manager');
+  IF NOT (auth.uid() = v_tutor OR v_is_mgr) THEN
+    RAISE EXCEPTION 'forbidden';
+  END IF;
+
+  INSERT INTO public.lesson_details (lesson_id) VALUES (_lesson_id)
+  ON CONFLICT (lesson_id) DO NOTHING;
+
+  UPDATE public.lesson_details SET
+    homework               = CASE WHEN _patch ? 'homework'               THEN NULLIF(_patch->>'homework','')                 ELSE homework END,
+    summary                = CASE WHEN _patch ? 'summary'                THEN NULLIF(_patch->>'summary','')                  ELSE summary END,
+    student_notes          = CASE WHEN _patch ? 'student_notes'          THEN NULLIF(_patch->>'student_notes','')            ELSE student_notes END,
+    student_price          = CASE WHEN _patch ? 'student_price'          THEN NULLIF(_patch->>'student_price','')::numeric    ELSE student_price END,
+    student_payment_status = CASE WHEN _patch ? 'student_payment_status' THEN NULLIF(_patch->>'student_payment_status','')   ELSE student_payment_status END,
+    student_paid_at        = CASE
+                               WHEN _patch ? 'student_paid_at'
+                                 THEN NULLIF(_patch->>'student_paid_at','')::timestamptz
+                               WHEN _patch ? 'student_payment_status'
+                                 THEN CASE WHEN NULLIF(_patch->>'student_payment_status','') = 'paid'
+                                           THEN COALESCE(student_paid_at, now())
+                                           ELSE NULL END
+                               ELSE student_paid_at
+                             END,
+    -- Manager-only payout columns (applied ONLY for managers; ignored for tutors).
+    tutor_payout           = CASE WHEN v_is_mgr AND _patch ? 'tutor_payout'
+                                  THEN NULLIF(_patch->>'tutor_payout','')::numeric ELSE tutor_payout END,
+    tutor_payout_status    = CASE WHEN v_is_mgr AND _patch ? 'tutor_payout_status'
+                                  THEN NULLIF(_patch->>'tutor_payout_status','') ELSE tutor_payout_status END,
+    tutor_paid_at          = CASE
+                               WHEN v_is_mgr AND _patch ? 'tutor_payout_status'
+                                 THEN CASE WHEN NULLIF(_patch->>'tutor_payout_status','') = 'paid'
+                                           THEN COALESCE(tutor_paid_at, now())
+                                           ELSE NULL END
+                               ELSE tutor_paid_at
+                             END,
+    fireflies_meeting_id   = CASE WHEN _patch ? 'fireflies_meeting_id'   THEN NULLIF(_patch->>'fireflies_meeting_id','')     ELSE fireflies_meeting_id END,
+    fireflies_requested_at = CASE WHEN _patch ? 'fireflies_requested_at' THEN NULLIF(_patch->>'fireflies_requested_at','')::timestamptz ELSE fireflies_requested_at END,
+    fireflies_status       = CASE WHEN _patch ? 'fireflies_status'       THEN NULLIF(_patch->>'fireflies_status','')         ELSE fireflies_status END,
+    updated_at             = now()
+  WHERE lesson_id = _lesson_id;
+END $$;
+
+REVOKE EXECUTE ON FUNCTION public.update_lesson_details_safe(uuid, jsonb) FROM PUBLIC, anon;
+GRANT  EXECUTE ON FUNCTION public.update_lesson_details_safe(uuid, jsonb) TO authenticated;
+
+-- FIX: "the payout schedule keeps flying off."
+--
+-- PayoutScheduleCard SAVES the schedule via the SECURITY DEFINER RPC
+-- set_tutor_payout_schedule (which bypasses column grants — so the save itself always
+-- persisted). But the card RELOADS the schedule with a plain SELECT of
+-- payout_frequency / payout_weekday / payout_monthday on tutor_details. Migration
+-- 20260419081232 did `REVOKE SELECT ON tutor_details FROM authenticated` and then granted
+-- SELECT on only a handful of columns — the payout_* columns (added later, for the payout
+-- schedule feature) were never in that grant. So every reload hit
+-- "permission denied for column payout_frequency", the card treated the columns as
+-- missing, and the schedule appeared reset on every reopen.
+--
+-- Fix: grant SELECT on the payout-schedule columns. RLS still controls WHICH rows each
+-- role can read (a manager sees their hub tutors; a tutor sees their own row), so this
+-- only makes the already-permitted rows' payout schedule actually readable.
+GRANT SELECT (payout_frequency, payout_weekday, payout_monthday, payout_anchor)
+  ON public.tutor_details TO authenticated;
