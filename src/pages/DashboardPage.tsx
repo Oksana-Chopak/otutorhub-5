@@ -1572,7 +1572,7 @@ export default function DashboardPage() {
                       💰 Дохід
                     </p>
                     <p className="font-black leading-none mt-0.5"
-                      style={{ fontSize: 20, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                      style={{ fontSize: 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
                       {formatPrice(profit, "UAH")}
                     </p>
                     {profitGrowthPct !== null && (
@@ -1596,7 +1596,7 @@ export default function DashboardPage() {
                       Учні
                     </p>
                     <p className="font-black leading-none mt-0.5"
-                      style={{ fontSize: 20, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
+                      style={{ fontSize: 30, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
                       {studentCount}
                     </p>
                   </div>
@@ -1611,7 +1611,7 @@ export default function DashboardPage() {
                       <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
                         🏅 Рівень
                       </p>
-                      <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
+                      <p className="font-black text-[18px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
                         {level.emoji} {level.name}
                       </p>
                     </div>
@@ -1631,7 +1631,7 @@ export default function DashboardPage() {
                       <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#6b7088)" }}>
                         Серія
                       </p>
-                      <p className="font-black text-[16px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
+                      <p className="font-black text-[18px] leading-tight mt-0.5" style={{ fontFamily: "Inter, system-ui" }}>
                         {streak.current_streak} {streak.current_streak === 1 ? "день" : streak.current_streak < 5 ? "дні" : "днів"}
                       </p>
                     </div>
@@ -1715,7 +1715,7 @@ export default function DashboardPage() {
                   style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
                 >
                   <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>💰 {t("dashboard.cardProfit")}</p>
-                  <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
+                  <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>{formatPrice(profit, "UAH")}</p>
                   <p className="mt-0.5 text-[14px] font-medium" style={{ color: "#6b7a99" }}>{profitPeriodLabel[profitPeriod]}</p>
                   <div className="mt-2 flex items-end gap-0.5" style={{ height: "16px" }}>
                     {monthlyProfitBars.map((h, i) => (
@@ -1727,7 +1727,7 @@ export default function DashboardPage() {
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutors")}</p>
-                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardTutorsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
@@ -1735,7 +1735,7 @@ export default function DashboardPage() {
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
-                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
@@ -1743,7 +1743,7 @@ export default function DashboardPage() {
                 <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.todayLessons")}</p>
-                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: todayLessons.length===0?"var(--muted)":"var(--teal)" }}>{todayLessons.length===0?t("dashboard.todayFree"):t("dashboard.lessonsToday")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
@@ -1961,7 +1961,7 @@ export default function DashboardPage() {
                   <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💼 {t("hubTutor.payoutDueTitle")}
                   </p>
-                  <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
+                  <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
                     {formatPrice(hubPayoutDue, "UAH")}
                   </p>
                   <p className="mt-0.5 text-[14px] font-medium" style={{ color: "#6b7a99" }}>
@@ -1986,7 +1986,7 @@ export default function DashboardPage() {
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("hubTutor.hubStudents")}
                     </p>
-                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
                       {hubStudentCount ?? 0}
                     </p>
                     <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
@@ -2005,7 +2005,7 @@ export default function DashboardPage() {
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>
                       {t("dashboard.todayLessons")}
                     </p>
-                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
                       {hubLessonsTodayCount}
                     </p>
                     <p
