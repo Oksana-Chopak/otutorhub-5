@@ -200,7 +200,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.subjectIntro")}
       </p>
       <div className="flex flex-wrap gap-2">
@@ -541,7 +541,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       {/* Reminder toggle */}
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{t("onboardingFlowB.proRulesReminderTitle")}</p>
+          <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{t("onboardingFlowB.proRulesReminderTitle")}</p>
           <p className="text-[14px] mt-0.5 leading-snug" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesReminderDesc")}</p>
         </div>
         <Switch checked={reminder} onCheckedChange={setReminder} />
@@ -556,7 +556,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
           <div className="flex items-center gap-2.5 mt-3">
             <Input value={days} inputMode="numeric" onChange={e => setDays(e.target.value.replace(/\D/g,"").slice(0,2))}
               className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
-            <span className="text-[14.5px]" style={{ color: T.sub }}>{mode === "before_lesson" ? t("onboardingFlowB.proRulesDaysBefore") : t("onboardingFlowB.proRulesDaysAfter")}</span>
+            <span className="text-[15px]" style={{ color: T.sub }}>{mode === "before_lesson" ? t("onboardingFlowB.proRulesDaysBefore") : t("onboardingFlowB.proRulesDaysAfter")}</span>
           </div>
         )}
       </div>
@@ -566,7 +566,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
         <div className="flex items-center gap-2.5">
           <Input value={hours} inputMode="numeric" onChange={e => setHours(e.target.value.replace(/\D/g,"").slice(0,3))}
             className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
-          <span className="text-[14.5px]" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesHoursBefore")}</span>
+          <span className="text-[15px]" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesHoursBefore")}</span>
         </div>
       </div>
       {/* Fee % */}
@@ -667,7 +667,7 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>{t("onboardingFlowB.availabilityIntro")}</p>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>{t("onboardingFlowB.availabilityIntro")}</p>
       <div className="flex gap-1.5 flex-wrap">
         {DAYS_UA.map((d, di) => (
           <button key={d} onClick={() => toggle(d)}
@@ -734,7 +734,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
       style={{ border: `1px solid ${T.border}`, background: on ? T.tealL : "#fff" }}>
       <span className="text-2xl flex-shrink-0">{emoji}</span>
       <div className="flex-1 min-w-0">
-        <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{title}</p>
+        <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
         <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
       </div>
       <Switch checked={on} onCheckedChange={setOn} />
@@ -743,7 +743,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.telegramIntro")}
       </p>
       <div className="flex flex-col gap-2.5">
@@ -793,7 +793,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.financeIntro")}
       </p>
       {/* LessonCard anatomy */}
@@ -921,7 +921,7 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
         <span className="text-[14px] font-bold px-2.5 py-1 rounded-full" style={{ background: "#dcfce7", color: "#166534" }}>{t("onboardingFlowB.referralBadgeYou")}</span>
         <span className="text-[14px] font-bold px-2.5 py-1 rounded-full" style={{ background: T.tealL, color: T.tealD }}>{t("onboardingFlowB.referralBadgeFriend")}</span>
       </div>
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.referralDescription")}
       </p>
       <div className="flex gap-2">
@@ -958,7 +958,7 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.zoomIntro")}
       </p>
       <div>
@@ -992,7 +992,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
 
   return (
     <div className="flex flex-col gap-4">
-      <p style={{ color: T.sub, fontSize: 14.5, lineHeight: 1.45, margin: 0 }}>
+      <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.calendarIntro")}
       </p>
       <button onClick={connect} disabled={loading}
@@ -1037,7 +1037,7 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
             style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
             <span className="text-[18px]">{x.e}</span>
             <div className="flex-1">
-              <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{x.t}</p>
+              <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{x.t}</p>
               <p className="text-[14px]" style={{ color: T.sub }}>{x.d}</p>
             </div>
           </div>
@@ -1205,7 +1205,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               <h1 className="mt-4 text-[27px] font-black tracking-tight" style={{ fontFamily: T.display, letterSpacing: "-0.02em" }}>
                 {t("onboardingFlowB.celebrationTitle")}
               </h1>
-              <p className="mt-2 text-[14.5px] leading-relaxed px-6" style={{ color: T.sub }}>
+              <p className="mt-2 text-[15px] leading-relaxed px-6" style={{ color: T.sub }}>
                 {t("onboardingFlowB.celebrationSubtitle")}
               </p>
               <div className="mt-4 inline-flex">
@@ -1234,7 +1234,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                       {done ? "✅" : step.emoji}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[14.5px]" style={{ fontFamily: T.display }}>{t(`onboardingFlowB.${step.title}`)}</p>
+                      <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{t(`onboardingFlowB.${step.title}`)}</p>
                       <p className="text-[14px] truncate" style={{ color: T.sub }}>
                         {done ? t(`onboardingFlowB.${step.hint}`) : t(`onboardingFlowB.${step.desc}`)}
                       </p>

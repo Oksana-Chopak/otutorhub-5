@@ -153,7 +153,7 @@ export default function StudentProfilePage() {
                 />
                 <div className="min-w-0">
                   <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.ink, lineHeight: 1.2 }}>{displayName}</p>
-                  <p style={{ fontFamily: C.body, fontSize: 14.5, color: C.sub, marginTop: 3 }}>{user?.email}</p>
+                  <p style={{ fontFamily: C.body, fontSize: 15, color: C.sub, marginTop: 3 }}>{user?.email}</p>
                 </div>
               </div>
             </div>
@@ -171,7 +171,7 @@ export default function StudentProfilePage() {
                       <div key={tt.id} style={{ display: "flex", alignItems: "center", gap: 11, padding: "11px 13px", borderBottom: i < tutors.length - 1 ? `1px solid ${C.border}` : "none" }}>
                         <UserAvatar url={tt.avatarUrl} firstName={tt.firstName} lastName={tt.lastName} className="h-10 w-10" />
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</p>
+                          <p style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.ink, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{name}</p>
                           {tt.subject && <p style={{ fontFamily: C.body, fontSize: 14, color: C.sub, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tt.subject}</p>}
                         </div>
                         <Link to={`/chats?with=${tt.id}`} aria-label={t("studentPages.chatWithTutorAria")}

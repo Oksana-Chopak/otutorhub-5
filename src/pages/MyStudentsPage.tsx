@@ -818,7 +818,7 @@ export default function MyStudentsPage() {
                           balance), so the label must say that — it previously read
                           "Remind", which did NOT match the action (dead-label bug). */}
                       <button onClick={() => setWalletDialog({ open: true, tutorId: user!.id, studentId: s.id, studentName: name, tutorName: t("common.you"), rate: s.price })}
-                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 14.5, cursor: "pointer", flexShrink: 0 }}>
+                        style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                         {t("myStudents.recordPaymentBtn")}
                       </button>
                     </div>
@@ -956,7 +956,7 @@ export default function MyStudentsPage() {
                     {dialog.mode === "create" ? t("myStudents.addDialogTitle") : t("myStudents.editDialogTitle")}
                   </div>
                   <button onClick={close} aria-label={t("myStudents.cancelBtn")}
-                    style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <X size={18} />
                   </button>
                 </div>
@@ -992,7 +992,7 @@ export default function MyStudentsPage() {
                           </span>
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent side="bottom" align="start" className="w-64 text-[14.5px] leading-relaxed" style={{ fontFamily: F.body, color: F.txt }}>
+                      <PopoverContent side="bottom" align="start" className="w-64 text-[15px] leading-relaxed" style={{ fontFamily: F.body, color: F.txt }}>
                         {t("myStudents.photoFromProfileHint")}
                       </PopoverContent>
                     </Popover>
@@ -1037,13 +1037,13 @@ export default function MyStudentsPage() {
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
                           {subMatches.map((s) => (
                             <button key={s} type="button" onClick={() => addSubject(s)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 14.5 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
                               {s}
                             </button>
                           ))}
                           {draftIsCustom && (
                             <button type="button" onClick={() => addSubject(subjectDraft)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                               + «{subjectDraft.trim()}»
                             </button>
                           )}
@@ -1076,7 +1076,7 @@ export default function MyStudentsPage() {
                                   style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", height: 40, padding: "0 11px", borderRadius: 9, border: "none", cursor: "pointer", textAlign: "left",
                                     background: c.code === form.currency ? "#f0fdf9" : "transparent",
                                     color: c.code === form.currency ? F.tealD : F.txt,
-                                    fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
+                                    fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                                   <span style={{ width: 20 }}>{c.symbol}</span>{c.code}
                                   {c.code === form.currency && <Check size={14} strokeWidth={2.4} style={{ marginLeft: "auto", color: F.tealD }} />}
                                 </button>

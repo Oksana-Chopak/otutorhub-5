@@ -196,12 +196,12 @@ export function RecordPaymentSheet({
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               {t("recordPayment.title")}
             </div>
-            <div style={{ fontSize: 14.5, color: "var(--sub,#6b7088)", marginTop: 2 }}>
+            <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 2 }}>
               {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
           <button onClick={close} aria-label="✕"
-            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -344,7 +344,7 @@ export function RecordPaymentSheet({
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     style={{ width: "100%", height: 46, borderRadius: 12, border: "1.5px solid #eceef3", padding: "0 13px",
-                      fontSize: 14.5, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#0f0f1a",
+                      fontSize: 15, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#0f0f1a",
                       background: "#fff", outline: "none" }}
                   />
                 </div>

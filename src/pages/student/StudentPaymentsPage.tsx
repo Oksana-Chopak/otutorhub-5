@@ -171,7 +171,7 @@ export default function StudentPaymentsPage() {
                 const info = tutorPayInfos.find((ti) => ti.tutor_id === b.tutor_id);
                 return (
                   <div key={b.tutor_id} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
-                    <span style={{ fontSize: 14.5, color: "rgba(255,255,255,.75)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{ fontSize: 15, color: "rgba(255,255,255,.75)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {info?.tutor_name ?? t("studentPages.tutorFallback")}
                     </span>
                     <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#2BBFAA", flexShrink: 0 }}>
@@ -227,7 +227,7 @@ export default function StudentPaymentsPage() {
           <div style={{ borderRadius: 18, padding: 16, background: "linear-gradient(135deg,#FFF7E6,#FFEFD0)", border: "1px solid rgba(245,181,68,.4)" }}>
             <div className="mb-2 flex items-center gap-2">
               <Wallet className="h-4 w-4" style={{ color: "#9a6a12" }} />
-              <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14.5, color: "#7a5a14" }}>{t("studentPagesExtra.howToPay")}</h2>
+              <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#7a5a14" }}>{t("studentPagesExtra.howToPay")}</h2>
             </div>
             <ul className="space-y-2">
               {tutorsWithDetails.map((t) => (

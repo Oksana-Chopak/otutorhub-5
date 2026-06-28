@@ -75,7 +75,7 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
       {/* Weekly record */}
       {weeklyRecord > 0 && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderRadius: 13, padding: "10px 13px", background: "linear-gradient(135deg, rgba(245,181,68,.14), rgba(245,181,68,.05))", border: "1px solid rgba(245,181,68,.3)" }}>
-          <span style={{ fontSize: 14.5, color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+          <span style={{ fontSize: 15, color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
             🏆 {t("studentRecord.weeklyRecord", { count: weeklyRecord })}
           </span>
           <span style={{ fontSize: 14, color: "#9a6a12", fontWeight: 600 }}>

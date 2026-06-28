@@ -210,7 +210,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 21, color: F.txt, lineHeight: 1.2, letterSpacing: "-0.01em" }}>
               {t("quickAddStudent.title")}
             </p>
-            <p style={{ fontSize: 14.5, color: F.sub, marginTop: 4, lineHeight: 1.45, fontFamily: F.body }}>
+            <p style={{ fontSize: 15, color: F.sub, marginTop: 4, lineHeight: 1.45, fontFamily: F.body }}>
               {t("quickAddStudent.desc")}
             </p>
           </div>
@@ -342,7 +342,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                               style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", minHeight: 44, padding: "0 11px",
                                 borderRadius: 9, border: "none", cursor: "pointer", textAlign: "left",
                                 background: sel ? "rgba(43,191,170,0.10)" : "transparent",
-                                color: sel ? F.tealD : F.txt, fontFamily: F.body, fontWeight: 600, fontSize: 14.5 }}>
+                                color: sel ? F.tealD : F.txt, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
                               <span style={{ width: 22, fontWeight: 800, color: sel ? F.tealD : F.sub }}>{currencySymbol(c.code)}</span>
                               {c.code}
                               {sel && <Check size={15} style={{ marginLeft: "auto", color: F.tealD }} />}

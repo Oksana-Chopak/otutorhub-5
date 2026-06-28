@@ -203,7 +203,7 @@ export default function StudentHomeworkPage() {
           </span>
         )}
       </div>
-      <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "#fbfbfc", border: "1px solid #eceef3", padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55, color: "#0f0f1a" }}>
+      <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "#fbfbfc", border: "1px solid #eceef3", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a" }}>
         {r.homework}
       </p>
       {(r.hasAiNote || r.hasFile) && (
@@ -231,7 +231,7 @@ export default function StudentHomeworkPage() {
         style={{
           marginTop: 11, width: "100%", height: 46, borderRadius: 13, cursor: "pointer",
           display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
-          fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14.5,
+          fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15,
           border: done ? "1px solid #eceef3" : "none",
           background: done ? "#fff" : "linear-gradient(135deg,#2BBFAA,#25a896)",
           color: done ? "#6b7088" : "#0f0f1a",
@@ -242,7 +242,7 @@ export default function StudentHomeworkPage() {
         {done ? t("studentPagesExtra.markedDone") : t("studentPagesExtra.markDone")}
       </button>
       {r.hasAiNote && openNoteId === r.lesson_id && (
-        <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 14.5, lineHeight: 1.55, color: "#0f0f1a" }}>
+        <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a" }}>
           {r.aiNote}
         </p>
       )}

@@ -166,7 +166,7 @@ export default function FeedbackInboxPage() {
                     )}
                   </div>
 
-                  <p style={{ marginTop: 11, fontSize: 14.5, lineHeight: 1.5, color: "#0f0f1a", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  <p style={{ marginTop: 11, fontSize: 15, lineHeight: 1.5, color: "#0f0f1a", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                     {r.message}
                   </p>
                   {r.page_url && (

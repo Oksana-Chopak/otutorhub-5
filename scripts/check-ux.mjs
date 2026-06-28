@@ -210,6 +210,28 @@ for (const file of getAllFiles(SRC)) {
   }
 }
 
+// ── Rule 6: base UI controls must keep a 44px touch target on every breakpoint ──
+// Button/Input/Select are touch-first. Re-introducing md:h-9 / md:h-10 shrinks every
+// control to 36/40px on desktop — the recurring "small elements, lots of empty space"
+// regression. Hard error so a shadcn re-sync can't silently bring it back.
+const TOUCH_BASE_FILES = ["button.tsx", "input.tsx", "select.tsx"];
+for (const file of getAllFiles(SRC)) {
+  const fname = file.split("/").pop();
+  if (!file.includes("/ui/") || !TOUCH_BASE_FILES.includes(fname)) continue;
+  const content = readFileSync(file, "utf8");
+  const m = content.match(/md:h-(8|9|10)\b/);
+  if (m) {
+    const lineNum = content.slice(0, content.indexOf(m[0])).split("\n").length;
+    issues.push({
+      rule: "base control downsized on desktop",
+      severity: "error",
+      file: file.replace(ROOT, ""),
+      line: lineNum,
+      detail: `${fname} uses ${m[0]} — base Button/Input/Select must stay h-11 (44px) on all breakpoints. Remove the md: height override.`,
+    });
+  }
+}
+
 // ── Report ───────────────────────────────────────────────────────────────────
 
 const errors = issues.filter((i) => i.severity === "error");

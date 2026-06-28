@@ -716,7 +716,7 @@ export default function ProfilePage() {
               <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
-              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "var(--sub,#6b7088)", marginBottom: 16 }}>
+              <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#6b7088)", marginBottom: 16 }}>
                 {t("profile.editSubtitle") || "Онови своє ім'я — учні бачать його в чаті та розкладі."}
               </p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
@@ -797,7 +797,7 @@ export default function ProfilePage() {
                   )}
                 </div>
                 {reviews.length === 0 ? (
-                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "var(--sub,#6b7088)", padding: "10px 0" }}>
+                  <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#6b7088)", padding: "10px 0" }}>
                     {t("profile.reviewsEmpty") || "Відгуки з'являться, коли учні оцінять твої уроки 🌟"}
                   </p>
                 ) : (
@@ -809,7 +809,7 @@ export default function ProfilePage() {
                             <Star key={s} size={12} style={{ color: s < r.rating ? "#F5B400" : "#e5e7eb", fill: s < r.rating ? "#F5B400" : "#e5e7eb" }} />
                           ))}
                         </div>
-                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14.5, color: "#0f0f1a", lineHeight: 1.5 }}>
+                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", lineHeight: 1.5 }}>
                           {r.comment}
                         </p>
                       </div>

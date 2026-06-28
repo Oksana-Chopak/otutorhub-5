@@ -101,7 +101,7 @@ export default function AdminStatsPage() {
               ].map((k) => (
                 <div key={k.label} className={card}>
                   <div className="text-[26px] font-extrabold text-[var(--txt)]">{k.val}</div>
-                  <div className="mt-0.5 text-[13px] font-semibold uppercase tracking-[0.04em] text-[var(--sub)]">{k.label}</div>
+                  <div className="mt-0.5 text-[14px] font-semibold uppercase tracking-[0.04em] text-[var(--sub)]">{k.label}</div>
                 </div>
               ))}
             </div>
@@ -138,7 +138,7 @@ export default function AdminStatsPage() {
                 ].map((p) => (
                   <div key={p.label} className="rounded-[12px] bg-[var(--bg)] p-3">
                     <div className="text-[17px] font-bold text-[var(--txt)]">{p.val}</div>
-                    <div className="mt-0.5 text-[13px] text-[var(--sub)]">{p.label}</div>
+                    <div className="mt-0.5 text-[14px] text-[var(--sub)]">{p.label}</div>
                   </div>
                 ))}
               </div>
@@ -153,7 +153,7 @@ export default function AdminStatsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-[14px]">
                     <thead>
-                      <tr className="text-left text-[13px] uppercase tracking-[0.04em] text-[var(--sub)]">
+                      <tr className="text-left text-[14px] uppercase tracking-[0.04em] text-[var(--sub)]">
                         <th className="py-2 pr-3 font-semibold">{t("admin.colDate")}</th>
                         <th className="py-2 pr-3 font-semibold">{t("admin.colSubject")}</th>
                         <th className="py-2 pr-3 font-semibold">{t("admin.colTutor")}</th>
@@ -192,7 +192,7 @@ export default function AdminStatsPage() {
                     <div key={g.id} className="rounded-[12px] bg-[var(--bg)] p-3">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
                         <span className="text-[15px] font-bold">{g.name}</span>
-                        <span className="text-[13px] text-[var(--sub)]">{g.subject} · {g.tutor}</span>
+                        <span className="text-[14px] text-[var(--sub)]">{g.subject} · {g.tutor}</span>
                       </div>
                       <div className="mt-2 text-[14px]">
                         {g.members.length === 0 ? (
@@ -211,7 +211,7 @@ export default function AdminStatsPage() {
               )}
             </div>
 
-            <p className="text-[13px] text-[var(--sub)]">
+            <p className="text-[14px] text-[var(--sub)]">
               {t("admin.generatedAt", { date: new Date(stats.generatedAt).toLocaleString(getLocale()) })}
             </p>
           </div>

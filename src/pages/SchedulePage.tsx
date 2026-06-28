@@ -127,7 +127,7 @@ function SegSwitch<T extends string>({
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[14.5px] transition-all"
+          className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[15px] transition-all"
           style={
             value === o.value
               ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }

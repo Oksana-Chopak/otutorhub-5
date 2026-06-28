@@ -331,13 +331,13 @@ export default function SubscriptionPage() {
               <>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>{t("subscriptionPageExtra.heroActiveTitle")}</div>
-                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
                 {!nativeApp && settings?.liqpay_recurring_active && (
                   <button
                     type="button"
                     onClick={cancelSubscription}
                     disabled={cancelling}
-                    style={{ marginTop: 14, height: 40, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.22)", background: "transparent", color: "rgba(255,255,255,.85)", fontFamily: S.display, fontWeight: 600, fontSize: 14.5, cursor: cancelling ? "default" : "pointer" }}
+                    style={{ marginTop: 14, height: 40, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,.22)", background: "transparent", color: "rgba(255,255,255,.85)", fontFamily: S.display, fontWeight: 600, fontSize: 15, cursor: cancelling ? "default" : "pointer" }}
                   >
                     {cancelling ? "…" : t("subscriptionPageExtra.cancelBtn")}
                   </button>
@@ -354,13 +354,13 @@ export default function SubscriptionPage() {
                 <div style={{ margin: "12px 0 14px", height: 8, borderRadius: 999, background: "rgba(255,255,255,.14)", overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${trialPct}%`, borderRadius: 999, background: S.gradTeal, transition: "width .6s cubic-bezier(.34,1.56,.64,1)" }} />
                 </div>
-                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45 }}>{nativeApp ? t("subscriptionPageExtra.heroTrialDescIos") : t("subscriptionPageExtra.heroTrialDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             ) : (
               <>
                 <div style={{ fontSize: 14, textTransform: "uppercase", letterSpacing: ".09em", color: "rgba(255,255,255,.55)", fontFamily: S.display, fontWeight: 700 }}>{t("subscriptionPageExtra.heroEyebrow")}</div>
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8 }}>{t("subscriptionPageExtra.heroFreeTitle")}</div>
-                <div style={{ fontSize: 14.5, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
+                <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{nativeApp ? t("subscriptionPageExtra.heroFreeDescIos") : t("subscriptionPageExtra.heroFreeDesc", { price: PRO_PRICE_MONTHLY })}</div>
               </>
             )}
           </div>
@@ -387,7 +387,7 @@ export default function SubscriptionPage() {
                 {t("subscriptionPageExtra.subscribeBtn")}
               </button>
               <button onClick={handleIapRestore} disabled={iapBusy !== null}
-                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 14.5, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                style={{ width: "100%", height: 44, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: S.sub, cursor: iapBusy ? "default" : "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 {iapBusy === "restore" && <Loader2 size={15} className="animate-spin" />}
                 {t("subscriptionPageExtra.restorePurchases")}
               </button>
@@ -457,7 +457,7 @@ export default function SubscriptionPage() {
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{b.e}</div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14.5 }}>{b.t}</div>
+                      <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 15 }}>{b.t}</div>
                       <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.5, marginTop: 2 }}>{b.d}</div>
                     </div>
                   </div>

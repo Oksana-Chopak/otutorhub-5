@@ -152,7 +152,7 @@ export function InviteLinkDialog({
               </div>
             </div>
           ) : !email ? (
-            <div style={{ borderRadius: 13, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.06)", padding: 13, fontFamily: "var(--font-body)", fontSize: 14.5, lineHeight: 1.45, color: "#0f0f1a" }}>
+            <div style={{ borderRadius: 13, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.06)", padding: 13, fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.45, color: "#0f0f1a" }}>
               ⚠️ {t("inviteLinkExtra.noEmailWarn")}{phone ? ` (${phone})` : ""}.
             </div>
           ) : (
@@ -172,7 +172,7 @@ export function InviteLinkDialog({
               {t("inviteLinkExtra.linkLabel")}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, borderRadius: 13, border: "1px solid #eceef3", background: "#F5F4F0", padding: "7px 7px 7px 14px", minWidth: 0 }}>
-              <code style={{ flex: 1, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 14.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{inviteUrl}</code>
+              <code style={{ flex: 1, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", minWidth: 0 }}>{inviteUrl}</code>
               <button onClick={() => copy(inviteUrl, "link")} aria-label={t("inviteLinkExtra.copyLink")}
                 style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, border: "none", cursor: "pointer", background: copiedLink ? "rgba(34,197,94,.14)" : "#fff", color: copiedLink ? "#16a34a" : "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                 {copiedLink ? <Check className="h-[21px] w-[21px]" strokeWidth={2.4} /> : <Copy className="h-[21px] w-[21px]" />}

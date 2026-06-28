@@ -134,7 +134,7 @@ export function GroupLessonParticipants({
                 onClick={() => togglePaid(p)}
                 style={{
                   flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, cursor: canEdit ? "pointer" : "default",
-                  display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14.5,
+                  display: "inline-flex", alignItems: "center", gap: 6, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15,
                   border: "none",
                   background: paid ? "rgba(34,197,94,.16)" : "rgba(245,181,68,.16)",
                   color: paid ? "#15803d" : "#9a6a12",

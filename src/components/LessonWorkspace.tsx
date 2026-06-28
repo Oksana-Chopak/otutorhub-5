@@ -408,7 +408,7 @@ export function LessonWorkspace({
           style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", padding: "13px 14px", border: "none", background: "transparent", cursor: "pointer" }}>
           <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>{title}</span>
+            <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 15, color: L.txt }}>{title}</span>
             {!open && preview && <span style={{ display: "block", fontSize: 14, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
           </span>
           <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
@@ -522,7 +522,7 @@ export function LessonWorkspace({
                 style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", textAlign: "left", padding: "11px 13px", border: "none", background: "transparent", cursor: "pointer" }}>
                 <span style={{ fontSize: 16 }}>🧠</span>
                 <span style={{ flex: 1, minWidth: 0 }}>
-                  <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, color: L.txt }}>
+                  <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 15, color: L.txt }}>
                     {t("lessonWorkspaceExtra.prevLessonHeader", { date: new Date(prevLesson.starts_at).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }) })}
                   </span>
                   {!prevOpen && (
@@ -538,13 +538,13 @@ export function LessonWorkspace({
                   {prevLesson.summary && (
                     <div>
                       <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevCovered")}</div>
-                      <p style={{ fontSize: 14.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
+                      <p style={{ fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.summary}</p>
                     </div>
                   )}
                   {prevLesson.homework && (
                     <div>
                       <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: L.sub, marginBottom: 3 }}>{t("lessonWorkspaceExtra.prevHomework")}</div>
-                      <p style={{ fontSize: 14.5, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
+                      <p style={{ fontSize: 15, lineHeight: 1.5, whiteSpace: "pre-wrap", color: L.txt }}>{prevLesson.homework}</p>
                     </div>
                   )}
                 </div>
@@ -563,7 +563,7 @@ export function LessonWorkspace({
               style={{ ...fieldCss, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)" }} />
             {privateNotesDraft !== privateNotesSaved && (
               <button type="button" onClick={savePrivateNotes} disabled={saving === "private_notes"}
-                style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                 {saving === "private_notes" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {t("lessonWorkspaceExtra.saveBtn")}
               </button>
@@ -579,7 +579,7 @@ export function LessonWorkspace({
                 placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
               {homeworkDraft !== (homework ?? "") && (
                 <button type="button" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
-                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                  style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   {saving === "homework" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {t("lessonWorkspaceExtra.saveBtn")}
                 </button>
@@ -600,19 +600,19 @@ export function LessonWorkspace({
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 9, alignItems: "center" }}>
                 {aiAllowed ? (
                   <button type="button" onClick={generateAiSummary} disabled={aiLoading}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
                     {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
                   </button>
                 ) : (
                   <button type="button" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                     <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
                   </button>
                 )}
                 {summaryDraft !== (summary ?? "") && (
                   <button type="button" disabled={saving === "summary"} onClick={() => updateLessonField("summary", summaryDraft)}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 14.5, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                     {saving === "summary" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                     {t("lessonWorkspaceExtra.saveAndSend")}
                   </button>
@@ -626,7 +626,7 @@ export function LessonWorkspace({
                         else { await navigator.clipboard.writeText(text); toast({ title: t("lessonWorkspaceExtra.copied"), description: t("lessonWorkspaceExtra.copiedDesc") }); }
                       } catch { /* user cancelled */ }
                     }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                     <Share2 className="h-4 w-4" /> {t("lessonWorkspaceExtra.shareBtn")}
                   </button>
                 )}

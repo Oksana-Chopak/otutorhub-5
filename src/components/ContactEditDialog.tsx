@@ -246,7 +246,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>

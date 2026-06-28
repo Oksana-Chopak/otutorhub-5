@@ -83,7 +83,7 @@ export default function StudentAchievementsPage() {
                       ? t("studentAchievements.heroEmptyTitle")
                       : t("studentAchievements.heroTitle")}
                   </div>
-                  <div className="mt-0.5 text-[14.5px] leading-snug" style={{ color: "rgba(255,255,255,.7)" }}>
+                  <div className="mt-0.5 text-[15px] leading-snug" style={{ color: "rgba(255,255,255,.7)" }}>
                     {earnedN === 0
                       ? t("studentAchievements.heroEmptyHint")
                       : nextUp
@@ -107,7 +107,7 @@ export default function StudentAchievementsPage() {
                 }}
               >
                 <span className="text-xl">🎯</span>
-                <span className="text-[14.5px] leading-snug text-foreground">
+                <span className="text-[15px] leading-snug text-foreground">
                   {t("studentAchievements.emptyNote")}
                 </span>
               </div>

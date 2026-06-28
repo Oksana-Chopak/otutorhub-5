@@ -140,7 +140,7 @@ export function WeekCalendar({
         <button
           type="button"
           onClick={onToday}
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[14.5px] font-bold transition-colors hover:bg-[#f0fdf9]"
+          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[15px] font-bold transition-colors hover:bg-[#f0fdf9]"
           style={{ borderColor: "var(--border,#eceef3)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
         >
           <CalendarDays className="h-3.5 w-3.5" />

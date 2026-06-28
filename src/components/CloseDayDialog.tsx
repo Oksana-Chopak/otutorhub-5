@@ -126,10 +126,10 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div>
             <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>{t("closeDayDialog.title")}</div>
-            <div style={{ fontSize: 14.5, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
+            <div style={{ fontSize: 15, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
           </div>
           <button onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>

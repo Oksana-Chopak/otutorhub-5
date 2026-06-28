@@ -143,7 +143,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(59,130,246,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>🎙</span>
           <div>
-            <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>{t("firefliesPanel.panelTitle")}</div>
+            <div style={{ fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>{t("firefliesPanel.panelTitle")}</div>
             <div style={{ fontSize: 14, color: L.muted }}>{t("firefliesPanel.panelSubtitle")}</div>
           </div>
         </div>
@@ -152,7 +152,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
             style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 15px", borderRadius: 12,
               border: "none", cursor: starting || isProcessing ? "default" : "pointer",
               background: starting || isProcessing ? "rgba(43,191,170,.35)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
-              color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 14.5,
+              color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 15,
               boxShadow: starting || isProcessing ? "none" : "0 6px 16px -6px rgba(43,191,170,.6)" }}>
             {starting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mic className="h-4 w-4" />}
             {t("firefliesPanel.recordThisLesson")}
@@ -172,7 +172,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("firefliesPanel.loading")}
         </div>
       ) : isProcessing ? (
-        <div style={{ borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "12px 14px", fontSize: 14.5, lineHeight: 1.5 }}>
+        <div style={{ borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "12px 14px", fontSize: 15, lineHeight: 1.5 }}>
           {t("firefliesPanel.processing")}
         </div>
       ) : isReady ? (
@@ -180,7 +180,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           {state.summary && (
             <div style={{ borderRadius: 13, border: `1px solid ${L.border}`, background: L.bg, padding: "12px 14px" }}>
               <div style={label}>{t("firefliesPanel.summaryLabel")}</div>
-              <p style={{ whiteSpace: "pre-wrap", fontSize: 14.5, lineHeight: 1.55 }}>{state.summary}</p>
+              <p style={{ whiteSpace: "pre-wrap", fontSize: 15, lineHeight: 1.55 }}>{state.summary}</p>
             </div>
           )}
 
@@ -189,7 +189,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
               <div style={{ ...label, display: "flex", alignItems: "center", gap: 6 }}>
                 <ListChecks className="h-3.5 w-3.5" /> {t("firefliesPanel.actionItemsLabel")}
               </div>
-              <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4, fontSize: 14.5, lineHeight: 1.5 }}>
+              <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4, fontSize: 15, lineHeight: 1.5 }}>
                 {state.actionItems.map((it, i) => (
                   <li key={i}>{it}</li>
                 ))}
@@ -201,13 +201,13 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {state.recordingUrl && (
                 <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <ExternalLink className="h-4 w-4" /> {t("firefliesPanel.openRecording")}
                 </a>
               )}
               {state.audioUrl && (
                 <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 14.5 }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <FileAudio className="h-4 w-4" /> {t("firefliesPanel.audio")}
                 </a>
               )}

@@ -199,7 +199,7 @@ export default function SubscriptionRequestsPage() {
                         background: meta.bg, color: meta.color }}>{meta.label}</span>
                     </div>
 
-                    <div className="flex flex-wrap gap-3 text-[14.5px]" style={{ color: "#6b7280" }}>
+                    <div className="flex flex-wrap gap-3 text-[15px]" style={{ color: "#6b7280" }}>
                       {r.tutor?.email && (
                         <a
                           href={`mailto:${r.tutor.email}`}
@@ -248,7 +248,7 @@ export default function SubscriptionRequestsPage() {
                             }))
                           }
                           rows={2}
-                          className="rounded-[13px] border-[#eceef3] text-[14.5px] focus-visible:ring-[#2BBFAA]"
+                          className="rounded-[13px] border-[#eceef3] text-[15px] focus-visible:ring-[#2BBFAA]"
                         />
                         <div className="flex flex-wrap items-center gap-2">
                           <Select
@@ -273,7 +273,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
                               background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5 }}
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
                             Взяти в роботу
                           </button>
@@ -283,7 +283,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
                               background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5,
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >
                             Завершити
@@ -294,7 +294,7 @@ export default function SubscriptionRequestsPage() {
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(224,85,47,.3)",
                               background: "transparent", color: "#b3441f", cursor: "pointer",
-                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5 }}
+                              fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
                             Відхилити
                           </button>

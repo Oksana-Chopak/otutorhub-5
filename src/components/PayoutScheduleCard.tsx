@@ -82,8 +82,8 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
   if (colsMissing) return null;
 
   const chip = (active: boolean) => ({
-    height: 36, padding: "0 13px", borderRadius: 11, cursor: "pointer",
-    fontFamily: C.display, fontWeight: 700, fontSize: 14.5,
+    height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer",
+    fontFamily: C.display, fontWeight: 700, fontSize: 15,
     background: active ? "#f0fdf9" : "#fff",
     border: `1.5px solid ${active ? C.teal : C.border}`,
     color: active ? C.tealD : C.sub,
@@ -117,8 +117,8 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {WEEKDAY_ORDER.map((d) => (
               <button key={d} type="button" onClick={() => setWeekday(d)}
-                style={{ width: 40, height: 36, borderRadius: 10, cursor: "pointer",
-                  fontFamily: C.display, fontWeight: 700, fontSize: 14,
+                style={{ width: 44, height: 44, borderRadius: 12, cursor: "pointer",
+                  fontFamily: C.display, fontWeight: 700, fontSize: 15,
                   background: weekday === d ? C.teal : "#fff",
                   border: `1.5px solid ${weekday === d ? C.teal : C.border}`,
                   color: weekday === d ? "#0f0f1a" : C.sub }}>
@@ -145,7 +145,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
         style={{ width: "100%", height: 44, marginTop: 14, borderRadius: 12, border: "none",
           cursor: saving ? "default" : "pointer",
           background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-          fontFamily: C.display, fontWeight: 700, fontSize: 14.5,
+          fontFamily: C.display, fontWeight: 700, fontSize: 15,
           display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
         {saving && <Loader2 className="h-4 w-4 animate-spin" />}

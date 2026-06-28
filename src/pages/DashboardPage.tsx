@@ -1482,13 +1482,13 @@ export default function DashboardPage() {
               <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15.5, color: "#7a5a14" }}>
                 ⏳ Пробний період закінчується через {trialDaysLeft} {trialDaysLeft === 1 ? "день" : trialDaysLeft < 5 ? "дні" : "днів"}
               </p>
-              <p style={{ fontSize: 14.5, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
+              <p style={{ fontSize: 15, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
                 Цього місяця тут: <b>{trialStats.done}</b> проведених уроків і <b>{trialStats.earned.toLocaleString(getLocale())} ₴</b> зафіксовано. Оформи підписку — нічого не загубиться.
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
                   background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5,
+                  fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
                   boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Оформити підписку →
               </button>
@@ -1511,7 +1511,7 @@ export default function DashboardPage() {
                   {closeDayRows.length} {closeDayRows.length === 1 ? "урок чекає" : closeDayRows.length < 5 ? "уроки чекають" : "уроків чекають"} відмітки «проведено + оплачено»
                 </span>
               </span>
-              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
                 Одним рухом
               </span>
             </button>

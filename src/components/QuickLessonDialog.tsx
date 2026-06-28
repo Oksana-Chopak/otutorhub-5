@@ -419,7 +419,7 @@ export function QuickLessonDialog({
               {t("quickLessonDialog.newLessonTitle")}
             </div>
             <button onClick={() => onOpenChange(false)} aria-label={t("quickLessonDialog.cancelBtn")}
-              style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: F.bg, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: F.bg, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={18} />
             </button>
           </div>
@@ -432,13 +432,13 @@ export function QuickLessonDialog({
               </div>
             ) : students.length === 0 && groups.length === 0 ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
-                <p style={{ fontSize: 14.5, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
+                <p style={{ fontSize: 15, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
                   {t("quickLessonDialog.noStudentsHint")}
                 </p>
                 <button onClick={() => setAddStudentOpen(true)}
                   style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
                     background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                    fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
+                    fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                   + {t("quickLessonDialog.addStudentBtn")}
                 </button>
               </div>
@@ -454,7 +454,7 @@ export function QuickLessonDialog({
                     <button type="button" onClick={() => setTimeEditOpen((v) => !v)}
                       style={{ height: 40, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", flexShrink: 0,
                         background: timeEditOpen ? "rgba(43,191,170,.35)" : "rgba(255,255,255,.14)", color: "#fff",
-                        fontFamily: F.display, fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        fontFamily: F.display, fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", gap: 6 }}>
                       <Clock size={16} /> {t("quickLessonDialog.changeTimeBtn")}
                     </button>
                   </div>
@@ -462,11 +462,11 @@ export function QuickLessonDialog({
                     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                       <input type="date" value={ymd} onChange={(e) => setDatePart(e.target.value)}
                         style={{ flex: 1, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
-                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 14.5,
+                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 15,
                           outline: "none", colorScheme: "dark" }} />
                       <input type="time" value={hm} onChange={(e) => setTimePart(e.target.value)}
                         style={{ width: 110, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
-                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 14.5,
+                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 15,
                           outline: "none", colorScheme: "dark", flexShrink: 0 }} />
                     </div>
                   )}
@@ -497,7 +497,7 @@ export function QuickLessonDialog({
                         border: `1.5px solid ${repeatWeeks > 0 ? F.teal : F.border}`,
                         background: repeatWeeks > 0 ? F.tealL : F.surface,
                         color: repeatWeeks > 0 ? F.tealD : F.sub,
-                        fontFamily: F.display, fontWeight: 700, fontSize: 14.5,
+                        fontFamily: F.display, fontWeight: 700, fontSize: 15,
                         display: "inline-flex", alignItems: "center", gap: 6 }}>
                       🔁 {t("quickLessonDialog.weeklyToggle")}
                     </button>
@@ -507,7 +507,7 @@ export function QuickLessonDialog({
                           border: `1.5px solid ${repeatWeeks === n ? F.teal : F.border}`,
                           background: repeatWeeks === n ? F.tealL : F.surface,
                           color: repeatWeeks === n ? F.tealD : F.txt,
-                          fontFamily: F.display, fontWeight: 700, fontSize: 14.5 }}>
+                          fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
                         ×{n}
                       </button>
                     ))}
@@ -527,7 +527,7 @@ export function QuickLessonDialog({
                         style={{ flex: 1, height: 38, borderRadius: 9, border: "none", cursor: "pointer",
                           background: mode === m ? F.surface : "transparent",
                           boxShadow: mode === m ? "0 1px 4px rgba(15,15,26,.06)" : "none",
-                          fontFamily: F.display, fontWeight: 700, fontSize: 14.5,
+                          fontFamily: F.display, fontWeight: 700, fontSize: 15,
                           color: mode === m ? F.txt : F.sub }}>
                         {l}
                       </button>
@@ -607,7 +607,7 @@ export function QuickLessonDialog({
                 {effStartsAt && onWantFullForm && mode === "individual" && (
                   <button onClick={() => { onOpenChange(false); onWantFullForm!(effStartsAt!); }}
                     style={{ alignSelf: "center", background: "transparent", border: "none", cursor: "pointer",
-                      fontFamily: F.display, fontWeight: 700, fontSize: 14.5, color: F.sub, padding: "2px 8px" }}>
+                      fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.sub, padding: "2px 8px" }}>
                     {t("quickLessonDialog.openFullEditor")} →
                   </button>
                 )}

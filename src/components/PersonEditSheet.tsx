@@ -249,7 +249,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
             {t("personEdit.title")}
           </div>
           <button onClick={() => onOpenChange(false)} aria-label={t("myStudents.cancelBtn")}
-            style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: F.chip, color: F.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>

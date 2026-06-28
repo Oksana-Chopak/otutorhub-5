@@ -221,7 +221,7 @@ export default function StudentDashboardPage() {
                     <button
                       style={{ alignSelf: "flex-start", height: 44, padding: "0 18px", borderRadius: 12, border: "none", cursor: "pointer",
                         background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                        fontFamily: DS.display, fontWeight: 700, fontSize: 14.5, display: "inline-flex", alignItems: "center", gap: 8,
+                        fontFamily: DS.display, fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", gap: 8,
                         boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}
                     >
                       <Sparkles size={17} /> {t("studentPages.requestTutorCta")}
@@ -354,7 +354,7 @@ export default function StudentDashboardPage() {
               </div>
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 15.5 }}>{t("studentPagesExtra.searchingTutor")}</h3>
-                <p style={{ fontSize: 14.5, color: DS.sub, marginTop: 3, lineHeight: 1.5 }}>
+                <p style={{ fontSize: 15, color: DS.sub, marginTop: 3, lineHeight: 1.5 }}>
                   {t("studentPagesExtra.searchingTutorDesc")}
                 </p>
                 <FindTutorDialog

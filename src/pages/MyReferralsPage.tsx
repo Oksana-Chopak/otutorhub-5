@@ -346,7 +346,7 @@ export default function MyReferralsPage() {
               <Label>{t("myReferrals.yourInvitees") || "Твої запрошені"}</Label>
               <Card style={{ padding: referrals.length ? 6 : 18 }}>
                 {referrals.length === 0 ? (
-                  <p style={{ fontSize: 14.5, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 15, color: R.sub, textAlign: "center", lineHeight: 1.5 }}>
                     {t("myReferrals.inviteesEmpty") || "Ще нікого — поділись посиланням, і запрошені з'являться тут 🌱"}
                   </p>
                 ) : (

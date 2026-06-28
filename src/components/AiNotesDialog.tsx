@@ -54,8 +54,8 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
         <Icon size={18} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 14.5, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
+        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
+        <div style={{ fontSize: 15, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
       </div>
     </div>
   );
@@ -85,7 +85,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
         </DialogHeader>
 
         <div style={{ padding: "8px 20px 20px", fontFamily: C.body }}>
-          <p style={{ fontSize: 14.5, color: C.ink2, lineHeight: 1.55, margin: "4px 0 10px" }}>
+          <p style={{ fontSize: 15, color: C.ink2, lineHeight: 1.55, margin: "4px 0 10px" }}>
             {t("aiNotesDialog.intro")}
           </p>
 
@@ -98,7 +98,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
             <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 14, background: C.warnBg, border: `1px solid ${C.warnBorder}`, marginBottom: 14 }}>
               <Lock size={18} style={{ color: C.warnD, flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
-                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14.5, color: C.warnD }}>{t("aiNotesDialog.lockedTitle")}</div>
+                <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.warnD }}>{t("aiNotesDialog.lockedTitle")}</div>
                 <button onClick={() => { onOpenChange(false); navigate("/subscription?from=ai_summary"); }}
                   style={{ border: "none", background: "transparent", cursor: "pointer", color: C.tealD, fontFamily: C.display, fontWeight: 700, fontSize: 14, padding: 0, marginTop: 2 }}>
                   {t("aiNotesDialog.subscribeCta")}

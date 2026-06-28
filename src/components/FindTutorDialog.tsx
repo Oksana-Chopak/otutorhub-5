@@ -149,7 +149,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
             <div style={{ fontFamily: FONT, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em", color: TXT }}>
               {t("findTutor.headerTitle")}
             </div>
-            <div style={{ fontSize: 14.5, color: SUB, marginTop: 4, lineHeight: 1.45 }}>
+            <div style={{ fontSize: 15, color: SUB, marginTop: 4, lineHeight: 1.45 }}>
               {t("findTutor.headerSub")}
             </div>
           </div>

@@ -32,7 +32,7 @@ export function RewardCollection({ rewards, loading }: Props) {
       {loading ? null : rewards.length === 0 ? (
         <div style={{ textAlign: "center", padding: "20px 12px" }}>
           <div style={{ fontSize: 34 }}>🍎</div>
-          <p style={{ fontSize: 14.5, color: C.sub, marginTop: 6, lineHeight: 1.5 }}>{t("rewardCollection.empty")}</p>
+          <p style={{ fontSize: 15, color: C.sub, marginTop: 6, lineHeight: 1.5 }}>{t("rewardCollection.empty")}</p>
         </div>
       ) : (
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>

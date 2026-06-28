@@ -427,7 +427,7 @@ export function AvailabilityManager() {
         <div style={{ marginBottom: 14, borderRadius: 16, background: "rgba(245,158,11,.06)", border: "1px solid rgba(245,158,11,.4)", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <Bell className="h-4 w-4" style={{ color: A.warning }} />
-            <span style={{ fontFamily: A.display, fontWeight: 800, fontSize: 14.5 }}>{t("availabilityManagerExtra.requestsTitle", { count: requests.length })}</span>
+            <span style={{ fontFamily: A.display, fontWeight: 800, fontSize: 15 }}>{t("availabilityManagerExtra.requestsTitle", { count: requests.length })}</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {requests.map((r) => {
@@ -436,7 +436,7 @@ export function AvailabilityManager() {
               return (
                 <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 11, background: A.surface, border: `1px solid ${A.border}`, borderRadius: 12, padding: "10px 12px" }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 14.5 }}>
+                    <div style={{ fontSize: 15 }}>
                       <b style={{ fontFamily: A.display }}>{fullName(requester)}</b>
                       <span style={{ color: A.sub }}> {t("availabilityManagerExtra.requestsHours")} </span>
                       <b style={{ fontFamily: A.display }}>{fullName(tutorProfile)}</b>
@@ -582,7 +582,7 @@ export function AvailabilityManager() {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                          <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 14.5 }}>
+                          <span style={{ fontFamily: A.display, fontWeight: 700, fontSize: 15 }}>
                             {new Date(o.slot_date + "T00:00:00").toLocaleDateString(getLocale(), { day: "2-digit", month: "long", weekday: "short" })}
                           </span>
                           <span style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "4px 10px", fontFamily: A.display, fontWeight: 700, fontSize: 14,
