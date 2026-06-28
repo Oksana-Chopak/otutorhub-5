@@ -1771,7 +1771,7 @@ export default function SchedulePage() {
         <PageFAB onClick={() => setCreateOpen(true)} label={t("schedule.createBtn")} />
       )}
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[20px]">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("schedulePageExtra.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("schedulePageExtra.deleteConfirmDesc")}</AlertDialogDescription>

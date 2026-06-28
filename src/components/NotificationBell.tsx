@@ -34,10 +34,9 @@ const TYPE_ICON: Record<string, string> = {
 
 interface Props {
   className?: string;
-  golden?: boolean;
 }
 
-export function NotificationBell({ className, golden }: Props) {
+export function NotificationBell({ className }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();

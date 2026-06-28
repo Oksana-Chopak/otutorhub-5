@@ -68,7 +68,7 @@ export function DeleteAccountSection() {
       </button>
 
       <AlertDialog open={open} onOpenChange={(v) => !busy && setOpen(v)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[20px]">
           <AlertDialogHeader>
             <AlertDialogTitle>{t("accountDeletion.confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>{t("accountDeletion.confirmBody")}</AlertDialogDescription>

@@ -110,26 +110,34 @@ for (const file of getAllFiles(SRC)) {
   }
 }
 
-// ── Rule 3: TabsList without bg-muted ────────────────────────────────────────
-// Tabs without bg-muted have no visual distinction between active/inactive.
+// ── Rule 3: TabsList with no active/inactive distinction ─────────────────────
+// The shadcn base <TabsList> already ships `bg-muted`, so a bare TabsList (or one that
+// only adds layout classes like `grid w-full`) inherits the muted fill and is fine.
+// Only flag a TabsList that OVERRIDES the fill to a flat/transparent bg AND has no
+// underline border as an alternative active cue — the genuinely indistinct case. (The
+// old literal-`bg-muted` check flagged every styled TabsList and produced only false
+// positives: underline-style Finances tabs, inline-bg Auth tabs, plain grid tabs.)
 
-const TABSLIST_PATTERN = /<TabsList(?![^>]*bg-muted)[^>]*>/g;
+const TABSLIST_PATTERN = /<TabsList\b[^>]*>/g;
+const FLAT_TABS_BG = /bg-(transparent|white|background|card)\b/;
 
 for (const file of getAllFiles(SRC)) {
   if (file.includes(".test.") || file.includes("/ui/")) continue;
   const content = readFileSync(file, "utf8");
   if (!content.includes("TabsList")) continue;
 
-  const matches = [...content.matchAll(TABSLIST_PATTERN)];
-  for (const m of matches) {
-    const lineNum = content.slice(0, m.index).split("\n").length;
-    issues.push({
-      rule: "TabsList without bg-muted",
-      severity: "warning",
-      file: file.replace(ROOT, ""),
-      line: lineNum,
-      detail: "TabsList missing bg-muted — active/inactive tabs look identical.",
-    });
+  for (const m of content.matchAll(TABSLIST_PATTERN)) {
+    const tag = m[0];
+    if (FLAT_TABS_BG.test(tag) && !/\bborder/.test(tag)) {
+      const lineNum = content.slice(0, m.index).split("\n").length;
+      issues.push({
+        rule: "TabsList without visual distinction",
+        severity: "warning",
+        file: file.replace(ROOT, ""),
+        line: lineNum,
+        detail: "TabsList overrides the base bg-muted to a flat bg with no underline border — active/inactive look identical.",
+      });
+    }
   }
 }
 

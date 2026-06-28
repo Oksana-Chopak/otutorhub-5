@@ -2676,7 +2676,7 @@ export default function FinancesPage() {
 
       {/* Підтвердження видалення передоплати */}
       <AlertDialog open={!!deletePrepayTx} onOpenChange={(o) => !deletingPrepay && !o && setDeletePrepayTx(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[20px]">
           <AlertDialogHeader>
             <AlertDialogTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800 }}>
               {t("finances.deletePrepayConfirmTitle")}
