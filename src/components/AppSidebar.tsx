@@ -210,33 +210,43 @@ export function AppSidebar() {
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
+                end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "relative flex items-center gap-3 rounded-[12px] px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
+                    "group relative flex items-center gap-3 rounded-[12px] px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
                     isActive
-                      ? "bg-[rgba(43,191,170,0.13)] text-[#2BBFAA]"
+                      ? "bg-[rgba(43,191,170,0.14)] text-[#2BBFAA] font-semibold"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
                   )
                 }
-                end={item.to === "/"}
               >
-                {/* Icon with volumetric box */}
-                <div
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] transition-all"
-                  style={{
-                    background: "rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <item.icon className="h-[18px] w-[18px]" />
-                </div>
-                {!sidebarCollapsed && <span className="flex-1">{t(item.labelKey)}</span>}
-                {!sidebarCollapsed && badge > 0 && (
-                  <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
-                    {badge}
-                  </span>
-                )}
-                {sidebarCollapsed && badge > 0 && (
-                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
+                {({ isActive }) => (
+                  <>
+                    {/* Active accent bar — clear "you are here" cue */}
+                    {isActive && !sidebarCollapsed && (
+                      <span className="absolute left-0 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-r-full bg-[#2BBFAA]" />
+                    )}
+                    {/* Icon box — lights up teal (with glow) when active; lifts on hover */}
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] transition-all duration-150 group-hover:bg-white/10"
+                      style={
+                        isActive
+                          ? { background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 4px 12px -3px rgba(43,191,170,0.55)" }
+                          : { background: "rgba(255,255,255,0.06)" }
+                      }
+                    >
+                      <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-[#0f0f1a]")} />
+                    </div>
+                    {!sidebarCollapsed && <span className="flex-1">{t(item.labelKey)}</span>}
+                    {!sidebarCollapsed && badge > 0 && (
+                      <span className={cn("ml-auto inline-flex h-5 min-w-[20px] items-center justify-center rounded-full", badgeClass)}>
+                        {badge}
+                      </span>
+                    )}
+                    {sidebarCollapsed && badge > 0 && (
+                      <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary" />
+                    )}
+                  </>
                 )}
               </RouterNavLink>
             );
