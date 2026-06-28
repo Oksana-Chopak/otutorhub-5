@@ -1823,12 +1823,15 @@ export default function DashboardPage() {
                 />
               )}
 
+              {/* Mobile/tablet bubbles (lg uses the manager-style compact row
+                  below): payout full-width, then the two stat tiles in a row. */}
+              <div className="grid grid-cols-2 gap-3 lg:hidden">
               {/* «До виплати від хабу» — dark gradient card. Money = own
                   tutor_payout + own rate ONLY. Never student_price / hub margin.
                   Tap → Finances (the money bubble is clickable for every role). */}
               <Link
                 to="/finances"
-                className="block overflow-hidden rounded-[16px] p-[18px] text-white hover:shadow-sm transition-shadow"
+                className="col-span-2 block overflow-hidden rounded-[16px] p-[18px] text-white hover:shadow-sm transition-shadow"
                 style={{
                   background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)",
                   boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)",
@@ -1897,10 +1900,11 @@ export default function DashboardPage() {
                 )}
               </Link>
 
-              {/* Two stat tiles: hub students + lessons today (COUNTS only) */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Two stat tiles: hub students + lessons today — direct children of
+                  the bento grid above (stacked on the right of the payout hero on
+                  desktop; a 2-col row under it on mobile). */}
                 <div
-                  className="rounded-[18px] border bg-white p-[18px]"
+                  className="flex flex-col justify-center rounded-[18px] border bg-white p-[18px]"
                   style={{ borderColor: "var(--border,#eceef3)" }}
                 >
                   <div
@@ -1920,7 +1924,7 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div
-                  className="rounded-[18px] border bg-white p-[18px]"
+                  className="flex flex-col justify-center rounded-[18px] border bg-white p-[18px]"
                   style={{ borderColor: "var(--border,#eceef3)" }}
                 >
                   <div
@@ -1939,6 +1943,77 @@ export default function DashboardPage() {
                     {t("hubTutor.lessonsToday")}
                   </p>
                 </div>
+              </div>
+
+              {/* Desktop lg: payout (dark) + students + lessons today in ONE row —
+                  same compact card style as the manager dashboard so the hub-tutor
+                  cabinet looks as filled/polished on a wide screen. */}
+              <div className="hidden lg:grid lg:grid-cols-3 lg:gap-3">
+                {/* Payout (dark) — own tutor_payout + own rate ONLY. → Finances. */}
+                <Link
+                  to="/finances"
+                  className="block overflow-hidden rounded-[16px] p-4 hover:shadow-sm transition-shadow"
+                  style={{ background: "linear-gradient(135deg, #0f0f1a 0%, #1a1a3e 100%)" }}
+                >
+                  <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
+                    💼 {t("hubTutor.payoutDueTitle")}
+                  </p>
+                  <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--teal)" }}>
+                    {formatPrice(hubPayoutDue, "UAH")}
+                  </p>
+                  <p className="mt-0.5 text-[14px] font-medium" style={{ color: "#6b7a99" }}>
+                    {hubNextPayout
+                      ? t("hubTutor.payoutOn", {
+                          date: hubNextPayout.toLocaleDateString(getLocale(), { day: "numeric", month: "long" }),
+                        })
+                      : profitPeriodLabel[profitPeriod]}
+                  </p>
+                  {hubRate != null && hubRate > 0 && (
+                    <p className="mt-2 text-[14px] font-semibold" style={{ color: "#4ade80" }}>
+                      {t("hubTutor.rateFooterLabel")}: {formatPrice(hubRate, "UAH")}
+                    </p>
+                  )}
+                </Link>
+                {/* Hub students (no dedicated page for hub tutor → plain card, no chevron) */}
+                <div
+                  className="flex items-center justify-between rounded-[16px] border bg-white p-4"
+                  style={{ borderColor: "var(--border,#eceef3)" }}
+                >
+                  <div>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>
+                      {t("hubTutor.hubStudents")}
+                    </p>
+                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
+                      {hubStudentCount ?? 0}
+                    </p>
+                    <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
+                      {t("dashboard.cardStudentsSub")}
+                    </p>
+                  </div>
+                  <GraduationCap className="h-5 w-5" style={{ color: "#7c3aed" }} />
+                </div>
+                {/* Lessons today → Schedule (chevron) */}
+                <Link
+                  to="/schedule"
+                  className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,#eceef3)" }}
+                >
+                  <div>
+                    <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>
+                      {t("dashboard.todayLessons")}
+                    </p>
+                    <p className="mt-1.5 text-[24px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>
+                      {hubLessonsTodayCount}
+                    </p>
+                    <p
+                      className="mt-0.5 text-[14px]"
+                      style={{ color: hubLessonsTodayCount === 0 ? "var(--muted)" : "var(--teal)" }}
+                    >
+                      {hubLessonsTodayCount === 0 ? t("dashboard.todayFree") : t("dashboard.lessonsToday")}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-slate-300" />
+                </Link>
               </div>
 
               {/* Notes — ALWAYS directly under the bubbles, nowhere else (hub tutor:
