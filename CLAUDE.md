@@ -471,11 +471,14 @@ fields below before building anything money-related.
 ### Independent tutors
 - Manage their OWN students, set their OWN prices, collect payments **directly**
   (no hub in the middle, no `tutor_payout` margin to a hub).
-- Monetization here is the **subscription**: up to 5 students free, then 145 ₴/mo.
+- Monetization here is the **subscription**: unlimited students on Free; Pro is **249 ₴/mo**
+  (owner decision 2026-07-01). The old "5 students free, then 145 ₴/mo" model was retired —
+  there is NO student-count paywall in code (`useWorkspaceSettings` keeps the counter for
+  stats only). `SubscriptionPage.PRO_PRICE_MONTHLY = 249` is the source of truth for price.
 - This is the only place the "Pro / subscription / trial" concepts apply.
 
 ### Don't mix them
-- "Pro / subscription / 145 ₴/mo / trial" → **independent tutors only**.
+- "Pro / subscription / 249 ₴/mo / trial" → **independent tutors only**.
 - "student_price vs tutor_payout / margin / payout schedule" → **hub only**.
 - A hub tutor screen must show hub payouts (what the hub owes them), NOT a
   subscription. An independent tutor screen must never show `tutor_payout`/margin.

@@ -238,24 +238,133 @@ Deno.serve(async (req) => {
       link: "/student/payments",
       tag: `payrem-${lesson.id}`,
     });
-    if (!tgOk && !pushOk) {
-      skipped++;
-      continue;
-    }
+    // In-app 🔔 bell — the universal channel every student sees in the app, whether or
+    // not they linked Telegram or granted web-push. The dedup guard above means this
+    // fires at most once per (lesson, reminderKind), so no hourly spam. (Previously we
+    // skipped entirely when tg+push both failed — students without either got nothing.)
+    await supabase.from("notifications").insert({
+      user_id: lesson.student_id,
+      type: "payment_reminder",
+      title: header,
+      body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+      link: "/student/payments",
+    });
 
-    // Record the send for idempotency
+    // Record the send for idempotency (bell always delivered; note best push channel).
     await supabase.from("lesson_payment_reminders").insert({
       lesson_id: lesson.id,
       tutor_id: lesson.tutor_id,
       student_id: lesson.student_id,
       reminder_kind: reminderKind,
-      channel: tgOk ? "telegram" : "webpush",
+      channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
     });
     sent++;
   }
 
+  // ===== GROUP LESSONS: per-participant reminders (lesson_participants) =====
+  // Group lessons have lessons.student_id = NULL and NO lesson_details row — their
+  // per-student price/payment live on lesson_participants. Mirror the individual logic
+  // for each UNPAID participant, deduped on (lesson, student, reminderKind). This is the
+  // path that was entirely missing before, so group students got no automated reminders.
+  const { data: partsRaw } = await supabase
+    .from("lesson_participants")
+    .select(
+      "student_id, student_price, student_payment_status, lesson_id, lessons!inner(id, tutor_id, starts_at, status, subject, created_at)",
+    )
+    .neq("student_payment_status", "paid")
+    .in("lessons.status", ["scheduled", "completed"])
+    .gte("lessons.starts_at", fromIso)
+    .lte("lessons.starts_at", toIso);
+
+  const parts = (partsRaw ?? [])
+    .map((p: any) => ({
+      student_id: p.student_id,
+      student_price: p.student_price,
+      lesson: p.lessons,
+    }))
+    .filter((p: any) => p.lesson);
+
+  if (parts.length > 0) {
+    // Load settings / names / telegram for any group tutors+students not already cached.
+    const gTutorIds = Array.from(new Set(parts.map((p: any) => p.lesson.tutor_id))).filter((id) => !settingsByTutor.has(id as string));
+    if (gTutorIds.length) {
+      const { data: gs } = await supabase
+        .from("tutor_workspace_settings")
+        .select("tutor_id, payment_reminder_enabled, payment_due_mode, payment_due_days, subscription_status, subscription_until, trial_until")
+        .in("tutor_id", gTutorIds);
+      for (const s of gs ?? []) settingsByTutor.set(s.tutor_id, s as WorkspaceSettings);
+      const { data: gp } = await supabase.from("profiles").select("id, first_name, last_name").in("id", gTutorIds);
+      for (const p of gp ?? []) tutorName.set(p.id, `${(p.first_name ?? "").trim()} ${(p.last_name ?? "").trim()}`.trim() || "репетитор");
+    }
+    const gStudentIds = Array.from(new Set(parts.map((p: any) => p.student_id))).filter((id) => !chatByUser.has(id as string));
+    if (gStudentIds.length) {
+      const { data: gl } = await supabase.from("user_telegram_links").select("user_id, chat_id").in("user_id", gStudentIds).not("chat_id", "is", null);
+      for (const link of gl ?? []) if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
+    }
+    // Dedup: existing group reminders keyed lesson:student:kind (student included, unlike individual).
+    const gLessonIds = Array.from(new Set(parts.map((p: any) => p.lesson.id)));
+    const { data: gExisting } = await supabase.from("lesson_payment_reminders").select("lesson_id, student_id, reminder_kind").in("lesson_id", gLessonIds);
+    const gSentSet = new Set((gExisting ?? []).map((r: any) => `${r.lesson_id}:${r.student_id}:${r.reminder_kind}`));
+
+    for (const p of parts) {
+      const lesson = p.lesson;
+      const settings = settingsByTutor.get(lesson.tutor_id);
+      if (!settings || !isProActive(settings) || !settings.payment_reminder_enabled) { skipped++; continue; }
+
+      const days = Math.max(0, Math.min(30, settings.payment_due_days ?? 1));
+      const mode = settings.payment_due_mode;
+      const lessonStart = new Date(lesson.starts_at).getTime();
+      let reminderKind: string | null = null;
+      let triggerTimeMs = 0;
+      if (mode === "prepaid") { reminderKind = "prepaid"; triggerTimeMs = new Date(lesson.created_at).getTime(); }
+      else if (mode === "before_lesson") { reminderKind = `before_${days}d`; triggerTimeMs = lessonStart - days * DAY_MS; }
+      else if (mode === "after_lesson") { if (lesson.status !== "completed") { skipped++; continue; } reminderKind = `after_${days}d`; triggerTimeMs = lessonStart + days * DAY_MS; }
+      if (!reminderKind) { skipped++; continue; }
+
+      const nowMs = now.getTime();
+      if (triggerTimeMs > nowMs || nowMs - triggerTimeMs > 2 * DAY_MS) { skipped++; continue; }
+      if (gSentSet.has(`${lesson.id}:${p.student_id}:${reminderKind}`)) { skipped++; continue; }
+
+      const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
+      const tname = tutorName.get(lesson.tutor_id) ?? "репетитор";
+      const price = Number(p.student_price ?? 0);
+      const header = "💳 Нагадування про оплату";
+      const body = mode === "prepaid"
+        ? `Нагадуємо про передоплату за майбутній груповий урок (${dateStr}) з ${tname}.`
+        : `Груповий урок ${dateStr} з ${tname} — час оплатити заняття.`;
+      const priceLine = price > 0 ? `\n\nСума: <b>${price} ₴</b>` : "";
+      const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
+
+      const chatId = chatByUser.get(p.student_id);
+      const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
+      const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
+        userId: p.student_id,
+        title: header,
+        body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+        link: "/student/payments",
+        tag: `payrem-${lesson.id}-${p.student_id}`,
+      });
+      // In-app 🔔 — universal channel (same as individual path).
+      await supabase.from("notifications").insert({
+        user_id: p.student_id,
+        type: "payment_reminder",
+        title: header,
+        body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+        link: "/student/payments",
+      });
+      await supabase.from("lesson_payment_reminders").insert({
+        lesson_id: lesson.id,
+        tutor_id: lesson.tutor_id,
+        student_id: p.student_id,
+        reminder_kind: reminderKind,
+        channel: tgOk ? "telegram" : pushOk ? "webpush" : "inapp",
+      });
+      sent++;
+    }
+  }
+
   return new Response(
-    JSON.stringify({ ok: true, scanned: lessons.length, sent, skipped }),
+    JSON.stringify({ ok: true, scanned: lessons.length, groupParticipants: parts.length, sent, skipped }),
     { headers: { "Content-Type": "application/json" } },
   );
 });

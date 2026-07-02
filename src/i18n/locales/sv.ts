@@ -2563,7 +2563,7 @@ export const sv: LocaleTranslations = {
     skip: "Hoppa över",
     remindLater: "Påminn mig senare",
     activateBtn: "Aktivera arbetsyta",
-    workspaceDesc: "Hantera dina egna elever — separat från hubben. Sätt egna priser, ta emot betalningar direkt. Upp till 5 elever gratis, sedan 145 UAH/mån.",
+    workspaceDesc: "Hantera dina egna elever — separat från hubben. Sätt egna priser, ta emot betalningar direkt. Obegränsat antal elever; Pro — 249 UAH/mån.",
     hubOnlyDesc: "Du arbetar bara med elever som tilldelats av skolans chef. Du har inga egna elever — schema, betalningar och kommunikation går via hubben. Ingen prenumeration behövs.",
     proRulesLongDesc: "Välj när elever får betalningspåminnelser — förskott, före lektionen eller efter. Och om en avgift ska tas ut för sena avbokningar. Inställningar — i Profil.",
     autoMarkLongDesc: "Välj det läge som passar dig: automatiskt 1 timme efter att lektionen slutar — eller manuellt efter varje lektion. Växel — i Profil.",

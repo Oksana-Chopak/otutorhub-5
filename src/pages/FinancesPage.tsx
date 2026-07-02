@@ -1965,19 +1965,34 @@ export default function FinancesPage() {
                           </p>
                         </div>
                         <button
-                          onClick={async () => {
-                            const ids = debtList.map(l => l.id);
+                          onClick={() => {
+                            const snapshot = debtList.map(l => ({ id: l.id, status: l.student_payment_status, paidAt: l.student_paid_at }));
+                            const ids = snapshot.map(s => s.id);
                             const nowIso = new Date().toISOString();
-                            // Route each debt to the right table (group → lesson_participants).
-                            await Promise.all(debtList.map(l => writeStudentPayment(l, "paid", nowIso)));
+                            // Optimistic FIRST → instant feedback (binding invariant): haptic +
+                            // toast now, THEN await the writes and revert only on error. (Was
+                            // await-first + no haptic — the same dead-hang bug fixed elsewhere.)
                             setLessons(prev => prev.map(l =>
-                              ids.includes(l.id) ? {...l, student_payment_status:"paid", student_paid_at: nowIso} : l
+                              ids.includes(l.id) ? {...l, student_payment_status:"paid", student_paid_at: nowIso} as LessonRow : l
                             ));
+                            haptic.success();
                             toast.success(t("finances.allMarkedPaid"));
+                            void (async () => {
+                              // Route each debt to the right table (group → lesson_participants).
+                              const results = await Promise.all(debtList.map(l => writeStudentPayment(l, "paid", nowIso)));
+                              if (results.some(r => r?.error)) {
+                                setLessons(prev => prev.map(l => {
+                                  const s = snapshot.find(x => x.id === l.id);
+                                  return s ? {...l, student_payment_status: s.status, student_paid_at: s.paidAt} as LessonRow : l;
+                                }));
+                                haptic.error();
+                                toast.error(t("finances.updateStatusFailed"));
+                              }
+                            })();
                           }}
-                          style={{ height:38, padding:"0 14px", borderRadius:10, border:"none",
+                          style={{ height:44, padding:"0 16px", borderRadius:12, border:"none",
                             background:"rgba(245,158,11,.25)", color:F.warnD,
-                            fontFamily:F.display, fontWeight:700, fontSize:14, cursor:"pointer",
+                            fontFamily:F.display, fontWeight:700, fontSize:15, cursor:"pointer",
                             whiteSpace:"nowrap" }}>
                           {t("finances.markAll")}
                         </button>

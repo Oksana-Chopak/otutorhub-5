@@ -155,6 +155,18 @@ Deno.serve(async (req) => {
     }
   }
 
+  // In-app 🔔 bell — the universal in-app channel the student always sees, on top of
+  // Telegram/email (which depend on a linked account / email on file). Guarantees the
+  // manual reminder actually reaches the student even with no Telegram and no email.
+  await admin.from("notifications").insert({
+    user_id: lesson.student_id,
+    type: "payment_reminder",
+    title: "💳 Нагадування про оплату",
+    body: `Урок «${lesson.subject}» — час оплатити заняття.`,
+    link: "/student/payments",
+  });
+  channels.push("inapp");
+
   // Log to lesson_payment_reminders for each successful channel
   for (const ch of channels) {
     await admin.from("lesson_payment_reminders").insert({

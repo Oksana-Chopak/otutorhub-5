@@ -2573,7 +2573,7 @@ export const en: LocaleTranslations = {
     skip: "Skip",
     remindLater: "Remind me later",
     activateBtn: "Activate workspace",
-    workspaceDesc: "Manage your own students — separately from the hub. Set your own prices, receive payments directly. Up to 5 students free, then 145 UAH/mo.",
+    workspaceDesc: "Manage your own students — separately from the hub. Set your own prices, receive payments directly. Unlimited students; Pro — 249 UAH/mo.",
     hubOnlyDesc: "You only work with students assigned by the school manager. You don't have your own students — schedule, payments and communication go through the hub. No subscription needed.",
     proRulesLongDesc: "Choose when students get payment reminders — prepay, before the lesson, or after. And whether to charge a fee for late cancellations. Settings — in Profile.",
     autoMarkLongDesc: "Pick the mode that suits you: automatic 1 hour after the lesson ends — or manual after each lesson. Toggle — in Profile.",
