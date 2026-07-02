@@ -86,8 +86,11 @@ export default function StudentDashboardPage() {
     const orFilter = await studentLessonsOrFilter(user.id);
     const [{ data: lessons }, { data: details }, { data: completed }, { data: groupParts }] = await Promise.all([
       supabase
+        // student_payment_status lives on lesson_details, NOT lessons — selecting it here
+        // errored (42703). The unpaid count is computed from `details`
+        // (lesson_details_student) + `groupParts` below, so it's simply dropped here.
         .from("lessons")
-        .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status, student_payment_status")
+        .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status")
         .or(orFilter)
         .eq("status", "scheduled")
         .gte("starts_at", nowIso)

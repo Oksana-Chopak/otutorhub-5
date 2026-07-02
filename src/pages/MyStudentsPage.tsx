@@ -216,8 +216,12 @@ export default function MyStudentsPage() {
         .select("student_id, default_meeting_url")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
+      // student_price / student_payment_status live on lesson_details, not lessons —
+      // read them through the masked lessons_visible view (this is the independent
+      // tutor's own page, source='independent' → real values; also GRANT-locked on
+      // the base table by 20260715000000).
       supabase
-        .from("lessons")
+        .from("lessons_visible")
         .select("student_id, starts_at, status, student_payment_status, student_price")
         .eq("tutor_id", user.id)
         .in("student_id", ids),
