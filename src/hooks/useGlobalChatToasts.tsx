@@ -7,6 +7,11 @@ import i18n from "@/i18n";
 
 const t = i18n.t.bind(i18n);
 
+// Session cache of resolved sender display names, keyed by sender_id. Chat toasts for the
+// same person recur constantly (and a manager sees every sender), so this collapses the
+// per-message profiles round-trip to one lookup per distinct sender per session.
+const senderNameCache = new Map<string, string>();
+
 /**
  * Listens to new chat_messages inserts and shows a toast when:
  *  - the message is for a thread the current user participates in (or they are manager)
@@ -41,26 +46,24 @@ export function useGlobalChatToasts() {
           if (msg.sender_id === myId) return;
           if (locationRef.current.startsWith("/chats")) return;
 
-          // Verify access: manager sees all; others must be participant
-          if (!isManager) {
-            const { data: thread } = await supabase
-              .from("chat_threads")
-              .select("tutor_id, student_id")
-              .eq("id", msg.thread_id)
-              .maybeSingle();
-            if (!thread) return;
-            if (thread.tutor_id !== myId && thread.student_id !== myId) return;
-          }
+          // No client-side participant re-check: Supabase Realtime enforces the
+          // chat_messages SELECT RLS on delivery, so a non-manager only ever RECEIVES
+          // inserts for threads they belong to (managers legitimately receive all). The
+          // old per-event chat_threads fetch was a redundant round-trip on every message.
 
-          // Sender name (best effort)
-          const { data: senderProfile } = await supabase
-            .from("profiles")
-            .select("first_name, last_name")
-            .eq("id", msg.sender_id)
-            .maybeSingle();
-          const senderName = senderProfile
-            ? `${senderProfile.first_name ?? ""} ${senderProfile.last_name ?? ""}`.trim() || t("globalChatExtra.newMessage")
-            : t("globalChatExtra.newMessage");
+          // Sender name (best effort, cached per session to avoid a per-message fetch).
+          let senderName = senderNameCache.get(msg.sender_id);
+          if (senderName === undefined) {
+            const { data: senderProfile } = await supabase
+              .from("profiles")
+              .select("first_name, last_name")
+              .eq("id", msg.sender_id)
+              .maybeSingle();
+            senderName = senderProfile
+              ? `${senderProfile.first_name ?? ""} ${senderProfile.last_name ?? ""}`.trim() || t("globalChatExtra.newMessage")
+              : t("globalChatExtra.newMessage");
+            senderNameCache.set(msg.sender_id, senderName);
+          }
 
           toast(senderName, {
             description: msg.body.length > 120 ? msg.body.slice(0, 117) + "…" : msg.body,

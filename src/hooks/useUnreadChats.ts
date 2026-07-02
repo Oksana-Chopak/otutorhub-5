@@ -63,6 +63,20 @@ export function useUnreadChats(): number {
 
     compute();
 
+    // Coalesce message bursts into one recompute. A manager receives EVERY chat message
+    // app-wide over realtime (RLS lets them see all threads), so firing the full
+    // threads+reads requery per message hammered the DB during busy periods. Debounce so a
+    // flurry of inserts collapses to a single compute() shortly after it settles. Our own
+    // read updates stay immediate (user action → the badge should drop at once).
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const computeDebounced = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        debounce = null;
+        compute();
+      }, 500);
+    };
+
     // Realtime: any new message OR our own read update should refresh.
     // Unique suffix per mount prevents "cannot add callbacks after subscribe()"
     // when React StrictMode (or fast refresh) re-runs the effect and reuses a cached channel.
@@ -72,7 +86,7 @@ export function useUnreadChats(): number {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "chat_messages" },
-        () => compute()
+        () => computeDebounced()
       )
       .subscribe();
 
@@ -87,6 +101,7 @@ export function useUnreadChats(): number {
 
     return () => {
       cancelled = true;
+      if (debounce) clearTimeout(debounce);
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(readsChannel);
     };
