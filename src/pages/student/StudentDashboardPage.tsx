@@ -76,8 +76,12 @@ export default function StudentDashboardPage() {
   }, [completedLessons]);
 
   useEffect(() => {
-    if (!ctxLoading && !hasQuiz) setShowOnboarding(true);
-  }, [ctxLoading, hasQuiz]);
+    // Only self-signup students who still need to FIND a tutor get the intake quiz
+    // (its submit creates a tutor_referral_request). A hub student already assigned by a
+    // manager has a student_rates row → hasTutor=true → they must NOT be force-shown the
+    // find-a-tutor quiz. Guard on !hasTutor so they land straight on the real dashboard.
+    if (!ctxLoading && !hasQuiz && !hasTutor) setShowOnboarding(true);
+  }, [ctxLoading, hasQuiz, hasTutor]);
 
   const loadDashboard = async () => {
     if (!user) return;
