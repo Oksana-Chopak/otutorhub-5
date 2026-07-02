@@ -74,9 +74,12 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
       }
       const nowIso = new Date().toISOString();
       const [nextRes, hwRes, unpaidRes, srcRes] = await Promise.all([
+        // student_payment_status via the masked lessons_visible view (GRANT-locked on
+        // lesson_details): NULL for a hub tutor, so student→hub payment context stays
+        // hidden from them at the DB level too.
         supabase
-          .from("lessons")
-          .select("id, starts_at, subject, duration_minutes, lesson_details(student_payment_status)")
+          .from("lessons_visible")
+          .select("id, starts_at, subject, duration_minutes, student_payment_status")
           .eq("tutor_id", tutorId)
           .eq("student_id", studentId)
           .gte("starts_at", nowIso)
@@ -95,12 +98,12 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
           .limit(1)
           .maybeSingle(),
         supabase
-          .from("lessons")
-          .select("id, lesson_details!inner(student_payment_status)", { count: "exact", head: true })
+          .from("lessons_visible")
+          .select("id", { count: "exact", head: true })
           .eq("tutor_id", tutorId)
           .eq("student_id", studentId)
           .eq("status", "completed")
-          .eq("lesson_details.student_payment_status", "unpaid"),
+          .eq("student_payment_status", "unpaid"),
         supabase
           .from("student_rates")
           .select("source")
@@ -113,15 +116,12 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
       if (cancelled) return;
 
       if (nextRes.data) {
-        const d = Array.isArray(nextRes.data.lesson_details)
-          ? nextRes.data.lesson_details[0]
-          : nextRes.data.lesson_details;
         setNextLesson({
           id: nextRes.data.id,
           starts_at: nextRes.data.starts_at,
           subject: nextRes.data.subject,
           duration_minutes: nextRes.data.duration_minutes,
-          student_payment_status: d?.student_payment_status ?? null,
+          student_payment_status: (nextRes.data as any).student_payment_status ?? null,
         });
       } else {
         setNextLesson(null);

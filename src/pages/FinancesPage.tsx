@@ -271,12 +271,12 @@ export default function FinancesPage() {
     setLoading(true);
     // SECURITY (financial-data isolation): a HUB tutor must NEVER receive student_price /
     // student-payment columns — that is the HUB's revenue, and student_price − tutor_payout
-    // is the hub's margin (the tutor only earns their agreed tutor_payout). So a hub tutor
-    // fetches the payout columns ONLY, exactly mirroring the lessons_visible view's CASE.
-    // Managers + independent tutors legitimately see student_price (their own income).
-    const indDetailCols = isHubTutor
-      ? "tutor_payout, tutor_payout_status, tutor_paid_at"
-      : "student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at";
+    // is the hub's margin (the tutor only earns their agreed tutor_payout). Those columns
+    // are GRANT-locked on lesson_details (migration 20260715000000), so individual-lesson
+    // money is read through the masked lessons_visible view below (it exposes them flat with
+    // per-role masking: manager + independent-owner see them, a hub tutor gets NULL but
+    // keeps tutor_payout). The group path reads lesson_participants (not revoked), so it
+    // still selects columns per role.
     const grpPartCols = isHubTutor
       ? "id, student_id"
       : "id, student_id, student_price, student_payment_status, student_paid_at";
@@ -289,17 +289,21 @@ export default function FinancesPage() {
     ] = await Promise.all([
       (() => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
+        // Individual (non-group) lessons only — group lessons have student_id=NULL and are
+        // pulled separately below. lessons_visible already hub-scopes managers (source
+        // hub/NULL) and masks money per role.
         let q = supabase
-          .from("lessons")
-          .select(`id, subject, starts_at, status, student_id, tutor_id, lesson_details!inner(${indDetailCols})`)
+          .from("lessons_visible")
+          .select("id, subject, starts_at, status, student_id, tutor_id, source, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at")
+          .not("student_id", "is", null)
           .gte("starts_at", oneYearAgo)
           .limit(500);
         if (isManager) q = (q as any).neq("source", "independent");
         return q.order("starts_at", { ascending: false });
       })(),
-      // GROUP lessons (lessons.student_id = NULL) are excluded by the !inner join above.
-      // Pull them separately with their per-student participants so group income/debts
-      // show on this page too.
+      // GROUP lessons (lessons.student_id = NULL) are excluded from the individual query
+      // above by `.not("student_id","is",null)`. Pull them separately with their
+      // per-student participants so group income/debts show on this page too.
       (() => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
@@ -372,12 +376,12 @@ export default function FinancesPage() {
       status: l.status,
       student_id: l.student_id,
       tutor_id: l.tutor_id,
-      student_price: Number(l.lesson_details?.student_price ?? 0),
-      tutor_payout: Number(l.lesson_details?.tutor_payout ?? 0),
-      student_payment_status: (l.lesson_details?.student_payment_status ?? "unpaid") as PaymentStatus,
-      tutor_payout_status: (l.lesson_details?.tutor_payout_status ?? "unpaid") as PaymentStatus,
-      student_paid_at: l.lesson_details?.student_paid_at ?? null,
-      tutor_paid_at: l.lesson_details?.tutor_paid_at ?? null,
+      student_price: Number(l.student_price ?? 0),
+      tutor_payout: Number(l.tutor_payout ?? 0),
+      student_payment_status: (l.student_payment_status ?? "unpaid") as PaymentStatus,
+      tutor_payout_status: (l.tutor_payout_status ?? "unpaid") as PaymentStatus,
+      student_paid_at: l.student_paid_at ?? null,
+      tutor_paid_at: l.tutor_paid_at ?? null,
       kind: "individual" as const,
     }));
     // Flatten each group lesson into one row per participant (their own price/payment).

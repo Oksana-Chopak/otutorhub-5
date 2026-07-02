@@ -264,17 +264,19 @@ supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_
       for (let i = 0; i < lessonIds.length; i += chunkSize) {
         chunks.push(lessonIds.slice(i, i + chunkSize));
       }
+      // Read student money through the masked lessons_visible view (GRANT-locked on
+      // lesson_details); a manager sees the real values for hub lessons here.
       const chunkResults = await Promise.all(
         chunks.map((chunk) =>
           supabase
-            .from("lesson_details")
-            .select("lesson_id, student_payment_status, student_price")
-            .in("lesson_id", chunk)
+            .from("lessons_visible")
+            .select("id, student_payment_status, student_price")
+            .in("id", chunk)
         )
       );
       chunkResults.forEach(({ data: detailsData }) => {
         (detailsData ?? []).forEach((d: any) => {
-          detailsByLesson.set(d.lesson_id, {
+          detailsByLesson.set(d.id, {
             student_payment_status: d.student_payment_status,
             student_price: d.student_price,
           });

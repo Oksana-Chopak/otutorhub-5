@@ -76,7 +76,7 @@ function toLocalInputValue(iso: string) {
 
 export function TutorChangeRequestsCard({ nameOf }: Props) {
   const { user } = useAuth();
-  const { settings } = useWorkspaceSettings();
+  const { settings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const [requests, setRequests] = useState<ChangeRequestRow[]>([]);
   const [lessons, setLessons] = useState<Record<string, LessonInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -104,20 +104,20 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
     setRequests(list);
     if (list.length > 0) {
       const ids = Array.from(new Set(list.map((r) => r.lesson_id)));
+      // student_price via the masked lessons_visible view (GRANT-locked on lesson_details).
       const { data: lessonRows } = await supabase
-        .from("lessons")
-        .select("id, starts_at, subject, duration_minutes, status, lesson_details(student_price)")
+        .from("lessons_visible")
+        .select("id, starts_at, subject, duration_minutes, status, student_price")
         .in("id", ids);
       const map: Record<string, LessonInfo> = {};
       for (const l of (lessonRows ?? []) as any[]) {
-        const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
         map[l.id] = {
           id: l.id,
           starts_at: l.starts_at,
           subject: l.subject,
           duration_minutes: l.duration_minutes,
           status: l.status,
-          student_price: Number(d?.student_price ?? 0),
+          student_price: Number(l.student_price ?? 0),
         } as LessonInfo;
       }
       setLessons(map);
@@ -172,6 +172,10 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
   const approve = async () => {
     if (!active) return;
+    // Wait until the workspace (independent vs hub) is known — isIndependent gates the
+    // cancellation-charge write, so approving before it resolves would silently drop an
+    // independent tutor's charge. The confirm button is also disabled while wsLoading.
+    if (wsLoading) return;
     const lesson = lessons[active.lesson_id];
     if (!lesson) {
       toast.error(t("tutorChangeRequests.lessonNotFound"));
@@ -196,11 +200,17 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
         return;
       }
 
-      const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, { student_price: newPrice });
-      if (priceErr) {
-        setSubmitting(false);
-        toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
-        return;
+      // Only an INDEPENDENT tutor sets the cancellation charge (they own the price).
+      // For a HUB tutor the student→hub price is the manager's number (and is masked to
+      // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
+      // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
+      if (isIndependent) {
+        const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, { student_price: newPrice });
+        if (priceErr) {
+          setSubmitting(false);
+          toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
+          return;
+        }
       }
     } else {
       if (!proposedAt) {
@@ -392,61 +402,72 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       ? t("tutorChangeRequestsExtra.lateWarning", { status: hoursUntil < 0 ? "вже минув" : `~${hoursUntil} год`, hours: cancelFreeHours })
                       : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
-                  <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
-                  <RadioGroup
-                    value={chargeChoice}
-                    onValueChange={(v) => setChargeChoice(v as ChargeChoice)}
-                    className="grid gap-2"
-                  >
-                    {[
-                      {
-                        value: "none" as ChargeChoice,
-                        title: t("tutorChangeRequestsExtra.noPay"),
-                        desc: t("tutorChangeRequestsExtra.noPayDesc"),
-                      },
-                      {
-                        value: "partial" as ChargeChoice,
-                        title: t("tutorChangeRequestsExtra.partialPay"),
-                        desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: `${activeLesson.student_price} ₴` }),
-                      },
-                      {
-                        value: "full" as ChargeChoice,
-                        title: t("tutorChangeRequestsExtra.fullPay"),
-                        desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: `${activeLesson.student_price} ₴` }),
-                      },
-                    ].map((opt) => (
-                      <label
-                        key={opt.value}
-                        className={cn(
-                          "flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition",
-                          chargeChoice === opt.value
-                            ? "border-primary bg-primary/5"
-                            : "border-border hover:border-primary/40"
-                        )}
+                  {/* The cancellation CHARGE is an independent-tutor concept (they own the
+                      student price). A hub tutor doesn't set the hub's receivable — student
+                      price is masked here — so they just approve the cancellation. */}
+                  {isIndependent ? (
+                    <>
+                      <Label>{t("tutorChangeRequestsExtra.paymentLabel")}</Label>
+                      <RadioGroup
+                        value={chargeChoice}
+                        onValueChange={(v) => setChargeChoice(v as ChargeChoice)}
+                        className="grid gap-2"
                       >
-                        <RadioGroupItem value={opt.value} className="mt-0.5" />
-                        <div className="min-w-0">
-                          <p className="font-medium text-foreground">{opt.title}</p>
-                          <p className="text-[14px] text-muted-foreground">{opt.desc}</p>
+                        {[
+                          {
+                            value: "none" as ChargeChoice,
+                            title: t("tutorChangeRequestsExtra.noPay"),
+                            desc: t("tutorChangeRequestsExtra.noPayDesc"),
+                          },
+                          {
+                            value: "partial" as ChargeChoice,
+                            title: t("tutorChangeRequestsExtra.partialPay"),
+                            desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: `${activeLesson.student_price} ₴` }),
+                          },
+                          {
+                            value: "full" as ChargeChoice,
+                            title: t("tutorChangeRequestsExtra.fullPay"),
+                            desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: `${activeLesson.student_price} ₴` }),
+                          },
+                        ].map((opt) => (
+                          <label
+                            key={opt.value}
+                            className={cn(
+                              "flex cursor-pointer items-start gap-2 rounded-lg border p-3 text-sm transition",
+                              chargeChoice === opt.value
+                                ? "border-primary bg-primary/5"
+                                : "border-border hover:border-primary/40"
+                            )}
+                          >
+                            <RadioGroupItem value={opt.value} className="mt-0.5" />
+                            <div className="min-w-0">
+                              <p className="font-medium text-foreground">{opt.title}</p>
+                              <p className="text-[14px] text-muted-foreground">{opt.desc}</p>
+                            </div>
+                          </label>
+                        ))}
+                      </RadioGroup>
+                      {chargeChoice === "partial" && (
+                        <div className="flex items-center gap-2">
+                          <Label htmlFor="partial-amount" className="text-sm">
+                            {t("tutorChangeRequestsExtra.amountLabel")}
+                          </Label>
+                          <Input
+                            id="partial-amount"
+                            type="number"
+                            min={0}
+                            max={activeLesson.student_price}
+                            value={partialAmount}
+                            onChange={(e) => setPartialAmount(e.target.value)}
+                            className="w-28"
+                          />
                         </div>
-                      </label>
-                    ))}
-                  </RadioGroup>
-                  {chargeChoice === "partial" && (
-                    <div className="flex items-center gap-2">
-                      <Label htmlFor="partial-amount" className="text-sm">
-                        Сума, ₴
-                      </Label>
-                      <Input
-                        id="partial-amount"
-                        type="number"
-                        min={0}
-                        max={activeLesson.student_price}
-                        value={partialAmount}
-                        onChange={(e) => setPartialAmount(e.target.value)}
-                        className="w-28"
-                      />
-                    </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="rounded-lg border border-border bg-muted/40 p-3 text-[14px] text-muted-foreground">
+                      {t("tutorChangeRequestsExtra.hubCancelNote")}
+                    </p>
                   )}
                 </div>
               ) : (
@@ -491,13 +512,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   <XCircle className="mr-1 h-4 w-4" />
                   Відхилити
                 </Button>
-                <Button onClick={approve} disabled={submitting}>
+                <Button onClick={approve} disabled={submitting || wsLoading}>
                   {submitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                   )}
-                  Підтвердити
+                  {t("tutorChangeRequests.approveBtn")}
                 </Button>
               </DialogFooter>
             </>

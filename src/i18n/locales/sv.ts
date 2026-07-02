@@ -2286,6 +2286,7 @@ export const sv: LocaleTranslations = {
     noSlotsThisWeek: "Inga lediga tider den här veckan. Kolla nästa vecka eller skriv till läraren i chatten.",
   },
   tutorChangeRequests: {
+    approveBtn: "Godkänn",
     requestUpdateFailed: "Lektion uppdaterades men förfrågan kunde inte uppdateras",
     lessonNotFound: "Lektion hittades inte",
     updateFailed: "Kunde inte uppdatera lektion",
@@ -3110,6 +3111,8 @@ export const sv: LocaleTranslations = {
     lateWarning: "⚠ Lektion {{status}} — mindre än din regel för gratis avbokning ({{hours}} tim).",
     earlyInfo: "Förfrågan mottagen i tid — ~{{hours}} tim till lektion (regel: ≥{{limit}} tim gratis).",
     paymentLabel: "Vad gör vi med betalningen?",
+    amountLabel: "Belopp, ₴",
+    hubCancelNote: "När du godkänner avbokas lektionen. En eventuell avbokningsavgift beslutas av hubbchefen.",
     noPay: "Ingen betalning",
     noPayDesc: "Eleven betalar ingenting — lektionen avbokas.",
     partialPay: "Delbetalning",

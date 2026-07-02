@@ -64,11 +64,14 @@ export function PendingPaymentsCard() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
+    // Read student money through the masked lessons_visible view (student_price is
+    // GRANT-locked on lesson_details; the view exposes it only to manager / the
+    // owning independent tutor / the student — a hub tutor gets NULL and so no rows).
     const { data: details } = await supabase
-      .from("lesson_details")
-      .select("lesson_id, student_price, lessons!inner(id, starts_at, subject, student_id, tutor_id, status)")
-      .eq("lessons.tutor_id", user.id)
-      .eq("lessons.status", "completed")
+      .from("lessons_visible")
+      .select("id, starts_at, subject, student_id, tutor_id, status, student_price, student_payment_status")
+      .eq("tutor_id", user.id)
+      .eq("status", "completed")
       .eq("student_payment_status", "unpaid")
       .gt("student_price", 0)
       .limit(100);
@@ -86,11 +89,11 @@ export function PendingPaymentsCard() {
 
     const lessons = [
       ...((details ?? []) as any[]).map((d) => ({
-        id: d.lessons.id,
-        lesson_id: d.lessons.id,
-        starts_at: d.lessons.starts_at,
-        subject: d.lessons.subject,
-        student_id: d.lessons.student_id,
+        id: d.id,
+        lesson_id: d.id,
+        starts_at: d.starts_at,
+        subject: d.subject,
+        student_id: d.student_id,
         student_price: Number(d.student_price ?? 0),
         kind: "individual" as const,
         currency: undefined as string | undefined,

@@ -2296,6 +2296,7 @@ export const en: LocaleTranslations = {
     noSlotsThisWeek: "No free slots this week. Check next week or message the tutor in chat.",
   },
   tutorChangeRequests: {
+    approveBtn: "Approve",
     requestUpdateFailed: "Lesson updated but request could not be updated",
     lessonNotFound: "Lesson not found",
     updateFailed: "Failed to update lesson",
@@ -3120,6 +3121,8 @@ export const en: LocaleTranslations = {
     lateWarning: "⚠ Lesson {{status}} — less than your free cancellation rule ({{hours}} hrs).",
     earlyInfo: "Request received in time — ~{{hours}} hrs until lesson (rule: ≥{{limit}} hrs free).",
     paymentLabel: "What do we do with payment?",
+    amountLabel: "Amount, ₴",
+    hubCancelNote: "Approving will cancel the lesson. Any cancellation charge is decided by the hub manager.",
     noPay: "No payment",
     noPayDesc: "Student pays nothing — lesson simply cancels.",
     partialPay: "Partial payment",

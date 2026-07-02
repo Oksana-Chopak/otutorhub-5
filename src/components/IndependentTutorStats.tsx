@@ -58,21 +58,23 @@ export function IndependentTutorStats() {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      // Read student money through the masked lessons_visible view (student_price is
+      // GRANT-locked on lesson_details). An independent tutor OWNS the money, so the
+      // view exposes the real values for their own source='independent' lessons.
       const { data } = await supabase
-        .from("lessons")
-        .select("id, starts_at, status, student_id, lesson_details(student_price, student_payment_status)")
+        .from("lessons_visible")
+        .select("id, starts_at, status, student_id, student_price, student_payment_status")
         .eq("tutor_id", user.id)
         .eq("source", "independent");
       if (!cancelled) {
         const mapped = ((data ?? []) as any[]).map((r) => {
-          const d = Array.isArray(r.lesson_details) ? r.lesson_details[0] : r.lesson_details;
           return {
             id: r.id,
             starts_at: r.starts_at,
             status: r.status,
             student_id: r.student_id,
-            student_price: Number(d?.student_price ?? 0),
-            student_payment_status: d?.student_payment_status ?? "unpaid",
+            student_price: Number(r.student_price ?? 0),
+            student_payment_status: r.student_payment_status ?? "unpaid",
           } as LessonRow;
         });
         setLessons(mapped);
