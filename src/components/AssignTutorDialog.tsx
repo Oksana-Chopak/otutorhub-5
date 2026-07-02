@@ -204,9 +204,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
       console.warn("tutor_subject_rates upsert failed:", tsrErr.message);
     }
 
-    // 3. Mark referral request as fulfilled
+    // 3. Mark referral request as fulfilled.
+    // SECURITY (SEC-4/MON-2): manager_response is STUDENT-READABLE (referral RLS lets the
+    // requesting student read their own row), so it must never contain tutor_payout /
+    // hub margin. Keep it student-safe: tutor name + subject only. The actual rates live
+    // in student_rates (manager source of truth).
     const tutorName = tutors.find((x) => x.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
-    const responseNote = `${t("assignTutorExtra.assigned")}: ${tutorName}. ${t("assignTutorExtra.subjectLabel")}: ${subject.trim()}. Ціна для учня: ${sp} ₴, виплата: ${tp} ₴.`;
+    const responseNote = `${t("assignTutorExtra.assigned")}: ${tutorName}. ${t("assignTutorExtra.subjectLabel")}: ${subject.trim()}.`;
     const { error: reqErr } = await supabase
       .from("tutor_referral_requests")
       .update({

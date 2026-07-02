@@ -12,6 +12,21 @@ const UK_MONTHS = [
   "Липень","Серпень","Вересень","Жовтень","Листопад","Грудень",
 ];
 
+// What a tutor actually EARNED from a set of lessons.
+// MON-2: a hub tutor earns their tutor_payout (the hub's student_price is the HUB's
+// revenue, not the tutor's — showing student_price would leak/misreport hub margin).
+// An independent tutor owns the money, so they earn student_price.
+function tutorEarned(lessons: any[]): number {
+  return (lessons ?? []).reduce((sum: number, l: any) => {
+    const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+    if (!d) return sum;
+    if (l.source === "independent") {
+      return sum + (d.student_payment_status === "paid" ? Number(d.student_price ?? 0) : 0);
+    }
+    return sum + (d.tutor_payout_status === "paid" ? Number(d.tutor_payout ?? 0) : 0);
+  }, 0);
+}
+
 Deno.serve(async (req) => {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -110,10 +125,10 @@ Deno.serve(async (req) => {
         .eq("role", "tutor");
 
       for (const { user_id } of tutorRoles ?? []) {
-        // student_price + student_payment_status live on lesson_details (not lessons).
+        // student_price + payout live on lesson_details (not lessons); source on lessons.
         const { data: lessons } = await db
           .from("lessons")
-          .select("id, lesson_details(student_price, student_payment_status)")
+          .select("id, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
           .eq("tutor_id", user_id)
           .eq("status", "completed")
           .gte("starts_at", monthStart)
@@ -122,10 +137,7 @@ Deno.serve(async (req) => {
         const count = (lessons ?? []).length;
         if (count === 0) continue;
 
-        const income = (lessons ?? [])
-          .map((l: any) => (Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details))
-          .filter((d: any) => d?.student_payment_status === "paid")
-          .reduce((sum: number, d: any) => sum + Number(d?.student_price ?? 0), 0);
+        const income = tutorEarned(lessons ?? []);
 
         await upsertNotif(
           user_id,
@@ -149,10 +161,10 @@ Deno.serve(async (req) => {
         .eq("role", "tutor");
 
       for (const { user_id } of tutorRolesW ?? []) {
-        // student_price + student_payment_status live on lesson_details (not lessons).
+        // student_price + payout live on lesson_details (not lessons); source on lessons.
         const { data: wLessons } = await db
           .from("lessons")
-          .select("id, status, lesson_details(student_price, student_payment_status)")
+          .select("id, status, source, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status)")
           .eq("tutor_id", user_id)
           .gte("starts_at", weekStart.toISOString())
           .lt("starts_at", weekEnd.toISOString());
@@ -161,10 +173,7 @@ Deno.serve(async (req) => {
         const count = completed.length;
         if (count === 0) continue;
 
-        const income = completed
-          .map((l: any) => (Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details))
-          .filter((d: any) => d?.student_payment_status === "paid")
-          .reduce((sum: number, d: any) => sum + Number(d?.student_price ?? 0), 0);
+        const income = tutorEarned(completed);
 
         await upsertNotif(
           user_id,

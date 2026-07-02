@@ -316,8 +316,14 @@ export function LessonCard({
         {/* Payment rows */}
         {(lesson.student_price != null || withPayout) && (
           <div style={{ borderTop: `1px solid ${L.border}`, padding: "11px 13px 12px", display: "flex", flexDirection: "column", gap: 8 }}>
-            <PayRow icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
-              onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
+            {/* Student payment row only when a real student_price is present. For a HUB
+                tutor student_price is masked to NULL (they must not see/mark the student→hub
+                payment), so this row is hidden and only their payout row shows — no phantom
+                ₴0 tappable toggle. */}
+            {lesson.student_price != null && (
+              <PayRow icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
+                onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
+            )}
             {withPayout && (
               <PayRow icon="💼" amount={lesson.tutor_payout ?? lesson.student_price} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />

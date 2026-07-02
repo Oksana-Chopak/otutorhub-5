@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Link2, Copy, Check, Share2, Heart, Trophy } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
@@ -67,7 +69,12 @@ const STEPS = [
 
 export default function MyReferralsPage() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  // The referral / Pro-invite program is INDEPENDENT-tutor only (MON-7). A hub tutor /
+  // manager reaching this by URL must not see the independent monetization surface.
+  // (Applied at the render return below, after all hooks, to respect the rules of hooks.)
+  const blockedNonIndependent = !wsLoading && (roles.includes("manager") || (roles.includes("tutor") && !isIndependent));
 
   const [code, setCode] = useState<string | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);
@@ -190,6 +197,8 @@ export default function MyReferralsPage() {
       {children}
     </div>
   );
+
+  if (blockedNonIndependent) return <Navigate to="/" replace />;
 
   return (
     <AppLayout>
