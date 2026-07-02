@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Check, X, Clock, Loader2 } from "lucide-react";
@@ -43,8 +44,10 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
 
   const setStatus = async (id: string, status: "completed" | "cancelled") => {
     setBusyId(id);
-    // Instant feedback FIRST: haptic (completed) + optimistically drop the card.
-    if (status === "completed") hapticSuccess();
+    // Instant feedback FIRST: haptic + confetti (completed) + optimistically drop the
+    // card. This is the hub tutor's primary "mark a lesson done" win too, so it gets the
+    // same celebration as the independent/manager LessonCard path.
+    if (status === "completed") { hapticSuccess(); burstConfetti(); }
     setRemovedIds((prev) => new Set(prev).add(id));
     const { error } = await supabase.from("lessons").update({ status }).eq("id", id);
     setBusyId(null);

@@ -2510,6 +2510,14 @@ export default function DashboardPage() {
               <TutorWelcomeBanner />
             </>
           )}
+
+          {/* Hub tutor: streak parity — the streak is computed for hub tutors too, so
+              show the same momentum card the independent tutor gets (mobile). */}
+          {isHubTutor && streak && (
+            <div className="lg:hidden">
+              <StreakCard streak={streak} />
+            </div>
+          )}
         </div>
       )}
 
