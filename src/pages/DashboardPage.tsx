@@ -834,14 +834,19 @@ export default function DashboardPage() {
 
   const markPayoutPaid = async (tutorId: string) => {
     setPayingTutor(tutorId);
+    // Optimistic UI + instant haptic FIRST (binding invariant), then the RPC; revert on error.
+    const prevLessons = lessons;
+    setLessons((prev) => prev.map((l) => (l.tutor_id === tutorId && l.tutor_payout_status === "unpaid" ? { ...l, tutor_payout_status: "paid" as PaymentStatus } : l)));
+    haptic.success();
     const { data, error } = await supabase.rpc("mark_tutor_payouts_paid" as any, { _tutor_id: tutorId });
     setPayingTutor(null);
     if (error) {
+      setLessons(prevLessons);
+      haptic.error();
       toast.error(t("dashboardPageExtra.payoutMarkFailed"), { description: error.message });
       return;
     }
     toast.success(t("dashboardPageExtra.payoutMarked"), { description: t("dashboardPageExtra.payoutMarkedDesc", { count: data ?? 0 }) });
-    setLessons((prev) => prev.map((l) => (l.tutor_id === tutorId && l.tutor_payout_status === "unpaid" ? { ...l, tutor_payout_status: "paid" as PaymentStatus } : l)));
   };
 
   useEffect(() => {
@@ -1024,11 +1029,6 @@ export default function DashboardPage() {
         );
       }),
     [lessons, nowMs, groupUnpaidLessonIds]
-  );
-
-  const needsMarkLessons = useMemo(
-    () => lessons.filter((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() < nowMs),
-    [lessons, nowMs]
   );
 
   const lessonsWithoutPrice = useMemo(
@@ -1553,7 +1553,7 @@ export default function DashboardPage() {
                   </div>
                   <p className="font-extrabold leading-none"
                     style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
-                    {studentCount}
+                    {myStudentCount ?? 0}
                   </p>
                   <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                     {t("dashboard.cardStudents") || "учні"} · активних
@@ -1596,7 +1596,7 @@ export default function DashboardPage() {
                     </p>
                     <p className="font-black leading-none mt-0.5"
                       style={{ fontSize: 30, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
-                      {studentCount}
+                      {myStudentCount ?? 0}
                     </p>
                   </div>
                 </Link>
@@ -1683,7 +1683,7 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2" style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
-                  <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{studentCount}</p>
+                  <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{myStudentCount ?? 0}</p>
                   <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
                 </Link>
               </div>
@@ -1734,7 +1734,7 @@ export default function DashboardPage() {
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
-                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{myStudentCount ?? 0}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
@@ -2088,31 +2088,9 @@ export default function DashboardPage() {
             />
           )}
 
-          {needsMarkLessons.length > 0 && (
-            <section className="mb-6">
-              <div className="mb-3 flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-amber-500" />
-                <h2 className="text-base font-semibold">{t("dashboardPageExtra.needsMarkingTitle")}</h2>
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[14px] font-medium text-amber-700">{needsMarkLessons.length}</span>
-              </div>
-              <div className="space-y-2">
-                {needsMarkLessons.map((lesson) => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
-                    role="tutor"
-                    studentName={lesson.student_id ? (profiles[lesson.student_id] ?? '—') : t("groupLessons.cardLabel")}
-                    chatPartnerId={lesson.student_id}
-                    onContentClick={() => setOpenLessonId(lesson.id)}
-                    className={lessonSourceTint(lesson.source)}
-                    canEditStatus
-                    onStatusChange={(s) => updateStatus(lesson.id, s)}
-                    onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
-                  />
-                ))}
-              </div>
-            </section>
-          )}
+          {/* (Removed the second "needs marking" LessonCard section — it duplicated
+              NeedsMarkingCard above for manager/independent/hub tutors and, being
+              un-role-gated, wrongly rendered a mark-done surface for students too.) */}
 
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
           {isManager && (

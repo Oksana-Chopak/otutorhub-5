@@ -25,25 +25,33 @@ interface Props {
 export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
   const { t } = useTranslation();
   const [busyId, setBusyId] = useState<string | null>(null);
+  // Optimistically hide a just-marked lesson so it vanishes INSTANTLY (binding
+  // invariant) instead of spinning through the DB round-trip. Reverted on error.
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
   const items = useMemo(() => {
     const now = Date.now();
     return lessons.filter((l) => {
       const ends = new Date(l.starts_at).getTime() + l.duration_minutes * 60 * 1000;
-      return ends < now;
+      return ends < now && !removedIds.has(l.id);
     });
-  }, [lessons]);
+  }, [lessons, removedIds]);
 
-  const { success: hapticSuccess } = useHaptic();
+  const { success: hapticSuccess, error: hapticError } = useHaptic();
 
   if (items.length === 0) return null;
 
   const setStatus = async (id: string, status: "completed" | "cancelled") => {
     setBusyId(id);
+    // Instant feedback FIRST: haptic (completed) + optimistically drop the card.
     if (status === "completed") hapticSuccess();
+    setRemovedIds((prev) => new Set(prev).add(id));
     const { error } = await supabase.from("lessons").update({ status }).eq("id", id);
     setBusyId(null);
     if (error) {
+      // Revert: the lesson reappears so the tutor can retry.
+      setRemovedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
+      hapticError();
       toast.error(t("needsMarking.updateFailed"));
       return;
     }

@@ -796,6 +796,9 @@ export default function FinancesPage() {
           : l
       )
     );
+    // Instant felt feedback BEFORE the DB round-trip (binding invariant — the tap must
+    // be felt/seen immediately, not after a ~1-2s await). Reverted below on error.
+    if (next === "paid") haptic.success(); else haptic.tap();
 
     const { error } =
       field === "student_payment_status"
@@ -821,7 +824,6 @@ export default function FinancesPage() {
       return;
     }
     if (next === "paid") {
-      haptic.success();
       const revert = async () => {
         setLessons((prev) =>
           prev.map((l) =>
@@ -853,7 +855,6 @@ export default function FinancesPage() {
         },
       );
     } else {
-      haptic.tap();
       toast.success(t("finances.resetToUnpaid"));
     }
   };
@@ -908,6 +909,7 @@ export default function FinancesPage() {
           : l
       )
     );
+    haptic.success(); // instant felt feedback before the DB round-trip (reverted on error)
     let error: unknown = null;
     if (field === "student_payment_status") {
       const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
@@ -935,8 +937,8 @@ export default function FinancesPage() {
       setLessons(previousLessons);
       return;
     }
-    // Clearing a whole debt list at once is a real win — celebrate it.
-    haptic.success();
+    // Clearing a whole debt list at once is a real win — celebrate it (haptic already
+    // fired instantly above; confetti is the after-success bonus).
     if (field === "student_payment_status") burstConfetti();
     toast.success(t("finances.bulkUpdated", { count: ids.length }));
     setSelected(new Set());
