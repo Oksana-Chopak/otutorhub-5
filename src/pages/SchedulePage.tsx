@@ -809,8 +809,10 @@ export default function SchedulePage() {
       return;
     }
     const lsn = prev.find((l) => l.id === lessonId);
+    // Hub tutors excluded: masked status reads NULL (always "unpaid") and the write
+    // is a server-side no-op — the prompt was a dead button for them.
     const canMarkPay = newStatus === "completed" && !!lsn && lsn.student_payment_status !== "paid" &&
-      (isManager || (isTutor && lsn.tutor_id === user?.id));
+      (isManager || (isTutor && lsn.tutor_id === user?.id && lsn.source === "independent"));
     if (canMarkPay) {
       toast.success(t('schedule.statusUpdated'), {
         description: t('schedule.studentPaidQuestion'),

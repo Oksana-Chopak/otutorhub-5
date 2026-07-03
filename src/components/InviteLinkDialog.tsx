@@ -122,7 +122,10 @@ export function InviteLinkDialog({
           </DialogTitle>
           <DialogDescription asChild>
             <div style={{ fontFamily: "var(--font-body)", fontSize: 15, lineHeight: 1.5, color: "var(--sub,#6b7088)", marginTop: 6, padding: "0 4px" }}>
-              {email
+              {/* «Ми надіслали запрошення» must key on emailSent, not on the email's
+                  mere presence — tutors never get an auto-email (addPerson sends only
+                  for students), so this claimed a send that never happened. */}
+              {email && emailSent
                 ? (isTutor
                     ? t("inviteLinkExtra.descEmailTutor")
                     : t("inviteLinkExtra.descEmailStudent"))

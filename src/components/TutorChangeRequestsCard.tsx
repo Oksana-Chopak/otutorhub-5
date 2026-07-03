@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
+import { insertNotification } from "@/lib/notifications";
+import { getLocale } from "@/lib/locale";
 import {
   Card,
   CardContent,
@@ -249,6 +251,25 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       });
       return;
     }
+    // The decision must reach the STUDENT — «notifications both ways» was one-way:
+    // the student pinged the tutor on submit, but approvals/rescheduls/fees landed
+    // silently. type is per-request so the 24h (user,type) dedup can't swallow it.
+    const feeApplied = active.kind === "cancel" && isIndependent && chargeChoice !== "none";
+    const feeAmount = chargeChoice === "partial" ? Math.max(0, Number(partialAmount) || 0) : Number(lesson.student_price ?? 0);
+    insertNotification({
+      userId: active.student_id,
+      type: `change_request_${active.id}`,
+      title:
+        active.kind === "cancel"
+          ? feeApplied
+            ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: feeAmount })
+            : t("tutorChangeRequestsExtra.cancelApprovedNotif")
+          : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
+              when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+            }),
+      body: response.trim() || undefined,
+      link: "/student/schedule",
+    });
     toast.success(active.kind === "cancel" ? t("tutorChangeRequests.cancelApproved") : t("tutorChangeRequests.rescheduleApproved"));
     close();
     load();
@@ -271,6 +292,13 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
       return;
     }
+    insertNotification({
+      userId: active.student_id,
+      type: `change_request_${active.id}`,
+      title: t("tutorChangeRequestsExtra.requestRejectedNotif"),
+      body: response.trim() || undefined,
+      link: "/student/schedule",
+    });
     toast.success(t("tutorChangeRequestsExtra.requestRejected"));
     close();
     load();

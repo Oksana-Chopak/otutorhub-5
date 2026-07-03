@@ -3330,6 +3330,10 @@ export const uk = {
     newTimeLabel: "Новий час",
     responseLabel: "Коментар учню (опційно)",
     responsePlaceholder: "Кілька слів учню…",
+    cancelApprovedNotif: "✅ Скасування уроку підтверджено",
+    cancelApprovedFeeNotif: "✅ Скасування підтверджено · утримання {{fee}} ₴",
+    rescheduleApprovedNotif: "📅 Урок перенесено на {{when}}",
+    requestRejectedNotif: "Запит на зміну уроку відхилено",
   },
   chatsQuickReplies: "Доброго дня! Підтверджуємо урок завтра о вказаному часі.,Дякуємо за оплату — підтверджуємо отримання.,Нагадуємо про урок сьогодні. До зустрічі!,Будь ласка, надішліть скрін оплати для підтвердження.",
   badgesExtra: {

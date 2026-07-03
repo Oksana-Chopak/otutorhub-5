@@ -3309,6 +3309,10 @@ export const sv: LocaleTranslations = {
     newTimeLabel: "Ny tid",
     responseLabel: "Kommentar till elev (valfritt)",
     responsePlaceholder: "Några ord till eleven…",
+    cancelApprovedNotif: "✅ Avbokning av lektionen godkänd",
+    cancelApprovedFeeNotif: "✅ Avbokning godkänd · {{fee}} ₴ debiteras",
+    rescheduleApprovedNotif: "📅 Lektionen flyttad till {{when}}",
+    requestRejectedNotif: "Begäran om lektionsändring avvisad",
   },
   chatsQuickReplies: "God dag! Bekräftar lektionen imorgon vid angiven tid.,Tack för betalningen — bekräftar mottagandet.,Påminner om lektionen idag. Vi ses!,Vänligen skicka ett betalningsskärmdump för bekräftelse.",
   badgesExtra: {

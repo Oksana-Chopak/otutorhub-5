@@ -3319,6 +3319,10 @@ export const en: LocaleTranslations = {
     newTimeLabel: "New time",
     responseLabel: "Comment to student (optional)",
     responsePlaceholder: "A few words to the student…",
+    cancelApprovedNotif: "✅ Lesson cancellation approved",
+    cancelApprovedFeeNotif: "✅ Cancellation approved · {{fee}} ₴ charged",
+    rescheduleApprovedNotif: "📅 Lesson rescheduled to {{when}}",
+    requestRejectedNotif: "Lesson change request declined",
   },
   chatsQuickReplies: "Good day! Confirming the lesson tomorrow at the specified time.,Thank you for payment — confirming receipt.,Reminding you about the lesson today. See you soon!,Please send a screenshot of the payment for confirmation.",
   badgesExtra: {

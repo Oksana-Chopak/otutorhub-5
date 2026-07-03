@@ -607,7 +607,11 @@ export default function DashboardPage() {
         burstConfetti();
       }
       const lesson = lessons.find((l) => l.id === lessonId);
-      const canMarkPay = !!lesson && lesson.student_payment_status !== "paid" && (isManager || lesson.tutor_id === user?.id);
+      // Hub tutors must NOT get the «Учень оплатив?» prompt: their masked
+      // student_payment_status is NULL (so it always looked unpaid) and the write
+      // is silently ignored by update_lesson_details_safe — a dead button.
+      const canMarkPay = !!lesson && lesson.student_payment_status !== "paid" &&
+        (isManager || (lesson.tutor_id === user?.id && lesson.source === "independent"));
       toast.success(
         isFirstLesson ? t("dashboardExtra.firstLessonToast") : t("dashboardExtra.lessonCompletedToast"),
         {
