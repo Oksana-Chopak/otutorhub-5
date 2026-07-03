@@ -48,7 +48,8 @@ export default function WalletsPage() {
   const loadData = async () => {
     setLoading(true);
 
-    // 1. Pairs from student_rates
+    // 1. Pairs (student_rates) + balances in ONE round-trip — they're independent;
+    //    only the profiles lookup depends on the pairs result.
     let ratesQ = supabase
       .from("student_rates")
       .select("tutor_id, student_id, price_per_lesson, archived_at")
@@ -56,10 +57,15 @@ export default function WalletsPage() {
     if (isIndependentTutor && user) {
       ratesQ = ratesQ.eq("tutor_id", user.id).eq("source", "independent");
     }
-    const { data: rates } = await ratesQ;
+    const [{ data: rates }, { data: balances }] = await Promise.all([
+      ratesQ,
+      supabase
+        .from("student_wallet_balances" as any)
+        .select("tutor_id, student_id, lessons_balance, amount_balance"),
+    ]);
     const pairs = (rates ?? []) as any[];
 
-    // 2. Profiles
+    // 2. Profiles (depends on the pair ids)
     const ids = Array.from(
       new Set(pairs.flatMap((p) => [p.tutor_id, p.student_id])),
     );
@@ -73,12 +79,6 @@ export default function WalletsPage() {
         `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || "—",
       ]),
     );
-
-    // 3. Balances
-    const balQ = supabase
-      .from("student_wallet_balances" as any)
-      .select("*");
-    const { data: balances } = await balQ;
     const balMap = new Map<string, any>();
     (balances ?? []).forEach((b: any) => {
       balMap.set(`${b.tutor_id}:${b.student_id}`, b);

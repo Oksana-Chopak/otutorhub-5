@@ -528,27 +528,56 @@ export default function DashboardPage() {
     setStudentCount(studentIds.length);
     setPendingRequestCount((requestRows ?? []).length);
 
-    if (isManager) {
-      const [{ count: trCount }, { count: srCount }, { count: fbCount }] = await Promise.all([
-        supabase
-          .from("tutor_referral_requests")
-          .select("id", { count: "exact", head: true })
-          .in("status", ["open", "in_progress"]),
-        supabase
-          .from("subscription_requests")
-          .select("id", { count: "exact", head: true })
-          .in("status", ["new", "in_progress"]),
-        supabase
-          .from("feedback_submissions")
-          .select("id", { count: "exact", head: true })
-          .eq("status", "new"),
+    setProfiles(profileMap);
+    const uniqueLessons = Array.from(
+      new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
+    );
+    setLessons(uniqueLessons);
+    const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
+
+    // ONE follow-up round-trip: these role-gated queries are mutually independent —
+    // they used to run as 4-6 serial awaits, so a manager's first paint paid every
+    // network latency in sequence. Skipped roles resolve to an inert placeholder.
+    const noop = Promise.resolve({ data: null, error: null, count: null } as any);
+    const [trCountRes, srCountRes, fbCountRes, myRatesRes, gPartsRes, schedRes, myCountRes, hubTdRes, hubCountRes] =
+      await Promise.all([
+        isManager
+          ? supabase.from("tutor_referral_requests").select("id", { count: "exact", head: true }).in("status", ["open", "in_progress"])
+          : noop,
+        isManager
+          ? supabase.from("subscription_requests").select("id", { count: "exact", head: true }).in("status", ["new", "in_progress"])
+          : noop,
+        isManager
+          ? supabase.from("feedback_submissions").select("id", { count: "exact", head: true }).eq("status", "new")
+          : noop,
+        isStudent && !isManager && !isTutor
+          ? supabase.from("student_rates").select("tutor_id").eq("student_id", user.id)
+          : noop,
+        // Group lessons have no shared lesson_details row; their pending state lives on
+        // lesson_participants — flag loaded group lessons with ≥1 unpaid participant.
+        groupLessonIds.length
+          ? supabase.from("lesson_participants").select("lesson_id, student_payment_status").in("lesson_id", groupLessonIds).eq("student_payment_status", "unpaid")
+          : noop,
+        isManager
+          ? supabase.from("tutor_details").select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor").not("payout_frequency", "is", null)
+          : noop,
+        isIndependentTutor
+          ? supabase.from("student_rates").select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).eq("source", "independent")
+          : noop,
+        // Hub tutor: own payout schedule + own rate (tutor_details is keyed by user_id
+        // and holds ONLY the tutor's own data — no student_price / hub margin here).
+        isHubTutor
+          ? supabase.from("tutor_details").select("rate_per_lesson, payout_frequency, payout_weekday, payout_monthday, payout_anchor").eq("user_id", user.id).maybeSingle()
+          : noop,
+        isHubTutor
+          ? supabase.from("student_rates").select("student_id", { count: "exact", head: true }).eq("tutor_id", user.id).neq("source", "independent")
+          : noop,
       ]);
-      setTutorReferralRequestCount(trCount ?? 0);
-      setSupportRequestCount(srCount ?? 0);
-      setFeedbackNewCount(fbCount ?? 0);
-    }
 
     if (isManager) {
+      setTutorReferralRequestCount(trCountRes.count ?? 0);
+      setSupportRequestCount(srCountRes.count ?? 0);
+      setFeedbackNewCount(fbCountRes.count ?? 0);
       const linkedStudentIds = new Set<string>();
       ((ratesData ?? []) as Array<{ student_id: string }>).forEach((r) =>
         linkedStudentIds.add(r.student_id)
@@ -559,94 +588,47 @@ export default function DashboardPage() {
     if (isStudent && !isManager && !isTutor) {
       const lessonRows = ((lessonsData ?? []) as LessonRow[]).filter((l) => l.student_id === user.id);
       const fromLessons = new Set(lessonRows.map((l) => l.tutor_id));
-      const { data: myRates } = await supabase
-        .from("student_rates")
-        .select("tutor_id")
-        .eq("student_id", user.id);
-      (myRates ?? []).forEach((r: any) => fromLessons.add(r.tutor_id));
+      ((myRatesRes.data ?? []) as any[]).forEach((r: any) => fromLessons.add(r.tutor_id));
       setStudentTutorCount(fromLessons.size);
     }
 
-    setProfiles(profileMap);
-    const uniqueLessons = Array.from(
-      new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
+    setGroupUnpaidLessonIds(
+      new Set((((gPartsRes.data ?? []) as Array<{ lesson_id: string }>)).map((p) => p.lesson_id))
     );
-    setLessons(uniqueLessons);
 
-    // Group lessons have no shared lesson_details row; their pending state lives on
-    // lesson_participants. Flag group lessons (in the loaded set) with ≥1 unpaid
-    // participant so the pending-payments section surfaces them too. RLS scopes
-    // participants to the current manager/tutor.
-    const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
-    if (groupLessonIds.length) {
-      const { data: gParts } = await supabase
-        .from("lesson_participants")
-        .select("lesson_id, student_payment_status")
-        .in("lesson_id", groupLessonIds)
-        .eq("student_payment_status", "unpaid");
-      setGroupUnpaidLessonIds(new Set(((gParts ?? []) as Array<{ lesson_id: string }>).map((p) => p.lesson_id)));
-    } else {
-      setGroupUnpaidLessonIds(new Set());
-    }
     if (isManager) {
-      try {
-        const { data: sched, error: schedErr } = await supabase
-          .from("tutor_details")
-          .select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
-          .not("payout_frequency", "is", null);
-        if (!schedErr && sched && sched.length) {
-          const ids = (sched as any[]).map((r) => r.user_id);
-          const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
-          const nameMap: Record<string, string> = {};
-          (profs ?? []).forEach((pr: any) => { nameMap[pr.id] = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim() || t("roles.tutor"); });
-          setPayoutSchedules((sched as any[]).map((r) => ({ ...r, name: nameMap[r.user_id] ?? t("roles.tutor") })));
-        } else {
-          setPayoutSchedules([]);
-        }
-      } catch {
-        // Колонки графіка ще не створені (Частина 1 SQL не застосована) — тихо пропускаємо
+      const sched = (schedRes.data ?? null) as any[] | null;
+      // schedRes.error covers the schedule columns not existing yet — degrade quietly.
+      if (!schedRes.error && sched && sched.length) {
+        const ids = sched.map((r) => r.user_id);
+        const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
+        const nameMap: Record<string, string> = {};
+        (profs ?? []).forEach((pr: any) => { nameMap[pr.id] = `${pr.first_name ?? ""} ${pr.last_name ?? ""}`.trim() || t("roles.tutor"); });
+        setPayoutSchedules(sched.map((r) => ({ ...r, name: nameMap[r.user_id] ?? t("roles.tutor") })));
+      } else {
         setPayoutSchedules([]);
       }
     }
 
     if (isIndependentTutor) {
-      const { count } = await supabase
-        .from("student_rates")
-        .select("student_id", { count: "exact", head: true })
-        .eq("tutor_id", user.id)
-        .eq("source", "independent");
-      setMyStudentCount(count ?? 0);
+      setMyStudentCount(myCountRes.count ?? 0);
     }
 
-    // Hub tutor: own payout schedule + own per-lesson rate (tutor_details, keyed
-    // by user_id) and count of hub students. PRIVACY: tutor_details holds only the
-    // tutor's own data — no student_price / hub margin is ever touched here.
     if (isHubTutor) {
-      try {
-        const { data: td } = await supabase
-          .from("tutor_details")
-          .select("rate_per_lesson, payout_frequency, payout_weekday, payout_monthday, payout_anchor")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        if (td) {
-          setHubRate(td.rate_per_lesson != null ? Number(td.rate_per_lesson) : null);
-          setHubPayoutSchedule({
-            payout_frequency: (td as any).payout_frequency ?? null,
-            payout_weekday: (td as any).payout_weekday ?? null,
-            payout_monthday: (td as any).payout_monthday ?? null,
-            payout_anchor: (td as any).payout_anchor ?? null,
-          });
-        }
-      } catch {
+      const td = hubTdRes.data as any;
+      if (hubTdRes.error) {
         // Колонки графіка ще не створені — тихо пропускаємо.
         setHubPayoutSchedule(null);
+      } else if (td) {
+        setHubRate(td.rate_per_lesson != null ? Number(td.rate_per_lesson) : null);
+        setHubPayoutSchedule({
+          payout_frequency: td.payout_frequency ?? null,
+          payout_weekday: td.payout_weekday ?? null,
+          payout_monthday: td.payout_monthday ?? null,
+          payout_anchor: td.payout_anchor ?? null,
+        });
       }
-      const { count } = await supabase
-        .from("student_rates")
-        .select("student_id", { count: "exact", head: true })
-        .eq("tutor_id", user.id)
-        .neq("source", "independent");
-      setHubStudentCount(count ?? 0);
+      setHubStudentCount(hubCountRes.count ?? 0);
     }
 
     // Top-10% calculation — compare tutor's lesson count vs all tutors this month

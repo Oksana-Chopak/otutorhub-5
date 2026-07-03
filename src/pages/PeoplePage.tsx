@@ -233,7 +233,7 @@ export default function PeoplePage() {
     setLoading(true);
     const isManager = roles.includes("manager");
     
-    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes] = await Promise.all([
+    const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes, recentLessonsRes] = await Promise.all([
       supabase.from("profiles").select("id, first_name, last_name, is_pending, avatar_url, archived_at, created_at"),
       supabase
         .from("profile_contacts")
@@ -241,17 +241,19 @@ export default function PeoplePage() {
       supabase.from("user_roles").select("user_id, role"),
       supabase.from("tutor_details").select("user_id, rate_per_lesson, subjects"),
       // Independent tutor rates filtered at RLS level
-supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
+      supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
+      // Last interaction + payment aggregates source: independent of the profile batch,
+      // so it belongs in the SAME round-trip (was a second serial await = extra latency
+      // on every People open). Only lesson_details (below) truly depends on these ids.
+      supabase
+        .from("lessons")
+        .select("id, tutor_id, student_id, starts_at, status")
+        .order("starts_at", { ascending: false })
+        .limit(2000),
     ]);
 
-    // Last interaction: most-recent lesson per participant
-    // Also compute student payment-status aggregates (unpaid completed + last lesson date)
-    const { data: recentLessons, error: recentLessonsErr } = await supabase
-      .from("lessons")
-      .select("id, tutor_id, student_id, starts_at, status")
-      .order("starts_at", { ascending: false })
-      .limit(2000);
+    const { data: recentLessons, error: recentLessonsErr } = recentLessonsRes;
     if (recentLessonsErr) {
       console.error("Failed to load recent lessons", recentLessonsErr);
     }
