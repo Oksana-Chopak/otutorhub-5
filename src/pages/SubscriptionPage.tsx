@@ -261,8 +261,11 @@ export default function SubscriptionPage() {
 
   const status = settings?.subscription_status ?? "free";
   const isActive = status === "active";
-  // Тріальні/early-bird банери показуємо лише новим репетиторам, які ще не починали тріал
-  const eligibleForTrial = !settings?.trial_until && status === "free" && !isActive;
+  // Early-bird аудиторія = ті, кого п'ятірка «перших 20 місць» має конвертувати:
+  // тріальні + ще-не-підписані free. Ховаємо лише для активної платної підписки.
+  // (Старий гейт вимагав trial_until=null, але КОЖЕН новий репетитор отримує тріал
+  // при реєстрації — тож пil ніколи не показувався своїй цільовій аудиторії.)
+  const earlyBirdAudience = !isActive && (status === "trial" || status === "free");
 
   const handleUpgrade = () => {
     setRequestOpen(true);
@@ -271,7 +274,7 @@ export default function SubscriptionPage() {
   const proPrice = billing === "yearly" ? PRO_PRICE_YEARLY_PER_MONTH : PRO_PRICE_MONTHLY;
 
   const earlyBirdLeft =
-    eligibleForTrial && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
+    earlyBirdAudience && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
       ? EARLY_BIRD_LIMIT - earlyBirdCount
       : null;
 

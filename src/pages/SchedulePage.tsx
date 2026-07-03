@@ -163,6 +163,10 @@ export default function SchedulePage() {
   );
   // Глибокі лінки з дашборда: показати в списку лише проблемні уроки
   const [listFocus, setListFocus] = useState<null | "unpriced" | "nolink">(null);
+  // Per-pair default meeting URLs: the dashboard "lessons without a link" count treats
+  // a configured pair default as "has a link" — the nolink filter must agree, or the
+  // badge count and the list it opens diverge.
+  const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [weekAnchor, setWeekAnchor] = useState<Date>(new Date());
   // Student-only sub-tab in list view: upcoming (default) vs archive (past).
   const [studentArchive, setStudentArchive] = useState<"upcoming" | "past">("upcoming");
@@ -339,7 +343,7 @@ export default function SchedulePage() {
     if (!user) return;
     setLoading(true);
 
-    const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes] = await Promise.all([
+    const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes, defaultsRes] = await Promise.all([
       supabase
         .from("lessons_visible")
         .select("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout")
@@ -353,6 +357,7 @@ export default function SchedulePage() {
       supabase.from("tutor_public_details").select("user_id, subjects"),
       // Used by students to discover their assigned tutors (RLS allows student to see own rates).
       supabase.from("student_rates").select("tutor_id, student_id, currency"),
+      supabase.from("tutor_student_defaults").select("tutor_id, student_id, default_meeting_url"),
     ]);
 
     // Surface load failures instead of silently showing an empty schedule.
@@ -379,6 +384,14 @@ export default function SchedulePage() {
       currencyByPair[`${r.tutor_id}:${r.student_id}`] = r.currency ?? "UAH";
     });
     setPairCurrency(currencyByPair);
+
+    const defaultsMap: Record<string, string> = {};
+    ((defaultsRes.data ?? []) as any[]).forEach((d) => {
+      if (d.default_meeting_url && d.default_meeting_url.trim()) {
+        defaultsMap[`${d.tutor_id}:${d.student_id}`] = d.default_meeting_url.trim();
+      }
+    });
+    setDefaultMeetingUrls(defaultsMap);
 
     let tutorIds: string[] = [];
     let studentIds: string[] = [];
@@ -874,7 +887,12 @@ export default function SchedulePage() {
       listFocus === "unpriced"
         ? filteredLessons.filter((l) => l.status !== "cancelled" && (l.student_price == null || Number(l.student_price) === 0))
         : listFocus === "nolink"
-        ? filteredLessons.filter((l) => l.status !== "cancelled" && !l.meeting_url)
+        ? filteredLessons.filter(
+            (l) =>
+              l.status !== "cancelled" &&
+              !l.meeting_url &&
+              !defaultMeetingUrls[`${l.tutor_id}:${l.student_id}`]
+          )
         : filteredLessons;
     if (!isPureStudentForList || view !== "list") return base;
     const now = Date.now();

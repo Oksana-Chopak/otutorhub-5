@@ -191,10 +191,16 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
   const save = async () => {
     if (!user || !sel.length) return;
     setSaving(true);
-    await supabase.from("tutor_details").upsert(
+    const { error } = await supabase.from("tutor_details").upsert(
       { user_id: user.id, subjects: sel }, { onConflict: "user_id" }
     );
     setSaving(false);
+    if (error) {
+      // Don't mark the step done on a failed save — that silently loses the
+      // tutor's subjects while onboarding reports success.
+      toast.error(t("onboardingFlowB.subjectSaveError"));
+      return;
+    }
     onComplete(sel);
   };
 

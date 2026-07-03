@@ -3879,6 +3879,7 @@ export const en: LocaleTranslations = {
     subjectOptionGeography: "Geography",
     subjectOptionHistory: "History",
     studentSaveError: "Error while saving",
+    subjectSaveError: "Failed to save subjects. Please try again.",
     studentNameLabel: "Student's name",
     studentNamePlaceholder: "Anna Ivanenko",
     studentSubjectLabel: "Subject",

@@ -88,7 +88,7 @@ export default function StudentDashboardPage() {
     setLoading(true);
     const nowIso = new Date().toISOString();
     const orFilter = await studentLessonsOrFilter(user.id);
-    const [{ data: lessons }, { data: details }, { data: completed }, { data: groupParts }] = await Promise.all([
+    const [{ data: lessons }, { data: details }, { data: completed }, { data: groupParts }, { data: cancelledRows }] = await Promise.all([
       supabase
         // student_payment_status lives on lesson_details, NOT lessons — selecting it here
         // errored (42703). The unpaid count is computed from `details`
@@ -115,6 +115,14 @@ export default function StudentDashboardPage() {
         .select("student_payment_status, lessons!inner(status)")
         .eq("student_id", user.id)
         .neq("lessons.status", "cancelled"),
+      // Cancelled lesson ids: lesson_details_student has no status column, and a
+      // cancelled lesson keeps its unpaid detail row — without this exclusion the
+      // «До оплати» tile counts lessons the Payments page (rightly) never lists.
+      supabase
+        .from("lessons")
+        .select("id")
+        .or(orFilter)
+        .eq("status", "cancelled"),
     ]);
     setCompletedLessons((completed as CompletedLessonStat[] | null) ?? []);
 
@@ -144,8 +152,9 @@ export default function StudentDashboardPage() {
     const unpaidGroup = ((groupParts ?? []) as any[]).filter(
       (p) => (p.student_payment_status ?? "unpaid") === "unpaid",
     ).length;
+    const cancelledIds = new Set(((cancelledRows ?? []) as any[]).map((r) => r.id));
     setPendingPaymentsCount(
-      detailsArr.filter((d) => d.student_payment_status === "unpaid").length + unpaidGroup,
+      detailsArr.filter((d) => d.student_payment_status === "unpaid" && !cancelledIds.has(d.lesson_id)).length + unpaidGroup,
     );
 
     setLoading(false);

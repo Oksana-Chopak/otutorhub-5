@@ -3891,6 +3891,7 @@ export const uk = {
     subjectOptionGeography: "Географія",
     subjectOptionHistory: "Історія",
     studentSaveError: "Помилка при збереженні",
+    subjectSaveError: "Не вдалося зберегти предмети. Спробуйте ще раз.",
     studentNameLabel: "Ім'я учня",
     studentNamePlaceholder: "Анна Іваненко",
     studentSubjectLabel: "Предмет",

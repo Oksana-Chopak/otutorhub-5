@@ -3869,6 +3869,7 @@ export const sv: LocaleTranslations = {
     subjectOptionGeography: "Geografi",
     subjectOptionHistory: "Historia",
     studentSaveError: "Fel vid sparande",
+    subjectSaveError: "Kunde inte spara ämnen. Försök igen.",
     studentNameLabel: "Elevens namn",
     studentNamePlaceholder: "Anna Ivanenko",
     studentSubjectLabel: "Ämne",
