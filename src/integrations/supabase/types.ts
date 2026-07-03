@@ -2348,6 +2348,7 @@ export type Database = {
         }
         Returns: Json
       }
+      award_referral_leaderboard_prizes: { Args: never; Returns: number }
       check_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2381,6 +2382,7 @@ export type Database = {
         Returns: string
       }
       get_cron_shared_secret: { Args: never; Returns: string }
+      get_early_bird_count: { Args: never; Returns: number }
       get_lesson_financials: {
         Args: { _lesson_id: string }
         Returns: {
