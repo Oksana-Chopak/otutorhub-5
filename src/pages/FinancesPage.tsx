@@ -904,7 +904,7 @@ export default function FinancesPage() {
           ? updateLessonDetailsSafeBulk(indIds, { student_payment_status: "paid" as PaymentStatus })
           : Promise.resolve({ error: null }),
         grpIds.length
-          ? supabase.from("lesson_participants").update({ student_payment_status: "paid" as PaymentStatus, student_paid_at: nowIso }).in("id", grpIds)
+          ? (supabase.rpc as any)("set_group_participant_payment", { _participant_ids: grpIds, _status: "paid" })
           : Promise.resolve({ error: null }),
       ]);
       error = results.find((r) => (r as any).error)?.error ?? null;

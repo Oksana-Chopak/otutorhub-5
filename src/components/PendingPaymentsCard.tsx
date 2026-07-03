@@ -161,7 +161,7 @@ export function PendingPaymentsCard() {
         ? updateLessonDetailsSafeBulk(indLessonIds, { student_payment_status: "paid" })
         : Promise.resolve({ error: null }),
       grpPartIds.length
-        ? supabase.from("lesson_participants").update({ student_payment_status: "paid", student_paid_at: nowIso }).in("id", grpPartIds)
+        ? (supabase.rpc as any)("set_group_participant_payment", { _participant_ids: grpPartIds, _status: "paid" })
         : Promise.resolve({ error: null }),
     ]);
     setBusyId(null);

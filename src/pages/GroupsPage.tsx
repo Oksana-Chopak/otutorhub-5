@@ -726,10 +726,12 @@ function GroupDetailsDialog({
       toast.error(t("groupsPageExtra.priceInvalid"));
       return;
     }
-    const { error } = await supabase
-      .from("group_enrollments")
-      .update({ price_per_lesson: price })
-      .eq("id", enrollmentId);
+    // Group price = hub revenue (or the independent tutor's own) — write goes
+    // through the gated RPC; direct column UPDATE revoked since 20260719000000.
+    const { error } = await (supabase.rpc as any)("set_group_enrollment_price", {
+      _enrollment_id: enrollmentId,
+      _price: price,
+    });
     if (error) {
       toast.error(error.message);
       return;
@@ -894,14 +896,27 @@ function GroupDetailsDialog({
       const msg = error.message || "";
       if (code === "23505" || /duplicate|unique/i.test(msg)) {
         // Учень уже був у групі (можливо неактивний) — реактивуємо.
+        // Price is a gated money column (20260719000000): status flips directly,
+        // the price goes through the RPC (only when one was actually entered).
         const { error: upErr } = await supabase
           .from("group_enrollments")
-          .update({ status: "active", price_per_lesson: priceVal })
+          .update({ status: "active" })
           .eq("group_id", groupId)
           .eq("student_id", picked);
         if (upErr) {
           toast.error(upErr.message);
           return;
+        }
+        if (priceVal !== null) {
+          const { data: enr } = await supabase
+            .from("group_enrollments")
+            .select("id")
+            .eq("group_id", groupId)
+            .eq("student_id", picked)
+            .maybeSingle();
+          if (enr?.id) {
+            await (supabase.rpc as any)("set_group_enrollment_price", { _enrollment_id: enr.id, _price: priceVal });
+          }
         }
         setPickedStudent("");
         setPickedPrice("");
@@ -1013,15 +1028,20 @@ function GroupDetailsDialog({
                           <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, border: `1px solid ${T.border}`, background: "#fff", boxShadow: SHADOW_SM }}>
                             <Avatar name={nm} size={46} />
                             <div style={{ flex: 1, minWidth: 0, fontFamily: FONT_D, fontWeight: 700, fontSize: 17, color: T.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nm}</div>
-                            <PricePill
-                              value={e.price_per_lesson}
-                              currency={e.currency || "UAH"}
-                              onSave={(raw) => saveEnrollmentPrice(e.id, raw)}
-                            />
+                            {/* MON-2: group price = hub money — visible/editable only for
+                                hub-scoped managers and independent owner-tutors (server
+                                enforces via set_group_enrollment_price + column lock). */}
+                            {(isManager || isIndependent) && (
+                              <PricePill
+                                value={e.price_per_lesson}
+                                currency={e.currency || "UAH"}
+                                onSave={(raw) => saveEnrollmentPrice(e.id, raw)}
+                              />
+                            )}
                             <button
                               onClick={() => removeStudent(e.id)}
                               disabled={busy}
-                              aria-label={t("groupsPageExtra.studentRemoved")}
+                              aria-label={t("common.delete")}
                               style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: busy ? "not-allowed" : "pointer", background: "rgba(255,122,89,.1)", color: T.coral, display: "flex", alignItems: "center", justifyContent: "center" }}
                             >
                               <Trash2 size={20} strokeWidth={2} />
