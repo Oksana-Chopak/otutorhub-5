@@ -48,6 +48,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           role). Rendered here so the whole app, every role, gets it. */}
       <OfflineBanner />
       <AppSidebar />
+      {/* Desktop bell — ONE golden bell on EVERY page (spec: same style on every page).
+          Before this, only 4 pages rendered their own lg bell; on People/Schedule/
+          Finances/Chats/… notifications were unreachable on desktop. */}
+      <div className="fixed right-6 top-6 z-40 hidden lg:block">
+        <NotificationBell />
+      </div>
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
         {titleKey && (
           <header className="sticky top-0 z-20 flex h-[52px] items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden">

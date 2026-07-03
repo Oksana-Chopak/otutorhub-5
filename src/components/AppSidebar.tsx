@@ -52,7 +52,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
-import { NotificationBell } from "@/components/NotificationBell";
 
 type NavItem = {
   to: string;

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
 import { ShieldCheck, Trash2, RefreshCw, ChevronDown } from "lucide-react";
@@ -56,9 +55,7 @@ export default function ErrorLogPage() {
     <AppLayout>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("errorLog.title")}</h1>
-        <div className="hidden items-center gap-2 lg:flex">
-          <NotificationBell />
-        </div>
+        {/* Desktop bell now comes from AppLayout (one global fixed bell) */}
       </div>
 
       <div className="mb-4 flex items-center gap-2">

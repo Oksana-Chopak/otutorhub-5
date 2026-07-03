@@ -146,7 +146,7 @@ export default function WalletsPage() {
             <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("walletsPage.title")}</h1>
           </div>
           <p className="text-sm" style={{ color: "var(--sub,#6b7088)" }}>
-            Передоплати учнів за майбутні уроки. Списання відбувається автоматично, як тільки створюється новий урок.
+            {t("walletsPage.subtitle")}
           </p>
         </header>
 
@@ -182,8 +182,13 @@ export default function WalletsPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <div className="flex flex-col gap-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+                <div className="h-4 w-44 animate-pulse rounded-md bg-muted" />
+                <div className="mt-2 h-3 w-64 max-w-full animate-pulse rounded-md bg-muted" />
+              </div>
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <EmptyState
@@ -213,7 +218,7 @@ export default function WalletsPage() {
                   <div className="flex items-center justify-between">
                     <div className="text-[15px]">
                       <span className="font-semibold tabular-nums" style={{ color: "#1f8e7e" }}>
-                        {r.lessons_balance > 0 && `🎟 ${r.lessons_balance} ур.`}
+                        {r.lessons_balance > 0 && `🎟 ${t("walletsPage.lessonsShort", { count: r.lessons_balance })}`}
                         {r.lessons_balance > 0 && r.amount_balance > 0 && " · "}
                         {r.amount_balance > 0 && `${r.amount_balance.toFixed(0)} ₴`}
                         {r.lessons_balance === 0 && r.amount_balance === 0 && (
@@ -222,14 +227,14 @@ export default function WalletsPage() {
                       </span>
                     </div>
                     <button type="button" onClick={() => setActive(r)}
-                      className="flex items-center gap-1.5 rounded-[11px] px-3 h-9 text-[14px] font-bold"
+                      className="flex items-center gap-1.5 rounded-[11px] px-4 h-11 text-[14px] font-bold"
                       style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
                       <Plus className="h-3.5 w-3.5" />
-                      Поповнити
+                      {t("walletsPage.topUpBtn")}
                     </button>
                   </div>
                   <div className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
-                    Остання операція: {fmtDate(r.last_transaction_at)}
+                    {t("walletsPage.lastTransaction")}: {fmtDate(r.last_transaction_at)}
                   </div>
                 </div>
               ))}
@@ -277,9 +282,9 @@ export default function WalletsPage() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setActive(r)}
-                          className="rounded-[10px] px-3 h-9 text-[14px] font-bold"
+                          className="rounded-[10px] px-4 h-11 text-[14px] font-bold"
                           style={{ border: "1px solid #eceef3", background: "#f0fdf9", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}>
-                          Відкрити
+                          {t("walletsPage.openBtn")}
                         </button>
                       </td>
                     </tr>

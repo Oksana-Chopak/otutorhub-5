@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";

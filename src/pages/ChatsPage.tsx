@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { getLocale } from "@/lib/locale";
-import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";

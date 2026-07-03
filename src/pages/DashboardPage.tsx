@@ -41,7 +41,6 @@ import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/
 import { PageFAB } from "@/components/PageFAB";
 import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/SkeletonCard";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
@@ -1312,7 +1311,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex shrink-0 items-start gap-2 pt-0.5">
               {/* Golden bell — top right, standalone */}
-              <NotificationBell className="hidden h-11 w-11 rounded-full lg:flex" />
+              {/* Desktop bell now comes from AppLayout (one global fixed bell) */}
               {/* Burger menu */}
               {isStudent && !isTutor && !isManager && (
                 <FindTutorDialog
@@ -1556,7 +1555,9 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2" style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
-                  <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{myStudentCount ?? 0}</p>
+                  {/* MANAGER card: hub-wide studentCount (myStudentCount is loaded only for
+                      independent tutors — rendering it here showed a permanent 0). */}
+                  <p className="font-extrabold leading-none" style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>{studentCount}</p>
                   <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
                 </Link>
               </div>
@@ -1607,7 +1608,8 @@ export default function DashboardPage() {
                 <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudents")}</p>
-                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{myStudentCount ?? 0}</p>
+                    {/* MANAGER card: hub-wide studentCount, NOT myStudentCount (see above) */}
+                    <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{studentCount}</p>
                     <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>{t("dashboard.cardStudentsSub")}</p>
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />

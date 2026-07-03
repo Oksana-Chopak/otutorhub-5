@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { NotificationBell } from "@/components/NotificationBell";
 import { supabase } from "@/integrations/supabase/client";
 import { prettyRequestValue } from "@/lib/tutorRequestLabels";
 import { useAuth } from "@/hooks/useAuth";
@@ -173,14 +172,24 @@ export default function ReferralsPage() {
       {/* Desktop header (mobile title/bell/burger come from AppLayout) */}
       <div className="mb-4 hidden items-center justify-between lg:flex">
         <h1 style={{ fontFamily: F, fontWeight: 800, fontSize: 25, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
-          Запити на репетиторів
+          {t("nav.referrals")}
         </h1>
-        <NotificationBell />
+        {/* Desktop bell now comes from AppLayout (one global fixed bell) */}
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-40 animate-pulse rounded-md bg-muted" />
+                  <div className="h-3 w-56 max-w-full animate-pulse rounded-md bg-muted" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       ) : requests.length === 0 ? (
         <EmptyState

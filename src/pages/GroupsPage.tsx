@@ -1,5 +1,4 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { NotificationBell } from "@/components/NotificationBell";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
@@ -159,7 +158,7 @@ export default function GroupsPage() {
               {t("groupsPage.subtitle")}
             </p>
           </div>
-          <NotificationBell />
+          {/* Desktop bell now comes from AppLayout (one global fixed bell) */}
         </div>
 
         {loading ? (

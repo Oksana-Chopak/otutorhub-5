@@ -271,7 +271,7 @@ export default function SubscriptionRequestsPage() {
                             type="button"
                             onClick={() => updateStatus(r.id, "in_progress")}
                             disabled={savingId === r.id}
-                            style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
+                            style={{ height: 44, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(245,158,11,.35)",
                               background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
@@ -281,7 +281,7 @@ export default function SubscriptionRequestsPage() {
                             type="button"
                             onClick={() => updateStatus(r.id, "completed")}
                             disabled={savingId === r.id}
-                            style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
+                            style={{ height: 44, padding: "0 16px", borderRadius: 11, border: "none",
                               background: "linear-gradient(135deg,var(--teal,#2BBFAA),var(--teal-d,#25a896))", color: "var(--ds-txt,#0f0f1a)", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
@@ -292,7 +292,7 @@ export default function SubscriptionRequestsPage() {
                             type="button"
                             onClick={() => updateStatus(r.id, "rejected")}
                             disabled={savingId === r.id}
-                            style={{ height: 38, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(224,85,47,.3)",
+                            style={{ height: 44, padding: "0 14px", borderRadius: 11, border: "1px solid rgba(224,85,47,.3)",
                               background: "transparent", color: "#b3441f", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
