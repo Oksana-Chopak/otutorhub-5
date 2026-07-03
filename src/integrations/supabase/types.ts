@@ -2529,6 +2529,14 @@ export type Database = {
           last_name: string
         }[]
       }
+      set_group_enrollment_price: {
+        Args: { _enrollment_id: string; _price: number }
+        Returns: undefined
+      }
+      set_group_participant_payment: {
+        Args: { _participant_ids: string[]; _status: string }
+        Returns: number
+      }
       set_lesson_tutor_payout_status: {
         Args: { _lesson_id: string; _status: string }
         Returns: undefined
