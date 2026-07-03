@@ -154,6 +154,11 @@ export default function StudentProfilePage() {
                 <div className="min-w-0">
                   <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 19, color: C.ink, lineHeight: 1.2 }}>{displayName}</p>
                   <p style={{ fontFamily: C.body, fontSize: 15, color: C.sub, marginTop: 3 }}>{user?.email}</p>
+                  {/* Role pill — required by STUDENT-CABINET-HANDOFF §7 (hero: avatar, name, email, «🎓 Учень») */}
+                  <span className="mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[13px] font-bold"
+                    style={{ background: "rgba(43,191,170,0.12)", color: "var(--teal-d,#25a896)" }}>
+                    🎓 {t("roles.student")}
+                  </span>
                 </div>
               </div>
             </div>

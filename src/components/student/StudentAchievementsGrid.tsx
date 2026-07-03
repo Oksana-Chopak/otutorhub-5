@@ -113,15 +113,21 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                 >
                   {t(def.descKey)}
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "#eef0f4" }}>
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}
-                  />
-                </div>
-                <div className="text-[14px] font-bold tabular-nums" style={{ color: "#9398b0" }}>
-                  {Math.min(current, target)} / {target}
-                </div>
+                {/* target === 1 means a binary "do it once" badge — the catalog contract
+                    says no progress bar for those (a 0/1 bar reads as a half-done goal). */}
+                {target > 1 && (
+                  <>
+                    <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "#eef0f4" }}>
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}
+                      />
+                    </div>
+                    <div className="text-[14px] font-bold tabular-nums" style={{ color: "#9398b0" }}>
+                      {Math.min(current, target)} / {target}
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>

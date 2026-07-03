@@ -2336,24 +2336,24 @@ export default function FinancesPage() {
                 <SummaryStat
                   icon={ArrowDownLeft}
                   label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
-                  value={`${totalIncome} ₴`}
+                  value={`${totalIncome.toLocaleString(getLocale())} ₴`}
                   tone="success"
                 />
                 {!isIndependentTutor && (
-                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${totalExpense} ₴`} tone="neutral" />
+                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${totalExpense.toLocaleString(getLocale())} ₴`} tone="neutral" />
                 )}
                 {!isIndependentTutor && (
                   <SummaryStat
                     icon={TrendingUp}
                     label={t("finances.profit")}
-                    value={`${profit} ₴`}
+                    value={`${profit.toLocaleString(getLocale())} ₴`}
                     tone={profit >= 0 ? "success" : "warning"}
                   />
                 )}
                 <SummaryStat
                   icon={DollarSign}
                   label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
-                  value={`${totalDebt} ₴`}
+                  value={`${totalDebt.toLocaleString(getLocale())} ₴`}
                   tone={totalDebt > 0 ? "warning" : "neutral"}
                 />
               </div>
@@ -2513,7 +2513,7 @@ export default function FinancesPage() {
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
                   <span className="text-[14px] text-muted-foreground">
-                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0)} ₴`}
+                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0).toLocaleString(getLocale())} ₴`}
                   </span>
                 </div>
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline data={profitSparkline} /></Suspense>

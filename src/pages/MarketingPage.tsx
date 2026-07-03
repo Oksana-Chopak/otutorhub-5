@@ -177,9 +177,6 @@ export default function MarketingPage() {
                 <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                   Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
                 </p>
-                <p className="text-[14px] mt-1">
-                  Підтримується HTML. Порожній рядок = новий абзац.
-                </p>
               </div>
 
               <Button onClick={send} disabled={sending} className="w-full">
