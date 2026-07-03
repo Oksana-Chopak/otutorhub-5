@@ -90,7 +90,7 @@ export function GoogleCalendarCard() {
           Google Calendar
         </CardTitle>
         <CardDescription>
-          Уроки автоматично з'являтимуться у вашому Google Календарі.
+          {t("googleCalendar.description")}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -101,11 +101,11 @@ export function GoogleCalendarCard() {
         ) : connected ? (
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-sm text-emerald-600 dark:text-emerald-400">
-              ✓ Підключено{email ? ` · ${email}` : ""}
+              {t("googleCalendar.connectedShort")}{email ? ` · ${email}` : ""}
             </span>
             <Button variant="outline" size="sm" onClick={disconnect} disabled={busy}>
               {busy && <Loader2 className="mr-2 h-3 w-3 animate-spin" />}
-              Відключити
+              {t("googleCalendar.disconnectBtn")}
             </Button>
           </div>
         ) : (
