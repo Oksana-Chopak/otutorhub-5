@@ -25,9 +25,10 @@ interface CreateGroupLessonOpts {
 export async function createGroupLesson(
   opts: CreateGroupLessonOpts,
 ): Promise<{ lessonId: string | null; error: string | null }> {
-  // Active enrollments + each student's configured group price.
-  const { data: ens, error: enErr } = await supabase
-    .from("group_enrollments")
+  // Active enrollments + each student's configured group price — via the MASKED
+  // view (a hub tutor reads price as NULL; the BEFORE INSERT trigger
+  // fill_group_participant_price then snapshots the real price server-side).
+  const { data: ens, error: enErr } = await (supabase.from("group_enrollments_visible" as any) as any)
     .select("student_id, price_per_lesson, currency, status")
     .eq("group_id", opts.groupId)
     .eq("status", "active");

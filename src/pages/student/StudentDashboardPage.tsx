@@ -109,12 +109,12 @@ export default function StudentDashboardPage() {
         .or(orFilter)
         .eq("status", "completed"),
       // GROUP lessons: the view above (over lesson_details) has no row for them —
-      // the student's price/payment lives on lesson_participants. Pull unpaid ones.
-      supabase
-        .from("lesson_participants")
-        .select("student_payment_status, lessons!inner(status)")
+      // the student's price/payment lives on lesson_participants. Pull unpaid ones
+      // via the masked view (money columns SELECT-revoked on the base table).
+      (supabase.from("lesson_participants_visible" as any) as any)
+        .select("student_payment_status, status")
         .eq("student_id", user.id)
-        .neq("lessons.status", "cancelled"),
+        .neq("status", "cancelled"),
       // Cancelled lesson ids: lesson_details_student has no status column, and a
       // cancelled lesson keeps its unpaid detail row — without this exclusion the
       // «До оплати» tile counts lessons the Payments page (rightly) never lists.

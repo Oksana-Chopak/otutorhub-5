@@ -77,18 +77,16 @@ export default function StudentPaymentsPage() {
       }));
       // GROUP lessons: the student's price/payment lives on lesson_participants
       // (the lesson row has student_id=NULL). Pull them in with their own currency.
-      const { data: gParts } = await supabase
-        .from("lesson_participants")
-        .select("lesson_id, student_price, currency, student_payment_status, lessons!inner(id, subject, starts_at, tutor_id, status)")
+      const { data: gParts } = await (supabase.from("lesson_participants_visible" as any) as any)
+        .select("lesson_id, student_price, currency, student_payment_status, subject, starts_at, tutor_id, status")
         .eq("student_id", user.id)
-        .neq("lessons.status", "cancelled");
+        .neq("status", "cancelled");
       const groupRows = ((gParts ?? []) as any[])
-        .filter((p) => p.lessons)
         .map((p) => ({
-          id: p.lessons.id,
-          subject: p.lessons.subject,
-          starts_at: p.lessons.starts_at,
-          tutor_id: p.lessons.tutor_id,
+          id: p.lesson_id,
+          subject: p.subject,
+          starts_at: p.starts_at,
+          tutor_id: p.tutor_id,
           student_price: Number(p.student_price ?? 0),
           student_payment_status: (p.student_payment_status ?? "unpaid") as string,
           currency: p.currency ?? "UAH",

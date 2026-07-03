@@ -116,8 +116,9 @@ export default function GroupsPage() {
 
     const groupIds = (gs ?? []).map((g: any) => g.id);
     if (groupIds.length) {
-      const { data: ens } = await supabase
-        .from("group_enrollments")
+      // Masked view: price_per_lesson is hub money — NULL for hub tutors
+      // (base-table money columns are SELECT-revoked since 20260720000000).
+      const { data: ens } = await (supabase.from("group_enrollments_visible" as any) as any)
         .select("id, group_id, student_id, status, price_per_lesson, currency")
         .in("group_id", groupIds);
       setEnrollments((ens ?? []) as Enrollment[]);
@@ -804,7 +805,7 @@ function GroupDetailsDialog({
     setLoading(true);
     const [{ data: g }, { data: ens }] = await Promise.all([
       supabase.from("lesson_groups").select("*").eq("id", groupId).maybeSingle(),
-      supabase.from("group_enrollments").select("id, group_id, student_id, status, price_per_lesson, currency").eq("group_id", groupId),
+      (supabase.from("group_enrollments_visible" as any) as any).select("id, group_id, student_id, status, price_per_lesson, currency").eq("group_id", groupId),
     ]);
     setGroup(g as Group);
     setEnrollments((ens ?? []) as Enrollment[]);

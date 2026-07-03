@@ -46,8 +46,9 @@ export function GroupLessonParticipants({
 
   const load = async () => {
     setLoading(true);
-    const { data: parts } = await supabase
-      .from("lesson_participants")
+    // Masked view: hub tutors keep the roster but money reads NULL (server-side
+    // enforcement of what the UI below also hides).
+    const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
       .select("id, student_id, student_price, currency, student_payment_status")
       .eq("lesson_id", lessonId);
     const ids = Array.from(new Set((parts ?? []).map((p: any) => p.student_id)));

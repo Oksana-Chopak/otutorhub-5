@@ -277,13 +277,9 @@ export default function FinancesPage() {
     // student-payment columns — that is the HUB's revenue, and student_price − tutor_payout
     // is the hub's margin (the tutor only earns their agreed tutor_payout). Those columns
     // are GRANT-locked on lesson_details (migration 20260715000000), so individual-lesson
-    // money is read through the masked lessons_visible view below (it exposes them flat with
-    // per-role masking: manager + independent-owner see them, a hub tutor gets NULL but
-    // keeps tutor_payout). The group path reads lesson_participants (not revoked), so it
-    // still selects columns per role.
-    const grpPartCols = isHubTutor
-      ? "id, student_id"
-      : "id, student_id, student_price, student_payment_status, student_paid_at";
+    // Money (individual AND group) is read through the masked definer views
+    // (lessons_visible / lesson_participants_visible): manager + independent-owner
+    // see it, a hub tutor gets NULL — enforced server-side, no per-role column lists.
     const [
       { data: lessonsData, error: lErr },
       { data: groupLessonsData },
@@ -306,18 +302,31 @@ export default function FinancesPage() {
         return q.order("starts_at", { ascending: false });
       })(),
       // GROUP lessons (lessons.student_id = NULL) are excluded from the individual query
-      // above by `.not("student_id","is",null)`. Pull them separately with their
-      // per-student participants so group income/debts show on this page too.
-      (() => {
+      // above by `.not("student_id","is",null)`. Pull them separately, then attach the
+      // per-student participants from the MASKED lesson_participants_visible view (the
+      // base table's money columns are SELECT-revoked since 20260720000000, and a
+      // PostgREST embed reads the base table — it would 42501 for everyone).
+      (async () => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         let q = supabase
           .from("lessons")
-          .select(`id, subject, starts_at, status, tutor_id, lesson_participants(${grpPartCols})`)
+          .select("id, subject, starts_at, status, tutor_id")
           .not("group_id", "is", null)
           .gte("starts_at", oneYearAgo)
           .limit(500);
         if (isManager) q = (q as any).neq("source", "independent");
-        return q.order("starts_at", { ascending: false });
+        const { data: gl, error } = await q.order("starts_at", { ascending: false });
+        if (error || !gl || gl.length === 0) return { data: gl ?? [], error };
+        const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
+          .select("id, lesson_id, student_id, student_price, student_payment_status, student_paid_at")
+          .in("lesson_id", (gl as any[]).map((l) => l.id));
+        const byLesson = new Map<string, any[]>();
+        ((parts ?? []) as any[]).forEach((p) => {
+          const arr = byLesson.get(p.lesson_id) ?? [];
+          arr.push(p);
+          byLesson.set(p.lesson_id, arr);
+        });
+        return { data: (gl as any[]).map((l) => ({ ...l, lesson_participants: byLesson.get(l.id) ?? [] })), error: null };
       })(),
       supabase
         .from("student_wallet_transactions" as any)
@@ -732,10 +741,12 @@ export default function FinancesPage() {
   // NOT a trigger); group participants store it per-row on lesson_participants.
   const writeStudentPayment = (lesson: LessonRow, status: PaymentStatus, paidAt: string | null) =>
     lesson.kind === "group"
-      ? supabase
-          .from("lesson_participants")
-          .update({ student_payment_status: status, student_paid_at: paidAt })
-          .eq("id", lesson.participant_id ?? "")
+      ? // Gated RPC (hub-scoped manager OR independent owner) — direct column
+        // UPDATE on lesson_participants is revoked since 20260719000000.
+        (supabase.rpc as any)("set_group_participant_payment", {
+          _participant_ids: [lesson.participant_id ?? ""],
+          _status: status,
+        })
       : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
   const [remindingId, setRemindingId] = useState<string | null>(null);

@@ -464,7 +464,7 @@ export default function DashboardPage() {
         // Group lessons have no shared lesson_details row; their pending state lives on
         // lesson_participants — flag loaded group lessons with ≥1 unpaid participant.
         groupLessonIds.length
-          ? supabase.from("lesson_participants").select("lesson_id, student_payment_status").in("lesson_id", groupLessonIds).eq("student_payment_status", "unpaid")
+          ? (supabase.from("lesson_participants_visible" as any) as any).select("lesson_id, student_payment_status").in("lesson_id", groupLessonIds).eq("student_payment_status", "unpaid")
           : noop,
         isManager
           ? supabase.from("tutor_details").select("user_id, payout_frequency, payout_weekday, payout_monthday, payout_anchor").not("payout_frequency", "is", null)

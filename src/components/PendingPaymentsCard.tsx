@@ -78,11 +78,13 @@ export function PendingPaymentsCard() {
 
     // GROUP lessons have no shared lesson_details row — the per-student unpaid amount
     // lives on lesson_participants. Pull the tutor's group lessons' unpaid participants.
-    const { data: gParts } = await supabase
-      .from("lesson_participants")
-      .select("id, student_id, student_price, currency, student_payment_status, lessons!inner(id, starts_at, subject, tutor_id, status)")
-      .eq("lessons.tutor_id", user.id)
-      .eq("lessons.status", "completed")
+    // Read via the masked lesson_participants_visible view (money columns are
+    // SELECT-revoked on the base table since 20260720000000); the view exposes the
+    // parent-lesson fields flat, so no embed is needed.
+    const { data: gParts } = await (supabase.from("lesson_participants_visible" as any) as any)
+      .select("id, lesson_id, student_id, student_price, currency, student_payment_status, starts_at, subject, status")
+      .eq("tutor_id", user.id)
+      .eq("status", "completed")
       .eq("student_payment_status", "unpaid")
       .gt("student_price", 0)
       .limit(100);
@@ -98,11 +100,11 @@ export function PendingPaymentsCard() {
         kind: "individual" as const,
         currency: undefined as string | undefined,
       })),
-      ...((gParts ?? []) as any[]).filter((p) => p.lessons).map((p) => ({
+      ...((gParts ?? []) as any[]).map((p: any) => ({
         id: p.id,
-        lesson_id: p.lessons.id,
-        starts_at: p.lessons.starts_at,
-        subject: p.lessons.subject,
+        lesson_id: p.lesson_id,
+        starts_at: p.starts_at,
+        subject: p.subject,
         student_id: p.student_id,
         student_price: Number(p.student_price ?? 0),
         kind: "group" as const,
