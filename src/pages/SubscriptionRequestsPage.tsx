@@ -133,10 +133,10 @@ export default function SubscriptionRequestsPage() {
           </div>
           <div>
             <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
-              Запити на підписку
+              {t("subscriptionRequestsExtra.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Самостійні репетитори, які бажають оформити платну підписку.
+              {t("subscriptionRequestsExtra.description")}
             </p>
           </div>
         </div>
@@ -221,7 +221,7 @@ export default function SubscriptionRequestsPage() {
                     {r.message && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
                         <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
-                          <MessageCircle className="h-3.5 w-3.5" /> Повідомлення
+                          <MessageCircle className="h-3.5 w-3.5" /> {t("subscriptionRequestsExtra.messageLabel")}
                         </div>
                         {r.message}
                       </div>
@@ -230,7 +230,7 @@ export default function SubscriptionRequestsPage() {
                     {r.manager_response && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
                         <div className="mb-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
-                          Ваша відповідь
+                          {t("subscriptionRequestsExtra.responseLabel")}
                         </div>
                         {r.manager_response}
                       </div>
@@ -275,7 +275,7 @@ export default function SubscriptionRequestsPage() {
                               background: "rgba(245,158,11,.12)", color: "#b4740b", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
-                            Взяти в роботу
+                            {t("subscriptionRequestsExtra.takeBtn")}
                           </button>
                           <button
                             type="button"
@@ -286,7 +286,7 @@ export default function SubscriptionRequestsPage() {
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >
-                            Завершити
+                            {t("subscriptionRequestsExtra.completeBtn")}
                           </button>
                           <button
                             type="button"
@@ -296,7 +296,7 @@ export default function SubscriptionRequestsPage() {
                               background: "transparent", color: "#b3441f", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
                           >
-                            Відхилити
+                            {t("subscriptionRequestsExtra.rejectBtn")}
                           </button>
                         </div>
                       </div>

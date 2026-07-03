@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
+import { formatPrice } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ export interface PairOption {
   tutor_name: string;
   student_name: string;
   rate?: number;
+  currency?: string | null;
 }
 
 export interface UnpaidLessonOption {
@@ -36,6 +38,7 @@ export interface UnpaidLessonOption {
   student_price: number;
   student_id: string;
   tutor_id: string;
+  currency?: string | null;
 }
 
 interface Props {
@@ -245,7 +248,7 @@ export function RecordPaymentSheet({
                         <div className="min-w-0">
                           <div className="truncate font-medium text-foreground">{l.subject}</div>
                           <div className="text-[14px] text-muted-foreground">
-                            {formatDate(l.starts_at)} · {t("recordPaymentExtra.priceUah", { price: l.student_price })}
+                            {formatDate(l.starts_at)} · {formatPrice(Number(l.student_price), l.currency ?? "UAH")}
                           </div>
                         </div>
                         <Button
@@ -324,7 +327,7 @@ export function RecordPaymentSheet({
                   )}
                   {mode === "lessons" && pickedPair.rate && lessonsCount ? (
                     <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#6b7088)" }}>
-                      ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.priceUah", { price: (parseInt(lessonsCount, 10) * pickedPair.rate).toFixed(0) })}</b> {t("recordPaymentExtra.atCurrentRate")}
+                      ≈ <b style={{ color: "#0f0f1a" }}>{formatPrice(parseInt(lessonsCount, 10) * pickedPair.rate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && pickedPair.rate && amount ? (
@@ -414,7 +417,7 @@ function PairPicker({
                 </span>
                 {p.rate ? (
                   <Badge variant="outline" className="shrink-0 text-[14px]">
-                    {t("recordPaymentExtra.ratePerLesson", { rate: p.rate })}
+                    {t("recordPaymentExtra.ratePerLessonCur", { price: formatPrice(p.rate ?? 0, p.currency ?? "UAH") })}
                   </Badge>
                 ) : null}
               </button>

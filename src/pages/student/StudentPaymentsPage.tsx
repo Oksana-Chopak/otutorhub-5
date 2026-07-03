@@ -6,8 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Check, Clock, Wallet } from "lucide-react";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { formatPrice, currencySymbol } from "@/lib/currency";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 interface Row {
   id: string;
@@ -28,6 +27,9 @@ interface TutorPayInfo {
 }
 
 export default function StudentPaymentsPage() {
+  // useTranslation (not a module-level bound t): the page must re-render live when
+  // the student switches language — this was the only student page that stayed stale.
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [tutorPayInfos, setTutorPayInfos] = useState<TutorPayInfo[]>([]);

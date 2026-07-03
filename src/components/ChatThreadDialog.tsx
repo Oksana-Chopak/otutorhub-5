@@ -222,7 +222,7 @@ export function ChatThreadDialog({
               </div>
             </div>
           </div>
-          <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
+          <button type="button" onClick={() => onOpenChange(false)} aria-label={t("common.close")}
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
@@ -306,6 +306,7 @@ export function ChatThreadDialog({
               disabled={!threadId || sending}
             />
             <Button onClick={send} disabled={!draft.trim() || !threadId || sending}
+              aria-label={t("chats.send")}
               className="h-12 w-12 rounded-[13px] p-0 shadow-[0_6px_16px_-6px_rgba(43,191,170,.7)]">
               {sending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

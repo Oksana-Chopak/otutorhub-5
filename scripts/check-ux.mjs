@@ -22,7 +22,10 @@ function getAllFiles(dir) {
     if (statSync(full).isDirectory()) {
       if (["node_modules", ".git", "dist"].includes(entry)) continue;
       files.push(...getAllFiles(full));
-    } else if ([".tsx"].includes(extname(entry))) {
+    } else if ([".tsx", ".css"].includes(extname(entry))) {
+      // .css included so sub-13px fonts hidden inside @apply utility classes
+      // (e.g. `.gamify-sticker { @apply ... text-xs ... }`) can't slip past the
+      // gate — that was a blind spot: components using the class passed green.
       files.push(full);
     }
   }

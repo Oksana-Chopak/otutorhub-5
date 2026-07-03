@@ -1429,6 +1429,7 @@ export default function ChatsPage() {
                   <button
                     type="submit"
                     disabled={sending || (draft.trim().length === 0 && !pendingFile)}
+                    aria-label={t("chats.send")}
                     className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-opacity disabled:opacity-40"
                     style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", boxShadow: "0 4px 14px -4px rgba(43,191,170,0.6)" }}
                   >

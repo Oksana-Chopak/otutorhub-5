@@ -378,7 +378,7 @@ export default function DashboardPage() {
     const [{ data: rates }, { data: details }] = await Promise.all([
       supabase
         .from("student_rates")
-        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
         .eq("tutor_id", user.id),
       // Read via lessons_visible (security_invoker view): for a HUB tutor it returns
       // student_price = NULL and student_payment_status = NULL, so the unpaid filter
@@ -409,8 +409,10 @@ export default function DashboardPage() {
     }
 
     const rateByStudent = new Map<string, number>();
-    activeRates.forEach((r: { student_id: string; price_per_lesson: number | null }) => {
+    const currencyByStudent = new Map<string, string>();
+    activeRates.forEach((r: { student_id: string; price_per_lesson: number | null; currency?: string | null }) => {
       if (!rateByStudent.has(r.student_id)) rateByStudent.set(r.student_id, Number(r.price_per_lesson ?? 0));
+      if (r.currency && !currencyByStudent.has(r.student_id)) currencyByStudent.set(r.student_id, r.currency);
     });
 
     const pairs: PairOption[] = studentIds
@@ -420,6 +422,7 @@ export default function DashboardPage() {
         tutor_name: nameOf[user.id] ?? "",
         student_name: nameOf[sid] ?? "—",
         rate: rateByStudent.get(sid),
+        currency: currencyByStudent.get(sid),
       }))
       .sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
     setPaymentPairs(pairs);
@@ -433,6 +436,7 @@ export default function DashboardPage() {
       student_price: Number(d.student_price ?? 0),
       student_id: d.student_id,
       tutor_id: d.tutor_id,
+      currency: currencyByStudent.get(d.student_id),
     }));
     setPaymentUnpaid(unpaid);
   };

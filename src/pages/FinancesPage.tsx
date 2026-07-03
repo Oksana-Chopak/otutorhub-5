@@ -201,6 +201,9 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});
+  // Per-pair billing currency (student_rates.currency) — RecordPaymentSheet must not
+  // label USD/EUR students' amounts with a hardcoded ₴.
+  const [pairCurrencies, setPairCurrencies] = useState<Record<string, string | undefined>>({});
   const [walletPair, setWalletPair] = useState<WalletPair | null>(null);
   // Видалення помилкової передоплати прямо зі стріму (RPC дозволяє лише менеджеру)
   const [deletePrepayTx, setDeletePrepayTx] = useState<WalletTransaction | null>(null);
@@ -325,7 +328,7 @@ export default function FinancesPage() {
         .select("tutor_id, student_id, lessons_balance, amount_balance"),
       supabase
         .from("student_rates")
-        .select("tutor_id, student_id, price_per_lesson, archived_at")
+        .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
         .is("archived_at", null),
     ]);
     if (lErr) toast.error(t("finances.loadLessonsError"));
@@ -421,10 +424,13 @@ export default function FinancesPage() {
     });
     setBalances(balanceMap);
     const rateMap: Record<string, number | undefined> = {};
+    const currencyMap: Record<string, string | undefined> = {};
     ((ratesData ?? []) as any[]).forEach((r) => {
       rateMap[`${r.tutor_id}:${r.student_id}`] = Number(r.price_per_lesson ?? 0) || undefined;
+      if (r.currency) currencyMap[`${r.tutor_id}:${r.student_id}`] = r.currency;
     });
     setPairRates(rateMap);
+    setPairCurrencies(currencyMap);
     setSelected(new Set());
     setLoading(false);
   };
@@ -721,6 +727,7 @@ export default function FinancesPage() {
         tutor_name: nameOf(tutor_id),
         student_name: nameOf(student_id),
         rate: pairRates[key],
+        currency: pairCurrencies[key],
       };
     }).sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -736,8 +743,9 @@ export default function FinancesPage() {
         student_price: Number(l.student_price),
         student_id: l.student_id,
         tutor_id: l.tutor_id,
+        currency: pairCurrencies[`${l.tutor_id}:${l.student_id}`],
       })),
-    [billable]
+    [billable, pairCurrencies]
   );
 
   // === Mutations (logic unchanged) ===
