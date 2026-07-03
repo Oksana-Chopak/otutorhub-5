@@ -187,16 +187,16 @@ export default function SubscriptionPage() {
     }
   }, [searchParams]);
 
-  // Лічильник перших 20 Pro-репетиторів (active + trial)
+  // Лічильник перших 20 Pro-репетиторів (active + trial).
+  // MUST use the SECURITY DEFINER RPC: RLS on tutor_workspace_settings is
+  // SELECT-own-only, so a client-side count always saw 0/1 rows and the badge
+  // showed a fake "19 of 20 left" for everyone. On error keep null so the badge
+  // hides (never render a made-up number — incl. before the migration is applied).
   useEffect(() => {
     let cancelled = false;
     const loadCount = async () => {
-      const { count } = await supabase
-        .from("tutor_workspace_settings")
-        .select("tutor_id", { count: "exact", head: true })
-        .eq("independent_workspace", true)
-        .in("subscription_status", ["active", "trial"]);
-      if (!cancelled) setEarlyBirdCount(count ?? 0);
+      const { data, error } = await (supabase.rpc as any)("get_early_bird_count");
+      if (!cancelled) setEarlyBirdCount(error ? null : ((data as number | null) ?? 0));
     };
     loadCount();
     const channel = supabase

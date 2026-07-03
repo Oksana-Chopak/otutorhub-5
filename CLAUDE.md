@@ -476,6 +476,13 @@ fields below before building anything money-related.
   there is NO student-count paywall in code (`useWorkspaceSettings` keeps the counter for
   stats only). `SubscriptionPage.PRO_PRICE_MONTHLY = 249` is the source of truth for price.
 - This is the only place the "Pro / subscription / trial" concepts apply.
+- **Organic trial EXISTS (don't re-conclude it doesn't):** `handle_new_user` (live body =
+  `20260521180319`) bootstraps every new TUTOR's workspace row with
+  `subscription_status='trial', trial_until = now() + 30 days` — the landing's «30 днів
+  безкоштовно» is true. The CHECK constraint allows 'trial' since `20260424125121`.
+  A referred friend gets **+21 days on top** via claim_referral → grant_pro_days
+  (extends trial_until), i.e. ~51 days total. AuthPage passes
+  `independent_workspace: role === "tutor"` in signup metadata.
 
 ### Don't mix them
 - "Pro / subscription / 249 ₴/mo / trial" → **independent tutors only**.
@@ -488,8 +495,9 @@ fields below before building anything money-related.
   RevenueCat store-billing (IAP) on native via `src/lib/iap.ts`. On **native** builds
   (iOS+Android) the SubscriptionPage shows the IAP card only (LiqPay hidden) — store policy
   (Apple 3.1.1 / Play) forbids external payment for digital subscriptions.
-- `TrialCountdownBanner`: only shows if `trial_until` was set AND expired
-  (never shows for new registrations with `trial_until=null`).
+- `TrialCountdownBanner`: only shows if `trial_until` was set AND expired. (Note: since
+  `20260521180319` every new tutor HAS `trial_until` set at signup — the old "new
+  registrations have trial_until=null" premise is obsolete.)
 
 ---
 
