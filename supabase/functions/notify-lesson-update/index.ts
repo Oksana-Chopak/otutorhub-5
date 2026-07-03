@@ -139,7 +139,7 @@ Deno.serve(async (req) => {
     const text =
       `🔔 Оновлено ${updatedList}\n\n` +
       `<b>${escapeHtml(lesson.subject)}</b> — ${escapeHtml(lessonDate)}\n\n` +
-      `<a href="https://otutorhub.lovable.app/schedule">Відкрити урок</a>`;
+      `<a href="https://otutorhub.com/schedule">Відкрити урок</a>`;
 
     const tgResp = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",

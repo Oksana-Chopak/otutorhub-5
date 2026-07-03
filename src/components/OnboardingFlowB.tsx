@@ -251,6 +251,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
 }) {
   const { t } = useTranslation();
   const [name,    setName]    = useState("");
+  const [email,   setEmail]   = useState("");
   const [subject, setSubject] = useState(defaultSubject);
   const [price,   setPrice]   = useState("");
   const [saving,  setSaving]  = useState(false);
@@ -259,29 +260,35 @@ function StudentAction({ defaultSubject, onComplete, user }: {
   const save = async () => {
     if (!user || !ok) return;
     setSaving(true);
-    const parts   = name.trim().split(/\s+/);
-    const fn      = parts[0] ?? "";
-    const ln      = parts.slice(1).join(" ");
-    const newId   = crypto.randomUUID();
+    const parts = name.trim().split(/\s+/);
+    const fn    = parts[0] ?? "";
+    const ln    = parts.slice(1).join(" ");
 
-    const { error: profErr } = await supabase.from("profiles")
-      .insert({ id: newId, first_name: fn, last_name: ln, is_pending: true } as any);
-    if (profErr) { setSaving(false); toast.error(t("onboardingFlowB.studentSaveError")); return; }
-
-    await supabase.from("user_roles").insert({ user_id: newId, role: "student" } as any);
-    // The student_rates row is REQUIRED for the lesson INSERT policy to pass later.
-    // Surface + halt if it fails, instead of leaving a half-created student that
-    // makes the next "create lesson" step error with an RLS rejection.
-    const { error: rateErr } = await supabase.from("student_rates").insert({
-      tutor_id: user.id, student_id: newId, subject: subject.trim(),
-      price_per_lesson: Number(price) || 0, source: "independent",
+    // Canonical add-or-link RPC (same path as QuickAddStudentDialog/MyStudentsPage):
+    // handles new/existing/ghost/non-student atomically and, with an email, links an
+    // existing account instead of creating a duplicate ghost. The old hand-rolled
+    // insert dance here created orphan profiles and could never send an invite.
+    const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+      _first_name: fn, _last_name: ln,
+      _email: email.trim(), _phone: "",
+      _telegram: "", _subject: subject.trim(),
+      _price: Number(price) || 0, _currency: "UAH",
     } as any);
-    if (rateErr) {
+    if (rpcErr || !res) {
       setSaving(false);
-      toast.error(t("onboardingFlowB.studentSaveError") + (rateErr.message ? `: ${rateErr.message}` : ""));
+      const msg = String(rpcErr?.message || "");
+      toast.error(
+        msg.includes("EMAIL_NOT_STUDENT")
+          ? t("quickAddStudent.emailNotStudent")
+          : (rpcErr?.message || t("onboardingFlowB.studentSaveError")),
+      );
       return;
     }
-    await (supabase.from("student_details") as any).upsert({ user_id: newId }, { onConflict: "user_id" });
+    const newId = (res as any).student_id as string;
+    if (email.trim() && (res as any).action !== "linked") {
+      // Best-effort invite — the note under the form promises it only with an email.
+      supabase.functions.invoke("send-student-invite", { body: { studentId: newId } }).catch(() => {});
+    }
 
     setSaving(false);
     onComplete(newId, name.trim(), subject.trim());
@@ -292,6 +299,10 @@ function StudentAction({ defaultSubject, onComplete, user }: {
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentNameLabel")}</Label>
         <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("onboardingFlowB.studentNamePlaceholder")} className="h-12 rounded-xl text-[15px]" />
+      </div>
+      <div>
+        <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentEmailLabel")}</Label>
+        <Input value={email} onChange={e => setEmail(e.target.value)} type="email" inputMode="email" placeholder={t("onboardingFlowB.studentEmailPlaceholder")} className="h-12 rounded-xl text-[15px]" />
       </div>
       <div className="flex gap-3">
         <div style={{ flex: 1.3 }}>
@@ -706,11 +717,12 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
 function TelegramAction({ onComplete, user }: { onComplete: () => void; user: any }) {
   const { t } = useTranslation();
   const { updateSettings } = useWorkspaceSettings();
-  const [daily,      setDaily]      = useState(true);
-  const [weekly,     setWeekly]     = useState(true);
-  const [remind1h,   setRemind1h]   = useState(true);
-  const [remind15m,  setRemind15m]  = useState(true);
-  const [botUrl,     setBotUrl]     = useState("");
+  // Only the daily digest is a REAL persisted preference (daily_digest_enabled —
+  // consumed by the deployed tutor-daily-digest fn). Weekly digest and the 1h/15m
+  // lesson reminders are always-on for linked accounts; the old 4 switches wrote
+  // telegram_* keys that no column and no function ever read — silently discarded.
+  const [daily,  setDaily]  = useState(true);
+  const [botUrl, setBotUrl] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -726,12 +738,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
   }, [user?.id]);
 
   const openBot = async () => {
-    await updateSettings({
-      telegram_daily_digest:    daily,
-      telegram_weekly_digest:   weekly,
-      telegram_reminder_1h:     remind1h,
-      telegram_reminder_15m:    remind15m,
-    } as any);
+    await updateSettings({ daily_digest_enabled: daily } as any);
     window.open(botUrl || `https://t.me/oTutorHubBot`, "_blank", "noopener");
   };
 
@@ -747,19 +754,33 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
     </div>
   );
 
+  const IncludedRow = ({ emoji, title, desc }: any) => (
+    <div className="flex items-center gap-3 rounded-2xl p-3.5"
+      style={{ border: `1px solid ${T.border}`, background: T.tealL }}>
+      <span className="text-2xl flex-shrink-0">{emoji}</span>
+      <div className="flex-1 min-w-0">
+        <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
+        <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
+      </div>
+      <span className="flex-shrink-0 font-extrabold text-[15px]" style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
+    </div>
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.telegramIntro")}
       </p>
       <div className="flex flex-col gap-2.5">
-        <DigestRow on={daily}     setOn={setDaily}     emoji="🌅" title={t("onboardingFlowB.telegramDailyTitle")}
+        <DigestRow on={daily} setOn={setDaily} emoji="🌅" title={t("onboardingFlowB.telegramDailyTitle")}
           desc={t("onboardingFlowB.telegramDailyDesc")} />
-        <DigestRow on={weekly}    setOn={setWeekly}    emoji="📊" title={t("onboardingFlowB.telegramWeeklyTitle")}
+        {/* Always-on once Telegram is linked — shown as included, not as switches
+            (a switch here would silently discard the choice). */}
+        <IncludedRow emoji="📊" title={t("onboardingFlowB.telegramWeeklyTitle")}
           desc={t("onboardingFlowB.telegramWeeklyDesc")} />
-        <DigestRow on={remind1h}  setOn={setRemind1h}  emoji="🔔" title={t("onboardingFlowB.telegramRemind1hTitle")}
+        <IncludedRow emoji="🔔" title={t("onboardingFlowB.telegramRemind1hTitle")}
           desc={t("onboardingFlowB.telegramRemind1hDesc")} />
-        <DigestRow on={remind15m} setOn={setRemind15m} emoji="⏰" title={t("onboardingFlowB.telegramRemind15mTitle")}
+        <IncludedRow emoji="⏰" title={t("onboardingFlowB.telegramRemind15mTitle")}
           desc={t("onboardingFlowB.telegramRemind15mDesc")} />
       </div>
       {/* Telegram blue button with plane icon */}

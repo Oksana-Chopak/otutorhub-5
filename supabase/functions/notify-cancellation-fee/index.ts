@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
       `(${escapeHtml(body.subject)}, ${escapeHtml(when)}).\n\n` +
       `Згідно правила пізнього скасування нараховано ` +
       `<b>${body.fee} ₴</b> до сплати.\n\n` +
-      `<a href="https://otutorhub.lovable.app/finances">Перейти у Фінанси</a>`;
+      `<a href="https://otutorhub.com/finances">Перейти у Фінанси</a>`;
 
     const tg = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
       method: "POST",
