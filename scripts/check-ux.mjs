@@ -97,6 +97,22 @@ for (const file of getAllFiles(SRC)) {
       });
     }
   }
+  // Kebab-case CSS-in-JS (`font-size: 12px` inside template-literal <style> blocks,
+  // e.g. LandingPage) — the second gate blind spot: neither text-[Npx] nor camelCase
+  // fontSize matched it, so 12px landing labels shipped with a green gate.
+  const reKebab = /font-size:\s*(\d+(?:\.\d+)?)px/g;
+  while ((m = reKebab.exec(content))) {
+    if (parseFloat(m[1]) < FONT_FLOOR) {
+      const lineNum = content.slice(0, m.index).split("\n").length;
+      issues.push({
+        rule: "font < 13px (a11y floor)",
+        severity: "error",
+        file: file.replace(ROOT, ""),
+        line: lineNum,
+        detail: `font-size: ${m[1]}px is below the 13px minimum (low vision + sunlight). Use >= 13px.`,
+      });
+    }
+  }
   // NAMED Tailwind classes below the floor. text-xs = 12px (< 13). text-sm = 14px (OK).
   // This was the BLIND SPOT: the regexes above only catch text-[Npx] + inline fontSize,
   // so text-xs slipped through repeatedly. Treat any sub-floor named size as an error.

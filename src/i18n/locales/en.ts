@@ -3993,6 +3993,8 @@ export const en: LocaleTranslations = {
     subjectOptionHistory: "History",
     studentSaveError: "Error while saving",
     subjectSaveError: "Failed to save subjects. Please try again.",
+    zoomNoStudents: "Add a student first — the link will be saved for their lessons.",
+    zoomSaveError: "Failed to save the link. Please try again.",
     studentNameLabel: "Student's name",
     studentNamePlaceholder: "Anna Ivanenko",
     studentSubjectLabel: "Subject",

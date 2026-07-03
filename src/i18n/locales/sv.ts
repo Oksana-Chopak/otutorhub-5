@@ -3983,6 +3983,8 @@ export const sv: LocaleTranslations = {
     subjectOptionHistory: "Historia",
     studentSaveError: "Fel vid sparande",
     subjectSaveError: "Kunde inte spara ämnen. Försök igen.",
+    zoomNoStudents: "Lägg till en elev först — länken sparas för hens lektioner.",
+    zoomSaveError: "Kunde inte spara länken. Försök igen.",
     studentNameLabel: "Elevens namn",
     studentNamePlaceholder: "Anna Ivanenko",
     studentSubjectLabel: "Ämne",

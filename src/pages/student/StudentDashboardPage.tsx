@@ -97,9 +97,13 @@ export default function StudentDashboardPage() {
         .select("id, subject, starts_at, duration_minutes, meeting_url, tutor_id, status")
         .or(orFilter)
         .eq("status", "scheduled")
-        .gte("starts_at", nowIso)
+        // 4h lookback so an IN-PROGRESS lesson stays visible on a fresh load —
+        // `gte(nowIso)` dropped a lesson the moment it started, so the glowing
+        // «Приєднатися зараз» state could never appear unless the page was
+        // already open. Client-filtered to "not ended yet" below.
+        .gte("starts_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
         .order("starts_at", { ascending: true })
-        .limit(3),
+        .limit(10),
       supabase
         .from("lesson_details_student" as any)
         .select("lesson_id, homework, student_payment_status"),
@@ -136,10 +140,16 @@ export default function StudentDashboardPage() {
       profileMap[p.id] = `${p.first_name} ${p.last_name}`.trim();
     });
 
-    const upcomingList: UpcomingLesson[] = (lessons ?? []).map((l: any) => ({
-      ...l,
-      tutor_name: profileMap[l.tutor_id] ?? t("studentPages.tutorFallback"),
-    }));
+    const nowMs = Date.now();
+    const upcomingList: UpcomingLesson[] = (lessons ?? [])
+      // keep lessons that haven't ENDED yet — an in-progress lesson stays pinned
+      // (with its glowing join CTA) until its end, then drops off.
+      .filter((l: any) => new Date(l.starts_at).getTime() + (l.duration_minutes ?? 60) * 60000 >= nowMs)
+      .slice(0, 3)
+      .map((l: any) => ({
+        ...l,
+        tutor_name: profileMap[l.tutor_id] ?? t("studentPages.tutorFallback"),
+      }));
     setUpcoming(upcomingList);
 
     const detailsArr = (details ?? []) as any[];

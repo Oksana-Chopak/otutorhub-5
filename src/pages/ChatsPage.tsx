@@ -987,8 +987,10 @@ export default function ChatsPage() {
                         </div>
                       </div>
 
-                      {/* Context pill row */}
-                      {thread.ctx && thread.ctx.kind !== "none" && (
+                      {/* Context pill row — tutor/manager working context ONLY. A student
+                          must not see «Борг ₴X · Нагадати» (tutor-voiced debt tooling on
+                          their own chat) or «Новий учень · Створити урок». */}
+                      {canShowContext && thread.ctx && thread.ctx.kind !== "none" && (
                         <div
                           className="flex items-center gap-2 mt-2.5 pt-2.5"
                           style={{ borderTop: "1px solid #f3f4f8" }}
@@ -1274,8 +1276,9 @@ export default function ChatsPage() {
                     })
                   )}
 
-                  {/* Smart card — контекстна дія під останнім повідомленням */}
-                  {selectedThread?.ctx && (selectedThread.ctx.kind === "debt" || selectedThread.ctx.kind === "new") && messages.length > 0 && (
+                  {/* Smart card — контекстна дія під останнім повідомленням (tutor/manager
+                      only: the debt card pre-fills a tutor-voiced payment reminder). */}
+                  {canShowContext && selectedThread?.ctx && (selectedThread.ctx.kind === "debt" || selectedThread.ctx.kind === "new") && messages.length > 0 && (
                     <div
                       className="flex items-center gap-3 mt-2"
                       style={{

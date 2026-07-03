@@ -188,7 +188,7 @@ const landingStyles = `
 .landing-root .l-section { padding: 80px 2rem; }
 .landing-root .section-inner { max-width: 1100px; margin: 0 auto; }
 .landing-root .section-label {
-  font-size: 12px; font-weight: 700;
+  font-size: 13px; font-weight: 700;
   letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--l-accent); margin-bottom: 16px;
 }
@@ -386,7 +386,7 @@ const landingStyles = `
 }
 .landing-root .price-badge {
   display: inline-block; align-self: flex-start;
-  font-size: 12px; font-weight: 700;
+  font-size: 13px; font-weight: 700;
   padding: 4px 10px; border-radius: 100px;
   background: var(--warning-light); color: var(--l-warning);
 }
@@ -422,7 +422,7 @@ const landingStyles = `
 }
 .landing-root .price-cta.secondary:hover { border-color: var(--l-accent); color: var(--l-accent); }
 .landing-root .price-note {
-  font-size: 12px; color: var(--muted2); text-align: center; margin-top: 4px;
+  font-size: 13px; color: var(--muted2); text-align: center; margin-top: 4px;
 }
 
 @media (max-width: 600px) {
@@ -485,7 +485,7 @@ const landingStyles = `
   max-width: 720px; margin: 0 auto; text-align: center;
 }
 .landing-root .pain-label {
-  font-size: 12px; font-weight: 700; letter-spacing: 0.12em;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.12em;
   text-transform: uppercase; color: var(--l-warning); margin-bottom: 12px;
 }
 .landing-root .pain-title {

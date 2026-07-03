@@ -4005,6 +4005,8 @@ export const uk = {
     subjectOptionHistory: "Історія",
     studentSaveError: "Помилка при збереженні",
     subjectSaveError: "Не вдалося зберегти предмети. Спробуйте ще раз.",
+    zoomNoStudents: "Спершу додайте учня — лінк збережеться для його уроків.",
+    zoomSaveError: "Не вдалося зберегти посилання. Спробуйте ще раз.",
     studentNameLabel: "Ім'я учня",
     studentNamePlaceholder: "Анна Іваненко",
     studentSubjectLabel: "Предмет",

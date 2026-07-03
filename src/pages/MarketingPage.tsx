@@ -65,7 +65,7 @@ export default function MarketingPage() {
       <p style="margin:0 0 12px;">Привіт, [ім'я]!</p>
       <div style="font-size:15px;line-height:1.6;">${previewBody}</div>
       <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0 12px;">
-      <p style="font-size:12px;color:#888;margin:0;">Відписатися від розсилок</p>
+      <p style="font-size:13px;color:#888;margin:0;">Відписатися від розсилок</p>
     </div>`;
   }, [htmlBody]);
 

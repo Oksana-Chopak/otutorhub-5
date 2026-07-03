@@ -276,7 +276,7 @@ function Field({
 const styles = `
 .ltd-section { background: var(--bg2, #eeece6); padding: 72px 2rem; }
 .ltd-inner { max-width: 720px; margin: 0 auto; text-align: center; }
-.ltd-label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0ABAB5; margin-bottom: 12px; }
+.ltd-label { font-size: 13px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0ABAB5; margin-bottom: 12px; }
 .ltd-title { font-family: 'Unbounded', sans-serif; font-size: clamp(24px, 3vw, 36px); font-weight: 800; line-height: 1.15; color: #1a1a2e; margin-bottom: 12px; letter-spacing: -0.02em; transition: opacity 0.3s ease; }
 .ltd-accent { color: #0ABAB5; }
 .ltd-sub { font-size: 16px; color: #6b6b8a; margin-bottom: 32px; }
@@ -313,7 +313,7 @@ const styles = `
 
 @media (max-width: 600px) {
   .ltd-section { padding: 48px 1rem; }
-  .ltd-tab { font-size: 12px; padding: 12px 4px; flex-direction: column; gap: 4px; }
+  .ltd-tab { font-size: 13px; padding: 12px 4px; flex-direction: column; gap: 4px; }
   .ltd-tab-emoji { font-size: 20px; }
   .ltd-body { padding: 22px 18px 24px; }
   .ltd-row { grid-template-columns: 1fr; }

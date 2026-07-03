@@ -71,8 +71,11 @@ export default function StudentSchedulePage() {
     const id = setInterval(() => setNow(Date.now()), 30_000);
     return () => clearInterval(id);
   }, []);
-  const upcoming = lessons.filter((l) => new Date(l.starts_at).getTime() >= now);
-  const past = lessons.filter((l) => new Date(l.starts_at).getTime() < now);
+  // Split by END time, not start: an ongoing lesson must stay in «Найближчі»
+  // (with its live join CTA) instead of jumping to «Минулі» the second it starts.
+  const endMs = (l: Lesson) => new Date(l.starts_at).getTime() + (l.duration_minutes ?? 60) * 60000;
+  const upcoming = lessons.filter((l) => endMs(l) >= now);
+  const past = lessons.filter((l) => endMs(l) < now);
 
   const D = "Inter, system-ui, sans-serif";
   const renderList = (items: Lesson[]) => {

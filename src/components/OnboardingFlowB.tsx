@@ -412,25 +412,19 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
       } as any).select("id").single();
 
     if (!error && created) {
-      await updateLessonDetailsSafe(created.id, {
-        student_price: 0,
-        student_payment_status: "unpaid",
-      });
+      // NO manual lesson_details write: the DB already auto-creates the details row
+      // and the autofill trigger snapshots the student's REAL rate (student_rates,
+      // matched by tutor+student+subject). The old explicit
+      // `updateLessonDetailsSafe({ student_price: 0 })` ran AFTER that trigger and
+      // overwrote the correct price with 0 — the tutor's first lessons showed no debt.
       if (repeat) {
         for (let w = 1; w <= 3; w++) {
           const next = new Date(startsAt);
           next.setDate(next.getDate() + 7 * w);
-          const { data: r } = await supabase.from("lessons")
+          await supabase.from("lessons")
             .insert({ tutor_id: user.id, student_id: resolvedId, subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
               starts_at: next.toISOString(), duration_minutes: 60, status: "scheduled" as const,
-              created_by: user.id, source: "independent" } as any)
-            .select("id").single();
-          if (r) {
-            await updateLessonDetailsSafe(r.id, {
-              student_price: 0,
-              student_payment_status: "unpaid",
-            });
-          }
+              created_by: user.id, source: "independent" } as any);
         }
       }
       setSaving(false);
@@ -976,10 +970,30 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
   const save = async () => {
     if (!user || !url.trim()) return;
     setSaving(true);
-    await (supabase.from("tutor_student_defaults") as any).upsert(
-      { tutor_id: user.id, default_meeting_url: url.trim() }, { onConflict: "tutor_id" }
+    // A default link lives PER PAIR (tutor_student_defaults: student_id NOT NULL,
+    // unique (tutor_id, student_id)) — the old tutor-only upsert with
+    // onConflict "tutor_id" ALWAYS failed (NOT NULL / 42P10) and silently marked
+    // the step done. Write the link to every current student pair and surface errors.
+    const { data: rates } = await supabase
+      .from("student_rates")
+      .select("student_id")
+      .eq("tutor_id", user.id)
+      .is("archived_at", null);
+    const ids = Array.from(new Set((rates ?? []).map((r: any) => r.student_id)));
+    if (ids.length === 0) {
+      setSaving(false);
+      toast.error(t("onboardingFlowB.zoomNoStudents"));
+      return;
+    }
+    const { error } = await (supabase.from("tutor_student_defaults") as any).upsert(
+      ids.map((sid) => ({ tutor_id: user.id, student_id: sid, default_meeting_url: url.trim() })),
+      { onConflict: "tutor_id,student_id" }
     );
     setSaving(false);
+    if (error) {
+      toast.error(t("onboardingFlowB.zoomSaveError"));
+      return;
+    }
     onComplete();
   };
 
