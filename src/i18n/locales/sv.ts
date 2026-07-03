@@ -3161,6 +3161,9 @@ export const sv: LocaleTranslations = {
     past: "Arkiv ({{count}})",
     pastSchedule: "Tidigare ({{count}})",
     noLessonsInTab: "Tyst här just nu 📅",
+    noLessonsInTabTitle: "Ledigt just nu ✨",
+    detailsCopied: "Betalningsuppgifter kopierade 📋",
+    copyDetails: "Kopiera betalningsuppgifter",
   },
   lessonAttachmentsExtra: {
     confirmDelete: "Ta bort «{{name}}»?",

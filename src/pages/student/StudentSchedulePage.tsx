@@ -77,7 +77,16 @@ export default function StudentSchedulePage() {
   const D = "Inter, system-ui, sans-serif";
   const renderList = (items: Lesson[]) => {
     if (loading) return <SkeletonList count={3} />;
-    if (items.length === 0) return <p className="py-8 text-center text-sm text-muted-foreground">{t("studentPagesExtra.noLessonsInTab")}</p>;
+    if (items.length === 0)
+      return (
+        // Warm empty state (mandatory positive framing) — same dashed-card treatment
+        // as the homework page, not a bare muted line.
+        <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
+          <div style={{ fontSize: 38 }}>📅</div>
+          <p style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noLessonsInTabTitle")}</p>
+          <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
+        </div>
+      );
     return (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 9 }}>
         {items.map((l) => {

@@ -119,9 +119,11 @@ export function RecordPaymentSheet({
   }, [unpaidLessons, pickedPair]);
 
   const handleMarkPaid = async (lessonId: string) => {
+    // Instant-feedback invariant: buzz on the tap, not after the network round-trip
+    // (the parent callback already updates the list optimistically).
+    haptic.success();
     setMarkingId(lessonId);
     await onMarkLessonPaid(lessonId);
-    haptic.success();
     setMarkingId(null);
   };
 

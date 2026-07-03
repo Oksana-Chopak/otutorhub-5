@@ -3182,6 +3182,9 @@ export const uk = {
     past: "Архів ({{count}})",
     pastSchedule: "Минулі ({{count}})",
     noLessonsInTab: "Поки тихо тут 📅",
+    noLessonsInTabTitle: "Тут поки вільно ✨",
+    detailsCopied: "Реквізити скопійовано 📋",
+    copyDetails: "Скопіювати реквізити",
   },
   lessonAttachmentsExtra: {
     confirmDelete: "Видалити «{{name}}»?",

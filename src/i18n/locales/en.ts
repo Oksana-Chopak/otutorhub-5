@@ -3171,6 +3171,9 @@ export const en: LocaleTranslations = {
     past: "Archive ({{count}})",
     pastSchedule: "Past ({{count}})",
     noLessonsInTab: "All quiet here 📅",
+    noLessonsInTabTitle: "Free for now ✨",
+    detailsCopied: "Payment details copied 📋",
+    copyDetails: "Copy payment details",
   },
   lessonAttachmentsExtra: {
     confirmDelete: "Delete «{{name}}»?",

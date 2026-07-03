@@ -3,7 +3,9 @@ import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Check, Clock, Wallet } from "lucide-react";
+import { Check, Clock, Wallet, Copy } from "lucide-react";
+import { toast } from "sonner";
+import { useHaptic } from "@/hooks/useHaptic";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
@@ -31,6 +33,17 @@ export default function StudentPaymentsPage() {
   // the student switches language — this was the only student page that stayed stale.
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { tap: hapticTap } = useHaptic();
+
+  // Paying is the student's core money task — one tap must put the tutor's payment
+  // details in the clipboard instead of forcing a manual re-type from the card above.
+  const payInfoFor = (tutorId: string) =>
+    tutorPayInfos.find((p) => p.tutor_id === tutorId && p.payment_details);
+  const copyDetails = (info: TutorPayInfo) => {
+    navigator.clipboard.writeText(info.payment_details ?? "");
+    hapticTap();
+    toast.success(t("studentPagesExtra.detailsCopied"));
+  };
   const [rows, setRows] = useState<Row[]>([]);
   const [tutorPayInfos, setTutorPayInfos] = useState<TutorPayInfo[]>([]);
   const [walletBalances, setWalletBalances] = useState<{ tutor_id: string; lessons_balance: number; amount_balance: number }[]>([]);
@@ -232,14 +245,28 @@ export default function StudentPaymentsPage() {
               <h2 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#7a5a14" }}>{t("studentPagesExtra.howToPay")}</h2>
             </div>
             <ul className="space-y-2">
-              {tutorsWithDetails.map((t) => (
-                <li key={t.tutor_id} style={{ borderRadius: 12, background: "rgba(255,255,255,.6)", padding: "11px 13px" }}>
-                  <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
-                    {t.tutor_name} · {currencySymbol(t.currency)} {t.currency}
-                  </p>
-                  <p style={{ marginTop: 4, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 14, color: "#0f0f1a" }}>
-                    {t.payment_details}
-                  </p>
+              {tutorsWithDetails.map((tp) => (
+                <li key={tp.tutor_id} style={{ borderRadius: 12, background: "rgba(255,255,255,.6)", padding: "11px 13px" }}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p style={{ fontSize: 14, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#9a6a12" }}>
+                        {tp.tutor_name} · {currencySymbol(tp.currency)} {tp.currency}
+                      </p>
+                      <p style={{ marginTop: 4, whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 14, color: "#0f0f1a" }}>
+                        {tp.payment_details}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyDetails(tp)}
+                      aria-label={t("studentPagesExtra.copyDetails")}
+                      title={t("studentPagesExtra.copyDetails")}
+                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
+                      style={{ background: "rgba(154,106,18,.12)", color: "#9a6a12", border: "none", cursor: "pointer" }}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -266,6 +293,18 @@ export default function StudentPaymentsPage() {
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>
+                      {!paid && payInfoFor(r.tutor_id) && (
+                        <button
+                          type="button"
+                          onClick={() => copyDetails(payInfoFor(r.tutor_id)!)}
+                          aria-label={t("studentPagesExtra.copyDetails")}
+                          title={t("studentPagesExtra.copyDetails")}
+                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
+                          style={{ background: "rgba(245,158,11,.12)", color: "#b4740b", border: "none", cursor: "pointer" }}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                 </li>
               );

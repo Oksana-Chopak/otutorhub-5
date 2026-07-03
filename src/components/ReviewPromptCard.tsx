@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Star, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { useHaptic } from "@/hooks/useHaptic";
+import { burstConfetti } from "@/lib/confetti";
 
 interface UnratedLesson {
   id: string;
@@ -27,6 +29,7 @@ interface UnratedLesson {
 export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { success: hapticSuccess } = useHaptic();
   const [queue, setQueue] = useState<UnratedLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [rating, setRating] = useState(0);
@@ -113,6 +116,10 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
       toast.error(t("reviewPrompt.saveFailed") || "Не вдалося надіслати відгук");
       return;
     }
+    // Reviewing is a prosocial "win" we actively solicit — celebrate it like
+    // homework-done (haptic + confetti), not just a silent toast.
+    hapticSuccess();
+    burstConfetti({ count: 14 });
     toast.success(t("reviewPrompt.thanks") || "Дякуємо за відгук! 🌟");
     setRating(0);
     setHover(0);
