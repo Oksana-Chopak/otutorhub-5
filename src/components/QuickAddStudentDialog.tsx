@@ -151,10 +151,12 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   };
 
   // ── design tokens ──────────────────────────────────────────────────────────
+  // Reference the DS tokens (index.css) instead of a private raw-hex palette, so
+  // central token/WCAG fixes reach this dialog (sub → the WCAG-fixed #6b7088).
   const F = {
-    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-    border: "#eceef3", bg: "#fbfbfc", txt: "#0f0f1a",
-    sub: "#9398b0", muted: "#b0b4c8", warnD: "#B4740B",
+    teal: "var(--teal,#2BBFAA)", tealD: "var(--teal-d,#25a896)", tealL: "var(--teal-l,#f0fdf9)",
+    border: "var(--ds-border,#eceef3)", bg: "#fbfbfc", txt: "var(--ds-txt,#0f0f1a)",
+    sub: "var(--sub,#6b7088)", muted: "var(--ds-muted,#b0b4c8)", warnD: "#B4740B",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };

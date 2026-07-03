@@ -1,9 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Use any-cast since the notifications table is new and not yet in generated types.
-// Types will be regenerated automatically by Lovable after migration is applied.
-const db = supabase as any;
-
 interface InsertNotification {
   userId: string;
   type: string;
@@ -17,7 +13,7 @@ export async function insertNotification({ userId, type, title, body, link }: In
   // "insert own" RLS on public.notifications. We go through the
   // create_notification SECURITY DEFINER RPC instead, which also does the 24h
   // dedup server-side. The AFTER INSERT trigger then fires the web-push.
-  const { error } = await db.rpc("create_notification", {
+  const { error } = await supabase.rpc("create_notification", {
     _user_id: userId,
     _type: type,
     _title: title,
@@ -50,7 +46,7 @@ interface NotifyManagers {
 // title/body so i18n stays client-side. Best-effort: if the RPC isn't applied yet
 // it errors harmlessly and managers still see the request via the dashboard task.
 export async function notifyManagers({ type, title, body, link }: NotifyManagers) {
-  const { error } = await db.rpc("notify_managers", {
+  const { error } = await supabase.rpc("notify_managers", {
     _type: type,
     _title: title,
     _body: body ?? null,

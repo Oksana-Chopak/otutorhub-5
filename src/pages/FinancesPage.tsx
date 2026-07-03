@@ -64,6 +64,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
+import { isBillableLesson, paidIncome, paidExpense, unpaidIncome, unpaidExpense, grossMarkupPct } from "@/lib/financials";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -473,15 +474,10 @@ export default function FinancesPage() {
   // that has a payment marked (e.g. independent tutor pre-paid scheduled lesson).
   // Excludes: cancelled, and pending requests that never happened.
   const billable = useMemo(() => {
+    // Shared predicate (src/lib/financials) — Dashboard uses the same one, so the
+    // two pages can no longer drift and show different profit for the same data.
     const nowMs = Date.now();
-    return tutorScoped.filter((l) => {
-      if (l.status === "cancelled" || l.status === "pending") return false;
-      if (l.status === "completed") return true;
-      const isPast = new Date(l.starts_at).getTime() < nowMs;
-      const hasPayment =
-        l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
-      return isPast || hasPayment;
-    });
+    return tutorScoped.filter((l) => isBillableLesson(l, nowMs));
   }, [tutorScoped]);
 
   // Period scope drives the sticky summary card and tab content.
@@ -620,36 +616,17 @@ export default function FinancesPage() {
     [rowsForActiveTab],
   );
 
-  // Sticky-summary totals — all derived from the same `periodBillable`.
-  const totalIncome = periodBillable
-    .filter((l) => l.student_payment_status === "paid")
-    .reduce((s, l) => s + Number(l.student_price), 0);
-  const totalExpense = periodBillable
-    .filter((l) => l.tutor_payout_status === "paid")
-    .reduce((s, l) => s + Number(l.tutor_payout), 0);
+  // Sticky-summary totals — all derived from the same `periodBillable`, via the
+  // shared MON-2 money math (src/lib/financials, locked by financials.test.ts).
+  const totalIncome = paidIncome(periodBillable);
+  const totalExpense = paidExpense(periodBillable);
   const profit = totalIncome - totalExpense;
-  const pendingIncome = periodBillable
-    .filter((l) => l.student_payment_status === "unpaid")
-    .reduce((s, l) => s + Number(l.student_price), 0);
-  const pendingExpense = periodBillable
-    .filter((l) => l.tutor_payout_status === "unpaid")
-    .reduce((s, l) => s + Number(l.tutor_payout), 0);
+  const pendingIncome = unpaidIncome(periodBillable);
+  const pendingExpense = unpaidExpense(periodBillable);
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
-  // Gross margin: (income - payout) / income * 100. Capped at sensible bounds.
-  const computeMarkup = (rows: LessonRow[]): number | null => {
-    const valid = rows.filter(
-      (l) => Number(l.student_price) > 0 && Number(l.tutor_payout) > 0
-    );
-    if (valid.length === 0) return null;
-    const income = valid.reduce((s, l) => s + Number(l.student_price), 0);
-    const payout = valid.reduce((s, l) => s + Number(l.tutor_payout), 0);
-    if (income === 0) return null;
-    return ((income - payout) / income) * 100;
-  };
-
-  const hubMarkup = useMemo(() => computeMarkup(billable), [billable]);
+  const hubMarkup = useMemo(() => grossMarkupPct(billable), [billable]);
 
   const markupByTutor = useMemo(() => {
     const groups: Record<string, LessonRow[]> = {};
@@ -661,7 +638,7 @@ export default function FinancesPage() {
       .map(([tutorId, rows]) => ({
         tutorId,
         name: nameOf(tutorId),
-        markup: computeMarkup(rows),
+        markup: grossMarkupPct(rows),
         lessonsCount: rows.length,
       }))
       .filter((r) => r.markup !== null)

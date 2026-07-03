@@ -132,7 +132,7 @@ export default function SubscriptionRequestsPage() {
             <Crown className="h-5 w-5" />
           </div>
           <div>
-            <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+            <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               {t("subscriptionRequestsExtra.title")}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -144,7 +144,7 @@ export default function SubscriptionRequestsPage() {
         {loading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i} className="rounded-[18px] border-[#eceef3] shadow-none">
+              <Card key={i} className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-3">
                     <div className="h-11 w-11 shrink-0 animate-pulse rounded-[13px] bg-muted" />
@@ -159,7 +159,7 @@ export default function SubscriptionRequestsPage() {
             ))}
           </div>
         ) : requests.length === 0 ? (
-          <Card className="rounded-[18px] border-dashed border-[#eceef3] shadow-none">
+          <Card className="rounded-[18px] border-dashed border-[var(--ds-border,#eceef3)] shadow-none">
             <CardContent className="p-8 text-center text-sm text-muted-foreground">
               {t("subscriptionRequestsExtra.empty")}
             </CardContent>
@@ -172,18 +172,18 @@ export default function SubscriptionRequestsPage() {
                 t("subscriptionRequestsExtra.tutorFallback");
               const meta = statusMeta[r.status];
               return (
-                <Card key={r.id} className="rounded-[18px] border-[#eceef3] shadow-none">
+                <Card key={r.id} className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
                   <CardContent className="p-5 space-y-4">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="flex items-center gap-3 min-w-0">
                         <div style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0,
-                          background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#0f0f1a",
+                          background: "linear-gradient(135deg,var(--teal,#2BBFAA),#1f8e7e)", color: "var(--ds-txt,#0f0f1a)",
                           display: "flex", alignItems: "center", justifyContent: "center",
                           fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16 }}>
                           {name.split(" ").map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase() || "?"}
                         </div>
                         <div className="min-w-0">
-                        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+                        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
                           {name}
                         </p>
                         <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>
@@ -219,7 +219,7 @@ export default function SubscriptionRequestsPage() {
                     </div>
 
                     {r.message && (
-                      <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid #eceef3", color: "#0f0f1a" }}>
+                      <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid var(--ds-border,#eceef3)", color: "var(--ds-txt,#0f0f1a)" }}>
                         <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> {t("subscriptionRequestsExtra.messageLabel")}
                         </div>
@@ -228,7 +228,7 @@ export default function SubscriptionRequestsPage() {
                     )}
 
                     {r.manager_response && (
-                      <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid #eceef3" }}>
+                      <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid var(--ds-border,#eceef3)" }}>
                         <div className="mb-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           {t("subscriptionRequestsExtra.responseLabel")}
                         </div>
@@ -248,7 +248,7 @@ export default function SubscriptionRequestsPage() {
                             }))
                           }
                           rows={2}
-                          className="rounded-[13px] border-[#eceef3] text-[15px] focus-visible:ring-[#2BBFAA]"
+                          className="rounded-[13px] border-[var(--ds-border,#eceef3)] text-[15px] focus-visible:ring-[var(--teal,#2BBFAA)]"
                         />
                         <div className="flex flex-wrap items-center gap-2">
                           <Select
@@ -282,7 +282,7 @@ export default function SubscriptionRequestsPage() {
                             onClick={() => updateStatus(r.id, "completed")}
                             disabled={savingId === r.id}
                             style={{ height: 38, padding: "0 16px", borderRadius: 11, border: "none",
-                              background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", cursor: "pointer",
+                              background: "linear-gradient(135deg,var(--teal,#2BBFAA),var(--teal-d,#25a896))", color: "var(--ds-txt,#0f0f1a)", cursor: "pointer",
                               fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15,
                               boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
                           >

@@ -45,6 +45,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
+import { isBillableLesson, paidIncome, paidExpense, paidProfit } from "@/lib/financials";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
@@ -927,24 +928,16 @@ export default function DashboardPage() {
 
   const billableLessons = useMemo(
     () =>
-      lessons.filter((l) => {
-        if (l.status === "cancelled" || l.status === "pending") return false;
-        if (new Date(l.starts_at).getTime() < periodStart) return false;
-        if (l.status === "completed") return true;
-        const isPast = new Date(l.starts_at).getTime() < nowMs;
-        const hasPayment =
-          l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
-        return isPast || hasPayment;
-      }),
+      // Shared predicate (src/lib/financials) + this page's period window — same
+      // billable definition as FinancesPage, so the two can't drift apart.
+      lessons.filter(
+        (l) => new Date(l.starts_at).getTime() >= periodStart && isBillableLesson(l, nowMs)
+      ),
     [lessons, periodStart, nowMs]
   );
 
-  const totalIncome = billableLessons
-    .filter((l) => l.student_payment_status === "paid")
-    .reduce((s, l) => s + Number(l.student_price), 0);
-  const totalExpense = billableLessons
-    .filter((l) => l.tutor_payout_status === "paid")
-    .reduce((s, l) => s + Number(l.tutor_payout), 0);
+  const totalIncome = paidIncome(billableLessons);
+  const totalExpense = paidExpense(billableLessons);
   const profit = totalIncome - totalExpense;
 
   // Real month-over-month growth — no more hardcoded +12%
@@ -957,11 +950,7 @@ export default function DashboardPage() {
       const ts = new Date(l.starts_at).getTime();
       return ts >= prevStart && ts < prevEnd;
     });
-    const inc = prev.filter((l) => l.student_payment_status === "paid")
-      .reduce((s, l) => s + Number(l.student_price), 0);
-    const exp = prev.filter((l) => l.tutor_payout_status === "paid")
-      .reduce((s, l) => s + Number(l.tutor_payout), 0);
-    return inc - exp;
+    return paidProfit(prev);
   }, [lessons]);
 
   const profitGrowthPct = useMemo(() => {
@@ -985,13 +974,7 @@ export default function DashboardPage() {
         const ts = new Date(l.starts_at).getTime();
         return ts >= ms && ts < me;
       });
-      const inc = inMonth
-        .filter((l) => l.student_payment_status === "paid")
-        .reduce((s, l) => s + Number(l.student_price), 0);
-      const exp = inMonth
-        .filter((l) => l.tutor_payout_status === "paid")
-        .reduce((s, l) => s + Number(l.tutor_payout), 0);
-      return inc - exp;
+      return paidProfit(inMonth);
     });
     const max = Math.max(...vals, 1);
     return vals.map((v) => Math.round((Math.max(v, 0) / max) * 100));

@@ -30,7 +30,7 @@ export async function updateLessonDetailsSafe(
   lessonId: string,
   patch: LessonDetailsPatch,
 ): Promise<{ error: { message: string } | null }> {
-  const { error } = await (supabase as any).rpc("update_lesson_details_safe", {
+  const { error } = await supabase.rpc("update_lesson_details_safe", {
     _lesson_id: lessonId,
     _patch: patch,
   });

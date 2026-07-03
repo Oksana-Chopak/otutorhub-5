@@ -384,10 +384,13 @@ export function QuickLessonDialog({
   };
 
   // ── Design tokens ─────────────────────────────────────────────────────────────
+  // Reference the DS tokens (index.css) instead of a private raw-hex palette, so
+  // central token/WCAG fixes reach this dialog. NB: sub resolves to the WCAG-fixed
+  // #6b7088 (the old hardcoded #9398b0 was 2.85:1 — failing).
   const F = {
-    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    teal: "var(--teal,#2BBFAA)", tealD: "var(--teal-d,#25a896)", tealL: "var(--teal-l,#f0fdf9)",
+    border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
+    txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#6b7088)", muted: "var(--ds-muted,#b0b4c8)",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
