@@ -122,7 +122,7 @@ export default function GroupsPage() {
         .select("id, group_id, student_id, status, price_per_lesson, currency")
         .in("group_id", groupIds);
       setEnrollments((ens ?? []) as Enrollment[]);
-      const studentIds = Array.from(new Set((ens ?? []).map((e: any) => e.student_id)));
+      const studentIds = Array.from(new Set((ens ?? []).map((e: any) => e.student_id))) as string[];
       if (studentIds.length) {
         const { data: profs } = await supabase
           .from("profiles")
