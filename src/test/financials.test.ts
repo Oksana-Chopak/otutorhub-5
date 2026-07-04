@@ -7,6 +7,7 @@ import {
   unpaidIncome,
   unpaidExpense,
   grossMarkupPct,
+  sumByCurrency,
   type MoneyLesson,
 } from "@/lib/financials";
 
@@ -25,6 +26,15 @@ describe("isBillableLesson (the shared billable predicate)", () => {
   it("excludes cancelled and pending regardless of payments", () => {
     expect(isBillableLesson(mk({ status: "cancelled" }), NOW)).toBe(false);
     expect(isBillableLesson(mk({ status: "pending" }), NOW)).toBe(false);
+  });
+  it("bills a cancelled lesson ONLY with the explicit cancellation-fee marker + a price", () => {
+    // fee charged via approve-with-charge → counts toward money totals
+    expect(isBillableLesson(mk({ status: "cancelled", is_cancellation_fee: true, student_price: 250 }), NOW)).toBe(true);
+    // marker without a price (fee waived/zeroed) → nothing to bill
+    expect(isBillableLesson(mk({ status: "cancelled", is_cancellation_fee: true, student_price: 0 }), NOW)).toBe(false);
+    // ordinary cancellation keeps its snapshot price but has NO marker → must NOT bill
+    expect(isBillableLesson(mk({ status: "cancelled", is_cancellation_fee: false, student_price: 500 }), NOW)).toBe(false);
+    expect(isBillableLesson(mk({ status: "cancelled", is_cancellation_fee: null, student_price: 500 }), NOW)).toBe(false);
   });
   it("always includes completed lessons", () => {
     expect(isBillableLesson(mk({ status: "completed", starts_at: "2099-01-01T00:00:00Z" }), NOW)).toBe(true);
@@ -70,5 +80,24 @@ describe("grossMarkupPct", () => {
   it("returns null when not computable", () => {
     expect(grossMarkupPct([])).toBeNull();
     expect(grossMarkupPct([mk({ student_price: 0, tutor_payout: 0 })])).toBeNull();
+  });
+});
+
+describe("sumByCurrency (multi-currency totals for independent tutors)", () => {
+  const rows = [
+    { amount: 500, cur: "UAH" },
+    { amount: 40, cur: "EUR" },
+    { amount: 700, cur: "UAH" },
+    { amount: 0, cur: "USD" },
+    { amount: 10, cur: null as string | null },
+  ];
+  it("groups by currency, dominant first, dropping zero buckets and defaulting null to UAH", () => {
+    expect(sumByCurrency(rows, (r) => r.amount, (r) => r.cur)).toEqual([
+      ["UAH", 1210],
+      ["EUR", 40],
+    ]);
+  });
+  it("returns [] for no priced rows", () => {
+    expect(sumByCurrency([], (r: { amount: number }) => r.amount, () => "UAH")).toEqual([]);
   });
 });

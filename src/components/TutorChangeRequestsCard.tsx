@@ -208,7 +208,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
       // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
       if (isIndependent) {
-        const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, { student_price: newPrice });
+        // is_cancellation_fee makes the withheld charge visible on money surfaces
+        // (the billable predicate counts cancelled lessons only with this marker).
+        const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, {
+          student_price: newPrice,
+          is_cancellation_fee: chargeChoice !== "none",
+        });
         if (priceErr) {
           setSubmitting(false);
           toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });

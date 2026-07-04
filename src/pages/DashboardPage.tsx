@@ -44,7 +44,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
-import { isBillableLesson, paidIncome, paidExpense, paidProfit } from "@/lib/financials";
+import { isBillableLesson, paidIncome, paidExpense, paidProfit, sumByCurrency } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -869,6 +869,22 @@ export default function DashboardPage() {
   const totalExpense = paidExpense(billableLessons);
   const profit = totalIncome - totalExpense;
 
+  // Independent tutors can bill in several currencies; their profit (= paid
+  // income, no hub payouts) must not add ₴ to €. Dominant currency first.
+  const profitByCur = useMemo(
+    () =>
+      sumByCurrency(
+        billableLessons.filter((l) => l.student_payment_status === "paid"),
+        (l) => Number(l.student_price ?? 0),
+        (l) => pairCurrency[`${l.tutor_id}:${l.student_id}`] ?? "UAH"
+      ),
+    [billableLessons, pairCurrency]
+  );
+  const independentProfitLabel =
+    profitByCur.length === 0
+      ? formatPrice(0, "UAH")
+      : profitByCur.map(([c, v]) => formatPrice(v, c)).join(" + ");
+
   // Real month-over-month growth — no more hardcoded +12%
   const prevMonthProfit = useMemo(() => {
     const now = new Date();
@@ -1425,8 +1441,8 @@ export default function DashboardPage() {
                     💰 {t("dashboard.cardProfit")}
                   </p>
                   <p className="mt-2 font-extrabold leading-none"
-                    style={{ fontSize: 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
-                    {formatPrice(profit, "UAH")}
+                    style={{ fontSize: profitByCur.length > 1 ? 19 : 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                    {independentProfitLabel}
                   </p>
                   {profitGrowthPct !== null && (
                     <p className="mt-1 text-[14px] font-bold"
@@ -1469,8 +1485,8 @@ export default function DashboardPage() {
                       💰 {t("dashboard.cardProfit")}
                     </p>
                     <p className="font-black leading-none mt-0.5"
-                      style={{ fontSize: 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
-                      {formatPrice(profit, "UAH")}
+                      style={{ fontSize: profitByCur.length > 1 ? 20 : 30, color: "#2BBFAA", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                      {independentProfitLabel}
                     </p>
                     {profitGrowthPct !== null && (
                       <p className="text-[14px] font-bold mt-0.5"

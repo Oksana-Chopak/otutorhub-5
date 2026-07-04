@@ -58,6 +58,27 @@ export default function StudentDashboardPage() {
 
   const { rewards, loading: rewardsLoading } = useStudentRewards();
 
+  // Tutor-less student with an OPEN request: show «запит у роботі» instead of
+  // re-offering the find-a-tutor CTA — the request used to be invisible after
+  // submit, so students filed duplicates thinking nothing happened.
+  const [pendingTutorRequest, setPendingTutorRequest] = useState(false);
+  useEffect(() => {
+    if (!user || ctxLoading || hasTutor) {
+      setPendingTutorRequest(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { count } = await supabase
+        .from("tutor_referral_requests")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", user.id)
+        .in("status", ["open", "in_progress"]);
+      if (!cancelled) setPendingTutorRequest((count ?? 0) > 0);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id, ctxLoading, hasTutor]);
+
   const { completedCount, weeklyCount, weeklyRecord } = useMemo(() => {
     const stats = computeWeeklyStats(completedLessons.map((l) => l.starts_at));
     return { completedCount: completedLessons.length, ...stats };
@@ -92,9 +113,16 @@ export default function StudentDashboardPage() {
         .gte("starts_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
         .order("starts_at", { ascending: true })
         .limit(10),
-      supabase
-        .from("lesson_details_student" as any)
-        .select("lesson_id, homework, student_payment_status"),
+      (async () => {
+        // is_cancellation_fee lands with migration 20260721000000 — retry without it
+        // pre-apply so the details read (homework + payment counts) keeps working.
+        const res = await supabase
+          .from("lesson_details_student" as any)
+          .select("lesson_id, homework, student_payment_status, is_cancellation_fee");
+        return res.error
+          ? supabase.from("lesson_details_student" as any).select("lesson_id, homework, student_payment_status")
+          : res;
+      })(),
       supabase
         .from("lessons")
         .select("starts_at")
@@ -152,7 +180,11 @@ export default function StudentDashboardPage() {
     ).length;
     const cancelledIds = new Set(((cancelledRows ?? []) as any[]).map((r) => r.id));
     setPendingPaymentsCount(
-      detailsArr.filter((d) => d.student_payment_status === "unpaid" && !cancelledIds.has(d.lesson_id)).length + unpaidGroup,
+      // cancelled lessons don't bill — EXCEPT a withheld cancellation fee.
+      detailsArr.filter((d) =>
+        d.student_payment_status === "unpaid" &&
+        (!cancelledIds.has(d.lesson_id) || d.is_cancellation_fee === true)
+      ).length + unpaidGroup,
     );
 
     setLoading(false);
@@ -225,6 +257,16 @@ export default function StudentDashboardPage() {
             <SkeletonList count={2} />
           ) : upcoming.length === 0 ? (
             !hasTutor ? (
+              pendingTutorRequest ? (
+                // Request already filed → show its living status, not another CTA.
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", borderRadius: 13, padding: "12px 14px", background: "rgba(245,181,68,.1)", border: "1px solid rgba(245,181,68,.35)" }}>
+                  <span style={{ fontSize: 22, lineHeight: 1 }}>⏳</span>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 15, color: "#7a5a14" }}>{t("studentPages.requestPendingTitle")}</p>
+                    <p style={{ fontSize: 14, color: "#9a6a12", marginTop: 2, lineHeight: 1.45 }}>{t("studentPages.requestPendingDesc")}</p>
+                  </div>
+                </div>
+              ) : (
               // No tutor yet → don't promise a phantom "lesson coming soon".
               // Offer the real first action: request a tutor.
               <div style={{ display: "flex", flexDirection: "column", gap: 10, padding: "4px 2px 2px" }}>
@@ -243,6 +285,7 @@ export default function StudentDashboardPage() {
                   }
                 />
               </div>
+              )
             ) : (
               <p style={{ fontSize: 14, color: DS.sub }}>{t("studentPages.noLessons")}</p>
             )

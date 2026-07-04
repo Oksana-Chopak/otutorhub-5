@@ -64,7 +64,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
-import { isBillableLesson, paidIncome, paidExpense, unpaidIncome, unpaidExpense, grossMarkupPct } from "@/lib/financials";
+import { isBillableLesson, paidIncome, paidExpense, unpaidIncome, unpaidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice } from "@/lib/currency";
 
 type PaymentStatus = "paid" | "unpaid";
@@ -85,6 +85,8 @@ interface LessonRow {
   tutor_payout_status: PaymentStatus;
   student_paid_at: string | null;
   tutor_paid_at: string | null;
+  /** Cancelled lesson whose price is a withheld cancellation fee (billable). */
+  is_cancellation_fee?: boolean;
   // Group lessons have lessons.student_id = NULL and one lesson_participants row per
   // student (each with its own price/payment). We flatten each participant into its
   // OWN LessonRow so income/debts/totals work unchanged. kind="group" rows carry the
@@ -288,19 +290,26 @@ export default function FinancesPage() {
       { data: balData },
       { data: ratesData },
     ] = await Promise.all([
-      (() => {
+      (async () => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
         // Individual (non-group) lessons only — group lessons have student_id=NULL and are
         // pulled separately below. lessons_visible already hub-scopes managers (source
         // hub/NULL) and masks money per role.
-        let q = supabase
-          .from("lessons_visible")
-          .select("id, subject, starts_at, status, student_id, tutor_id, source, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at")
-          .not("student_id", "is", null)
-          .gte("starts_at", oneYearAgo)
-          .limit(500);
-        if (isManager) q = (q as any).neq("source", "independent");
-        return q.order("starts_at", { ascending: false });
+        const run = (withFee: boolean) => {
+          let q = supabase
+            .from("lessons_visible")
+            .select("id, subject, starts_at, status, student_id, tutor_id, source, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") as any)
+            .not("student_id", "is", null)
+            .gte("starts_at", oneYearAgo)
+            .limit(500);
+          if (isManager) q = (q as any).neq("source", "independent");
+          return q.order("starts_at", { ascending: false });
+        };
+        // Migration 20260721000000 adds is_cancellation_fee to lessons_visible; until
+        // Lovable applies it the column 400s — retry without it so Finances (frontend
+        // ships first via Publish) never renders an empty money list.
+        const res = await run(true);
+        return res.error ? run(false) : res;
       })(),
       // GROUP lessons (lessons.student_id = NULL) are excluded from the individual query
       // above by `.not("student_id","is",null)`. Pull them separately, then attach the
@@ -388,6 +397,7 @@ export default function FinancesPage() {
       subject: l.subject,
       starts_at: l.starts_at,
       status: l.status,
+      is_cancellation_fee: l.is_cancellation_fee === true,
       student_id: l.student_id,
       tutor_id: l.tutor_id,
       student_price: Number(l.student_price ?? 0),
@@ -683,22 +693,25 @@ export default function FinancesPage() {
 
   const incomeByStudent = useMemo(() => {
     const map = new Map<string, number>();
+    const curs = new Map<string, string>();
     billable
       .filter((l) => l.student_payment_status === "paid" && Number(l.student_price) > 0)
       .forEach((l) => {
         map.set(l.student_id, (map.get(l.student_id) ?? 0) + Number(l.student_price));
+        if (!curs.has(l.student_id))
+          curs.set(l.student_id, (l as any).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? "UAH");
       });
     const rows = Array.from(map.entries())
-      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount }))
+      .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount, cur: curs.get(student_id) ?? "UAH" }))
       .sort((a, b) => b.amount - a.amount);
     const TOP = 6;
     if (rows.length <= TOP) return rows;
     const head = rows.slice(0, TOP);
     const tail = rows.slice(TOP);
     const other = tail.reduce((s, r) => s + r.amount, 0);
-    return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other }];
+    return [...head, { student_id: "__other__", name: t("finances.others", { count: tail.length }), amount: other, cur: tail[0]?.cur ?? "UAH" }];
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [billable, profiles]);
+  }, [billable, profiles, pairCurrencies]);
 
   const pairsList = useMemo<PairOption[]>(() => {
     const keys = new Set<string>();
@@ -852,7 +865,7 @@ export default function FinancesPage() {
       toast.success(
         warm
           ? t("dashboardExtra.paymentReceivedToast", {
-              amount: `${Number(lesson.student_price).toLocaleString(getLocale())} ₴`,
+              amount: formatPrice(Number(lesson.student_price), rowCurrency(lesson)),
               name: nameOf(lesson.student_id),
             })
           : t("finances.markedAsPayout"),
@@ -1130,6 +1143,7 @@ export default function FinancesPage() {
                     <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>
                       <span className="truncate">{l.subject}</span>
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                      {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
                     </p>
                     <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
@@ -1162,7 +1176,7 @@ export default function FinancesPage() {
                       <span className={cn(
                         "text-sm font-semibold",
                         studentUnpaid ? "text-warning" : "text-success",
-                      )}>+{l.student_price} ₴</span>
+                      )}>+{formatPrice(Number(l.student_price), rowCurrency(l))}</span>
                       <button
                         onClick={() => togglePayment(l, "student_payment_status")}
                         aria-label={t("finances.statusPaid")}
@@ -1350,6 +1364,7 @@ export default function FinancesPage() {
                       <span className="inline-flex items-center gap-1.5">
                         {l.subject}
                         {isGroup && <span style={{ fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
+                        {(l as any).is_cancellation_fee && <span style={{ fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
                       </span>
                     </td>
                     <td className="px-3 py-3">
@@ -1364,7 +1379,7 @@ export default function FinancesPage() {
                       <div className={cn(
                         "font-semibold",
                         studentUnpaid ? "text-warning" : "text-success",
-                      )}>+{l.student_price} ₴</div>
+                      )}>+{formatPrice(Number(l.student_price), rowCurrency(l))}</div>
                       <button onClick={() => togglePayment(l, "student_payment_status")} className="mt-1 inline-block">
                         <Badge
                           className={
@@ -1499,6 +1514,22 @@ export default function FinancesPage() {
   const paidLessonsCount = periodBillable.filter(l => l.student_payment_status === "paid").length;
   const avgLesson = paidLessonsCount > 0 ? Math.round(totalIncome / paidLessonsCount) : 0;
 
+  // Multi-currency (independent tutors bill in up to 5 currencies): summing mixed
+  // currencies into one «₴» number misstates the money. Group per currency; the
+  // dominant one headlines a card, the rest render as a compact "+ …" line.
+  const rowCurrency = (l: LessonRow) =>
+    (l as any).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? "UAH";
+  const incomeByCur = sumByCurrency(
+    periodBillable.filter((l) => l.student_payment_status === "paid"),
+    (l) => Number(l.student_price ?? 0), rowCurrency);
+  const pendingByCur = sumByCurrency(
+    periodBillable.filter((l) => l.student_payment_status === "unpaid"),
+    (l) => Number(l.student_price ?? 0), rowCurrency);
+  const fmtCurList = (entries: Array<[string, number]>, zeroCur = "UAH") =>
+    entries.length === 0
+      ? formatPrice(0, zeroCur)
+      : entries.map(([c, v]) => formatPrice(v, c)).join(" + ");
+
   // By-student for Cockpit analytics
   const byStudentCockpit = useMemo(() => {
     const COLORS = ["#2BBFAA","#6366f1","#f59e0b","#ef4444","#ec4899","#8b5cf6"];
@@ -1512,7 +1543,16 @@ export default function FinancesPage() {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
     let thisMonth = 0, lastMonth = 0, projected = 0, completedSum = 0, completedCount = 0, cancelledLost = 0;
+    // Trends/forecast only make sense within one currency — restrict to the
+    // dominant one (by total priced volume) instead of adding ₴ to €.
+    const volumes: Record<string, number> = {};
     tutorScoped.forEach((l) => {
+      const v = Number(l.student_price) || 0;
+      if (v > 0) { const c = rowCurrency(l); volumes[c] = (volumes[c] ?? 0) + v; }
+    });
+    const cur = Object.entries(volumes).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "UAH";
+    tutorScoped.forEach((l) => {
+      if (rowCurrency(l) !== cur) return;
       const ts = new Date(l.starts_at).getTime();
       const price = Number(l.student_price) || 0;
       const paid = l.student_payment_status === "paid";
@@ -1527,8 +1567,9 @@ export default function FinancesPage() {
     });
     const momPct = lastMonth > 0 ? Math.round(((thisMonth - lastMonth) / lastMonth) * 100) : null;
     const avgLesson = completedCount > 0 ? Math.round(completedSum / completedCount) : 0;
-    return { thisMonth, lastMonth, momPct, projected, completedCount, avgLesson, cancelledLost };
-  }, [tutorScoped]);
+    return { thisMonth, lastMonth, momPct, projected, completedCount, avgLesson, cancelledLost, cur };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tutorScoped, pairCurrencies]);
 
 
 
@@ -1822,13 +1863,13 @@ export default function FinancesPage() {
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
                   💰 {t("finances.received")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:900, fontSize:38, color:F.teal,
-                  letterSpacing:"-0.025em", lineHeight:1 }}>
-                  {totalIncome.toLocaleString(getLocale())} ₴
+                <p style={{ fontFamily:F.display, fontWeight:900, fontSize: incomeByCur.length > 1 ? 30 : 38, color:F.teal,
+                  letterSpacing:"-0.025em", lineHeight:1.1 }}>
+                  {fmtCurList(incomeByCur)}
                 </p>
                 {pendingIncome > 0 && (
                   <p style={{ fontFamily:F.body, fontSize:14, color:"rgba(255,255,255,.45)", marginTop:6 }}>
-                    + {t("finances.pendingAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
+                    + {t("finances.pendingAmount", { sum: fmtCurList(pendingByCur) })}
                   </p>
                 )}
               </div>
@@ -1840,8 +1881,8 @@ export default function FinancesPage() {
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   ⏳ {t("finances.pendingLabel")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:F.warnD }}>
-                  {pendingIncome.toLocaleString(getLocale())} ₴
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize: pendingByCur.length > 1 ? 17 : 22, color:F.warnD }}>
+                  {fmtCurList(pendingByCur)}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 14, color:F.warnD, opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: debtList.length })}
@@ -1856,7 +1897,7 @@ export default function FinancesPage() {
                   📊 {t("finances.avgLesson")}
                 </p>
                 <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
-                  {avgLesson.toLocaleString(getLocale())} ₴
+                  {formatPrice(avgLesson, incomeByCur[0]?.[0] ?? "UAH")}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 14, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: paidLessonsCount })}
@@ -1916,7 +1957,7 @@ export default function FinancesPage() {
                           <div style={{ textAlign:"right", flexShrink:0 }}>
                             <p style={{ fontFamily:F.display, fontWeight:800, fontSize:15,
                               color: paid ? "#16a34a" : F.warnD }}>
-                              {paid ? "+" : ""}{Number(l.student_price).toLocaleString(getLocale())} ₴
+                              {paid ? "+" : ""}{formatPrice(Number(l.student_price), rowCurrency(l))}
                             </p>
                             <button onClick={() => togglePayment(l, "student_payment_status")}
                               style={{ fontFamily:F.display, fontWeight:700, fontSize: 14,
@@ -1971,7 +2012,7 @@ export default function FinancesPage() {
                         display:"flex", alignItems:"center", justifyContent:"space-between" }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD }}>
-                            ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
+                            ⚠️ {t("finances.notReceivedAmount", { sum: fmtCurList(pendingByCur) })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize:14, color:F.warnD, opacity:0.8 }}>
                             {t("finances.lessonsUnpaid", { count: debtList.length })}
@@ -2027,7 +2068,7 @@ export default function FinancesPage() {
                             </div>
                             <p style={{ fontFamily:F.display, fontWeight:800, fontSize:16,
                               color:F.warnD, flexShrink:0 }}>
-                              {Number(l.student_price).toLocaleString(getLocale())} ₴
+                              {formatPrice(Number(l.student_price), rowCurrency(l))}
                             </p>
                             {l.kind === "group" ? (
                               // The remind-payment edge fn is individual-only (404s on a
@@ -2081,7 +2122,7 @@ export default function FinancesPage() {
                     <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>{t("finances.thisMonth")}</p>
                     <div style={{ display:"flex", alignItems:"baseline", gap:10, flexWrap:"wrap" }}>
                       <span style={{ fontFamily:F.display, fontWeight:800, fontSize:34, letterSpacing:"-0.02em", color:F.txt }}>
-                        {analyticsStats.thisMonth.toLocaleString(getLocale())} ₴
+                        {formatPrice(analyticsStats.thisMonth, analyticsStats.cur)}
                       </span>
                       {analyticsStats.momPct !== null && (
                         <span style={{ display:"inline-flex", alignItems:"center", gap:4, borderRadius:999, padding:"4px 10px",
@@ -2094,7 +2135,7 @@ export default function FinancesPage() {
                     </div>
                     {analyticsStats.projected > analyticsStats.thisMonth && (
                       <p style={{ fontFamily:F.body, fontSize:14, color:F.sub, marginTop:7, lineHeight:1.45 }}>
-                        {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {analyticsStats.projected.toLocaleString(getLocale())} ₴</b> {t("finances.forecastPost")}
+                        {t("finances.forecastPre")} <b style={{ color:F.txt }}>≈ {formatPrice(analyticsStats.projected, analyticsStats.cur)}</b> {t("finances.forecastPost")}
                       </p>
                     )}
                   </div>
@@ -2105,7 +2146,7 @@ export default function FinancesPage() {
                       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:8 }}>
                         <div>
                           <p style={{ fontFamily:F.display, fontWeight:800, fontSize:18, color:F.warnD }}>
-                            {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
+                            {t("finances.notReceivedAmount", { sum: fmtCurList(pendingByCur) })}
                           </p>
                           <p style={{ fontFamily:F.body, fontSize: 14, color:F.warnD, opacity:0.85, marginTop:1 }}>
                             {t("finances.lessonsAwaitPayment", { count: debtList.length })}
@@ -2160,7 +2201,7 @@ export default function FinancesPage() {
                             <div key={s.student_id}>
                               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
                                 <span style={{ fontFamily:F.body, fontSize:14, color:F.txt }}>{s.name}</span>
-                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt }}>{s.amount.toLocaleString(getLocale())} ₴</span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt }}>{formatPrice(s.amount, (s as any).cur ?? "UAH")}</span>
                               </div>
                               <div style={{ height:7, borderRadius:999, background:F.border }}>
                                 <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:s.color, transition:"width .4s ease" }} />
@@ -2180,7 +2221,7 @@ export default function FinancesPage() {
                     </div>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
                       <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em" }}>{t("finances.avgLesson")}</p>
-                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{analyticsStats.avgLesson.toLocaleString(getLocale())} ₴</p>
+                      <p style={{ fontFamily:F.display, fontWeight:800, fontSize:26, color:F.txt, marginTop:4 }}>{formatPrice(analyticsStats.avgLesson, analyticsStats.cur)}</p>
                     </div>
                   </div>
 
@@ -2189,7 +2230,7 @@ export default function FinancesPage() {
                     <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
                       <span style={{ fontSize:18 }}>🚫</span>
                       <p style={{ fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.4 }}>
-                        {t("finances.cancellationsPre")} <b>{analyticsStats.cancelledLost.toLocaleString(getLocale())} ₴</b>{t("finances.cancellationsPost")}
+                        {t("finances.cancellationsPre")} <b>{formatPrice(analyticsStats.cancelledLost, analyticsStats.cur)}</b>{t("finances.cancellationsPost")}
                       </p>
                     </div>
                   )}
@@ -2213,7 +2254,7 @@ export default function FinancesPage() {
               <div style={{ borderRadius:18, padding:"16px 18px",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
                 <p style={{ fontFamily:F.display, fontWeight:700, fontSize:16, color:F.warnD, marginBottom:4 }}>
-                  ⚠️ {t("finances.notReceivedAmount", { sum: pendingIncome.toLocaleString(getLocale()) })}
+                  ⚠️ {t("finances.notReceivedAmount", { sum: fmtCurList(pendingByCur) })}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize:14, color:F.warnD, opacity:0.8 }}>
                   {t("finances.lessonsUnpaid", { count: debtList.length })}
@@ -2358,7 +2399,7 @@ export default function FinancesPage() {
                 <SummaryStat
                   icon={ArrowDownLeft}
                   label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
-                  value={`${totalIncome.toLocaleString(getLocale())} ₴`}
+                  value={isIndependentTutor ? fmtCurList(incomeByCur) : `${totalIncome.toLocaleString(getLocale())} ₴`}
                   tone="success"
                 />
                 {!isIndependentTutor && (
@@ -2375,7 +2416,7 @@ export default function FinancesPage() {
                 <SummaryStat
                   icon={DollarSign}
                   label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
-                  value={`${totalDebt.toLocaleString(getLocale())} ₴`}
+                  value={isIndependentTutor ? fmtCurList(pendingByCur) : `${totalDebt.toLocaleString(getLocale())} ₴`}
                   tone={totalDebt > 0 ? "warning" : "neutral"}
                 />
               </div>

@@ -17,6 +17,9 @@ export type LessonDetailsPatch = {
   student_price?: number | string | null;
   student_payment_status?: "paid" | "unpaid" | string | null;
   student_paid_at?: string | null;
+  /** Marks a cancelled lesson's student_price as a withheld cancellation fee —
+   * same write gate as student_price (hub-scoped manager / independent owner). */
+  is_cancellation_fee?: boolean;
   // Manager-only: the RPC applies these ONLY when the caller has the manager role
   // (the columns are GRANT-locked otherwise). Safe to pass as a tutor — ignored.
   tutor_payout?: number | string | null;

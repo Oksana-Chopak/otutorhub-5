@@ -17,6 +17,9 @@ export interface MoneyLesson {
   tutor_payout: number | string | null;
   student_payment_status: string | null;
   tutor_payout_status: string | null;
+  /** Cancelled lesson whose student_price is a withheld cancellation FEE
+   * (lesson_details.is_cancellation_fee) — the only cancelled rows that bill. */
+  is_cancellation_fee?: boolean | null;
 }
 
 /**
@@ -25,7 +28,13 @@ export interface MoneyLesson {
  * marked on either side (pre-paid future lessons still count).
  */
 export const isBillableLesson = (l: MoneyLesson, nowMs: number = Date.now()): boolean => {
-  if (l.status === "cancelled" || l.status === "pending") return false;
+  if (l.status === "cancelled") {
+    // A cancelled lesson bills ONLY when it carries an explicit cancellation fee
+    // (approve-with-charge sets the marker). A bare price>0 test would misbill
+    // every directly-cancelled lesson, which keeps its old snapshot price.
+    return l.is_cancellation_fee === true && Number(l.student_price ?? 0) > 0;
+  }
+  if (l.status === "pending") return false;
   if (l.status === "completed") return true;
   const isPast = new Date(l.starts_at).getTime() < nowMs;
   const hasPayment = l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
@@ -54,6 +63,27 @@ export const unpaidExpense = (rows: MoneyLesson[]): number =>
   rows
     .filter((l) => l.tutor_payout_status === "unpaid")
     .reduce((s, l) => s + Number(l.tutor_payout ?? 0), 0);
+
+/**
+ * Sum amounts grouped by currency, dropping zero buckets. Entries come back
+ * sorted by |sum| descending, so entries[0] is the dominant currency — the one
+ * a compact card should headline, with the rest as a small "+ …" suffix.
+ * Mixing currencies into one number is meaningless; this is the shared way out.
+ */
+export function sumByCurrency<T>(
+  rows: T[],
+  amount: (r: T) => number,
+  currency: (r: T) => string | null | undefined
+): Array<[string, number]> {
+  const out: Record<string, number> = {};
+  for (const r of rows) {
+    const a = amount(r);
+    if (!a) continue;
+    const c = currency(r) || "UAH";
+    out[c] = (out[c] ?? 0) + a;
+  }
+  return Object.entries(out).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+}
 
 /**
  * Gross margin %: (income − payout) / income · 100 over rows that carry BOTH

@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 interface Row {
   id: string;
   subject: string;
+  is_cancellation_fee?: boolean;
   starts_at: string;
   student_price: number;
   student_payment_status: string;
@@ -52,29 +53,43 @@ export default function StudentPaymentsPage() {
   useEffect(() => {
     if (!user) return;
     (async () => {
+      // Cancelled lessons are included so a withheld CANCELLATION FEE (marked via
+      // is_cancellation_fee) shows up as a payable row — plain cancellations are
+      // filtered out below once the details arrive.
       const { data: lessons } = await supabase
         .from("lessons")
         .select("id, subject, starts_at, tutor_id, status")
         .eq("student_id", user.id)
-        .neq("status", "cancelled")
         .order("starts_at", { ascending: false });
       const lessonIds0 = ((lessons ?? []) as any[]).map((l) => l.id);
-      const { data: detailsRows } = lessonIds0.length
+      let detailsRes: any = lessonIds0.length
         ? await supabase
             .from("lesson_details_student" as any)
-            .select("lesson_id, student_price, student_payment_status")
+            .select("lesson_id, student_price, student_payment_status, is_cancellation_fee")
             .in("lesson_id", lessonIds0)
-        : { data: [] as any[] };
+        : { data: [] as any[], error: null };
+      if (detailsRes.error)
+        // pre-apply fallback (migration 20260721000000 adds the fee column)
+        detailsRes = await supabase
+          .from("lesson_details_student" as any)
+          .select("lesson_id, student_price, student_payment_status")
+          .in("lesson_id", lessonIds0);
+      const detailsRows = detailsRes.data;
       const detailsMap: Record<string, any> = {};
       (detailsRows ?? []).forEach((d: any) => { detailsMap[d.lesson_id] = d; });
-      const individual = ((lessons ?? []) as any[]).map((l) => ({
-        id: l.id,
-        subject: l.subject,
-        starts_at: l.starts_at,
-        tutor_id: l.tutor_id,
-        student_price: Number(detailsMap[l.id]?.student_price ?? 0),
-        student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
-      }));
+      const individual = ((lessons ?? []) as any[])
+        .filter((l) =>
+          l.status !== "cancelled" ||
+          (detailsMap[l.id]?.is_cancellation_fee === true && Number(detailsMap[l.id]?.student_price ?? 0) > 0))
+        .map((l) => ({
+          id: l.id,
+          subject: l.subject,
+          starts_at: l.starts_at,
+          tutor_id: l.tutor_id,
+          student_price: Number(detailsMap[l.id]?.student_price ?? 0),
+          student_payment_status: detailsMap[l.id]?.student_payment_status ?? "unpaid",
+          is_cancellation_fee: detailsMap[l.id]?.is_cancellation_fee === true,
+        }));
       // GROUP lessons: the student's price/payment lives on lesson_participants
       // (the lesson row has student_id=NULL). Pull them in with their own currency.
       const { data: gParts } = await (supabase.from("lesson_participants_visible" as any) as any)
@@ -282,7 +297,10 @@ export default function StudentPaymentsPage() {
               return (
                 <li key={r.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "11px 13px" }}>
                     <div className="min-w-0">
-                      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
+                      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {r.subject}
+                        {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("studentPagesExtra.cancellationFee")}</span>}
+                      </p>
                       <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
