@@ -2129,7 +2129,11 @@ export default function DashboardPage() {
                               size="sm"
                               className="mt-3 rounded-xl"
                               style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
-                              onClick={() => setQuickLessonOpen(true)}
+                              // Role-aware like the FAB: QuickLessonDialog reads ONLY
+                              // source='independent' students, so for a hub tutor it was
+                              // always empty and dead-ended in «addStudentFirst». Hub
+                              // tutors go to the canonical Schedule form (hub students).
+                              onClick={() => (isIndependentTutor ? setQuickLessonOpen(true) : navigate("/schedule?create=1"))}
                             >
                               <Plus className="h-4 w-4" />
                               {t("dashboard.btnCreateLesson")}
@@ -2174,7 +2178,11 @@ export default function DashboardPage() {
                           canEditStatus={canEditStatus}
                           statusOptions={["pending","scheduled","completed","cancelled"] as LessonStatus[]}
                           onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
-                          onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
+                          // Hub tutor's payout row is READ-ONLY intent (the write is a
+                          // server-side no-op — the tap only faked success + reverted).
+                          onPayChange={isManager || lesson.source === "independent"
+                            ? (field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)
+                            : undefined}
                           onWallet={() => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id, tutor_name: tutorName, student_name: studentName })}
                         />
                       );

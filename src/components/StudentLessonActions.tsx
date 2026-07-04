@@ -187,9 +187,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           <DialogHeader>
             <DialogTitle>{t("studentLessonActionsExtra.cancelDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Урок {lessonDate}. Репетитор підтвердить ваш запит. Якщо до
-              початку залишилось мало часу, репетитор може нарахувати оплату за
-              урок повністю або частково — згідно з його правилами.
+              {t("studentLessonActionsExtra.cancelDialogDesc", { date: lessonDate })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-2">
@@ -205,7 +203,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelOpen(false)}>
-              Закрити
+              {t("common.close")}
             </Button>
             <Button
               variant="destructive"
@@ -213,7 +211,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
               disabled={submitting}
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Надіслати запит
+              {t("studentLessonActionsExtra.sendRequestBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -226,8 +224,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           <DialogHeader>
             <DialogTitle>{t("studentLessonActionsExtra.rescheduleDialogTitle")}</DialogTitle>
             <DialogDescription>
-              Урок {lessonDate}. Запропонуйте новий час — репетитор підтвердить
-              або відхилить.
+              {t("studentLessonActionsExtra.rescheduleDialogDesc", { date: lessonDate })}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -254,11 +251,11 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRescheduleOpen(false)}>
-              Закрити
+              {t("common.close")}
             </Button>
             <Button onClick={submitReschedule} disabled={submitting}>
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Надіслати запит
+              {t("studentLessonActionsExtra.sendRequestBtn")}
             </Button>
           </DialogFooter>
         </DialogContent>

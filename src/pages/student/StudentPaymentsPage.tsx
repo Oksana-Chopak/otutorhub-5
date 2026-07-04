@@ -259,7 +259,7 @@ export default function StudentPaymentsPage() {
                       onClick={() => copyDetails(tp)}
                       aria-label={t("studentPagesExtra.copyDetails")}
                       title={t("studentPagesExtra.copyDetails")}
-                      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
+                      className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
                       style={{ background: "rgba(154,106,18,.12)", color: "#9a6a12", border: "none", cursor: "pointer" }}
                     >
                       <Copy className="h-3.5 w-3.5" />
@@ -297,7 +297,7 @@ export default function StudentPaymentsPage() {
                           onClick={() => copyDetails(payInfoFor(r.tutor_id)!)}
                           aria-label={t("studentPagesExtra.copyDetails")}
                           title={t("studentPagesExtra.copyDetails")}
-                          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
+                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
                           style={{ background: "rgba(245,158,11,.12)", color: "#b4740b", border: "none", cursor: "pointer" }}
                         >
                           <Copy className="h-3.5 w-3.5" />

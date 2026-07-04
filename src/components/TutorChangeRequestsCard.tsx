@@ -329,10 +329,10 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
             </div>
             <div>
               <CardTitle className="text-base">
-                Запити від учнів ({requests.length})
+                {t("tutorChangeRequestsExtra.cardTitle", { count: requests.length })}
               </CardTitle>
               <CardDescription>
-                Скасування та перенесення уроків — підтвердіть або відхиліть.
+                {t("tutorChangeRequestsExtra.cardSubtitle")}
               </CardDescription>
             </div>
           </div>
@@ -370,7 +370,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       <span className="text-muted-foreground">{lesson.subject}</span>
                     </p>
                     <p className="text-[14px] text-muted-foreground">
-                      Урок: {lessonDate}
+                      {t("tutorChangeRequestsExtra.lessonLabel", { date: lessonDate })}
                       {proposedDate && t("tutorChangeRequestsExtra.proposedTime", { time: proposedDate })}
                     </p>
                     {req.reason && (
@@ -385,7 +385,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     {req.kind === "cancel" ? t("tutorChangeRequestsExtra.kindCancel") : t("tutorChangeRequestsExtra.kindReschedule")}
                   </Badge>
                   <Button size="sm" onClick={() => openRequest(req)}>
-                    Розглянути
+                    {t("tutorChangeRequestsExtra.reviewBtn")}
                   </Button>
                 </div>
               </div>
@@ -431,7 +431,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                     )}
                   >
                     {isLate
-                      ? t("tutorChangeRequestsExtra.lateWarning", { status: hoursUntil < 0 ? "вже минув" : `~${hoursUntil} год`, hours: cancelFreeHours })
+                      ? t("tutorChangeRequestsExtra.lateWarning", { status: hoursUntil < 0 ? t("tutorChangeRequestsExtra.statusPassed") : t("tutorChangeRequestsExtra.statusInHours", { h: hoursUntil }), hours: cancelFreeHours })
                       : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
                   {/* The cancellation CHARGE is an independent-tutor concept (they own the
@@ -513,7 +513,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   />
                   {active.proposed_starts_at && (
                     <p className="text-[14px] text-muted-foreground">
-                      Учень запропонував:{" "}
+                      {t("tutorChangeRequestsExtra.studentProposed")}{" "}
                       {format(new Date(active.proposed_starts_at), "d MMMM, HH:mm", {
                         locale: uk,
                       })}
@@ -542,7 +542,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                   className="text-muted-foreground hover:text-destructive"
                 >
                   <XCircle className="mr-1 h-4 w-4" />
-                  Відхилити
+                  {t("tutorChangeRequestsExtra.rejectBtn")}
                 </Button>
                 <Button onClick={approve} disabled={submitting || wsLoading}>
                   {submitting ? (
