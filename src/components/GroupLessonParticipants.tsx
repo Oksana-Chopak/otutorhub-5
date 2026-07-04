@@ -51,7 +51,7 @@ export function GroupLessonParticipants({
     const { data: parts } = await (supabase.from("lesson_participants_visible" as any) as any)
       .select("id, student_id, student_price, currency, student_payment_status")
       .eq("lesson_id", lessonId);
-    const ids = Array.from(new Set((parts ?? []).map((p: any) => p.student_id)));
+    const ids = Array.from(new Set((parts ?? []).map((p: any) => p.student_id))) as string[];
     const nameMap: Record<string, string> = {};
     if (ids.length) {
       const { data: profs } = await supabase
