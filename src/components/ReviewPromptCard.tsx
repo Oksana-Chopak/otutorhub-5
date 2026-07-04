@@ -164,7 +164,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
           onClick={skip}
           aria-label={t("reviewPrompt.skip") || "Пропустити"}
           className="hover:bg-black/5"
-          style={{ flexShrink: 0, width: 30, height: 30, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ flexShrink: 0, width: 44, height: 44, borderRadius: 999, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
         >
           <X size={16} style={{ color: "var(--sub,#6b7088)" }} />
         </button>

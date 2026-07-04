@@ -252,8 +252,16 @@ export default function SubscriptionPage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        {/* Skeleton, not a full-page spinner — same treatment as every other page. */}
+        <div className="flex flex-col gap-3">
+          <div className="h-8 w-56 animate-pulse rounded-md bg-muted" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-[16px] border bg-white p-5" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+              <div className="h-5 w-40 animate-pulse rounded-md bg-muted" />
+              <div className="mt-3 h-4 w-full max-w-md animate-pulse rounded-md bg-muted" />
+              <div className="mt-2 h-4 w-3/4 max-w-sm animate-pulse rounded-md bg-muted" />
+            </div>
+          ))}
         </div>
       </AppLayout>
     );
