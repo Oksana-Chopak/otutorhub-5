@@ -9,9 +9,10 @@ import { toast } from "sonner";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
-const MONTH_NAMES = [
-  t("months").split(","),
-];
+// t("months") is a comma-joined list — split() IS the array. The old
+// `[t(...).split(",")]` wrapped it in a one-element array, so MONTH_NAMES[month-1]
+// was undefined for every month but January («…у undefined» in the greeting).
+const MONTH_NAMES = t("months").split(",");
 
 export function MonthlySummaryCard() {
   const { user } = useAuth();
@@ -36,7 +37,7 @@ export function MonthlySummaryCard() {
   if (!summary || summary.completed_count === 0) return null;
 
   const monthLabel = MONTH_NAMES[month - 1];
-  const shareText = `${t("monthlySummaryExtra.shareText", { month: monthLabel, lessons: summary.completed_count })}\n${summary.on_time_payment_pct !== null ? `✅ ${summary.on_time_payment_pct}% оплат вчасно\n` : ""}${summary.top_percentile && summary.top_percentile <= 50 ? `🏆 Топ-${summary.top_percentile}% репетиторів\n` : ""}\notutorhub.com`;
+  const shareText = `${t("monthlySummaryExtra.shareText", { month: monthLabel, lessons: summary.completed_count })}\n${summary.on_time_payment_pct !== null ? `${t("monthlySummaryExtra.shareOnTime", { pct: summary.on_time_payment_pct })}\n` : ""}${summary.top_percentile && summary.top_percentile <= 50 ? `${t("monthlySummaryExtra.topPercentile", { pct: summary.top_percentile })}\n` : ""}\notutorhub.com`;
 
   const handleShare = async () => {
     setSharing(true);
@@ -99,7 +100,7 @@ export function MonthlySummaryCard() {
           )}
           {summary.top_percentile && summary.top_percentile <= 50 && (
             <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold backdrop-blur">
-              🏆 Топ-{summary.top_percentile}% репетиторів
+              {t("monthlySummaryExtra.topPercentile", { pct: summary.top_percentile })}
             </div>
           )}
         </div>
@@ -107,7 +108,7 @@ export function MonthlySummaryCard() {
       <div className="flex gap-2 p-3">
         <Button onClick={handleShare} disabled={sharing} className="flex-1">
           {sharing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Share2 className="mr-2 h-4 w-4" />}
-          Поділитись
+          {t("monthlySummary.shareBtn")}
         </Button>
         <Button onClick={handleDownloadImage} variant="outline" disabled={sharing}>
           <Download className="h-4 w-4" />

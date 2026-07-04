@@ -61,7 +61,7 @@ export default function WalletsPage() {
       ratesQ,
       supabase
         .from("student_wallet_balances" as any)
-        .select("tutor_id, student_id, lessons_balance, amount_balance"),
+        .select("tutor_id, student_id, lessons_balance, amount_balance, last_transaction_at"),
     ]);
     const pairs = (rates ?? []) as any[];
 

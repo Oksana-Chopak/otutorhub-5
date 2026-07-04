@@ -16,6 +16,7 @@ import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { readHomeworkDone } from "@/lib/homeworkDone";
+import { computeWeeklyStats } from "@/lib/studentStats";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
 interface UpcomingLesson {
@@ -32,12 +33,7 @@ interface CompletedLessonStat {
   starts_at: string;
 }
 
-function getISOWeek(date: Date): string {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return `${d.getUTCFullYear()}-W${Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)}`;
-}
+// getISOWeek/weekly math moved to the shared src/lib/studentStats (profile uses it too).
 
 export default function StudentDashboardPage() {
   const { t } = useTranslation();
@@ -63,16 +59,8 @@ export default function StudentDashboardPage() {
   const { rewards, loading: rewardsLoading } = useStudentRewards();
 
   const { completedCount, weeklyCount, weeklyRecord } = useMemo(() => {
-    const count = completedLessons.length;
-    const thisWeek = getISOWeek(new Date());
-    const byWeek: Record<string, number> = {};
-    for (const l of completedLessons) {
-      const wk = getISOWeek(new Date(l.starts_at));
-      byWeek[wk] = (byWeek[wk] ?? 0) + 1;
-    }
-    const wkCount = byWeek[thisWeek] ?? 0;
-    const record = Math.max(0, ...Object.values(byWeek));
-    return { completedCount: count, weeklyCount: wkCount, weeklyRecord: record };
+    const stats = computeWeeklyStats(completedLessons.map((l) => l.starts_at));
+    return { completedCount: completedLessons.length, ...stats };
   }, [completedLessons]);
 
   useEffect(() => {

@@ -1055,7 +1055,9 @@ export default function DashboardPage() {
       emoji: "🎥",
       title: t("dashboardExtra.taskZoomTitle"),
       desc:  t("dashboardExtra.taskZoomDesc"),
-      to:    "/profile#zoom",
+      // ProfilePage has no zoom section/anchor — default meeting links are set
+      // per student on MyStudentsPage (edit form), so send the tutor there.
+      to:    "/my-students",
       done:  obProgress.hasMeetingUrl,
     },
     {
@@ -1071,7 +1073,9 @@ export default function DashboardPage() {
       emoji: "🎁",
       title: t("dashboardExtra.taskReferralTitle"),
       desc:  t("dashboardExtra.taskReferralDesc"),
-      to:    "/referrals",
+      // /my-referrals — the tutor referral page; /referrals is manager-only and
+      // ProtectedRoute bounced independent tutors back to the dashboard.
+      to:    "/my-referrals",
       done:  obProgress.hasReferral,
     },
     {

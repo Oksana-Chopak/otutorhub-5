@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { computeWeeklyStats } from "@/lib/studentStats";
 import { AppLayout } from "@/components/AppLayout";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { AvatarUploader } from "@/components/AvatarUploader";
@@ -46,6 +47,7 @@ export default function StudentProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [completed, setCompleted] = useState(0);
   const [weekly, setWeekly] = useState(0);
+  const [weeklyRecord, setWeeklyRecord] = useState(0);
   const [tutors, setTutors] = useState<MyTutor[]>([]);
 
   useEffect(() => {
@@ -66,8 +68,12 @@ export default function StudentProfilePage() {
       setFacebook((contact as any)?.facebook_url ?? "");
       const done = (lessons ?? []).filter((l: any) => l.status === "completed");
       setCompleted(done.length);
-      const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-      setWeekly(done.filter((l: any) => new Date(l.starts_at).getTime() >= weekAgo).length);
+      // Shared ISO-week math (src/lib/studentStats) — the profile used to pass the
+      // CURRENT week's count as the all-time «Тижневий рекорд», so the profile and
+      // the dashboard showed different records for the same student.
+      const stats = computeWeeklyStats(done.map((l: any) => l.starts_at));
+      setWeekly(stats.weeklyCount);
+      setWeeklyRecord(stats.weeklyRecord);
 
       // "Мої репетитори": distinct tutors from the student↔tutor relationship
       // (student_rates), with their subjects. Names/avatars from profiles.
@@ -192,7 +198,7 @@ export default function StudentProfilePage() {
 
             {/* Gamification — level & progress (real completed-lessons XP) */}
             <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: C.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)", padding: 16 }}>
-              <StudentProgressBar completedCount={completed} weeklyCount={weekly} weeklyRecord={weekly} />
+              <StudentProgressBar completedCount={completed} weeklyCount={weekly} weeklyRecord={weeklyRecord} />
             </div>
 
             {/* Editable details */}

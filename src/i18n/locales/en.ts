@@ -3484,6 +3484,8 @@ export const en: LocaleTranslations = {
     greeting: "{{name}}, your {{month}}",
     greetingNoName: "Your {{month}}",
     readyToast: "🎉 Your {{month}} is ready!",
+    shareOnTime: "✅ {{pct}}% payments on time",
+    topPercentile: "🏆 Top {{pct}}% of tutors",
     lessonsLabel: "lessons completed 📚",
     paymentsLabel: "payments on time ✅",
   },

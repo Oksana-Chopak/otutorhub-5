@@ -61,7 +61,7 @@ export function ReferralNudgeBanner({ completedLessons, invitedCount }: Props) {
           </p>
         </div>
         <Button asChild size="sm" className="shrink-0">
-          <Link to="/referrals">{t("referralBanner.cta")}</Link>
+          <Link to="/my-referrals">{t("referralBanner.cta")}</Link>
         </Button>
       </div>
     </div>

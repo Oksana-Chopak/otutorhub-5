@@ -118,6 +118,16 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     }
     const newId = (res as any).student_id as string;
     const linked = (res as any).action === "linked";
+
+    // Private tutor notes — the form collected them into a tutor-only RLS table,
+    // but never persisted them (the add RPC has no notes param); silently lost.
+    const notesVal = form.notes.trim();
+    if (notesVal) {
+      await (supabase as any).from("tutor_student_notes").upsert(
+        { tutor_id: user!.id, student_id: newId, notes: notesVal },
+        { onConflict: "tutor_id,student_id" }
+      );
+    }
     setSubmitting(false);
 
     if (linked) {

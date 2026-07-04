@@ -3474,6 +3474,8 @@ export const sv: LocaleTranslations = {
     greeting: "{{name}}, din {{month}}",
     greetingNoName: "Din {{month}}",
     readyToast: "🎉 Din {{month}} är klar!",
+    shareOnTime: "✅ {{pct}}% betalningar i tid",
+    topPercentile: "🏆 Topp {{pct}} % av lärarna",
     lessonsLabel: "lektioner genomförda 📚",
     paymentsLabel: "betalningar i tid ✅",
   },

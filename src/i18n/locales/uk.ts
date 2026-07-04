@@ -3495,6 +3495,8 @@ export const uk = {
     greeting: "{{name}}, твій {{month}}",
     greetingNoName: "Твій {{month}}",
     readyToast: "🎉 Твій {{month}} готовий!",
+    shareOnTime: "✅ {{pct}}% оплат вчасно",
+    topPercentile: "🏆 Топ-{{pct}}% репетиторів",
     lessonsLabel: "уроків проведено 📚",
     paymentsLabel: "оплат вчасно ✅",
   },
