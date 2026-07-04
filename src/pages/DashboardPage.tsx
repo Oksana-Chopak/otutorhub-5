@@ -799,6 +799,7 @@ export default function DashboardPage() {
           price: Number(l.student_price) || 0,
           currency: pairCurrency[`${l.tutor_id}:${l.student_id}`],
           paid: l.student_payment_status === "paid",
+          showPay: isManager || l.source === "independent",
         })),
     [todayLessons, nowMs, isManager, user?.id, profiles, pairCurrency]
   );

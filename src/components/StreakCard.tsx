@@ -2,6 +2,8 @@ import { Flame, Snowflake } from "lucide-react";
 import { TutorStreak } from "@/hooks/useTutorGamification";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 interface Props {
   streak: TutorStreak | null;
@@ -10,6 +12,12 @@ interface Props {
 
 export function StreakCard({ streak, className }: Props) {
   const { t } = useTranslation();
+  // MON-2: the streak's «+1 місяць підписки» bonus is an INDEPENDENT-tutor concept
+  // (grant_pro_days). The card is also rendered for hub tutors (streak parity) —
+  // they must see pure streak encouragement, never a subscription upsell.
+  const { roles } = useAuth();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const showProBonus = !roles.includes("manager") && !wsLoading && isIndependent;
   const current = streak?.current_streak ?? 0;
   const longest = streak?.longest_streak ?? 0;
   const freezes = streak?.freezes_available ?? 0;
@@ -69,12 +77,12 @@ export function StreakCard({ streak, className }: Props) {
           {t("streak.noFreeze")}
         </p>
       )}
-      {toNextBonus > 0 && toNextBonus <= 14 && (
+      {showProBonus && toNextBonus > 0 && toNextBonus <= 14 && (
         <p className="mt-3 rounded-[10px] p-2 text-[14px]" style={{ background: "#f0fdf9", color: "#1f8e7e" }}>
           {t("streak.daysToBonus", { count: toNextBonus })}
         </p>
       )}
-      {current >= 30 && (
+      {showProBonus && current >= 30 && (
         <p className="mt-3 rounded-lg bg-success/10 p-2 text-[14px] text-success">
           {t("streak.bonusEarned")}
         </p>

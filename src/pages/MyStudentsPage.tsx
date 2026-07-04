@@ -431,6 +431,9 @@ export default function MyStudentsPage() {
       const meetingUrlRaw = form.default_meeting_url.trim();
       const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
       if (meetingUrlRaw && !meetingUrl) {
+        // Reset the busy flag — this early return used to leave the save button
+        // permanently spinning/disabled after an invalid URL.
+        setSubmitting(false);
         toast.error(t("myStudents.invalidMeetingUrl"));
         return;
       }
@@ -539,6 +542,8 @@ export default function MyStudentsPage() {
       const meetingUrlRaw = form.default_meeting_url.trim();
       const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
       if (meetingUrlRaw && !meetingUrl) {
+        // Same busy-flag reset as the create branch — no stuck spinner.
+        setSubmitting(false);
         toast.error(t("myStudents.invalidMeetingUrl"));
         return;
       }

@@ -18,6 +18,10 @@ export interface CloseDayRow {
   price: number;
   currency?: string | null;
   paid: boolean;
+  /** MON-2: hub tutors must not see/write the student payment side — their masked
+   * price reads 0 and the paid-write is a server-side no-op. false hides the price
+   * line + ₴ pill and skips the payment write; default true. */
+  showPay?: boolean;
 }
 
 interface Props {
@@ -80,7 +84,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         const { error } = await supabase.from("lessons").update({ status: "completed" }).in("id", doneIds);
         if (error) throw error;
       }
-      const paidRows = rows.filter((r) => state[r.id]?.done && state[r.id]?.paid && !r.paid);
+      const paidRows = rows.filter((r) => r.showPay !== false && state[r.id]?.done && state[r.id]?.paid && !r.paid);
       await Promise.all(
         paidRows.map((r) =>
           updateLessonDetailsSafe(r.id, { student_payment_status: "paid" })
@@ -144,16 +148,20 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                   <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                     {r.time} · {r.name}
                   </div>
-                  <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>
-                    {formatPrice(r.price, r.currency)}
-                    {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
-                      <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[r.student_id] })}</span>
-                    )}
-                  </div>
+                  {r.showPay !== false && (
+                    <div style={{ fontSize: 14, color: C.sub, marginTop: 1 }}>
+                      {formatPrice(r.price, r.currency)}
+                      {r.student_id && (packMap[r.student_id] ?? 0) > 0 && (
+                        <span style={{ marginLeft: 6, color: C.tealD, fontFamily: C.display, fontWeight: 700 }}>{t("closeDayDialog.packageBalance", { count: packMap[r.student_id] })}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <Pill on={st.done} label={t("closeDayDialog.conductedPill")} onClick={() => setState((s) => ({ ...s, [r.id]: { ...st, done: !st.done } }))} />
-                <Pill on={st.done && (st.paid || r.paid)} gold label="₴"
-                  onClick={() => st.done && !r.paid && setState((s) => ({ ...s, [r.id]: { ...st, paid: !st.paid } }))} />
+                {r.showPay !== false && (
+                  <Pill on={st.done && (st.paid || r.paid)} gold label="₴"
+                    onClick={() => st.done && !r.paid && setState((s) => ({ ...s, [r.id]: { ...st, paid: !st.paid } }))} />
+                )}
               </div>
             );
           })}

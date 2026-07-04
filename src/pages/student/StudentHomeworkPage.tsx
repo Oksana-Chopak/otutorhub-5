@@ -165,16 +165,17 @@ export default function StudentHomeworkPage() {
     }
   };
 
-  // Архів = ДЗ з минулих уроків; Активні = майбутні/нещодавні. Розподіл за датою уроку.
+  // Активні = ще НЕ виконана домашка (незалежно від дати уроку — ДЗ зазвичай
+  // задають на уроці, який уже минув, тож датний розподіл ховав кожне свіже
+  // завдання в «Архів», а дефолтна вкладка була порожньою). Архів = виконані.
   const { active, archive } = useMemo(() => {
-    const now = Date.now();
     const active: HomeworkRow[] = [];
     const archive: HomeworkRow[] = [];
     rows.forEach((r) => {
-      (new Date(r.starts_at).getTime() < now ? archive : active).push(r);
+      (doneSet.has(r.lesson_id) ? archive : active).push(r);
     });
     return { active, archive };
-  }, [rows]);
+  }, [rows, doneSet]);
 
   const goldBtn: React.CSSProperties = {
     flex: 1, height: 44, borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
