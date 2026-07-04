@@ -91,7 +91,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
             {/* title */}
             <div
               className="text-sm font-extrabold leading-tight"
-              style={{ color: earned ? "#0f0f1a" : "#9398b0" }}
+              style={{ color: earned ? "#0f0f1a" : "var(--sub,#6b7088)" }}
             >
               {t(def.nameKey)}
             </div>
@@ -123,7 +123,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                         style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}
                       />
                     </div>
-                    <div className="text-[14px] font-bold tabular-nums" style={{ color: "#9398b0" }}>
+                    <div className="text-[14px] font-bold tabular-nums" style={{ color: "var(--sub,#6b7088)" }}>
                       {Math.min(current, target)} / {target}
                     </div>
                   </>

@@ -155,7 +155,7 @@ export default function StudentSchedulePage() {
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
                 ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "#9398b0", fontSize: 14, fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "var(--sub,#6b7088)", fontSize: 14, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}

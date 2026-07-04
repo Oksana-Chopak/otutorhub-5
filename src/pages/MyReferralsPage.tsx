@@ -17,7 +17,7 @@ const R = {
   surface: "#FFFFFF",
   surface2: "#f6f5f1",
   txt: "#0f0f1a",
-  sub: "#9398b0",
+  sub: "var(--sub,#6b7088)",
   muted: "#b0b4c8",
   border: "#eceef3",
   teal: "#2BBFAA",
@@ -90,7 +90,9 @@ export default function MyReferralsPage() {
   const month = now.getMonth() + 1;
 
   useEffect(() => {
-    if (!user) return;
+    // MON-2: don't run the referral reads/RPCs for hub tutors/managers — the render
+    // redirect fires only after this effect, so data was fetched before the bounce.
+    if (!user || wsLoading || blockedNonIndependent) return;
     (async () => {
       setLoading(true);
 
@@ -133,7 +135,7 @@ export default function MyReferralsPage() {
       setLoading(false);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, year, month]);
+  }, [user?.id, year, month, wsLoading, blockedNonIndependent]);
 
   const link = code ? `${window.location.origin}/join/${code}` : "";
   const linkLabel = code ? `${window.location.host}/join/${code}` : "";

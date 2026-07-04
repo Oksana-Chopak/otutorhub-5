@@ -100,7 +100,7 @@ export default function FeedbackInboxPage() {
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                   background: on ? "#f0fdf9" : "#fff",
                   border: `1.5px solid ${on ? "#2BBFAA" : "#eceef3"}`,
-                  color: on ? "#1f8e7e" : "#9398b0" }}>
+                  color: on ? "#1f8e7e" : "var(--sub,#6b7088)" }}>
                 {label}
               </button>
             );

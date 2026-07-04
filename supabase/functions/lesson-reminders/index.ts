@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
             userId: lesson.student_id,
             title: "⭐ Як пройшов урок?",
             body: `Оцініть урок з ${tutorName} (${lesson.subject})`,
-            link: "/schedule",
+            link: "/student-dashboard",
             tag: `lesson-${lesson.id}-feedback`,
           });
           if (tgOk || pushOk) {
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
           userId: lesson.student_id,
           title: `⏰ Урок через ${rule.minutesBefore} хв`,
           body: `${tutorName} · ${lesson.subject} · ${dateStr}`,
-          link: "/schedule",
+          link: "/student/schedule",
           tag: `lesson-${lesson.id}-${rule.kind}`,
         });
         if (tgOk || pushOk) {

@@ -1741,6 +1741,9 @@ export default function SchedulePage() {
                       <LessonCard
                         key={lesson.id}
                         lesson={{ ...lesson, currency: pairCurrency[`${lesson.tutor_id}:${lesson.student_id}`] }}
+                        // Parity with the Dashboard: hub tutors see their 💼 payout row
+                        // here too (money masked per-role server-side anyway).
+                        showPayout={isManager || lesson.source === "hub"}
                         role={isManager ? "manager" : (isPureStudent && lesson.student_id === user?.id) ? "student" : "tutor"}
                         studentName={studentName}
                         tutorName={tutorName}

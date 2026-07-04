@@ -648,7 +648,9 @@ export default function DashboardPage() {
       if (lesson?.student_id) {
         insertNotification({
           userId: lesson.student_id,
-          type: "lesson_cancelled",
+          // per-lesson type: the static "lesson_cancelled" hit the 24h (user,type)
+          // dedup — a second same-day cancellation was silently swallowed.
+          type: `lesson_cancelled_${lessonId}`,
           title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
           link: "/student/schedule",
         });
@@ -1698,8 +1700,9 @@ export default function DashboardPage() {
           {isHubTutor && (
             <div className="mt-4 space-y-4">
               {/* Violet hub chip — «Хаб «{hubName}»». No hub-name source in DB yet,
-                  so falls back to «Хаб» (see followups). */}
-              <div className="flex">
+                  so falls back to «Хаб» (see followups). Desktop-only: on mobile the
+                  dark payout card header carries the same chip — двічі на екран зайве. */}
+              <div className="hidden lg:flex">
                 <span
                   className="inline-flex h-[30px] flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-[14px] font-bold"
                   style={{
@@ -1820,7 +1823,7 @@ export default function DashboardPage() {
                   >
                     {hubStudentCount ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#6b7088)" }}>
                     {t("hubTutor.hubStudents")}
                   </p>
                 </div>
@@ -1840,7 +1843,7 @@ export default function DashboardPage() {
                   >
                     {hubLessonsTodayCount}
                   </p>
-                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="mt-1.5 text-[15px]" style={{ color: "var(--sub,#6b7088)" }}>
                     {t("hubTutor.lessonsToday")}
                   </p>
                 </div>
@@ -1939,7 +1942,7 @@ export default function DashboardPage() {
                   <p className="text-[15px] font-extrabold" style={{ color: "var(--txt,#0f0f1a)" }}>
                     {t("hubTutor.proActiveTitle")}
                   </p>
-                  <p className="text-[14px]" style={{ color: "var(--sub,#9398b0)" }}>
+                  <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
                     {t("hubTutor.proActiveDesc")}
                   </p>
                 </div>
@@ -2234,7 +2237,7 @@ export default function DashboardPage() {
                       const iconColor =
                         task.tone === "destructive" ? "#3b82f6"
                         : task.tone === "warning"    ? "#f59e0b"
-                        : "#9398b0";
+                        : "var(--sub,#6b7088)";
                       return (
                         task.payTutorId ? (
                           <div key={task.key}

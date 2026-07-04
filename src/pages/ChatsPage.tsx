@@ -968,7 +968,7 @@ export default function ChatsPage() {
                             <p
                               className="text-[14px] truncate"
                               style={{
-                                color: isUnread ? "#0f0f1a" : "#9398b0",
+                                color: isUnread ? "#0f0f1a" : "var(--sub,#6b7088)",
                                 fontStyle: thread.last_message_preview?.startsWith("…") ? "italic" : "normal",
                                 fontWeight: isUnread ? 600 : 400,
                               }}
@@ -1175,7 +1175,7 @@ export default function ChatsPage() {
                               <p
                                 className="text-[14px] mb-1 px-3 truncate max-w-[75%]"
                                 style={{
-                                  color: senderIsManager ? "#b45309" : "var(--sub,#9398b0)",
+                                  color: senderIsManager ? "#b45309" : "var(--sub,#6b7088)",
                                   fontFamily: "Inter, system-ui",
                                   fontWeight: 600,
                                   whiteSpace: "nowrap",

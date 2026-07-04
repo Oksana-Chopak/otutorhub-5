@@ -646,7 +646,7 @@ export default function MyStudentsPage() {
 
   const T = {
     teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
-    bg: "#F5F4F0", txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
@@ -909,7 +909,7 @@ export default function MyStudentsPage() {
           {(() => {
             const F = {
               border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-              txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", gold: "#9a6a12",
+              txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", gold: "#9a6a12",
               display: "Inter, system-ui, sans-serif",
               body: "'Plus Jakarta Sans', system-ui, sans-serif",
             };

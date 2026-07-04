@@ -122,7 +122,7 @@ export function GroupLessonParticipants({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "#9398b0" }}>
+        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)" }}>
           {t("groupPayments.title")}
         </p>
         {canSeeMoney && (

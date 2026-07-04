@@ -207,7 +207,8 @@ export default function ReferralsPage() {
                 <div style={{ fontFamily: F, fontWeight: 800, fontSize: 19 }}>{t("referralsPageExtra.newBannerTitle")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,.65)", marginTop: 1 }}>{t("referralsPageExtra.newBannerSub")}</div>
               </div>
-              <ChevronRight size={22} strokeWidth={2.2} style={{ color: "rgba(255,255,255,.5)", flexShrink: 0 }} />
+              {/* No chevron: this is a passive summary (the first open request is
+                  auto-expanded below) — a chevron promised a tap that did nothing. */}
             </div>
           )}
 

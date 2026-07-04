@@ -29,7 +29,7 @@ function Field({
     <div className="space-y-1.5">
       <Label htmlFor={htmlFor} className="text-[14px] font-medium text-[#6b7088]">{label}</Label>
       <div className="relative">
-        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#9398b0]" />
+        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#6b7088)]" />
         {children}
       </div>
     </div>
@@ -40,7 +40,7 @@ function Field({
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[#9398b0]">{label}</div>
+      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[var(--sub,#6b7088)]">{label}</div>
       {children}
     </section>
   );
@@ -293,7 +293,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
                 value={cardInput} onChange={(e) => setCardInput(e.target.value)} />
             </Field>
             <div className="flex items-start gap-2 rounded-[12px] bg-[#F5F4F0] px-3 py-2.5">
-              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[#9398b0]" />
+              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#6b7088)]" />
               <p className="text-[14px] leading-snug text-[#6b7088]">{t("contactEditExtra.securityNote")}</p>
             </div>
           </Section>

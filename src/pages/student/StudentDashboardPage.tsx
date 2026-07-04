@@ -196,7 +196,7 @@ export default function StudentDashboardPage() {
 
   const DS = {
     teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "#0f0f1a",
-    sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
+    sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 

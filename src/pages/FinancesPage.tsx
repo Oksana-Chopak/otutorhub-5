@@ -1553,7 +1553,7 @@ export default function FinancesPage() {
       teal: "#2BBFAA", tealD: "#25a896",
       warn: "#f59e0b", warnD: "#b4740b", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
       border: "#eceef3", surface: "#fff",
-      txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+      txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
       display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
     };
     // Their own lessons, individual only (group lessons carry no tutor payout), newest
@@ -1759,7 +1759,7 @@ export default function FinancesPage() {
       teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
       warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
       border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
-      txt:"#0f0f1a", sub:"#9398b0", muted:"#b0b4c8",
+      txt:"#0f0f1a", sub:"var(--sub,#6b7088)", muted:"#b0b4c8",
       display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
     };
 
@@ -2340,7 +2340,7 @@ export default function FinancesPage() {
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
-                        color: period === p ? "#0f0f1a" : "var(--sub,#9398b0)",
+                        color: period === p ? "#0f0f1a" : "var(--sub,#6b7088)",
                         boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
                         transition: "all .15s",
                       }}

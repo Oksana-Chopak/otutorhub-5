@@ -25,7 +25,8 @@ export function useStudentContext() {
       supabase
         .from("student_rates")
         .select("id", { count: "exact", head: true })
-        .eq("student_id", user.id),
+        .eq("student_id", user.id)
+        .is("archived_at", null),
       // A manager can put a student STRAIGHT into a group (no student_rates row) —
       // counting only rates treated group-only students as tutor-less and forced
       // them into the find-a-tutor quiz (phantom tutor_referral_requests).

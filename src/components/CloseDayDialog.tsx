@@ -33,7 +33,7 @@ interface Props {
 
 const C = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-  sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
   gold: "#9a6a12", goldBg: "rgba(245,181,68,.16)", goldRing: "rgba(245,181,68,.4)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };

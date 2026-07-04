@@ -77,7 +77,7 @@ const STATUS_META: Record<LessonStatus, { key: string; accent: string; bg: strin
 };
 
 const L = {
-  txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
   surface: "#FFFFFF", surface2: "#f6f5f1", teal: "#2BBFAA", tealD: "#1f8e7e",
   tealTint: "#f0fdf9", tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", warningD: "#B4740B",
   coral: "#e0552f", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",

@@ -83,7 +83,7 @@ const fullName = (p?: Profile) => (p ? `${p.first_name} ${p.last_name}`.trim() |
 
 // ── Design tokens (DS — variant B "Доступні години") ──────────────────────────
 const A = {
-  txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
   surface: "#FFFFFF", teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9",
   tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", coral: "#e0552f", warning: "#d97706",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",

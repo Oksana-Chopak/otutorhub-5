@@ -343,7 +343,7 @@ export default function ProfilePage() {
   const P = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
     border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-    txt: "#0f0f1a", sub: "#9398b0", muted: "#b0b4c8",
+    txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
@@ -443,7 +443,7 @@ export default function ProfilePage() {
                     <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>{t("profile.managerSub")}</p>
                   </div>
                   <button onClick={openEditProfile} aria-label={t("profile.editTitle") || "Редагувати профіль"}
-                    className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted"
+                    className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-muted"
                     style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                     <Pencil size={14} style={{ color: P.sub }} />
                   </button>
@@ -565,7 +565,7 @@ export default function ProfilePage() {
                 <button
                   onClick={openEditProfile}
                   aria-label={t("profile.editTitle") || "Редагувати профіль"}
-                  className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-muted"
+                  className="w-11 h-11 rounded-full flex items-center justify-center hover:bg-muted"
                   style={{ border: `1px solid ${P.border}`, background: P.bg, flexShrink: 0 }}>
                   <Pencil size={14} style={{ color: P.sub }} />
                 </button>

@@ -389,7 +389,7 @@ export function LessonWorkspace({
   // Design tokens + helpers for the redesigned tutor edit block
   const L = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-    sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
+    sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const fieldCss: React.CSSProperties = {
@@ -688,7 +688,7 @@ export function LessonWorkspace({
 
       {/* 2. Homework — read-only for non-tutors (tutors edit in the accordion above) */}
       {!canEditTutorFields && (
-      <section className="rounded-lg border border-border bg-background/50 p-4">
+      <section className="rounded-[16px] border border-border bg-background/50 p-4">
         <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
           <BookOpen className="h-4 w-4 text-primary" />
           {t("lessonWorkspaceExtra.homeworkHeading")}
@@ -722,7 +722,7 @@ export function LessonWorkspace({
 
       {/* 3. Student personal notes (compact slot — second column on top row) */}
       {(canEditStudentNotes || (isManager && studentNotes)) ? (
-        <section className="rounded-lg border border-border bg-background/50 p-4">
+        <section className="rounded-[16px] border border-border bg-background/50 p-4">
           <div className="mb-2 flex items-center gap-2 text-sm font-medium text-foreground">
             <NotebookPen className="h-4 w-4 text-primary" />
             {t("lessonWorkspaceExtra.myNotes")} {isManager && !canEditStudentNotes && <span className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.studentNotesTag")}</span>}
@@ -757,7 +757,7 @@ export function LessonWorkspace({
 
       {/* 4. Lesson summary — read-only for non-tutors */}
       {!canEditTutorFields && (
-      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+      <section className="rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <FileText className="h-4 w-4 text-primary" />
@@ -873,7 +873,7 @@ export function LessonWorkspace({
 
       {/* 6. Meeting link — read-only compact row for non-tutors (tutors edit in the accordion) */}
       {!canEditTutorFields && (
-      <section className="rounded-lg border border-border bg-background/50 p-4 md:col-span-2">
+      <section className="rounded-[16px] border border-border bg-background/50 p-4 md:col-span-2">
         {canEditTutorFields ? (
           <Collapsible>
             <div className="flex flex-wrap items-center justify-between gap-2">

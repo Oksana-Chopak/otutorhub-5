@@ -67,7 +67,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
 
   return (
     <section className="mt-6">
-      <div className="rounded-xl border border-warning/40 bg-warning/5 p-4">
+      <div className="rounded-[16px] border border-warning/40 bg-warning/5 p-4">
         <div className="mb-3 flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/15">
             <Clock className="h-4 w-4 text-warning" />
@@ -85,7 +85,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
           {items.slice(0, 5).map((l) => (
             <div
               key={l.id}
-              className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-2 rounded-[14px] border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">

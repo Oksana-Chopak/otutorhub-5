@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 const C = {
-  txt: "#0f0f1a", ink2: "#4b5163", sub: "#9398b0", muted: "#b0b4c8", border: "#eceef3",
+  txt: "#0f0f1a", ink2: "#4b5163", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3",
   teal: "#2BBFAA", tealD: "#1f8e7e", tealRing: "rgba(43,191,170,.28)",
   warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)", warnD: "#b4740b",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",

@@ -269,7 +269,7 @@ export function ChatThreadDialog({
                         <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
                           className={`mt-0.5 text-[14px] ${
-                            mine ? "text-white/70" : "text-[#9398b0]"
+                            mine ? "text-white/70" : "text-[var(--sub,#6b7088)]"
                           }`}
                         >
                           {new Date(m.created_at).toLocaleTimeString(getLocale(), {

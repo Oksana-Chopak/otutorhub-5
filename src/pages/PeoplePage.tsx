@@ -1205,7 +1205,7 @@ export default function PeoplePage() {
                 style={{
                   fontFamily: "Inter, system-ui, sans-serif",
                   fontSize: 14,
-                  color: activeRoleTab === tab ? "#1f8e7e" : "#9398b0",
+                  color: activeRoleTab === tab ? "#1f8e7e" : "var(--sub,#6b7088)",
                   borderBottom: activeRoleTab === tab ? "2px solid #2BBFAA" : "2px solid transparent",
                   fontWeight: activeRoleTab === tab ? 700 : 600,
                 }}
@@ -1238,7 +1238,7 @@ export default function PeoplePage() {
                 fontSize: 14,
                 background: statusFilter === pill.value ? "#E1F5EE" : "#fff",
                 border: `1.5px solid ${statusFilter === pill.value ? "#2BBFAA" : "#eceef3"}`,
-                color: statusFilter === pill.value ? "#0F6E56" : "#9398b0",
+                color: statusFilter === pill.value ? "#0F6E56" : "var(--sub,#6b7088)",
               }}
             >
               {pill.label}
