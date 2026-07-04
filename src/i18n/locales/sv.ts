@@ -3561,6 +3561,8 @@ export const sv: LocaleTranslations = {
     emptyDesc: "Inga användarfel ännu. De visas här om något går fel.",
   },
   assignTutorExtra: {
+    studentNotifTitle: "🎉 Du har fått en lärare: {{name}} ({{subject}})",
+    tutorNotifTitle: "🎓 En ny elev har tilldelats dig ({{subject}})",
     studentPrefix: "Elev",
     noTutors: "Lägg till en lärare först i Personer",
     rateFull: "Pris ₴{{rate}}/lektion",

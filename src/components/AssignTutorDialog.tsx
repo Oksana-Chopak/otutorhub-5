@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { insertNotification } from "@/lib/notifications";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, Users, X, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -234,6 +235,22 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     } catch (e) {
       // Non-fatal
     }
+
+    // 5. Tell both sides — assignment used to be completely silent: the student
+    // (who filed the request) and the tutor (who got a new student) learned about
+    // it only by stumbling on the changes. Best-effort, never blocks the flow.
+    insertNotification({
+      userId: request.student_id,
+      type: `tutor_assigned_${request.id}`,
+      title: t("assignTutorExtra.studentNotifTitle", { name: tutorName, subject: subject.trim() }),
+      link: "/student-dashboard",
+    });
+    insertNotification({
+      userId: tutorId,
+      type: `student_assigned_${request.id}`,
+      title: t("assignTutorExtra.tutorNotifTitle", { subject: subject.trim() }),
+      link: "/chats",
+    });
 
     setSubmitting(false);
     toast.success(t("assignTutorExtra.assigned"));

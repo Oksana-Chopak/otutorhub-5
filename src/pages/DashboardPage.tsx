@@ -45,6 +45,7 @@ import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
 import { isBillableLesson, paidIncome, paidExpense, paidProfit } from "@/lib/financials";
+import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
@@ -655,6 +656,8 @@ export default function DashboardPage() {
         // Group lesson (student_id NULL): fan out to every participant.
         void notifyGroupLessonCancelled(lessonId, lesson.subject);
       }
+      // Keep the tutor's Google Calendar in step (Schedule's cancel path already does).
+      void syncLessonToGoogleCalendar(lessonId, "delete");
     }
   };
 
@@ -744,6 +747,18 @@ export default function DashboardPage() {
       toast.error(t("dashboardPageExtra.payoutMarkFailed"), { description: error.message });
       return;
     }
+    // Tell the tutor they've been paid — the per-lesson toggle already bells them,
+    // but this batch path (the payout-schedule smart task) marked ALL their unpaid
+    // payouts silently. Sum from the same lessons we optimistically flipped.
+    const paidSum = prevLessons
+      .filter((l) => l.tutor_id === tutorId && l.tutor_payout_status === "unpaid" && l.status !== "cancelled")
+      .reduce((s, l) => s + Number(l.tutor_payout ?? 0), 0);
+    insertNotification({
+      userId: tutorId,
+      type: `payout_confirmed_${new Date().toISOString().slice(0, 10)}`,
+      title: t("notifications.payoutConfirmedTitle", { amount: formatPrice(paidSum, "UAH") }),
+      link: "/finances",
+    });
     toast.success(t("dashboardPageExtra.payoutMarked"), { description: t("dashboardPageExtra.payoutMarkedDesc", { count: data ?? 0 }) });
   };
 

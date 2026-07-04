@@ -59,6 +59,7 @@ import { cn } from "@/lib/utils";
 import { ScheduleFiltersSheet } from "@/components/ScheduleFiltersSheet";
 import { useScheduleFilters } from "@/hooks/useScheduleFilters";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
+import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -736,7 +737,7 @@ export default function SchedulePage() {
     const { data: insertedLessons, error } = await supabase
       .from("lessons")
       .insert(payloads)
-      .select("id");
+      .select("id, starts_at, student_id");
     setSubmitting(false);
     if (error) {
       console.error("Failed to create lesson", error);
@@ -776,6 +777,23 @@ export default function SchedulePage() {
       if (detErr) console.warn("lesson_details write after create failed", detErr);
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
+    // Notify the individual student (mirrors QuickLessonDialog) — the canonical
+    // Schedule create path was the only one scheduling lessons silently.
+    const firstCreated = (insertedLessons ?? [])[0] as any;
+    if (firstCreated?.student_id) {
+      const dateStr = new Date(firstCreated.starts_at).toLocaleString(getLocale(), {
+        weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+      });
+      insertNotification({
+        userId: firstCreated.student_id,
+        type: `lesson_scheduled_${firstCreated.id}`,
+        title: t("quickLessonDialog.notifLessonScheduledTitle"),
+        body: repeats > 1
+          ? t("quickLessonDialog.notifLessonSeriesBody", { count: repeats, date: dateStr })
+          : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
+        link: "/schedule",
+      });
+    }
     toast.success(
       repeats > 1
         ? t('schedule.lessonsCreated', { count: repeats })
@@ -822,9 +840,17 @@ export default function SchedulePage() {
     } else {
       toast.success(t('schedule.statusUpdated'));
     }
-    // Group lesson cancelled (student_id NULL) → notify every participant.
+    // Cancellation must reach the student: group → every participant, individual →
+    // the student directly (Dashboard's cancel path already does this; Schedule didn't).
     if (newStatus === "cancelled" && lsn && !lsn.student_id) {
       void notifyGroupLessonCancelled(lessonId, lsn.subject);
+    } else if (newStatus === "cancelled" && lsn?.student_id) {
+      insertNotification({
+        userId: lsn.student_id,
+        type: `lesson_cancelled_${lessonId}`,
+        title: t("notifications.lessonCancelledTitle", { subject: lsn.subject }),
+        link: "/student/schedule",
+      });
     }
     void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
   };
@@ -865,6 +891,15 @@ export default function SchedulePage() {
     const lsn = prev.find((l) => l.id === lessonId);
     if (lsn && !lsn.student_id) {
       await notifyGroupLessonCancelled(lessonId, lsn.subject);
+    } else if (lsn?.student_id) {
+      // Deleting an individual lesson silently vanished it from the student's
+      // schedule — tell them, same copy as a cancellation.
+      insertNotification({
+        userId: lsn.student_id,
+        type: `lesson_cancelled_${lessonId}`,
+        title: t("notifications.lessonCancelledTitle", { subject: lsn.subject }),
+        link: "/student/schedule",
+      });
     }
     setLessons((curr) => curr.filter((l) => l.id !== lessonId));
     const { error } = await supabase.from("lessons").delete().eq("id", lessonId);

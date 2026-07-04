@@ -3571,6 +3571,8 @@ export const en: LocaleTranslations = {
     emptyDesc: "No user errors yet. They'll show up here if something breaks.",
   },
   assignTutorExtra: {
+    studentNotifTitle: "🎉 You have a tutor: {{name}} ({{subject}})",
+    tutorNotifTitle: "🎓 A new student was assigned to you ({{subject}})",
     studentPrefix: "Student",
     noTutors: "Add a tutor first in the People section",
     rateFull: "Rate ₴{{rate}}/lesson",

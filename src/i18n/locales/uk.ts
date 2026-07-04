@@ -3583,6 +3583,8 @@ export const uk = {
     emptyDesc: "Поки що жодної помилки користувачів. Тут зʼявляться, якщо щось піде не так.",
   },
   assignTutorExtra: {
+    studentNotifTitle: "🎉 Тобі призначили репетитора: {{name}} ({{subject}})",
+    tutorNotifTitle: "🎓 Вам призначили нового учня ({{subject}})",
     studentPrefix: "Учень",
     noTutors: "Спершу додайте репетитора в розділі «Люди»",
     rateFull: "Ставка ₴{{rate}}/урок",

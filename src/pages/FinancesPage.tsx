@@ -65,6 +65,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
 import { isBillableLesson, paidIncome, paidExpense, unpaidIncome, unpaidExpense, grossMarkupPct } from "@/lib/financials";
+import { formatPrice } from "@/lib/currency";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -818,6 +819,16 @@ export default function FinancesPage() {
       haptic.error();
       toast.error(t("finances.updateStatusFailed"));
       return;
+    }
+    // Payout side: tell the tutor they've been paid — this toggle was the silent
+    // sibling of DashboardPage.updatePayment (the only payout_confirmed producer).
+    if (field === "tutor_payout_status" && next === "paid" && lesson.tutor_id) {
+      insertNotification({
+        userId: lesson.tutor_id,
+        type: `payout_confirmed_${lesson.id}`,
+        title: t("notifications.payoutConfirmedTitle", { amount: formatPrice(Number(lesson.tutor_payout ?? 0), "UAH") }),
+        link: "/finances",
+      });
     }
     if (next === "paid") {
       const revert = async () => {

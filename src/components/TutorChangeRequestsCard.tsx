@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { insertNotification } from "@/lib/notifications";
 import { getLocale } from "@/lib/locale";
+import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import {
   Card,
   CardContent,
@@ -251,6 +252,9 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       });
       return;
     }
+    // Keep Google Calendar in step — approve() rewrites starts_at or cancels, and
+    // was the only lesson-mutation path with no sync (stale/ghost events).
+    void syncLessonToGoogleCalendar(lesson.id, active.kind === "cancel" ? "delete" : "upsert");
     // The decision must reach the STUDENT — «notifications both ways» was one-way:
     // the student pinged the tutor on submit, but approvals/rescheduls/fees landed
     // silently. type is per-request so the 24h (user,type) dedup can't swallow it.
