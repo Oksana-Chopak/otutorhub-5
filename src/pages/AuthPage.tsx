@@ -180,9 +180,15 @@ export default function AuthPage() {
     })(),
   });
 
+  // Preserve ?next=/path across sign-in so OAuth MCP consent (/.lovable/oauth/consent)
+  // and other deep-linked flows can bring the user back after auth. Same-origin
+  // relative paths only.
+  const nextParam = searchParams.get("next");
+  const nextPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
+
   useEffect(() => {
-    if (!authLoading && user) navigate("/", { replace: true });
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(nextPath, { replace: true });
+  }, [user, authLoading, navigate, nextPath]);
 
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
