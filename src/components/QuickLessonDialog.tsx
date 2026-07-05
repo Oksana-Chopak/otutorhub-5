@@ -219,6 +219,12 @@ export function QuickLessonDialog({
         toast.error(t("quickLessonDialog.selectGroup") ?? "Виберіть групу");
         return;
       }
+      if ((selectedGroup.participants?.length ?? 0) === 0) {
+        // Empty group → createGroupLesson would make a lesson with no participants
+        // and no notifications (GroupsPage guards this; this dialog didn't).
+        toast.error(t("groupsPageExtra.scheduleNoMembers"));
+        return;
+      }
       setSubmitting(true);
       // Shared helper: snapshots each participant's group price into
       // lesson_participants + notifies every enrolled student.
@@ -360,7 +366,10 @@ export function QuickLessonDialog({
   };
 
   const canSubmit =
-    !submitting && (mode === "individual" ? !!selected : !!selectedGroup);
+    !submitting &&
+    (mode === "individual"
+      ? !!selected
+      : !!selectedGroup && (selectedGroup.participants?.length ?? 0) > 0);
 
   const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
   const heroDate = effStartsAt

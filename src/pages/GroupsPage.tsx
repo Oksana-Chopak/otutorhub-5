@@ -722,8 +722,11 @@ function GroupDetailsDialog({
   // group_enrollments.price_per_lesson; snapshotted onto lesson_participants when a
   // group lesson is scheduled.
   const saveEnrollmentPrice = async (enrollmentId: string, priceStr: string) => {
-    const price = priceStr.trim() === "" ? null : Number(priceStr.replace(",", "."));
-    if (price !== null && (!Number.isFinite(price) || price < 0)) {
+    // The gated RPC rejects NULL/negative (raw untranslated «Invalid price»), so
+    // an empty field is blocked here with a translated hint — clearing a price is
+    // not a supported op (a group member always has a per-student rate).
+    const price = Number(priceStr.replace(",", "."));
+    if (priceStr.trim() === "" || !Number.isFinite(price) || price < 0) {
       toast.error(t("groupsPageExtra.priceInvalid"));
       return;
     }

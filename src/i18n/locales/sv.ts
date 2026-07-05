@@ -3219,6 +3219,7 @@ export const sv: LocaleTranslations = {
     sendReminder: "Skicka påminnelse via Telegram + e-post",
   },
   authExtra: {
+    emailFailed: "Det gick inte att skicka mejlet",
     nameRequired: "Ange ditt förnamn",
     lastNameRequired: "Ange ditt efternamn",
     invalidEmail: "Ogiltig e-postadress",

@@ -3240,6 +3240,7 @@ export const uk = {
     sendReminder: "Надіслати нагадування у Telegram + email",
   },
   authExtra: {
+    emailFailed: "Не вдалося надіслати листа",
     nameRequired: "Введіть ім'я",
     lastNameRequired: "Введіть прізвище",
     invalidEmail: "Некоректний email",

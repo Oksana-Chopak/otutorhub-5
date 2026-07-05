@@ -3229,6 +3229,7 @@ export const en: LocaleTranslations = {
     sendReminder: "Send reminder via Telegram + email",
   },
   authExtra: {
+    emailFailed: "Could not send the email",
     nameRequired: "Enter your first name",
     lastNameRequired: "Enter your last name",
     invalidEmail: "Invalid email",

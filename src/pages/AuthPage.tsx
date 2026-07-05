@@ -492,17 +492,26 @@ export default function AuthPage() {
   };
 
   const resendConfirmation = async () => {
-    if (!sentEmail) return;
+    // On the confirmation-return flow (fresh page load from the email link)
+    // sentEmail is "" — fall back to the ?email= param, else the typed sign-in
+    // email — otherwise the resend button was a silent no-op.
+    const target = sentEmail || searchParams.get("email") || signInData.email;
+    if (!target) {
+      toast({ title: t("authExtra.emailFailed"), variant: "destructive" });
+      return;
+    }
     const { error } = await supabase.auth.resend({
       type: "signup",
-      email: sentEmail,
+      email: target,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(sentEmail)}`,
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(target)}`,
       },
     });
-    if (!error) {
-      toast({ title: t("authExtra.emailResent") });
-    }
+    toast(
+      error
+        ? { title: t("authExtra.emailFailed"), variant: "destructive" }
+        : { title: t("authExtra.emailResent") },
+    );
   };
 
   // ── Email sent screen ───────────────────────────────────────────────────────
