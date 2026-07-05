@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties (which is git-ignored) and fill in the
+# real values AFTER you generate the upload keystore. See docs/STORE-RELEASE-RUNBOOK.md.
+# storeFile is the ABSOLUTE path to your .jks kept OUTSIDE the repo.
+storeFile=/Users/oksana/keys/otutorhub-upload.jks
+storePassword=CHANGE_ME
+keyAlias=otutorhub
+keyPassword=CHANGE_ME

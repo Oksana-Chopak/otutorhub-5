@@ -376,8 +376,13 @@ export default function SubscriptionPage() {
             )}
           </div>
 
-          {/* ── iOS StoreKit (App Store IAP через RevenueCat) ───────────── */}
-          {!isActive && nativeApp && (
+          {/* ── iOS/Android StoreKit (App Store / Play IAP через RevenueCat) ──
+              Показуємо ЛИШЕ коли RevenueCat реально віддав offering із ціною.
+              Якщо продукти підписки ще не налаштовані (напр. реліз v1 без IAP —
+              Pro лишається керованим на вебі), картка сама ховається, щоб у
+              нативній збірці не було «мертвої» кнопки покупки (причина реджекту
+              в Apple/Play). Коли налаштуєш продукти — картка зʼявиться сама. */}
+          {!isActive && nativeApp && (iapOffer.monthlyPrice || iapOffer.yearlyPrice) && (
             <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>

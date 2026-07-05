@@ -1,5 +1,17 @@
 apply plugin: 'com.android.application'
 
+// Release signing is read from android/key.properties (git-ignored — it holds the
+// keystore path + passwords, never committed). If the file is absent (e.g. Lovable
+// Preview / CI without the keystore), the release build falls back to unsigned so
+// nothing breaks; a real Play upload requires the file to be present. See
+// docs/STORE-RELEASE-RUNBOOK.md for how to generate the keystore + fill this file.
+def keystorePropertiesFile = rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+def hasKeystore = keystorePropertiesFile.exists()
+if (hasKeystore) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "ua.otutorhub.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +28,20 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasKeystore) {
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            // Only sign with the release key when key.properties is present.
+            signingConfig hasKeystore ? signingConfigs.release : null
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
