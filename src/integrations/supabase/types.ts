@@ -587,6 +587,7 @@ export type Database = {
           fireflies_summary: string | null
           fireflies_transcript: Json | null
           homework: string | null
+          is_cancellation_fee: boolean
           lesson_id: string
           student_notes: string | null
           student_paid_at: string | null
@@ -610,6 +611,7 @@ export type Database = {
           fireflies_summary?: string | null
           fireflies_transcript?: Json | null
           homework?: string | null
+          is_cancellation_fee?: boolean
           lesson_id: string
           student_notes?: string | null
           student_paid_at?: string | null
@@ -633,6 +635,7 @@ export type Database = {
           fireflies_summary?: string | null
           fireflies_transcript?: Json | null
           homework?: string | null
+          is_cancellation_fee?: boolean
           lesson_id?: string
           student_notes?: string | null
           student_paid_at?: string | null
@@ -2253,6 +2256,7 @@ export type Database = {
         Row: {
           created_at: string | null
           homework: string | null
+          is_cancellation_fee: boolean | null
           lesson_id: string | null
           student_paid_at: string | null
           student_payment_status: string | null
@@ -2326,6 +2330,7 @@ export type Database = {
           group_id: string | null
           homework: string | null
           id: string | null
+          is_cancellation_fee: boolean | null
           lesson_type: Database["public"]["Enums"]["lesson_type"] | null
           meeting_url: string | null
           notes: string | null
