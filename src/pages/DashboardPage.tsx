@@ -163,6 +163,10 @@ export default function DashboardPage() {
 
   const [loading, setLoading] = useState(true);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
+  // Money-only rows for the profit card / payout figures: 6 calendar months back
+  // (the main `lessons` window is 30d back / 14d fwd — mid-month that hides most
+  // of "last month", so mom-% and the 6-month bars were fabricated-low).
+  const [moneyLessons, setMoneyLessons] = useState<LessonRow[]>([]);
   // Group lessons (student_id NULL) carry payment per-participant on lesson_participants,
   // not on the lesson row — track which ones still have an unpaid participant.
   const [groupUnpaidLessonIds, setGroupUnpaidLessonIds] = useState<Set<string>>(new Set());
@@ -373,6 +377,7 @@ export default function DashboardPage() {
       { data: ratesData },
       { data: defaultsData },
       { data: ratesCurrencyData },
+      { data: moneyLessonsData },
     ] = await Promise.all([
       (() => {
         let q = supabase
@@ -398,6 +403,21 @@ export default function DashboardPage() {
       supabase
         .from("student_rates")
         .select("tutor_id, student_id, currency"),
+      (() => {
+        // Money-only window: from the 1st of the month 5 months ago (6 calendar
+        // buckets for the bars + a full "last month" for mom-%) to +14d.
+        const mStart = new Date();
+        mStart.setMonth(mStart.getMonth() - 5, 1);
+        mStart.setHours(0, 0, 0, 0);
+        let q = supabase
+          .from("lessons_visible")
+          .select("id, tutor_id, student_id, starts_at, status, student_price, tutor_payout, student_payment_status, tutor_payout_status, source")
+          .gte("starts_at", mStart.toISOString())
+          .lte("starts_at", new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString())
+          .limit(2000);
+        if (isManager) q = (q as any).neq("source", "independent");
+        return q.order("starts_at", { ascending: false });
+      })(),
     ]);
 
     if (lessonsError) {
@@ -442,6 +462,7 @@ export default function DashboardPage() {
       new Map(((lessonsData ?? []) as LessonRow[]).map((l) => [l.id, l])).values()
     );
     setLessons(uniqueLessons);
+    setMoneyLessons(((moneyLessonsData ?? []) as any[]) as LessonRow[]);
     const groupLessonIds = uniqueLessons.filter((l) => !l.student_id).map((l) => l.id);
 
     // ONE follow-up round-trip: these role-gated queries are mutually independent —
@@ -863,10 +884,10 @@ export default function DashboardPage() {
     () =>
       // Shared predicate (src/lib/financials) + this page's period window — same
       // billable definition as FinancesPage, so the two can't drift apart.
-      lessons.filter(
+      moneyLessons.filter(
         (l) => new Date(l.starts_at).getTime() >= periodStart && isBillableLesson(l, nowMs)
       ),
-    [lessons, periodStart, nowMs]
+    [moneyLessons, periodStart, nowMs]
   );
 
   const totalIncome = paidIncome(billableLessons);
@@ -894,13 +915,13 @@ export default function DashboardPage() {
     const now = new Date();
     const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
     const prevEnd   = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
-    const prev = lessons.filter((l) => {
+    const prev = moneyLessons.filter((l) => {
       if (l.status === "cancelled" || l.status === "pending") return false;
       const ts = new Date(l.starts_at).getTime();
       return ts >= prevStart && ts < prevEnd;
     });
     return paidProfit(prev);
-  }, [lessons]);
+  }, [moneyLessons]);
 
   const profitGrowthPct = useMemo(() => {
     if (profitPeriod !== "month") return null;
@@ -918,7 +939,7 @@ export default function DashboardPage() {
     const vals = Array.from({ length: 6 }, (_, m) => {
       const ms = new Date(now.getFullYear(), now.getMonth() - (5 - m), 1).getTime();
       const me = new Date(now.getFullYear(), now.getMonth() - (5 - m) + 1, 1).getTime();
-      const inMonth = lessons.filter((l) => {
+      const inMonth = moneyLessons.filter((l) => {
         if (l.status === "cancelled" || l.status === "pending") return false;
         const ts = new Date(l.starts_at).getTime();
         return ts >= ms && ts < me;
@@ -927,7 +948,7 @@ export default function DashboardPage() {
     });
     const max = Math.max(...vals, 1);
     return vals.map((v) => Math.round((Math.max(v, 0) / max) * 100));
-  }, [lessons]);
+  }, [moneyLessons]);
 
   const pendingPayments = useMemo(
     () =>
@@ -1010,28 +1031,30 @@ export default function DashboardPage() {
   // tutors at the DB level and is never referenced.
   const hubPayoutDue = useMemo(() => {
     if (!isHubTutor || !user) return 0;
-    return lessons
+    // Shared billable predicate: a freshly scheduled FUTURE lesson is born
+    // "unpaid" but is not owed yet — counting it contradicted the tutor's own
+    // Finances figure. moneyLessons also widens the lookback to 6 months so
+    // old unpaid payouts don't silently drop out of the 30-day window.
+    return moneyLessons
       .filter(
         (l) =>
           l.tutor_id === user.id &&
-          l.status !== "cancelled" &&
-          l.status !== "pending" &&
-          l.tutor_payout_status === "unpaid",
+          l.tutor_payout_status === "unpaid" &&
+          isBillableLesson(l, nowMs),
       )
       .reduce((sum, l) => sum + (Number(l.tutor_payout) || 0), 0);
-  }, [isHubTutor, lessons, user?.id]);
+  }, [isHubTutor, moneyLessons, user?.id, nowMs]);
 
   // How many lessons make up the "до виплати" sum (for the premium payout card chip).
   const hubPayoutLessonsCount = useMemo(() => {
     if (!isHubTutor || !user) return 0;
-    return lessons.filter(
+    return moneyLessons.filter(
       (l) =>
         l.tutor_id === user.id &&
-        l.status !== "cancelled" &&
-        l.status !== "pending" &&
-        l.tutor_payout_status === "unpaid",
+        l.tutor_payout_status === "unpaid" &&
+        isBillableLesson(l, nowMs),
     ).length;
-  }, [isHubTutor, lessons, user?.id]);
+  }, [isHubTutor, moneyLessons, user?.id, nowMs]);
 
   // Next payout date from the tutor's own schedule (null if no schedule set).
   const hubNextPayout = useMemo(
@@ -1148,8 +1171,11 @@ export default function DashboardPage() {
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
       if (!isPayoutDueToday(sch)) return;
-      const unpaid = lessons.filter(
-        (l) => l.tutor_id === sch.user_id && l.tutor_payout_status === "unpaid" && l.status !== "cancelled",
+      // Only conducted lessons: freshly scheduled future ones are born "unpaid"
+      // and must not inflate the payout-day sum (mark_tutor_payouts_paid is
+      // conducted-only too, migration 20260722000000).
+      const unpaid = moneyLessons.filter(
+        (l) => l.tutor_id === sch.user_id && l.tutor_payout_status === "unpaid" && isBillableLesson(l, nowMs),
       );
       const sum = unpaid.reduce((acc, l) => acc + (Number(l.tutor_payout) || 0), 0);
       tasks.push({
@@ -1274,6 +1300,8 @@ export default function DashboardPage() {
     isManager,
     payoutSchedules,
     lessons,
+    moneyLessons,
+    nowMs,
     pendingLessonRequests,
     pendingRequestCount,
     tutorReferralRequestCount,

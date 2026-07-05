@@ -711,6 +711,7 @@ export const en: LocaleTranslations = {
     undoAction: "Undo",
     bulkUpdateFailed: "Could not update records",
     bulkUpdated: "{{count}} records updated",
+    bulkSkippedGroup: "Group rows skipped: {{count}} — no group payout is tracked; mark student payments in the lesson dialog",
     csvDownloaded: "CSV downloaded",
     others: "Others ({{count}})",
     pageSubtitleManager: "Student payments and tutor payouts",
@@ -2045,6 +2046,7 @@ export const en: LocaleTranslations = {
     noPrepaidsHint: "No student has a prepayment yet. Click «Show all pairs» to top up any pair.",
   },
   walletDialog: {
+    withTutor: "Tutor: {{name}}",
     markFailed: "Failed to mark",
     markedPaid_one: "✓ {{count}} lesson marked as paid",
     markedPaid_few: "✓ {{count}} lessons marked as paid",

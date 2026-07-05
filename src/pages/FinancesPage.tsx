@@ -964,7 +964,20 @@ export default function FinancesPage() {
     // Clearing a whole debt list at once is a real win — celebrate it (haptic already
     // fired instantly above; confetti is the after-success bonus).
     if (field === "student_payment_status") burstConfetti();
-    toast.success(t("finances.bulkUpdated", { count: ids.length }));
+    // Report only what was actually WRITTEN: a payout bulk deliberately skips group
+    // rows (no payout side exists), so counting the full selection over-reported.
+    const writtenCount =
+      field === "student_payment_status"
+        ? selRows.length
+        : selRows.filter((l) => l.kind !== "group").length;
+    const skippedGroups = ids.length - writtenCount;
+    if (writtenCount > 0) {
+      toast.success(t("finances.bulkUpdated", { count: writtenCount }), {
+        description: skippedGroups > 0 ? t("finances.bulkSkippedGroup", { count: skippedGroups }) : undefined,
+      });
+    } else {
+      toast.info(t("finances.bulkSkippedGroup", { count: skippedGroups }));
+    }
     setSelected(new Set());
   };
 
@@ -1022,13 +1035,15 @@ export default function FinancesPage() {
       ...(!isIndependentTutor
         ? [
             nameOf(l.tutor_id),
-            String(l.tutor_payout),
-            l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
-            l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
+            // Group rows: no payout is tracked (payout=0 / status="paid" are
+            // synthetic) — export "—" like the on-screen table, not fake money.
+            l.kind === "group" ? "—" : String(l.tutor_payout),
+            l.kind === "group" ? "—" : l.tutor_payout_status === "paid" ? t("finances.csvPaidOut") : t("finances.csvPending"),
+            l.kind === "group" ? "" : l.tutor_paid_at ? formatDate(l.tutor_paid_at) : "",
           ]
         : []),
       ...(!isIndependentTutor && !isHubTutor
-        ? [String(Number(l.student_price) - Number(l.tutor_payout))]
+        ? [l.kind === "group" ? "—" : String(Number(l.student_price) - Number(l.tutor_payout))]
         : []),
     ]);
     const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
@@ -2310,6 +2325,19 @@ export default function FinancesPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Primary action (layout spec: Finances FAB = record payment) — the cockpit
+            used to render neither the FAB nor the sheet, leaving the independent
+            tutor's record-payment flow unreachable on their own Finances page. */}
+        <RecordPaymentSheet
+          open={recordOpen}
+          onOpenChange={setRecordOpen}
+          pairs={pairsList}
+          unpaidLessons={unpaidLessonsForSheet}
+          onMarkLessonPaid={markLessonPaidById}
+          onWalletTopUp={fetchData}
+        />
+        <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
       </AppLayout>
     );
   }
@@ -2465,8 +2493,11 @@ export default function FinancesPage() {
                   // One REAL reminder (email / Telegram) per student — anchor on their first debt lesson.
                   // Group debts are skipped: remind-payment is individual-only and 404s on a
                   // group row's synthetic id (write to those students in chat instead).
+                  // NB: derived from periodBillable, NOT the tab-scoped debtList — on the
+                  // Income tab that list is empty and the button used to fake-fail.
                   const seen = new Set<string>();
-                  const reps = debtList.filter((l) => {
+                  const reps = periodBillable.filter((l) => {
+                    if (l.student_payment_status !== "unpaid") return false;
                     if (!l.id || l.kind === "group" || seen.has(l.student_id)) return false;
                     seen.add(l.student_id);
                     return true;

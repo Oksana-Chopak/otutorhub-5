@@ -240,6 +240,13 @@ export function WalletDialog({
             <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 18, color: F.txt, lineHeight: 1.2 }}>
               {t("walletDialog.paymentHeader", { name: studentName ?? t("walletDialog.studentFallback") })}
             </p>
+            {tutorName && (
+              // A student can have several tutors, each with their OWN wallet — always
+              // name whose wallet this is so a top-up can't be silently misattributed.
+              <p style={{ fontFamily: F.body, fontSize: 14, color: F.sub, marginTop: 2 }}>
+                {t("walletDialog.withTutor", { name: tutorName })}
+              </p>
+            )}
             <div style={{ display: "flex", gap: 14, marginTop: 5 }}>
               {loading ? (
                 <span style={{ fontSize: 14, color: F.muted, fontFamily: F.body }}>…</span>

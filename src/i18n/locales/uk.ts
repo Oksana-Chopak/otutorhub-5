@@ -718,6 +718,7 @@ export const uk = {
     undoAction: "Скасувати",
     bulkUpdateFailed: "Не вдалося оновити записи",
     bulkUpdated: "Оновлено {{count}} записів",
+    bulkSkippedGroup: "Групових рядків пропущено: {{count}} — виплати по групах не ведуться, оплати учнів познач у діалозі уроку",
     csvDownloaded: "CSV завантажено",
     others: "Інші ({{count}})",
     pageSubtitleManager: "Оплати від учнів та виплати репетиторам",
@@ -2056,6 +2057,7 @@ export const uk = {
     noPrepaidsHint: "Жоден учень поки не має передоплати. Натисніть «Показати всі пари», щоб поповнити будь-яку пару.",
   },
   walletDialog: {
+    withTutor: "Репетитор: {{name}}",
     markFailed: "Помилка позначення",
     markedPaid_one: "✓ {{count}} урок відмічено оплаченим",
     markedPaid_few: "✓ {{count}} уроки відмічено оплаченими",

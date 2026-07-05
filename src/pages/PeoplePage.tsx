@@ -1959,15 +1959,33 @@ export default function PeoplePage() {
                             {r.subject} · {tutorNameOf(r.tutor_id)} · {r.price_per_lesson} {currencySymbol(r.currency)}
                           </p>
                           {isManager && (
-                            <button
-                              type="button"
-                              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
-                              style={{ color: "var(--sub,#6b7088)" }}
-                              onClick={() => openRateFor(r)}
-                              aria-label={t("people.actionRate")}
-                            >
-                              <Pencil className="h-3.5 w-3.5" />
-                            </button>
+                            <>
+                              {/* Per-tutor wallet — a student can have several tutors,
+                                  each with their OWN wallet; the shared tile below just
+                                  picks the first, so multi-tutor students top up here. */}
+                              <button
+                                type="button"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                                style={{ color: "var(--sub,#6b7088)" }}
+                                onClick={() => {
+                                  setWalletPair({ student: u, tutorId: r.tutor_id, tutorName: tutorNameOf(r.tutor_id) });
+                                  setWalletOpen(true);
+                                  setSelectedPerson(null);
+                                }}
+                                aria-label={t("people.actionWallet")}
+                              >
+                                <Wallet className="h-3.5 w-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-muted transition-colors"
+                                style={{ color: "var(--sub,#6b7088)" }}
+                                onClick={() => openRateFor(r)}
+                                aria-label={t("people.actionRate")}
+                              >
+                                <Pencil className="h-3.5 w-3.5" />
+                              </button>
+                            </>
                           )}
                         </div>
                       ))}
@@ -2070,7 +2088,7 @@ export default function PeoplePage() {
                       type="button"
                       className="h-11 rounded-[12px] text-[14px] font-semibold text-white"
                       style={{ background: "var(--teal,#2BBFAA)" }}
-                      onClick={() => { setInvite({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: (u.role === "tutor" ? "tutor" : "student"), studentId: u.id, emailSent: false }); setSelectedPerson(null); }}
+                      onClick={() => { setInvite({ open: true, name: fullName(u), email: u.email, phone: u.phone, role: (u.role === "tutor" ? "tutor" : "student"), /* send-student-invite mails a role=student signup link — never wire it to a tutor ghost */ studentId: u.role === "student" ? u.id : null, emailSent: false }); setSelectedPerson(null); }}
                     >
                       {t("people.remindBtn")}
                     </button>

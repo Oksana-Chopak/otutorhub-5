@@ -483,6 +483,7 @@ export const sv: LocaleTranslations = {
     undoAction: "Ångra",
     bulkUpdateFailed: "Det gick inte att uppdatera poster",
     bulkUpdated: "{{count}} poster uppdaterade",
+    bulkSkippedGroup: "Grupprader hoppades över: {{count}} — grupputbetalningar spåras inte; markera elevbetalningar i lektionsdialogen",
     csvDownloaded: "CSV nedladdad",
     others: "Övriga ({{count}})",
     pageSubtitleManager: "Elevbetalningar och lärarutbetalningar",
@@ -2035,6 +2036,7 @@ export const sv: LocaleTranslations = {
     noPrepaidsHint: "Ingen elev har en förskottsbetalning ännu. Klicka på «Visa alla par» för att fylla på.",
   },
   walletDialog: {
+    withTutor: "Lärare: {{name}}",
     markFailed: "Kunde inte markera",
     markedPaid_one: "✓ {{count}} lektion markerad som betald",
     markedPaid_few: "✓ {{count}} lektioner markerade som betalda",
