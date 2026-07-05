@@ -31,6 +31,7 @@ const ErrorLogPage = lazy(() => import("./pages/ErrorLogPage"));
 installGlobalErrorLogging();
 const FeedbackInboxPage = lazy(() => import("./pages/FeedbackInboxPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const MyStudentsPage = lazy(() => import("./pages/MyStudentsPage"));
@@ -91,6 +92,7 @@ function AppRoutes() {
         <ErrorBoundary key={location.pathname}>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />

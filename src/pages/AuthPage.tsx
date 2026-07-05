@@ -180,9 +180,15 @@ export default function AuthPage() {
     })(),
   });
 
+  // Preserve ?next=/path across sign-in so OAuth MCP consent (/.lovable/oauth/consent)
+  // and other deep-linked flows can bring the user back after auth. Same-origin
+  // relative paths only.
+  const nextParam = searchParams.get("next");
+  const nextPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/";
+
   useEffect(() => {
-    if (!authLoading && user) navigate("/", { replace: true });
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user) navigate(nextPath, { replace: true });
+  }, [user, authLoading, navigate, nextPath]);
 
   useEffect(() => {
     localStorage.setItem(REMEMBER_KEY, String(remember));
@@ -218,7 +224,7 @@ export default function AuthPage() {
         }
         // Сесія створена — прибираємо токени з URL і йдемо в застосунок.
         window.history.replaceState({}, "", window.location.pathname);
-        navigate("/", { replace: true });
+        navigate(nextPath, { replace: true });
       } catch (err) {
         console.error("[AuthPage] confirmation-link token exchange failed:", err);
         // Не вдалося — лишаємо користувача на формі входу з підказкою.
@@ -254,7 +260,7 @@ export default function AuthPage() {
     if (authLoading) return;
     if (user) {
       // Active session — go to root, role-based routing happens there
-      navigate("/", { replace: true });
+      navigate(nextPath, { replace: true });
       return;
     }
     // Лінк підтвердження міг принести токени в URL-хеші, які Supabase парсить
@@ -266,7 +272,7 @@ export default function AuthPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (cancelled) return;
       if (session?.user) {
-        navigate("/", { replace: true });
+        navigate(nextPath, { replace: true });
         return;
       }
       // Сесії немає — підтвердження пройшло, але входу нема: автозаповнюємо email.
@@ -345,7 +351,7 @@ export default function AuthPage() {
               password: parsed.data.password,
             });
             if (!retry.error) {
-              navigate("/", { replace: true });
+              navigate(nextPath, { replace: true });
               return;
             }
           }
@@ -358,7 +364,7 @@ export default function AuthPage() {
       }
       return;
     }
-    navigate("/", { replace: true });
+    navigate(nextPath, { replace: true });
   };
 
   const handleForgotPassword = async () => {
@@ -389,7 +395,7 @@ export default function AuthPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: nextPath !== "/" ? `${window.location.origin}/auth?next=${encodeURIComponent(nextPath)}` : window.location.origin,
     });
     if (result.error) {
       setLoading(false);
@@ -402,7 +408,7 @@ export default function AuthPage() {
     }
     if (result.redirected) return;
     setLoading(false);
-    navigate("/", { replace: true });
+    navigate(nextPath, { replace: true });
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -429,7 +435,7 @@ export default function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}`,
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
         data: {
           first_name: parsed.data.firstName,
           last_name: parsed.data.lastName,
@@ -476,7 +482,7 @@ export default function AuthPage() {
         });
         setLoading(false);
         if (!signInErr) {
-          navigate("/", { replace: true });
+          navigate(nextPath, { replace: true });
           return;
         }
         // Fallthrough to email-sent screen if direct sign-in failed.
@@ -504,7 +510,7 @@ export default function AuthPage() {
       type: "signup",
       email: target,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(target)}`,
+        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(target)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
       },
     });
     toast(
@@ -564,7 +570,7 @@ export default function AuthPage() {
     return (
       <ConfirmedSignIn
         email={emailFromUrl}
-        onSuccess={() => navigate("/", { replace: true })}
+        onSuccess={() => navigate(nextPath, { replace: true })}
         onResend={resendConfirmation}
       />
     );
