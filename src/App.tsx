@@ -31,6 +31,7 @@ const ErrorLogPage = lazy(() => import("./pages/ErrorLogPage"));
 installGlobalErrorLogging();
 const FeedbackInboxPage = lazy(() => import("./pages/FeedbackInboxPage"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 const MyStudentsPage = lazy(() => import("./pages/MyStudentsPage"));
