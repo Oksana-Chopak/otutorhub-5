@@ -2226,6 +2226,29 @@ export type Database = {
       }
     }
     Views: {
+      group_enrollments_visible: {
+        Row: {
+          created_at: string | null
+          currency: string | null
+          group_id: string | null
+          id: string | null
+          joined_at: string | null
+          price_per_lesson: number | null
+          status: string | null
+          student_id: string | null
+          tutor_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_enrollments_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_details_student: {
         Row: {
           created_at: string | null
@@ -2250,6 +2273,47 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: true
             referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_participants_visible: {
+        Row: {
+          attendance_status: string | null
+          created_at: string | null
+          currency: string | null
+          id: string | null
+          lesson_id: string | null
+          source: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["lesson_status"] | null
+          student_id: string | null
+          student_paid_at: string | null
+          student_payment_status: string | null
+          student_price: number | null
+          subject: string | null
+          tutor_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_participants_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
