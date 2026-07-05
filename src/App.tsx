@@ -92,6 +92,7 @@ function AppRoutes() {
         <ErrorBoundary key={location.pathname}>
         <Routes>
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/feedback-preview" element={<FeedbackPreviewPage />} />
           <Route path="/unsubscribe" element={<UnsubscribePage />} />
