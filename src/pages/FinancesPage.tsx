@@ -95,6 +95,9 @@ interface LessonRow {
   // never used as a real lesson id. No tutor_payout is tracked for groups (it would leak
   // the hub margin to students), so payout = 0 and payout_status = "paid".
   kind?: "individual" | "group";
+  /** Mirrors kind==="group" for the shared billable predicate: the synthetic
+   * payout_status="paid" must not make a FUTURE group lesson count as billable. */
+  is_group?: boolean;
   participant_id?: string;
 }
 
@@ -424,6 +427,7 @@ export default function FinancesPage() {
         student_paid_at: p.student_paid_at ?? null,
         tutor_paid_at: null,
         kind: "group" as const,
+        is_group: true,
         participant_id: p.id as string,
       })),
     );

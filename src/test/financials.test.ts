@@ -39,6 +39,18 @@ describe("isBillableLesson (the shared billable predicate)", () => {
   it("always includes completed lessons", () => {
     expect(isBillableLesson(mk({ status: "completed", starts_at: "2099-01-01T00:00:00Z" }), NOW)).toBe(true);
   });
+  it("synthetic group payout status never bills a FUTURE group lesson", () => {
+    // Group rows are flattened with tutor_payout_status="paid" (no payout side
+    // exists) — that must not make a future scheduled group lesson billable.
+    const futureGroup = mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", is_group: true, student_payment_status: "unpaid", tutor_payout_status: "paid" });
+    expect(isBillableLesson(futureGroup, NOW)).toBe(false);
+    // ...but a REAL student prepayment on a future group lesson does bill,
+    expect(isBillableLesson(mk({ ...futureGroup, student_payment_status: "paid" }), NOW)).toBe(true);
+    // ...and past group lessons bill as usual.
+    expect(isBillableLesson(mk({ ...futureGroup, starts_at: "2026-06-20T10:00:00Z" }), NOW)).toBe(true);
+    // Individual lessons keep the payout-side prepay shortcut.
+    expect(isBillableLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid", tutor_payout_status: "paid" }), NOW)).toBe(true);
+  });
   it("includes past scheduled lessons and pre-paid future ones only", () => {
     expect(isBillableLesson(mk({ status: "scheduled", starts_at: "2026-06-30T10:00:00Z", student_payment_status: "unpaid", tutor_payout_status: "unpaid" }), NOW)).toBe(true);
     expect(isBillableLesson(mk({ status: "scheduled", starts_at: "2026-07-02T10:00:00Z", student_payment_status: "unpaid", tutor_payout_status: "unpaid" }), NOW)).toBe(false);

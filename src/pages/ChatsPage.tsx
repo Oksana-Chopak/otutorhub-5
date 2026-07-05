@@ -335,10 +335,28 @@ export default function ChatsPage() {
         if (match) {
           setSelectedId(match.id);
         } else {
-          toast({
-            title: t("chats.noThreadTitle"),
-            description: t("chats.createViaButton"),
-          });
+          // No thread yet — e.g. a self-signup student from /referrals with no
+          // lessons/rates (the «Написати» CTA used to dead-end here). Create a
+          // manager support thread: the RPC accepts a manager in either slot,
+          // so the manager takes the counterpart slot (mirrors start_manager_chat).
+          const { data: otherRoles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", withId);
+          const otherIsTutor = (otherRoles ?? []).some((r: any) => r.role === "tutor");
+          const args = otherIsTutor
+            ? { _tutor_id: withId, _student_id: myId }
+            : { _tutor_id: myId, _student_id: withId };
+          const { data: threadId, error } = await supabase.rpc("get_or_create_chat_thread", args);
+          if (!error && threadId) {
+            await loadThreads();
+            setSelectedId(threadId as string);
+          } else {
+            toast({
+              title: t("chats.noThreadTitle"),
+              description: t("chats.createViaButton"),
+            });
+          }
         }
       } else {
         // Determine tutor/student roles for the pair

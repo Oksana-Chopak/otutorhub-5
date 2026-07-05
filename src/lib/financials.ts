@@ -20,6 +20,9 @@ export interface MoneyLesson {
   /** Cancelled lesson whose student_price is a withheld cancellation FEE
    * (lesson_details.is_cancellation_fee) — the only cancelled rows that bill. */
   is_cancellation_fee?: boolean | null;
+  /** Group-participant row: its tutor_payout_status is a SYNTHETIC "paid"
+   * (no group payout is tracked), so it must not count as a real payment. */
+  is_group?: boolean;
 }
 
 /**
@@ -37,7 +40,10 @@ export const isBillableLesson = (l: MoneyLesson, nowMs: number = Date.now()): bo
   if (l.status === "pending") return false;
   if (l.status === "completed") return true;
   const isPast = new Date(l.starts_at).getTime() < nowMs;
-  const hasPayment = l.student_payment_status === "paid" || l.tutor_payout_status === "paid";
+  // Group rows carry a synthetic tutor_payout_status="paid" (no payout side exists),
+  // which must not make a FUTURE group lesson billable — only a real student payment does.
+  const hasPayment =
+    l.student_payment_status === "paid" || (!l.is_group && l.tutor_payout_status === "paid");
   return isPast || hasPayment;
 };
 

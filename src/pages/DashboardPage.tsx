@@ -811,12 +811,16 @@ export default function DashboardPage() {
         .map((l) => ({
           id: l.id,
           student_id: l.student_id,
-          name: profiles[l.student_id] ?? t("pendingPayments.studentFallback"),
+          name: l.student_id ? (profiles[l.student_id] ?? t("pendingPayments.studentFallback")) : t("groupLessons.cardLabel"),
           time: new Date(l.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" }),
           price: Number(l.student_price) || 0,
           currency: pairCurrency[`${l.tutor_id}:${l.student_id}`],
           paid: l.student_payment_status === "paid",
-          showPay: isManager || l.source === "independent",
+          // Group lessons (student_id NULL) have NO shared lesson_details row — the
+          // paid-write would land in the wrong table and "succeed" while every
+          // participant stays unpaid. Close the status only; payments are marked
+          // per participant in the lesson dialog.
+          showPay: !!l.student_id && (isManager || l.source === "independent"),
         })),
     [todayLessons, nowMs, isManager, user?.id, profiles, pairCurrency]
   );
