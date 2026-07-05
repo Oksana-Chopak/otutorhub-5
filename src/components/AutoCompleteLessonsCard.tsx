@@ -51,15 +51,12 @@ export function AutoCompleteLessonsCard() {
     <Card className="mt-6">
       <CardHeader>
         <CardTitle className="text-base">{t("autoComplete.cardTitle")}</CardTitle>
-        <CardDescription>
-          Якщо увімкнено — урок автоматично стає «Проведено» через 1 годину після закінчення.
-          Інакше — відмічайте вручну на дашборді.
-        </CardDescription>
+        <CardDescription>{t("autoComplete.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between gap-4">
           <Label htmlFor="auto-complete" className="text-sm">
-            Автоматично відмічати уроки як проведені
+            {t("autoComplete.toggleLabel")}
           </Label>
           <Switch id="auto-complete" checked={enabled} onCheckedChange={onToggle} disabled={saving} />
         </div>

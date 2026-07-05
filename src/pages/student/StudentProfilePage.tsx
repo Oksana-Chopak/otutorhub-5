@@ -56,7 +56,7 @@ export default function StudentProfilePage() {
       const [{ data: profile }, { data: contact }, { data: lessons }, { data: rates }] = await Promise.all([
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("phone, telegram, instagram_url, facebook_url").eq("user_id", user.id).maybeSingle(),
-        supabase.from("lessons").select("starts_at, status").or(await studentLessonsOrFilter(user.id)),
+        supabase.from("lessons").select("starts_at, status, tutor_id, subject").or(await studentLessonsOrFilter(user.id)),
         supabase.from("student_rates").select("tutor_id, subject").eq("student_id", user.id).is("archived_at", null),
       ]);
       setFirstName(profile?.first_name ?? "");
@@ -83,6 +83,14 @@ export default function StudentProfilePage() {
         const set = subjectsByTutor.get(r.tutor_id) ?? new Set<string>();
         if (r.subject) set.add(r.subject);
         subjectsByTutor.set(r.tutor_id, set);
+      });
+      // Group-only students have NO student_rates row — union tutors from their
+      // lessons (incl. group ones via the or-filter) so the list isn't empty.
+      ((lessons ?? []) as any[]).forEach((l) => {
+        if (!l.tutor_id) return;
+        const set = subjectsByTutor.get(l.tutor_id) ?? new Set<string>();
+        if (l.subject) set.add(l.subject);
+        subjectsByTutor.set(l.tutor_id, set);
       });
       const tutorIds = Array.from(subjectsByTutor.keys());
       if (tutorIds.length) {

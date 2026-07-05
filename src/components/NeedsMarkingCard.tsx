@@ -4,6 +4,9 @@ import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { insertNotification } from "@/lib/notifications";
+import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
+import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { Check, X, Clock, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -13,7 +16,7 @@ interface PastLesson {
   subject: string;
   starts_at: string;
   duration_minutes: number;
-  student_id: string;
+  student_id: string | null; // NULL for group lessons
   source: "hub" | "independent";
 }
 
@@ -59,6 +62,23 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
       return;
     }
     toast.success(status === "completed" ? t("needsMarking.markedCompleted") : t("needsMarking.markedCancelled"));
+    if (status === "cancelled") {
+      // Cancellation must reach the student + calendar, same as the Dashboard/Schedule
+      // cancel paths — this card is the hub tutor's primary marking surface.
+      const lesson = lessons.find((l) => l.id === id);
+      if (lesson?.student_id) {
+        insertNotification({
+          userId: lesson.student_id,
+          // per-lesson type dodges the 24h (user,type) notification dedup
+          type: `lesson_cancelled_${id}`,
+          title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
+          link: "/student/schedule",
+        });
+      } else if (lesson) {
+        void notifyGroupLessonCancelled(id, lesson.subject);
+      }
+      void syncLessonToGoogleCalendar(id, "delete");
+    }
     onChanged();
   };
 
@@ -89,7 +109,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">
-                  {l.subject} · {studentNames[l.student_id] ?? "—"}
+                  {l.subject} · {(l.student_id ? studentNames[l.student_id] : t("groupLessons.cardLabel")) ?? "—"}
                 </p>
                 <p className="text-[14px] text-muted-foreground">
                   {fmt(l.starts_at)}

@@ -86,7 +86,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     const email = emailTrim || null;
     const phone = phoneTrim || null;
     const subject = form.subject.trim();
-    const price = Number(form.price);
+    // parseFloat('') → NaN, so a blank required price is rejected below
+    // (Number('') === 0 silently created 0-rate students).
+    const price = parseFloat(form.price);
     const currency = form.currency || "UAH";
 
     if (!fn && !ln) return toast.error(t("quickAddStudent.nameRequired"));

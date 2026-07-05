@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { formatPrice } from "@/lib/currency";
 import { updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { confirmDialog } from "@/hooks/useConfirm";
 import {
@@ -144,6 +145,9 @@ export function WalletDialog({
     id: string; starts_at: string; subject: string; student_price: number; currency: string;
   }>>([]);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+  // The pair's billing currency (student_rates) — wallet money amounts are stored
+  // in this currency; rendering a bare «₴» misstated USD/EUR wallets ~40x.
+  const [pairCur, setPairCur] = useState("UAH");
   const [loadingUnpaid, setLoadingUnpaid] = useState(false);
   const [marking, setMarking] = useState(false);
 
@@ -164,6 +168,7 @@ export function WalletDialog({
           .order("starts_at", { ascending: true }),
       ]);
       const cur = rateRow?.currency ?? "UAH";
+      setPairCur(cur);
       const rows = (data ?? [])
         .filter((l: any) => Number(l.student_price ?? 0) > 0)
         .map((l: any) => ({ id: l.id, starts_at: l.starts_at, subject: l.subject, student_price: Number(l.student_price ?? 0), currency: cur }));
@@ -246,7 +251,7 @@ export function WalletDialog({
                   </span>
                   <span style={{ fontSize: 15, fontFamily: F.display, color: F.txt }}>
                     <strong style={{ color: (balance?.amount_balance ?? 0) > 0 ? F.tealD : F.txt }}>
-                      {balance?.amount_balance ?? 0}₴
+                      {formatPrice(balance?.amount_balance ?? 0, pairCur, { decimals: 0 })}
                     </strong>
                     <span style={{ fontSize: 14, color: F.sub, marginLeft: 4, fontFamily: F.body }}>{t("walletDialog.balanceLabel")}</span>
                   </span>
@@ -329,7 +334,7 @@ export function WalletDialog({
                         </div>
                         <p style={{ fontFamily: F.display, fontWeight: 800, fontSize: 16,
                           color: checked ? F.tealD : F.txt, flexShrink: 0 }}>
-                          {lesson.student_price}{lesson.currency === "UAH" ? "₴" : lesson.currency === "USD" ? "$" : "€"}
+                          {formatPrice(lesson.student_price, lesson.currency, { decimals: 0 })}
                         </p>
                       </button>
                     );
@@ -466,7 +471,7 @@ export function WalletDialog({
                         {(tx.amount_delta ?? 0) !== 0 && (
                           <p style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14,
                             color: (tx.amount_delta ?? 0) > 0 ? F.tealD : "hsl(var(--destructive))" }}>
-                            {(tx.amount_delta ?? 0) > 0 ? "+" : ""}{tx.amount_delta}₴
+                            {(tx.amount_delta ?? 0) > 0 ? "+" : ""}{formatPrice(tx.amount_delta ?? 0, pairCur, { decimals: 0 })}
                           </p>
                         )}
                       </div>

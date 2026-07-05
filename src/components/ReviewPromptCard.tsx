@@ -36,7 +36,25 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
   const [hover, setHover] = useState(0);
   const [comment, setComment] = useState("");
   const [saving, setSaving] = useState(false);
+  // Dismissals persist per device (same model as the homework-done checklist) —
+  // in-memory-only state re-nagged the exact lesson the student closed with ✕
+  // on every dashboard visit, forever.
+  const dismissKey = user ? `reviewPromptDismissed:${user.id}` : null;
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!dismissKey) return;
+    try {
+      const raw = localStorage.getItem(dismissKey);
+      if (raw) setDismissed(new Set(JSON.parse(raw) as string[]));
+    } catch { /* corrupt storage — start clean */ }
+  }, [dismissKey]);
+  const persistDismiss = (next: Set<string>) => {
+    if (!dismissKey) return;
+    try {
+      // cap so the key can't grow unbounded over years of lessons
+      localStorage.setItem(dismissKey, JSON.stringify(Array.from(next).slice(-100)));
+    } catch { /* quota — nag again next visit, not fatal */ }
+  };
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -124,7 +142,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
     setRating(0);
     setHover(0);
     setComment("");
-    setDismissed((prev) => new Set(prev).add(current.id));
+    setDismissed((prev) => { const n = new Set(prev).add(current.id); persistDismiss(n); return n; });
     onRated?.();
   };
 
@@ -133,7 +151,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
     setRating(0);
     setHover(0);
     setComment("");
-    setDismissed((prev) => new Set(prev).add(current.id));
+    setDismissed((prev) => { const n = new Set(prev).add(current.id); persistDismiss(n); return n; });
   };
 
   if (loading || !current) return null;

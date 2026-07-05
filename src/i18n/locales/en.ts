@@ -2147,6 +2147,8 @@ export const en: LocaleTranslations = {
     dayOff: "{{day}} — day off",
   },
   autoComplete: {
+    cardDescription: "When enabled, a lesson is automatically marked as «Completed» 1 hour after it ends. Otherwise, mark lessons manually on the dashboard.",
+    toggleLabel: "Automatically mark lessons as completed",
     saveFailed: "Failed to save",
     enabledSuccess: "Auto-mark enabled",
     disabledSuccess: "Auto-mark disabled",
@@ -3248,6 +3250,7 @@ export const en: LocaleTranslations = {
     backToSignup: "Back to signup",
   },
   studentPagesExtra: {
+    askInChat: "Ask about payment in chat",
     homeworkTabActive: "Active ({{count}})",
     homeworkTabArchive: "Archive ({{count}})",
     homeworkArchiveHint: "Completed assignments — review the material anytime.",

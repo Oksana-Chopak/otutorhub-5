@@ -2158,6 +2158,8 @@ export const uk = {
     dayOff: "{{day}} — вихідний",
   },
   autoComplete: {
+    cardDescription: "Якщо увімкнено — урок автоматично стає «Проведено» через 1 годину після закінчення. Інакше — відмічайте вручну на дашборді.",
+    toggleLabel: "Автоматично відмічати уроки як проведені",
     saveFailed: "Не вдалося зберегти",
     enabledSuccess: "Авто-відмітка увімкнена",
     disabledSuccess: "Авто-відмітка вимкнена",
@@ -3259,6 +3261,7 @@ export const uk = {
     backToSignup: "Назад до реєстрації",
   },
   studentPagesExtra: {
+    askInChat: "Спитати про оплату в чаті",
     homeworkTabActive: "Активні ({{count}})",
     homeworkTabArchive: "Архів ({{count}})",
     homeworkArchiveHint: "Виконані завдання — можна повторити матеріал будь-коли.",

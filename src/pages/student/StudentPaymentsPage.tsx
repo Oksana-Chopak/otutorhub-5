@@ -3,7 +3,8 @@ import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Check, Clock, Wallet, Copy } from "lucide-react";
+import { Check, Clock, Wallet, Copy, MessageCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { SkeletonList } from "@/components/SkeletonCard";
@@ -320,6 +321,19 @@ export default function StudentPaymentsPage() {
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </button>
+                      )}
+                      {!paid && !payInfoFor(r.tutor_id) && (
+                        // Group-only pairs have no stored payment details (student_rates
+                        // row doesn't exist) — offer the chat instead of nothing.
+                        <Link
+                          to={`/chats?with=${r.tutor_id}`}
+                          aria-label={t("studentPagesExtra.askInChat")}
+                          title={t("studentPagesExtra.askInChat")}
+                          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-[10px] transition-opacity hover:opacity-70"
+                          style={{ background: "rgba(43,191,170,.12)", color: "#0F6E56" }}
+                        >
+                          <MessageCircle className="h-3.5 w-3.5" />
+                        </Link>
                       )}
                     </div>
                 </li>

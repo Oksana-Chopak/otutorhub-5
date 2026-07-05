@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface PairRow {
   tutor_name: string;
   student_name: string;
   rate: number;
+  currency: string;
   lessons_balance: number;
   amount_balance: number;
   last_transaction_at: string | null;
@@ -52,7 +54,7 @@ export default function WalletsPage() {
     //    only the profiles lookup depends on the pairs result.
     let ratesQ = supabase
       .from("student_rates")
-      .select("tutor_id, student_id, price_per_lesson, archived_at")
+      .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
       .is("archived_at", null);
     if (isIndependentTutor && user) {
       ratesQ = ratesQ.eq("tutor_id", user.id).eq("source", "independent");
@@ -98,6 +100,7 @@ export default function WalletsPage() {
         rate: existing
           ? Math.max(existing.rate, Number(p.price_per_lesson) || 0)
           : Number(p.price_per_lesson) || 0,
+        currency: existing?.currency ?? p.currency ?? "UAH",
         lessons_balance: bal?.lessons_balance ?? 0,
         amount_balance: Number(bal?.amount_balance ?? 0),
         last_transaction_at: bal?.last_transaction_at ?? null,
@@ -220,7 +223,7 @@ export default function WalletsPage() {
                       <span className="font-semibold tabular-nums" style={{ color: "#1f8e7e" }}>
                         {r.lessons_balance > 0 && `🎟 ${t("walletsPage.lessonsShort", { count: r.lessons_balance })}`}
                         {r.lessons_balance > 0 && r.amount_balance > 0 && " · "}
-                        {r.amount_balance > 0 && `${r.amount_balance.toFixed(0)} ₴`}
+                        {r.amount_balance > 0 && formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
                         {r.lessons_balance === 0 && r.amount_balance === 0 && (
                           <span style={{ color: "var(--sub,#6b7088)" }}>—</span>
                         )}
@@ -271,7 +274,7 @@ export default function WalletsPage() {
                       <td className="px-4 py-3 text-right tabular-nums">
                         {r.amount_balance > 0 ? (
                           <span className="font-semibold" style={{ color: "#1f8e7e" }}>
-                            {r.amount_balance.toFixed(0)} ₴
+                            {formatPrice(r.amount_balance, r.currency, { decimals: 0 })}
                           </span>
                         ) : (
                           <span style={{ color: "var(--sub,#6b7088)" }}>—</span>

@@ -2137,6 +2137,8 @@ export const sv: LocaleTranslations = {
     dayOff: "{{day}} — ledig dag",
   },
   autoComplete: {
+    cardDescription: "När det är aktiverat markeras en lektion automatiskt som «Genomförd» 1 timme efter att den slutat. Annars markerar du lektioner manuellt på översikten.",
+    toggleLabel: "Markera lektioner som genomförda automatiskt",
     saveFailed: "Kunde inte spara",
     enabledSuccess: "Automatisk markering aktiverad",
     disabledSuccess: "Automatisk markering inaktiverad",
@@ -3238,6 +3240,7 @@ export const sv: LocaleTranslations = {
     backToSignup: "Tillbaka till registrering",
   },
   studentPagesExtra: {
+    askInChat: "Fråga om betalning i chatten",
     homeworkTabActive: "Aktiva ({{count}})",
     homeworkTabArchive: "Arkiv ({{count}})",
     homeworkArchiveHint: "Slutförda uppgifter — repetera materialet när du vill.",
