@@ -676,6 +676,15 @@ export const sv: LocaleTranslations = {
     reactionTitle: "Reaktion",
   },
   profile: {
+    achStreak_one: "{{count}} dags svit",
+    achStreak_other: "{{count}} dagars svit",
+    achStreak: "{{count}} dagars svit",
+    achBadges_one: "{{count}} märke",
+    achBadges_other: "{{count}} märken",
+    achBadges: "{{count}} märken",
+    achStart: "Håll en lektion — starta din svit 🔥",
+    editSocials: "Sociala medier & meddelanden",
+    editSocialsHint: "Instagram, Facebook, Messenger",
     defaultTutorName: "Lärare",
     defaultManagerName: "Administratör",
     independentTutorSub: "Fristående lärare",
@@ -1913,6 +1922,7 @@ export const sv: LocaleTranslations = {
     tutorRequestTitle: "{{name}} söker en lärare · {{subject}}",
   },
   shared: {
+    phone: "Telefon",
     noName: "Okänt",
     student: "Elev",
     tutor: "Lärare",
@@ -3633,6 +3643,7 @@ export const sv: LocaleTranslations = {
     proPromptDesc: "Automatiska betalningspåminnelser, avbokning/ombokning av elev enligt dina regler, detaljerade rapporter och export.",
   },
   quickLessonDialog: {
+    hubNoStudentsHint: "Inga elever tilldelade ännu — din chef lägger till dem snart 🤝",
     notifCancellationRulesTitle: "📋 Regler för avbokning och ombokning",
     notifCancellationRulesBody: "Kostnadsfri avbokning fram till {{hours}} h före lektionen. Senare debiteras {{fee}}% av priset. Utebliven närvaro debiteras {{noshow}}%. Kostnadsfria ombokningar per månad: {{reschedules}}.",
     studentFallback: "Elev",

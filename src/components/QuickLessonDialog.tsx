@@ -38,6 +38,10 @@ interface Props {
   onCreated?: () => void;
   onWantFullForm?: (startsAt: Date) => void;
   initialStudentId?: string | null;
+  /** "hub": the dialog serves a HUB tutor — students come from their hub rates
+   * (source='hub'), lessons are created with source='hub', and the add-student
+   * CTA is hidden (hub students are owned by the manager). Default: independent. */
+  variant?: "independent" | "hub";
 }
 
 interface StudentRow {
@@ -75,7 +79,9 @@ export function QuickLessonDialog({
   onCreated,
   onWantFullForm,
   initialStudentId,
+  variant = "independent",
 }: Props) {
+  const isHubVariant = variant === "hub";
   const { user } = useAuth();
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
@@ -108,7 +114,7 @@ export function QuickLessonDialog({
           .from("student_rates")
           .select("student_id, subject, price_per_lesson, currency, archived_at")
           .eq("tutor_id", user.id)
-          .eq("source", "independent"),
+          .eq("source", isHubVariant ? "hub" : "independent"),
         supabase
           .from("lesson_groups")
           .select("id, name, subject")
@@ -234,7 +240,7 @@ export function QuickLessonDialog({
         subject: selectedGroup.subject || t("shared.lesson"),
         startsAt: effStartsAt.toISOString(),
         durationMinutes: parseInt(duration) || 60,
-        source: "independent",
+        source: isHubVariant ? "hub" : "independent",
         createdBy: user.id,
       });
       setSubmitting(false);
@@ -265,7 +271,7 @@ export function QuickLessonDialog({
       duration_minutes: parseInt(duration) || 60,
       status: "scheduled" as const,
       created_by: user.id,
-      source: "independent",
+      source: isHubVariant ? "hub" : "independent",
       meeting_url: selected.default_meeting_url || null,
     };
     const payloads = Array.from({ length: seriesCount }, (_, i) => ({
@@ -277,7 +283,10 @@ export function QuickLessonDialog({
       .insert(payloads)
       .select("id");
     const created = createdRows?.[0] ?? null;
-    if (!error && createdRows?.length) {
+    if (!error && createdRows?.length && !isHubVariant) {
+      // Independent: pin the displayed price onto the lesson. HUB lessons get their
+      // price + payout from the server-side autofill trigger (rates snapshot); a hub
+      // tutor's student_price write is RPC-gated anyway (MON-2) — skip the round-trip.
       await Promise.all(
         createdRows.map((r) =>
           updateLessonDetailsSafe(r.id, { student_price: selected.price || 0 })
@@ -445,14 +454,16 @@ export function QuickLessonDialog({
             ) : students.length === 0 && groups.length === 0 ? (
               <div style={{ textAlign: "center", padding: "20px 0" }}>
                 <p style={{ fontSize: 15, color: F.sub, marginBottom: 14, fontFamily: F.body }}>
-                  {t("quickLessonDialog.noStudentsHint")}
+                  {isHubVariant ? t("quickLessonDialog.hubNoStudentsHint") : t("quickLessonDialog.noStudentsHint")}
                 </p>
-                <button onClick={() => setAddStudentOpen(true)}
-                  style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
-                    background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
-                    fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
-                  + {t("quickLessonDialog.addStudentBtn")}
-                </button>
+                {!isHubVariant && (
+                  <button onClick={() => setAddStudentOpen(true)}
+                    style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
+                      background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
+                      fontFamily: F.display, fontWeight: 700, fontSize: 15 }}>
+                    + {t("quickLessonDialog.addStudentBtn")}
+                  </button>
+                )}
               </div>
             ) : (
               <>
@@ -567,7 +578,11 @@ export function QuickLessonDialog({
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontFamily: F.display, fontWeight: 700, fontSize: 15.5, color: F.txt,
                               whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</div>
-                            <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>{s.subject} · {formatPrice(s.price, s.currency)}</div>
+                            <div style={{ fontSize: 14, color: F.sub, fontFamily: F.body }}>
+                              {/* MON-2: the hub student price is the HUB's money — a hub tutor
+                                  sees the subject only, never the price. */}
+                              {isHubVariant ? s.subject : <>{s.subject} · {formatPrice(s.price, s.currency)}</>}
+                            </div>
                           </div>
                           <span style={{ width: 22, height: 22, borderRadius: 999, flexShrink: 0,
                             border: `2px solid ${active ? F.teal : F.muted}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -576,11 +591,13 @@ export function QuickLessonDialog({
                         </button>
                       );
                     })}
-                    <button onClick={() => setAddStudentOpen(true)}
-                      style={{ height: 44, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
-                        background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
-                      + {t("quickLessonDialog.addStudentBtn")}
-                    </button>
+                    {!isHubVariant && (
+                      <button onClick={() => setAddStudentOpen(true)}
+                        style={{ height: 44, borderRadius: 12, border: `1px dashed ${F.border}`, cursor: "pointer",
+                          background: "transparent", color: F.muted, fontFamily: F.body, fontWeight: 600, fontSize: 14 }}>
+                        + {t("quickLessonDialog.addStudentBtn")}
+                      </button>
+                    )}
                   </div>
                 )}
 

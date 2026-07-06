@@ -1632,7 +1632,10 @@ export default function SchedulePage() {
           onToday={() => setWeekAnchor(new Date())}
           onSlotClick={(date) => {
             if (!canCreate) return;
-            if (isIndependentTutor) {
+            if (isTutor && !isManager) {
+              // Both tutor kinds get the modern quick dialog (hub variant reads hub
+              // students + creates source='hub'); only the manager needs the full
+              // form (tutor picker).
               setQuickSlot(date);
               return;
             }
@@ -1824,9 +1827,24 @@ export default function SchedulePage() {
           setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
           setCreateOpen(true);
         }}
+        variant={isTutor && !isManager && !isIndependentTutor ? "hub" : "independent"}
       />
       {canCreate && (
-        <PageFAB onClick={() => setCreateOpen(true)} label={t("schedule.createBtn")} />
+        <PageFAB
+          onClick={() => {
+            if (isTutor && !isManager) {
+              // Tutors land in the modern quick dialog; time defaults to the next
+              // full hour and is editable inside the dialog.
+              const d = new Date();
+              d.setMinutes(0, 0, 0);
+              d.setHours(d.getHours() + 1);
+              setQuickSlot(d);
+              return;
+            }
+            setCreateOpen(true);
+          }}
+          label={t("schedule.createBtn")}
+        />
       )}
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
         <AlertDialogContent className="rounded-[20px]">

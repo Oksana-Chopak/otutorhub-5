@@ -915,6 +915,17 @@ export const uk = {
 
   // Profile
   profile: {
+    achStreak_one: "серія {{count}} день",
+    achStreak_few: "серія {{count}} дні",
+    achStreak_many: "серія {{count}} днів",
+    achStreak: "серія {{count}} днів",
+    achBadges_one: "{{count}} бейдж",
+    achBadges_few: "{{count}} бейджі",
+    achBadges_many: "{{count}} бейджів",
+    achBadges: "{{count}} бейджів",
+    achStart: "Проведи урок — розпочни свою серію 🔥",
+    editSocials: "Соцмережі та месенджери",
+    editSocialsHint: "Instagram, Facebook, Messenger",
     defaultTutorName: "Репетитор",
     defaultManagerName: "Менеджер",
     independentTutorSub: "Незалежний репетитор",
@@ -1934,6 +1945,7 @@ export const uk = {
     tutorRequestTitle: "{{name}} шукає репетитора · {{subject}}",
   },
   shared: {
+    phone: "Телефон",
     noName: "Без імені",
     student: "Учень",
     tutor: "Репетитор",
@@ -3655,6 +3667,7 @@ export const uk = {
     proPromptDesc: "Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами, детальні звіти та експорт.",
   },
   quickLessonDialog: {
+    hubNoStudentsHint: "Учнів ще не призначено — менеджер додасть їх тобі найближчим часом 🤝",
     notifCancellationRulesTitle: "📋 Правила скасування та перенесення",
     notifCancellationRulesBody: "Безкоштовне скасування — не пізніше ніж за {{hours}} год до уроку. Пізніше — сплачується {{fee}}% вартості. Неявка — {{noshow}}%. Безкоштовних перенесень на місяць: {{reschedules}}.",
     studentFallback: "Учень",

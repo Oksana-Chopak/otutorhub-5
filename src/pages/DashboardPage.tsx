@@ -1395,6 +1395,7 @@ export default function DashboardPage() {
         startsAt={quickLessonOpen ? new Date() : null}
         onCreated={loadData}
         onWantFullForm={() => { setQuickLessonOpen(false); navigate("/schedule"); }}
+        variant={isHubTutor ? "hub" : "independent"}
       />
 
       {loading ? (
@@ -2163,11 +2164,9 @@ export default function DashboardPage() {
                               size="sm"
                               className="mt-3 rounded-xl"
                               style={{ background: "var(--teal-l)", color: "var(--teal)", border: "1px solid rgba(43,191,170,0.3)" }}
-                              // Role-aware like the FAB: QuickLessonDialog reads ONLY
-                              // source='independent' students, so for a hub tutor it was
-                              // always empty and dead-ended in «addStudentFirst». Hub
-                              // tutors go to the canonical Schedule form (hub students).
-                              onClick={() => (isIndependentTutor ? setQuickLessonOpen(true) : navigate("/schedule?create=1"))}
+                              // Both tutor kinds get the modern quick dialog (the hub
+                              // variant reads hub students + creates source='hub').
+                              onClick={() => setQuickLessonOpen(true)}
                             >
                               <Plus className="h-4 w-4" />
                               {t("dashboard.btnCreateLesson")}
@@ -2475,10 +2474,11 @@ export default function DashboardPage() {
           malformed record / show an empty list. Route managers to the canonical
           Schedule / People / Finances surfaces instead. */}
       {/* Hub tutor: ONE primary action — create a lesson via the canonical Schedule
-          form (its student picker reads the hub students). The independent quick
-          dialogs query source:'independent' rows → empty list for a hub tutor, and a
-          hub tutor must NOT add students (the manager owns them). So PageFAB, not AddFab. */}
-      {isHubTutor && <PageFAB onClick={() => navigate("/schedule?create=1")} />}
+          form (its student picker reads the hub students). The quick dialog's HUB
+          variant reads the tutor's hub students and creates source='hub' lessons —
+          same modern form as independents (add-student stays hidden: the manager
+          owns hub students). PageFAB, not AddFab (single primary action). */}
+      {isHubTutor && <PageFAB onClick={() => setQuickLessonOpen(true)} />}
       {(isManager || isIndependentTutor) && (
         <AddFab
           onLesson={() => (isManager ? navigate("/schedule?create=1") : setQuickLessonOpen(true))}

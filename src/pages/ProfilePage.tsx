@@ -6,6 +6,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
 import { canSee, type RoleFlags } from "@/lib/roleCapabilities";
 import { supabase } from "@/integrations/supabase/client";
@@ -91,6 +92,9 @@ export default function ProfilePage() {
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
   const isManager = roles.includes("manager");
+  // Live achievements for the profile motivation card (level / streak / badges) —
+  // computed for EVERY tutor incl. hub (streak trigger runs on any completion).
+  const { level: gamLevel, streak: gamStreak, badges: gamBadges } = useTutorGamification();
   const { isIndependent, isTrial, isPro, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
   // Cross-cutting visibility decisions go through canSee(roleFlags) — see
   // src/lib/roleCapabilities.ts + role-capabilities.test.ts (the role×feature matrix).
@@ -177,6 +181,9 @@ export default function ProfilePage() {
   const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [editTelegram, setEditTelegram] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [contacts, setContacts] = useState<ContactFields>({ email: "", phone: "", telegram: "", messenger_url: "", facebook_url: "", instagram_url: "" });
@@ -312,6 +319,9 @@ export default function ProfilePage() {
   const openEditProfile = () => {
     setEditFirst(profileName.first);
     setEditLast(profileName.last);
+    setEditEmail(contacts.email ?? "");
+    setEditPhone(contacts.phone ?? "");
+    setEditTelegram(contacts.telegram ?? "");
     setActiveSheet("editProfile");
   };
 
@@ -324,17 +334,36 @@ export default function ProfilePage() {
       return;
     }
     setSavingProfile(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ first_name: first, last_name: last })
-      .eq("id", user.id);
+    const [{ error }, { error: cErr }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .update({ first_name: first, last_name: last })
+        .eq("id", user.id),
+      // Primary contacts live in the SAME form now (the old two-hop flow read as a
+      // stubby profile editor). Socials keep the separate dialog (progressive disclosure).
+      supabase
+        .from("profile_contacts")
+        .upsert(
+          {
+            user_id: user.id,
+            email: editEmail.trim() || null,
+            phone: editPhone.trim() || null,
+            telegram: editTelegram.trim() || null,
+            messenger_url: contacts.messenger_url || null,
+            facebook_url: contacts.facebook_url || null,
+            instagram_url: contacts.instagram_url || null,
+          },
+          { onConflict: "user_id" },
+        ),
+    ]);
     setSavingProfile(false);
-    if (error) {
-      console.error(error);
+    if (error || cErr) {
+      console.error(error ?? cErr);
       toast.error(t("profile.editSaveFailed") || "Не вдалося зберегти");
       return;
     }
     setProfileName({ first, last });
+    setContacts((c) => ({ ...c, email: editEmail.trim(), phone: editPhone.trim(), telegram: editTelegram.trim() }));
     setActiveSheet(null);
     toast.success(t("profile.editSaved") || "Профіль оновлено");
   };
@@ -622,8 +651,30 @@ export default function ProfilePage() {
               teach lessons and earn them too. Referrals stay independent-only (the bonus
               is Pro months, which hub tutors don't use). */}
           <Sec>
-            <NavRow icon={<Trophy size={18} />} label={t("profile.itemAchievements") || "Досягнення"}
-              onClick={() => { window.location.href = "/achievements"; }} noBorder={!isIndependent} />
+            {/* Live achievements card — the hub tutor's profile must motivate too,
+                not show a bare row (streak/level/badges exist for every tutor). */}
+            <button
+              onClick={() => { window.location.href = "/achievements"; }}
+              className="hover:bg-muted/40"
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "13px 14px",
+                border: "none", background: "transparent", cursor: "pointer", textAlign: "left",
+                borderBottom: isIndependent ? `1px solid ${P.border}` : "none" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                background: "linear-gradient(135deg,#F5B544,#f59e0b)", boxShadow: "0 6px 16px -6px rgba(245,158,11,.55)" }}>
+                <Trophy size={20} style={{ color: "#fff" }} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontFamily: P.display, fontWeight: 700, fontSize: 15, color: P.txt }}>
+                  {gamLevel ? `${gamLevel.emoji} ${gamLevel.name}` : (t("profile.itemAchievements") || "Досягнення")}
+                </p>
+                <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 1 }}>
+                  {(gamStreak?.current_streak ?? 0) > 0 || gamBadges.length > 0
+                    ? `🔥 ${t("profile.achStreak", { count: gamStreak?.current_streak ?? 0 })} · 🏅 ${t("profile.achBadges", { count: gamBadges.length })}`
+                    : (t("profile.achStart") || "Проведи урок — розпочни свою серію 🔥")}
+                </p>
+              </div>
+              <ChevronRight size={17} style={{ color: P.muted, flexShrink: 0 }} />
+            </button>
             {isIndependent && (
               <NavRow icon={<HandHeart size={18} />} label={t("profile.itemReferrals") || "Реферали"}
                 val={t("profile.referralBonusVal")} onClick={() => { window.location.href = "/my-referrals"; }} noBorder />
@@ -739,7 +790,7 @@ export default function ProfilePage() {
                   className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
-              <div style={{ marginBottom: 4 }}>
+              <div style={{ marginBottom: 12 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
@@ -747,6 +798,45 @@ export default function ProfilePage() {
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
                   placeholder={t("profile.editLastName") || "Прізвище"}
+                  className="h-11 rounded-[12px] text-[15px]"
+                />
+              </div>
+              {/* Primary contacts inline — one expressive form instead of a hop */}
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 13, letterSpacing: ".05em", textTransform: "uppercase", color: "var(--sub,#6b7088)", margin: "16px 0 8px" }}>
+                {t("profile.editContacts") || "Контактні дані"}
+              </p>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  value={editEmail}
+                  onChange={(e) => setEditEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  className="h-11 rounded-[12px] text-[15px]"
+                />
+              </div>
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                  {t("shared.phone", { defaultValue: "Телефон" })}
+                </label>
+                <Input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  placeholder="+380…"
+                  className="h-11 rounded-[12px] text-[15px]"
+                />
+              </div>
+              <div style={{ marginBottom: 4 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                  Telegram
+                </label>
+                <Input
+                  value={editTelegram}
+                  onChange={(e) => setEditTelegram(e.target.value)}
+                  placeholder="@username"
                   className="h-11 rounded-[12px] text-[15px]"
                 />
               </div>
@@ -772,10 +862,10 @@ export default function ProfilePage() {
                   <Mail size={18} style={{ color: "var(--sub,#6b7088)" }} />
                   <span style={{ textAlign: "left" }}>
                     <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
-                      {t("profile.editContacts") || "Контактні дані"}
+                      {t("profile.editSocials") || "Соцмережі та месенджери"}
                     </span>
                     <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#6b7088)" }}>
-                      {[contacts.email, contacts.phone].filter(Boolean).join(" · ") || (t("profile.editContactsHint") || "Email, телефон, Telegram, соцмережі")}
+                      {[contacts.instagram_url && "Instagram", contacts.facebook_url && "Facebook", contacts.messenger_url && "Messenger"].filter(Boolean).join(" · ") || (t("profile.editSocialsHint") || "Instagram, Facebook, Messenger")}
                     </span>
                   </span>
                 </span>

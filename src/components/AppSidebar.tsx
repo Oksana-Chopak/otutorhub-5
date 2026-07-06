@@ -72,6 +72,9 @@ const allNavItems: NavItem[] = [
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["tutor"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["tutor"] },
+  // Достижения — for BOTH tutor kinds: the hub tutor's cabinet must feel as full
+  // and motivating as the manager's (streak/level/badges are computed for them too).
+  { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"] },
   { to: "/profile", labelKey: "nav.profile", icon: UserCircle, roles: ["tutor"] },
   // Manager
   { to: "/", labelKey: "nav.dashboard", icon: LayoutDashboard, roles: ["manager"] },

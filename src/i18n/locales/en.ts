@@ -906,6 +906,15 @@ export const en: LocaleTranslations = {
   },
 
   profile: {
+    achStreak_one: "{{count}}-day streak",
+    achStreak_other: "{{count}}-day streak",
+    achStreak: "{{count}}-day streak",
+    achBadges_one: "{{count}} badge",
+    achBadges_other: "{{count}} badges",
+    achBadges: "{{count}} badges",
+    achStart: "Teach a lesson — start your streak 🔥",
+    editSocials: "Socials & messengers",
+    editSocialsHint: "Instagram, Facebook, Messenger",
     defaultTutorName: "Tutor",
     defaultManagerName: "Manager",
     independentTutorSub: "Independent tutor",
@@ -1923,6 +1932,7 @@ export const en: LocaleTranslations = {
     tutorRequestTitle: "{{name}} is looking for a tutor · {{subject}}",
   },
   shared: {
+    phone: "Phone",
     noName: "Unknown",
     student: "Student",
     tutor: "Tutor",
@@ -3643,6 +3653,7 @@ export const en: LocaleTranslations = {
     proPromptDesc: "Automatic payment reminders, student-initiated cancellation/rescheduling by your rules, detailed reports and export.",
   },
   quickLessonDialog: {
+    hubNoStudentsHint: "No students assigned yet — your manager will add them soon 🤝",
     notifCancellationRulesTitle: "📋 Cancellation & reschedule rules",
     notifCancellationRulesBody: "Free cancellation up to {{hours}}h before the lesson. Later than that, {{fee}}% of the price applies. No-show is charged {{noshow}}%. Free reschedules per month: {{reschedules}}.",
     studentFallback: "Student",
