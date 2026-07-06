@@ -1024,6 +1024,7 @@ export const uk = {
   },
 
   people: {
+    payoutBackfilled: "Ставку застосовано до {{count}} неоплачених уроків",
     statusDebt: "Борг",
     copyAriaLabel: "Копіювати",
     copied: "Скопійовано",

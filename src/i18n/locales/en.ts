@@ -1015,6 +1015,7 @@ export const en: LocaleTranslations = {
   },
 
   people: {
+    payoutBackfilled: "Rate applied to {{count}} unpaid lessons",
     statusDebt: "Debt",
     copyAriaLabel: "Copy",
     copied: "Copied",

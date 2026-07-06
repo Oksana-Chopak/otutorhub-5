@@ -532,6 +532,19 @@ export default function PeoplePage() {
       console.warn("Failed to cleanup obsolete subject rates", delErr);
     }
 
+    // Propagate the (new) rate to the tutor's existing UNPAID hub lessons whose
+    // tutor_payout is still 0 — otherwise a rate set AFTER lessons exist never
+    // reaches them (autofill runs only at lesson creation) → «0 грн репетитору».
+    // Manager-gated SECURITY DEFINER RPC (migration 20260723000000); best-effort.
+    try {
+      const { data: filled } = await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", {
+        _tutor_id: tutorDialog.userId,
+      });
+      if (typeof filled === "number" && filled > 0) {
+        toast.success(t("people.payoutBackfilled", { count: filled }));
+      }
+    } catch { /* RPC not applied yet — rate still saved; backfill runs on next apply */ }
+
     toast.success(t("people.saved"));
     setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });
     loadData();

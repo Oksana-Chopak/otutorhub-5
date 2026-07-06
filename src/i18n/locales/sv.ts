@@ -1005,6 +1005,7 @@ export const sv: LocaleTranslations = {
   },
 
   people: {
+    payoutBackfilled: "Taxan tillämpad på {{count}} obetalda lektioner",
     statusDebt: "Skuld",
     copyAriaLabel: "Kopiera",
     copied: "Kopierat",

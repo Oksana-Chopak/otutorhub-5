@@ -543,6 +543,16 @@ export default function FinancesPage() {
     return ids;
   }, [transactions]);
 
+  // Legit HUB pairs the caller may see money for: hub-scoped rates (managers get
+  // only hub rates via RLS) + hub-visible lessons (lessons_visible is source-scoped).
+  // A wallet tx for a pair NOT in here belongs to an independent tutor and must be
+  // hidden from the manager (defence-in-depth alongside the RLS fix).
+  const hubPairKeys = useMemo(() => {
+    const keys = new Set<string>(Object.keys(pairRates));
+    lessons.forEach((l) => { if (l.student_id) keys.add(`${l.tutor_id}:${l.student_id}`); });
+    return keys;
+  }, [pairRates, lessons]);
+
   const periodTopups = useMemo(
     () =>
       transactions.filter(
@@ -552,10 +562,13 @@ export default function FinancesPage() {
           !stornoedIds.has(tx.id) &&
           (tx.kind === "topup" || tx.lessons_delta > 0 || Number(tx.amount_delta) > 0)
           && (tutorFilter === "all" || tx.tutor_id === tutorFilter)
+          // Managers: only HUB wallets (an independent tutor's student wallet must
+          // not appear on the hub's Finances — isolation).
+          && (!isManager || hubPairKeys.has(`${tx.tutor_id}:${tx.student_id}`))
           && inPeriod(tx.created_at),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [transactions, tutorFilter, periodStart, stornoedIds],
+    [transactions, tutorFilter, periodStart, stornoedIds, isManager, hubPairKeys],
   );
 
   // Per-tab row sets — keep the same shape used by both mobile cards and desktop table.
@@ -733,10 +746,13 @@ export default function FinancesPage() {
 
   const pairsList = useMemo<PairOption[]>(() => {
     const keys = new Set<string>();
-    lessons.forEach((l) => keys.add(`${l.tutor_id}:${l.student_id}`));
-    transactions.forEach((tx) => keys.add(`${tx.tutor_id}:${tx.student_id}`));
-    Object.keys(balances).forEach((key) => keys.add(key));
+    lessons.forEach((l) => { if (l.student_id) keys.add(`${l.tutor_id}:${l.student_id}`); });
     Object.keys(pairRates).forEach((key) => keys.add(key));
+    // transactions + balances can carry independent-tutor pairs (leaked before the
+    // wallet-tx RLS fix) — for a manager, admit them only if they're a known hub pair.
+    const admit = (key: string) => !isManager || hubPairKeys.has(key);
+    transactions.forEach((tx) => { const k = `${tx.tutor_id}:${tx.student_id}`; if (admit(k)) keys.add(k); });
+    Object.keys(balances).forEach((key) => { if (admit(key)) keys.add(key); });
     return Array.from(keys).map((key) => {
       const [tutor_id, student_id] = key.split(":");
       return {
