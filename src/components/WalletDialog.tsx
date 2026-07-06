@@ -289,7 +289,7 @@ export function WalletDialog({
         </div>
 
         {/* Tab content — scrollable */}
-        <div className="flex-1 overflow-y-auto" style={{ padding: "0 20px" }}>
+        <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: "0 20px" }}>
 
           {/* ── ВІДМІТИТИ ───────────────────────────────────────────────────── */}
           {tab === "mark" && (

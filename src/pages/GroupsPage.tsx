@@ -438,7 +438,7 @@ function CreateGroupDialog({
             </div>
 
             {/* step body (grows with content) */}
-            <div style={{ overflowY: "auto", padding: "16px 22px 8px" }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "16px 22px 8px" }}>
               <div style={{ fontFamily: FONT_D, fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1.15 }}>
                 {stepTitle}
               </div>
@@ -1015,7 +1015,10 @@ function GroupDetailsDialog({
                 <Loader2 className="h-5 w-5 animate-spin" style={{ color: T.muted }} />
               </div>
             ) : (
-              <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 26 }}>
+              {/* minHeight:0 — without it this flex child refuses to shrink, the
+                  sheet outgrows 88vh and the dialog's overflow-hidden CLIPS the
+                  footer instead of scrolling (owner's clipped-form bug). */}
+              <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 26 }}>
                 {/* members */}
                 <div>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>

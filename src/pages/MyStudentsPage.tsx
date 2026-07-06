@@ -970,7 +970,7 @@ export default function MyStudentsPage() {
                 </div>
 
                 {/* ── Body (scroll) ── */}
-                <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
+                <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
                   {/* Avatar + name */}
                   <div>
                   <span style={lbl}>{t("myStudents.fieldFirstName")} <span style={{ color: F.teal }}>*</span></span>

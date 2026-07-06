@@ -285,7 +285,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Tutor select */}
           <div>
             <Lbl>{t("assignTutorExtra.tutorLabel")}</Lbl>

@@ -119,7 +119,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           </button>
         </div>
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 20px" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 20px" }}>
         {loading || !row ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />

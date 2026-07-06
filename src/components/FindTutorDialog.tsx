@@ -160,7 +160,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 22 }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 22 }}>
           {/* 1 · Subject (main accent) */}
           <div>
             {lbl(t("findTutor.subjectQuestion"), { req: true })}

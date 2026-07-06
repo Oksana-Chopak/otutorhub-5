@@ -250,7 +250,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             <X size={18} />
           </button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "0 20px 16px" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "0 20px 16px" }}>
         <div className="space-y-5 py-2">
           <Section label={t("contactEditExtra.sectionContacts")}>
             <Field icon={Mail} label="Email" htmlFor="c-email">

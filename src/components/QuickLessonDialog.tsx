@@ -446,7 +446,7 @@ export function QuickLessonDialog({
           </div>
 
           {/* Body */}
-          <div style={{ flex: 1, overflowY: "auto", padding: "4px 22px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 22px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
             {loading ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: F.muted }} />

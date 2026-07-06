@@ -210,7 +210,7 @@ export function RecordPaymentSheet({
             <X size={18} />
           </button>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 20px" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 20px" }}>
 
         <Tabs value={tab} onValueChange={(v) => { setTab(v as any); setPickedPair(null); }}>
           <TabsList className="grid w-full grid-cols-2">

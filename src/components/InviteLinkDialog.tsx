@@ -136,7 +136,7 @@ export function InviteLinkDialog({
           </DialogDescription>
         </div>
 
-        <div className="flex-1 overflow-y-auto" style={{ padding: "4px 20px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+        <div className="flex-1 min-h-0 overflow-y-auto" style={{ padding: "4px 20px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Status box */}
           {email && emailSent ? (
             <div style={{ display: "flex", gap: 10, alignItems: "flex-start", borderRadius: 13, border: "1px solid rgba(34,197,94,.4)", background: "rgba(34,197,94,.06)", padding: 13 }}>

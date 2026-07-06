@@ -255,7 +255,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
         </div>
 
         {/* Body */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 18 }}>
           {/* Avatar + name */}
           <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
             <div style={{ width: 60, height: 60, borderRadius: 20, flexShrink: 0,

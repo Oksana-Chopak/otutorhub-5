@@ -139,7 +139,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         </div>
 
         {/* Rows */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 9 }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 14px", display: "flex", flexDirection: "column", gap: 9 }}>
           {rows.map((r) => {
             const st = state[r.id] ?? { done: true, paid: true };
             return (
