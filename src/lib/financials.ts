@@ -71,6 +71,39 @@ export const unpaidExpense = (rows: MoneyLesson[]): number =>
     .reduce((s, l) => s + Number(l.tutor_payout ?? 0), 0);
 
 /**
+ * PREPAYMENT model (owner rule, 2026-07-06): hub students pay BEFORE lessons, so
+ * an unpaid UPCOMING lesson is already a receivable/debt — not just past ones.
+ * A lesson owes student money when it has a price, isn't a request (pending) and
+ * isn't cancelled (unless the price is an explicit cancellation fee).
+ * NB: intentionally NOT time-gated — future unpaid lessons count. This predicate
+ * drives every "debt / awaiting payment / remind" surface for ALL roles.
+ */
+export const isStudentDebtLesson = (l: MoneyLesson): boolean => {
+  if ((l.student_payment_status ?? "unpaid") !== "unpaid") return false;
+  if (Number(l.student_price ?? 0) <= 0) return false; // priceless rows aren't receivables
+  if (l.status === "pending") return false;
+  if (l.status === "cancelled") return l.is_cancellation_fee === true;
+  return true;
+};
+
+/**
+ * Payout owed TO a tutor: ONLY conducted lessons (completed, or already started).
+ * Mirrors mark_tutor_payouts_paid (migration 20260722000000) EXACTLY, so the
+ * dashboard "до виплати" sum equals what the pay button actually flips — a
+ * mismatch here is how "виплачено, але 2 уроки висять" happened: the old filter
+ * admitted FUTURE lessons whose STUDENT had prepaid (isBillableLesson's
+ * hasPayment shortcut), which the RPC then correctly skipped.
+ * Group rows never owe payout (none is tracked for groups).
+ */
+export const isPayoutDueLesson = (l: MoneyLesson, nowMs: number = Date.now()): boolean => {
+  if (l.is_group) return false;
+  if (l.tutor_payout_status === "paid") return false; // NULL counts as unpaid, like the RPC's COALESCE
+  if (Number(l.tutor_payout ?? 0) <= 0) return false; // independents / unconfigured payout
+  if (l.status === "cancelled" || l.status === "pending") return false;
+  return l.status === "completed" || new Date(l.starts_at).getTime() <= nowMs;
+};
+
+/**
  * Sum amounts grouped by currency, dropping zero buckets. Entries come back
  * sorted by |sum| descending, so entries[0] is the dominant currency — the one
  * a compact card should headline, with the rest as a small "+ …" suffix.

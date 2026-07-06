@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   isBillableLesson,
+  isStudentDebtLesson,
+  isPayoutDueLesson,
   paidIncome,
   paidExpense,
   paidProfit,
@@ -111,5 +113,52 @@ describe("sumByCurrency (multi-currency totals for independent tutors)", () => {
   });
   it("returns [] for no priced rows", () => {
     expect(sumByCurrency([], (r: { amount: number }) => r.amount, () => "UAH")).toEqual([]);
+  });
+});
+
+describe("isStudentDebtLesson (PREPAYMENT model — owner rule 2026-07-06)", () => {
+  it("counts unpaid FUTURE lessons as debts (hub students pay before lessons)", () => {
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
+  });
+  it("counts unpaid past + completed lessons", () => {
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-06-20T10:00:00Z", student_payment_status: "unpaid" }))).toBe(true);
+    expect(isStudentDebtLesson(mk({ status: "completed", student_payment_status: "unpaid" }))).toBe(true);
+  });
+  it("never counts paid, pending, priceless or NULL-status-paid rows", () => {
+    expect(isStudentDebtLesson(mk({ student_payment_status: "paid" }))).toBe(false);
+    expect(isStudentDebtLesson(mk({ status: "pending", student_payment_status: "unpaid" }))).toBe(false);
+    expect(isStudentDebtLesson(mk({ student_payment_status: "unpaid", student_price: 0 }))).toBe(false);
+    expect(isStudentDebtLesson(mk({ student_payment_status: "unpaid", student_price: null }))).toBe(false);
+  });
+  it("treats a missing payment status as unpaid (no details row yet, priced)", () => {
+    expect(isStudentDebtLesson(mk({ status: "scheduled", starts_at: "2026-07-10T10:00:00Z", student_payment_status: null }))).toBe(true);
+  });
+  it("cancelled lessons owe ONLY with the explicit fee marker", () => {
+    expect(isStudentDebtLesson(mk({ status: "cancelled", student_payment_status: "unpaid" }))).toBe(false);
+    expect(isStudentDebtLesson(mk({ status: "cancelled", student_payment_status: "unpaid", is_cancellation_fee: true }))).toBe(true);
+  });
+});
+
+describe("isPayoutDueLesson (payouts = CONDUCTED lessons only, mirrors the RPC)", () => {
+  const base = { tutor_payout_status: "unpaid", student_payment_status: "paid" } as const;
+  it("owes for completed and already-started lessons", () => {
+    expect(isPayoutDueLesson(mk({ ...base, status: "completed" }), NOW)).toBe(true);
+    expect(isPayoutDueLesson(mk({ ...base, status: "scheduled", starts_at: "2026-06-30T10:00:00Z" }), NOW)).toBe(true);
+  });
+  it("a FUTURE lesson never owes payout — even when the student PREPAID it", () => {
+    // This exact case caused «виплачено, але 2 уроки не проплачені»: the UI sum
+    // included future prepaid lessons that mark_tutor_payouts_paid (correctly) skips.
+    expect(isPayoutDueLesson(mk({ ...base, status: "scheduled", starts_at: "2026-07-10T10:00:00Z" }), NOW)).toBe(false);
+  });
+  it("never owes for cancelled/pending/paid/zero-payout/group rows", () => {
+    expect(isPayoutDueLesson(mk({ ...base, status: "cancelled" }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, status: "pending" }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, tutor_payout_status: "paid" }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, tutor_payout: 0 }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, tutor_payout: null }), NOW)).toBe(false);
+    expect(isPayoutDueLesson(mk({ ...base, is_group: true }), NOW)).toBe(false);
+  });
+  it("NULL payout status counts as unpaid (matches the RPC's COALESCE)", () => {
+    expect(isPayoutDueLesson(mk({ ...base, tutor_payout_status: null, status: "completed" }), NOW)).toBe(true);
   });
 });

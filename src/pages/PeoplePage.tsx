@@ -313,7 +313,15 @@ export default function PeoplePage() {
         unpaid_total: 0,
         last_lesson_at: null as string | null,
       };
-      if (l.status === "completed" && payStatus === "unpaid") {
+      // PREPAYMENT model: an unpaid priced lesson is a debt whether it already
+      // happened or is upcoming (hub students pay before lessons) — the old
+      // completed-only rule hid real receivables from the «⚠️ Борг» status.
+      if (
+        l.status !== "cancelled" &&
+        l.status !== "pending" &&
+        (payStatus ?? "unpaid") === "unpaid" &&
+        Number(price ?? 0) > 0
+      ) {
         s.unpaid_count += 1;
         s.unpaid_total += Number(price ?? 0);
       }

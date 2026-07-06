@@ -64,7 +64,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
-import { isBillableLesson, paidIncome, paidExpense, unpaidIncome, unpaidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice } from "@/lib/currency";
 
 type PaymentStatus = "paid" | "unpaid";
@@ -519,6 +519,21 @@ export default function FinancesPage() {
     [billable, periodStart],
   );
 
+  // PREPAYMENT model: debts are computed over ALL period rows (incl. FUTURE
+  // unpaid lessons — hub students pay before lessons), not only billable ones.
+  const periodStudentDebts = useMemo(
+    () => tutorScoped.filter((l) => inPeriod(l.starts_at) && isStudentDebtLesson(l)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [tutorScoped, periodStart],
+  );
+  // Payouts owed: CONDUCTED lessons only — mirrors mark_tutor_payouts_paid, so
+  // the sums here always equal what the pay actions actually flip.
+  const periodPayoutDue = useMemo(() => {
+    const nowMs = Date.now();
+    return tutorScoped.filter((l) => inPeriod(l.starts_at) && isPayoutDueLesson(l, nowMs));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tutorScoped, periodStart]);
+
   const stornoedIds = useMemo(() => {
     const ids = new Set<string>();
     transactions.forEach((tx) => {
@@ -621,16 +636,15 @@ export default function FinancesPage() {
   }, [periodBillable, isIndependentTutor, sort]);
 
   const debtsRows: Row[] = useMemo(() => {
-    return periodBillable
-      .filter(
-        (l) =>
-          l.student_payment_status === "unpaid"
-          || (!isIndependentTutor && l.tutor_payout_status === "unpaid"),
-      )
-      .map((l) => ({ type: "lesson" as const, l }))
-      .sort(activeSort);
+    // Student debts (incl. future unpaid — prepayment) + payout debts (conducted only).
+    const ids = new Set<string>();
+    const rows: LessonRow[] = [];
+    periodStudentDebts.forEach((l) => { if (!ids.has(l.id)) { ids.add(l.id); rows.push(l); } });
+    if (!isIndependentTutor)
+      periodPayoutDue.forEach((l) => { if (!ids.has(l.id)) { ids.add(l.id); rows.push(l); } });
+    return rows.map((l) => ({ type: "lesson" as const, l })).sort(activeSort);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodBillable, isIndependentTutor, sort]);
+  }, [periodStudentDebts, periodPayoutDue, isIndependentTutor, sort]);
 
   const rowsForActiveTab: Row[] =
     activeTab === "income" ? incomeRows : debtsRows;
@@ -645,8 +659,8 @@ export default function FinancesPage() {
   const totalIncome = paidIncome(periodBillable);
   const totalExpense = paidExpense(periodBillable);
   const profit = totalIncome - totalExpense;
-  const pendingIncome = unpaidIncome(periodBillable);
-  const pendingExpense = unpaidExpense(periodBillable);
+  const pendingIncome = periodStudentDebts.reduce((sum, l) => sum + Number(l.student_price ?? 0), 0);
+  const pendingExpense = periodPayoutDue.reduce((sum, l) => sum + Number(l.tutor_payout ?? 0), 0);
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
@@ -738,8 +752,10 @@ export default function FinancesPage() {
   }, [lessons, transactions, balances, pairRates, profiles]);
 
   const unpaidLessonsForSheet = useMemo<UnpaidLessonOption[]>(() =>
-    billable
-      .filter((l) => l.student_payment_status === "unpaid")
+    // Prepayment model: recording a payment against an UPCOMING lesson is the
+    // normal flow, so the picker offers every student-debt row (not only past).
+    tutorScoped
+      .filter((l) => isStudentDebtLesson(l))
       .map((l) => ({
         id: l.id,
         subject: l.subject,
@@ -749,7 +765,7 @@ export default function FinancesPage() {
         tutor_id: l.tutor_id,
         currency: pairCurrencies[`${l.tutor_id}:${l.student_id}`],
       })),
-    [billable, pairCurrencies]
+    [tutorScoped, pairCurrencies]
   );
 
   // === Mutations (logic unchanged) ===
@@ -1015,7 +1031,14 @@ export default function FinancesPage() {
     // student's (whose status they can't see).
     const kindStatusOf = (l: LessonRow) =>
       isHubTutor ? l.tutor_payout_status : l.student_payment_status;
-    const source = periodBillable.filter((l) => {
+    // Union billable rows with prepay debts so «неоплачені» exports include
+    // FUTURE unpaid lessons — same set the Debts tab shows.
+    const seenIds = new Set<string>();
+    const exportRows: LessonRow[] = [];
+    [...periodBillable, ...periodStudentDebts].forEach((l) => {
+      if (!seenIds.has(l.id)) { seenIds.add(l.id); exportRows.push(l); }
+    });
+    const source = exportRows.filter((l) => {
       if (tId && l.tutor_id !== tId) return false;
       if (kind === "paid" && kindStatusOf(l) !== "paid") return false;
       if (kind === "unpaid" && kindStatusOf(l) !== "unpaid") return false;
@@ -1522,13 +1545,13 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [billable]);
 
-  // Debt list: completed + unpaid, with student name
+  // Debt list (prepayment model): every unpaid priced lesson — future ones too.
   const debtList = useMemo(() =>
-    visibleLessons
-      .filter(l => l.student_payment_status === "unpaid" && l.status === "completed")
+    periodStudentDebts
+      .slice()
       .sort((a,b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime()),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [visibleLessons]);
+  [periodStudentDebts]);
 
   const paidLessonsCount = periodBillable.filter(l => l.student_payment_status === "paid").length;
   const avgLesson = paidLessonsCount > 0 ? Math.round(totalIncome / paidLessonsCount) : 0;
@@ -1542,7 +1565,7 @@ export default function FinancesPage() {
     periodBillable.filter((l) => l.student_payment_status === "paid"),
     (l) => Number(l.student_price ?? 0), rowCurrency);
   const pendingByCur = sumByCurrency(
-    periodBillable.filter((l) => l.student_payment_status === "unpaid"),
+    periodStudentDebts,
     (l) => Number(l.student_price ?? 0), rowCurrency);
   const fmtCurList = (entries: Array<[string, number]>, zeroCur = "UAH") =>
     entries.length === 0
@@ -2496,8 +2519,7 @@ export default function FinancesPage() {
                   // NB: derived from periodBillable, NOT the tab-scoped debtList — on the
                   // Income tab that list is empty and the button used to fake-fail.
                   const seen = new Set<string>();
-                  const reps = periodBillable.filter((l) => {
-                    if (l.student_payment_status !== "unpaid") return false;
+                  const reps = periodStudentDebts.filter((l) => {
                     if (!l.id || l.kind === "group" || seen.has(l.student_id)) return false;
                     seen.add(l.student_id);
                     return true;

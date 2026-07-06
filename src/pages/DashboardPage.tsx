@@ -44,7 +44,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
-import { isBillableLesson, paidIncome, paidExpense, paidProfit, sumByCurrency } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -954,18 +954,12 @@ export default function DashboardPage() {
     () =>
       lessons.filter((l) => {
         if (l.status === "cancelled" || l.status === "pending") return false;
-        const isPast = new Date(l.starts_at).getTime() < nowMs;
-        const counts = l.status === "completed" || isPast;
-        if (!counts) return false;
-        // Group lesson: pending if any participant is unpaid (per-participant billing).
-        if (!l.student_id) return groupUnpaidLessonIds.has(l.id);
-        // Independent lessons carry NO tutor payout (the tutor collects from the student
-        // directly), so tutor_payout_status is permanently "unpaid" there — only the
-        // student side counts. Hub lessons count either side (student→hub or hub→tutor).
-        return (
-          l.student_payment_status === "unpaid" ||
-          (l.source !== "independent" && l.tutor_payout_status === "unpaid")
-        );
+        // PREPAYMENT model (owner rule): students pay BEFORE lessons, so an unpaid
+        // UPCOMING lesson must already show in the payment reminders — no past gate
+        // on the student side. Payout side stays CONDUCTED-only (isPayoutDueLesson
+        // mirrors mark_tutor_payouts_paid).
+        if (!l.student_id) return groupUnpaidLessonIds.has(l.id); // group: any unpaid participant
+        return isStudentDebtLesson(l) || isPayoutDueLesson(l, nowMs);
       }),
     [lessons, nowMs, groupUnpaidLessonIds]
   );
@@ -1036,12 +1030,7 @@ export default function DashboardPage() {
     // Finances figure. moneyLessons also widens the lookback to 6 months so
     // old unpaid payouts don't silently drop out of the 30-day window.
     return moneyLessons
-      .filter(
-        (l) =>
-          l.tutor_id === user.id &&
-          l.tutor_payout_status === "unpaid" &&
-          isBillableLesson(l, nowMs),
-      )
+      .filter((l) => l.tutor_id === user.id && isPayoutDueLesson(l, nowMs))
       .reduce((sum, l) => sum + (Number(l.tutor_payout) || 0), 0);
   }, [isHubTutor, moneyLessons, user?.id, nowMs]);
 
@@ -1049,10 +1038,7 @@ export default function DashboardPage() {
   const hubPayoutLessonsCount = useMemo(() => {
     if (!isHubTutor || !user) return 0;
     return moneyLessons.filter(
-      (l) =>
-        l.tutor_id === user.id &&
-        l.tutor_payout_status === "unpaid" &&
-        isBillableLesson(l, nowMs),
+      (l) => l.tutor_id === user.id && isPayoutDueLesson(l, nowMs),
     ).length;
   }, [isHubTutor, moneyLessons, user?.id, nowMs]);
 
@@ -1171,11 +1157,11 @@ export default function DashboardPage() {
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
       if (!isPayoutDueToday(sch)) return;
-      // Only conducted lessons: freshly scheduled future ones are born "unpaid"
-      // and must not inflate the payout-day sum (mark_tutor_payouts_paid is
-      // conducted-only too, migration 20260722000000).
+      // CONDUCTED lessons only — must equal what mark_tutor_payouts_paid flips
+      // (isBillableLesson here admitted FUTURE student-prepaid lessons, which the
+      // RPC skips → «виплачено», а уроки лишались висіти).
       const unpaid = moneyLessons.filter(
-        (l) => l.tutor_id === sch.user_id && l.tutor_payout_status === "unpaid" && isBillableLesson(l, nowMs),
+        (l) => l.tutor_id === sch.user_id && isPayoutDueLesson(l, nowMs),
       );
       const sum = unpaid.reduce((acc, l) => acc + (Number(l.tutor_payout) || 0), 0);
       tasks.push({
