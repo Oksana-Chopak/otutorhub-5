@@ -2418,6 +2418,10 @@ export type Database = {
         Returns: Json
       }
       award_referral_leaderboard_prizes: { Args: never; Returns: number }
+      backfill_tutor_payouts_for_tutor: {
+        Args: { _tutor_id: string }
+        Returns: number
+      }
       check_user_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
