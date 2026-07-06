@@ -484,6 +484,21 @@ fields below before building anything money-related.
   (extends trial_until), i.e. ~51 days total. AuthPage passes
   `independent_workspace: role === "tutor"` in signup metadata.
 
+> **🔒 INVARIANT — PREPAYMENT model (owner rule, stated 2026-07-06 after a regression):**
+> Hub students pay **BEFORE** lessons. Therefore:
+> - **Student debt** = ANY unpaid priced lesson — **including FUTURE scheduled ones**
+>   (not pending; cancelled only with `is_cancellation_fee`). Predicate:
+>   `isStudentDebtLesson` in `src/lib/financials.ts`. Drives ALL debt/pending/remind
+>   surfaces (Finances debts, dashboard payment reminders, People «⚠️ Борг»,
+>   RecordPaymentSheet picker, CSV unpaid).
+> - **Tutor payout due** = **CONDUCTED lessons only** (completed or already started),
+>   payout > 0, never group rows. Predicate: `isPayoutDueLesson` — it must mirror the
+>   `mark_tutor_payouts_paid` RPC EXACTLY, so the shown sum always equals what the pay
+>   button flips. NEVER compute payout-due with `isBillableLesson` (its student-prepaid
+>   shortcut admits future lessons → "виплачено, але уроки висять" bug).
+> Locked by financials.test.ts. Do not re-introduce past-only student debts or
+> billable-based payout sums.
+
 ### Don't mix them
 - "Pro / subscription / 249 ₴/mo / trial" → **independent tutors only**.
 - "student_price vs tutor_payout / margin / payout schedule" → **hub only**.
