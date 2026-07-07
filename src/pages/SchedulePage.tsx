@@ -347,7 +347,7 @@ export default function SchedulePage() {
     const [lessonsRes, profilesRes, rolesRes, tutorRes, ratesRes, defaultsRes] = await Promise.all([
       supabase
         .from("lessons_visible")
-        .select("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout")
+        .select("id, starts_at, duration_minutes, status, subject, tutor_id, student_id, meeting_url, source, notes, student_price, tutor_payout, student_payment_status, tutor_payout_status")
         .gte("starts_at", new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString())  // last 90 days
         .lte("starts_at", new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString())  // next 60 days
         .order("starts_at", { ascending: false })
