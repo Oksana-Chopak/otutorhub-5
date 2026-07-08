@@ -1015,9 +1015,11 @@ function GroupDetailsDialog({
                 <Loader2 className="h-5 w-5 animate-spin" style={{ color: T.muted }} />
               </div>
             ) : (
-              {/* minHeight:0 — without it this flex child refuses to shrink, the
-                  sheet outgrows 88vh and the dialog's overflow-hidden CLIPS the
-                  footer instead of scrolling (owner's clipped-form bug). */}
+              // minHeight:0 — without it this flex child refuses to shrink, the
+              // sheet outgrows 88vh and the dialog's overflow-hidden CLIPS the
+              // footer instead of scrolling (owner's clipped-form bug). A JSX
+              // {/* */} comment is INVALID right after `: (` — it must be a JS
+              // comment here (the previous form broke `npm run build`).
               <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 20, display: "flex", flexDirection: "column", gap: 26 }}>
                 {/* members */}
                 <div>

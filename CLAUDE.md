@@ -33,8 +33,13 @@ until Lovable applies/deploys it** (see Deploy model). Apply these in order:
 
 ### Git workflow
 - Lovable publishes to `main` after every Publish — always `git pull` before editing
-- After every commit: `npx tsc --noEmit && npm run test && node scripts/check-i18n.mjs && node scripts/check-ux.mjs`
-- Only push if ALL four checks are green
+- After every commit: `npx tsc --noEmit && npm run test && npm run build && node scripts/check-i18n.mjs && node scripts/check-ux.mjs`
+- Only push if ALL checks are green
+- ⚠️ `npm run build` IS a required gate (added 2026-07-07 after a JSX-comment-after-`: (`
+  in GroupsPage broke the store build but passed tsc+vitest — vitest only transforms
+  files a test imports, and tsc's parser tolerated it; esbuild/vite did not. A
+  `{/* */}` JSX comment is INVALID immediately after `? (` / `: (` in a ternary — it
+  must be a `//` JS comment there. Always run the real build before pushing UI edits.
 - After push — verify each changed page via Chrome extension before reporting done
 
 ### Deploy model — READ THIS (it has bitten the release twice)
