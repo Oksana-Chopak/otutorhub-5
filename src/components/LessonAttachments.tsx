@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { Paperclip, Upload, Trash2, Loader2, FileText, Image as ImageIcon, Download } from "lucide-react";
 import i18nInstance from "@/i18n";
+import { openExternal } from "@/lib/openExternal";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface LessonAttachmentsProps {
@@ -120,7 +121,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
       toast({ title: t("lessonAttachments.openFailed"), description: error?.message, variant: "destructive" });
       return;
     }
-    window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+    void openExternal(data.signedUrl);
   };
 
   const handleDelete = async (item: AttachmentRow) => {

@@ -2196,9 +2196,13 @@ export const uk = {
     accept: "Прийняти",
     decline: "Відхилити",
   },
+  native: {
+    backExitHint: "Натисніть «Назад» ще раз, щоб вийти",
+    webOnlyGoogleCalendar: "🗓️ Підключення Google Calendar доступне у веб-версії — відкрийте otutorhub.com у браузері.",
+  },
   errorBoundary: {
     title: "Щось пішло не так 😕",
-    unknownError: "Невідома помилка",
+    unknownError: "Технічна халепа з нашого боку — ми вже отримали сигнал. Перезавантаж сторінку, це майже завжди допомагає.",
     reload: "Перезавантажити",
   },
   googleCalendar: {

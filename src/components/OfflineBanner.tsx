@@ -31,14 +31,14 @@ export function OfflineBanner() {
 
   if (justRestored) {
     return (
-      <div className="fixed left-0 right-0 top-0 z-[200] flex items-center justify-center gap-2 bg-green-500 px-4 py-2 text-[14px] font-medium text-white shadow-lg transition-all animate-in slide-in-from-top">
+      <div className="fixed left-0 right-0 top-0 z-[200] flex items-center justify-center gap-2 bg-green-500 px-4 py-2 text-[14px] font-medium text-white shadow-lg transition-all animate-in slide-in-from-top" style={{ paddingTop: "calc(0.5rem + env(safe-area-inset-top, 0px))" }}>
         ✅ {t('offline.restored') || 'Зʼєднання відновлено'}
       </div>
     );
   }
 
   return (
-    <div className="fixed left-0 right-0 top-0 z-[200] flex items-center justify-center gap-2 bg-[#0f0f1a] px-4 py-2.5 text-[14px] font-medium text-white shadow-lg animate-in slide-in-from-top">
+    <div className="fixed left-0 right-0 top-0 z-[200] flex items-center justify-center gap-2 bg-[#0f0f1a] px-4 py-2.5 text-[14px] font-medium text-white shadow-lg animate-in slide-in-from-top" style={{ paddingTop: "calc(0.625rem + env(safe-area-inset-top, 0px))" }}>
       <WifiOff className="h-4 w-4 text-yellow-400" />
       {t('offline.noConnection') || 'Немає зʼєднання — перевір інтернет'}
     </div>

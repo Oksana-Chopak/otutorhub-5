@@ -2173,9 +2173,13 @@ export const sv: LocaleTranslations = {
     accept: "Acceptera",
     decline: "Avböj",
   },
+  native: {
+    backExitHint: "Tryck bakåt igen för att avsluta",
+    webOnlyGoogleCalendar: "🗓️ Google Kalender-kopplingen finns i webbversionen — öppna otutorhub.com i din webbläsare.",
+  },
   errorBoundary: {
     title: "Något gick fel 😕",
-    unknownError: "Okänt fel",
+    unknownError: "Ett tekniskt fel på vår sida — vi har fått en signal. Ladda om sidan, det hjälper nästan alltid.",
     reload: "Ladda om",
   },
   googleCalendar: {

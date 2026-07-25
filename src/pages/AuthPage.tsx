@@ -74,7 +74,7 @@ function ConfirmedSignIn({
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center gap-2 justify-center">
           <img src="/logo.png" alt="oTutorHub" className="h-11 w-11" />
@@ -523,7 +523,7 @@ export default function AuthPage() {
   // ── Email sent screen ───────────────────────────────────────────────────────
   if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
+      <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
         <div className="w-full max-w-md text-center">
           <div className="mb-6 flex items-center gap-2 justify-center">
             <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
@@ -577,7 +577,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">

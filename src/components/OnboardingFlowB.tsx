@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { openExternal } from "@/lib/openExternal";
+import { isNativeApp } from "@/lib/platform";
 import { Loader2, Check } from "lucide-react";
 import confetti from "canvas-confetti";
 import { StepVictoryOverlay } from "@/components/StepVictoryOverlay";
@@ -733,7 +735,8 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
 
   const openBot = async () => {
     await updateSettings({ daily_digest_enabled: daily } as any);
-    window.open(botUrl || `https://t.me/oTutorHubBot`, "_blank", "noopener");
+    // Native: system browser/Telegram app instead of hijacking the WebView (BUG-6)
+    void openExternal(botUrl || `https://t.me/oTutorHubBot`);
   };
 
   const DigestRow = ({ on, setOn, emoji, title, desc }: any) => (
@@ -1036,6 +1039,13 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
       <p style={{ color: T.sub, fontSize: 15, lineHeight: 1.45, margin: 0 }}>
         {t("onboardingFlowB.calendarIntro")}
       </p>
+      {isNativeApp() ? (
+        /* BUG-6: the OAuth redirect would hijack the native WebView; Calendar
+           connect stays a web-only action for v1 (same policy as Google login) */
+        <p className="rounded-2xl border p-3.5 text-[14px]" style={{ border: `1px solid ${T.border}`, color: T.sub }}>
+          {t("native.webOnlyGoogleCalendar")}
+        </p>
+      ) : (
       <button onClick={connect} disabled={loading}
         className="h-[52px] rounded-2xl border flex items-center justify-center gap-2.5 font-bold text-sm transition-transform active:scale-[.97]"
         style={{ border: `1px solid ${T.border}`, background: "#fff", fontFamily: T.display, color: T.txt }}>
@@ -1049,6 +1059,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
         )}
         {t("onboardingFlowB.calendarConnect")}
       </button>
+      )}
     </div>
   );
 }

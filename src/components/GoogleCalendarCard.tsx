@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
+import { isNativeApp } from "@/lib/platform";
 const t = i18nInstance.t.bind(i18nInstance);
 
 const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -81,6 +82,13 @@ export function GoogleCalendarCard() {
     setConnected(false);
     setEmail(null);
   };
+
+  // BUG-6 (2026-07-25): the connect flow is an OAuth redirect that would
+  // navigate the native WebView away (no back affordance) and the return_to
+  // lands in an unauthenticated browser. Web-only for v1 — same policy as
+  // Google sign-in, which is also hidden in native builds. (Guard placed
+  // after hooks to keep the rules-of-hooks happy.)
+  if (isNativeApp()) return null;
 
   return (
     <Card className="mt-6">

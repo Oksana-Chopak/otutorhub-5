@@ -8,7 +8,9 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="icon" href="/logo.png" type="image/png">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- viewport-fit=cover: makes env(safe-area-inset-*) non-zero on notched iPhones
+         so fixed headers/banners/FAB/дровери clear the notch and home indicator (BUG-5) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>oTutorHub — кабінет репетитора: розклад, фінанси, AI-конспекти</title>
     <meta name="description" content="oTutorHub — все для приватного репетитора в одному застосунку: розклад і нагадування, облік оплат і боргів, AI-конспекти уроків, чат з учнями та Google Calendar.">
     <meta name="author" content="oTutorHub" />

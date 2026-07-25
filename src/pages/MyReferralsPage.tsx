@@ -10,6 +10,7 @@ import { Link2, Copy, Check, Share2, Heart, Trophy } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { openExternal } from "@/lib/openExternal";
 
 // ── Design tokens (oTutorHub DS — variant C "Запроси колегу") ─────────────────
 const R = {
@@ -163,7 +164,7 @@ export default function MyReferralsPage() {
     "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день безкоштовно за моїм посиланням 👇";
 
   const openExternal = (href: string) => {
-    window.open(href, "_blank", "noopener,noreferrer");
+    void openExternal(href);
     setShareOpen(false);
   };
 

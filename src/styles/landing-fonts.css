@@ -1,3 +1,17 @@
 /* Landing/legal-only display fonts. Imported ONLY by landing components so the
-   Google Fonts request rides their lazy chunk and never loads inside the app. */
-@import url("https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700;800;900&family=Golos+Text:wght@400;500;600;700&display=swap");
+   fonts ride their lazy chunk and never load inside the app.
+   Self-hosted via @fontsource (BUG-1, 2026-07-25): the previous runtime
+   @import from fonts.googleapis.com crashed the whole lazy route (landing,
+   /privacy, /terms) into the ErrorBoundary whenever Google Fonts was
+   unreachable (offline, blockers, restricted networks) — and leaked visitor
+   IPs to Google (GDPR risk for the SE market). Bundled files have no such
+   failure mode; unicode-range subsets keep the payload comparable. */
+@import "@fontsource/unbounded/400.css";
+@import "@fontsource/unbounded/600.css";
+@import "@fontsource/unbounded/700.css";
+@import "@fontsource/unbounded/800.css";
+@import "@fontsource/unbounded/900.css";
+@import "@fontsource/golos-text/400.css";
+@import "@fontsource/golos-text/500.css";
+@import "@fontsource/golos-text/600.css";
+@import "@fontsource/golos-text/700.css";

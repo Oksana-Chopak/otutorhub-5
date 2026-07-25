@@ -8,6 +8,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useGlobalChatToasts } from "@/hooks/useGlobalChatToasts";
+import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
+import { useNativeExternalLinks } from "@/hooks/useNativeExternalLinks";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ConfirmProvider } from "@/hooks/useConfirm";
 import { installGlobalErrorLogging } from "@/lib/errorLog";
@@ -80,6 +82,10 @@ const RouteFallback = () => (
 function AppRoutes() {
   // Subscribe to global new-message toasts (no UI)
   useGlobalChatToasts();
+  // Android hardware back: close open sheets/dialogs, double-press to exit (BUG-4)
+  useAndroidBackButton();
+  // Native: route every external target="_blank" anchor through the system browser (BUG-6)
+  useNativeExternalLinks();
   const location = useLocation();
   return (
     <>

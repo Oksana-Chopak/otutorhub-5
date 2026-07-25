@@ -31,8 +31,11 @@ export class ErrorBoundary extends Component<Props, State> {
         this.props.fallback ?? (
           <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
             <p className="text-2xl font-semibold">{i18n.t("errorBoundary.title")}</p>
+            {/* BUG-3 (2026-07-25): never surface raw error.message (technical
+                English stack text) to users — details go to console + logError
+                above and are visible in ErrorLogPage. Show friendly copy only. */}
             <p className="text-muted-foreground text-sm max-w-md">
-              {this.state.error?.message ?? i18n.t("errorBoundary.unknownError")}
+              {i18n.t("errorBoundary.unknownError")}
             </p>
             <Button onClick={() => window.location.reload()}>{i18n.t("errorBoundary.reload")}</Button>
           </div>

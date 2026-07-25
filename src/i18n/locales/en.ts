@@ -2183,9 +2183,13 @@ export const en: LocaleTranslations = {
     accept: "Accept",
     decline: "Decline",
   },
+  native: {
+    backExitHint: "Press back again to exit",
+    webOnlyGoogleCalendar: "🗓️ Google Calendar connection is available in the web version — open otutorhub.com in your browser.",
+  },
   errorBoundary: {
     title: "Something went wrong 😕",
-    unknownError: "Unknown error",
+    unknownError: "A technical hiccup on our side — we've been notified. Reloading the page almost always helps.",
     reload: "Reload",
   },
   googleCalendar: {

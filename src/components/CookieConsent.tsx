@@ -1,17 +1,45 @@
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getConsent, setConsent, type Consent } from "@/lib/clarity";
+import { isNativeApp } from "@/lib/platform";
 
 /**
  * Analytics-cookie consent banner. Shown until the user makes a choice; only
  * after "Accept" is Microsoft Clarity loaded (see src/lib/clarity.ts). Most
  * privacy-preserving default: nothing non-essential loads until opt-in.
+ *
+ * BUG-2 (2026-07-25): while visible, the banner publishes its height as the
+ * global CSS var `--cookie-banner-h` so bottom-anchored screens (e.g. the
+ * /auth form, whose «Увійти» button the banner used to cover on 390×844) can
+ * reserve space via `padding-bottom: calc(… + var(--cookie-banner-h, 0px))`.
  */
 export function CookieConsent() {
   const { t } = useTranslation();
   const [decided, setDecided] = useState(() => getConsent() !== null);
-  if (decided) return null;
+  const boxRef = useRef<HTMLDivElement>(null);
+  // Р2 (2026-07-25): Clarity never loads in native builds → no analytics cookies
+  // → no banner needed there. Must gate the effect too, or --cookie-banner-h
+  // would add phantom padding to /auth on native.
+  const native = isNativeApp();
+
+  useLayoutEffect(() => {
+    if (decided || native) return;
+    const root = document.documentElement;
+    const publish = () => {
+      const h = boxRef.current?.getBoundingClientRect().height ?? 0;
+      // 12px bottom offset + a small breathing gap above the banner
+      root.style.setProperty("--cookie-banner-h", `${Math.ceil(h) + 20}px`);
+    };
+    publish();
+    window.addEventListener("resize", publish);
+    return () => {
+      window.removeEventListener("resize", publish);
+      root.style.removeProperty("--cookie-banner-h");
+    };
+  }, [decided, native]);
+
+  if (decided || native) return null;
 
   const choose = (v: Consent) => {
     setConsent(v);
@@ -20,6 +48,7 @@ export function CookieConsent() {
 
   return (
     <div
+      ref={boxRef}
       role="dialog"
       aria-label={t("cookieConsent.title")}
       style={{

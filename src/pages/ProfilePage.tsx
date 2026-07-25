@@ -32,12 +32,16 @@ import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { ContactEditDialog, type ContactFields } from "@/components/ContactEditDialog";
+import { isNativeApp } from "@/lib/platform";
 
 type SectionItem = { to: string; label: string; icon: typeof Crown; desc?: string };
 type SectionGroup = { title: string; items: SectionItem[] };
 
 function PushSettingsCard() {
   const { t } = useTranslation();
+  // BUG-8 (2026-07-25): PushNotificationToggle renders null on native (Web
+  // Push is web-only) — hide the whole card too, not just its content.
+  if (isNativeApp()) return null;
   return (
     <div className="mb-4 rounded-[16px] border-[0.5px] bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
       <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>

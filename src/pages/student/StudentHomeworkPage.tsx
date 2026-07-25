@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
 import { readHomeworkDone, writeHomeworkDone } from "@/lib/homeworkDone";
+import { openExternal } from "@/lib/openExternal";
 
 interface HomeworkRow {
   lesson_id: string;
@@ -157,7 +158,7 @@ export default function StudentHomeworkPage() {
         console.error(error);
         return;
       }
-      window.open(data.signedUrl, "_blank", "noopener,noreferrer");
+      void openExternal(data.signedUrl);
     } catch (e) {
       console.error(e);
     } finally {

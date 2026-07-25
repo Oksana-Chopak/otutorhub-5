@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PushNotificationToggle } from "@/components/PushNotificationToggle";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
+import { isNativeApp } from "@/lib/platform";
 
 function timeAgo(iso: string, t: (k: string, o?: object) => string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -132,9 +133,12 @@ export function NotificationBell({ className }: Props) {
             </ul>
           )}
         </div>
-        <div className="border-t border-border px-3 py-2">
-          <PushNotificationToggle />
-        </div>
+        {/* BUG-8: the toggle is null on native — don't leave an empty bordered strip */}
+        {!isNativeApp() && (
+          <div className="border-t border-border px-3 py-2">
+            <PushNotificationToggle />
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   );

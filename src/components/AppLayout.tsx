@@ -56,7 +56,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
       <main className="flex-1 overflow-auto pb-20 lg:pb-0">
         {titleKey && (
-          <header className="sticky top-0 z-20 flex h-[52px] items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden">
+          <header className="sticky top-0 z-20 flex h-[52px] items-center justify-between border-b border-border/60 bg-background/95 px-4 backdrop-blur lg:hidden" style={{ height: "calc(52px + env(safe-area-inset-top, 0px))", paddingTop: "env(safe-area-inset-top, 0px)" }}>
             <h1 className="min-w-0 truncate font-display text-[17px] font-extrabold text-foreground">
               {t(titleKey)}
             </h1>

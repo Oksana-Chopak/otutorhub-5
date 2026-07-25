@@ -182,7 +182,12 @@ export function AppSidebar() {
           open ? "translate-x-0" : "-translate-x-full",
           sidebarCollapsed ? "w-[68px]" : "w-64"
         )}
-        style={{ background: "var(--dark-m)", borderColor: "rgba(255,255,255,0.07)" }}
+        style={{
+          background: "var(--dark-m)",
+          borderColor: "rgba(255,255,255,0.07)",
+          // Mobile overlay sidebar starts at the very top — clear the iOS notch (BUG-5)
+          paddingTop: "env(safe-area-inset-top, 0px)",
+        }}
       >
         <Link
           to="/landing"
