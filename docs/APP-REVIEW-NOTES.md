@@ -13,7 +13,7 @@ oTutorHub is a workspace for private tutors: lesson scheduling, payment tracking
 AI-generated lesson summaries, in-app chat with students, and Google Calendar sync.
 
 ACCOUNT FOR REVIEW
-Email: review@otutorhub.ua
+Email: <email справжнього демо-акаунта — ще НЕ створений; створимо разом і впишемо сюди>
 Password: <встав сюди>
 This account is a tutor with sample students, lessons and payments so you can see
 all features.
@@ -50,7 +50,7 @@ oTutorHub — workspace for private tutors (schedule, payments, AI lesson notes,
 chat, Google Calendar).
 
 TEST ACCOUNT (App access → All functionality):
-Email: review@otutorhub.ua
+Email: <email справжнього демо-акаунта — ще НЕ створений; створимо разом і впишемо сюди>
 Password: <встав сюди>
 Tutor account with sample students, lessons and payments.
 
