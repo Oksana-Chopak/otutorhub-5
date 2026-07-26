@@ -5,16 +5,6 @@
 
 const CONSENT_KEY = "oth-cookie-consent-v1";
 
-// Local (not imported from @/lib/platform) so the module-level auto-load at the
-// bottom of this file can't race an import cycle during startup.
-function isNativeAppSafe(): boolean {
-  try {
-    const cap = (window as any).Capacitor;
-    return !!cap?.isNativePlatform?.();
-  } catch {
-    return false;
-  }
-}
 const CLARITY_ID = "wpk45tlt0l";
 
 export type Consent = "accepted" | "declined";
@@ -31,9 +21,8 @@ export function getConsent(): Consent | null {
 let loaded = false;
 export function loadClarity(): void {
   if (loaded || typeof window === "undefined" || typeof document === "undefined") return;
-  // Р2 (2026-07-25): analytics/session-replay stays WEB-ONLY for v1 — keeps the
-  // App Privacy / Data Safety declarations simple (no analytics SDK in native).
-  if (isNativeAppSafe()) return;
+  // 2026-07-25, product decision by Oksana: analytics run in native apps too,
+  // same consent flow as web. Declared in App Privacy / Data Safety forms.
   if (getConsent() !== "accepted") return;
   loaded = true;
   (function (c: any, l: Document, a: string, r: string, i: string) {

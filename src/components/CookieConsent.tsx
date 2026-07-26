@@ -2,7 +2,6 @@ import { useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getConsent, setConsent, type Consent } from "@/lib/clarity";
-import { isNativeApp } from "@/lib/platform";
 
 /**
  * Analytics-cookie consent banner. Shown until the user makes a choice; only
@@ -18,13 +17,9 @@ export function CookieConsent() {
   const { t } = useTranslation();
   const [decided, setDecided] = useState(() => getConsent() !== null);
   const boxRef = useRef<HTMLDivElement>(null);
-  // Р2 (2026-07-25): Clarity never loads in native builds → no analytics cookies
-  // → no banner needed there. Must gate the effect too, or --cookie-banner-h
-  // would add phantom padding to /auth on native.
-  const native = isNativeApp();
 
   useLayoutEffect(() => {
-    if (decided || native) return;
+    if (decided) return;
     const root = document.documentElement;
     const publish = () => {
       const h = boxRef.current?.getBoundingClientRect().height ?? 0;
@@ -37,9 +32,9 @@ export function CookieConsent() {
       window.removeEventListener("resize", publish);
       root.style.removeProperty("--cookie-banner-h");
     };
-  }, [decided, native]);
+  }, [decided]);
 
-  if (decided || native) return null;
+  if (decided) return null;
 
   const choose = (v: Consent) => {
     setConsent(v);
