@@ -1084,7 +1084,7 @@ export default function SchedulePage() {
               <DialogContent className="w-full max-w-[480px] p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] flex flex-col">
                 <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border sm:hidden" />
                 <DialogHeader className="px-6 pt-4 pb-2 shrink-0">
-                  <DialogTitle>{t('schedule.newLesson')}</DialogTitle>
+                  <DialogTitle className="text-foreground">{t('schedule.newLesson')}</DialogTitle>
                   <div className="mt-2 flex items-center gap-2 text-[14px] text-muted-foreground">
                     <span className={cn("flex h-5 w-5 items-center justify-center rounded-full text-[14px] font-semibold",
                       step === 1 ? "bg-primary text-primary-foreground" : "bg-success/15 text-success")}>1</span>
@@ -1436,11 +1436,13 @@ export default function SchedulePage() {
                         setFormErrors({});
                         setStep(2);
                       }}
+                      className="border-[1.5px] border-[#F5B544] bg-[#FFF7E6] text-[#9a6a12] hover:bg-[#FFEFD0] dark:bg-transparent dark:text-[#F5C56A] dark:hover:bg-[#F5B544]/15"
                     >
                       {t('schedule.step2')}
                     </Button>
                   )}
-                  <Button onClick={handleCreate} disabled={submitting}>
+                  <Button onClick={handleCreate} disabled={submitting}
+                    className="border-0 bg-[#F5B544] font-bold text-[#3d2a06] hover:bg-[#EFA92B]">
                     {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     {t('common.save')}
                   </Button>
@@ -1575,7 +1577,8 @@ export default function SchedulePage() {
               {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? t('common.cancel') : t('common.close')}
             </Button>
             {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
-              <Button onClick={saveEdit} disabled={editSubmitting}>
+              <Button onClick={saveEdit} disabled={editSubmitting}
+              className="border-0 bg-[#F5B544] font-bold text-[#3d2a06] hover:bg-[#EFA92B]">
                 {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 {t("common.save")}
               </Button>

@@ -36,11 +36,11 @@ const END_HOUR = 23; // 23:00
 const HOURS = END_HOUR - START_HOUR;
 
 const statusColor: Record<CalendarLesson["status"], string> = {
-  pending: "bg-warning/15 border-warning/40 text-[#7a4d07] hover:bg-warning/25",
-  scheduled: "bg-primary/15 border-primary/40 text-[#0b5c50] hover:bg-primary/25",
-  completed: "bg-success/15 border-success/40 text-[#14532d] hover:bg-success/25",
+  pending: "bg-warning/15 border-warning/40 text-[#7a4d07] dark:text-[#ffd48a] hover:bg-warning/25",
+  scheduled: "bg-primary/15 border-primary/40 text-[#0b5c50] dark:text-[#8ff0e0] hover:bg-primary/25",
+  completed: "bg-success/15 border-success/40 text-[#14532d] dark:text-[#a7f3c0] hover:bg-success/25",
   cancelled:
-    "bg-destructive/15 border-destructive/40 text-[#8f2c2c] line-through hover:bg-destructive/25",
+    "bg-destructive/15 border-destructive/40 text-[#8f2c2c] dark:text-[#ffb4b4] line-through hover:bg-destructive/25",
 };
 
 function startOfWeek(d: Date) {
