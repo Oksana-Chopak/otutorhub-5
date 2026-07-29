@@ -67,8 +67,14 @@ for (const file of getAllFiles(SRC)) {
 // tiny fonts kept slipping back in). Hard ERROR, not a warning, so it can't
 // regress. See CLAUDE.md "Accessibility — minimum font size (binding ТЗ)".
 const FONT_FLOOR = 13;
+// Owner-approved exemption (29.07): the week-calendar grid is density-critical —
+// Lovable's original 10px chips/hour labels are what makes a 7-day week readable
+// on a phone, and the owner explicitly chose that look over the 13px floor.
+// The exemption is FILE-SCOPED to the grid; everywhere else the floor stands.
+const FONT_FLOOR_EXEMPT = ["components/WeekCalendar.tsx"];
 for (const file of getAllFiles(SRC)) {
   if (file.includes(".test.")) continue;
+  if (FONT_FLOOR_EXEMPT.some((p) => file.replaceAll("\\", "/").endsWith(p))) continue;
   const content = readFileSync(file, "utf8");
   let m;
   const reTw = /text-\[(\d+(?:\.\d+)?)px\]/g;

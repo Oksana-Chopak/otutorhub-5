@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getLocale } from "@/lib/locale";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -17,7 +18,7 @@ export interface CalendarLesson {
 }
 
 interface Props {
-  /** Чиє ім'я в чипі: репетитор/менеджер бачать учня, учень — репетитора. */
+  /** Чиє ім'я в чипі: репетитор/менеджер — учня, учень — репетитора. */
   chipPerson?: "student" | "tutor";
   weekStart: Date; // any date in the desired week
   lessons: CalendarLesson[];
@@ -34,8 +35,6 @@ const START_HOUR = 7; // 07:00
 const END_HOUR = 23; // 23:00
 const HOURS = END_HOUR - START_HOUR;
 
-// Єдина зміна відносно попереднього вигляду: темний читабельний текст чипів
-// (тон-у-тон виглядав «білим по білому» — підтверджений власницею баг).
 const statusColor: Record<CalendarLesson["status"], string> = {
   pending: "bg-warning/15 border-warning/40 text-[#7a4d07] hover:bg-warning/25",
   scheduled: "bg-primary/15 border-primary/40 text-[#0b5c50] hover:bg-primary/25",
@@ -60,7 +59,8 @@ function formatRange(weekStart: Date) {
   if (sameMonth) {
     return `${weekStart.getDate()}–${end.toLocaleDateString(getLocale(), opt)}`;
   }
-  return `${weekStart.toLocaleDateString(getLocale(), opt)} – ${end.toLocaleDateString(getLocale(),
+  return `${weekStart.toLocaleDateString(getLocale(), opt)} – ${end.toLocaleDateString(
+    getLocale(),
     opt
   )}`;
 }
@@ -139,34 +139,25 @@ export function WeekCalendar({
   }, [lessons, days]);
 
   return (
-    <div className="rounded-[16px] border-[0.5px] bg-white" style={{ borderColor: "var(--border,#eceef3)" }}>
+    <div className="rounded-xl border border-border bg-card">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2">
-        <button
-          type="button"
-          onClick={onToday}
-          className="flex h-9 items-center gap-1.5 rounded-[10px] border-[0.5px] bg-white px-3 text-[15px] font-bold transition-colors hover:bg-[#f0fdf9]"
-          style={{ borderColor: "var(--border,#eceef3)", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
-        >
+        <Button variant="outline" size="sm" onClick={onToday} className="gap-1.5">
           <CalendarDays className="h-3.5 w-3.5" />
           {t("weekCalendar.today")}
-        </button>
+        </Button>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={onPrev} aria-label="←"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-            style={{ color: "var(--sub,#6b7088)" }}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev}>
             <ChevronLeft className="h-4 w-4" />
-          </button>
+          </Button>
           <span className="text-sm font-medium text-foreground min-w-[120px] text-center">
             {formatRange(start)}
           </span>
-          <button type="button" onClick={onNext} aria-label="→"
-            className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-            style={{ color: "var(--sub,#6b7088)" }}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNext}>
             <ChevronRight className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
-        <span className="text-[14px] text-muted-foreground hidden sm:block">
+        <span className="text-xs text-muted-foreground hidden sm:block">
           {start.getFullYear()}
         </span>
       </div>
@@ -180,7 +171,7 @@ export function WeekCalendar({
             <div
               key={i}
               className={cn(
-                "px-1 py-2 text-center text-[14px]",
+                "px-1 py-2 text-center text-xs",
                 isToday ? "bg-primary/10 text-primary font-semibold" : "text-muted-foreground"
               )}
             >
@@ -212,7 +203,7 @@ export function WeekCalendar({
             >
               <div className="relative h-px bg-destructive">
                 <span className="absolute -left-1 -top-[3px] inline-block h-1.5 w-1.5 rounded-full bg-destructive" />
-                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[14px] font-semibold text-destructive-foreground">
+                <span className="absolute -top-[8px] left-10 rounded bg-destructive px-1 py-px text-[9px] font-semibold text-destructive-foreground">
                   {now.toLocaleTimeString(getLocale(), {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -226,7 +217,7 @@ export function WeekCalendar({
             {Array.from({ length: HOURS }, (_, i) => (
               <div
                 key={i}
-                className="text-[14px] text-muted-foreground text-right pr-1 border-b border-border/50"
+                className="text-[10px] text-muted-foreground text-right pr-1 border-b border-border/50"
                 style={{ height: HOUR_HEIGHT }}
               >
                 {String(START_HOUR + i).padStart(2, "0")}:00
@@ -283,23 +274,23 @@ export function WeekCalendar({
                         onLessonClick?.(l);
                       }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[14px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[10px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}
                     >
-                      {/* Час НЕ повторюємо — його показує вертикальна вісь. */}
+                      {/* Час не дублюємо — його показує вертикальна вісь */}
                       <div className="font-semibold truncate">
                         {nameOf(chipPerson === "tutor" ? l.tutor_id : l.student_id)}
                       </div>
-                      {height >= 38 && l.student_price != null && Number(l.student_price) > 0 && (
+                      {height >= 30 && l.student_price != null && Number(l.student_price) > 0 && (
                         <div className="truncate opacity-90">
                           {Number(l.student_price)} ₴
                           {l.student_payment_status === "paid" && " ✓"}
                           {l.student_payment_status === "unpaid" && " •"}
                         </div>
                       )}
-                      {height >= 56 && (
+                      {height >= 44 && (
                         <div className="truncate opacity-80 mt-0.5">{l.subject}</div>
                       )}
                     </button>
