@@ -34,9 +34,7 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
     }
     if (prevLevelKey.current !== level.key) {
       prevLevelKey.current = level.key;
-      toast.success(t("studentProgress.levelUp", { level: t(`studentProgress.level_${level.key}`) }), {
-        duration: 6000,
-      });
+      toast.success(t("studentProgress.levelUp", { level: t(`studentProgress.level_${level.key}`) }));
     }
   }, [level.key, t]);
 
@@ -48,7 +46,7 @@ export function StudentProgressBar({ completedCount, weeklyCount, weeklyRecord }
     }
     if (prevRecord.current < weeklyRecord && weeklyRecord > 0) {
       prevRecord.current = weeklyRecord;
-      toast.success(t("studentRecord.weeklyNew"), { duration: 5000 });
+      toast.success(t("studentRecord.weeklyNew"), {});
     }
   }, [weeklyRecord, t]);
 

@@ -61,6 +61,14 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     setCurrencyOpen(false);
   };
 
+  // Same stale-form class as the MyStudents FAB: open → type → close without
+  // saving → reopen showed the previous values. Create-only dialog, so a clean
+  // slate on every open is always correct.
+  useEffect(() => {
+    if (open) reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   useEffect(() => {
     if (!user || !open) return;
     supabase.from("student_rates").select("subject").eq("tutor_id", user.id).then(({ data }) => {

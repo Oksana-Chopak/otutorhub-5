@@ -163,7 +163,7 @@ export const appToast = {
 
   saved: () => success("Збережено ✓"),
   saveFailed: () => error("Не вдалося зберегти"),
-  copied: (what = "Скопійовано") => toast(what, { duration: 2000 }),
+  copied: (what = "Скопійовано") => toast(what, {}),
 };
 
 // ─── Re-export raw toast for cases not covered above ─────────────────────────

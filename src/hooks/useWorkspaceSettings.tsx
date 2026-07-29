@@ -45,12 +45,13 @@ export function useWorkspaceSettings() {
         .maybeSingle(),
       supabase
         .from("student_rates")
-        .select("student_id")
+        .select("student_id, archived_at")
         .eq("tutor_id", user.id)
         .eq("source", "independent"),
     ]);
     setSettings(ws as unknown as WorkspaceSettings | null);
-    const ids = new Set((rates ?? []).map((r: any) => r.student_id));
+    // Той самий контракт, що й /my-students: distinct АКТИВНІ (без архіву).
+    const ids = new Set((rates ?? []).filter((r: any) => !r.archived_at).map((r: any) => r.student_id));
     setStudentCount(ids.size);
     setLoading(false);
   }, [user?.id, isTutor]);

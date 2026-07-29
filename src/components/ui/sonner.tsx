@@ -18,7 +18,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       position="top-center"
-      duration={4200}
+      // Вимога власниці (28.07): сповіщення НЕ зникають самі — лише хрестиком.
+      duration={Infinity}
       visibleToasts={3}
       gap={10}
       closeButton

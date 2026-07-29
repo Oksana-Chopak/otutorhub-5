@@ -207,6 +207,9 @@ export default function AuthPage() {
     const code = searchParams.get("code");
     const accessToken = hash?.get("access_token");
     const refreshToken = hash?.get("refresh_token");
+    // Recovery links must end on the set-new-password screen, not be swallowed
+    // into a plain sign-in (that made every «Забули пароль» e-mail useless).
+    const linkType = hash?.get("type") ?? searchParams.get("type");
 
     if (!code && !accessToken) return;
 
@@ -224,7 +227,7 @@ export default function AuthPage() {
         }
         // Сесія створена — прибираємо токени з URL і йдемо в застосунок.
         window.history.replaceState({}, "", window.location.pathname);
-        navigate(nextPath, { replace: true });
+        navigate(linkType === "recovery" ? "/reset-password" : nextPath, { replace: true });
       } catch (err) {
         console.error("[AuthPage] confirmation-link token exchange failed:", err);
         // Не вдалося — лишаємо користувача на формі входу з підказкою.
@@ -367,7 +370,11 @@ export default function AuthPage() {
     navigate(nextPath, { replace: true });
   };
 
+  const [resetSending, setResetSending] = useState(false);
+  const [resetCooldown, setResetCooldown] = useState(0);
+
   const handleForgotPassword = async () => {
+    if (resetSending || resetCooldown > 0) return; // залипання/повторні кліки → шторм листів
     const emailParse = z.string().trim().email().safeParse(signInData.email);
     if (!emailParse.success) {
       toast({
@@ -377,15 +384,23 @@ export default function AuthPage() {
       });
       return;
     }
-    setLoading(true);
+    setResetSending(true);
     const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-    setLoading(false);
+    setResetSending(false);
     if (error) {
       toast({ title: t("auth.resetFailedTitle"), description: error.message, variant: "destructive" });
       return;
     }
+    // 60-с кулдаун із лічильником — і видимий фідбек, і захист від дублів.
+    setResetCooldown(60);
+    const timer = window.setInterval(() => {
+      setResetCooldown((s) => {
+        if (s <= 1) { window.clearInterval(timer); return 0; }
+        return s - 1;
+      });
+    }, 1000);
     toast({
       title: t("auth.checkInbox"),
       description: t("auth.resetSentTo") + emailParse.data,
@@ -690,9 +705,14 @@ export default function AuthPage() {
                   <button
                     type="button"
                     onClick={handleForgotPassword}
-                    className="block w-full text-center text-[14px] text-muted-foreground hover:text-foreground hover:underline"
+                    disabled={resetSending || resetCooldown > 0}
+                    className="block w-full text-center text-[14px] text-muted-foreground hover:text-foreground hover:underline disabled:opacity-60 disabled:hover:no-underline disabled:cursor-default"
                   >
-                    {t("auth.forgotPassword")}
+                    {resetSending
+                      ? t("auth.resetSending")
+                      : resetCooldown > 0
+                        ? t("auth.resetCooldown", { s: resetCooldown })
+                        : t("auth.forgotPassword")}
                   </button>
                 </form>
               </TabsContent>

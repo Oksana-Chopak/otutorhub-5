@@ -464,7 +464,6 @@ export default function MyStudentsPage() {
           toast(t("myStudents.firstStepToastTitle"), {
             description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
             action: { label: t("myStudents.createLessonAction"), onClick: () => navigate("/schedule") },
-            duration: 8000,
           });
         }, 600);
       }
@@ -1210,7 +1209,7 @@ export default function MyStudentsPage() {
           }}
         />
       )}
-      <PageFAB onClick={() => setDialog({ open: true, mode: "create", studentId: null })} label={t("myStudents.addStudent")} />
+      <PageFAB onClick={openCreate} label={t("myStudents.addStudent")} />
     </AppLayout>
   );
 }

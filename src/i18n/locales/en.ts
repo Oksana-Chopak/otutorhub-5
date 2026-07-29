@@ -382,6 +382,8 @@ export const en: LocaleTranslations = {
   },
 
   auth: {
+    resetSending: "Sending email…",
+    resetCooldown: "Email sent · retry in {{s}}s",
     showOptional: "Add phone (optional)",
     hideOptional: "Hide",
     emailConfirmedBanner: "Email confirmed! Sign in to continue 🎉",
@@ -480,6 +482,7 @@ export const en: LocaleTranslations = {
     btnFinances: "Finances",
     cardTutors: "Tutors",
     cardStudents: "Students",
+    cardStudentsShort: "Students",
     cardProfit: "Profit",
     vsLastMonth: "vs last month",
     periodAll: "All time",
@@ -1412,6 +1415,7 @@ export const en: LocaleTranslations = {
   },
 
   resetPassword: {
+    linkExpired: "This link has expired or was already used. Go back to sign-in and press “Forgot password?” again to get a fresh email.",
     minChars: "At least 8 characters",
     errorTitle: "Error",
     updateFailed: "Could not update password",

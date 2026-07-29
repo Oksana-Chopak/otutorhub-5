@@ -906,7 +906,6 @@ export default function FinancesPage() {
             })
           : t("finances.markedAsPayout"),
         {
-          duration: 5000,
           action: { label: t("finances.undoAction"), onClick: () => { void revert(); } },
         },
       );

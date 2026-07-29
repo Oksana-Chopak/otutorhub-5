@@ -386,6 +386,8 @@ export const uk = {
 
   // Auth
   auth: {
+    resetSending: "Надсилаємо лист…",
+    resetCooldown: "Лист надіслано · повторно через {{s}} с",
     showOptional: "Додати телефон (необов'язково)",
     hideOptional: "Сховати",
     emailConfirmedBanner: "Email підтверджено! Увійдіть, щоб продовжити 🎉",
@@ -485,6 +487,7 @@ export const uk = {
     btnFinances: "Фінанси",
     cardTutors: "Репетитори",
     cardStudents: "Учні",
+    cardStudentsShort: "Учнів",
     cardProfit: "Прибуток",
     vsLastMonth: "проти минулого місяця",
     periodAll: "За весь час",
@@ -1424,6 +1427,7 @@ export const uk = {
   },
 
   resetPassword: {
+    linkExpired: "Посилання застаріло або вже використане. Повернись на сторінку входу й натисни «Забули пароль?» ще раз — прийде свіжий лист.",
     minChars: "Мінімум 8 символів",
     errorTitle: "Помилка",
     updateFailed: "Не вдалося оновити пароль",

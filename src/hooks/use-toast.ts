@@ -135,6 +135,11 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">;
 
 function toast({ ...props }: Toast) {
+  // Порожні «бульбашки» (без заголовка й опису) не створюємо взагалі —
+  // вони висіли пустими картками поверх інших сповіщень.
+  if (!props.title && !props.description) {
+    return { id: "", dismiss: () => {}, update: () => {} };
+  }
   const id = genId();
 
   const update = (props: ToasterToast) =>

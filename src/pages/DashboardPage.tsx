@@ -241,7 +241,6 @@ export default function DashboardPage() {
       description: count >= 7
         ? t("tutorDelight.streakDayDesc7plus")
         : t("tutorDelight.streakDayDesc"),
-      duration: 5000,
       icon: "🔥",
     });
   }, [streak?.current_streak, user?.id, isTutor, gamificationLoading]);
@@ -269,7 +268,6 @@ export default function DashboardPage() {
     import("sonner").then(({ toast }) => {
       toast(t("monthlySummaryExtra.readyToast", { month: months[prevMonthIdx] }), {
         description: t("dashboardExtra.monthlySummaryDesc"),
-        duration: 8000,
         action: {
           label: t("dashboardExtra.monthlySummaryBtn"),
           onClick: () => {
@@ -282,7 +280,36 @@ export default function DashboardPage() {
     localStorage.setItem(seenKey, "1");
   }, [user?.id, isIndependentTutor]);
 
-
+  // FIX (2026-07-28): the big loadData() runs only on [user?.id] and races
+  // useWorkspaceSettings — on first run isIndependent is still false, so the
+  // independent tutor's student-count query resolved as a noop and the "Учні"
+  // dashboard bubble showed 0 forever (state stayed null; the effect never
+  // re-ran when the role flag settled). Load role-scoped numbers here, keyed on
+  // the SETTLED flags. Queries mirror the loadData batch exactly.
+  useEffect(() => {
+    if (!user || wsLoading) return;
+    if (isIndependentTutor) {
+      // Рахуємо РІВНО те, що бачить вкладка «Активні» на /my-students:
+      // унікальні учні, source='independent', без archived_at. Рядки (кілька
+      // предметів = кілька рейтів) і архівні сюди не потрапляють.
+      supabase
+        .from("student_rates")
+        .select("student_id, archived_at")
+        .eq("tutor_id", user.id)
+        .eq("source", "independent")
+        .then(({ data }) => {
+          const ids = new Set((data ?? []).filter((r: any) => !r.archived_at).map((r: any) => r.student_id));
+          setMyStudentCount(ids.size);
+        });
+    } else if (isHubTutor) {
+      supabase
+        .from("student_rates")
+        .select("student_id", { count: "exact", head: true })
+        .eq("tutor_id", user.id)
+        .neq("source", "independent")
+        .then(({ count }) => setHubStudentCount(count ?? 0));
+    }
+  }, [user?.id, wsLoading, isIndependentTutor, isHubTutor]);
 
   const openPaymentSheet = async () => {
     if (!user) return;
@@ -723,7 +750,6 @@ export default function DashboardPage() {
             name: firstName,
           }),
           {
-            duration: 5000,
             description: t("dashboardExtra.paymentCheckFinances"),
             action: { label: t("nav.finances"), onClick: () => navigate("/finances") },
           },
@@ -1322,17 +1348,18 @@ export default function DashboardPage() {
       )}
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
       {/* Hero: dark bg on mobile for readability, transparent on desktop */}
-      <div className="-mx-4 -mt-4 mb-5 overflow-hidden rounded-b-[24px] lg:mx-0 lg:mt-0 lg:mb-6 lg:rounded-[18px]">
+      <div className="-mx-4 -mt-4 mb-3 overflow-hidden rounded-b-[24px] lg:mx-0 lg:mt-0 lg:mb-6 lg:rounded-[18px]">
         <div
-          className="relative px-5 py-6 lg:px-0 lg:py-0"
+          className="relative px-5 py-3 lg:px-0 lg:py-0"
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
-              <h1 className="font-display text-[26px] font-extrabold leading-tight text-foreground lg:text-[28px]">
+              {/* Мобільне привітання тепер живе в хедері AppLayout — тут лише десктоп */}
+              <h1 className="hidden font-display text-[26px] font-extrabold leading-tight text-foreground lg:block lg:text-[28px]">
                 {timeEmoji}{" "}
                 {greeting}{firstName ? <>{","}{" "}<span style={{ color: "var(--teal)" }}>{firstName}</span></> : "!"}
               </h1>
-              <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[16px] text-muted-foreground">
+              <p className="mt-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted-foreground lg:mt-2 lg:text-[16px]">
                 <Link
                   to="/schedule"
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
@@ -1347,14 +1374,14 @@ export default function DashboardPage() {
                   </span>
                 )}
               </p>
-              <p className="mt-3 line-clamp-2 text-[16px] italic text-muted-foreground">
+              <p className="mt-1.5 line-clamp-2 text-[15px] italic text-muted-foreground lg:mt-3 lg:text-[16px]">
                 ✨ {phraseOfDay}
               </p>
               {/* Trial countdown — між афірмацією і кнопками, читабельно */}
               {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
                   to="/subscription"
-                  className="mt-3 inline-flex max-w-full items-center gap-2 self-start rounded-full px-4 py-1.5 text-[15px] font-semibold transition-opacity hover:opacity-80"
+                  className="mt-2 inline-flex max-w-full items-center gap-2 self-start rounded-full px-4 py-1 text-[15px] font-semibold transition-opacity hover:opacity-80"
                   style={{
                     background: trialDaysLeft <= 3 ? "rgba(245,158,11,.15)" : "rgba(43,191,170,.12)",
                     color: trialDaysLeft <= 3 ? "#b45309" : "#25a896",
@@ -1401,7 +1428,7 @@ export default function DashboardPage() {
       {loading ? (
         <DashboardSkeleton />
       ) : (
-        <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-clip">
+        <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-clip">
           {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
 
           {/* ── Тріал закінчується — персональні цифри ── */}
@@ -1454,13 +1481,13 @@ export default function DashboardPage() {
             <>
               {/* Mobile: Profit (2/3) + Students (1/3) */}
               <div className="grid grid-cols-3 gap-3 lg:hidden">
-                <Link to="/finances" className="col-span-2 block overflow-hidden rounded-[18px] p-4 relative hover:shadow-sm transition-shadow"
+                <Link to="/finances" className="col-span-2 block overflow-hidden rounded-[18px] px-4 py-2.5 relative hover:shadow-sm transition-shadow"
                   style={{ background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)" }}>
                   <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "#6b7a99" }}>
                     💰 {t("dashboard.cardProfit")}
                   </p>
-                  <p className="mt-2 font-extrabold leading-none"
-                    style={{ fontSize: profitByCur.length > 1 ? 19 : 26, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
+                  <p className="mt-1 font-extrabold leading-none"
+                    style={{ fontSize: profitByCur.length > 1 ? 18 : 23, color: "var(--teal,#2BBFAA)", fontFamily: "Inter, system-ui", letterSpacing: "-0.02em" }}>
                     {independentProfitLabel}
                   </p>
                   {profitGrowthPct !== null && (
@@ -1469,7 +1496,7 @@ export default function DashboardPage() {
                       {profitGrowthPct >= 0 ? "↑" : "↓"} {profitGrowthPct >= 0 ? "+" : ""}{profitGrowthPct}% {t("dashboard.vsLastMonth")}
                     </p>
                   )}
-                  <div className="mt-2 relative" style={{ height: 14 }}>
+                  <div className="mt-1.5 relative" style={{ height: 10 }}>
                     <div className="absolute bottom-0 left-0 right-0 flex items-end gap-0.5" style={{ height: "100%" }}>
                       {monthlyProfitBars.map((h, i) => (
                         <div key={i} className="flex-1 rounded-sm"
@@ -1478,18 +1505,18 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </Link>
-                <Link to="/my-students" className="flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow"
+                <Link to="/my-students" className="flex flex-col justify-center rounded-[18px] border bg-white px-3 py-2 hover:shadow-sm transition-shadow"
                   style={{ borderColor: "var(--border,#eceef3)" }}>
-                  <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2"
+                  <div className="w-7 h-7 rounded-[9px] flex items-center justify-center mb-1"
                     style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
                   <p className="font-extrabold leading-none"
-                    style={{ fontSize: 28, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
+                    style={{ fontSize: 23, fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)", letterSpacing: "-0.02em" }}>
                     {myStudentCount ?? 0}
                   </p>
-                  <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
-                    {t("dashboard.cardStudents")} · {t("dashboard.cardStudentsSub")}
+                  <p className="mt-0.5 text-[13px]" style={{ color: "var(--sub,#6b7088)" }}>
+                    {t("dashboard.cardStudentsShort")}
                   </p>
                 </Link>
               </div>

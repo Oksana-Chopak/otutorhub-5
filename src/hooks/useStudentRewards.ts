@@ -87,7 +87,6 @@ export function useStudentRewards() {
           if (!initialized.current) return;
           toast.success(t("rewardCollection.newReward"), {
             description: t("rewardCollection.newRewardDesc", { emoji: row.emoji }),
-            duration: 6000,
             className: "text-2xl",
           });
         }

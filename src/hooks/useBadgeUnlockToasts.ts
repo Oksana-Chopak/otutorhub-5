@@ -55,7 +55,6 @@ export function useBadgeUnlockToasts(badges: TutorBadge[], loading: boolean) {
       setTimeout(() => {
         toast.success(t("badgeUnlockToast.newBadge", { emoji, name }), {
           description: desc,
-          duration: 6000,
           className: "animate-pop",
         });
       }, i * 800);

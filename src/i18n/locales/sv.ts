@@ -157,6 +157,8 @@ export const sv: LocaleTranslations = {
     toggle: "Växla tema",
   },
   auth: {
+    resetSending: "Skickar e-post…",
+    resetCooldown: "E-post skickad · igen om {{s}} s",
     showOptional: "Lägg till telefon (valfritt)",
     hideOptional: "Dölj",
     emailConfirmedBanner: "E-post bekräftad! Logga in för att fortsätta 🎉",
@@ -254,6 +256,7 @@ export const sv: LocaleTranslations = {
     btnFinances: "Ekonomi",
     cardTutors: "Lärare",
     cardStudents: "Elever",
+    cardStudentsShort: "Elever",
     cardProfit: "Vinst",
     vsLastMonth: "mot förra månaden",
     periodAll: "All tid",
@@ -1402,6 +1405,7 @@ export const sv: LocaleTranslations = {
   },
 
   resetPassword: {
+    linkExpired: "Länken har gått ut eller redan använts. Gå tillbaka till inloggningen och tryck på ”Glömt lösenord?” igen för ett nytt mejl.",
     minChars: "Minst 8 tecken",
     errorTitle: "Fel",
     updateFailed: "Det gick inte att uppdatera lösenordet",

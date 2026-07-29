@@ -62,8 +62,8 @@ export function TutorNotesCard() {
           onChange={(e) => setText(e.target.value)}
           placeholder={t("tutorNotes.placeholder")}
           maxLength={500}
-          rows={2}
-          className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2.5 text-[16px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
+          rows={1}
+          className="flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2 text-[15px] text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-primary/30"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); add(); }
           }}

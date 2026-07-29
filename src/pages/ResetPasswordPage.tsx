@@ -25,6 +25,43 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
   const [hasRecoverySession, setHasRecoverySession] = useState(false);
+  const [linkError, setLinkError] = useState(false);
+
+  // The Supabase client is created WITHOUT detectSessionInUrl, so the tokens the
+  // recovery e-mail brings (#access_token…&type=recovery or ?code=…) were never
+  // parsed — getSession() stayed empty, updateUser failed with "Auth session
+  // missing", and the reset flow looked completely broken. Exchange the link
+  // tokens manually here, exactly like AuthPage does for confirmation links.
+  useEffect(() => {
+    const hash = window.location.hash.startsWith("#")
+      ? new URLSearchParams(window.location.hash.slice(1))
+      : null;
+    const code = new URLSearchParams(window.location.search).get("code");
+    const accessToken = hash?.get("access_token");
+    const refreshToken = hash?.get("refresh_token");
+
+    if (!code && !accessToken) return; // opened directly — banner will explain
+
+    (async () => {
+      try {
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+        } else if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) throw error;
+        }
+        window.history.replaceState({}, "", window.location.pathname);
+        setHasRecoverySession(true);
+      } catch (err) {
+        console.error("[ResetPassword] token exchange failed:", err);
+        setLinkError(true);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -76,6 +113,12 @@ export default function ResetPasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {linkError && (
+              <div className="mb-4 rounded-[12px] border px-3.5 py-3 text-[14px]"
+                style={{ background: "#FDF1F1", borderColor: "#F3C4C4", color: "#8F2C2C" }}>
+                {t("resetPassword.linkExpired")}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="np">{t("resetPassword.label")}</Label>

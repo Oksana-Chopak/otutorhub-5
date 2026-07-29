@@ -834,7 +834,6 @@ export default function SchedulePage() {
     if (canMarkPay) {
       toast.success(t('schedule.statusUpdated'), {
         description: t('schedule.studentPaidQuestion'),
-        duration: 6000,
         action: { label: t('schedule.markPaidAction'), onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) },
       });
     } else {

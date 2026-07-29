@@ -224,7 +224,7 @@ export function AppSidebar() {
                 end={item.to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "group relative flex items-center gap-3 rounded-[12px] px-3 py-3 text-base font-medium transition-all duration-150 lg:py-2.5 lg:text-sm",
+                    "group relative flex items-center gap-3 rounded-[12px] px-3 py-3 text-[17px] font-medium transition-all duration-150 lg:py-2.5 lg:text-[15.5px]",
                     isActive
                       ? "bg-[rgba(43,191,170,0.14)] text-[#2BBFAA] font-semibold"
                       : "text-slate-400 hover:bg-white/5 hover:text-white"
@@ -282,7 +282,7 @@ export function AppSidebar() {
         {/* Help: setup guide (independent only) + feedback (everyone) — kept under the
             same "Допомога" heading so support is always in one place. */}
         <div className="px-3 py-3" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-          <p className="mb-1.5 px-3 text-[14px] font-semibold uppercase tracking-wider text-slate-500">
+          <p className="mb-1.5 px-3 text-[15px] font-semibold uppercase tracking-wider text-slate-500">
             {t("nav.help")}
           </p>
           {showOnboardingHelp && (
