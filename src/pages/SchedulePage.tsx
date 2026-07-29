@@ -1606,6 +1606,7 @@ export default function SchedulePage() {
         <ScheduleSkeleton />
       ) : view === "week" ? (
         <WeekCalendar
+          chipPerson={isTutor || isManager ? "student" : "tutor"}
           weekStart={weekAnchor}
           lessons={filteredLessons.map((l) => ({
             id: l.id,
