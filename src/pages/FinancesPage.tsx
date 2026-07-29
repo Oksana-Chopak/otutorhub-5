@@ -1509,6 +1509,12 @@ export default function FinancesPage() {
 
   // ── Independent Tutor Cockpit computed values ─────────────────────────────
   const [finTab, setFinTab] = useState<"ops"|"debts"|"analytics">("ops");
+  const finTabsRef = useRef<HTMLDivElement | null>(null);
+  const goTab = (id: "ops"|"debts"|"analytics") => {
+    setFinTab(id);
+    // Бульбашка зверху → одразу показуємо відповідну секцію.
+    requestAnimationFrame(() => finTabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  };
 
   // Week bars: earned per day of week (Пн–Нд)
   const weekBars = useMemo(() => {
@@ -1911,16 +1917,18 @@ export default function FinancesPage() {
 
             {/* Stats row */}
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
-              {/* Earned — dark gradient */}
-              <div style={{ gridColumn:"1/-1", borderRadius:20, padding:"18px 20px",
+              {/* Earned — dark gradient; клік → Аналітика */}
+              <button type="button" onClick={() => goTab("analytics")} aria-label={t("finances.tabAnalytics")}
+                style={{ gridColumn:"1/-1", borderRadius:20, padding:"12px 16px", textAlign:"left", width:"100%",
+                border:"none", cursor:"pointer",
                 background:"linear-gradient(135deg,#0f0f1a,#1a1a2e)", position:"relative", overflow:"hidden" }}>
                 <div style={{ position:"absolute", top:-20, right:-20, width:100, height:100,
                   borderRadius:"50%", background:"radial-gradient(circle,rgba(43,191,170,.35),transparent)" }} />
                 <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"rgba(255,255,255,.5)",
-                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:8 }}>
+                  textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:5 }}>
                   💰 {t("finances.received")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:900, fontSize: incomeByCur.length > 1 ? 30 : 38, color:F.teal,
+                <p style={{ fontFamily:F.display, fontWeight:900, fontSize: incomeByCur.length > 1 ? 24 : 30, color:F.teal,
                   letterSpacing:"-0.025em", lineHeight:1.1 }}>
                   {fmtCurList(incomeByCur)}
                 </p>
@@ -1929,41 +1937,43 @@ export default function FinancesPage() {
                     + {t("finances.pendingAmount", { sum: fmtCurList(pendingByCur) })}
                   </p>
                 )}
-              </div>
+              </button>
 
-              {/* Pending — warn */}
-              <div style={{ borderRadius:16, padding:"14px 16px",
+              {/* Pending — warn; клік → Борги */}
+              <button type="button" onClick={() => goTab("debts")} aria-label={t("finances.tabDebts")}
+                style={{ borderRadius:16, padding:"10px 14px", textAlign:"left", cursor:"pointer",
                 background:F.warnBg, border:`1px solid ${F.warnBorder}` }}>
                 <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.warnD,
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   ⏳ {t("finances.pendingLabel")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:800, fontSize: pendingByCur.length > 1 ? 17 : 22, color:F.warnD }}>
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize: pendingByCur.length > 1 ? 16 : 19, color:F.warnD }}>
                   {fmtCurList(pendingByCur)}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 14, color:F.warnD, opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: debtList.length })}
                 </p>
-              </div>
+              </button>
 
-              {/* Avg */}
-              <div style={{ borderRadius:16, padding:"14px 16px",
+              {/* Avg; клік → Аналітика */}
+              <button type="button" onClick={() => goTab("analytics")} aria-label={t("finances.tabAnalytics")}
+                style={{ borderRadius:16, padding:"10px 14px", textAlign:"left", cursor:"pointer",
                 background:"rgba(139,92,246,.08)", border:"1px solid rgba(139,92,246,.2)" }}>
                 <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:"#7c3aed",
                   textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:6 }}>
                   📊 {t("finances.avgLesson")}
                 </p>
-                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:22, color:"#7c3aed" }}>
+                <p style={{ fontFamily:F.display, fontWeight:800, fontSize:19, color:"#7c3aed" }}>
                   {formatPrice(avgLesson, incomeByCur[0]?.[0] ?? "UAH")}
                 </p>
                 <p style={{ fontFamily:F.body, fontSize: 14, color:"#7c3aed", opacity:0.7, marginTop:2 }}>
                   {t("finances.lessonsCount", { count: paidLessonsCount })}
                 </p>
-              </div>
+              </button>
             </div>
 
             {/* 3 tabs */}
-            <div style={{ borderRadius:18, background:F.surface, border:`1px solid ${F.border}`,
+            <div ref={finTabsRef} style={{ scrollMarginTop: 64, borderRadius:18, background:F.surface, border:`1px solid ${F.border}`,
               overflow:"hidden", boxShadow:"0 2px 10px -4px rgba(15,15,26,.06)" }}>
               {/* Tab header */}
               <div style={{ display:"flex", borderBottom:`1px solid ${F.border}` }}>

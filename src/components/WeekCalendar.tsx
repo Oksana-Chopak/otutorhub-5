@@ -32,12 +32,14 @@ const START_HOUR = 7; // 07:00
 const END_HOUR = 23; // 23:00
 const HOURS = END_HOUR - START_HOUR;
 
+// Темний текст на світлому тоні — «тон-у-тон» (text-primary на bg-primary/15)
+// давав нечитабельні чипи на мобілці (виглядало як білим по білому).
 const statusColor: Record<CalendarLesson["status"], string> = {
-  pending: "bg-warning/15 border-warning/40 text-warning hover:bg-warning/25",
-  scheduled: "bg-primary/15 border-primary/40 text-primary hover:bg-primary/25",
-  completed: "bg-success/15 border-success/40 text-success hover:bg-success/25",
+  pending: "bg-warning/15 border-warning/45 text-[#7a4d07] hover:bg-warning/25",
+  scheduled: "bg-primary/15 border-primary/45 text-[#0b5c50] hover:bg-primary/25",
+  completed: "bg-success/15 border-success/45 text-[#14532d] hover:bg-success/25",
   cancelled:
-    "bg-destructive/15 border-destructive/40 text-destructive line-through hover:bg-destructive/25",
+    "bg-destructive/15 border-destructive/45 text-[#8f2c2c] line-through hover:bg-destructive/25",
 };
 
 function startOfWeek(d: Date) {
@@ -119,6 +121,11 @@ export function WeekCalendar({
     // Try to center the now-line; offset back by ~2 hours for context
     const target = Math.max(0, nowTopPx - HOUR_HEIGHT * 2);
     el.scrollTop = target;
+    // Мобілка: тиждень ширший за екран — підвозимо горизонталь до сьогодні,
+    // щоб перший погляд одразу падав на актуальний день.
+    if (typeof window !== "undefined" && window.innerWidth < 1024 && todayColIndex >= 0) {
+      el.scrollLeft = Math.max(0, 40 + todayColIndex * 96 - 12);
+    }
     didScrollRef.current = true;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [todayColIndex, showNowLine]);
@@ -167,8 +174,11 @@ export function WeekCalendar({
       </div>
 
       {/* Day headers */}
-      <div className="grid grid-cols-[40px_repeat(7,1fr)] border-b border-border bg-secondary/30">
-        <div />
+      <div ref={scrollRef} className="overflow-auto max-h-[70vh]">
+       <div className="min-w-[712px] lg:min-w-0">
+        {/* Мобілка: 7 днів × ≥96px гортаються вбік; хедер липкий зверху, кут — зліва */}
+        <div className="sticky top-0 z-30 grid grid-cols-[40px_repeat(7,minmax(96px,1fr))] lg:grid-cols-[40px_repeat(7,1fr)] border-b border-border bg-card">
+        <div className="sticky left-0 z-40 bg-card" />
         {days.map((d, i) => {
           const isToday = d.toDateString() === todayKey;
           return (
@@ -193,10 +203,9 @@ export function WeekCalendar({
         })}
       </div>
 
-      {/* Time grid */}
-      <div ref={scrollRef} className="overflow-auto max-h-[70vh]">
+      {/* Time grid — у СПІЛЬНОМУ скрол-контейнері з хедером (обидві осі синхронні) */}
         <div
-          className="grid grid-cols-[40px_repeat(7,1fr)] relative"
+          className="grid grid-cols-[40px_repeat(7,minmax(96px,1fr))] lg:grid-cols-[40px_repeat(7,1fr)] relative"
           style={{ height: HOURS * HOUR_HEIGHT }}
         >
           {/* "Now" red line — spans the whole grid, highlighted on today's column */}
@@ -216,12 +225,12 @@ export function WeekCalendar({
               </div>
             </div>
           )}
-          {/* Hour labels */}
-          <div className="border-r border-border">
+          {/* Hour labels — вузький липкий ґаттер, не «ціла клітинка» */}
+          <div className="sticky left-0 z-20 border-r border-border bg-card">
             {Array.from({ length: HOURS }, (_, i) => (
               <div
                 key={i}
-                className="text-[14px] text-muted-foreground text-right pr-1 border-b border-border/50"
+                className="text-[13px] text-muted-foreground text-right pr-1 border-b border-border/50"
                 style={{ height: HOUR_HEIGHT }}
               >
                 {String(START_HOUR + i).padStart(2, "0")}:00
@@ -278,7 +287,7 @@ export function WeekCalendar({
                         onLessonClick?.(l);
                       }}
                       className={cn(
-                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[14px] leading-tight overflow-hidden transition-colors",
+                        "absolute left-0.5 right-0.5 z-10 rounded-md border px-1 py-0.5 text-left text-[13px] leading-tight overflow-hidden transition-colors",
                         statusColor[l.status]
                       )}
                       style={{ top, height }}
@@ -293,7 +302,7 @@ export function WeekCalendar({
                       <div className="truncate opacity-80">
                         {nameOf(l.student_id)}
                       </div>
-                      {l.student_price != null && Number(l.student_price) > 0 && (
+                      {height >= 44 && l.student_price != null && Number(l.student_price) > 0 && (
                         <div className="truncate opacity-90 mt-0.5">
                           {Number(l.student_price)} ₴
                           {l.student_payment_status === "paid" && " ✓"}
@@ -307,6 +316,7 @@ export function WeekCalendar({
             );
           })}
         </div>
+       </div>
       </div>
     </div>
   );
