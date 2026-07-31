@@ -27,8 +27,8 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles,
-} from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles, SlidersHorizontal } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -899,34 +899,36 @@ export default function ChatsPage() {
                 />
               </div>
 
-              {/* Segmented sort */}
-              <div
-                className="flex gap-0.5 mt-2.5 rounded-[10px] p-1"
-                style={{ background: "var(--bg,#F5F4F0)" }}
-              >
-                {(["recent", "unread", "name"] as const).map((mode) => (
-                  <button
-                    key={mode}
-                    onClick={() => setSortMode(mode)}
-                    className="flex-1 h-7 rounded-[8px] text-[14px] font-bold transition-all"
-                    style={
-                      sortMode === mode
-                        ? { background: "#fff", color: "var(--txt,#0f0f1a)", boxShadow: "0 1px 3px rgba(15,15,26,.1)", fontFamily: "Inter, system-ui" }
-                        : { background: "transparent", color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui" }
-                    }
-                  >
-                    {mode === "recent"
-                      ? t("chats.sortRecent")
-                      : mode === "unread"
-                      ? t("chats.sortUnread")
-                      : t("chats.sortName")}
-                  </button>
-                ))}
+              {/* Sort — за акуратним фільтром, як на Розкладі */}
+              <div className="mt-2.5 flex justify-end">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[14px] font-bold"
+                      style={{ background: "#fff", border: "1px solid var(--border,#eceef3)", color: "var(--txt,#0f0f1a)", fontFamily: "Inter, system-ui" }}>
+                      <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--sub,#6b7088)" }} />
+                      {t("chats.filters")}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56 p-1.5">
+                    {(["recent", "unread", "name"] as const).map((mode) => (
+                      <button key={mode} onClick={() => setSortMode(mode)}
+                        className="flex w-full items-center justify-between rounded-[8px] px-3 py-2.5 text-left text-[14px] font-semibold"
+                        style={sortMode === mode
+                          ? { background: "var(--bg,#F5F4F0)", color: "var(--txt,#0f0f1a)" }
+                          : { color: "var(--sub,#6b7088)" }}>
+                        {mode === "recent" ? t("chats.sortRecent") : mode === "unread" ? t("chats.sortUnread") : t("chats.sortName")}
+                        {sortMode === mode && <span style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>}
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
 
             {/* Thread rows */}
-            <div className="flex-1 overflow-y-auto" style={{ padding: "10px 12px", background: "#F5F4F0" }}>
+            <div className="flex-1 overflow-y-auto flex flex-col" style={{ padding: "10px 12px", background: "#F5F4F0" }}>
+              {/* Спейсер поглинає вільний простір → треди притиснуті до низу; при переповненні = звичайний скрол */}
+              <div className="mt-auto" aria-hidden />
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
                   <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
@@ -1438,6 +1440,8 @@ export default function ChatsPage() {
                     style={{
                       background: "#fbfbfc",
                       borderColor: "var(--border,#eceef3)",
+                      color: "var(--txt,#0f0f1a)",
+                      caretColor: "var(--teal,#2BBFAA)",
                       minHeight: 44,
                       maxHeight: 120,
                       fontFamily: "'Plus Jakarta Sans', system-ui",

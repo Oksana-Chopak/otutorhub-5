@@ -808,6 +808,7 @@ export const en: LocaleTranslations = {
   },
 
   chats: {
+    filters: "Filters",
     loadEarlier: "↑ Show earlier",
     ctxNewStudent: "New student",
     ctxDebt: "Debt ₴{{amount}} · {{count}} lessons",

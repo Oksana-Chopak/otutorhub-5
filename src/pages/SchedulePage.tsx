@@ -1645,10 +1645,7 @@ export default function SchedulePage() {
             setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
             setCreateOpen(true);
           }}
-          onLessonClick={(l) => {
-            const full = lessons.find((x) => x.id === l.id);
-            if (full) openEdit(full);
-          }}
+          onLessonClick={(l) => setDetailsLessonId(l.id)}
           nameOf={(id) => profilesMap[id] ?? "?"}
         />
       ) : loading ? (
@@ -1773,7 +1770,7 @@ export default function SchedulePage() {
                             : undefined
                         }
                         onContentClick={() => setDetailsLessonId(lesson.id)}
-                        onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => openEdit(lesson) : undefined}
+                        onEdit={(isManager || (isTutor && lesson.tutor_id === user?.id)) ? () => setDetailsLessonId(lesson.id) : undefined}
                         canEdit={isManager || (isTutor && lesson.tutor_id === user?.id)}
                         onCopy={canCopy ? () => openCopy(lesson) : undefined}
                         canCopy={canCopy}
@@ -1872,6 +1869,11 @@ export default function SchedulePage() {
         lessonId={detailsLessonId}
         open={!!detailsLessonId}
         onOpenChange={(o) => { if (!o) setDetailsLessonId(null); }}
+        onEditFull={(id) => {
+          const full = lessons.find((x) => x.id === id);
+          setDetailsLessonId(null);
+          if (full) openEdit(full); // повне редагування (час/деталі) — тепер ЛИШЕ звідси
+        }}
         onUpdated={loadAll}
       />
     </AppLayout>

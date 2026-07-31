@@ -579,6 +579,7 @@ export const sv: LocaleTranslations = {
     csvPaidOut: "Utbetald",
   },
   chats: {
+    filters: "Filter",
     loadEarlier: "↑ Visa tidigare",
     ctxNewStudent: "Ny elev",
     ctxDebt: "Skuld ₴{{amount}} · {{count}} lektioner",

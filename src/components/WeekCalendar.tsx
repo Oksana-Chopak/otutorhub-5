@@ -283,16 +283,7 @@ export function WeekCalendar({
                       <div className="font-semibold truncate">
                         {nameOf(chipPerson === "tutor" ? l.tutor_id : l.student_id)}
                       </div>
-                      {height >= 30 && l.student_price != null && Number(l.student_price) > 0 && (
-                        <div className="truncate opacity-90">
-                          {Number(l.student_price)} ₴
-                          {l.student_payment_status === "paid" && " ✓"}
-                          {l.student_payment_status === "unpaid" && " •"}
-                        </div>
-                      )}
-                      {height >= 44 && (
-                        <div className="truncate opacity-80 mt-0.5">{l.subject}</div>
-                      )}
+
                     </button>
                   );
                 })}

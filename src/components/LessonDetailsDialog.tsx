@@ -5,7 +5,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
-import { Loader2, X, Trash2 } from "lucide-react";
+import { Loader2, X, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,16 +33,19 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated?: () => void;
+  /** Відкрити повну форму редагування (час/деталі). Кнопка-олівець у футері. */
+  onEditFull?: (lessonId: string) => void;
 }
 
 /**
  * Reusable single-lesson modal. Loads fresh lesson row by id so the modal
  * always shows current data even when the parent list is stale.
  */
-export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }: Props) {
+export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated, onEditFull }: Props) {
   const { t, i18n } = useTranslation();
   const { user, roles } = useAuth();
   const [row, setRow] = useState<LessonRowFull | null>(null);
+  const [studentName, setStudentName] = useState("");
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -98,9 +101,15 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
       })
     : "";
 
+  useEffect(() => {
+    if (!row?.student_id) { setStudentName(""); return; }
+    supabase.from("profiles").select("first_name, last_name").eq("id", row.student_id).maybeSingle()
+      .then(({ data }) => setStudentName([data?.first_name, data?.last_name].filter(Boolean).join(" ")));
+  }, [row?.student_id]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+      <DialogContent className="bg-white w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
@@ -111,7 +120,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {row ? row.subject : t("lessonDetails.fallbackTitle")}
             </div>
-            {sub && <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{sub}</div>}
+            {(studentName || sub) && <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</div>}
           </div>
           <button onClick={() => onOpenChange(false)} aria-label="✕"
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -164,6 +173,16 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
                 style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "rgba(255,122,89,.12)", color: "#e0552f", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 {deleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 size={20} />}
+              </button>
+            )}
+            {onEditFull && row && (roles.includes("manager") || (roles.includes("tutor") && row.tutor_id === user?.id)) && (
+              <button
+                type="button"
+                aria-label={t("lessonCard.edit")}
+                onClick={() => onEditFull(row.id)}
+                style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#6b7088)", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                <Pencil size={20} />
               </button>
             )}
             <button
