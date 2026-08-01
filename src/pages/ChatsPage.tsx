@@ -815,7 +815,7 @@ export default function ChatsPage() {
   // (dark AppSidebar + golden bell + burger), so /chats no longer flips shells.
   const Shell = AppLayout;
   return (
-    <Shell className="flex min-h-[calc(100dvh-120px)] flex-col">
+    <Shell>
       {loading ? (
         <ChatsSkeleton />
       ) : threads.length === 0 && !loading ? (
@@ -841,6 +841,7 @@ export default function ChatsPage() {
           )}
         </div>
       ) : (
+       <div className="flex min-h-[calc(100dvh-140px)] flex-col">
         <div
           className={cn(
             "flex overflow-hidden rounded-[16px] border-[0.5px] border-border",
@@ -1501,6 +1502,7 @@ export default function ChatsPage() {
             </div>
           )}
         </div>
+       </div>
       )}
 
       {/* Mobile context sheet */}
