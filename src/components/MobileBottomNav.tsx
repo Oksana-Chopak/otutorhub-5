@@ -40,7 +40,7 @@ export function MobileBottomNav() {
                   className={({ isActive }) =>
                     cn(
                       "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[14px] font-medium transition-colors",
-                      isActive ? "text-primary" : "text-muted-foreground"
+                      isActive ? "text-[#E9A93C] dark:text-[#F5C56A]" : "text-muted-foreground"
                     )
                   }
                 >
@@ -72,13 +72,8 @@ export function MobileBottomNav() {
 
   return (
     <div
-      className="fixed bottom-0 left-0 right-0 z-30 lg:hidden"
-      style={{
-        background: "rgba(255,255,255,0.96)", backdropFilter: "blur(14px)",
-        borderTop: "1px solid #eceef3",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        boxShadow: "0 -4px 20px -8px rgba(15,15,26,.12)",
-      }}>
+      className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden shadow-[0_-4px_20px_-8px_rgba(15,15,26,.12)]"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       <div style={{ display: "flex", alignItems: "stretch", padding: "6px 0" }}>
         {tabs.map(tab => {
           const active = tab.to === "/"
@@ -91,18 +86,20 @@ export function MobileBottomNav() {
               key={tab.to} to={tab.to}
               aria-label={t(tab.labelKey)}
               aria-current={active ? "page" : undefined}
+              className={active
+                ? "text-[#E9A93C] dark:text-[#F5C56A]"
+                : "text-[#E9A93C]/45 dark:text-[#F5C56A]/40"}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
                 minHeight: 52, textDecoration: "none", position: "relative",
-                color: active ? "#25a896" : "#b0b4c8",
               }}>
               <div style={{ position: "relative" }}>
                 <Icon size={27} strokeWidth={active ? 2.3 : 1.7} />
                 {hasUnread && (
-                  <span style={{
+                  <span className="border-2 border-card" style={{
                     position: "absolute", top: -4, right: -5,
                     width: 9, height: 9, borderRadius: 999,
-                    background: "#ef4444", border: "2px solid #fff",
+                    background: "#ef4444",
                   }} />
                 )}
               </div>
@@ -110,7 +107,7 @@ export function MobileBottomNav() {
                 <span style={{
                   position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
                   width: 4, height: 4, borderRadius: 999,
-                  background: "#2BBFAA",
+                  background: "#E9A93C",
                 }} />
               )}
             </NavLink>
