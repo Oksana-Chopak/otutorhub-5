@@ -324,8 +324,11 @@ export function LessonCard({
               <PayRow icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
                 onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
             )}
-            {withPayout && (
-              <PayRow icon="💼" amount={lesson.tutor_payout ?? lesson.student_price} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
+            {/* FINANCE INVARIANT: tutor_payout НІКОЛИ не підмінюється student_price.
+                Якщо сторінка не завантажила payout — рядок не рендеримо взагалі:
+                краще відсутність цифри, ніж чужа цифра (баг «виплата = оплата», 10.06–01.08). */}
+            {withPayout && lesson.tutor_payout != null && (
+              <PayRow icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
           </div>

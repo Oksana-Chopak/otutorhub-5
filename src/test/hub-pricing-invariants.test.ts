@@ -29,4 +29,24 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     // і взагалі жодного String(tutorRate) у значенні price-поля
     expect(/price:[^,\n]*tutorRate/.test(people)).toBe(false);
   });
+
+  // РОЗТЯЖКА №2: у ЖОДНОМУ файлі src грошові поля не підмінюють одне одного.
+  // Саме `tutor_payout ?? student_price` у LessonCard показувало адміну
+  // «виплата репетитору = оплата учня» з 10.06 (дані були цілі — брехав дисплей).
+  it("жодних крос-фолбеків tutor_payout ↔ student_price у src", () => {
+    const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
+    const root = join(__dirname, "..");
+    const files: string[] = [];
+    const walk = (d: string) => {
+      for (const e of readdirSync(d)) {
+        const p = join(d, e);
+        if (statSync(p).isDirectory()) { if (!/node_modules|test/.test(p)) walk(p); }
+        else if (/\.(ts|tsx)$/.test(e) && !e.includes(".test.")) files.push(p);
+      }
+    };
+    walk(root);
+    const bad = /tutor_payout\s*\?\?[^,)\n]*student_price|student_price\s*\?\?[^,)\n]*tutor_payout/;
+    const offenders = files.filter((f) => bad.test(readFileSync(f, "utf8")));
+    expect(offenders).toEqual([]);
+  });
 });

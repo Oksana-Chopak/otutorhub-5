@@ -56,6 +56,10 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   (student_rates.price_per_lesson vs tutor_subject_rates/tutor_details rate).
 - NEVER prefill/default one from the other in any UI or SQL. The PeoplePage
   add-subject prefill did exactly that and silently zeroed margins on prod.
+- DISPLAY: money fields NEVER substitute for each other. If tutor_payout wasn't
+  loaded, the payout row is NOT rendered — absent data renders as absent, never
+  as the other field (the `tutor_payout ?? student_price` fallback showed
+  'payout = student payment' to admins for weeks while the data was intact).
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
