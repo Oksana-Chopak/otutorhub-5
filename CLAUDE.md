@@ -66,6 +66,12 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   prefill pattern). Tests green = release gate; changing money logic requires
   updating the business model here first, consciously.
 
+### SECURITY INVARIANTS — student data surface
+- Students must NEVER see fireflies_* columns (raw AI output). Student-facing
+  views/queries expose only the curated `summary` the tutor copied. No fallback
+  from summary to fireflies_summary — absent data renders as absent (guarded by
+  src/test/security-invariants.test.ts).
+
 ### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
 - NEVER hardcode text/background hex in components. Use theme tokens:
   text-foreground / text-muted-foreground / bg-card / bg-secondary /
