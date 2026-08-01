@@ -1018,6 +1018,7 @@ export const sv: LocaleTranslations = {
   },
 
   people: {
+    hubMarginLabel: "Hubbens marginal:",
     payoutBackfilled: "Taxan tillämpad på {{count}} obetalda lektioner",
     statusDebt: "Skuld",
     copyAriaLabel: "Kopiera",
@@ -2560,6 +2561,7 @@ export const sv: LocaleTranslations = {
     saveFailed: "Kunde inte spara kontakter",
   },
   assignTutor: {
+    zeroMarginConfirm: "Elevpris {{sp}} ₴ ≤ lärartaxa {{tp}} ₴ — marginal {{margin}} ₴. Spara ändå?",
     noName: "Okänt",
     tutorRequired: "Välj en lärare",
     subjectRequired: "Ange ett ämne",

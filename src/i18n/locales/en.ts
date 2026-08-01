@@ -1028,6 +1028,7 @@ export const en: LocaleTranslations = {
   },
 
   people: {
+    hubMarginLabel: "Hub margin:",
     payoutBackfilled: "Rate applied to {{count}} unpaid lessons",
     statusDebt: "Debt",
     copyAriaLabel: "Copy",
@@ -2570,6 +2571,7 @@ export const en: LocaleTranslations = {
     saveFailed: "Failed to save contacts",
   },
   assignTutor: {
+    zeroMarginConfirm: "Student price {{sp}} ₴ ≤ tutor rate {{tp}} ₴ — hub margin {{margin}} ₴. Save anyway?",
     noName: "Unknown",
     tutorRequired: "Please select a tutor",
     subjectRequired: "Please enter a subject",

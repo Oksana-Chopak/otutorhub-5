@@ -4,6 +4,7 @@ import { insertNotification } from "@/lib/notifications";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, Users, X, Check } from "lucide-react";
 import { toast } from "sonner";
+import { confirmDialog } from "@/hooks/useConfirm";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -166,6 +167,17 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     if (!Number.isFinite(tp) || tp < 0) {
       toast.error(t("assignTutor.invalidTutorRate"));
       return;
+    }
+
+    // FINANCE GUARD: student_price ≤ tutor_payout = нульова/від'ємна маржа хаба.
+    // Дозволяємо лише свідомо, через явне підтвердження.
+    if (sp <= tp) {
+      const ok = await confirmDialog({
+        description: t("assignTutor.zeroMarginConfirm", { sp, tp, margin: sp - tp }),
+        confirmText: t("common.confirm"),
+        destructive: true,
+      });
+      if (!ok) return;
     }
 
     setSubmitting(true);

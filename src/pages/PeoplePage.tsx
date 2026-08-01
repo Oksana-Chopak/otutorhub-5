@@ -1539,7 +1539,10 @@ export default function PeoplePage() {
                         setAddTutorToStudent((s) => ({
                           ...s,
                           subject: v,
-                          price: s.price || (tutorRate ? String(tutorRate) : ""),
+                          // FINANCE INVARIANT: ціну учня НІКОЛИ не префілимо ставкою
+                          // репетитора — цей префіл тихо зрівнював student_price з
+                          // tutor_payout і обнуляв маржу хаба по всіх нових парах.
+                          price: s.price,
                         }));
                       }}
                     >
@@ -1559,10 +1562,20 @@ export default function PeoplePage() {
                     const tutorRate =
                       tutorSubjectRates[addTutorToStudent.tutorId]?.[addTutorToStudent.subject];
                     if (tutorRate !== undefined && tutorRate > 0) {
+                      const sp = Number(addTutorToStudent.price);
+                      const margin = Number.isFinite(sp) && sp > 0 ? sp - tutorRate : null;
                       return (
                         <p className="text-[14px] text-muted-foreground">
                           {t("people.tutorRateForSubject")}{" "}
                           <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                          {margin !== null && (
+                            <>
+                              {" · "}{t("people.hubMarginLabel")}{" "}
+                              <span className={margin > 0 ? "font-medium text-foreground" : "font-semibold text-destructive"}>
+                                {margin} ₴
+                              </span>
+                            </>
+                          )}
                         </p>
                       );
                     }

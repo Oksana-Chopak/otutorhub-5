@@ -1039,6 +1039,7 @@ export const uk = {
   },
 
   people: {
+    hubMarginLabel: "Маржа хабу:",
     payoutBackfilled: "Ставку застосовано до {{count}} неоплачених уроків",
     statusDebt: "Борг",
     copyAriaLabel: "Копіювати",
@@ -2583,6 +2584,7 @@ export const uk = {
     saveFailed: "Не вдалося зберегти контакти",
   },
   assignTutor: {
+    zeroMarginConfirm: "Ціна учня {{sp}} ₴ ≤ ставки репетитора {{tp}} ₴ — маржа хабу {{margin}} ₴. Точно зберегти так?",
     noName: "Без імені",
     tutorRequired: "Оберіть репетитора",
     subjectRequired: "Вкажіть предмет",

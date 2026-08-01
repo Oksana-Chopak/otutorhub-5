@@ -50,6 +50,18 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - Verification trick: if a table/function/column shows up in `src/integrations/supabase/types.ts`, it IS in the live DB (Lovable regenerates types from the live DB after applying). If it's only in a migration file, it's NOT live yet.
 - The old migrations/functions are in prod because they were originally run through the Lovable/Supabase pipeline — not because an external push applied them.
 
+### FINANCE INVARIANTS — INVIOLABLE (added 01.08 after margin-zeroing bug)
+- Hub margin (student_price − tutor_payout) is sacred. student_price and
+  tutor_payout are INDEPENDENT values from INDEPENDENT sources
+  (student_rates.price_per_lesson vs tutor_subject_rates/tutor_details rate).
+- NEVER prefill/default one from the other in any UI or SQL. The PeoplePage
+  add-subject prefill did exactly that and silently zeroed margins on prod.
+- Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
+  and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
+  hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
+  prefill pattern). Tests green = release gate; changing money logic requires
+  updating the business model here first, consciously.
+
 ### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
 - NEVER hardcode text/background hex in components. Use theme tokens:
   text-foreground / text-muted-foreground / bg-card / bg-secondary /
