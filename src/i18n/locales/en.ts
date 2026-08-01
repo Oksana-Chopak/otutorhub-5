@@ -1804,6 +1804,9 @@ export const en: LocaleTranslations = {
   },
 
   lessonDetails: {
+    dtSaved: "Lesson time updated",
+    dtSaveFailed: "Failed to update time",
+    durationUnit: "min",
     fallbackTitle: "Lesson",
     doneBtn: "Done",
     deleteBtn: "Delete lesson",

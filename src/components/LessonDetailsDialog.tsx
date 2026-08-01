@@ -33,19 +33,47 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated?: () => void;
-  /** Відкрити повну форму редагування (час/деталі). Кнопка-олівець у футері. */
-  onEditFull?: (lessonId: string) => void;
 }
 
 /**
  * Reusable single-lesson modal. Loads fresh lesson row by id so the modal
  * always shows current data even when the parent list is stale.
  */
-export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated, onEditFull }: Props) {
+export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }: Props) {
   const { t, i18n } = useTranslation();
   const { user, roles } = useAuth();
   const [row, setRow] = useState<LessonRowFull | null>(null);
   const [studentName, setStudentName] = useState("");
+  const [dtEdit, setDtEdit] = useState(false);
+  const [dtVal, setDtVal] = useState("");
+  const [durVal, setDurVal] = useState(60);
+  const [dtSaving, setDtSaving] = useState(false);
+
+  const toLocalInput = (iso: string) => {
+    const d = new Date(iso);
+    const p2 = (n: number) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  };
+  const openDtEdit = () => {
+    if (!row) return;
+    setDtVal(toLocalInput(row.starts_at));
+    setDurVal(row.duration_minutes ?? 60);
+    setDtEdit(true);
+  };
+  const saveDt = async () => {
+    if (!row || !dtVal) return;
+    setDtSaving(true);
+    const { error } = await supabase
+      .from("lessons")
+      .update({ starts_at: new Date(dtVal).toISOString(), duration_minutes: durVal })
+      .eq("id", row.id);
+    setDtSaving(false);
+    if (error) { toast.error(t("lessonDetails.dtSaveFailed")); return; }
+    setDtEdit(false);
+    toast.success(t("lessonDetails.dtSaved"));
+    load(row.id);
+    onUpdated?.();
+  };
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -109,26 +137,52 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated, o
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+      <DialogContent className="bg-card w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
-          <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
+          <div className="bg-foreground/15" style={{ width: 38, height: 4, borderRadius: 999 }} />
         </div>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 12px", flexShrink: 0 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div className="text-foreground" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
               {row ? row.subject : t("lessonDetails.fallbackTitle")}
             </div>
-            {(studentName || sub) && <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</div>}
+            {(studentName || sub) && (
+              <div className="text-muted-foreground flex items-center gap-1.5" style={{ fontSize: 15, marginTop: 1, minWidth: 0 }}>
+                <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</span>
+                {canDelete && !dtEdit && (
+                  <button type="button" aria-label={t("lessonCard.edit")} onClick={openDtEdit}
+                    className="text-muted-foreground hover:text-foreground shrink-0 rounded p-0.5">
+                    <Pencil size={14} />
+                  </button>
+                )}
+              </div>
+            )}
+            {dtEdit && (
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <input type="datetime-local" value={dtVal} onChange={(e) => setDtVal(e.target.value)}
+                  className="bg-secondary text-foreground border-border h-10 rounded-[10px] border px-2.5 text-[14px]" />
+                <input type="number" min={15} step={5} value={durVal}
+                  onChange={(e) => setDurVal(Math.max(15, Number(e.target.value) || 15))}
+                  className="bg-secondary text-foreground border-border h-10 w-[72px] rounded-[10px] border px-2.5 text-[14px]" />
+                <span className="text-muted-foreground text-[13px]">{t("lessonDetails.durationUnit")}</span>
+                <button type="button" onClick={saveDt} disabled={dtSaving}
+                  className="bg-primary text-primary-foreground h-10 rounded-[10px] px-3 text-[14px] font-bold disabled:opacity-60">
+                  {dtSaving ? "…" : "✓"}
+                </button>
+                <button type="button" onClick={() => setDtEdit(false)}
+                  className="text-muted-foreground h-10 rounded-[10px] px-2 text-[14px]">✕</button>
+              </div>
+            )}
           </div>
           <button onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            className="bg-secondary text-muted-foreground" style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
         {/* Body */}
-        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 20px 20px" }}>
+        <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "4px 20px 20px" }}>
         {loading || !row ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -163,32 +217,23 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated, o
         </div>
         {/* Sticky edit footer: delete + done (fields auto-save inline) */}
         {!loading && row && (
-          <div style={{ flexShrink: 0, padding: "14px 20px 22px", borderTop: "1px solid #f0f1f5", background: "#fff", display: "flex", gap: 11 }}>
+          <div className="border-t border-border bg-card" style={{ flexShrink: 0, padding: "12px 20px 18px", display: "flex", alignItems: "center", gap: 11 }}>
             {canDelete && (
               <button
                 type="button"
                 aria-label={t("lessonDetails.deleteBtn")}
                 onClick={handleDelete}
                 disabled={deleting}
-                style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "rgba(255,122,89,.12)", color: "#e0552f", display: "flex", alignItems: "center", justifyContent: "center" }}
+                className="bg-destructive/10 text-destructive" style={{ width: 46, height: 46, borderRadius: 13, flexShrink: 0, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 {deleting ? <Loader2 className="h-5 w-5 animate-spin" /> : <Trash2 size={20} />}
-              </button>
-            )}
-            {onEditFull && row && (roles.includes("manager") || (roles.includes("tutor") && row.tutor_id === user?.id)) && (
-              <button
-                type="button"
-                aria-label={t("lessonCard.edit")}
-                onClick={() => onEditFull(row.id)}
-                style={{ width: 52, height: 52, borderRadius: 14, flexShrink: 0, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#6b7088)", display: "flex", alignItems: "center", justifyContent: "center" }}
-              >
-                <Pencil size={20} />
               </button>
             )}
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              style={{ flex: 1, height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, cursor: "pointer", boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}
+              className="bg-primary text-primary-foreground ml-auto h-11 rounded-[12px] px-7 text-[15px] font-bold"
+              style={{ border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               {t("lessonDetails.doneBtn")}
             </button>

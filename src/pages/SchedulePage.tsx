@@ -203,121 +203,18 @@ export default function SchedulePage() {
   const [repeatWeeks, setRepeatWeeks] = useState<string>("1"); // 1 = no repeat
 
   // Edit dialog state (quick edit from calendar / list)
-  const [editingLesson, setEditingLesson] = useState<(Lesson & { homework?: string | null; summary?: string | null }) | null>(null);
   const [pendingDelete, setPendingDelete] = useState<string | null>(null);
   const [detailsLessonId, setDetailsLessonId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({
-    subject: "",
-    starts_at: "",
-    duration_minutes: "60",
-    homework: "",
-    summary: "",
-    meeting_url: "",
-  });
-  const [editSubmitting, setEditSubmitting] = useState(false);
   // Snapshot of original homework/summary so we can detect actual changes for notification
   const [editOriginal, setEditOriginal] = useState<{ homework: string; summary: string }>({
     homework: "",
     summary: "",
   });
 
-  const openEdit = async (lesson: Lesson) => {
-    // Re-fetch fresh fields: meeting_url from lessons, homework/summary from lesson_details
-    const [{ data: lessonRow }, { data: detailsRow }] = await Promise.all([
-      supabase.from("lessons").select("meeting_url").eq("id", lesson.id).maybeSingle(),
-      supabase.from("lesson_details").select("homework, summary").eq("lesson_id", lesson.id).maybeSingle(),
-    ]);
-    const homework = detailsRow?.homework ?? "";
-    const summary = detailsRow?.summary ?? "";
-    const meeting_url = lessonRow?.meeting_url ?? (lesson as any).meeting_url ?? "";
-
-    setEditingLesson({ ...lesson, homework, summary });
-    setEditForm({
-      subject: lesson.subject,
-      starts_at: toLocalInputValue(lesson.starts_at),
-      duration_minutes: String(lesson.duration_minutes),
-      homework,
-      summary,
-      meeting_url,
-    });
-    setEditOriginal({ homework, summary });
-  };
-
-  // Permission helpers for the edit dialog
   const canEditScheduleFields = (lesson: Lesson | null) =>
     !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
   const canEditTeachingFields = (lesson: Lesson | null) =>
     !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
-
-  const saveEdit = async () => {
-    if (!editingLesson) return;
-    setEditSubmitting(true);
-
-    const lessonsPayload: any = {};
-    const detailsPayload: any = {};
-    if (canEditScheduleFields(editingLesson)) {
-      lessonsPayload.subject = editForm.subject;
-      lessonsPayload.starts_at = new Date(editForm.starts_at).toISOString();
-      lessonsPayload.duration_minutes = parseInt(editForm.duration_minutes) || 60;
-    }
-    if (canEditTeachingFields(editingLesson)) {
-      detailsPayload.homework = editForm.homework || null;
-      detailsPayload.summary = editForm.summary || null;
-      lessonsPayload.meeting_url = editForm.meeting_url || null;
-    }
-
-    if (Object.keys(lessonsPayload).length === 0 && Object.keys(detailsPayload).length === 0) {
-      setEditSubmitting(false);
-      setEditingLesson(null);
-      return;
-    }
-
-    if (Object.keys(lessonsPayload).length > 0) {
-      const { error } = await supabase
-        .from("lessons")
-        .update(lessonsPayload)
-        .eq("id", editingLesson.id);
-      if (error) {
-        setEditSubmitting(false);
-        console.error(error);
-        toast.error(t('schedule.saveFailed') + (error?.message ? `: ${error.message}` : ""));
-        return;
-      }
-    }
-    if (Object.keys(detailsPayload).length > 0) {
-      const { error } = await updateLessonDetailsSafe(editingLesson.id, detailsPayload);
-      if (error) {
-        setEditSubmitting(false);
-        console.error(error);
-        toast.error(t('schedule.saveFailed') + (error?.message ? `: ${error.message}` : ""));
-        return;
-      }
-    }
-
-    // Detect homework/summary changes and notify the student via Telegram
-    const changed: Array<"homework" | "summary"> = [];
-    if (canEditTeachingFields(editingLesson)) {
-      if ((editForm.homework || "") !== (editOriginal.homework || "")) changed.push("homework");
-      if ((editForm.summary || "") !== (editOriginal.summary || "")) changed.push("summary");
-    }
-    if (changed.length > 0) {
-      // Fire-and-forget — failures shouldn't block the UI
-      supabase.functions
-        .invoke("notify-lesson-update", {
-          body: { lessonId: editingLesson.id, changed },
-        })
-        .catch((e) => console.warn("notify-lesson-update failed", e));
-    }
-
-    setEditSubmitting(false);
-    toast.success(
-      changed.length > 0
-        ? t('schedule.lessonUpdatedNotified')
-        : t('schedule.lessonUpdated')
-    );
-    setEditingLesson(null);
-    loadAll();
-  };
 
   const openCopy = (lesson: Lesson) => {
     // Pre-fill form with lesson data; default new starts_at = +7 days same time
@@ -1476,117 +1373,6 @@ export default function SchedulePage() {
         />
       </div>
 
-      {/* Edit lesson dialog (opened from calendar / list) */}
-      <Dialog open={!!editingLesson} onOpenChange={(open) => { if (!open) setEditingLesson(null); }}>
-        <DialogContent className="w-full max-w-lg p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[90vh] flex flex-col">
-          <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-border sm:hidden" />
-          <DialogHeader className="px-6 pt-4 pb-3 border-b border-border shrink-0">
-            <DialogTitle>
-              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)
-                ? t('common.edit')
-                : t('schedule.step2')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 overflow-y-auto px-6 py-4 flex-1 min-h-0">
-            <div>
-              <Label htmlFor="edit_subject">{t("schedulePageExtra.subjectLabel")}</Label>
-              <Input id="edit_subject" value={editForm.subject}
-                disabled={!canEditScheduleFields(editingLesson)}
-                onChange={(e) => setEditForm((f) => ({ ...f, subject: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="edit_starts_at">{t("schedulePageExtra.dateTimeLabel")}</Label>
-                <Input id="edit_starts_at" type="datetime-local" value={editForm.starts_at}
-                  disabled={!canEditScheduleFields(editingLesson)}
-                  onChange={(e) => setEditForm((f) => ({ ...f, starts_at: e.target.value }))} />
-              </div>
-              <div>
-                <Label htmlFor="edit_duration">{t("schedulePageExtra.durationLabel")}</Label>
-                <Input id="edit_duration" type="number" min="15" step="15" value={editForm.duration_minutes}
-                  disabled={!canEditScheduleFields(editingLesson)}
-                  onChange={(e) => setEditForm((f) => ({ ...f, duration_minutes: e.target.value }))} />
-              </div>
-            </div>
-
-            {/* Homework — primary teaching field */}
-            <div>
-              <Label htmlFor="edit_homework" className="flex items-center gap-1.5 font-medium">
-                📝 {t('schedule.homeworkLabel')}
-              </Label>
-              <Textarea
-                id="edit_homework"
-                rows={4}
-                value={editForm.homework}
-                disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.homeworkPlaceholder') : t('schedule.homeworkPlaceholderNone')}
-                onChange={(e) => setEditForm((f) => ({ ...f, homework: e.target.value }))}
-              />
-            </div>
-
-            {/* Summary — primary teaching field */}
-            <div>
-              <Label htmlFor="edit_summary" className="flex items-center gap-1.5 font-medium">
-                📚 {t("lessonWorkspaceExtra.summaryTitle")}
-              </Label>
-              <Textarea
-                id="edit_summary"
-                rows={5}
-                value={editForm.summary}
-                disabled={!canEditTeachingFields(editingLesson)}
-                placeholder={canEditTeachingFields(editingLesson) ? t('schedule.notesLessonPlaceholder') : t('schedule.notesLessonPlaceholderNone')}
-                onChange={(e) => setEditForm((f) => ({ ...f, summary: e.target.value }))}
-              />
-              {canEditTeachingFields(editingLesson) && (
-                <p className="text-[14px] text-muted-foreground mt-1">
-                  {t("schedule.studentNotifiedHint")}
-                </p>
-              )}
-            </div>
-
-            {/* Meeting link — collapsed at the bottom (rarely changed) */}
-            <div>
-              <Label htmlFor="edit_meeting_url" className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Video className="h-3.5 w-3.5" /> {t("schedule.meetingUrl")}
-              </Label>
-              <Input id="edit_meeting_url" type="url" placeholder="https://meet.google.com/..."
-                value={editForm.meeting_url}
-                disabled={!canEditTeachingFields(editingLesson)}
-                onChange={(e) => setEditForm((f) => ({ ...f, meeting_url: e.target.value }))} />
-            </div>
-          </div>
-          <DialogFooter className="px-6 py-3 border-t border-border shrink-0 bg-card">
-            {editingLesson &&
-              (isManager ||
-                (isTutor &&
-                  editingLesson.tutor_id === user?.id &&
-                  (editingLesson.status === "pending" || editingLesson.status === "scheduled"))) && (
-                <Button
-                  variant="destructive"
-                  className="mr-auto"
-                  onClick={() => {
-                    const id = editingLesson.id;
-                    setEditingLesson(null);
-                    setPendingDelete(id);
-                  }}
-                >
-                  {t("schedulePageExtra.deleteBtn")}
-                </Button>
-              )}
-            <Button variant="outline" onClick={() => setEditingLesson(null)}>
-              {canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson) ? t('common.cancel') : t('common.close')}
-            </Button>
-            {(canEditScheduleFields(editingLesson) || canEditTeachingFields(editingLesson)) && (
-              <Button onClick={saveEdit} disabled={editSubmitting}
-              className="border-0 bg-[#F5B544] font-bold text-[#3d2a06] hover:bg-[#EFA92B]">
-                {editSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {t("common.save")}
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Top "Lessons / My hours" tab switcher removed — availability now lives on /availability and is linked at the bottom of this page. */}
 
       <>
@@ -1869,11 +1655,6 @@ export default function SchedulePage() {
         lessonId={detailsLessonId}
         open={!!detailsLessonId}
         onOpenChange={(o) => { if (!o) setDetailsLessonId(null); }}
-        onEditFull={(id) => {
-          const full = lessons.find((x) => x.id === id);
-          setDetailsLessonId(null);
-          if (full) openEdit(full); // повне редагування (час/деталі) — тепер ЛИШЕ звідси
-        }}
         onUpdated={loadAll}
       />
     </AppLayout>

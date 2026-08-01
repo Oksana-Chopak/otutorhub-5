@@ -50,6 +50,17 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
 - Verification trick: if a table/function/column shows up in `src/integrations/supabase/types.ts`, it IS in the live DB (Lovable regenerates types from the live DB after applying). If it's only in a migration file, it's NOT live yet.
 - The old migrations/functions are in prod because they were originally run through the Lovable/Supabase pipeline — not because an external push applied them.
 
+### Theme & colors — INVIOLABLE (added 01.08 after repeated dark-theme bugs)
+- NEVER hardcode text/background hex in components. Use theme tokens:
+  text-foreground / text-muted-foreground / bg-card / bg-secondary /
+  border-border / bg-primary+text-primary-foreground, or hsl(var(--token)) in CSS.
+- Raw hex is allowed ONLY for brand art (gradients, icons) and MUST come with an
+  explicit dark: variant when it colors text.
+- Before every commit that touches UI, reason for BOTH themes: for each text
+  node ask "what is its background in light? in dark?" Token pairs make the
+  answer automatic; hardcoded hex is how we got white-on-white and
+  dark-on-dark bugs three times.
+
 ### Never touch
 - `LessonCard.tsx` — perfect as-is, used across Dashboard/Schedule
 - Supabase queries and hooks logic

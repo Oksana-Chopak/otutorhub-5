@@ -1794,6 +1794,9 @@ export const sv: LocaleTranslations = {
   },
 
   lessonDetails: {
+    dtSaved: "Lektionstid uppdaterad",
+    dtSaveFailed: "Kunde inte uppdatera tiden",
+    durationUnit: "min",
     fallbackTitle: "Lektion",
     doneBtn: "Klar",
     deleteBtn: "Ta bort lektion",

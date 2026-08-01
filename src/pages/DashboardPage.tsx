@@ -2467,6 +2467,10 @@ export default function DashboardPage() {
           {/* Independent tutor: secondary stack */}
           {isIndependentTutor && (
             <>
+              {/* Місячний підсумок — ціль тоста «Подивитись» (раніше якір не існував → клік нічого не робив) */}
+              <div id="monthly-summary-anchor">
+                <MonthlySummaryCard />
+              </div>
               {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
               {streak && (
                 <div className="lg:hidden">

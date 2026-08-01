@@ -926,9 +926,9 @@ export default function ChatsPage() {
             </div>
 
             {/* Thread rows */}
-            <div className="flex-1 overflow-y-auto flex flex-col" style={{ padding: "10px 12px", background: "#F5F4F0" }}>
-              {/* Спейсер поглинає вільний простір → треди притиснуті до низу; при переповненні = звичайний скрол */}
-              <div className="mt-auto" aria-hidden />
+            {/* Блок тредів: висота = рівно вміст, притиснутий до низу (mt-auto);
+                при переповненні flex-shrink обмежує висотою панелі → скрол. */}
+            <div className="mt-auto min-h-0 overflow-y-auto" style={{ padding: "10px 12px", background: "#F5F4F0", borderRadius: "16px 16px 0 0" }}>
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
                   <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>

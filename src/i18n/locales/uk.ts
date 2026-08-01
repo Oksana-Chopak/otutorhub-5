@@ -1816,6 +1816,9 @@ export const uk = {
   },
 
   lessonDetails: {
+    dtSaved: "Час уроку оновлено",
+    dtSaveFailed: "Не вдалося оновити час",
+    durationUnit: "хв",
     fallbackTitle: "Урок",
     doneBtn: "Готово",
     deleteBtn: "Видалити урок",
