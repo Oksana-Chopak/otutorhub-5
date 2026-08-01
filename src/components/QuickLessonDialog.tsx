@@ -655,9 +655,9 @@ export function QuickLessonDialog({
               <button disabled={submitting || !canSubmit} onClick={submit}
                 style={{ flex: 1, height: 52, borderRadius: 14, border: "none",
                   cursor: canSubmit && !submitting ? "pointer" : "not-allowed",
-                  background: canSubmit ? "linear-gradient(135deg,#2BBFAA,#25a896)" : "rgba(43,191,170,.35)",
-                  color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
-                  boxShadow: canSubmit ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
+                  background: canSubmit ? "#F5B544" : "rgba(245,181,68,.35)",
+                  color: "#3d2a06", fontFamily: F.display, fontWeight: 700, fontSize: 16,
+                  boxShadow: canSubmit ? "0 8px 20px -8px rgba(245,181,68,.6)" : "none",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                 {submitting && <Loader2 className="h-[18px] w-[18px] animate-spin" />}
                 {t("quickLessonDialog.createLessonBtn")}

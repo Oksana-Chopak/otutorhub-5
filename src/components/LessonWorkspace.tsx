@@ -731,6 +731,7 @@ export function LessonWorkspace({
             <>
               <Textarea
                 rows={4}
+                className="italic"
                 placeholder={t("lessonWorkspaceExtra.notesPlaceholder")}
                 value={notesDraft}
                 onChange={(e) => setNotesDraft(e.target.value)}

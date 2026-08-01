@@ -91,7 +91,7 @@ export function TutorNotesCard() {
           key={note.id}
           className="group flex items-start gap-2 px-1 py-1.5"
         >
-          <p className="flex-1 text-[16px] leading-snug text-foreground">{note.text}</p>
+          <p className="flex-1 text-[15px] italic leading-snug text-foreground/90">{note.text}</p>
           <button
             onClick={() => remove(note.id)}
             aria-label={t("tutorNotes.delete")}

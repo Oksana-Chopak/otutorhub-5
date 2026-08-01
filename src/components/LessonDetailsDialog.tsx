@@ -80,6 +80,11 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   // Guard parity with the schedule card: only a manager, or the owning tutor on a
   // pending/scheduled lesson, may delete. (RLS also rejects, but don't offer a
   // button that will fail on completed/cancelled lessons.)
+  // Перенесення дозволене менеджеру та власнику-репетитору незалежно від статусу
+  // (стара форма дозволяла так само; canDelete лишається суворішим).
+  const canReschedule =
+    !!row && (roles.includes("manager") || (roles.includes("tutor") && row.tutor_id === user?.id));
+
   const canDelete =
     !!row &&
     (roles.includes("manager") ||
@@ -151,7 +156,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             {(studentName || sub) && (
               <div className="text-muted-foreground flex items-center gap-1.5" style={{ fontSize: 15, marginTop: 1, minWidth: 0 }}>
                 <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{[studentName, sub].filter(Boolean).join(" · ")}</span>
-                {canDelete && !dtEdit && (
+                {canReschedule && !dtEdit && (
                   <button type="button" aria-label={t("lessonCard.edit")} onClick={openDtEdit}
                     className="text-muted-foreground hover:text-foreground shrink-0 rounded p-0.5">
                     <Pencil size={14} />

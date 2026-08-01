@@ -815,7 +815,7 @@ export default function ChatsPage() {
   // (dark AppSidebar + golden bell + burger), so /chats no longer flips shells.
   const Shell = AppLayout;
   return (
-    <Shell>
+    <Shell className="flex min-h-[calc(100dvh-120px)] flex-col">
       {loading ? (
         <ChatsSkeleton />
       ) : threads.length === 0 && !loading ? (
@@ -845,8 +845,10 @@ export default function ChatsPage() {
           className={cn(
             "flex overflow-hidden rounded-[16px] border-[0.5px] border-border",
             "-mx-4 md:-mx-6",
+            // Мобілка: панель рівно під вміст, «прилипає» до низу екрана;
+            // переповнення обмежене вьюпортом → скрол усередині.
+            "mt-auto max-h-[calc(100dvh-120px)] lg:mt-0 lg:h-[calc(100vh-120px)] lg:max-h-none",
           )}
-          style={{ height: "calc(100vh - 120px)" }}
         >
           {/* ── Col 1: Thread list ──────────────────────────────────────────── */}
           <div
