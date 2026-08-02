@@ -65,4 +65,13 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
       .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
     expect(/CREATE TRIGGER trg_wallet_settle_after_credit[\s\S]*ON public\.student_wallet_transactions/.test(all)).toBe(true);
   });
+
+  // РОЗТЯЖКА №5: ручне «оплачено» не оминає гаманець — тригер мусить існувати.
+  it("міграції містять тригер charge-on-manual-paid на lesson_details", () => {
+    const { readdirSync } = require("node:fs") as typeof import("node:fs");
+    const dir = join(__dirname, "../../supabase/migrations");
+    const all = readdirSync(dir).filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+    expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
+  });
 });

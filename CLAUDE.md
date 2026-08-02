@@ -64,6 +64,10 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   unpaid lessons (trg_wallet_settle_after_credit). Prepayments never sit idle.
 - RATES: saving a tutor's rate ALWAYS backfills their existing unpaid hub
   lessons (backfill_tutor_payouts_for_tutor) — both PeoplePage AND Assign flows.
+- MANUAL PAID: marking a lesson paid by hand NEVER bypasses the wallet — if the
+  pair holds prepaid credit and the lesson has no wallet history, the credit is
+  charged automatically (trg_wallet_charge_on_manual_paid). Phantom balances
+  (paid lessons + untouched credit) are structurally impossible.
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
