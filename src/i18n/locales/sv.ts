@@ -376,6 +376,8 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
+    prepaidTitle: "Elevers förskott",
+    prepaidLessonsShort: "{{count}} lekt.",
     deletePrepayError: "Det gick inte att ta bort förskottsbetalningen",
     prepayCancelledTitle: "Förskottsbetalningen avbruten",
     prepayCancelledDesc: "Saldot korrigerat med en kompenserande post",

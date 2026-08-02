@@ -611,6 +611,8 @@ export const uk = {
 
   // Finances
   finances: {
+    prepaidTitle: "Передоплати учнів",
+    prepaidLessonsShort: "{{count}} ур.",
     deletePrepayError: "Не вдалося видалити передоплату",
     prepayCancelledTitle: "Передоплату скасовано",
     prepayCancelledDesc: "Баланс виправлено компенсуючим записом",

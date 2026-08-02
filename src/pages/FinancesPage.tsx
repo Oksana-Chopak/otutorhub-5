@@ -767,6 +767,20 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lessons, transactions, balances, pairRates, profiles]);
 
+  // 💳 «Передоплати учнів» для менеджера: станом на зараз, лише додатні залишки.
+  // Джерело — той самий balances (student_wallet_balances) і pairsList (hub-скоуп
+  // уже застосований), тож цифра тут = цифрі в гаманці пари, без другої правди.
+  const prepaidRows = useMemo(() => {
+    return pairsList
+      .map((p) => {
+        const b = balances[`${p.tutor_id}:${p.student_id}`];
+        return b ? { ...p, lessons: b.lessons_balance || 0, amount: b.amount_balance || 0 } : null;
+      })
+      .filter((r): r is NonNullable<typeof r> => !!r && (r.lessons > 0 || r.amount > 0))
+      .sort((a, b) => a.student_name.localeCompare(b.student_name, "uk"));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pairsList, balances]);
+
   const unpaidLessonsForSheet = useMemo<UnpaidLessonOption[]>(() =>
     // Prepayment model: recording a payment against an UPCOMING lesson is the
     // normal flow, so the picker offers every student-debt row (not only past).
@@ -2501,6 +2515,27 @@ export default function FinancesPage() {
                 />
               </div>
             </div>
+
+              {isManager && prepaidRows.length > 0 && (
+                <div className="mt-3 rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
+                  <p className="mb-2 text-[14px] font-bold text-foreground">💳 {t("finances.prepaidTitle")}</p>
+                  <div className="space-y-1.5">
+                    {prepaidRows.map((r) => (
+                      <div key={`${r.tutor_id}:${r.student_id}`} className="flex items-center justify-between gap-3 text-[14px]">
+                        <span className="min-w-0 truncate">
+                          <span className="font-semibold text-foreground">{r.student_name}</span>
+                          <span className="text-muted-foreground"> · {r.tutor_name}</span>
+                        </span>
+                        <span className="shrink-0 font-bold" style={{ color: "var(--teal,#2BBFAA)" }}>
+                          {r.lessons > 0 && t("finances.prepaidLessonsShort", { count: r.lessons })}
+                          {r.lessons > 0 && r.amount > 0 && " + "}
+                          {r.amount > 0 && `${r.amount.toLocaleString("uk-UA")} ₴`}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
           </div>
 
           {activeTab === "debts" && searchParams.get("filter") && (

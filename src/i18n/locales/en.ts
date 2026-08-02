@@ -604,6 +604,8 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    prepaidTitle: "Student prepayments",
+    prepaidLessonsShort: "{{count}} lsn",
     deletePrepayError: "Failed to delete prepayment",
     prepayCancelledTitle: "Prepayment cancelled",
     prepayCancelledDesc: "Balance corrected with a compensating entry",
