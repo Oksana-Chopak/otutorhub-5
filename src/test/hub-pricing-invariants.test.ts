@@ -49,4 +49,20 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     const offenders = files.filter((f) => bad.test(readFileSync(f, "utf8")));
     expect(offenders).toEqual([]);
   });
+
+  // РОЗТЯЖКА №3: збереження ставки в Assign ЗАВЖДИ протягує її на наявні уроки.
+  it("AssignTutorDialog кличе backfill_tutor_payouts_for_tutor", () => {
+    const root = join(__dirname, "..");
+    const assign = readFileSync(join(root, "components/AssignTutorDialog.tsx"), "utf8");
+    expect(assign.includes("backfill_tutor_payouts_for_tutor")).toBe(true);
+  });
+
+  // РОЗТЯЖКА №4: поповнення гаманця авторозраховує борги — тригер мусить існувати.
+  it("міграції містять тригер settle-after-credit на student_wallet_transactions", () => {
+    const { readdirSync } = require("node:fs") as typeof import("node:fs");
+    const dir = join(__dirname, "../../supabase/migrations");
+    const all = readdirSync(dir).filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+    expect(/CREATE TRIGGER trg_wallet_settle_after_credit[\s\S]*ON public\.student_wallet_transactions/.test(all)).toBe(true);
+  });
 });

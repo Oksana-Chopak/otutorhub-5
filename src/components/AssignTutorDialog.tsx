@@ -265,6 +265,9 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     });
 
     setSubmitting(false);
+    // FINANCE: ставка збережена — протягнути на ВЖЕ СТВОРЕНІ неоплачені уроки
+    // цього репетитора (Assign-тракт це пропускав → «нулі замість ставки»).
+    await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });
     toast.success(t("assignTutorExtra.assigned"));
     onAssigned();
     onOpenChange(false);

@@ -60,6 +60,10 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   loaded, the payout row is NOT rendered — absent data renders as absent, never
   as the other field (the `tutor_payout ?? student_price` fallback showed
   'payout = student payment' to admins for weeks while the data was intact).
+- WALLET: any credit into student_wallet_transactions AUTO-SETTLES the pair's
+  unpaid lessons (trg_wallet_settle_after_credit). Prepayments never sit idle.
+- RATES: saving a tutor's rate ALWAYS backfills their existing unpaid hub
+  lessons (backfill_tutor_payouts_for_tutor) — both PeoplePage AND Assign flows.
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the
