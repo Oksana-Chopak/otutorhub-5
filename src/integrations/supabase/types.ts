@@ -2661,6 +2661,10 @@ export type Database = {
         Returns: string
       }
       wallet_resettle_all: { Args: never; Returns: number }
+      wallet_settle_pair: {
+        Args: { _student_id: string; _tutor_id: string }
+        Returns: number
+      }
       wallet_topup: {
         Args: {
           _amount_delta: number
