@@ -580,6 +580,12 @@ export const sv: LocaleTranslations = {
     csvPending: "Väntar",
     csvPaidOut: "Utbetald",
   },
+  subjectSelect: {
+    placeholder: "Välj ämne",
+    search: "Sök ämne…",
+    addNew: "Lägg till ämnet ”{{name}}”",
+    empty: "Listan är tom",
+  },
   chats: {
     filters: "Filter",
     loadEarlier: "↑ Visa tidigare",
@@ -1547,14 +1553,6 @@ export const sv: LocaleTranslations = {
     cancel: "Avbryt",
     sending: "Skickar…",
     send: "Skicka",
-  },
-
-  subjectSelect: {
-    placeholder: "Välj ett ämne",
-    loading: "Laddar…",
-    removeItem: "Klicka för att ta bort",
-    customPlaceholder: "Eget ämne...",
-    addBtn: "Lägg till",
   },
 
   chatAttachment: {

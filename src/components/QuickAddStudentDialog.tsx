@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubjectCanon } from "@/hooks/useSubjectCanon";
 import {
   Dialog,
   DialogContent,
@@ -194,6 +195,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     t("quickAddStudent.subjectInformatics"),
     t("quickAddStudent.subjectGerman"),
   ].map((s) => s.trim()).filter(Boolean)));
+  const canonSubjects = useSubjectCanon();
+  const subjectPool = Array.from(new Set([...mySubjects, ...canonSubjects]));
   const subMatches = (() => {
     const q = (form.subject || "").trim().toLowerCase();
     const selected = SUBS.filter(s => s.toLowerCase() === form.subject.toLowerCase());

@@ -817,6 +817,12 @@ export const uk = {
   },
 
   // Chats
+  subjectSelect: {
+    placeholder: "Оберіть предмет",
+    search: "Пошук предмета…",
+    addNew: "Додати предмет «{{name}}»",
+    empty: "Список порожній",
+  },
   chats: {
     filters: "Фільтри",
     loadEarlier: "↑ Показати раніші",
@@ -1569,14 +1575,6 @@ export const uk = {
     cancel: "Скасувати",
     sending: "Надсилаю…",
     send: "Надіслати",
-  },
-
-  subjectSelect: {
-    placeholder: "Оберіть предмет",
-    loading: "Завантаження…",
-    removeItem: "Натисніть щоб видалити",
-    customPlaceholder: "Свій предмет...",
-    addBtn: "Додати",
   },
 
   chatAttachment: {

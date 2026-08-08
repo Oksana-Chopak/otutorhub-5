@@ -1,76 +1,83 @@
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useSubjects } from "@/hooks/useSubjects";
-import { SUBJECT_OPTIONS } from "@/lib/subjects";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-
-interface Props {
-  value: string;
-  onValueChange: (name: string, id?: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  /** Extra subject names that aren't in the canonical list — kept selectable for legacy data. */
-  extraOptions?: string[];
-}
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ChevronDown, Plus, Search } from "lucide-react";
+import { useSubjectCanon } from "@/hooks/useSubjectCanon";
 
 /**
- * Dropdown of canonical subjects from the `subjects` table. Stores the
- * subject name as value (for backward compatibility with text columns) and
- * also exposes the id via the second arg of onValueChange.
+ * Єдиний селектор предмета: випадаючий список із реєстру subject_canon
+ * (+ додаткові підказки поверхні), пошук, і «Додати новий» ЛИШЕ коли
+ * точного збігу немає. Написання все одно канонізує БД-тригер.
  */
 export function SubjectSelect({
-  value,
-  onValueChange,
-  placeholder,
-  disabled,
-  extraOptions = [],
-}: Props) {
+  value, onChange, suggestions = [], placeholder,
+}: { value: string; onChange: (v: string) => void; suggestions?: string[]; placeholder?: string }) {
   const { t } = useTranslation();
-  const { subjects, loading } = useSubjects();
-  const resolvedPlaceholder = placeholder ?? t("subjectSelect.placeholder");
+  const canon = useSubjectCanon();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
 
-  const subjectNames = new Set(subjects.map((s) => s.name));
-  const fallbackSubjects = SUBJECT_OPTIONS.filter((name) => !subjectNames.has(name));
-  const allKnown = new Set([...subjects.map((s) => s.name), ...fallbackSubjects]);
-  const extras = extraOptions.filter((s) => s && !allKnown.has(s));
-  // Include current value if it's not in canonical list (legacy data)
-  if (value && !allKnown.has(value) && !extras.includes(value)) extras.push(value);
+  const list = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const s of [...suggestions, ...canon]) {
+      const k = s.trim().toLowerCase();
+      if (k && !seen.has(k)) seen.set(k, s.trim());
+    }
+    return Array.from(seen.values()).sort((a, b) => a.localeCompare(b, "uk"));
+  }, [canon, suggestions]);
+
+  const filtered = useMemo(
+    () => (q.trim() ? list.filter((s) => s.toLowerCase().includes(q.trim().toLowerCase())) : list),
+    [list, q]
+  );
+  const exact = q.trim() && list.some((s) => s.toLowerCase() === q.trim().toLowerCase());
+
+  const pick = (v: string) => { onChange(v); setQ(""); setOpen(false); };
 
   return (
-    <Select
-      value={value}
-      onValueChange={(name) => {
-        const found = subjects.find((s) => s.name === name);
-        onValueChange(name, found?.id);
-      }}
-      disabled={disabled || loading}
-    >
-      <SelectTrigger>
-        <SelectValue placeholder={loading ? t("subjectSelect.loading") : resolvedPlaceholder} />
-      </SelectTrigger>
-      <SelectContent>
-        {subjects.map((s) => (
-          <SelectItem key={s.id} value={s.name}>
-            {s.emoji ? `${s.emoji} ` : ""}
-            {s.name}
-          </SelectItem>
-        ))}
-        {fallbackSubjects.map((name) => (
-          <SelectItem key={`fallback-${name}`} value={name}>
-            {name}
-          </SelectItem>
-        ))}
-        {extras.map((name) => (
-          <SelectItem key={`extra-${name}`} value={name}>
-            {name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <Popover open={open} onOpenChange={(o) => { setOpen(o); if (!o) setQ(""); }}>
+      <PopoverTrigger asChild>
+        <button type="button"
+          className="flex w-full items-center justify-between rounded-[15px] border-[1.5px] px-3.5 text-left"
+          style={{ height: 58, background: "#fbfbfc", borderColor: "#eceef3", fontWeight: 700, fontSize: 17 }}>
+          <span style={{ color: value ? "var(--txt,#0f0f1a)" : "var(--sub,#9398b0)" }} className="truncate">
+            {value || placeholder || t("subjectSelect.placeholder")}
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#6b7088)" }} />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-[--radix-popover-trigger-width] p-1.5" style={{ minWidth: 260 }}>
+        <div className="mb-1 flex items-center gap-2 rounded-[10px] border px-2.5"
+          style={{ borderColor: "var(--border,#eceef3)", background: "#fff", height: 40 }}>
+          <Search className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#6b7088)" }} />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)}
+            placeholder={t("subjectSelect.search")}
+            className="w-full bg-transparent text-[15px] outline-none"
+            style={{ color: "var(--txt,#0f0f1a)" }} />
+        </div>
+        <div className="max-h-56 overflow-y-auto">
+          {filtered.map((s) => (
+            <button key={s} type="button" onClick={() => pick(s)}
+              className="block w-full rounded-[8px] px-3 py-2.5 text-left text-[15px] font-semibold hover:bg-[#F5F4F0]"
+              style={{ color: "var(--txt,#0f0f1a)" }}>
+              {s}
+            </button>
+          ))}
+          {filtered.length === 0 && !q.trim() && (
+            <div className="px-3 py-2.5 text-[14px]" style={{ color: "var(--sub,#6b7088)" }}>
+              {t("subjectSelect.empty")}
+            </div>
+          )}
+        </div>
+        {q.trim() && !exact && (
+          <button type="button" onClick={() => pick(q.trim())}
+            className="mt-1 flex w-full items-center gap-2 rounded-[10px] border px-3 py-2.5 text-left text-[15px] font-bold"
+            style={{ borderColor: "#F5B544", background: "#FFF7E6", color: "#9a6a12" }}>
+            <Plus className="h-4 w-4" />
+            {t("subjectSelect.addNew", { name: q.trim() })}
+          </button>
+        )}
+      </PopoverContent>
+    </Popover>
   );
 }

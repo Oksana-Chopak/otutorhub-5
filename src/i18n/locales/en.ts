@@ -809,6 +809,12 @@ export const en: LocaleTranslations = {
     csvPaidOut: "Paid out",
   },
 
+  subjectSelect: {
+    placeholder: "Choose a subject",
+    search: "Search subject…",
+    addNew: "Add subject “{{name}}”",
+    empty: "List is empty",
+  },
   chats: {
     filters: "Filters",
     loadEarlier: "↑ Show earlier",
@@ -1557,14 +1563,6 @@ export const en: LocaleTranslations = {
     cancel: "Cancel",
     sending: "Sending…",
     send: "Send",
-  },
-
-  subjectSelect: {
-    placeholder: "Select a subject",
-    loading: "Loading…",
-    removeItem: "Click to remove",
-    customPlaceholder: "Custom subject...",
-    addBtn: "Add",
   },
 
   chatAttachment: {

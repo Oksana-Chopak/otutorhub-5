@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, Users, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { confirmDialog } from "@/hooks/useConfirm";
+import { SubjectSelect } from "@/components/SubjectSelect";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -350,13 +351,10 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
           {!request?.subject && (
             <div>
               <Lbl>{t("assignTutorExtra.subjectLabel")}</Lbl>
-              <input
+              <SubjectSelect
                 value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                onChange={setSubject}
                 placeholder={t("assignTutorExtra.subjectPlaceholder")}
-                style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: "1.5px solid #eceef3", outline: "none", fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a" }}
-                onFocus={(e) => { e.target.style.background = "#fff"; e.target.style.border = "1.5px solid #2BBFAA"; e.target.style.boxShadow = "0 0 0 3px rgba(43,191,170,.14)"; }}
-                onBlur={(e) => { e.target.style.background = "#fbfbfc"; e.target.style.border = "1.5px solid #eceef3"; e.target.style.boxShadow = "none"; }}
               />
             </div>
           )}

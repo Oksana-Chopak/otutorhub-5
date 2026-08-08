@@ -81,7 +81,6 @@ WHERE a.tutor_id = b.tutor_id
 DELETE FROM public.student_rates a
 USING public.student_rates b
 WHERE a.tutor_id = b.tutor_id AND a.student_id = b.student_id
-  AND coalesce(a.source,'') = coalesce(b.source,'')
   AND public.normalize_subject(a.subject) = public.normalize_subject(b.subject)
   AND a.ctid > b.ctid;
 
