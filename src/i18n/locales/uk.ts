@@ -818,6 +818,9 @@ export const uk = {
 
   // Chats
   subjectSelect: {
+    removeItem: "Прибрати",
+    customPlaceholder: "Або впиши свій предмет…",
+    addBtn: "Додати",
     placeholder: "Оберіть предмет",
     search: "Пошук предмета…",
     addNew: "Додати предмет «{{name}}»",

@@ -810,6 +810,9 @@ export const en: LocaleTranslations = {
   },
 
   subjectSelect: {
+    removeItem: "Remove",
+    customPlaceholder: "Or type your own subject…",
+    addBtn: "Add",
     placeholder: "Choose a subject",
     search: "Search subject…",
     addNew: "Add subject “{{name}}”",

@@ -581,6 +581,9 @@ export const sv: LocaleTranslations = {
     csvPaidOut: "Utbetald",
   },
   subjectSelect: {
+    removeItem: "Ta bort",
+    customPlaceholder: "Eller skriv ett eget ämne…",
+    addBtn: "Lägg till",
     placeholder: "Välj ämne",
     search: "Sök ämne…",
     addNew: "Lägg till ämnet ”{{name}}”",
