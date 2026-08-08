@@ -68,6 +68,10 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   pair holds prepaid credit and the lesson has no wallet history, the credit is
   charged automatically (trg_wallet_charge_on_manual_paid). Phantom balances
   (paid lessons + untouched credit) are structurally impossible.
+- SUBJECTS are canonicalized AT WRITE TIME (trg_subject_canon on lessons,
+  student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
+  variants of the same subject cannot exist, so string-matched pricing never
+  misses on formatting. Distinct wordings remain distinct subjects by design.
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the

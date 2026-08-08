@@ -74,4 +74,16 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
       .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
     expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
   });
+
+  // РОЗТЯЖКА №6: предмети канонізуються на ЗАПИСІ у всіх трьох таблицях —
+  // плутанина написань (регістр/пробіли/крапки) структурно неможлива.
+  it("тригер канонізації предметів стоїть на lessons, student_rates, tutor_subject_rates", () => {
+    const { readdirSync } = require("node:fs") as typeof import("node:fs");
+    const dir = join(__dirname, "../../supabase/migrations");
+    const all = readdirSync(dir).filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+    for (const t of ["lessons", "student_rates", "tutor_subject_rates"]) {
+      expect(new RegExp(`CREATE TRIGGER trg_subject_canon[\\s\\S]{0,200}ON public\\.${t}`).test(all)).toBe(true);
+    }
+  });
 });
