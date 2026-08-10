@@ -75,6 +75,15 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
   });
 
+  // РОЗТЯЖКА №7: «виплачено 0» структурно неможливе — guard-тригер існує.
+  it("guard-тригер no-zero-paid стоїть на lesson_details", () => {
+    const { readdirSync } = require("node:fs") as typeof import("node:fs");
+    const dir = join(__dirname, "../../supabase/migrations");
+    const all = readdirSync(dir).filter((f) => f.endsWith(".sql"))
+      .map((f) => readFileSync(join(dir, f), "utf8")).join("\n");
+    expect(/CREATE TRIGGER trg_payout_guard_no_zero_paid[\s\S]{0,200}ON public\.lesson_details/.test(all)).toBe(true);
+  });
+
   // РОЗТЯЖКА №6: предмети канонізуються на ЗАПИСІ у всіх трьох таблицях —
   // плутанина написань (регістр/пробіли/крапки) структурно неможлива.
   it("тригер канонізації предметів стоїть на lessons, student_rates, tutor_subject_rates", () => {
