@@ -536,14 +536,20 @@ export default function PeoplePage() {
     // tutor_payout is still 0 — otherwise a rate set AFTER lessons exist never
     // reaches them (autofill runs only at lesson creation) → «0 грн репетитору».
     // Manager-gated SECURITY DEFINER RPC (migration 20260723000000); best-effort.
-    try {
-      const { data: filled } = await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", {
-        _tutor_id: tutorDialog.userId,
-      });
-      if (typeof filled === "number" && filled > 0) {
+    {
+      // supabase.rpc НЕ кидає виняток — помилка приходить полем error.
+      // Стара версія її ігнорувала → провалений бекфіл виглядав як успіх.
+      const { data: filled, error: bfErr } = await (supabase.rpc as any)(
+        "backfill_tutor_payouts_for_tutor",
+        { _tutor_id: tutorDialog.userId },
+      );
+      if (bfErr) {
+        console.error("backfill_tutor_payouts_for_tutor failed", bfErr);
+        toast.error(t("people.payoutBackfillFailed", { msg: bfErr.message ?? "" }));
+      } else if (typeof filled === "number" && filled > 0) {
         toast.success(t("people.payoutBackfilled", { count: filled }));
       }
-    } catch { /* RPC not applied yet — rate still saved; backfill runs on next apply */ }
+    }
 
     toast.success(t("people.saved"));
     setTutorDialog({ open: false, userId: "", subjects: [], rates: {} });

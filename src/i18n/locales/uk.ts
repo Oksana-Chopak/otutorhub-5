@@ -1050,6 +1050,7 @@ export const uk = {
   },
 
   people: {
+    payoutBackfillFailed: "Ставку збережено, але протягнути на наявні уроки не вдалося: {{msg}}",
     hubMarginLabel: "Маржа хабу:",
     payoutBackfilled: "Ставку застосовано до {{count}} неоплачених уроків",
     statusDebt: "Борг",

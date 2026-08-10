@@ -1029,6 +1029,7 @@ export const sv: LocaleTranslations = {
   },
 
   people: {
+    payoutBackfillFailed: "Taxan sparades, men kunde inte tillämpas på befintliga lektioner: {{msg}}",
     hubMarginLabel: "Hubbens marginal:",
     payoutBackfilled: "Taxan tillämpad på {{count}} obetalda lektioner",
     statusDebt: "Skuld",

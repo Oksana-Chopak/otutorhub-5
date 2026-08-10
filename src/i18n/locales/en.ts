@@ -1039,6 +1039,7 @@ export const en: LocaleTranslations = {
   },
 
   people: {
+    payoutBackfillFailed: "Rate saved, but propagating to existing lessons failed: {{msg}}",
     hubMarginLabel: "Hub margin:",
     payoutBackfilled: "Rate applied to {{count}} unpaid lessons",
     statusDebt: "Debt",
