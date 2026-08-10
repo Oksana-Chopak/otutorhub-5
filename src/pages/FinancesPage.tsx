@@ -1619,6 +1619,11 @@ export default function FinancesPage() {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
     const prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).getTime();
+    // Чесне порівняння: не «10 днів vs повний місяць», а той самий ВІДРІЗОК
+    // минулого місяця (з точністю до години). Якщо минулий місяць коротший —
+    // обрізаємо його кінцем.
+    const elapsed = now.getTime() - monthStart;
+    const prevAlignedEnd = Math.min(prevStart + elapsed, monthStart);
     let thisMonth = 0, lastMonth = 0, projected = 0, completedSum = 0, completedCount = 0, cancelledLost = 0;
     // Trends/forecast only make sense within one currency — restrict to the
     // dominant one (by total priced volume) instead of adding ₴ to €.
@@ -1638,7 +1643,7 @@ export default function FinancesPage() {
         if (l.status === "cancelled") cancelledLost += price;
         else if (l.status !== "pending") projected += price; // booked total this month
         if (l.status === "completed") { completedSum += price; completedCount += 1; }
-      } else if (ts >= prevStart) {
+      } else if (ts >= prevStart && ts < prevAlignedEnd) {
         if (paid) lastMonth += price;
       }
     });

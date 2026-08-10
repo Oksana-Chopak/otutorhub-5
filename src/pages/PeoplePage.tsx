@@ -522,14 +522,27 @@ export default function PeoplePage() {
     }
 
     // 3. Cleanup: remove rates for subjects no longer assigned
-    const { error: delErr } = await supabase
+    // Cleanup БЕЗ втрат: раніше видалялось за ТОЧНИМ рядком, тож інше написання
+    // («Англійська» vs «англійська мова») тихо зносило чинну ставку — саме так
+    // «зникали ставки». Тепер порівнюємо нормалізовано і видаляємо лише те,
+    // чого справді нема серед залишених предметів.
+    const normSubj = (x: string) =>
+      x.toLowerCase().replace(/\s+/g, " ").replace(/[\s.]+$/g, "").trim();
+    const keptNorm = new Set(subjects.map(normSubj));
+    const { data: existingRates } = await supabase
       .from("tutor_subject_rates")
-      .delete()
-      .eq("tutor_id", tutorDialog.userId)
-      .not("subject", "in", `(${subjects.map((s) => `"${s.replace(/"/g, '""')}"`).join(",")})`);
-    if (delErr) {
-      // Not critical
-      console.warn("Failed to cleanup obsolete subject rates", delErr);
+      .select("subject")
+      .eq("tutor_id", tutorDialog.userId);
+    const toDelete = (existingRates ?? [])
+      .map((r: any) => r.subject as string)
+      .filter((subj) => !keptNorm.has(normSubj(subj)));
+    if (toDelete.length > 0) {
+      const { error: delErr } = await supabase
+        .from("tutor_subject_rates")
+        .delete()
+        .eq("tutor_id", tutorDialog.userId)
+        .in("subject", toDelete);
+      if (delErr) console.warn("Failed to cleanup obsolete subject rates", delErr);
     }
 
     // Propagate the (new) rate to the tutor's existing UNPAID hub lessons whose

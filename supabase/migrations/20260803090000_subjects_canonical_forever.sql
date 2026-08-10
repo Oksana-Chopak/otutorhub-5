@@ -73,16 +73,24 @@ FOR EACH ROW EXECUTE FUNCTION public.subject_canon_apply();
 -- Разове злиття історії. Спершу дедуп рейтів (той самий предмет у різних
 -- написаннях у одного репетитора/пари) — лишаємо перший рядок.
 DELETE FROM public.tutor_subject_rates a
-USING public.tutor_subject_rates b
-WHERE a.tutor_id = b.tutor_id
-  AND public.normalize_subject(a.subject) = public.normalize_subject(b.subject)
-  AND a.ctid > b.ctid;
+USING (
+  SELECT ctid, row_number() OVER (
+    PARTITION BY tutor_id, public.normalize_subject(subject)
+    ORDER BY COALESCE(rate_per_lesson,0) DESC, ctid
+  ) AS rn
+  FROM public.tutor_subject_rates
+) r
+WHERE a.ctid = r.ctid AND r.rn > 1;  -- лишаємо рядок із НАЙВИЩОЮ ставкою
 
 DELETE FROM public.student_rates a
-USING public.student_rates b
-WHERE a.tutor_id = b.tutor_id AND a.student_id = b.student_id
-  AND public.normalize_subject(a.subject) = public.normalize_subject(b.subject)
-  AND a.ctid > b.ctid;
+USING (
+  SELECT ctid, row_number() OVER (
+    PARTITION BY tutor_id, student_id, public.normalize_subject(subject)
+    ORDER BY COALESCE(price_per_lesson,0) DESC, ctid
+  ) AS rn
+  FROM public.student_rates
+) r
+WHERE a.ctid = r.ctid AND r.rn > 1;  -- лишаємо рядок із НАЙВИЩОЮ ціною
 
 UPDATE public.lessons l SET subject = c.display
 FROM public.subject_canon c

@@ -637,7 +637,7 @@ export const en: LocaleTranslations = {
     paymentReminderPushBody: "Lesson on {{date}} — {{sum}} ₴ awaiting payment",
     reminderSent: "Reminder sent",
     remindBtn: "Remind",
-    vsLastMonth: "{{pct}}% vs last month",
+    vsLastMonth: "{{pct}}% vs same period last month",
     forecastPre: "Monthly forecast:",
     forecastPost: "including lessons already booked.",
     lessonsAwaitPayment: "{{count}} lessons awaiting payment",

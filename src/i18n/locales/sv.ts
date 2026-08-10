@@ -409,7 +409,7 @@ export const sv: LocaleTranslations = {
     paymentReminderPushBody: "Lektion {{date}} — {{sum}} ₴ väntar på betalning",
     reminderSent: "Påminnelse skickad",
     remindBtn: "Påminn",
-    vsLastMonth: "{{pct}}% mot förra månaden",
+    vsLastMonth: "{{pct}}% mot samma period förra mån.",
     forecastPre: "Prognos för månaden:",
     forecastPost: "inklusive lektioner som redan bokats.",
     lessonsAwaitPayment: "{{count}} lektioner väntar på betalning",

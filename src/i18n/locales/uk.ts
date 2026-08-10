@@ -644,7 +644,7 @@ export const uk = {
     paymentReminderPushBody: "Урок {{date}} — {{sum}} ₴ очікує оплати",
     reminderSent: "Нагадування надіслано",
     remindBtn: "Нагадати",
-    vsLastMonth: "{{pct}}% до минулого",
+    vsLastMonth: "{{pct}}% до того ж періоду минулого міс.",
     forecastPre: "Прогноз на місяць:",
     forecastPost: "з урахуванням уже заброньованих уроків.",
     lessonsAwaitPayment: "{{count}} уроків очікують оплати",
