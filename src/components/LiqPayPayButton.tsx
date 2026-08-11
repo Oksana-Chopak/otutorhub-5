@@ -7,7 +7,7 @@ import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface LiqPayPayButtonProps {
-  plan: "monthly" | "yearly";
+  plan: "monthly" | "halfyear" | "yearly";
   recurring?: boolean;
   disabled?: boolean;
   className?: string;

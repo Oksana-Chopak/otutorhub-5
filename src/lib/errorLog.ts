@@ -15,6 +15,10 @@ export async function logError(
 ): Promise<void> {
   try {
     if (!message) return;
+    // Шум сторонніх браузерних розширень (MetaMask тощо) — не наші баги, не логуємо.
+    const noise = ["MetaMask", "chrome-extension://", "moz-extension://", "safari-extension://"];
+    const hay = `${message} ${stack ?? ""}`;
+    if (noise.some((n) => hay.includes(n))) return;
     const key = `${message}::${(stack ?? "").slice(0, 200)}`;
     const now = Date.now();
     const last = recent.get(key);

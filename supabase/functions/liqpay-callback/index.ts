@@ -23,7 +23,7 @@ const SUCCESS_STATUSES = new Set([
 ]);
 
 function planToInterval(plan: string): { months: number } {
-  return plan === "yearly" ? { months: 12 } : { months: 1 };
+  return plan === "yearly" ? { months: 12 } : plan === "halfyear" ? { months: 6 } : { months: 1 };
 }
 
 function addMonths(date: Date, months: number): Date {

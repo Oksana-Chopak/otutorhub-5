@@ -7,10 +7,23 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Ціни закріплені в USD (рішення власниці 10.08): $7/міс · $42/6 міс · $71.4/рік (−15%).
+// Списання в UAH за ОФІЦІЙНИМ курсом НБУ на день оплати; фолбек — курс на 11.08.2026.
 const PLANS = {
-  monthly: { amount: 249, description: "TutorHub Pro — місячна підписка" },
-  yearly: { amount: 2388, description: "TutorHub Pro — річна підписка (199 грн/міс)" },
+  monthly:  { usd: 7,    months: 1,  description: "oTutorHub Pro — 1 місяць ($7)" },
+  halfyear: { usd: 42,   months: 6,  description: "oTutorHub Pro — 6 місяців ($42)" },
+  yearly:   { usd: 71.4, months: 12, description: "oTutorHub Pro — 12 місяців ($71.4, −15%)" },
 } as const;
+
+const FALLBACK_UAH_PER_USD = 44.83; // НБУ 11.08.2026
+async function nbuUsdRate(): Promise<number> {
+  try {
+    const r = await fetch("https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=USD&json");
+    const j = await r.json();
+    const v = Number(Array.isArray(j) ? j[0]?.rate : NaN);
+    return Number.isFinite(v) && v > 10 && v < 200 ? v : FALLBACK_UAH_PER_USD;
+  } catch { return FALLBACK_UAH_PER_USD; }
+}
 
 type Plan = keyof typeof PLANS;
 
@@ -96,6 +109,11 @@ Deno.serve(async (req) => {
     }
 
     const planConfig = PLANS[plan];
+    // Курс НБУ на момент оплати → сума в гривнях (ціле число грн).
+    const uahRate = await nbuUsdRate();
+    const amountUah = Math.round(planConfig.usd * uahRate);
+    // LiqPay рекурент підтримує лише month/year — піврічний план завжди разовий.
+    const rec = recurring && plan !== "halfyear";
     const orderId = `tutorhub_${userId}_${Date.now()}`;
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serverUrl = `${supabaseUrl}/functions/v1/liqpay-callback`;
@@ -109,11 +127,11 @@ Deno.serve(async (req) => {
       tutor_id: userId,
       order_id: orderId,
       plan,
-      amount: planConfig.amount,
+      amount: amountUah,
       currency: "UAH",
       status: "pending",
-      is_recurring: recurring,
-      liqpay_action: recurring ? "subscribe" : "pay",
+      is_recurring: rec,
+      liqpay_action: rec ? "subscribe" : "pay",
     });
 
     if (insertErr) {
@@ -128,17 +146,17 @@ Deno.serve(async (req) => {
     const params: Record<string, unknown> = {
       version: "3",
       public_key: publicKey,
-      action: recurring ? "subscribe" : "pay",
-      amount: planConfig.amount,
+      action: rec ? "subscribe" : "pay",
+      amount: amountUah,
       currency: "UAH",
-      description: planConfig.description,
+      description: `${planConfig.description} · курс НБУ ${uahRate.toFixed(2)} грн/$`,
       order_id: orderId,
       language: "uk",
       server_url: serverUrl,
       result_url: safeResultUrl,
     };
 
-    if (recurring) {
+    if (rec) {
       params.subscribe = "1";
       params.subscribe_date_start = "now";
       params.subscribe_periodicity = plan === "yearly" ? "year" : "month";

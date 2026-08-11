@@ -28,9 +28,10 @@ import { LiqPayPayButton } from "@/components/LiqPayPayButton";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
-const PRO_PRICE_MONTHLY = 249;
-const PRO_PRICE_YEARLY_PER_MONTH = 199;
-const PRO_PRICE_YEARLY_TOTAL = PRO_PRICE_YEARLY_PER_MONTH * 12;
+// USD-сітка (10.08): $7/міс · $42/6міс · $71.4/рік (−15%); списання в грн за курсом НБУ дня оплати.
+const PRO_PRICE_MONTHLY = "$7";
+const PRICE_LABEL = { monthly: "$7", halfyear: "$7", yearly: "$5.95" } as const;   // за місяць
+const TOTAL_LABEL = { halfyear: "$42", yearly: "$71.4" } as const;                  // разовий платіж
 
 interface RequestRow {
   id: string;
@@ -96,7 +97,7 @@ export default function SubscriptionPage() {
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
-  const [billing, setBilling] = useState<"monthly" | "yearly">("yearly");
+  const [billing, setBilling] = useState<"monthly" | "halfyear" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
 
@@ -135,7 +136,7 @@ export default function SubscriptionPage() {
   const handleIapPurchase = async () => {
     setIapBusy("buy");
     try {
-      const ok = await purchaseIap(billing);
+      const ok = await purchaseIap(billing === "halfyear" ? "yearly" : billing);
       if (ok) {
         toast({ title: t("iap.purchaseDone"), description: t("iap.purchaseDoneDesc") });
         await refresh?.();
@@ -279,7 +280,7 @@ export default function SubscriptionPage() {
     setRequestOpen(true);
   };
 
-  const proPrice = billing === "yearly" ? PRO_PRICE_YEARLY_PER_MONTH : PRO_PRICE_MONTHLY;
+  const proPrice = PRICE_LABEL[billing];
 
   const earlyBirdLeft =
     earlyBirdAudience && earlyBirdCount !== null && earlyBirdCount < EARLY_BIRD_LIMIT
@@ -423,11 +424,11 @@ export default function SubscriptionPage() {
                   <span style={{ fontSize: 14, color: S.sub }}> {t("subscriptionPageExtra.perMonthUnit")}</span>
                 </span>
               </div>
-              {billing === "yearly" && (
-                <div style={{ fontSize: 14, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.yearlyTotalNote", { total: PRO_PRICE_YEARLY_TOTAL })}</div>
+              {billing !== "monthly" && (
+                <div style={{ fontSize: 14, color: S.sub, marginTop: 2 }}>{t("subscriptionPageExtra.totalNote", { total: TOTAL_LABEL[billing] })}</div>
               )}
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
-                {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearlyDiscount") }]).map((o) => {
+                {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "halfyear" as const, l: t("subscriptionPageExtra.billingHalfyear") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearlyDiscount") }]).map((o) => {
                   const on = billing === o.v;
                   return (
                     <button key={o.v} onClick={() => setBilling(o.v)} style={{ flex: 1, border: "none", cursor: "pointer", padding: "9px 12px", borderRadius: 9, fontFamily: S.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap", background: on ? "#fff" : "transparent", color: on ? S.txt : S.sub, boxShadow: on ? S.shadowSm : "none" }}>{o.l}</button>
@@ -436,6 +437,7 @@ export default function SubscriptionPage() {
               </div>
               <LiqPayPayButton plan={billing} recurring className="w-full" label={t("subscriptionPageExtra.payBtn")} />
               <div style={{ fontSize: 14, color: S.muted, textAlign: "center", marginTop: 8 }}>{t("subscriptionPageExtra.liqPayNote")}</div>
+              <div style={{ fontSize: 13, color: S.muted, textAlign: "center", marginTop: 4 }}>{t("subscriptionPageExtra.nbuNote")}</div>
             </div>
           )}
 
@@ -526,7 +528,7 @@ export default function SubscriptionPage() {
           )}
         </div>
 
-        <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
+        <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing === "halfyear" ? "yearly" : billing} />
         <BackToProfile />
       </div>
     </AppLayout>

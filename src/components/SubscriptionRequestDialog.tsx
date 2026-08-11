@@ -28,7 +28,8 @@ interface Props {
   defaultBilling?: Billing;
 }
 
-const PRICE_MONTHLY = 249;
+const PRICE_MONTHLY = 7; // USD
+const usd = (n: number) => `$${n}`;
 const PRICE_YEARLY_PER_MONTH = 199;
 const PRICE_YEARLY_TOTAL = PRICE_YEARLY_PER_MONTH * 12;
 
@@ -78,7 +79,7 @@ export function SubscriptionRequestDialog({
     const billingNote =
       billing === "yearly"
         ? t("subscriptionDialog.yearlyPlan", { perMonth: PRICE_YEARLY_PER_MONTH, total: PRICE_YEARLY_TOTAL })
-        : t("subscriptionDialog.monthlyPlan", { price: PRICE_MONTHLY });
+        : t("subscriptionDialog.monthlyPlan", { price: usd(PRICE_MONTHLY) });
     const fullMessage = message.trim()
       ? `${billingNote}\n\n${message.trim()}`
       : billingNote;
@@ -185,7 +186,7 @@ export function SubscriptionRequestDialog({
                   <div className="min-w-0">
                     <span className="font-medium text-foreground">{t("subscriptionDialog.monthly")}</span>
                     <p className="text-[14px] text-muted-foreground">
-                      {PRICE_MONTHLY} ₴/міс
+                      {usd(PRICE_MONTHLY)}/міс
                     </p>
                   </div>
                 </label>
