@@ -72,6 +72,9 @@ export const sv: LocaleTranslations = {
     you: "Du",
   },
   admin: {
+    indepTitle: "Självständiga lärare — aktivitet",
+    indepEmpty: "Inga lektioner från självständiga lärare i fönstret",
+    indepLine: "{{n}} lekt. på 30 d ({{done}} genomförda)",
     title: "Admin · Statistik",
     subtitle: "Översikt över plattformsaktivitet: lektioner, grupper, priser.",
     noAccess: "Endast för plattformens superadmin.",

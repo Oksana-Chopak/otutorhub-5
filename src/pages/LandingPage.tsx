@@ -9,7 +9,6 @@ import { PaymentMethodsSection } from "@/components/PaymentMethodsSection";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
-const FREE_SPOTS_TOTAL = 20;
 
 const PERSONA_IDS = ["tutor", "consultant", "psychologist", "nutritionist", "trainer"] as const;
 const PERSONA_EMOJI: Record<string, string> = {
@@ -533,7 +532,6 @@ export default function LandingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [spotsLeft, setSpotsLeft] = useState(FREE_SPOTS_TOTAL);
   const animationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const personaId = PERSONA_IDS[activeIndex];
@@ -663,22 +661,6 @@ export default function LandingPage() {
   const whatsappUrl = "https://api.whatsapp.com/send?phone=46700266274";
   const telegramUrl = "https://t.me/oksana_chopak";
 
-  useEffect(() => {
-    let cancelled = false;
-
-    supabase.functions
-      .invoke("landing-spots-left")
-      .then(({ data }) => {
-        const count = Number((data as { spotsLeft?: number } | null)?.spotsLeft);
-        if (!cancelled && Number.isFinite(count)) {
-          setSpotsLeft(Math.max(0, Math.min(FREE_SPOTS_TOTAL, count)));
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const openChatLink = (url: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
@@ -733,9 +715,6 @@ export default function LandingPage() {
       {/* HERO */}
       <section id="top" style={{ background: "var(--bg)", overflow: "hidden" }}>
         <div className="hero">
-          <div className="spots-badge">
-            {t("landing.hero.spotsBadge", { count: spotsLeft })}
-          </div>
           <h1>
             {t("landing.hero.titlePrefix")}{" "}
             <span
@@ -910,9 +889,6 @@ export default function LandingPage() {
       {/* FINAL CTA */}
       <section className="cta-section">
         <div className="cta-inner">
-          <div className="spots-badge">
-            {t("landing.finalCta.spots", { count: spotsLeft })}
-          </div>
           <h2 style={{ marginTop: 16 }}>{tp("landing.finalCta.title")}</h2>
           <p>{tp("landing.finalCta.sub")}</p>
           <div className="cta-buttons">

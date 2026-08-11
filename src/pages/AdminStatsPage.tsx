@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +35,8 @@ const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-white p-4"
 
 export default function AdminStatsPage() {
   const { t } = useTranslation();
+  // Активність САМОСТІЙНИХ репетиторів (запит власниці): чи проводять уроки.
+  // Рахуємо з вікна останніх уроків, що вже приходить у stats.lessons.
   const [state, setState] = useState<"loading" | "noaccess" | "error" | "ready">("loading");
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -58,6 +60,26 @@ export default function AdminStatsPage() {
     n == null ? "—" : `${Math.round(n).toLocaleString(getLocale())} ₴`;
   const date = (iso: string) =>
     new Date(iso).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" });
+
+  const indepActivity = useMemo(() => {
+    if (!stats) return [] as { tutor: string; lessons30: number; completed30: number; last: string }[];
+    const cutoff = Date.now() - 30 * 86400000;
+    const m = new Map<string, { lessons30: number; completed30: number; last: string }>();
+    for (const l of stats.lessons) {
+      if (l.source !== "independent") continue;
+      const cur = m.get(l.tutor) ?? { lessons30: 0, completed30: 0, last: l.date };
+      const ts = new Date(l.date).getTime();
+      if (ts >= cutoff && l.status !== "cancelled") {
+        cur.lessons30 += 1;
+        if (l.status === "completed") cur.completed30 += 1;
+      }
+      if (l.date > cur.last) cur.last = l.date;
+      m.set(l.tutor, cur);
+    }
+    return Array.from(m.entries())
+      .map(([tutor, v]) => ({ tutor, ...v }))
+      .sort((a, b) => b.lessons30 - a.lessons30);
+  }, [stats]);
 
   const statusLabel = (s: string) =>
     s === "scheduled" ? t("admin.statusScheduled")
@@ -104,6 +126,25 @@ export default function AdminStatsPage() {
                   <div className="mt-0.5 text-[14px] font-semibold uppercase tracking-[0.04em] text-[var(--sub)]">{k.label}</div>
                 </div>
               ))}
+            </div>
+
+            {/* Самостійні репетитори — активність (superadmin) */}
+            <div className={card}>
+              <h2 className="mb-2 text-[15px] font-bold">{t("admin.indepTitle")}</h2>
+              {indepActivity.length === 0 ? (
+                <p className="text-[14px] text-[var(--sub)]">{t("admin.indepEmpty")}</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {indepActivity.map((r) => (
+                    <div key={r.tutor} className="flex items-center justify-between gap-3 text-[14px]">
+                      <span className="min-w-0 truncate font-semibold">{r.tutor}</span>
+                      <span className="shrink-0 text-[var(--sub)]">
+                        {t("admin.indepLine", { n: r.lessons30, done: r.completed30 })} · {date(r.last)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Activity over time */}

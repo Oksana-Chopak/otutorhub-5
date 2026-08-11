@@ -72,6 +72,9 @@ export const en: LocaleTranslations = {
   },
 
   admin: {
+    indepTitle: "Independent tutors — activity",
+    indepEmpty: "No independent-tutor lessons in the recent window",
+    indepLine: "{{n}} lessons in 30d ({{done}} completed)",
     title: "Admin · Statistics",
     subtitle: "Platform activity overview: lessons, groups, pricing.",
     noAccess: "Platform superadmin access only.",
