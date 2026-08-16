@@ -72,6 +72,13 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
+- DEBT DEFINITION is SINGLE: isStudentDebtLesson / isPayoutDueLesson in
+  src/lib/financials.ts. Every channel (Finances card, debts tab, telegram
+  digest, any future report) MIRRORS them verbatim. Debt is PERIOD-LESS —
+  month filters shape turnover views, never receivables.
+- PROCESS: DB fixes reach prod ONLY via the owner's manual Run. Every new
+  migration must land in outputs/PROD-DB-SYNC.sql; applied-status is checked
+  against types.ts (the live-schema mirror) before claiming 'done forever'.
 - Money math lives in pure libs (src/lib/financials*, src/lib/hubPricing.ts)
   and is locked by tests (financials.test.ts, lesson-financials-matrix.test.ts,
   hub-pricing-invariants.test.ts — includes a SOURCE tripwire against the

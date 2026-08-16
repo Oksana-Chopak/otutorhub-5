@@ -521,18 +521,19 @@ export default function FinancesPage() {
 
   // PREPAYMENT model: debts are computed over ALL period rows (incl. FUTURE
   // unpaid lessons — hub students pay before lessons), not only billable ones.
+  // DEBT INVARIANT (10.08): борг — величина БЕЗ періоду. Фільтр місяця керує
+  // оборотами, але дебіторка не «зникає» при зміні періоду — саме через
+  // inPeriod тут картка розходилась із телеграм-дайджестом.
   const periodStudentDebts = useMemo(
-    () => tutorScoped.filter((l) => inPeriod(l.starts_at) && isStudentDebtLesson(l)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [tutorScoped, periodStart],
+    () => tutorScoped.filter((l) => isStudentDebtLesson(l)),
+    [tutorScoped],
   );
   // Payouts owed: CONDUCTED lessons only — mirrors mark_tutor_payouts_paid, so
   // the sums here always equal what the pay actions actually flip.
   const periodPayoutDue = useMemo(() => {
     const nowMs = Date.now();
-    return tutorScoped.filter((l) => inPeriod(l.starts_at) && isPayoutDueLesson(l, nowMs));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tutorScoped, periodStart]);
+    return tutorScoped.filter((l) => isPayoutDueLesson(l, nowMs));
+  }, [tutorScoped]);
 
   const stornoedIds = useMemo(() => {
     const ids = new Set<string>();

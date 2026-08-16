@@ -137,13 +137,32 @@ Deno.serve(async (req) => {
     .lt("starts_at", to)
     .order("starts_at", { ascending: true });
 
-  // Unpaid lessons — all
-  const { data: unpaidLessons } = await sb
+  // ЄДИНЕ визначення боргів = src/lib/financials.ts (isStudentDebtLesson /
+  // isPayoutDueLesson). Дайджест ДЗЕРКАЛИТЬ його дослівно — розбіжність цифр
+  // телеграм↔застосунок була саме тут (дайджест брав лише completed).
+  const { data: moneyRaw } = await sb
     .from("lessons")
-    .select("id, tutor_id, student_id, lesson_details(student_price, student_payment_status)")
-    .eq("status", "completed")
-    .eq("lesson_details.student_payment_status", "unpaid")
-    .gt("lesson_details.student_price", 0);
+    .select("id, tutor_id, student_id, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
+    .in("status", ["completed", "scheduled", "cancelled"]);
+  const nowMs = Date.now();
+  const isStudentDebt = (l: any) => {
+    const d = l.lesson_details ?? {};
+    if ((d.student_payment_status ?? "unpaid") !== "unpaid") return false;
+    if (Number(d.student_price ?? 0) <= 0) return false;
+    if (l.status === "cancelled") return d.is_cancellation_fee === true;
+    if (l.group_id) return false; // групові білються поза parent-рядком (v2: participants)
+    return true; // completed АБО майбутній scheduled — передоплатна модель
+  };
+  const isPayoutDue = (l: any) => {
+    const d = l.lesson_details ?? {};
+    if (l.group_id) return false;
+    if (d.tutor_payout_status === "paid") return false;
+    if (Number(d.tutor_payout ?? 0) <= 0) return false;
+    if (l.status === "cancelled") return false;
+    return l.status === "completed" || new Date(l.starts_at).getTime() <= nowMs;
+  };
+  const unpaidLessons = (moneyRaw ?? []).filter(isStudentDebt);
+  const payoutDueLessons = (moneyRaw ?? []).filter(isPayoutDue);
 
   // Student names
   const studentIds = Array.from(new Set([
@@ -194,7 +213,12 @@ Deno.serve(async (req) => {
       const debts = (unpaidLessons ?? []).filter((l: any) => l.source !== "independent");
       if (debts.length > 0) {
         const total = debts.reduce((s: number, l: any) => s + Number(l.lesson_details?.student_price ?? 0), 0);
-        lines.push(`\n💳 Є незакриті оплати від учнів: <b>${total} ₴</b>`);
+        lines.push(`\n💳 Борг учнів: <b>${total} ₴</b>`);
+      }
+      const owed = (payoutDueLessons ?? []).filter((l: any) => l.source !== "independent");
+      if (owed.length > 0) {
+        const totalOwed = owed.reduce((s: number, l: any) => s + Number(l.lesson_details?.tutor_payout ?? 0), 0);
+        lines.push(`👛 До виплати репетиторам: <b>${totalOwed} ₴</b>`);
       }
     } else if (isTutor) {
       // Tutor: their own lessons
