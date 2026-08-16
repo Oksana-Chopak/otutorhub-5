@@ -176,6 +176,13 @@ Deno.serve(async (req) => {
       .map((p: any) => ({ tutor_id: l.tutor_id, source: l.source, student_id: p.student_id, price: Number(p.student_price) }))
   );
 
+  // Технічні помилки за добу — власниця дізнається з ранкового дайджеста,
+  // а не з випадкового заходу на /errors.
+  const { count: errCount } = await sb
+    .from("error_log")
+    .select("id", { count: "exact", head: true })
+    .gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
+
   // Менеджерські тотали — з ЄДИНОГО джерела правди (та сама функція, що й
   // самозвірка в застосунку): рахує індивідуальні + групові + виплати.
   const { data: summaryRows } = await sb.rpc("manager_debts_summary" as any);
@@ -232,6 +239,7 @@ Deno.serve(async (req) => {
       const po = Number(summary?.payouts_owed ?? 0);
       if (sd > 0) lines.push(`\n💳 Борг учнів: <b>${sd} ₴</b>`);
       if (po > 0) lines.push(`👛 До виплати репетиторам: <b>${po} ₴</b>`);
+      if ((errCount ?? 0) > 0) lines.push(`🛠 Технічні помилки за добу: <b>${errCount}</b> — сторінка /errors`);
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
