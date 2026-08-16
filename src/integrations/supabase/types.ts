@@ -859,6 +859,39 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_tutor_notes: {
+        Row: {
+          lesson_id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          lesson_id: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          lesson_id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_tutor_notes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_tutor_notes_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: true
+            referencedRelation: "lessons_visible"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           created_at: string
@@ -1358,6 +1391,41 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_codes: {
         Row: {
           code: string
@@ -1604,6 +1672,21 @@ export type Database = {
           note?: string | null
           student_id?: string
           tutor_id?: string
+        }
+        Relationships: []
+      }
+      subject_canon: {
+        Row: {
+          display: string
+          norm: string
+        }
+        Insert: {
+          display: string
+          norm: string
+        }
+        Update: {
+          display?: string
+          norm?: string
         }
         Relationships: []
       }
@@ -2006,6 +2089,27 @@ export type Database = {
           created_at?: string
           default_meeting_url?: string | null
           id?: string
+          student_id?: string
+          tutor_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tutor_student_notes: {
+        Row: {
+          notes: string | null
+          student_id: string
+          tutor_id: string
+          updated_at: string
+        }
+        Insert: {
+          notes?: string | null
+          student_id: string
+          tutor_id: string
+          updated_at?: string
+        }
+        Update: {
+          notes?: string | null
           student_id?: string
           tutor_id?: string
           updated_at?: string
@@ -2582,6 +2686,7 @@ export type Database = {
         }
         Returns: number
       }
+      normalize_subject: { Args: { t: string }; Returns: string }
       notify_managers: {
         Args: { _body?: string; _link?: string; _title: string; _type: string }
         Returns: number
