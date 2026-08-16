@@ -631,6 +631,8 @@ export const uk = {
 
   // Finances
   finances: {
+    parityOk: "Цифри звірені з базою ✓",
+    parityMismatch: "⚠️ Розбіжність із базою: у базі {{db}} ₴, у застосунку {{app}} ₴ — скопіюй цей рядок Клоду",
     prepaidTitle: "Передоплати учнів",
     prepaidLessonsShort: "{{count}} ур.",
     deletePrepayError: "Не вдалося видалити передоплату",

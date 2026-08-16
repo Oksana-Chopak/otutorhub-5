@@ -677,6 +677,22 @@ export default function FinancesPage() {
   const pendingExpense = periodPayoutDue.reduce((sum, l) => sum + Number(l.tutor_payout ?? 0), 0);
   const totalDebt = pendingIncome + (isIndependentTutor ? 0 : pendingExpense);
 
+  // САМОЗВІРКА (замість ручних SQL-звірок власниці): раз на завантаження
+  // питаємо канонічну SQL-функцію і порівнюємо з клієнтським підрахунком.
+  // Розбіжність > 1 ₴ → жовтий бейдж ⚠️ з обома числами.
+  const [parity, setParity] = useState<null | { ok: boolean; db: number; app: number }>(null);
+  useEffect(() => {
+    if (!isManager || loading) return;
+    (async () => {
+      const { data, error } = await (supabase.rpc as any)("manager_debts_summary");
+      if (error || !data) return; // функція ще не застосована — бейдж просто не показуємо
+      const row = Array.isArray(data) ? data[0] : data;
+      const db = Number(row?.students_debt ?? 0) + Number(row?.payouts_owed ?? 0);
+      setParity({ ok: Math.abs(db - totalDebt) <= 1, db, app: totalDebt });
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isManager, loading, totalDebt]);
+
   // === Analytics (unchanged) — use full `billable` so trends are stable regardless of period selection. ===
   const hubMarkup = useMemo(() => grossMarkupPct(billable), [billable]);
 
@@ -2517,9 +2533,16 @@ export default function FinancesPage() {
                   icon={DollarSign}
                   label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
                   value={isIndependentTutor ? fmtCurList(pendingByCur) : `${totalDebt.toLocaleString(getLocale())} ₴`}
-                  tone={totalDebt > 0 ? "warning" : "neutral"}
+                  tone={parity && !parity.ok ? "warning" : totalDebt > 0 ? "warning" : "neutral"}
                 />
               </div>
+              {parity && (
+                <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>
+                  {parity.ok
+                    ? t("finances.parityOk")
+                    : t("finances.parityMismatch", { db: parity.db.toLocaleString("uk-UA"), app: parity.app.toLocaleString("uk-UA") })}
+                </p>
+              )}
             </div>
 
               {isManager && prepaidRows.length > 0 && (

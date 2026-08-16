@@ -11,7 +11,7 @@ const corsHeaders = {
 // Списання в UAH за ОФІЦІЙНИМ курсом НБУ на день оплати; фолбек — курс на 11.08.2026.
 const PLANS = {
   monthly:  { usd: 7,    months: 1,  description: "oTutorHub Pro — 1 місяць ($7)" },
-  halfyear: { usd: 42,   months: 6,  description: "oTutorHub Pro — 6 місяців ($42)" },
+  halfyear: { usd: 37.8, months: 6,  description: "oTutorHub Pro — 6 місяців ($37.8, −10%)" },
   yearly:   { usd: 71.4, months: 12, description: "oTutorHub Pro — 12 місяців ($71.4, −15%)" },
 } as const;
 

@@ -624,6 +624,8 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    parityOk: "Figures verified against the database ✓",
+    parityMismatch: "⚠️ Mismatch: database {{db}} ₴ vs app {{app}} ₴ — copy this line to Claude",
     prepaidTitle: "Student prepayments",
     prepaidLessonsShort: "{{count}} lsn",
     deletePrepayError: "Failed to delete prepayment",

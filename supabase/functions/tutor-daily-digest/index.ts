@@ -164,10 +164,28 @@ Deno.serve(async (req) => {
   const unpaidLessons = (moneyRaw ?? []).filter(isStudentDebt);
   const payoutDueLessons = (moneyRaw ?? []).filter(isPayoutDue);
 
+  // ГРУПОВІ борги — по УЧАСНИКАХ (parent completed|scheduled, учасник unpaid&price>0).
+  const { data: groupRaw } = await sb
+    .from("lessons")
+    .select("id, tutor_id, source, status, lesson_participants(student_id, student_price, student_payment_status)")
+    .not("group_id", "is", null)
+    .in("status", ["completed", "scheduled"]);
+  const groupDebtRows = (groupRaw ?? []).flatMap((l: any) =>
+    (l.lesson_participants ?? [])
+      .filter((p: any) => (p.student_payment_status ?? "unpaid") === "unpaid" && Number(p.student_price ?? 0) > 0)
+      .map((p: any) => ({ tutor_id: l.tutor_id, source: l.source, student_id: p.student_id, price: Number(p.student_price) }))
+  );
+
+  // Менеджерські тотали — з ЄДИНОГО джерела правди (та сама функція, що й
+  // самозвірка в застосунку): рахує індивідуальні + групові + виплати.
+  const { data: summaryRows } = await sb.rpc("manager_debts_summary" as any);
+  const summary = Array.isArray(summaryRows) ? summaryRows[0] : summaryRows;
+
   // Student names
   const studentIds = Array.from(new Set([
     ...(todayLessons ?? []).map((l: any) => l.student_id),
     ...(unpaidLessons ?? []).map((l: any) => l.student_id),
+    ...groupDebtRows.map((r: any) => r.student_id),
   ]));
   const { data: students } = studentIds.length
     ? await sb.from("profiles").select("id, first_name, last_name").in("id", studentIds)
@@ -210,16 +228,10 @@ Deno.serve(async (req) => {
         }
         if (myLessons.length > 10) lines.push(`  ↳ ще ${myLessons.length - 10} уроків`);
       }
-      const debts = (unpaidLessons ?? []).filter((l: any) => l.source !== "independent");
-      if (debts.length > 0) {
-        const total = debts.reduce((s: number, l: any) => s + Number(l.lesson_details?.student_price ?? 0), 0);
-        lines.push(`\n💳 Борг учнів: <b>${total} ₴</b>`);
-      }
-      const owed = (payoutDueLessons ?? []).filter((l: any) => l.source !== "independent");
-      if (owed.length > 0) {
-        const totalOwed = owed.reduce((s: number, l: any) => s + Number(l.lesson_details?.tutor_payout ?? 0), 0);
-        lines.push(`👛 До виплати репетиторам: <b>${totalOwed} ₴</b>`);
-      }
+      const sd = Number(summary?.students_debt ?? 0);
+      const po = Number(summary?.payouts_owed ?? 0);
+      if (sd > 0) lines.push(`\n💳 Борг учнів: <b>${sd} ₴</b>`);
+      if (po > 0) lines.push(`👛 До виплати репетиторам: <b>${po} ₴</b>`);
     } else if (isTutor) {
       // Tutor: their own lessons
       const myLessons = (todayLessons ?? []).filter((l: any) => l.tutor_id === userId);
@@ -239,6 +251,9 @@ Deno.serve(async (req) => {
       for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId)) {
         const prev = myDebts.get(l.student_id) ?? 0;
         myDebts.set(l.student_id, prev + Number(l.lesson_details?.student_price ?? 0));
+      }
+      for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId)) {
+        myDebts.set(r.student_id, (myDebts.get(r.student_id) ?? 0) + r.price);
       }
       if (myDebts.size > 0) {
         const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);

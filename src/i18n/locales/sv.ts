@@ -379,6 +379,8 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
+    parityOk: "Siffror verifierade mot databasen ✓",
+    parityMismatch: "⚠️ Avvikelse: databas {{db}} ₴ vs app {{app}} ₴ — kopiera raden till Claude",
     prepaidTitle: "Elevers förskott",
     prepaidLessonsShort: "{{count}} lekt.",
     deletePrepayError: "Det gick inte att ta bort förskottsbetalningen",

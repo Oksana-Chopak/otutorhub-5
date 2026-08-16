@@ -30,8 +30,8 @@ const t = i18nInstance.t.bind(i18nInstance);
 
 // USD-сітка (10.08): $7/міс · $42/6міс · $71.4/рік (−15%); списання в грн за курсом НБУ дня оплати.
 const PRO_PRICE_MONTHLY = "$7";
-const PRICE_LABEL = { monthly: "$7", halfyear: "$7", yearly: "$5.95" } as const;   // за місяць
-const TOTAL_LABEL = { halfyear: "$42", yearly: "$71.4" } as const;                  // разовий платіж
+const PRICE_LABEL = { monthly: "$7", halfyear: "$6.3", yearly: "$5.95" } as const;   // за місяць
+const TOTAL_LABEL = { halfyear: "$37.8", yearly: "$71.4" } as const;                  // разовий платіж
 
 interface RequestRow {
   id: string;
