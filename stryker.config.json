@@ -1,0 +1,14 @@
+{
+  "$schema": "https://raw.githubusercontent.com/stryker-mutator/stryker/master/packages/core/schema/stryker-schema.json",
+  "testRunner": "vitest",
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/lib/financials.ts",
+    "src/lib/hubPricing.ts",
+    "src/lib/currency.ts",
+    "src/lib/subjects.ts"
+  ],
+  "thresholds": { "high": 90, "low": 80, "break": 70 },
+  "concurrency": 4,
+  "reporters": ["clear-text", "progress"]
+}

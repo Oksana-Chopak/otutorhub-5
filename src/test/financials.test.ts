@@ -162,3 +162,57 @@ describe("isPayoutDueLesson (payouts = CONDUCTED lessons only, mirrors the RPC)"
     expect(isPayoutDueLesson(mk({ ...base, tutor_payout_status: null, status: "completed" }), NOW)).toBe(true);
   });
 });
+
+
+// ─── 100% BRANCH COVERAGE: гілки, які v8 показав непокритими (10.08) ───
+import { currencySymbol, formatPrice } from "@/lib/currency";
+
+describe("branch completeness (mutation-ready)", () => {
+  it("unpaidExpense: null payout → 0; paid ігнорується", () => {
+    expect(unpaidExpense([
+      { student_price: 100, student_payment_status: "paid", tutor_payout: null, tutor_payout_status: "unpaid" } as any,
+      { student_price: 100, student_payment_status: "paid", tutor_payout: 300, tutor_payout_status: "paid" } as any,
+    ])).toBe(0);
+  });
+
+  it("grossMarkupPct: порожньо → null; нема пар обох сторін → null; норм-кейс рахує", () => {
+    expect(grossMarkupPct([])).toBeNull();
+    expect(grossMarkupPct([{ student_price: 0, tutor_payout: 300 } as any])).toBeNull();
+    expect(grossMarkupPct([{ student_price: 500, tutor_payout: 300 } as any])).toBe(40);
+  });
+
+  it("null-гілки грошових полів у всіх агрегатах", () => {
+    const rows = [
+      { student_price: null, student_payment_status: "paid", tutor_payout: null, tutor_payout_status: "paid", status: "completed", is_cancellation_fee: true } as any,
+      { student_price: null, student_payment_status: "unpaid", tutor_payout: null, tutor_payout_status: "unpaid", status: "completed" } as any,
+    ];
+    expect(paidIncome(rows)).toBe(0);
+    expect(unpaidIncome(rows)).toBe(0);
+    expect(paidExpense(rows)).toBe(0);
+    expect(unpaidExpense(rows)).toBe(0);
+    expect(grossMarkupPct(rows)).toBeNull();
+  });
+
+  it("isBillableLesson: скасований білиться ЛИШЕ з fee-маркером і ціною > 0", () => {
+    const base = { status: "cancelled", student_payment_status: "unpaid", tutor_payout_status: "unpaid", starts_at: new Date().toISOString() };
+    expect(isBillableLesson({ ...base, is_cancellation_fee: true, student_price: 200 } as any)).toBe(true);
+    expect(isBillableLesson({ ...base, is_cancellation_fee: false, student_price: 200 } as any)).toBe(false);
+    expect(isBillableLesson({ ...base, is_cancellation_fee: true, student_price: 0 } as any)).toBe(false);
+  });
+
+  it("currencySymbol: без коду ₴; відомий символ; невідомий — сам код", () => {
+    expect(currencySymbol()).toBe("₴");
+    expect(currencySymbol(null)).toBe("₴");
+    expect(currencySymbol("UAH")).toBe("₴");
+    expect(currencySymbol("XYZ")).toBe("XYZ");
+  });
+
+  it("formatPrice: null→0; decimals; символ-після; символ-перед; без символа — код; без валюти → ₴", () => {
+    expect(formatPrice(5)).toMatch(/₴/);
+    expect(formatPrice(null, "UAH")).toMatch(/0/);
+    expect(formatPrice(10.5, "UAH", { decimals: 2 })).toContain("10.50");
+    expect(formatPrice(5, "UAH")).toMatch(/₴/);
+    expect(formatPrice(5, "USD")).toMatch(/^\$/);
+    expect(formatPrice(5, "XYZ")).toContain("XYZ");
+  });
+});

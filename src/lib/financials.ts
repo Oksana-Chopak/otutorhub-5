@@ -135,6 +135,9 @@ export const grossMarkupPct = (rows: MoneyLesson[]): number | null => {
   if (valid.length === 0) return null;
   const income = valid.reduce((s, l) => s + Number(l.student_price ?? 0), 0);
   const payout = valid.reduce((s, l) => s + Number(l.tutor_payout ?? 0), 0);
+  // Недосяжний захисний guard: valid вимагає price>0, тож income≠0;
+  // лишається як страховка від майбутніх змін фільтра.
+  /* c8 ignore next 2 */
   if (income === 0) return null;
   return ((income - payout) / income) * 100;
 };

@@ -31,3 +31,5 @@ playwright-report/
 
 # Vite/Vitest temp config files (created transiently when loading a TS config)
 *.timestamp-*.mjs
+.stryker-tmp/
+coverage/
