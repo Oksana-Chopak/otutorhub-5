@@ -1328,6 +1328,7 @@ export const sv: LocaleTranslations = {
   },
 
   lessonCard: {
+    lessons: "lektioner",
     aiNotes: "AI-anteckningar",
     todayShort: "Idag",
     tomorrowShort: "Imorgon",
@@ -3686,6 +3687,7 @@ export const sv: LocaleTranslations = {
     proPromptDesc: "Automatiska betalningspåminnelser, avbokning/ombokning av elev enligt dina regler, detaljerade rapporter och export.",
   },
   quickLessonDialog: {
+    slotTaken: "Tiden är redan upptagen av en annan lektion — välj en annan tid",
     hubNoStudentsHint: "Inga elever tilldelade ännu — din chef lägger till dem snart 🤝",
     notifCancellationRulesTitle: "📋 Regler för avbokning och ombokning",
     notifCancellationRulesBody: "Kostnadsfri avbokning fram till {{hours}} h före lektionen. Senare debiteras {{fee}}% av priset. Utebliven närvaro debiteras {{noshow}}%. Kostnadsfria ombokningar per månad: {{reschedules}}.",

@@ -77,6 +77,7 @@ export function NotificationBell({ className }: Props) {
         className="w-80 p-0 shadow-lg"
       >
         {/* Header */}
+        {displayed.length > 0 && (
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <span className="text-sm font-semibold text-foreground">
             {t("notifications.title")}
@@ -90,6 +91,7 @@ export function NotificationBell({ className }: Props) {
             </button>
           )}
         </div>
+        )}
 
         {/* List */}
         <div className="max-h-[400px] overflow-y-auto">
@@ -134,7 +136,7 @@ export function NotificationBell({ className }: Props) {
           )}
         </div>
         {/* BUG-8: the toggle is null on native — don't leave an empty bordered strip */}
-        {!isNativeApp() && (
+        {!isNativeApp() && displayed.length > 0 && (
           <div className="border-t border-border px-3 py-2">
             <PushNotificationToggle />
           </div>

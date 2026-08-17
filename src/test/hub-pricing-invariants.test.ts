@@ -75,6 +75,21 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
   });
 
+  // РОЗТЯЖКА №8: ЄДИНЕ поле дати-часу (DateTimeField) у формах уроків/оплат.
+  // Сирі <input type="date">/<input type="time"> там заборонені — саме розсип
+  // паралельних інпутів породив «стару форму» в різних місцях (11.08).
+  it("форми уроків/оплат не містять сирих date/time-інпутів", () => {
+    const files = [
+      "../components/QuickLessonDialog.tsx",
+      "../components/LessonDetailsDialog.tsx",
+      "../components/RecordPaymentSheet.tsx",
+    ];
+    for (const f of files) {
+      const src = readFileSync(join(__dirname, f), "utf8");
+      expect(/type="date"|type="time"/.test(src)).toBe(false);
+    }
+  });
+
   // РОЗТЯЖКА №7: «виплачено 0» структурно неможливе — guard-тригер існує.
   it("guard-тригер no-zero-paid стоїть на lesson_details", () => {
     const { readdirSync } = require("node:fs") as typeof import("node:fs");

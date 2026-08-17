@@ -8,6 +8,7 @@ import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
 import { Loader2, X, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { DateTimeField } from "@/components/DateTimeField";
 import { useAuth } from "@/hooks/useAuth";
 
 interface LessonRowFull {
@@ -166,12 +167,8 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             )}
             {dtEdit && (
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <input type="datetime-local" value={dtVal} onChange={(e) => setDtVal(e.target.value)}
-                  className="bg-secondary text-foreground border-border h-10 rounded-[10px] border px-2.5 text-[14px]" />
-                <input type="number" min={15} step={5} value={durVal}
-                  onChange={(e) => setDurVal(Math.max(15, Number(e.target.value) || 15))}
-                  className="bg-secondary text-foreground border-border h-10 w-[72px] rounded-[10px] border px-2.5 text-[14px]" />
-                <span className="text-muted-foreground text-[13px]">{t("lessonDetails.durationUnit")}</span>
+                <DateTimeField value={dtVal} onChange={setDtVal}
+                  durationMin={durVal} onDurationChange={setDurVal} className="min-w-0 flex-1" />
                 <button type="button" onClick={saveDt} disabled={dtSaving}
                   className="bg-primary text-primary-foreground h-10 rounded-[10px] px-3 text-[14px] font-bold disabled:opacity-60">
                   {dtSaving ? "…" : "✓"}

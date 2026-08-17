@@ -205,6 +205,14 @@ export default function FinancesPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [recordOpen, setRecordOpen] = useState(false);
+  // Уніфікація флоу «+ Внести оплату» з дашборда менеджера: приходимо сюди з
+  // ?record=1 і одразу відкриваємо ЄДИНУ нову форму (RecordPaymentSheet).
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("record") === "1") {
+      setRecordOpen(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [balances, setBalances] = useState<Record<string, { lessons_balance: number; amount_balance: number }>>({});
   const [pairRates, setPairRates] = useState<Record<string, number | undefined>>({});

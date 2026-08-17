@@ -1189,6 +1189,9 @@ export default function DashboardPage() {
       const unpaid = moneyLessons.filter(
         (l) => l.tutor_id === sch.user_id && isPayoutDueLesson(l, nowMs),
       );
+      // Нічого платити — картки НЕ показуємо (раніше висів привид «Усе
+      // виплачено 🎉» з кнопкою, що нічого не робила — скарга власниці 11.08).
+      if (unpaid.length === 0) return;
       const sum = unpaid.reduce((acc, l) => acc + (Number(l.tutor_payout) || 0), 0);
       tasks.push({
         key: `payout-${sch.user_id}`,
@@ -2514,7 +2517,7 @@ export default function DashboardPage() {
         <AddFab
           onLesson={() => (isManager ? navigate("/schedule?create=1") : setQuickLessonOpen(true))}
           onStudent={() => (isManager ? navigate("/people?add=student") : setAddStudentOpen(true))}
-          onPayment={() => (isManager ? navigate("/finances") : openPaymentSheet())}
+          onPayment={() => (isManager ? navigate("/finances?record=1") : openPaymentSheet())}
         />
       )}
       {walletPair && (

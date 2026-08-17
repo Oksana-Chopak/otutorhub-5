@@ -30,6 +30,7 @@ import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
+import { DateTimeField } from "@/components/DateTimeField";
 
 interface Props {
   open: boolean;
@@ -296,7 +297,7 @@ export function QuickLessonDialog({
     setSubmitting(false);
     if (error) {
       console.error(error);
-      toast.error(error.message || t("quickLessonDialogExtra.lessonCreateFailed"));
+      toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));
       return;
     }
     localStorage.setItem(LAST_KEY, selected.student_id);
@@ -483,14 +484,14 @@ export function QuickLessonDialog({
                   </div>
                   {timeEditOpen && (
                     <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                      <input type="date" value={ymd} onChange={(e) => setDatePart(e.target.value)}
-                        style={{ flex: 1, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
-                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 15,
-                          outline: "none", colorScheme: "dark" }} />
-                      <input type="time" value={hm} onChange={(e) => setTimePart(e.target.value)}
-                        style={{ width: 110, height: 44, borderRadius: 11, border: "none", padding: "0 12px",
-                          background: "rgba(255,255,255,.12)", color: "#fff", fontFamily: F.body, fontSize: 15,
-                          outline: "none", colorScheme: "dark", flexShrink: 0 }} />
+                      <DateTimeField
+                        value={`${ymd}T${hm}`}
+                        onChange={(v) => {
+                          const [d, tpart] = v.split("T");
+                          if (d) setDatePart(d);
+                          if (tpart) setTimePart(tpart.slice(0, 5));
+                        }}
+                      />
                     </div>
                   )}
                 </div>
