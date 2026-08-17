@@ -72,6 +72,20 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
+- UI CANON — ONE component per concept (tripwires №8-№11): date/time =
+  DateTimeField/DateField/TimeField; lesson create = Schedule inline (багата
+  все-рольова) + QuickLessonDialog (швидка + групи) + OnboardingFlowB (перший
+  урок) + lib/groupLessons — злиття QLD→LessonCreateDialog за
+  docs/UI-MERGE-PLAN.md одразу після Publish-смоуку власниці; lesson view/edit
+  = LessonDetailsDialog; payment = RecordPaymentSheet; student create =
+  QuickAddStudentDialog (tutor) + People form (manager; StudentUpsertDialog =
+  етап 2 плану); subjects = SubjectSelect/SubjectMultiSelect; lesson status =
+  lib/lessonActions only; NotificationBell = AppLayout only. Нові поверхні
+  ЗОБОВʼЯЗАНІ реюзати канон — паралельна копія = помилка збірки.
+- GATES check EXIT CODES, never grep-presence (`cmd; [ $? -eq 0 ]`): три
+  червоні пуші сталися, бо пайпи ковтали фейли.
+- FS-GHOST: пісочниця інколи губить записи файлів — після КОЖНОГО write
+  перечитувати файл і звіряти маркер перед батареєю/комітом.
 - DEBT DEFINITION is SINGLE: isStudentDebtLesson / isPayoutDueLesson in
   src/lib/financials.ts. Every channel (Finances card, debts tab, telegram
   digest, any future report) MIRRORS them verbatim. Debt is PERIOD-LESS —
