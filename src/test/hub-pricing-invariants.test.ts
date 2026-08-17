@@ -75,19 +75,58 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(/CREATE TRIGGER trg_wallet_charge_on_manual_paid[\s\S]*ON public\.lesson_details/.test(all)).toBe(true);
   });
 
-  // РОЗТЯЖКА №8: ЄДИНЕ поле дати-часу (DateTimeField) у формах уроків/оплат.
-  // Сирі <input type="date">/<input type="time"> там заборонені — саме розсип
-  // паралельних інпутів породив «стару форму» в різних місцях (11.08).
-  it("форми уроків/оплат не містять сирих date/time-інпутів", () => {
-    const files = [
-      "../components/QuickLessonDialog.tsx",
-      "../components/LessonDetailsDialog.tsx",
-      "../components/RecordPaymentSheet.tsx",
-    ];
-    for (const f of files) {
-      const src = readFileSync(join(__dirname, f), "utf8");
-      expect(/type="date"|type="time"/.test(src)).toBe(false);
-    }
+  // РОЗТЯЖКА №8 (весь src): сирі date/time-інпути заборонені всюди, крім
+  // родини DateTimeField і лендінг-демо (окремий візуальний світ).
+  it("жодних сирих date/time-інпутів поза DateTimeField", () => {
+    const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const allow = new Set(["DateTimeField.tsx", "LandingTryDemo.tsx"]);
+    const bad: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const fp = path.join(dir, f);
+        if (statSync(fp).isDirectory()) { walk(fp); continue; }
+        if (!f.endsWith(".tsx") || allow.has(f)) continue;
+        const src = readFileSync(fp, "utf8");
+        if (/type="date"|type="time"|datetime-local/.test(src)) bad.push(f);
+      }
+    };
+    walk(join(__dirname, "../../src"));
+    expect(bad).toEqual([]);
+  });
+
+  // РОЗТЯЖКА №9: NotificationBell монтується ЛИШЕ в AppLayout.
+  it("NotificationBell лише в AppLayout", () => {
+    const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const fp = path.join(dir, f);
+        if (statSync(fp).isDirectory()) { walk(fp); continue; }
+        if (!f.endsWith(".tsx") || f === "AppLayout.tsx" || f === "NotificationBell.tsx") continue;
+        if (/<NotificationBell/.test(readFileSync(fp, "utf8"))) offenders.push(f);
+      }
+    };
+    walk(join(__dirname, "../../src"));
+    expect(offenders).toEqual([]);
+  });
+
+  // РОЗТЯЖКА №10: статус уроку пише ЛИШЕ src/lib/lessonActions.ts.
+  it("status-writer єдиний (lessonActions)", () => {
+    const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const fp = path.join(dir, f);
+        if (statSync(fp).isDirectory()) { walk(fp); continue; }
+        if (!/\.(ts|tsx)$/.test(f) || f === "lessonActions.ts" || fp.includes("test")) continue;
+        if (/from\("lessons"\)\.update\(\{ status/.test(readFileSync(fp, "utf8"))) offenders.push(f);
+      }
+    };
+    walk(join(__dirname, "../../src"));
+    expect(offenders).toEqual([]);
   });
 
   // РОЗТЯЖКА №7: «виплачено 0» структурно неможливе — guard-тригер існує.
