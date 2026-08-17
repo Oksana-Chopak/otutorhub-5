@@ -26,8 +26,8 @@ export function loadClarity(): void {
   if (getConsent() !== "accepted") return;
   loaded = true;
   (function (c: any, l: Document, a: string, r: string, i: string) {
-    c[a] = c[a] || function () {
-      (c[a].q = c[a].q || []).push(arguments);
+    c[a] = c[a] || function (...args: unknown[]) {
+      (c[a].q = c[a].q || []).push(args);
     };
     const t = l.createElement(r) as HTMLScriptElement;
     t.async = true;
