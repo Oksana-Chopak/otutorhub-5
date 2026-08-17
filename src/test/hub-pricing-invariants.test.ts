@@ -112,6 +112,25 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(offenders).toEqual([]);
   });
 
+  // РОЗТЯЖКА №11: insert у lessons — лише санкціоновані форми (канон):
+  // LessonCreate (інлайн Розкладу) і QuickLessonDialog. Третій писар = збірка падає.
+  it("lessons.insert лише у двох канонічних формах", () => {
+    const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
+    const path = require("node:path") as typeof import("node:path");
+    const allow = new Set(["SchedulePage.tsx", "QuickLessonDialog.tsx"]);
+    const offenders: string[] = [];
+    const walk = (dir: string) => {
+      for (const f of readdirSync(dir)) {
+        const fp = path.join(dir, f);
+        if (statSync(fp).isDirectory()) { walk(fp); continue; }
+        if (!/\.(ts|tsx)$/.test(f) || allow.has(f) || fp.includes("test")) continue;
+        if (/from\("lessons"\)[\s\S]{0,40}\.insert\(/.test(readFileSync(fp, "utf8"))) offenders.push(f);
+      }
+    };
+    walk(join(__dirname, "../../src"));
+    expect(offenders).toEqual([]);
+  });
+
   // РОЗТЯЖКА №10: статус уроку пише ЛИШЕ src/lib/lessonActions.ts.
   it("status-writer єдиний (lessonActions)", () => {
     const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
