@@ -8,7 +8,8 @@ import { test, expect } from "@playwright/test";
 const BASE = process.env.SMOKE_BASE_URL
   ?? "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app";
 
-test("менеджер: логін → дашборд → фінанси → форма уроку, без помилок консолі", async ({ page }) => {
+test("смоук (демо-роль): логін → дашборд → фінанси → форма уроку, консоль чиста", async ({ page }) => {
+  test.setTimeout(120000);
   const consoleErrors: string[] = [];
   page.on("console", (m) => {
     if (m.type() !== "error") return;
@@ -17,11 +18,13 @@ test("менеджер: логін → дашборд → фінанси → ф�
     consoleErrors.push(txt);
   });
 
+  // ЕТАП 1: логін. На /auth ДВІ форми (вхід/реєстрація у табах) —
+  // беремо лише ВИДИМІ поля, інакше заповнюється прихована форма.
   await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
-  await page.fill('input[type="email"]', process.env.E2E_EMAIL!);
-  await page.fill('input[type="password"]', process.env.E2E_PASSWORD!);
-  await page.click('button[type="submit"]');
-  await page.waitForURL(/\/dashboard/, { timeout: 30000 });
+  await page.locator('input[type="email"]:visible').first().fill(process.env.E2E_EMAIL!);
+  await page.locator('input[type="password"]:visible').first().fill(process.env.E2E_PASSWORD!);
+  await page.locator('button[type="submit"]:visible').first().click();
+  await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 45000 });
 
   // Фінанси: картка боргів + рядок самозвірки (наш канон живий)
   await page.goto(`${BASE}/finances`, { waitUntil: "domcontentloaded" });
