@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { setLessonStatus } from "@/lib/lessonActions";
 import { getLocale } from "@/lib/locale";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -614,7 +615,7 @@ export default function DashboardPage() {
   };
 
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
-    const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
+    const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
     if (error) {
       toast.error(t("dashboardExtra.statusChangeFailed"));
       return;

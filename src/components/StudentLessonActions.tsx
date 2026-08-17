@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { DateTimeField } from "@/components/DateTimeField";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -230,12 +231,7 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
           <div className="space-y-3">
             <div className="space-y-2">
               <Label htmlFor="proposed-at">{t("studentLessonActionsExtra.newTimeLabel")}</Label>
-              <Input
-                id="proposed-at"
-                type="datetime-local"
-                value={proposedAt}
-                onChange={(e) => setProposedAt(e.target.value)}
-              />
+              <DateTimeField value={proposedAt} onChange={setProposedAt} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="r-reason">{t("studentLessonActionsExtra.commentLabel")}</Label>

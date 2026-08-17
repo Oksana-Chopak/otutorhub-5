@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DateField, TimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -639,19 +640,11 @@ export function AvailabilityManager() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
-                <Input
-                  type="time"
-                  value={weeklyDialog.from}
-                  onChange={(e) => setWeeklyDialog((s) => ({ ...s, from: e.target.value }))}
-                />
+                <TimeField value={weeklyDialog.from} onChange={(v) => setWeeklyDialog((s) => ({ ...s, from: v }))} />
               </div>
               <div>
                 <Label>{t("availabilityManagerExtra.toLabel")}</Label>
-                <Input
-                  type="time"
-                  value={weeklyDialog.to}
-                  onChange={(e) => setWeeklyDialog((s) => ({ ...s, to: e.target.value }))}
-                />
+                <TimeField value={weeklyDialog.to} onChange={(v) => setWeeklyDialog((s) => ({ ...s, to: v }))} />
               </div>
             </div>
           </div>
@@ -681,12 +674,7 @@ export function AvailabilityManager() {
           <div className="space-y-3 py-2">
             <div>
               <Label>{t("availabilityManagerExtra.dateLabel")}</Label>
-              <Input
-                type="date"
-                value={overrideDialog.date}
-                min={new Date().toISOString().slice(0, 10)}
-                onChange={(e) => setOverrideDialog((s) => ({ ...s, date: e.target.value }))}
-              />
+              <DateField value={overrideDialog.date} min={new Date().toISOString().slice(0, 10)} onChange={(v) => setOverrideDialog((s) => ({ ...s, date: v }))} />
             </div>
             <div>
               <Label>{t("availabilityManagerExtra.typeLabel")}</Label>
@@ -718,19 +706,11 @@ export function AvailabilityManager() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>{t("availabilityManagerExtra.fromLabel")}</Label>
-                  <Input
-                    type="time"
-                    value={overrideDialog.from}
-                    onChange={(e) => setOverrideDialog((s) => ({ ...s, from: e.target.value }))}
-                  />
+                  <TimeField value={overrideDialog.from} onChange={(v) => setOverrideDialog((s) => ({ ...s, from: v }))} />
                 </div>
                 <div>
                   <Label>{t("availabilityManagerExtra.toLabel")}</Label>
-                  <Input
-                    type="time"
-                    value={overrideDialog.to}
-                    onChange={(e) => setOverrideDialog((s) => ({ ...s, to: e.target.value }))}
-                  />
+                  <TimeField value={overrideDialog.to} onChange={(v) => setOverrideDialog((s) => ({ ...s, to: v }))} />
                 </div>
               </div>
             )}

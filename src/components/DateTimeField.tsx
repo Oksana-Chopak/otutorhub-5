@@ -8,11 +8,12 @@ import { useTranslation } from "react-i18next";
  * грошових/урочних формах заборонений розтяжкою №8.
  */
 export function DateTimeField({
-  value, onChange, min, label, durationMin, onDurationChange, className = "",
+  value, onChange, min, label, durationMin, onDurationChange, className = "", invalid = false,
 }: {
   value: string;                       // "YYYY-MM-DDTHH:mm"
   onChange: (v: string) => void;
   min?: string;
+  invalid?: boolean;
   label?: string;
   durationMin?: number;
   onDurationChange?: (m: number) => void;
@@ -30,7 +31,7 @@ export function DateTimeField({
           value={value}
           min={min}
           onChange={(e) => onChange(e.target.value)}
-          className="bg-secondary text-foreground border-border h-11 min-w-0 flex-1 rounded-[10px] border px-2.5 text-[16px]"
+          className={`bg-secondary text-foreground h-11 min-w-0 flex-1 rounded-[10px] border px-2.5 text-[16px] ${invalid ? "border-destructive ring-1 ring-destructive" : "border-border"}`}
         />
         {typeof durationMin === "number" && onDurationChange && (
           <>
@@ -43,6 +44,33 @@ export function DateTimeField({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+
+/** Те саме затверджене поле — лише ДАТА. */
+export function DateField({ value, onChange, min, label, invalid = false, className = "" }: {
+  value: string; onChange: (v: string) => void; min?: string; label?: string; invalid?: boolean; className?: string;
+}) {
+  return (
+    <div className={className}>
+      {label && <label className="text-muted-foreground mb-1 block text-[13px] font-semibold">{label}</label>}
+      <input type="date" value={value} min={min} onChange={(e) => onChange(e.target.value)}
+        className={`bg-secondary text-foreground h-11 w-full rounded-[10px] border px-2.5 text-[16px] ${invalid ? "border-destructive ring-1 ring-destructive" : "border-border"}`} />
+    </div>
+  );
+}
+
+/** Те саме затверджене поле — лише ЧАС. */
+export function TimeField({ value, onChange, label, invalid = false, className = "" }: {
+  value: string; onChange: (v: string) => void; label?: string; invalid?: boolean; className?: string;
+}) {
+  return (
+    <div className={className}>
+      {label && <label className="text-muted-foreground mb-1 block text-[13px] font-semibold">{label}</label>}
+      <input type="time" value={value} onChange={(e) => onChange(e.target.value)}
+        className={`bg-secondary text-foreground h-11 w-full rounded-[10px] border px-2.5 text-[16px] ${invalid ? "border-destructive ring-1 ring-destructive" : "border-border"}`} />
     </div>
   );
 }

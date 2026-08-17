@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { DateField, TimeField } from "@/components/DateTimeField";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
@@ -453,8 +454,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
       {/* Date */}
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.lessonDateLabel")}</Label>
-        <Input type="date" value={date} onChange={e => setDate(e.target.value)}
-          className="h-12 rounded-xl text-[15px]" />
+        <DateField value={date} onChange={setDate} />
       </div>
 
       {/* Time — custom 24h selects */}
@@ -697,9 +697,9 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
       <div>
         <p className="text-[14px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.availabilityHoursLabel")}</p>
         <div className="flex items-center gap-2">
-          <Input type="time" value={fromH} onChange={e => setFromH(e.target.value)} className="h-12 rounded-xl text-[15px] flex-1" />
+          <TimeField value={fromH} onChange={setFromH} className="flex-1" />
           <span style={{ color: T.muted, fontFamily: T.display, flexShrink: 0 }}>—</span>
-          <Input type="time" value={toH}   onChange={e => setToH(e.target.value)}   className="h-12 rounded-xl text-[15px] flex-1" />
+          <TimeField value={toH} onChange={setToH} className="flex-1" />
         </div>
       </div>
       <Btn disabled={!selDays.length || saving} onClick={save}>

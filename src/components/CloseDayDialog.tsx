@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { completeLessons } from "@/lib/lessonActions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
@@ -81,7 +82,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     try {
       const doneIds = rows.filter((r) => state[r.id]?.done).map((r) => r.id);
       if (doneIds.length) {
-        const { error } = await supabase.from("lessons").update({ status: "completed" }).in("id", doneIds);
+        const { error } = await completeLessons(doneIds);
         if (error) throw error;
       }
       const paidRows = rows.filter((r) => r.showPay !== false && state[r.id]?.done && state[r.id]?.paid && !r.paid);

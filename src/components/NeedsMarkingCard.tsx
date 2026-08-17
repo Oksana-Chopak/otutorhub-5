@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { setLessonStatus } from "@/lib/lessonActions";
 import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
@@ -52,7 +53,7 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
     // same celebration as the independent/manager LessonCard path.
     if (status === "completed") { hapticSuccess(); burstConfetti(); }
     setRemovedIds((prev) => new Set(prev).add(id));
-    const { error } = await supabase.from("lessons").update({ status }).eq("id", id);
+    const { error } = await setLessonStatus(id, status as import("@/lib/lessonActions").LessonStatus);
     setBusyId(null);
     if (error) {
       // Revert: the lesson reappears so the tutor can retry.

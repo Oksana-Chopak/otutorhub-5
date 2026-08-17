@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { DateTimeField } from "@/components/DateTimeField";
 import { insertNotification } from "@/lib/notifications";
 import { getLocale } from "@/lib/locale";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
@@ -510,12 +511,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
               ) : (
                 <div className="space-y-2">
                   <Label htmlFor="proposed-time">{t("tutorChangeRequestsExtra.newTimeLabel")}</Label>
-                  <Input
-                    id="proposed-time"
-                    type="datetime-local"
-                    value={proposedAt}
-                    onChange={(e) => setProposedAt(e.target.value)}
-                  />
+                  <DateTimeField value={proposedAt} onChange={setProposedAt} />
                   {active.proposed_starts_at && (
                     <p className="text-[14px] text-muted-foreground">
                       {t("tutorChangeRequestsExtra.studentProposed")}{" "}

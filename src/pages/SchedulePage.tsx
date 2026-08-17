@@ -1,4 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
+import { setLessonStatus } from "@/lib/lessonActions";
+import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
 import { useEffect, useMemo, useState } from "react";
@@ -716,7 +718,7 @@ export default function SchedulePage() {
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
-    const { error } = await supabase.from("lessons").update({ status: newStatus }).eq("id", lessonId);
+    const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
     if (error) {
       console.error("Failed to update lesson status", error);
       toast.error(t('schedule.statusUpdateFailed'));
@@ -1107,20 +1109,15 @@ export default function SchedulePage() {
                   <Label htmlFor="starts_at" className={cn(formErrors.starts_at && "text-destructive")}>
                     {t('schedule.dateTime')} <span className="text-destructive">*</span>
                   </Label>
-                  <Input
-                    id="starts_at"
-                    type="datetime-local"
+                  <DateTimeField
                     value={form.starts_at}
-                    onChange={(e) => {
-                      setForm((f) => ({ ...f, starts_at: e.target.value }));
-                      if (formErrors.starts_at && e.target.value) {
+                    invalid={!!formErrors.starts_at}
+                    onChange={(v) => {
+                      setForm((f) => ({ ...f, starts_at: v }));
+                      if (formErrors.starts_at && v) {
                         setFormErrors((er) => ({ ...er, starts_at: false }));
                       }
                     }}
-                    className={cn(
-                      formErrors.starts_at &&
-                        "border-destructive ring-1 ring-destructive focus-visible:ring-destructive"
-                    )}
                   />
                   {formErrors.starts_at && (
                     <p className="mt-1 text-[14px] text-destructive">{t('schedule.dateTime')}</p>

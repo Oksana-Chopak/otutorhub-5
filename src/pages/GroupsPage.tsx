@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { DateTimeField } from "@/components/DateTimeField";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
 import { AppLayout } from "@/components/AppLayout";
@@ -1107,16 +1108,8 @@ function GroupDetailsDialog({
                 <div style={{ borderTop: `1px solid ${T.border}`, paddingTop: 22 }}>
                   <div style={{ fontFamily: FONT_D, fontWeight: 800, fontSize: 17, color: T.txt, marginBottom: 12 }}>{t("groupsPageExtra.scheduleTitle")}</div>
                   <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                    <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center", gap: 9, minHeight: 58, borderRadius: 15, padding: "0 16px", background: "#fbfbfc", border: `1.5px solid ${T.border}` }}>
-                      <CalendarClock size={20} style={{ color: T.muted, flexShrink: 0 }} />
-                      <span style={{ fontFamily: FONT_D, fontWeight: 700, fontSize: 16, color: T.txt }}>{schedLabel}</span>
-                      <input
-                        type="datetime-local"
-                        value={schedStart}
-                        onChange={(ev) => setSchedStart(ev.target.value)}
-                        aria-label={t("groupsPageExtra.scheduleTitle")}
-                        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer", border: "none" }}
-                      />
+                    <div style={{ flex: 1 }}>
+                      <DateTimeField value={schedStart} onChange={setSchedStart} />
                     </div>
                     <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 58, borderRadius: 15, background: "#fbfbfc", border: `1.5px solid ${T.border}` }}>
                       <input
