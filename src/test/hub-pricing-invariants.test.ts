@@ -117,7 +117,12 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
   it("lessons.insert лише у двох канонічних формах", () => {
     const { readdirSync, statSync } = require("node:fs") as typeof import("node:fs");
     const path = require("node:path") as typeof import("node:path");
-    const allow = new Set(["SchedulePage.tsx", "QuickLessonDialog.tsx"]);
+    const allow = new Set([
+      "SchedulePage.tsx",      // багата все-рольова форма (канон-ціль злиття)
+      "QuickLessonDialog.tsx", // швидка форма репетитора (+ групи) — вливається за планом
+      "OnboardingFlowB.tsx",   // майстер першого уроку (first-run, санкціоновано)
+      "groupLessons.ts",       // ліб-писар групових уроків (правильний патерн)
+    ]);
     const offenders: string[] = [];
     const walk = (dir: string) => {
       for (const f of readdirSync(dir)) {
