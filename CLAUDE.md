@@ -82,6 +82,11 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   етап 2 плану); subjects = SubjectSelect/SubjectMultiSelect; lesson status =
   lib/lessonActions only; NotificationBell = AppLayout only. Нові поверхні
   ЗОБОВʼЯЗАНІ реюзати канон — паралельна копія = помилка збірки.
+- LOCKFILE is COMMITTED IN SYNC on public npmjs URLs (root cause of the
+  months-red CI: Lovable adds @lovable.dev/* to package.json without touching
+  the lock → strict `npm ci` dies with EUSAGE everywhere). The old
+  'checkout package-lock before commit' rule is RETIRED; after Lovable bumps
+  package.json, re-sync the lock (`npm install`) and commit it.
 - GATES check EXIT CODES, never grep-presence (`cmd; [ $? -eq 0 ]`): три
   червоні пуші сталися, бо пайпи ковтали фейли.
 - FS-GHOST: пісочниця інколи губить записи файлів — після КОЖНОГО write
