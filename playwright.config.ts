@@ -25,8 +25,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 1,
 
-  reporter: process.env.CI ? [["github"], ["line"]] : "list",
-    ? [["github"], ["html", { open: "never" }]]
+  reporter: process.env.CI
+    ? [["github"], ["line"], ["html", { open: "never" }]]
     : [["list"], ["html", { open: "on-failure" }]],
 
   use: {

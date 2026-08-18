@@ -87,7 +87,9 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   the lock → strict `npm ci` dies with EUSAGE everywhere). The old
   'checkout package-lock before commit' rule is RETIRED; after Lovable bumps
   package.json, re-sync the lock (`npm install`) and commit it.
-- GATE CHAIN (usage order, all exit-coded): tsc → eslint src --quiet (CI
+- GATE CHAIN (usage order, all exit-coded): `npx playwright test --list`
+  whenever playwright.config or tests/e2e change (config parse-gate; tsc does
+  NOT cover that file — a broken ternary there muted the robot twice) → tsc → eslint src --quiet (CI
   demands ZERO errors — was invisible while CI install was broken) → vitest →
   check-i18n → check-ux → vite build.
 - GATES check EXIT CODES, never grep-presence (`cmd; [ $? -eq 0 ]`): три
