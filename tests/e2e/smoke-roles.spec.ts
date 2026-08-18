@@ -5,10 +5,12 @@ import { test, expect } from "@playwright/test";
  * Ціль: не глибина, а «чи не димить» — логін, дашборд, борги+самозвірка,
  * канонічна форма створення уроку, нуль помилок консолі.
  */
-const BASE = process.env.SMOKE_BASE_URL
-  ?? "https://id-preview--0aa51a41-1c1e-499c-b511-ba5e0d425456.lovable.app";
+// Прев'ю-домен Lovable закритий їхнім сайн-апом для неавторизованих —
+// робот клацає БОЙОВИЙ сайт (те, що бачать реальні користувачі).
+const BASE = process.env.SMOKE_BASE_URL ?? "https://otutorhub.com";
 
 test("смоук (демо-роль): логін → дашборд → фінанси → форма уроку, консоль чиста", async ({ page }) => {
+  test.skip(!process.env.E2E_EMAIL, "E2E_EMAIL/PASSWORD секрети відсутні — смоук пропущено");
   test.setTimeout(120000);
   const consoleErrors: string[] = [];
   page.on("console", (m) => {
