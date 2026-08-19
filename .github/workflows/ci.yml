@@ -133,6 +133,8 @@ jobs:
           TEST_MANAGER_PASSWORD: ${{ secrets.TEST_MANAGER_PASSWORD }}
           TEST_STUDENT_EMAIL: ${{ secrets.TEST_STUDENT_EMAIL }}
           TEST_STUDENT_PASSWORD: ${{ secrets.TEST_STUDENT_PASSWORD }}
+          TEST_HUB_TUTOR_EMAIL: ${{ secrets.TEST_HUB_TUTOR_EMAIL }}
+          TEST_HUB_TUTOR_PASSWORD: ${{ secrets.TEST_HUB_TUTOR_PASSWORD }}
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
