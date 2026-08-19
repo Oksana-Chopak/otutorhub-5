@@ -2667,6 +2667,15 @@ export type Database = {
           tutor_payout_status: Database["public"]["Enums"]["payment_status"]
         }[]
       }
+      manager_debts_summary: {
+        Args: never
+        Returns: {
+          payouts_count: number
+          payouts_owed: number
+          students_count: number
+          students_debt: number
+        }[]
+      }
       manager_purge_user: { Args: { _user_id: string }; Returns: undefined }
       mark_referral_pro_upgrade: {
         Args: { _tutor_id: string }
