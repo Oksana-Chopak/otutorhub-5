@@ -145,6 +145,8 @@ jobs:
   # ─── Робот-смоукер: клацає застосунок замість власниці ───────────────────
   owner-smoke:
     name: 🤖 Owner smoke (роль менеджера)
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     needs: [build, unit-tests]
     env:
@@ -167,4 +169,24 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Smoke — логін, борги+самозвірка, форма уроку, консоль чиста
         if: steps.gate.outputs.run == 'true'
-        run: npx playwright test tests/e2e/smoke-roles.spec.ts --reporter=line
+        run: |
+          set -o pipefail
+          npx playwright test tests/e2e/smoke-roles.spec.ts --reporter=line 2>&1 | tee smoke.log
+      # Самозвіт: хвіст помилки — коментарем до коміту (Клод читає через API;
+      # сирі логи ранера його пісочниці закриті).
+      - name: Self-report failure as commit comment
+        if: failure() && steps.gate.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(printf '🤖 Owner smoke FAILED @ %s\n```\n%s\n```' "$GITHUB_SHA" "$(tail -c 3500 smoke.log 2>/dev/null || echo no-log)" | jq -Rs .)
+          curl -s -X POST -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/comments" \
+            -d "{\"body\": $BODY }" >/dev/null || true
+      - name: Upload playwright report
+        if: failure() && steps.gate.outputs.run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-smoke-report
+          path: playwright-report/
+          retention-days: 5
