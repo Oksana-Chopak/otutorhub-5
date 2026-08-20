@@ -72,6 +72,11 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
+- FORMS GENERATION MAP (evidence-based): NEW 58px style = QuickLessonDialog
+  (3 variants) + LessonDetailsDialog + OnboardingFlowB; EVERYTHING ELSE is old
+  gen. Redesign waves in docs/UI-MERGE-PLAN.md; wave 2 = RecordPaymentSheet
+  (FIRST commit of next session, fresh context — money form is never restyled
+  at the tail of a long session).
 - UI CANON — ONE component per concept (tripwires №8-№11): date/time =
   DateTimeField/DateField/TimeField; lesson create = Schedule inline (багата
   все-рольова) + QuickLessonDialog (швидка + групи) + OnboardingFlowB (перший
