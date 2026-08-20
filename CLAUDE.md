@@ -72,7 +72,13 @@ Three independent channels — pushing to `main` does NOT deploy all of them:
   student_rates, tutor_subject_rates + subject_canon registry): casing/spacing
   variants of the same subject cannot exist, so string-matched pricing never
   misses on formatting. Distinct wordings remain distinct subjects by design.
-- FORMS GENERATION MAP (evidence-based): NEW 58px style = QuickLessonDialog
+- FORMS GENERATION MAP (CORRECTED 20.08 — the earlier 58px-marker heuristic
+  misclassified two NEW forms as old): NEW = QuickLessonDialog(3 variants),
+  LessonDetailsDialog, OnboardingFlowB, RecordPaymentSheet, QuickAddStudent-
+  Dialog. Remaining OLD on daily paths: People add-sheets (manager),
+  MyStudents create/edit dialog (independent) — next commit; then student
+  booking branch, group-create, SLA/TCRC wrappers, Wallet, Availability.
+- OLD MAP (superseded): NEW 58px style = QuickLessonDialog
   (3 variants) + LessonDetailsDialog + OnboardingFlowB; EVERYTHING ELSE is old
   gen. Redesign waves in docs/UI-MERGE-PLAN.md; wave 2 = RecordPaymentSheet
   (FIRST commit of next session, fresh context — money form is never restyled
