@@ -154,6 +154,8 @@ jobs:
     env:
       E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
       E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      TEST_MANAGER_EMAIL: ${{ secrets.TEST_MANAGER_EMAIL }}
+      TEST_MANAGER_PASSWORD: ${{ secrets.TEST_MANAGER_PASSWORD }}
       SMOKE_BASE_URL: ${{ secrets.SMOKE_BASE_URL }}
     steps:
       - uses: actions/checkout@v4

@@ -53,3 +53,19 @@ test("ЯДРО ЖИВЕ: логін → фінанси → розклад від
 
   expect(consoleErrors, `Помилки консолі:\n${consoleErrors.join("\n")}`).toEqual([]);
 });
+
+test("МЕНЕДЖЕР: нова форма уроку реально відкривається (без вічного спінера)", async ({ page }) => {
+  test.skip(!process.env.TEST_MANAGER_EMAIL, "TEST_MANAGER_* відсутні — пропуск");
+  test.setTimeout(120000);
+  await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
+  await page.locator('input[type="email"]:visible').first().fill(process.env.TEST_MANAGER_EMAIL!);
+  await page.locator('input[type="password"]:visible').first().fill(process.env.TEST_MANAGER_PASSWORD!);
+  await page.locator('button[type="submit"]:visible').first().click();
+  await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 45000 });
+  await page.goto(`${BASE}/schedule?create=1`, { waitUntil: "domcontentloaded" });
+  // Форма ВІДКРИЛАСЬ = видно вибір репетитора (він над loading-гейтом).
+  await expect(
+    page.getByText("Оберіть репетитора").first(),
+    "Менеджерська форма не відкрилась — ймовірно завис спінер завантаження"
+  ).toBeVisible({ timeout: 25000 });
+});

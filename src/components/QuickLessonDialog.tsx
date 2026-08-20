@@ -128,7 +128,7 @@ export function QuickLessonDialog({
     let cancelled = false;
     (async () => {
       setLoading(true);
-      if (isManager && !effTutorId) { setStudents([]); setGroups([]); return; }
+      if (isManager && !effTutorId) { setStudents([]); setGroups([]); setLoading(false); return; }
       const [{ data: rates }, { data: gs }] = await Promise.all([
         supabase
           .from("student_rates")
@@ -468,6 +468,23 @@ export function QuickLessonDialog({
 
           {/* Body */}
           <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "4px 22px 12px", display: "flex", flexDirection: "column", gap: 14 }}>
+              {isManager && (
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 800, fontSize: 14, color: F.sub }}>
+                    {t("quickLessonDialog.tutorLabel")}
+                  </label>
+                  <select
+                    value={selTutorId}
+                    onChange={(e) => setSelTutorId(e.target.value)}
+                    style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}
+                  >
+                    <option value="">{t("quickLessonDialog.pickTutor")}</option>
+                    {tutorOptions.map((o) => (
+                      <option key={o.id} value={o.id}>{o.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             {loading ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: F.muted }} />
@@ -488,23 +505,6 @@ export function QuickLessonDialog({
               </div>
             ) : (
               <>
-              {isManager && (
-                <div>
-                  <label style={{ display: "block", marginBottom: 6, fontWeight: 800, fontSize: 14, color: F.sub }}>
-                    {t("quickLessonDialog.tutorLabel")}
-                  </label>
-                  <select
-                    value={selTutorId}
-                    onChange={(e) => setSelTutorId(e.target.value)}
-                    style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}
-                  >
-                    <option value="">{t("quickLessonDialog.pickTutor")}</option>
-                    {tutorOptions.map((o) => (
-                      <option key={o.id} value={o.id}>{o.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
                 {/* Time hero */}
                 <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
