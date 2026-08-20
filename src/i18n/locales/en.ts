@@ -3697,6 +3697,8 @@ export const en: LocaleTranslations = {
     proPromptDesc: "Automatic payment reminders, student-initiated cancellation/rescheduling by your rules, detailed reports and export.",
   },
   quickLessonDialog: {
+    tutorLabel: "Tutor",
+    pickTutor: "Choose a tutor",
     slotTaken: "This time is already taken by another lesson of this tutor — pick a different slot",
     hubNoStudentsHint: "No students assigned yet — your manager will add them soon 🤝",
     notifCancellationRulesTitle: "📋 Cancellation & reschedule rules",

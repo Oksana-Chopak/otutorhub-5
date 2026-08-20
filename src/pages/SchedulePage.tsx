@@ -916,6 +916,13 @@ export default function SchedulePage() {
     // Deep-link from the dashboard FAB (manager): open the create-lesson dialog,
     // then strip the param so a refresh doesn't re-open it.
     if (searchParams.get("create") === "1" && canCreate) {
+      if (isManager) {
+        // Менеджер отримує НОВУ канонічну форму (QuickLessonDialog manager-mode);
+        // стара інлайн-форма для нього більше не відкривається.
+        setQuickSlot(new Date());
+        setSearchParams({}, { replace: true });
+        return;
+      }
       setCreateOpen(true);
       // Optional student prefill (e.g. deep-link from Chats "create lesson").
       const presetStudent = searchParams.get("student");
@@ -1610,7 +1617,7 @@ export default function SchedulePage() {
           setForm((f) => ({ ...f, starts_at: toLocalInputValue(date.toISOString()) }));
           setCreateOpen(true);
         }}
-        variant={isTutor && !isManager && !isIndependentTutor ? "hub" : "independent"}
+        variant={isManager ? "manager" : isIndependentTutor ? "independent" : "hub"}
       />
       {canCreate && (
         <PageFAB

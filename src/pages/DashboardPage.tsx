@@ -1426,7 +1426,7 @@ export default function DashboardPage() {
         startsAt={quickLessonOpen ? new Date() : null}
         onCreated={loadData}
         onWantFullForm={() => { setQuickLessonOpen(false); navigate("/schedule"); }}
-        variant={isHubTutor ? "hub" : "independent"}
+        variant={isManager ? "manager" : isHubTutor ? "hub" : "independent"}
       />
 
       {loading ? (
@@ -2516,7 +2516,7 @@ export default function DashboardPage() {
       {isHubTutor && <PageFAB onClick={() => setQuickLessonOpen(true)} />}
       {(isManager || isIndependentTutor) && (
         <AddFab
-          onLesson={() => (isManager ? navigate("/schedule?create=1") : setQuickLessonOpen(true))}
+          onLesson={() => (setQuickLessonOpen(true))}
           onStudent={() => (isManager ? navigate("/people?add=student") : setAddStudentOpen(true))}
           onPayment={() => (isManager ? navigate("/finances?record=1") : openPaymentSheet())}
         />

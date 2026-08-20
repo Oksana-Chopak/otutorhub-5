@@ -42,7 +42,7 @@ interface Props {
   /** "hub": the dialog serves a HUB tutor — students come from their hub rates
    * (source='hub'), lessons are created with source='hub', and the add-student
    * CTA is hidden (hub students are owned by the manager). Default: independent. */
-  variant?: "independent" | "hub";
+  variant?: "independent" | "hub" | "manager";
 }
 
 interface StudentRow {
@@ -83,11 +83,29 @@ export function QuickLessonDialog({
   variant = "independent",
 }: Props) {
   const isHubVariant = variant === "hub";
+  const isManager = variant === "manager";
+  const [tutorOptions, setTutorOptions] = useState<{ id: string; name: string }[]>([]);
+  const [selTutorId, setSelTutorId] = useState<string>("");
   const { user } = useAuth();
+  const effTutorId = isManager ? selTutorId : user?.id;
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [students, setStudents] = useState<StudentRow[]>([]);
+  useEffect(() => {
+    if (!open || !isManager) return;
+    (async () => {
+      const { data: roles } = await supabase.from("user_roles").select("user_id").eq("role", "tutor");
+      const ids = Array.from(new Set((roles ?? []).map((r: any) => r.user_id)));
+      if (ids.length === 0) { setTutorOptions([]); return; }
+      const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name").in("id", ids);
+      setTutorOptions(
+        (profs ?? [])
+          .map((p: any) => ({ id: p.id, name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() }))
+          .sort((a, b) => a.name.localeCompare(b.name, "uk")),
+      );
+    })();
+  }, [open, isManager]);
   const [studentId, setStudentId] = useState<string>("");
   const [duration, setDuration] = useState<string>("60");
   const [mode, setMode] = useState<Mode>(
@@ -110,16 +128,17 @@ export function QuickLessonDialog({
     let cancelled = false;
     (async () => {
       setLoading(true);
+      if (isManager && !effTutorId) { setStudents([]); setGroups([]); return; }
       const [{ data: rates }, { data: gs }] = await Promise.all([
         supabase
           .from("student_rates")
           .select("student_id, subject, price_per_lesson, currency, archived_at")
-          .eq("tutor_id", user.id)
-          .eq("source", isHubVariant ? "hub" : "independent"),
+          .eq("tutor_id", effTutorId)
+          .eq("source", variant === "independent" ? "independent" : "hub"),
         supabase
           .from("lesson_groups")
           .select("id, name, subject")
-          .eq("tutor_id", user.id)
+          .eq("tutor_id", effTutorId)
           .order("created_at", { ascending: false }),
       ]);
       const active = (rates ?? []).filter((r: any) => !r.archived_at);
@@ -131,7 +150,7 @@ export function QuickLessonDialog({
           supabase
             .from("tutor_student_defaults")
             .select("student_id, default_meeting_url")
-            .eq("tutor_id", user.id)
+            .eq("tutor_id", effTutorId)
             .in("student_id", ids),
         ]);
         const nameOf = new Map(
@@ -199,7 +218,7 @@ export function QuickLessonDialog({
     return () => {
       cancelled = true;
     };
-  }, [open, user?.id, initialStudentId, reloadTrigger]);
+  }, [open, user, variant, effTutorId]);
 
   const selectedGroup = useMemo(
     () => groups.find((g) => g.id === groupId) ?? null,
@@ -232,7 +251,8 @@ export function QuickLessonDialog({
         toast.error(t("groupsPageExtra.scheduleNoMembers"));
         return;
       }
-      setSubmitting(true);
+      if (isManager && !selTutorId) { toast.error(t("quickLessonDialog.pickTutor")); return; }
+    setSubmitting(true);
       // Shared helper: snapshots each participant's group price into
       // lesson_participants + notifies every enrolled student.
       const { lessonId, error } = await createGroupLesson({
@@ -241,7 +261,7 @@ export function QuickLessonDialog({
         subject: selectedGroup.subject || t("shared.lesson"),
         startsAt: effStartsAt.toISOString(),
         durationMinutes: parseInt(duration) || 60,
-        source: isHubVariant ? "hub" : "independent",
+        source: variant === "independent" ? "independent" : "hub",
         createdBy: user.id,
       });
       setSubmitting(false);
@@ -266,7 +286,7 @@ export function QuickLessonDialog({
     setSubmitting(true);
     const seriesCount = repeatWeeks > 0 ? repeatWeeks : 1;
     const basePayload = {
-      tutor_id: user.id,
+      tutor_id: effTutorId,
       student_id: selected.student_id,
       subject: selected.subject,
       duration_minutes: parseInt(duration) || 60,
@@ -330,7 +350,7 @@ export function QuickLessonDialog({
           .select(
             "notify_telegram, notify_email, cancel_free_hours, cancel_fee_percent, noshow_charge, free_reschedules_per_month"
           )
-          .eq("tutor_id", user.id)
+          .eq("tutor_id", effTutorId)
           .maybeSingle();
         const s = (ws ?? {}) as Record<string, unknown>;
         const notifyTelegram = (s.notify_telegram as boolean | undefined) ?? false;
@@ -468,6 +488,23 @@ export function QuickLessonDialog({
               </div>
             ) : (
               <>
+              {isManager && (
+                <div>
+                  <label style={{ display: "block", marginBottom: 6, fontWeight: 800, fontSize: 14, color: F.sub }}>
+                    {t("quickLessonDialog.tutorLabel")}
+                  </label>
+                  <select
+                    value={selTutorId}
+                    onChange={(e) => setSelTutorId(e.target.value)}
+                    style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}
+                  >
+                    <option value="">{t("quickLessonDialog.pickTutor")}</option>
+                    {tutorOptions.map((o) => (
+                      <option key={o.id} value={o.id}>{o.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
                 {/* Time hero */}
                 <div style={{ borderRadius: 16, background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", color: "#fff", padding: "16px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
