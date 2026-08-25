@@ -1,0 +1,31 @@
+name: 🌱 Seed reviewer demo
+on:
+  push:
+    paths: ["scripts/seed-demo.version"]
+  workflow_dispatch:
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      E2E_EMAIL: ${{ secrets.E2E_EMAIL }}
+      E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
+      SUPA_URL: ${{ secrets.SUPA_URL }}
+      SUPA_ANON: ${{ secrets.SUPA_ANON }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Seed via canonical app calls
+        run: |
+          npm i @supabase/supabase-js@2 --no-save --no-audit --no-fund
+          node scripts/seed-demo.mjs 2>&1 | tee seed.log
+      - name: Self-report (always) → commit comment
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "🌱 Seed demo → ${{ job.status }}"; echo '```'; tail -c 2500 seed.log; echo '```'; } > body.md
+          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments -F body=@body.md || true
