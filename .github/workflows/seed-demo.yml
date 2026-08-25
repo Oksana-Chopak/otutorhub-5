@@ -17,9 +17,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with: { node-version: 22 }
       - name: Seed via canonical app calls
         run: |
+          set -o pipefail
           npm i @supabase/supabase-js@2 --no-save --no-audit --no-fund
           node scripts/seed-demo.mjs 2>&1 | tee seed.log
       - name: Self-report (always) → commit comment
