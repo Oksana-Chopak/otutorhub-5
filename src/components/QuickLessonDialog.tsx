@@ -411,15 +411,24 @@ export function QuickLessonDialog({
   const pad2 = (n: number) => String(n).padStart(2, "0");
   const ymd = effStartsAt ? `${effStartsAt.getFullYear()}-${pad2(effStartsAt.getMonth() + 1)}-${pad2(effStartsAt.getDate())}` : "";
   const hm = effStartsAt ? `${pad2(effStartsAt.getHours())}:${pad2(effStartsAt.getMinutes())}` : "";
+  // BUG-A (25.08): обидва сеттери викликаються в ОДНІЙ події onChange і рахували
+  // від effStartsAt поточного рендеру — другий затирав перший, дата мовчки
+  // губилась (урок падав на «сьогодні»). Функціональні апдейтери від prev.
   const setDatePart = (v: string) => {
-    if (!effStartsAt || !v) return;
-    const [y, m, d] = v.split("-").map(Number);
-    const next = new Date(effStartsAt); next.setFullYear(y, m - 1, d); setWhenLocal(next);
+    if (!v) return;
+    setWhenLocal((prev) => {
+      const base = prev ?? startsAt; if (!base) return prev;
+      const [y, m, d] = v.split("-").map(Number);
+      const next = new Date(base); next.setFullYear(y, m - 1, d); return next;
+    });
   };
   const setTimePart = (v: string) => {
-    if (!effStartsAt || !v) return;
-    const [h, mi] = v.split(":").map(Number);
-    const next = new Date(effStartsAt); next.setHours(h, mi, 0, 0); setWhenLocal(next);
+    if (!v) return;
+    setWhenLocal((prev) => {
+      const base = prev ?? startsAt; if (!base) return prev;
+      const [h, mi] = v.split(":").map(Number);
+      const next = new Date(base); next.setHours(h, mi, 0, 0); return next;
+    });
   };
 
   // ── Design tokens ─────────────────────────────────────────────────────────────

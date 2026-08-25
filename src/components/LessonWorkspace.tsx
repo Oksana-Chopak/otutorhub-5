@@ -419,7 +419,7 @@ export function LessonWorkspace({
   };
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
       {/* 0. Primary CTA — mark lesson as completed */}
       {canMarkCompleted && statusLocal === "scheduled" && (
         <section className="rounded-[16px] border border-primary/30 bg-primary/5 p-4 md:col-span-2">
