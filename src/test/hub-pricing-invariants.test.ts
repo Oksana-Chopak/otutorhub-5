@@ -105,6 +105,17 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(offenders).toEqual([]);
   });
 
+  // РОЗТЯЖКА №12: BUILD_TAG синхронний у lib, index.html і дайджесті.
+  it("BUILD_TAG єдиний у трьох місцях", () => {
+    const lib = readFileSync(join(__dirname, "../lib/buildInfo.ts"), "utf8");
+    const tag = /BUILD_TAG = "([^"]+)"/.exec(lib)?.[1];
+    expect(tag).toBeTruthy();
+    const html = readFileSync(join(__dirname, "../../index.html"), "utf8");
+    expect(html.includes(`content="${tag}"`)).toBe(true);
+    const digest = readFileSync(join(__dirname, "../../supabase/functions/tutor-daily-digest/index.ts"), "utf8");
+    expect(digest.includes(`"${tag}"`)).toBe(true);
+  });
+
   // РОЗТЯЖКА №11: insert у lessons — лише санкціоновані форми (канон):
   // LessonCreate (інлайн Розкладу) і QuickLessonDialog. Третій писар = збірка падає.
   it("lessons.insert лише у двох канонічних формах", () => {

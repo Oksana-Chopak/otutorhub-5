@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BUILD_TAG } from "@/lib/buildInfo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
 import { isNativeApp } from "@/lib/platform";
@@ -833,6 +834,7 @@ export default function AuthPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+      <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#6b7088)", opacity: .6 }}>{BUILD_TAG}</p>
+      </div>
   );
 }

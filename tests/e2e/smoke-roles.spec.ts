@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { BUILD_TAG } from "../../src/lib/buildInfo";
 
 /**
  * РОБОТ-СМОУКЕР — клацає прод замість власниці після кожного пушу.
@@ -17,17 +18,14 @@ async function login(page: Page) {
   await page.waitForURL(/\/(dashboard|onboarding)/, { timeout: 45000 });
 }
 
-test("ДЕПЛОЙ СВІЖИЙ: канонічне поле дати-часу присутнє у формі уроку", async ({ page }) => {
-  test.skip(!process.env.E2E_EMAIL, "E2E_EMAIL/PASSWORD відсутні — пропуск");
-  test.setTimeout(120000);
-  await login(page);
-  await page.goto(`${BASE}/schedule?create=1`, { waitUntil: "domcontentloaded" });
-  // datetime-local зʼявився в коді 03.08 (DateTimeField). Якщо його нема —
-  // прод зібраний зі СТАРОГО коду: майстерня Lovable не підтягнула main.
-  await expect(
-    page.locator('input[type="datetime-local"]').first(),
-    "Прод-збірка застаріла: у Lovable-чаті напиши «підтягни останні комміти з GitHub main», потім Publish"
-  ).toBeVisible({ timeout: 30000 });
+test("ДЕПЛОЙ СВІЖИЙ: прод несе поточний BUILD_TAG", async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto(`${BASE}/auth`, { waitUntil: "domcontentloaded" });
+  const live = await page.locator('meta[name="x-build"]').getAttribute("content");
+  expect(
+    live,
+    `Прод-збірка застаріла: живе «${live ?? "без маркера (дуже старий білд)"}», очікується «${BUILD_TAG}». Ліки: у чаті Lovable — «підтягни останні комміти з GitHub main», потім «передеплой edge-функції», потім Publish.`
+  ).toBe(BUILD_TAG);
 });
 
 test("ЯДРО ЖИВЕ: логін → фінанси → розклад відкриваються, консоль чиста", async ({ page }) => {

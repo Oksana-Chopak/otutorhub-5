@@ -144,6 +144,7 @@ Deno.serve(async (req) => {
     .from("lessons")
     .select("id, tutor_id, student_id, source, status, starts_at, group_id, lesson_details(student_price, student_payment_status, tutor_payout, tutor_payout_status, is_cancellation_fee)")
     .in("status", ["completed", "scheduled", "cancelled"]);
+  const BUILD_TAG = "v20.08-manager-form";
   const nowMs = Date.now();
   const isStudentDebt = (l: any) => {
     const d = l.lesson_details ?? {};
@@ -277,6 +278,7 @@ Deno.serve(async (req) => {
       continue; // Student — не відправляємо
     }
 
+      lines.push(`\n<i>v ${BUILD_TAG}</i>`);
     const ok = await sendTg(BOT, chatId, lines.join("\n"));
     if (ok) {
       await sb.from("tutor_daily_digests").insert({
