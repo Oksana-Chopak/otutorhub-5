@@ -105,6 +105,8 @@ jobs:
   e2e-tests:
     name: 🎭 E2E tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     # Credentials configured via GitHub Secrets (TEST_TUTOR_EMAIL etc)
     steps:
       - uses: actions/checkout@v4
@@ -124,7 +126,16 @@ jobs:
         run: npx playwright install chromium --with-deps
 
       - name: Run E2E tests
-        run: npx playwright test --reporter=line
+        run: |
+          set -o pipefail
+          npx playwright test 2>&1 | tee e2e.log
+      - name: Self-report матриці → commit comment
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { echo "🎭 E2E matrix FAILED @ ${{ github.sha }} — хвіст:"; echo '```'; grep -E "✘|failed|passed" e2e.log | tail -40; echo '```'; } > e2e-body.md
+          gh api repos/${{ github.repository }}/commits/${{ github.sha }}/comments -F body=@e2e-body.md || true
         env:
           E2E_BASE_URL: https://otutorhub.com
           TEST_TUTOR_EMAIL: ${{ secrets.TEST_TUTOR_EMAIL }}
@@ -175,7 +186,7 @@ jobs:
         if: steps.gate.outputs.run == 'true'
         run: |
           set -o pipefail
-          npx playwright test tests/e2e/smoke-roles.spec.ts --reporter=line 2>&1 | tee smoke.log
+          npx playwright test tests/e2e/smoke-roles.spec.ts 2>&1 | tee smoke.log
       # Самозвіт: хвіст помилки — коментарем до коміту (Клод читає через API;
       # сирі логи ранера його пісочниці закриті).
       - name: Self-report failure as commit comment

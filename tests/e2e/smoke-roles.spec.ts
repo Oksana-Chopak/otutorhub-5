@@ -63,7 +63,7 @@ test("МЕНЕДЖЕР: нова форма уроку реально відкр
   await page.goto(`${BASE}/schedule?create=1`, { waitUntil: "domcontentloaded" });
   // Форма ВІДКРИЛАСЬ = видно вибір репетитора (він над loading-гейтом).
   await expect(
-    page.getByText("Оберіть репетитора").first(),
+    page.locator("select", { has: page.locator("option", { hasText: "Оберіть репетитора" }) }).first(),
     "Менеджерська форма не відкрилась — ймовірно завис спінер завантаження"
   ).toBeVisible({ timeout: 25000 });
 });
