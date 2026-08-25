@@ -105,6 +105,18 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
     expect(offenders).toEqual([]);
   });
 
+  // РОЗТЯЖКА №13: Row у LessonWorkspace — ЛИШЕ на рівні модуля (фокус-баг:
+  // компонент усередині компонента = ремоунт textarea на кожен символ).
+  it("Row оголошений поза LessonWorkspace", () => {
+    const src = readFileSync(join(__dirname, "../components/LessonWorkspace.tsx"), "utf8");
+    const comp = src.indexOf("function LessonWorkspace");
+    const row = src.indexOf("const Row =");
+    expect(comp).toBeGreaterThan(-1);
+    expect(row).toBeGreaterThan(-1);
+    expect(row).toBeLessThan(comp);
+    expect(src.indexOf("const Row =", comp)).toBe(-1);
+  });
+
   // РОЗТЯЖКА №12: BUILD_TAG синхронний у lib, index.html і дайджесті.
   it("BUILD_TAG єдиний у трьох місцях", () => {
     const lib = readFileSync(join(__dirname, "../lib/buildInfo.ts"), "utf8");

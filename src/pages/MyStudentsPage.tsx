@@ -249,25 +249,31 @@ export default function MyStudentsPage() {
     );
 
     // Aggregate lesson stats per student
+    const nowIso = new Date().toISOString();
     const statsMap = new Map<
       string,
-      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null }
+      { unpaid_count: number; unpaid_total: number; last_lesson_at: string | null; total_lessons: number; next_lesson_at: string | null }
     >();
     for (const l of (lessonsAgg ?? []) as any[]) {
       const s = statsMap.get(l.student_id) ?? {
         unpaid_count: 0,
         unpaid_total: 0,
         last_lesson_at: null as string | null,
+        total_lessons: 0,
+        next_lesson_at: null as string | null,
       };
+      // «Разом» = проведені + заплановані (без скасованих/pending).
       if (l.status === "completed" && l.student_payment_status === "unpaid") {
         s.unpaid_count += 1;
         s.unpaid_total += Number(l.student_price ?? 0);
       }
-      if (
-        (l.status === "completed" || l.status === "scheduled") &&
-        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
-      ) {
-        s.last_lesson_at = l.starts_at;
+      if (l.status === "completed" || l.status === "scheduled") {
+        s.total_lessons += 1;
+        if (!s.last_lesson_at || l.starts_at > s.last_lesson_at) s.last_lesson_at = l.starts_at;
+        if (l.status === "scheduled" && l.starts_at > nowIso &&
+            (!s.next_lesson_at || l.starts_at < s.next_lesson_at)) {
+          s.next_lesson_at = l.starts_at;
+        }
       }
       statsMap.set(l.student_id, s);
     }
@@ -280,6 +286,8 @@ export default function MyStudentsPage() {
         unpaid_count: 0,
         unpaid_total: 0,
         last_lesson_at: null,
+        total_lessons: 0,
+        next_lesson_at: null,
       };
       return {
         id,
@@ -304,6 +312,8 @@ export default function MyStudentsPage() {
         unpaid_count: stats.unpaid_count,
         unpaid_total: stats.unpaid_total,
         last_lesson_at: stats.last_lesson_at,
+        total_lessons: stats.total_lessons,
+        next_lesson_at: stats.next_lesson_at,
       };
     });
     merged.sort((a, b) => {

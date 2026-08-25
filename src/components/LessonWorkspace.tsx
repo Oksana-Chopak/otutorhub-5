@@ -58,6 +58,35 @@ function inferPlatform(url: string): string {
   if (u.includes("viber")) return "viber";
   return "other";
 }
+// РЕЛІЗ-БЛОКЕР (фокус): Row МУСИТЬ жити на рівні модуля. Оголошений усередині
+// компонента — новий тип на кожен рендер → textarea перестворюється і губить
+// фокус після ПЕРШОГО символу. Розтяжка №13 стереже. openRow/toggleRow — пропси.
+const L = {
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
+  sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
+  display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+const Row = ({ emoji, tint, title, preview, k, last, children, openRow, toggleRow }: {
+emoji: string; tint: string; title: string; preview: string; k: string; last?: boolean; children: React.ReactNode;
+openRow: string | null; toggleRow: (k: string) => void;
+}) => {
+  const open = openRow === k;
+  return (
+    <div style={{ borderBottom: last ? "none" : `1px solid ${L.border}` }}>
+      <button type="button" onClick={() => toggleRow(k)}
+        style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", padding: "13px 14px", border: "none", background: "transparent", cursor: "pointer" }}>
+        <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 15, color: L.txt }}>{title}</span>
+          {!open && preview && <span style={{ display: "block", fontSize: 14, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
+        </span>
+        <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
+      </button>
+      {open && <div style={{ padding: "0 14px 14px" }}>{children}</div>}
+    </div>
+  );
+};
+
 
 export function LessonWorkspace({
   lessonId,
@@ -386,37 +415,12 @@ export function LessonWorkspace({
   const canEditTutorFields = isTutor;
   const canEditStudentNotes = isStudent;
 
-  // Design tokens + helpers for the redesigned tutor edit block
-  const L = {
-    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-    sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#fbfbfc",
-    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
-  };
   const fieldCss: React.CSSProperties = {
     width: "100%", borderRadius: 13, padding: "12px 14px", fontSize: 15.5,
     fontFamily: L.body, color: L.txt, background: L.bg, outline: "none",
     border: `1.5px solid ${L.border}`, boxSizing: "border-box", resize: "none", lineHeight: 1.5,
   };
   const toggleRow = (k: string) => setOpenRow((v) => (v === k ? null : k));
-  const Row = ({ emoji, tint, title, preview, k, last, children }: {
-    emoji: string; tint: string; title: string; preview: string; k: string; last?: boolean; children: React.ReactNode;
-  }) => {
-    const open = openRow === k;
-    return (
-      <div style={{ borderBottom: last ? "none" : `1px solid ${L.border}` }}>
-        <button type="button" onClick={() => toggleRow(k)}
-          style={{ display: "flex", alignItems: "center", gap: 12, width: "100%", textAlign: "left", padding: "13px 14px", border: "none", background: "transparent", cursor: "pointer" }}>
-          <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, background: tint, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{emoji}</span>
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontFamily: L.display, fontWeight: 700, fontSize: 15, color: L.txt }}>{title}</span>
-            {!open && preview && <span style={{ display: "block", fontSize: 14, color: L.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginTop: 1 }}>{preview}</span>}
-          </span>
-          <ChevronDown size={16} style={{ color: L.muted, flexShrink: 0, transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
-        </button>
-        {open && <div style={{ padding: "0 14px 14px" }}>{children}</div>}
-      </div>
-    );
-  };
 
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
@@ -573,7 +577,7 @@ export function LessonWorkspace({
           {/* Accordion */}
           <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "#fff" }}>
             {/* 📚 Homework */}
-            <Row emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
+            <Row openRow={openRow} toggleRow={toggleRow} emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
               preview={homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
               <textarea rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
                 placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
@@ -587,7 +591,7 @@ export function LessonWorkspace({
             </Row>
 
             {/* ✨ Summary + AI */}
-            <Row emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}
+            <Row openRow={openRow} toggleRow={toggleRow} emoji="✨" tint="rgba(245,181,68,.14)" title={t("lessonWorkspaceExtra.summaryTitle")}
               preview={summaryDraft ? summaryDraft.split("\n")[0] : t("lessonWorkspaceExtra.summaryEmptyPreview")} k="ai">
               {aiAllowed && settings?.ai_notes_auto && (
                 <div style={{ display: "flex", gap: 8, alignItems: "flex-start", borderRadius: 12, border: "1px solid rgba(43,191,170,.3)", background: "rgba(43,191,170,.08)", padding: "10px 12px", marginBottom: 10, fontSize: 14, color: L.txt, lineHeight: 1.45 }}>
@@ -634,7 +638,7 @@ export function LessonWorkspace({
             </Row>
 
             {/* 🎥 Meeting link */}
-            <Row emoji="🎥" tint="rgba(59,130,246,.1)" title={t("lessonWorkspaceExtra.meetingTitle")}
+            <Row openRow={openRow} toggleRow={toggleRow} emoji="🎥" tint="rgba(59,130,246,.1)" title={t("lessonWorkspaceExtra.meetingTitle")}
               preview={`${(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).label} · ${linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentShort") : t("lessonWorkspaceExtra.onceShort")}`}
               k="link" last>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 10 }}>
