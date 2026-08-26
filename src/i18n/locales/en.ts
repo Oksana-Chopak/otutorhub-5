@@ -3987,6 +3987,10 @@ export const en: LocaleTranslations = {
     release: "Release to refresh",
   },
   onboardingFlowB: {
+    lessonTodayHint: "Today at {{time}}",
+    lessonTomorrowHint: "That time has passed today — we'll schedule it for tomorrow at {{time}}",
+    lessonInScheduleToast: "Your first lesson is on the schedule 🎉",
+    openScheduleAction: "Open schedule",
     step: {
       subject: {
         title: "Choose your subject",

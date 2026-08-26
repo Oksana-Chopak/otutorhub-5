@@ -3977,6 +3977,10 @@ export const sv: LocaleTranslations = {
     release: "Släpp för att uppdatera",
   },
   onboardingFlowB: {
+    lessonTodayHint: "Idag kl. {{time}}",
+    lessonTomorrowHint: "Tiden har passerat idag — vi bokar imorgon kl. {{time}}",
+    lessonInScheduleToast: "Din första lektion finns i schemat 🎉",
+    openScheduleAction: "Öppna schemat",
     step: {
       subject: {
         title: "Välj ditt ämne",

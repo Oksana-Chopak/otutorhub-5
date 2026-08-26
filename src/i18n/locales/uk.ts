@@ -4001,6 +4001,10 @@ export const uk = {
     release: "Відпусти, щоб оновити",
   },
   onboardingFlowB: {
+    lessonTodayHint: "Сьогодні о {{time}}",
+    lessonTomorrowHint: "Цей час сьогодні вже минув — заплануємо на завтра о {{time}}",
+    lessonInScheduleToast: "Перший урок у розкладі 🎉",
+    openScheduleAction: "Відкрити розклад",
     step: {
       subject: {
         title: "Оберіть свій предмет",

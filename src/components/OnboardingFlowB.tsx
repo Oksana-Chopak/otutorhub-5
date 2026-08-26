@@ -334,9 +334,9 @@ function StudentAction({ defaultSubject, onComplete, user }: {
 }
 
 // ── Lesson inline action ──────────────────────────────────────────────────────
-function LessonAction({ studentId, studentName, subject, onComplete, onSkip, user }: {
+function LessonAction({ studentId, studentName, subject, onComplete, onSkip, user, nav }: {
   studentId: string | null; studentName: string; subject: string;
-  onComplete: (lessonId: string) => void; onSkip: () => void; user: any;
+  onComplete: (lessonId: string) => void; onSkip: () => void; user: any; nav?: (to: string) => void;
 }) {
   const { t } = useTranslation();
   const today = new Date().toISOString().split("T")[0];
@@ -389,6 +389,10 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
   const HOURS   = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
   const MINUTES = ["00", "15", "30", "45"];
   const timeStr = hour ? `${hour}:${minute}` : "";
+  // A2: дата зафіксована «сьогодні», тож вечірній вибір (напр. 14:00) падав у
+  // МИНУЛЕ — перший урок новачка одразу «протермінований». Тепер минулий час
+  // тихо їде на завтра, і підпис під селектами чесно каже, куди саме.
+  const chosenPast = Boolean(hour) && new Date(`${date}T${hour}:${minute}:00`) <= new Date();
   const ok = Boolean(hour) && Boolean(resolvedId);
 
   const selStyle = (hasVal: boolean) => ({
@@ -405,6 +409,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
     if (!user || !ok) return;
     setSaving(true);
     const startsAt = new Date(`${date}T${hour}:${minute}:00`);
+    if (startsAt <= new Date()) startsAt.setDate(startsAt.getDate() + 1); // A2: минуле → завтра
     const { data: created, error } = await supabase.from("lessons")
       .insert({
         tutor_id: user.id, student_id: resolvedId,
@@ -431,6 +436,11 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
         }
       }
       setSaving(false);
+      // A3: новачок має ПОБАЧИТИ свій перший урок — тост веде прямо в «Розклад».
+      toast.success(t("onboardingFlowB.lessonInScheduleToast"), {
+        action: { label: t("onboardingFlowB.openScheduleAction"), onClick: () => nav?.("/schedule") },
+        duration: 6000,
+      });
       onComplete(created.id);
     } else {
       setSaving(false);
@@ -476,6 +486,13 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
             ))}
           </select>
         </div>
+            {hour && (
+              <p className="text-[13px] mt-1.5" style={{ color: chosenPast ? "#b8860b" : T.sub }}>
+                {chosenPast
+                  ? t("onboardingFlowB.lessonTomorrowHint", { time: timeStr })
+                  : t("onboardingFlowB.lessonTodayHint", { time: timeStr })}
+              </p>
+            )}
         {!hour && (
           <p className="text-[14px] mt-1.5" style={{ color: T.muted }}>{t("onboardingFlowB.lessonTimeHint")}</p>
         )}
@@ -1397,7 +1414,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 <>
                   {step.action === "subject"      && <SubjectAction user={user} onComplete={(subs) => { setPickedSubjects(subs); markDone(step.id); advance(); }} />}
                   {step.action === "student"      && <StudentAction user={user} defaultSubject={pickedSubjects[0] ?? ""} onComplete={(id, name, sub) => { setAddedStudentId(id); setAddedStudentName(name); setAddedSubject(sub); markDone(step.id); advance(); reload(); }} />}
-                  {step.action === "lesson"       && <LessonAction  user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
+                  {step.action === "lesson"       && <LessonAction  nav={navigate} user={user} studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} onSkip={advance} onComplete={(lid) => { setCreatedLessonId(lid); markDone(step.id); advance(); }} />}
                   {step.action === "proRules"     && <ProRulesAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "autoMark"     && <AutoMarkAction onComplete={() => { markDone(step.id); advance(); }} />}
                   {step.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(step.id); advance(); }} />}
