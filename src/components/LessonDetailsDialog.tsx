@@ -199,6 +199,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
           />
         ) : (
           <LessonWorkspace
+            onClose={() => onOpenChange(false)}
             lessonId={row.id}
             tutorId={row.tutor_id}
             studentId={row.student_id}

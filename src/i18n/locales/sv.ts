@@ -2,6 +2,18 @@ import type { LocaleTranslations } from "./types";
 
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: LocaleTranslations = {
+  closeDaySummary: {
+    title: "Dagen stängd 🌙",
+    subtitle: "Genomförda lektioner: {{count}}",
+    writeSummaries: "Skriv anteckningar ({{count}})",
+    planNext: "Boka nästa ({{count}})",
+  },
+  nextStep: {
+    afterHomework: "Läxan sparad. Nu — lektionsanteckningen",
+    afterSummary: "Anteckningen sparad. Boka nästa lektion?",
+    openSummary: "Öppna",
+    createNext: "Skapa →",
+  },
   reviewPrompt: {
     title: "Hur var din lektion med {{tutor}}?",
     commentPlaceholder: "Lägg till några ord (valfritt)…",

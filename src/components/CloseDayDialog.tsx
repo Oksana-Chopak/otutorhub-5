@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { NextStepBar } from "@/components/NextStepBar";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { completeLessons } from "@/lib/lessonActions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -79,6 +81,9 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
   const doneCount = useMemo(() => rows.filter((r) => state[r.id]?.done).length, [rows, state]);
 
   const { completeMany: flowCompleteMany } = useLessonStatus();
+  const navigate = useNavigate();
+  const [phase, setPhase] = useState<"form" | "summary">("form");
+  const [doneStat, setDoneStat] = useState<{ count: number; student: string | null }>({ count: 0, student: null });
   const apply = async () => {
     setBusy(true);
     try {
@@ -97,7 +102,9 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           updateLessonDetailsSafe(r.id, { student_payment_status: "paid" })
         )
       );
-      onOpenChange(false);
+      // B5: не тупик — показуємо підсумок дня з двома наступними діями.
+      setDoneStat({ count: doneIds.length, student: doneRows[0]?.student_id ?? null });
+      setPhase("summary");
       onDone?.();
     } catch (e: any) {
       haptic.error();
@@ -120,6 +127,29 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
       {on && <Check size={14} strokeWidth={2.6} />}{label}
     </button>
   );
+
+  if (phase === "summary") {
+    return (
+      <Dialog open={open} onOpenChange={(v) => { if (!v) setPhase("form"); onOpenChange(v); }}>
+        <DialogContent className="max-w-[420px] rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto">
+          <div className="flex flex-col gap-3 py-1">
+            <p style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.title")}</p>
+            <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", margin: 0 }}>
+              {t("closeDaySummary.subtitle", { count: doneStat.count })}
+            </p>
+            <NextStepBar icon="✍️"
+              text={t("closeDaySummary.writeSummaries", { count: doneStat.count })}
+              actionLabel={t("nextStep.openSummary")}
+              onAction={() => { setPhase("form"); onOpenChange(false); navigate("/schedule"); }} />
+            <NextStepBar icon="📅"
+              text={t("closeDaySummary.planNext", { count: doneStat.count })}
+              actionLabel={t("nextStep.createNext")}
+              onAction={() => { setPhase("form"); onOpenChange(false); navigate(`/schedule?create=1${doneStat.student ? `&student=${doneStat.student}` : ""}`); }} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

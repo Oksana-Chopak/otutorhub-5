@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { NextStepBar } from "@/components/NextStepBar";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +37,8 @@ interface LessonWorkspaceProps {
   studentPaymentStatus?: "paid" | "unpaid";
   lessonStatus?: string;
   onUpdated?: () => void;
+  /** B-D2: дає ланцюгу закрити діалог перед deep-link-ом */
+  onClose?: () => void;
 }
 
 import { sanitizeHttpUrl, safeHref } from "@/lib/safeUrl";
@@ -98,6 +101,7 @@ export function LessonWorkspace({
   summary,
   studentNotes,
   source,
+  onClose,
   studentPrice,
   studentPaymentStatus,
   lessonStatus,
@@ -108,6 +112,7 @@ export function LessonWorkspace({
   const { isPro, isIndependent, settings } = useWorkspaceSettings();
   const { trackPaywallClick } = usePaywallTracking();
   const isTutor = user?.id === tutorId;
+  const [lastSaved, setLastSaved] = useState<null | "homework" | "summary">(null); // B-D2
   const isStudent = user?.id === studentId;
   const isManager = roles.includes("manager");
   // AI summary доступний всім тьюторам у hub-режимі (школа платить),
@@ -337,6 +342,7 @@ export function LessonWorkspace({
       const res = await updateLessonDetailsSafe(lessonId, { [field]: cleaned || null } as any);
       error = res.error;
     }
+    if (!error && (field === "homework" || field === "summary")) setLastSaved(field);
     setSaving(null);
     if (error) {
       toast({ title: t("lessonWorkspaceExtra.saveFailed"), description: error.message, variant: "destructive" });
@@ -405,6 +411,20 @@ export function LessonWorkspace({
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
       {/* 0. Primary CTA — mark lesson as completed */}
+      {lastSaved && (
+        <div className="mb-3">
+          <NextStepBar
+            icon={lastSaved === "homework" ? "✍️" : "📅"}
+            text={lastSaved === "homework" ? t("nextStep.afterHomework") : t("nextStep.afterSummary")}
+            actionLabel={lastSaved === "homework" ? t("nextStep.openSummary") : t("nextStep.createNext")}
+            onAction={() => {
+              if (lastSaved === "homework") { toggleRow("summary"); setLastSaved(null); }
+              else { onClose?.(); navigate(`/schedule?create=1${studentId ? `&student=${studentId}` : ""}`); }
+            }}
+            onDismiss={() => setLastSaved(null)}
+          />
+        </div>
+      )}
       {canMarkCompleted && statusLocal === "scheduled" && (
         <section className="rounded-[16px] border border-primary/30 bg-primary/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">

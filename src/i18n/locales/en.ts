@@ -1,6 +1,18 @@
 import type { LocaleTranslations } from "./types";
 
 export const en: LocaleTranslations = {
+  closeDaySummary: {
+    title: "Day closed 🌙",
+    subtitle: "Lessons completed: {{count}}",
+    writeSummaries: "Write summaries ({{count}})",
+    planNext: "Plan the next ones ({{count}})",
+  },
+  nextStep: {
+    afterHomework: "Homework saved. Now — the lesson summary",
+    afterSummary: "Summary saved. Schedule the next lesson?",
+    openSummary: "Open",
+    createNext: "Create →",
+  },
   reviewPrompt: {
     title: "How was your lesson with {{tutor}}?",
     commentPlaceholder: "Add a few words (optional)…",

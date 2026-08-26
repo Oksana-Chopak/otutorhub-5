@@ -1,4 +1,16 @@
 export const uk = {
+  closeDaySummary: {
+    title: "День закрито 🌙",
+    subtitle: "Проведено уроків: {{count}}",
+    writeSummaries: "Написати конспекти ({{count}})",
+    planNext: "Запланувати наступні ({{count}})",
+  },
+  nextStep: {
+    afterHomework: "Домашку збережено. Тепер — конспект уроку",
+    afterSummary: "Конспект збережено. Запланувати наступний урок?",
+    openSummary: "Відкрити",
+    createNext: "Створити →",
+  },
   reviewPrompt: {
     title: "Як пройшов урок з {{tutor}}?",
     commentPlaceholder: "Додай кілька слів (необов'язково)…",
