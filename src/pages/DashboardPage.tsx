@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { DayBlock } from "@/components/DayBlock";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { getLocale } from "@/lib/locale";
@@ -35,7 +36,6 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
-import { NeedsMarkingCard } from "@/components/NeedsMarkingCard";
 import { StreakCard } from "@/components/StreakCard";
 
 import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
@@ -838,12 +838,22 @@ export default function DashboardPage() {
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
     const tmrKey = tmr.toISOString().slice(0, 10);
-    return upcomingAll.filter((l) => {
-      const k = l.starts_at.slice(0, 10);
-      return k === todayKey || k === tmrKey;
-    });
-  }, [upcomingAll, todayKey]);
+    // B3: «Сьогодні» = ВСІ сьогоднішні (з візуальним станом проведених/скасованих),
+    // «завтра» — лише заплановані; лічильник у заголовку бере ЦЕЙ же масив.
+    const todayAll = lessons.filter((l) => l.starts_at.slice(0, 10) === todayKey);
+    const tmrScheduled = lessons.filter((l) => l.starts_at.slice(0, 10) === tmrKey && l.status === "scheduled");
+    return [...todayAll, ...tmrScheduled].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  }, [lessons, todayKey]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
+  const dayBlockTomorrow = useMemo(() => {
+    const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+    const tmrKey = tmr.toISOString().slice(0, 10);
+    const scope = lessons.filter((l) =>
+      l.starts_at.slice(0, 10) === tmrKey && l.status === "scheduled" &&
+      (isManager ? true : l.tutor_id === user?.id));
+    const first = scope.slice().sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
+    return { count: scope.length, firstTime: first ? first.starts_at.slice(11, 16) : null };
+  }, [lessons, isManager, user?.id]);
 
   // ===== Profit (with period) =====
   const periodStart = useMemo(() => {
@@ -1323,7 +1333,7 @@ export default function DashboardPage() {
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
                 >
                   <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
-                  {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
+                  {t("dashboardExtra.lessonsToday", { count: upcomingLessons.length })}
                 </Link>
                 {pendingPayments.length > 0 && (
                   <span className="inline-flex items-center gap-1 font-medium text-amber-400">
@@ -1411,28 +1421,31 @@ export default function DashboardPage() {
               </button>
             </div>
           )}
-
-          {/* ── Закрити день — вечірній батч ── */}
-          {closeDayRows.length > 0 && (
-            <button onClick={() => setCloseDayOpen(true)}
-              className="mb-4 w-full text-left"
-              style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", borderRadius: 18,
-                background: "linear-gradient(135deg,#0f0f1a,#1a1f3a)", border: "none", cursor: "pointer",
-                boxShadow: "0 14px 34px -18px rgba(15,15,26,.7)" }}>
-              <span style={{ fontSize: 26 }}>🌙</span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 16.5, color: "#fff" }}>
-                  {t("dashboardExtra.closeDayTitle")}
-                </span>
-                <span style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,.65)", marginTop: 1 }}>
-                  {t("dashboardExtra.closeDaySubtitle", { count: closeDayRows.length })}
-                </span>
-              </span>
-              <span style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, display: "inline-flex", alignItems: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
-                {t("dashboardExtra.closeDayCta")}
-              </span>
-            </button>
+          {(isTutor || isManager) && (
+            <DayBlock
+              lessons={todayLessons
+                .filter((l) => (isManager ? true : l.tutor_id === user?.id))
+                .map((l) => ({
+                  id: l.id, starts_at: l.starts_at, duration_minutes: (l as any).duration_minutes,
+                  subject: l.subject, status: l.status, student_id: l.student_id, tutor_id: l.tutor_id,
+                  student_payment_status: l.student_payment_status,
+                  meetingHref: effectiveMeetingUrl(l),
+                  studentName: l.student_id ? (profiles[l.student_id] ?? "—").split(" ")[0] : t("groupLessons.cardLabel"),
+                }))}
+              tomorrow={dayBlockTomorrow}
+              pendingCount={closeDayRows.length}
+              onJoin={(href) => window.open(href, "_blank", "noopener")}
+              onComplete={async (id, alsoPaid) => {
+                await updateStatus(id, "completed");
+                if (alsoPaid) updatePayment(id, "student_payment_status", "paid" as PaymentStatus);
+              }}
+              onWriteSummary={(id) => setOpenLessonId(id)}
+              onCloseDay={() => setCloseDayOpen(true)}
+              onPlanNext={() => navigate("/schedule?create=1")}
+              onOpenSchedule={() => navigate("/schedule")}
+            />
           )}
+
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
@@ -1735,18 +1748,6 @@ export default function DashboardPage() {
                   {t("hubTutor.hubChip", { name: t("hubTutor.hubFallbackName") })}
                 </span>
               </div>
-
-              {/* #1 hub-tutor job — mark conducted lessons done — surfaced at the
-                  TOP of the hub block, above the payout figure (which is only
-                  checked occasionally). Renders nothing when there's nothing to mark. */}
-              {user && (
-                <NeedsMarkingCard
-                  lessons={lessons.filter((l) => l.status === "scheduled" && l.tutor_id === user.id)}
-                  studentNames={profiles}
-                  onChanged={loadData}
-                />
-              )}
-
               {/* Mobile/tablet bubbles (lg uses the manager-style compact row
                   below): payout full-width, then the two stat tiles in a row. */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
@@ -1998,21 +1999,6 @@ export default function DashboardPage() {
               tutors; independent tutor: own. Hub tutors get this at the TOP of their
               hub block instead (see above), so they're excluded here to avoid a
               duplicate marking card. */}
-          {(isManager || isIndependentTutor) && user && (
-            <NeedsMarkingCard
-              lessons={lessons.filter((l) => {
-                if (l.status !== "scheduled") return false;
-                if (!isManager && l.tutor_id !== user.id) return false;
-                return true;
-              })}
-              studentNames={profiles}
-              onChanged={loadData}
-            />
-          )}
-
-          {/* (Removed the second "needs marking" LessonCard section — it duplicated
-              NeedsMarkingCard above for manager/independent/hub tutors and, being
-              un-role-gated, wrongly rendered a mark-done surface for students too.) */}
 
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
           {isManager && (

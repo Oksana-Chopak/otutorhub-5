@@ -1,4 +1,19 @@
 export const uk = {
+  dayBlock: {
+    nowTitle: "Зараз: {{name}}",
+    soonTitle: "За {{min}} хв — {{name}}",
+    join: "Приєднатися",
+    endedTitle: "Урок з {{name}} завершився?",
+    markDone: "Провів ✓",
+    andPaid: "і оплачено",
+    closeAll: "Закрити день ({{count}})",
+    summariesTitle: "Конспект для {{count}} уроків",
+    write: "Написати",
+    tomorrowTitle: "Завтра {{count}} уроків, перший о {{time}}",
+    openSchedule: "Розклад →",
+    closedTitle: "День закрито 🌙",
+    planNext: "Запланувати наступні",
+  },
   closeDaySummary: {
     title: "День закрито 🌙",
     subtitle: "Проведено уроків: {{count}}",

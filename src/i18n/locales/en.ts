@@ -1,6 +1,21 @@
 import type { LocaleTranslations } from "./types";
 
 export const en: LocaleTranslations = {
+  dayBlock: {
+    nowTitle: "Now: {{name}}",
+    soonTitle: "In {{min}} min — {{name}}",
+    join: "Join",
+    endedTitle: "Lesson with {{name}} finished?",
+    markDone: "Done ✓",
+    andPaid: "and paid",
+    closeAll: "Close the day ({{count}})",
+    summariesTitle: "Summaries for {{count}} lessons",
+    write: "Write",
+    tomorrowTitle: "Tomorrow {{count}} lessons, first at {{time}}",
+    openSchedule: "Schedule →",
+    closedTitle: "Day closed 🌙",
+    planNext: "Plan the next ones",
+  },
   closeDaySummary: {
     title: "Day closed 🌙",
     subtitle: "Lessons completed: {{count}}",
