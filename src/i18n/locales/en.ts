@@ -3214,6 +3214,8 @@ export const en: LocaleTranslations = {
     noPrice: "No price set",
   },
   inviteLinkExtra: {
+    scheduleFirstLesson: "Schedule the first lesson with {{name}} →",
+    scheduleFirstLessonNoName: "Schedule the first lesson →",
     contactEmail: "email",
     contactGeneric: "contact",
     introTutor: "I{{who}} am inviting you to join oTutorHub as a tutor. Create an account using the link below to see your students, schedule, payments and run lessons. Use exactly the same {{contact}}, otherwise the profile won't be linked.",

@@ -3227,6 +3227,8 @@ export const uk = {
     noPrice: "Ціну не вказано",
   },
   inviteLinkExtra: {
+    scheduleFirstLesson: "Запланувати перший урок з {{name}} →",
+    scheduleFirstLessonNoName: "Запланувати перший урок →",
     contactEmail: "email",
     contactGeneric: "контакт",
     introTutor: "Я{{who}} запрошую тебе приєднатися до oTutorHub як репетитора. Створи акаунт за посиланням нижче, щоб бачити учнів, розклад, оплати й вести уроки. Використай саме той самий {{contact}}, інакше профіль не зв'яжеться.",

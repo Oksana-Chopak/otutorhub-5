@@ -879,7 +879,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
         </button>
       </div>
       {paid ? (
-        <Btn onClick={() => { onComplete(); navigate("/finances"); }}>
+        <Btn onClick={() => { onComplete(); navigate("/finances?record=1"); }}>
           {t("onboardingFlowB.financeGoToFinances")}
         </Btn>
       ) : (
@@ -950,9 +950,12 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
   useEffect(() => {
     if (!user) return;
     (supabase.from("referral_codes") as any).select("code").eq("tutor_id", user.id).limit(1)
-      .then(({ data }: any) => {
-        if (data?.[0]?.code) setLink(`${window.location.origin}/join/${data[0].code}`);
-        else setLink(`${window.location.origin}/join`);
+      .then(async ({ data }: any) => {
+        if (data?.[0]?.code) { setLink(`${window.location.origin}/join/${data[0].code}`); return; }
+        // A4: коду ще нема — генеруємо RPC-ом (як MyReferralsPage), бо голий
+        // /join — неіснуючий маршрут: «Копіювати» роздавав 404-лінк.
+        const { data: newCode } = await supabase.rpc("generate_referral_code", { _tutor_id: user.id });
+        if (newCode) setLink(`${window.location.origin}/join/${newCode}`);
       });
   }, [user?.id]);
 
@@ -970,13 +973,15 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
           style={{ borderColor: T.border, background: "#fbfbfc", color: T.tealD }}>
           {link || "otutorhub.com/join/..."}
         </div>
-        <button onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); }}
+        <button disabled={!link} onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); }}
           className="h-12 px-4 rounded-xl font-bold text-sm text-white flex-shrink-0"
-          style={{ background: copied ? T.success : T.dark, fontFamily: T.display }}>
+          style={{ background: copied ? T.success : T.dark, fontFamily: T.display, opacity: link ? 1 : 0.5, cursor: link ? "pointer" : "default" }}>
           {copied ? t("onboardingFlowB.referralCopied") : t("onboardingFlowB.referralCopy")}
         </button>
       </div>
-      <Btn onClick={onComplete}>{t("onboardingFlowB.referralDone")}</Btn>
+      <div style={{ opacity: link ? 1 : 0.5, pointerEvents: link ? "auto" : "none" }}>
+        <Btn onClick={onComplete}>{t("onboardingFlowB.referralDone")}</Btn>
+      </div>
     </div>
   );
 }

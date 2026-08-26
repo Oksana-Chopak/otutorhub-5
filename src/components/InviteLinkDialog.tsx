@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,7 @@ export function InviteLinkDialog({
   studentId,
   emailSent = false,
 }: Props) {
+  const navigate = useNavigate();
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [resending, setResending] = useState(false);
@@ -210,11 +212,27 @@ export function InviteLinkDialog({
 
         {/* Footer — Done */}
         <div className="shrink-0" style={{ padding: "14px 20px 20px", borderTop: "1px solid #eceef3", background: "#fff" }}>
-          <button onClick={() => onOpenChange(false)}
-            style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
-            <Check className="h-[18px] w-[18px]" strokeWidth={2.4} />
-            {t("inviteLinkExtra.doneBtn")}
-          </button>
+          {role === "student" && studentId ? (
+            <>
+              {/* A13: «Готово»-тупик → місток у ПЕРШИЙ урок з цим учнем (deep-link форми). */}
+              <button onClick={() => { onOpenChange(false); navigate(`/schedule?create=1&student=${studentId}`); }}
+                style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+                {personName
+                  ? t("inviteLinkExtra.scheduleFirstLesson", { name: personName.split(" ")[0] })
+                  : t("inviteLinkExtra.scheduleFirstLessonNoName")}
+              </button>
+              <button onClick={() => onOpenChange(false)}
+                style={{ width: "100%", height: 40, marginTop: 8, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#6b7088)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+                {t("inviteLinkExtra.doneBtn")}
+              </button>
+            </>
+          ) : (
+            <button onClick={() => onOpenChange(false)}
+              style={{ width: "100%", height: 52, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, boxShadow: "0 8px 20px -8px rgba(43,191,170,.6)" }}>
+              <Check className="h-[18px] w-[18px]" strokeWidth={2.4} />
+              {t("inviteLinkExtra.doneBtn")}
+            </button>
+          )}
         </div>
       </DialogContent>
     </Dialog>

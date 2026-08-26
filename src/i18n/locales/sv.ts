@@ -3204,6 +3204,8 @@ export const sv: LocaleTranslations = {
     noPrice: "Inget pris angett",
   },
   inviteLinkExtra: {
+    scheduleFirstLesson: "Boka första lektionen med {{name}} →",
+    scheduleFirstLessonNoName: "Boka första lektionen →",
     contactEmail: "e-postadress",
     contactGeneric: "kontaktuppgift",
     introTutor: "Jag{{who}} bjuder in dig att gå med i oTutorHub som lärare. Skapa ett konto via länken nedan för att se dina elever, schema, betalningar och hålla lektioner. Använd exakt samma {{contact}}, annars kopplas inte profilen.",

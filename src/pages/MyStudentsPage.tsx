@@ -473,7 +473,7 @@ export default function MyStudentsPage() {
         window.setTimeout(() => {
           toast(t("myStudents.firstStepToastTitle"), {
             description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
-            action: { label: t("myStudents.createLessonAction"), onClick: () => navigate("/schedule") },
+            action: { label: t("myStudents.createLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${newId}`) },
           });
         }, 600);
       }
