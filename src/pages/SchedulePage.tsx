@@ -1541,7 +1541,7 @@ export default function SchedulePage() {
                         studentName={studentName}
                         tutorName={tutorName}
                         showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}
-                        meetingUrl={lesson.meeting_url}
+                        meetingUrl={lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? null}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         className={lessonSourceTint(lesson.source)}
                         canEditStatus={canEditStatus}

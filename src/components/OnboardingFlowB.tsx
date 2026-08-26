@@ -1151,7 +1151,11 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   useEffect(() => {
     if (!wsLoading && settings) {
       const s = (settings as any).onboarding_step ?? 0;
-      if (s > 0 && s <= CORE.length) setIdx(s);
+      // A1: у БД default=1, і старий код читав його як «показати індекс 1» —
+      // КОЖЕН новий акаунт пропускав крок «Оберіть предмет» (порожні subjects
+      // каскадом ламали передзаповнення). Семантика тепер «людський крок»:
+      // advance пише idx+2, тут віднімаємо 1; свіжий default=1 → індекс 0.
+      if (s > 1 && s <= CORE.length + 1) setIdx(Math.min(s - 1, CORE.length - 1));
     }
   }, [wsLoading]);
 
@@ -1225,7 +1229,8 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const advance = async () => {
     const next = idx + 1;
     setIdx(next);
-    await updateSettings({ onboarding_step: next } as any);
+    // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1
+    await updateSettings({ onboarding_step: next + 1 } as any);
   };
 
   // ── CSS animations (injected once) ─────────────────────────────────────────
