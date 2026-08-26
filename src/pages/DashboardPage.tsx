@@ -679,7 +679,9 @@ export default function DashboardPage() {
     // OPTIMISTIC + HAPTIC FIRST so the tap is felt and seen INSTANTLY (no dead ~2s wait
     // while the DB round-trips, then a confusing blink). Revert if the write fails.
     const prevLessons = lessons;
+    const prevMoney = moneyLessons; // B7: бабл «Прибуток» живе з цього масиву
     setLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
+    setMoneyLessons((prev) => prev.map((l) => (l.id === lessonId ? { ...l, [field]: value } : l)));
     if (value === "paid") haptic.success();
     else haptic.tap();
     const { error } =
@@ -691,6 +693,7 @@ export default function DashboardPage() {
         : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lessonId, _status: value });
     if (error) {
       setLessons(prevLessons); // revert the optimistic change
+      setMoneyLessons(prevMoney);
       haptic.error();
       toast.error(t("dashboardExtra.paymentFailed"));
       return;
@@ -2001,7 +2004,7 @@ export default function DashboardPage() {
               duplicate marking card. */}
 
           {/* ── MANAGER: Pending payments list ─────────────────────────────── */}
-          {isManager && (
+          {(isManager || isIndependentTutor) && (
             <div className="mt-4">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub, #6b7088)" }}>

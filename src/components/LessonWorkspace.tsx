@@ -132,8 +132,11 @@ export function LessonWorkspace({
   useEffect(() => {
     setPaidLocal(studentPaymentStatus ?? "unpaid");
     setStatusLocal(lessonStatus ?? "scheduled");
-    setJustCompleted(false);
   }, [studentPaymentStatus, lessonStatus, lessonId]);
+  // B6: скидання justCompleted тут гасило блок «Учень оплатив?» за мить —
+  // onUpdated → перезавантаження пропів → цей ефект. Скидаємо ЛИШЕ при зміні
+  // уроку; при позначеній оплаті блок ховає paidLocal-гейт, при закритті — анмаунт.
+  useEffect(() => { setJustCompleted(false); }, [lessonId]);
 
   const togglePayment = async () => {
     setPaymentBusy(true);
