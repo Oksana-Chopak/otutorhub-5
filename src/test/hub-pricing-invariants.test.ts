@@ -158,7 +158,7 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
         const fp = join(dir, f);
         if (statSync(fp).isDirectory()) { walk(fp); continue; }
         if (!/\.(ts|tsx)$/.test(f) || f === "lessonActions.ts" || fp.includes("test")) continue;
-        if (/from\("lessons"\)\.update\(\{ status/.test(readFileSync(fp, "utf8"))) offenders.push(f);
+        if (/from\("lessons"\)[\s\S]{0,60}?\.update\(\{\s*status/.test(readFileSync(fp, "utf8"))) offenders.push(f);
       }
     };
     walk(join(__dirname, "../../src"));

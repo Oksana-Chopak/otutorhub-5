@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -143,35 +144,14 @@ export function LessonWorkspace({
     onUpdated?.();
   };
 
+  const { complete: flowComplete } = useLessonStatus();
   const markCompleted = async () => {
     setCompleteBusy(true);
-    const { error } = await supabase
-      .from("lessons")
-      .update({ status: "completed" })
-      .eq("id", lessonId);
+    const ok = await flowComplete({ id: lessonId, student_id: studentId ?? null, tutor_id: tutorId });
     setCompleteBusy(false);
-    if (error) {
-      toast({ title: t("lessonWorkspace.statusFailed"), description: error.message, variant: "destructive" });
-      return;
-    }
+    if (!ok) return;
     setStatusLocal("completed");
     setJustCompleted(true);
-    toast({ title: t("lessonWorkspace.markedCompleted") });
-
-    // Award emoji reward to student
-    if (studentId) {
-      const theme: RewardTheme = "fruits";
-      const emoji = getRandomEmoji(theme);
-      const rewardsDb = supabase as any;
-      rewardsDb.from("student_rewards").insert({
-        student_id: studentId,
-        lesson_id: lessonId,
-        tutor_id: tutorId,
-        emoji,
-        theme,
-      });
-    }
-
     onUpdated?.();
   };
 

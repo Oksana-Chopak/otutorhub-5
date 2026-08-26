@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { setLessonStatus } from "@/lib/lessonActions";
+import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { getLocale } from "@/lib/locale";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -614,11 +615,31 @@ export default function DashboardPage() {
     setLoading(false);
   };
 
+  const { complete: flowComplete, cancel: flowCancel } = useLessonStatus();
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
-    const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
-    if (error) {
-      toast.error(t("dashboardExtra.statusChangeFailed"));
-      return;
+    const lesson = lessons.find((l) => l.id === lessonId);
+    if (!lesson) return;
+    if (newStatus === "completed") {
+      const completedBefore = lessons.filter((l) => l.status === "completed").length;
+      const firstKey = user ? `first_lesson_done_${user.id}` : "";
+      const isFirstLesson = !!firstKey && completedBefore === 0 && !localStorage.getItem(firstKey);
+      const canMarkPay = lesson.student_payment_status !== "paid" &&
+        (isManager || (lesson.tutor_id === user?.id && lesson.source === "independent"));
+      const ok = await flowComplete(lesson as any, {
+        canMarkPay,
+        onMarkPaid: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus),
+        streakCount: streak?.current_streak ?? null,
+        onXp: () => gamification.refresh(),
+        firstLesson: isFirstLesson,
+      });
+      if (!ok) return;
+      if (isFirstLesson && firstKey) localStorage.setItem(firstKey, "1");
+    } else if (newStatus === "cancelled") {
+      const ok = await flowCancel(lesson as any);
+      if (!ok) return;
+    } else {
+      const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
+      if (error) { toast.error(t("dashboardExtra.statusChangeFailed")); return; }
     }
     const updatedLessons = lessons.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l));
     setLessons(updatedLessons);
@@ -642,73 +663,6 @@ export default function DashboardPage() {
           setShowDayClosed(true);
         }
       }
-    }
-    if (newStatus === "completed") {
-      haptic.success();
-      // First-ever completion gets its own escalated milestone moment (one-time,
-      // gated by localStorage like the day-closed celebration).
-      const completedBefore = lessons.filter((l) => l.status === "completed").length;
-      const firstKey = user ? `first_lesson_done_${user.id}` : "";
-      const isFirstLesson = !!firstKey && completedBefore === 0 && !localStorage.getItem(firstKey);
-      if (isFirstLesson) {
-        localStorage.setItem(firstKey, "1");
-        burstConfetti({ count: 40, originY: 40 });
-      } else {
-        burstConfetti();
-      }
-      const lesson = lessons.find((l) => l.id === lessonId);
-      // Hub tutors must NOT get the «Учень оплатив?» prompt: their masked
-      // student_payment_status is NULL (so it always looked unpaid) and the write
-      // is silently ignored by update_lesson_details_safe — a dead button.
-      const canMarkPay = !!lesson && lesson.student_payment_status !== "paid" &&
-        (isManager || (lesson.tutor_id === user?.id && lesson.source === "independent"));
-      toast.success(
-        isFirstLesson ? t("dashboardExtra.firstLessonToast") : t("dashboardExtra.lessonCompletedToast"),
-        {
-          description: canMarkPay
-            ? t("dashboardExtra.studentPaidQuestion")
-            : streak?.current_streak
-              ? t("dashboardExtra.lessonCompletedStreak", { count: streak.current_streak })
-              : t("dashboardExtra.lessonCompletedGood"),
-          duration: canMarkPay ? 6000 : 4000,
-          action: canMarkPay
-            ? { label: t("dashboardExtra.paidAction"), onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) }
-            : undefined,
-        },
-      );
-      gamification.refresh();
-
-      // Award reward emoji to student
-      if (lesson?.student_id && user) {
-        const theme: RewardTheme = "fruits";
-        const emoji = getRandomEmoji(theme);
-        const rewardsDb = supabase as any;
-        rewardsDb.from("student_rewards").insert({
-          student_id: lesson.student_id,
-          lesson_id: lessonId,
-          tutor_id: user.id,
-          emoji,
-          theme,
-        });
-      }
-    }
-    if (newStatus === "cancelled") {
-      const lesson = lessons.find((l) => l.id === lessonId);
-      if (lesson?.student_id) {
-        insertNotification({
-          userId: lesson.student_id,
-          // per-lesson type: the static "lesson_cancelled" hit the 24h (user,type)
-          // dedup — a second same-day cancellation was silently swallowed.
-          type: `lesson_cancelled_${lessonId}`,
-          title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
-          link: "/student/schedule",
-        });
-      } else if (lesson) {
-        // Group lesson (student_id NULL): fan out to every participant.
-        void notifyGroupLessonCancelled(lessonId, lesson.subject);
-      }
-      // Keep the tutor's Google Calendar in step (Schedule's cancel path already does).
-      void syncLessonToGoogleCalendar(lessonId, "delete");
     }
   };
 

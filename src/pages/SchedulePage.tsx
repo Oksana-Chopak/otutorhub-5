@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { setLessonStatus } from "@/lib/lessonActions";
+import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
@@ -715,42 +716,27 @@ export default function SchedulePage() {
     loadAll();
   };
 
+  const { complete: flowComplete, cancel: flowCancel } = useLessonStatus();
   const updateStatus = async (lessonId: string, newStatus: LessonStatus) => {
     const prev = lessons;
     setLessons((curr) => curr.map((l) => (l.id === lessonId ? { ...l, status: newStatus } : l)));
-    const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
-    if (error) {
-      console.error("Failed to update lesson status", error);
-      toast.error(t('schedule.statusUpdateFailed'));
-      setLessons(prev);
-      return;
-    }
     const lsn = prev.find((l) => l.id === lessonId);
-    // Hub tutors excluded: masked status reads NULL (always "unpaid") and the write
-    // is a server-side no-op — the prompt was a dead button for them.
-    const canMarkPay = newStatus === "completed" && !!lsn && lsn.student_payment_status !== "paid" &&
-      (isManager || (isTutor && lsn.tutor_id === user?.id && lsn.source === "independent"));
-    if (canMarkPay) {
-      toast.success(t('schedule.statusUpdated'), {
-        description: t('schedule.studentPaidQuestion'),
-        action: { label: t('schedule.markPaidAction'), onClick: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus) },
+    let ok = true;
+    if (newStatus === "completed" && lsn) {
+      const canMarkPay = lsn.student_payment_status !== "paid" &&
+        (isManager || (isTutor && lsn.tutor_id === user?.id && lsn.source === "independent"));
+      ok = await flowComplete(lsn as any, {
+        canMarkPay,
+        onMarkPaid: () => updatePayment(lessonId, "student_payment_status", "paid" as PaymentStatus),
       });
+    } else if (newStatus === "cancelled" && lsn) {
+      ok = await flowCancel(lsn as any);
     } else {
-      toast.success(t('schedule.statusUpdated'));
+      const { error } = await setLessonStatus(lessonId, newStatus as import("@/lib/lessonActions").LessonStatus);
+      if (error) { toast.error(t('schedule.statusUpdateFailed')); ok = false; }
+      else toast.success(t('schedule.statusUpdated'));
     }
-    // Cancellation must reach the student: group → every participant, individual →
-    // the student directly (Dashboard's cancel path already does this; Schedule didn't).
-    if (newStatus === "cancelled" && lsn && !lsn.student_id) {
-      void notifyGroupLessonCancelled(lessonId, lsn.subject);
-    } else if (newStatus === "cancelled" && lsn?.student_id) {
-      insertNotification({
-        userId: lsn.student_id,
-        type: `lesson_cancelled_${lessonId}`,
-        title: t("notifications.lessonCancelledTitle", { subject: lsn.subject }),
-        link: "/student/schedule",
-      });
-    }
-    void syncLessonToGoogleCalendar(lessonId, newStatus === "cancelled" ? "delete" : "upsert");
+    if (!ok) { setLessons(prev); return; }
   };
 
   const updatePayment = async (

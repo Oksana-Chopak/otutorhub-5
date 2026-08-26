@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { setLessonStatus } from "@/lib/lessonActions";
 import { DateTimeField } from "@/components/DateTimeField";
 import { insertNotification } from "@/lib/notifications";
 import { getLocale } from "@/lib/locale";
@@ -193,16 +194,14 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       else if (chargeChoice === "partial")
         newPrice = Math.max(0, Number(partialAmount) || 0);
 
-      const { error: lessonErr } = await supabase
-        .from("lessons")
-        .update({ status: "cancelled" })
-        .eq("id", lesson.id);
+      const { error: lessonErr } = await setLessonStatus(lesson.id, "cancelled");
 
       if (lessonErr) {
         setSubmitting(false);
         toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
         return;
       }
+      void syncLessonToGoogleCalendar(lesson.id, "delete");
 
       // Only an INDEPENDENT tutor sets the cancellation charge (they own the price).
       // For a HUB tutor the student→hub price is the manager's number (and is masked to

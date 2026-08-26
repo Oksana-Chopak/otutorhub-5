@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { getLocale } from "@/lib/locale";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -43,42 +44,23 @@ export function NeedsMarkingCard({ lessons, studentNames, onChanged }: Props) {
   }, [lessons, removedIds]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
+  const { complete: flowComplete, cancel: flowCancel } = useLessonStatus();
 
   if (items.length === 0) return null;
 
   const setStatus = async (id: string, status: "completed" | "cancelled") => {
     setBusyId(id);
-    // Instant feedback FIRST: haptic + confetti (completed) + optimistically drop the
-    // card. This is the hub tutor's primary "mark a lesson done" win too, so it gets the
-    // same celebration as the independent/manager LessonCard path.
-    if (status === "completed") { hapticSuccess(); burstConfetti(); }
     setRemovedIds((prev) => new Set(prev).add(id));
-    const { error } = await setLessonStatus(id, status as import("@/lib/lessonActions").LessonStatus);
+    const lesson = lessons.find((l) => l.id === id);
+    const ok = lesson
+      ? status === "completed"
+        ? await flowComplete(lesson as any, { canMarkPay: false })
+        : await flowCancel(lesson as any)
+      : false;
     setBusyId(null);
-    if (error) {
-      // Revert: the lesson reappears so the tutor can retry.
+    if (!ok) {
       setRemovedIds((prev) => { const n = new Set(prev); n.delete(id); return n; });
-      hapticError();
-      toast.error(t("needsMarking.updateFailed"));
       return;
-    }
-    toast.success(status === "completed" ? t("needsMarking.markedCompleted") : t("needsMarking.markedCancelled"));
-    if (status === "cancelled") {
-      // Cancellation must reach the student + calendar, same as the Dashboard/Schedule
-      // cancel paths — this card is the hub tutor's primary marking surface.
-      const lesson = lessons.find((l) => l.id === id);
-      if (lesson?.student_id) {
-        insertNotification({
-          userId: lesson.student_id,
-          // per-lesson type dodges the 24h (user,type) notification dedup
-          type: `lesson_cancelled_${id}`,
-          title: t("notifications.lessonCancelledTitle", { subject: lesson.subject }),
-          link: "/student/schedule",
-        });
-      } else if (lesson) {
-        void notifyGroupLessonCancelled(id, lesson.subject);
-      }
-      void syncLessonToGoogleCalendar(id, "delete");
     }
     onChanged();
   };

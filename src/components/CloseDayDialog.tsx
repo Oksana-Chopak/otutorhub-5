@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { completeLessons } from "@/lib/lessonActions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,13 +78,18 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
 
   const doneCount = useMemo(() => rows.filter((r) => state[r.id]?.done).length, [rows, state]);
 
+  const { completeMany: flowCompleteMany } = useLessonStatus();
   const apply = async () => {
     setBusy(true);
     try {
-      const doneIds = rows.filter((r) => state[r.id]?.done).map((r) => r.id);
+      const doneRows = rows.filter((r) => state[r.id]?.done);
+      const doneIds = doneRows.map((r) => r.id);
       if (doneIds.length) {
-        const { error } = await completeLessons(doneIds);
-        if (error) throw error;
+        const ok = await flowCompleteMany(
+          doneRows.map((r) => ({ id: r.id, student_id: r.student_id ?? null })),
+          { toastText: t("closeDayDialog.dayClosedToast", { count: doneIds.length }) },
+        );
+        if (!ok) throw new Error("close-day-failed");
       }
       const paidRows = rows.filter((r) => r.showPay !== false && state[r.id]?.done && state[r.id]?.paid && !r.paid);
       await Promise.all(
@@ -91,11 +97,6 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
           updateLessonDetailsSafe(r.id, { student_payment_status: "paid" })
         )
       );
-      // Closing the whole day in one tap is a real win — celebrate it like the
-      // per-lesson path does, not with a silent toast.
-      haptic.success();
-      if (doneIds.length) burstConfetti({ count: 24, originY: 40 });
-      toast.success(t("closeDayDialog.dayClosedToast", { count: doneIds.length }));
       onOpenChange(false);
       onDone?.();
     } catch (e: any) {
