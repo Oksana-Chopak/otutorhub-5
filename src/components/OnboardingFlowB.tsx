@@ -1190,15 +1190,20 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
 
     (async () => {
       setProgressLoading(true);
-      const [studRes, lesRes] = await Promise.all([
+      const [studRes, lesRes, paidRes, defRes] = await Promise.all([
         safe(supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
-        safe(supabase.from("lessons").select("id,meeting_url").eq("tutor_id", user.id).eq("source","independent").limit(50), {data:[]} as any),
+        safe(supabase.from("lessons").select("id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
+        // A5: «Перша оплата» нарешті обчислюється, а не вічно false.
+        safe(supabase.from("lessons_visible").select("id").eq("tutor_id", user.id).eq("student_payment_status","paid").limit(1), {data:[]} as any),
+        // A6: Zoom-бонус ПИШЕ в tutor_student_defaults — прогрес читає ЗВІДТИ ж.
+        safe(supabase.from("tutor_student_defaults").select("default_meeting_url").eq("tutor_id", user.id).limit(50), {data:[]} as any),
       ]);
       const les = (lesRes as any).data ?? [];
       patch({
         hasStudent: ((studRes as any).data?.length ?? 0) > 0,
         hasLesson: les.length > 0,
-        hasMeetingUrl: les.some((l:any) => l.meeting_url?.trim()),
+        hasPaidLesson: (((paidRes as any).data?.length ?? 0) > 0),
+        hasMeetingUrl: (((defRes as any).data ?? []) as any[]).some((d:any) => d.default_meeting_url?.trim()),
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
         hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
       });

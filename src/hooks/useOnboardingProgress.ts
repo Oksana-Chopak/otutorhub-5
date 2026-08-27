@@ -46,7 +46,9 @@ export function useOnboardingProgress(): OnboardingProgress {
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(
-        (supabase.from("referral_codes") as any).select("id").eq("tutor_id", user.id).limit(1),
+        // A9: /my-referrals сам створює код при відкритті — предикат по КОДУ закривав
+        // завдання від самого переходу. Рахуємо РЕАЛЬНИХ запрошених.
+        (supabase.from("referrals") as any).select("id").eq("referrer_id", user.id).limit(1),
         { data: [], error: null, count: null, status: 200, statusText: "OK" } as any
       ),
       safe(

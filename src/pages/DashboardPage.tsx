@@ -1126,7 +1126,7 @@ export default function DashboardPage() {
       title: t("dashboardExtra.taskAiTitle"),
       desc:  t("dashboardExtra.taskAiDesc"),
       to:    "/profile#ai",
-      done:  false, // always suggest until skipped
+      done:  Boolean((settings as any)?.ai_notes_auto), // A7: увімкнув авто-конспекти = виконано
     },
   ] as const;
 
