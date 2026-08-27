@@ -4019,6 +4019,7 @@ export const en: LocaleTranslations = {
     release: "Release to refresh",
   },
   onboardingFlowB: {
+    saveFailed: "Couldn't save. Please try again",
     lessonTodayHint: "Today at {{time}}",
     lessonTomorrowHint: "That time has passed today — we'll schedule it for tomorrow at {{time}}",
     lessonInScheduleToast: "Your first lesson is on the schedule 🎉",

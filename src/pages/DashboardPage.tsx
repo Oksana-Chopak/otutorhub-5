@@ -635,6 +635,7 @@ export default function DashboardPage() {
       });
       if (!ok) return;
       if (isFirstLesson && firstKey) localStorage.setItem(firstKey, "1");
+      obProgress.refetch(); // A16
     } else if (newStatus === "cancelled") {
       const ok = await flowCancel(lesson as any);
       if (!ok) return;
@@ -699,6 +700,7 @@ export default function DashboardPage() {
       toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
+    obProgress.refetch(); // A16: оплата впливає на чекліст
     if (value === "paid" && field === "student_payment_status" && lesson) {
       if (lesson.student_price > 0) {
         const firstName = profiles[lesson.student_id]?.split(" ")[0] ?? t("shared.student");
@@ -1125,7 +1127,6 @@ export default function DashboardPage() {
       emoji: "✨",
       title: t("dashboardExtra.taskAiTitle"),
       desc:  t("dashboardExtra.taskAiDesc"),
-      to:    "/profile#ai",
       done:  Boolean((settings as any)?.ai_notes_auto), // A7: увімкнув авто-конспекти = виконано
     },
   ] as const;
@@ -1398,7 +1399,7 @@ export default function DashboardPage() {
         open={quickLessonOpen}
         onOpenChange={setQuickLessonOpen}
         startsAt={quickLessonOpen ? new Date() : null}
-        onCreated={loadData}
+        onCreated={() => { loadData(); obProgress.refetch(); }}
         onWantFullForm={() => { setQuickLessonOpen(false); navigate("/schedule"); }}
         variant={isManager ? "manager" : isHubTutor ? "hub" : "independent"}
       />
@@ -2501,7 +2502,7 @@ export default function DashboardPage() {
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}
-        onCreated={() => loadData()}
+        onCreated={() => { loadData(); obProgress.refetch(); }}
       />
       <LessonDetailsDialog
         lessonId={openLessonId}

@@ -25,9 +25,10 @@ const INITIAL: OnboardingProgress = {
   loading: true,
 };
 
-export function useOnboardingProgress(): OnboardingProgress {
+export function useOnboardingProgress(): OnboardingProgress & { refetch: () => void } {
   const { user } = useAuth();
   const [state, setState] = useState<OnboardingProgress>(INITIAL);
+  const [tick, setTick] = useState(0); // A16: рефетч після дій
 
   const check = useCallback(async () => {
     if (!user) return;
@@ -74,9 +75,10 @@ export function useOnboardingProgress(): OnboardingProgress {
       hasTelegram:       ((tgLink.data as any[])?.length ?? 0) > 0,
       loading: false,
     });
-  }, [user?.id]);
+  }, [user?.id, tick]);
 
   useEffect(() => { check(); }, [check]);
+  const refetch = () => setTick((t) => t + 1); // A16
 
-  return state;
+  return { ...state, refetch };
 }

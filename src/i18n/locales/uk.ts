@@ -4032,6 +4032,7 @@ export const uk = {
     release: "Відпусти, щоб оновити",
   },
   onboardingFlowB: {
+    saveFailed: "Не вдалося зберегти. Спробуй ще раз",
     lessonTodayHint: "Сьогодні о {{time}}",
     lessonTomorrowHint: "Цей час сьогодні вже минув — заплануємо на завтра о {{time}}",
     lessonInScheduleToast: "Перший урок у розкладі 🎉",

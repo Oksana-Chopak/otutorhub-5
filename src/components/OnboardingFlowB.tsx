@@ -557,12 +557,14 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
 
   const save = async () => {
     setSaving(true);
-    await updateSettings({
+    const err = await updateSettings({
       payment_reminder_enabled: reminder, payment_due_mode: mode as any,
       payment_due_days: Number(days), cancel_free_hours: Number(hours),
       cancel_fee_percent: fee, payment_rules_configured: true,
     } as any);
     setSaving(false);
+    // A15: збій RPC = крок НЕ зараховано, жодних конфеті.
+    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
     onComplete();
   };
 
@@ -638,8 +640,9 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
 
   const save = async () => {
     setSaving(true);
-    await updateSettings({ auto_complete_lessons: pick === 0, auto_complete_prompted: true } as any);
+    const err = await updateSettings({ auto_complete_lessons: pick === 0, auto_complete_prompted: true } as any);
     setSaving(false);
+    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
     onComplete();
   };
 
@@ -751,7 +754,8 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
   }, [user?.id]);
 
   const openBot = async () => {
-    await updateSettings({ daily_digest_enabled: daily } as any);
+    const err = await updateSettings({ daily_digest_enabled: daily } as any);
+    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
     // Native: system browser/Telegram app instead of hijacking the WebView (BUG-6)
     void openExternal(botUrl || `https://t.me/oTutorHubBot`);
   };
@@ -1255,9 +1259,11 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
 
   const advance = async () => {
     const next = idx + 1;
+    // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1.
+    // A15: спершу ЗАПИС; збій → тост і лишаємось на місці (прогрес не бреше).
+    const err = await updateSettings({ onboarding_step: next + 1 } as any);
+    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
     setIdx(next);
-    // «людський крок» = індекс+1; зберігаємо крок, ЯКИЙ показати далі → next+1
-    await updateSettings({ onboarding_step: next + 1 } as any);
   };
 
   // ── CSS animations (injected once) ─────────────────────────────────────────
@@ -1333,7 +1339,8 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               <button className="w-full h-[52px] rounded-2xl font-bold text-white text-base transition-transform active:scale-[.97]"
                 style={{ background: `linear-gradient(135deg,${T.dark},#1a1a2e)`, fontFamily: T.display }}
                 onClick={async () => {
-                  await updateSettings({ onboarding_completed: true } as any);
+                  const err = await updateSettings({ onboarding_completed: true } as any);
+                  if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
                   onFinish();
                 }}>
                 {t("onboardingFlowB.goToDashboard")}

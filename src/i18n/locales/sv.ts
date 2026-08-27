@@ -4009,6 +4009,7 @@ export const sv: LocaleTranslations = {
     release: "Släpp för att uppdatera",
   },
   onboardingFlowB: {
+    saveFailed: "Kunde inte spara. Försök igen",
     lessonTodayHint: "Idag kl. {{time}}",
     lessonTomorrowHint: "Tiden har passerat idag — vi bokar imorgon kl. {{time}}",
     lessonInScheduleToast: "Din första lektion finns i schemat 🎉",
