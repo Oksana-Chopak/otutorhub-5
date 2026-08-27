@@ -2065,6 +2065,8 @@ export default function DashboardPage() {
                           showTutor
                           meetingUrl={meetingHref}
                           onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
+                          onWallet={lesson.student_id ? () => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id!, tutor_name: profiles[lesson.tutor_id] ?? "", student_name: profiles[lesson.student_id!] ?? "" }) : undefined}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
@@ -2188,6 +2190,7 @@ export default function DashboardPage() {
                           showTutor
                           meetingUrl={meetingHref}
                           onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}

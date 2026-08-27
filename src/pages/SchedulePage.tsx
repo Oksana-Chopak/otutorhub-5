@@ -1,11 +1,12 @@
 import { AppLayout } from "@/components/AppLayout";
+import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { DateTimeField } from "@/components/DateTimeField";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
@@ -197,6 +198,8 @@ export default function SchedulePage() {
     student_payment_status: "unpaid" as PaymentStatus,
     tutor_payout_status: "unpaid" as PaymentStatus,
   });
+  const formTimeTouchedRef = useRef(false); // B18
+  useEffect(() => { if (!createOpen) formTimeTouchedRef.current = false; }, [createOpen]);
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState<{
     tutor_id?: boolean;
@@ -230,6 +233,8 @@ export default function SchedulePage() {
       student_id: lesson.student_id,
       subject: lesson.subject,
       starts_at: toLocalInputValue(next.toISOString()),
+      // «Копіювати» ставить час свідомо — не перебивати розумним дефолтом.
+
       duration_minutes: String(lesson.duration_minutes),
       notes: lesson.notes ?? "",
       meeting_url: lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? "",
@@ -239,6 +244,7 @@ export default function SchedulePage() {
       student_payment_status: "unpaid",
       tutor_payout_status: "unpaid",
     });
+    formTimeTouchedRef.current = true;
     setNotesOpen(Boolean(lesson.notes));
     setCreateOpen(true);
   };
@@ -1035,6 +1041,15 @@ export default function SchedulePage() {
                     value={form.student_id}
                     onValueChange={(v) => {
                       setForm((f) => ({ ...f, student_id: v }));
+                      // B18: та сама пара +7 днів, якщо час іще не чіпали.
+                      void (async () => {
+                        const tid = form.tutor_id || user?.id || "";
+                        if (!tid || !v || formTimeTouchedRef.current) return;
+                        const d = await pairNextDefault(tid, v);
+                        if (d && !formTimeTouchedRef.current) {
+                          setForm((f) => ({ ...f, starts_at: toLocalInputValue(d.toISOString()) }));
+                        }
+                      })();
                       if (formErrors.student_id) setFormErrors((e) => ({ ...e, student_id: false }));
                     }}
                     disabled={isStudent && !isManager && !isTutor}
@@ -1112,6 +1127,7 @@ export default function SchedulePage() {
                     value={form.starts_at}
                     invalid={!!formErrors.starts_at}
                     onChange={(v) => {
+                      formTimeTouchedRef.current = true; // B18: користувач сам обрав час
                       setForm((f) => ({ ...f, starts_at: v }));
                       if (formErrors.starts_at && v) {
                         setFormErrors((er) => ({ ...er, starts_at: false }));

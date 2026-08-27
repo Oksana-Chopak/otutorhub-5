@@ -168,6 +168,7 @@ export default function FinancesPage() {
   const isHubTutor = isTutor && !isManager && !isIndependent;
   const canManagePrepay = isManager || isIndependentTutor;
   const [studentFilter, setStudentFilter] = useState("all");
+  const [reloadKey, setReloadKey] = useState(0); // B22: рефетч після позначення оплат
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -470,7 +471,7 @@ export default function FinancesPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [reloadKey]);
 
   const nameOf = (id: string) => {
     const p = profiles[id];
@@ -889,6 +890,7 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
         : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
+    if (!error) setReloadKey((k) => k + 1); // B22: звести всі агрегати сторінки
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>

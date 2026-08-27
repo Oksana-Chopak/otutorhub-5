@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
@@ -107,6 +108,17 @@ export function QuickLessonDialog({
     })();
   }, [open, isManager]);
   const [studentId, setStudentId] = useState<string>("");
+  // B18: якщо користувач ще не чіпав час — підставляємо «та сама пара +7 днів».
+  const [timeTouched, setTimeTouched] = useState(false);
+  useEffect(() => { if (!open) setTimeTouched(false); }, [open]);
+  useEffect(() => {
+    if (!open || !studentId || !effTutorId || timeTouched) return;
+    let off = false;
+    void pairNextDefault(effTutorId, studentId).then((d) => {
+      if (!off && d && !timeTouched) setWhenLocal(d);
+    });
+    return () => { off = true; };
+  }, [open, studentId, effTutorId, timeTouched]);
   const [duration, setDuration] = useState<string>("60");
   const [mode, setMode] = useState<Mode>(
     (localStorage.getItem(LAST_MODE_KEY) as Mode) || "individual"
@@ -416,6 +428,7 @@ export function QuickLessonDialog({
   // губилась (урок падав на «сьогодні»). Функціональні апдейтери від prev.
   const setDatePart = (v: string) => {
     if (!v) return;
+    setTimeTouched(true);
     setWhenLocal((prev) => {
       const base = prev ?? startsAt; if (!base) return prev;
       const [y, m, d] = v.split("-").map(Number);
@@ -424,6 +437,7 @@ export function QuickLessonDialog({
   };
   const setTimePart = (v: string) => {
     if (!v) return;
+    setTimeTouched(true);
     setWhenLocal((prev) => {
       const base = prev ?? startsAt; if (!base) return prev;
       const [h, mi] = v.split(":").map(Number);
