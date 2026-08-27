@@ -22,7 +22,8 @@ export function useNativeExternalLinks() {
       const href = anchor.href;
       if (!href || !/^https?:/i.test(href)) return;
       e.preventDefault();
-      e.stopPropagation();
+      // B11: НЕ stopPropagation — React слухає на #root нижче в capture-ланцюжку,
+      // і onJoin/onClick (авто-Fireflies) мусять спрацювати й у нативі.
       void Browser.open({ url: href });
     };
 
