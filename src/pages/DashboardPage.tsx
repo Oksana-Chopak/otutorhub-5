@@ -1339,6 +1339,12 @@ export default function DashboardPage() {
                   <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
                   {t("dashboardExtra.lessonsToday", { count: upcomingLessons.length })}
                 </Link>
+                {!showAllUpcoming && upcomingAll.length > upcomingLessons.length && (
+                  <button onClick={() => setShowAllUpcoming(true)}
+                    style={{ border: "none", background: "transparent", padding: 0, color: "var(--teal,#2BBFAA)", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+                    {t("dashboardExtra.showAll", { count: upcomingAll.length })}
+                  </button>
+                )}
                 {pendingPayments.length > 0 && (
                   <span className="inline-flex items-center gap-1 font-medium text-amber-400">
                     <Clock className="h-3.5 w-3.5" />

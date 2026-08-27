@@ -1276,6 +1276,7 @@ export const uk = {
     failed: "Не вдалося видалити акаунт",
   },
   myStudents: {
+    scheduleLesson: "📅 Запланувати урок",
     firstStepToastTitle: "🎯 Перший крок зроблено!",
     firstStepToastDescNamed: "Створи перший урок з {{name}}",
     firstStepToastDesc: "Створи перший урок у розкладі",
@@ -1881,6 +1882,7 @@ export const uk = {
 
   // Dashboard hardcoded strings
   dashboardExtra: {
+    showAll: "Показати всі ({{count}})",
     noName: "Без імені",
     greetingMorning: "Доброго ранку",
     greetingDay: "Доброго дня",

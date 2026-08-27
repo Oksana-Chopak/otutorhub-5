@@ -1265,6 +1265,7 @@ export const en: LocaleTranslations = {
     failed: "Couldn't delete the account",
   },
   myStudents: {
+    scheduleLesson: "📅 Schedule a lesson",
     firstStepToastTitle: "🎯 First step done!",
     firstStepToastDescNamed: "Create your first lesson with {{name}}",
     firstStepToastDesc: "Create your first lesson in the schedule",
@@ -1868,6 +1869,8 @@ export const en: LocaleTranslations = {
   },
 
   dashboardExtra: {
+
+    showAll: "Show all ({{count}})",
     noName: "Unknown",
     greetingMorning: "Good morning",
     greetingDay: "Good afternoon",

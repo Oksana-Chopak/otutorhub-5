@@ -364,7 +364,8 @@ export function LessonWorkspace({
         body: isHomework
           ? t("lessonWorkspaceExtra.notifHomeworkBody")
           : t("lessonWorkspaceExtra.notifSummaryBody"),
-        link: `/schedule`,
+        // B17: учень живе у своїх маршрутах — домашка в /student/homework.
+        link: isHomework ? "/student/homework" : "/student/schedule",
       });
     }
   };

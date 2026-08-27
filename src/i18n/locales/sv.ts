@@ -1255,6 +1255,7 @@ export const sv: LocaleTranslations = {
     failed: "Kunde inte radera kontot",
   },
   myStudents: {
+    scheduleLesson: "📅 Boka lektion",
     firstStepToastTitle: "🎯 Första steget klart!",
     firstStepToastDescNamed: "Skapa din första lektion med {{name}}",
     firstStepToastDesc: "Skapa din första lektion i schemat",
@@ -1858,6 +1859,8 @@ export const sv: LocaleTranslations = {
   },
 
   dashboardExtra: {
+
+    showAll: "Visa alla ({{count}})",
     noName: "Okänt",
     greetingMorning: "God morgon",
     greetingDay: "God dag",

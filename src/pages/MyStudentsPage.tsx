@@ -824,6 +824,12 @@ export default function MyStudentsPage() {
                     </div>
                   </div>
 
+                  {/* B14: найчастіша дія — першою на картці */}
+                  <button onClick={() => setLessonDialog({ open: true, studentId: s.id })}
+                    style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: T.display, fontWeight: 800, fontSize: 16, cursor: "pointer", boxShadow: "0 8px 18px -8px rgba(43,191,170,.65)" }}>
+                    {t("myStudents.scheduleLesson")}
+                  </button>
+
                   {/* Debt alert */}
                   {s.unpaid_total > 0 && (
                     <div style={{ borderRadius: 16, padding: 14, background: "rgba(245,158,11,.1)", border: "1px solid rgba(245,158,11,.32)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
