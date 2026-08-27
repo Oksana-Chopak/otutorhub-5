@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { DayBlock } from "@/components/DayBlock";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
@@ -1437,7 +1438,7 @@ export default function DashboardPage() {
                 }))}
               tomorrow={dayBlockTomorrow}
               pendingCount={closeDayRows.length}
-              onJoin={(href) => window.open(href, "_blank", "noopener")}
+              onJoin={(href, id) => { void maybeAutoStartFireflies(id, href); window.open(href, "_blank", "noopener"); }}
               onComplete={async (id, alsoPaid) => {
                 await updateStatus(id, "completed");
                 if (alsoPaid) updatePayment(id, "student_payment_status", "paid" as PaymentStatus);
@@ -2057,6 +2058,7 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
+                          onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}
@@ -2179,6 +2181,7 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
+                          onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}

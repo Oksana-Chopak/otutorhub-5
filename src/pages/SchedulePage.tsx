@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { DateTimeField } from "@/components/DateTimeField";
@@ -189,6 +190,7 @@ export default function SchedulePage() {
     starts_at: toLocalInputValue(new Date(Date.now() + 60 * 60 * 1000).toISOString()),
     duration_minutes: "60",
     notes: "",
+    meeting_url: "",
     status: "scheduled" as LessonStatus,
     student_price: "",
     tutor_payout: "0",
@@ -230,6 +232,7 @@ export default function SchedulePage() {
       starts_at: toLocalInputValue(next.toISOString()),
       duration_minutes: String(lesson.duration_minutes),
       notes: lesson.notes ?? "",
+      meeting_url: lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? "",
       status: "scheduled",
       student_price: String(lesson.student_price ?? 0),
       tutor_payout: String(lesson.tutor_payout ?? 0),
@@ -623,6 +626,9 @@ export default function SchedulePage() {
         starts_at: dt.toISOString(),
         duration_minutes: parseInt(form.duration_minutes) || 60,
         notes: form.notes || null,
+        meeting_url: form.meeting_url.trim()
+          ? form.meeting_url.trim()
+          : (defaultMeetingUrls[`${form.tutor_id}:${form.student_id}`] ?? null),
         status: isManager ? form.status : status,
         created_by: user.id,
         source: isIndependentTutor ? "independent" : "hub",
@@ -1271,6 +1277,10 @@ export default function SchedulePage() {
                   </div>
                 )}
                 <div className="pt-1">
+                  <div className="space-y-1.5">
+                    <Label>{t('schedule.meetingUrl')}</Label>
+                    <Input value={form.meeting_url} onChange={(e) => setForm({ ...form, meeting_url: e.target.value })} placeholder="https://meet.google.com/…" />
+                  </div>
                   <button
                     type="button"
                     onClick={() => setNotesOpen((v) => !v)}
@@ -1528,6 +1538,7 @@ export default function SchedulePage() {
                         tutorName={tutorName}
                         showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}
                         meetingUrl={lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? null}
+                        onJoin={() => { void maybeAutoStartFireflies(lesson.id, lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? ""); }}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         className={lessonSourceTint(lesson.source)}
                         canEditStatus={canEditStatus}

@@ -16,7 +16,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   lessons: DayLesson[];
   tomorrow: { count: number; firstTime: string | null };
   pendingCount: number;
-  onJoin: (href: string) => void;
+  onJoin: (href: string, lessonId: string) => void;
   onComplete: (id: string, alsoPaid: boolean) => void | Promise<void>;
   onWriteSummary: (lessonId: string) => void;
   onCloseDay: () => void;
@@ -71,11 +71,11 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
 
   if (current)
     return <Card emoji="🎓" title={t("dayBlock.nowTitle", { name: current.studentName })} sub={current.subject}
-      action={t("dayBlock.join")} onAction={() => current.meetingHref && onJoin(current.meetingHref)} />;
+      action={t("dayBlock.join")} onAction={() => current.meetingHref && onJoin(current.meetingHref, current.id)} />;
   if (soon) {
     const min = Math.max(1, Math.round((new Date(soon.starts_at).getTime() - nowMs) / 60000));
     return <Card emoji="⏳" title={t("dayBlock.soonTitle", { min, name: soon.studentName })} sub={soon.subject}
-      action={t("dayBlock.join")} onAction={() => soon.meetingHref && onJoin(soon.meetingHref)} />;
+      action={t("dayBlock.join")} onAction={() => soon.meetingHref && onJoin(soon.meetingHref, soon.id)} />;
   }
   if (justPast)
     return (
