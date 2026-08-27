@@ -46,6 +46,7 @@ export interface StepProgress {
   hasPaymentRules: boolean;
   hasAutoCompleteChoice: boolean;
   hasGoogleCalendar: boolean;
+  hasTelegram: boolean;
 }
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
@@ -76,7 +77,7 @@ const ALL_STEPS: StepDef[] = [
   { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"step.proRules.title",     desc:"step.proRules.desc",     cta:"step.proRules.cta",   hint:"step.proRules.hint",     autoKey:"hasPaymentRules" },
   { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"step.autoMark.title",     desc:"step.autoMark.desc",     cta:"step.autoMark.cta",   hint:"step.autoMark.hint",     autoKey:"hasAutoCompleteChoice" },
   { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"step.availability.title", desc:"step.availability.desc", cta:"step.availability.cta", hint:"step.availability.hint", autoKey:"hasAvailability" },
-  { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"step.telegram.title",     desc:"step.telegram.desc",     cta:"step.telegram.cta",   hint:"step.telegram.hint" },
+  { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"step.telegram.title",     desc:"step.telegram.desc",     cta:"step.telegram.cta",   hint:"step.telegram.hint",     autoKey:"hasTelegram" },
   { id:7, emoji:"🎁", group:"bonus",     action:"referral",     xp:100, title:"step.referral.title",     desc:"step.referral.desc",     cta:"step.referral.cta",  hint:"step.referral.hint",     autoKey:"hasReferral" },
   { id:8, emoji:"🎥", group:"bonus",     action:"zoom",         xp:50,  title:"step.zoom.title",         desc:"step.zoom.desc",         cta:"step.zoom.cta",      hint:"step.zoom.hint",         autoKey:"hasMeetingUrl" },
   { id:9, emoji:"💬", group:"bonus",     action:"chat",         xp:50,  title:"step.chat.title",         desc:"step.chat.desc",         cta:"step.chat.cta",      hint:"step.chat.hint",         autoKey:"hasChat" },
@@ -753,11 +754,26 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
     });
   }, [user?.id]);
 
+  // A2: щойно бот записав chat_id — крок підтверджено навіть без повернення в апку.
+  useEffect(() => {
+    if (!user) return;
+    const ch = supabase
+      .channel(`tg-link-${user.id}`)
+      .on("postgres_changes",
+        { event: "INSERT", schema: "public", table: "user_telegram_links", filter: `user_id=eq.${user.id}` },
+        () => onComplete())
+      .subscribe();
+    return () => { void supabase.removeChannel(ch); };
+  }, [user?.id]);
+
   const openBot = async () => {
     const err = await updateSettings({ daily_digest_enabled: daily } as any);
     if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
     // Native: system browser/Telegram app instead of hijacking the WebView (BUG-6)
     void openExternal(botUrl || `https://t.me/oTutorHubBot`);
+    // A2: хто реально пішов підключати бота — крок зараховуємо оптимістично;
+    // realtime-підписка нижче і autoKey-проба тримають правду при поверненні.
+    onComplete();
   };
 
   const DigestRow = ({ on, setOn, emoji, title, desc }: any) => (
@@ -1158,7 +1174,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [progress, setProgress]   = useState<StepProgress>({
     hasSubject:false, hasStudent:false, hasLesson:false, hasAvailability:false,
-    hasReferral:false, hasMeetingUrl:false, hasChat:false, hasPaidLesson:false,
+    hasReferral:false, hasMeetingUrl:false, hasChat:false, hasPaidLesson:false, hasTelegram:false,
     hasPaymentRules:false, hasAutoCompleteChoice:false, hasGoogleCalendar:false,
   });
   const [progressLoading, setProgressLoading] = useState(true);
@@ -1194,19 +1210,22 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
 
     (async () => {
       setProgressLoading(true);
-      const [studRes, lesRes, paidRes, defRes] = await Promise.all([
+      const [studRes, lesRes, paidRes, defRes, tgRes] = await Promise.all([
         safe(supabase.from("student_rates").select("student_id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
         safe(supabase.from("lessons").select("id").eq("tutor_id", user.id).eq("source","independent").limit(1), {data:[]} as any),
         // A5: «Перша оплата» нарешті обчислюється, а не вічно false.
         safe(supabase.from("lessons_visible").select("id").eq("tutor_id", user.id).eq("student_payment_status","paid").limit(1), {data:[]} as any),
         // A6: Zoom-бонус ПИШЕ в tutor_student_defaults — прогрес читає ЗВІДТИ ж.
         safe(supabase.from("tutor_student_defaults").select("default_meeting_url").eq("tutor_id", user.id).limit(50), {data:[]} as any),
+        // A2: підключення бота — те саме джерело, що читає дайджест.
+        safe((supabase.from("user_telegram_links") as any).select("user_id").eq("user_id", user.id).not("chat_id","is",null).limit(1), {data:[]} as any),
       ]);
       const les = (lesRes as any).data ?? [];
       patch({
         hasStudent: ((studRes as any).data?.length ?? 0) > 0,
         hasLesson: les.length > 0,
         hasPaidLesson: (((paidRes as any).data?.length ?? 0) > 0),
+        hasTelegram: (((tgRes as any).data?.length ?? 0) > 0),
         hasMeetingUrl: (((defRes as any).data ?? []) as any[]).some((d:any) => d.default_meeting_url?.trim()),
         hasPaymentRules: Boolean((settings as any)?.payment_rules_configured),
         hasAutoCompleteChoice: Boolean((settings as any)?.auto_complete_prompted),
@@ -1368,6 +1387,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 </div>
                 <div className="px-5 py-4">
                   {activeBonus.action === "referral"  && <ReferralBonus user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
+                  {activeBonus.action === "availability" && <AvailabilityAction user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "zoom"      && <ZoomBonus    user={user} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
                   {activeBonus.action === "chat"      && <ChatBonus studentId={addedStudentId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); }} />}
                   {activeBonus.action === "finance"   && <FinanceBonus lessonId={createdLessonId} studentName={addedStudentName} subject={addedSubject} navigate={navigate} onComplete={() => { markDone(activeBonus.id); setActiveBonus(null); reload(); }} />}
