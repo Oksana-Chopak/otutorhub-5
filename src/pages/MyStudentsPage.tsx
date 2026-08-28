@@ -132,6 +132,34 @@ const emptyForm: FormData = {
 
 export default function MyStudentsPage() {
   const { t } = useTranslation();
+  // Історія уроків на картці: лінива, кешована по учню.
+  const [historyFor, setHistoryFor] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState<string | null>(null);
+  const [historyData, setHistoryData] = useState<Record<string, { id: string; starts_at: string; status: string; summary: string | null }[]>>({});
+  const loadHistory = async (sid: string) => {
+    if (historyFor === sid) { setHistoryFor(null); return; }
+    setHistoryFor(sid);
+    if (historyData[sid]) return;
+    setHistoryLoading(sid);
+    const { data: les } = await supabase
+      .from("lessons_visible")
+      .select("id, starts_at, status")
+      .eq("tutor_id", user!.id)
+      .eq("student_id", sid)
+      .order("starts_at", { ascending: false })
+      .limit(10);
+    const ids = (les ?? []).map((l: any) => l.id);
+    const firstLine: Record<string, string> = {};
+    if (ids.length) {
+      const { data: det } = await supabase.from("lesson_details").select("lesson_id, summary").in("lesson_id", ids);
+      (det ?? []).forEach((d: any) => {
+        const sm = (d.summary ?? "").trim();
+        if (sm) firstLine[d.lesson_id] = sm.split("\n")[0];
+      });
+    }
+    setHistoryData((p) => ({ ...p, [sid]: (les ?? []).map((l: any) => ({ ...l, summary: firstLine[l.id] ?? null })) }));
+    setHistoryLoading(null);
+  };
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
@@ -844,6 +872,33 @@ export default function MyStudentsPage() {
                         style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "1px solid rgba(245,158,11,.4)", background: "rgba(245,158,11,.2)", color: "#B4740B", fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                         {t("myStudents.recordPaymentBtn")}
                       </button>
+                    </div>
+                  )}
+
+                  {/* Історія уроків: конспекти нарешті видно прямо з картки. */}
+                  <button onClick={() => void loadHistory(s.id)}
+                    style={{ width: "100%", height: 44, borderRadius: 14, border: `1px solid ${T.border}`, background: "transparent", color: T.sub, fontFamily: T.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                    🕐 {t("myStudents.history")} {historyFor === s.id ? "▴" : "▾"}
+                  </button>
+                  {historyFor === s.id && (
+                    <div style={{ borderRadius: 16, border: `1px solid ${T.border}`, overflow: "hidden" }}>
+                      {historyLoading === s.id ? (
+                        <div style={{ padding: 14, fontFamily: T.body, fontSize: 14, color: T.sub }}>…</div>
+                      ) : !(historyData[s.id]?.length) ? (
+                        <div style={{ padding: 14, fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.historyEmpty")}</div>
+                      ) : (
+                        historyData[s.id].map((h) => (
+                          <div key={h.id} style={{ padding: "10px 14px", borderBottom: `1px solid ${T.border}`, display: "flex", gap: 10, alignItems: "baseline" }}>
+                            <span style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, color: T.txt, flexShrink: 0 }}>
+                              {new Date(h.starts_at).toLocaleDateString(undefined, { day: "2-digit", month: "2-digit" })}
+                            </span>
+                            <span style={{ fontSize: 13, flexShrink: 0 }}>{h.status === "completed" ? "✅" : h.status === "cancelled" ? "✖️" : "🕓"}</span>
+                            <span style={{ fontFamily: T.body, fontSize: 14, color: h.summary ? T.txt : T.sub, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {h.summary ?? t("myStudents.noSummary")}
+                            </span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   )}
 
