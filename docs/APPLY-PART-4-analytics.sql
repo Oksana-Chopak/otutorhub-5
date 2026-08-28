@@ -22,5 +22,5 @@ end $$;
 create index if not exists app_events_name_created_idx on public.app_events (name, created_at desc);
 
 -- A10/C4: dismissed-плитки чекліста переїдуть із localStorage у профіль.
-alter table public.workspace_settings
+alter table public.tutor_workspace_settings
   add column if not exists dismissed_tasks jsonb not null default '[]'::jsonb;
