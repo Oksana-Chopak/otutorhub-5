@@ -1372,9 +1372,6 @@ export default function DashboardPage() {
                   </span>
                 )}
               </p>
-              <p className="mt-1.5 line-clamp-2 text-[15px] italic text-muted-foreground lg:mt-3 lg:text-[16px]">
-                ✨ {phraseOfDay}
-              </p>
               {/* Trial countdown — між афірмацією і кнопками, читабельно */}
               {isIndependentTutor && isTrial && trialUntil && trialUntil.getTime() > Date.now() && (
                 <Link
@@ -2453,6 +2450,12 @@ export default function DashboardPage() {
             <>
               {/* Місячний підсумок — ціль тоста «Подивитись» (раніше якір не існував → клік нічого не робив) */}
               <div id="monthly-summary-anchor">
+                {/* B-D4: афірмація переїхала з hero під сітку — верх лишається робочим. */}
+                {phraseOfDay && (
+                  <div className="rounded-[18px] border px-4 py-3 text-[15px] italic text-muted-foreground" style={{ borderColor: "var(--border,#eceef3)", background: "#fff" }}>
+                    ✨ {phraseOfDay}
+                  </div>
+                )}
                 <MonthlySummaryCard />
               </div>
               {/* Streak — after lessons+tasks on mobile, hidden on desktop (shows in right col) */}
