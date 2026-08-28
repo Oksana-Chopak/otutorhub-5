@@ -10,10 +10,34 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
+      app_events: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          props: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          props?: Json
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          props?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       availability_requests: {
         Row: {
           acknowledged_at: string | null
@@ -2179,6 +2203,7 @@ export type Database = {
           current_plan: string | null
           custom_currencies: string[]
           daily_digest_enabled: boolean
+          dismissed_tasks: Json
           free_reschedules_per_month: number
           independent_workspace: boolean
           liqpay_card_token: string | null
@@ -2211,6 +2236,7 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          dismissed_tasks?: Json
           free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
@@ -2243,6 +2269,7 @@ export type Database = {
           current_plan?: string | null
           custom_currencies?: string[]
           daily_digest_enabled?: boolean
+          dismissed_tasks?: Json
           free_reschedules_per_month?: number
           independent_workspace?: boolean
           liqpay_card_token?: string | null
