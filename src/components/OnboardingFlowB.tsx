@@ -34,21 +34,7 @@ import i18nInstance from "@/i18n";
 
 // StepProgress lived in the now-removed dead OnboardingContent.tsx (this was its only
 // consumer). Tracks which setup steps the tutor has completed.
-export interface StepProgress {
-  hasSubject: boolean;
-  hasStudent: boolean;
-  hasLesson: boolean;
-  hasAvailability: boolean;
-  hasReferral: boolean;
-  hasMeetingUrl: boolean;
-  hasChat: boolean;
-  hasPaidLesson: boolean;
-  hasPaymentRules: boolean;
-  hasAutoCompleteChoice: boolean;
-  hasGoogleCalendar: boolean;
-  hasTelegram: boolean;
-}
-
+export 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
@@ -62,31 +48,8 @@ const T = {
 const TOTAL_XP = 950;
 
 // ── Step definitions ──────────────────────────────────────────────────────────
-interface StepDef {
-  id: number; emoji: string;
-  group: "essential" | "setup" | "bonus";
-  action: string; xp: number;
-  title: string; desc: string; cta: string; hint: string;
-  autoKey?: keyof StepProgress;
-}
 
-const ALL_STEPS: StepDef[] = [
-  { id:0, emoji:"📚", group:"essential", action:"subject",      xp:25,  title:"step.subject.title",      desc:"step.subject.desc",      cta:"step.subject.cta",    hint:"step.subject.hint",      autoKey:"hasSubject" },
-  { id:1, emoji:"👋", group:"essential", action:"student",      xp:50,  title:"step.student.title",      desc:"step.student.desc",      cta:"step.student.cta",    hint:"step.student.hint",      autoKey:"hasStudent" },
-  { id:2, emoji:"📅", group:"essential", action:"lesson",       xp:75,  title:"step.lesson.title",       desc:"step.lesson.desc",       cta:"step.lesson.cta",     hint:"step.lesson.hint",       autoKey:"hasLesson" },
-  { id:3, emoji:"🔔", group:"setup",     action:"proRules",     xp:75,  title:"step.proRules.title",     desc:"step.proRules.desc",     cta:"step.proRules.cta",   hint:"step.proRules.hint",     autoKey:"hasPaymentRules" },
-  { id:4, emoji:"✅", group:"setup",     action:"autoMark",     xp:50,  title:"step.autoMark.title",     desc:"step.autoMark.desc",     cta:"step.autoMark.cta",   hint:"step.autoMark.hint",     autoKey:"hasAutoCompleteChoice" },
-  { id:5, emoji:"🕐", group:"bonus",     action:"availability", xp:75,  title:"step.availability.title", desc:"step.availability.desc", cta:"step.availability.cta", hint:"step.availability.hint", autoKey:"hasAvailability" },
-  { id:6, emoji:"📲", group:"setup",     action:"telegram",     xp:75,  title:"step.telegram.title",     desc:"step.telegram.desc",     cta:"step.telegram.cta",   hint:"step.telegram.hint",     autoKey:"hasTelegram" },
-  { id:7, emoji:"🎁", group:"bonus",     action:"referral",     xp:100, title:"step.referral.title",     desc:"step.referral.desc",     cta:"step.referral.cta",  hint:"step.referral.hint",     autoKey:"hasReferral" },
-  { id:8, emoji:"🎥", group:"bonus",     action:"zoom",         xp:50,  title:"step.zoom.title",         desc:"step.zoom.desc",         cta:"step.zoom.cta",      hint:"step.zoom.hint",         autoKey:"hasMeetingUrl" },
-  { id:9, emoji:"💬", group:"bonus",     action:"chat",         xp:50,  title:"step.chat.title",         desc:"step.chat.desc",         cta:"step.chat.cta",      hint:"step.chat.hint",         autoKey:"hasChat" },
-  { id:10,emoji:"💰", group:"bonus",     action:"finance",      xp:100, title:"step.finance.title",      desc:"step.finance.desc",      cta:"step.finance.cta",   hint:"step.finance.hint",      autoKey:"hasPaidLesson" },
-  { id:11,emoji:"📆", group:"bonus",     action:"calendar",     xp:75,  title:"step.calendar.title",     desc:"step.calendar.desc",     cta:"step.calendar.cta",  hint:"step.calendar.hint",     autoKey:"hasGoogleCalendar" },
-  { id:12,emoji:"✨", group:"bonus",     action:"ai",           xp:150, title:"step.ai.title",           desc:"step.ai.desc",           cta:"step.ai.cta",     hint:"step.ai.hint" },
-];
-
-const CORE  = ALL_STEPS.filter(s => s.group !== "bonus");
+import { ALL_STEPS, CORE, type StepDef, type StepProgress } from "@/lib/onboardingSteps";
 const BONUS = ALL_STEPS.filter(s => s.group === "bonus");
 
 // ── Confetti ──────────────────────────────────────────────────────────────────
@@ -1167,6 +1130,11 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const HUB_SKIP = new Set(["student", "lesson", "proRules", "autoMark", "referral", "finance"]);
   const visibleSteps = isIndependent ? ALL_STEPS : ALL_STEPS.filter((s) => !HUB_SKIP.has(s.action));
   const CORE  = visibleSteps.filter((s) => s.group !== "bonus");
+  // A12: ключ «вже редіректили» ставиться ТУТ (прибуття = успішна навігація),
+  // а не в Dashboard ДО navigate — інакше збій навігації спалював спробу.
+  useEffect(() => {
+    if (user) sessionStorage.setItem(`onboarding_redirected_${user.id}`, "1");
+  }, [user?.id]);
   const BONUS = visibleSteps.filter((s) => s.group === "bonus");
   const TOTAL_XP = visibleSteps.reduce((sum, s) => sum + s.xp, 0);
 
@@ -1473,7 +1441,13 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
           </div>
           {/* Always-available escape — onboarding must NEVER hard-block the tutor,
               even if an essential step errors (binding ТЗ: «не можу рухатися далі»). */}
-          <button type="button" onClick={() => navigate("/")}
+          <button type="button" onClick={async () => {
+              // A12: вихід фіксує МІСЦЕ — повернення продовжить з цього кроку,
+              // а бейдж «Новий!» гасне чесно за onboarding_step.
+              const err = await updateSettings({ onboarding_step: idx + 1 } as any);
+              if (err) toast.error(t("onboardingFlowB.saveFailed"));
+              navigate("/");
+            }}
             className="mx-auto mt-1 text-[14px] font-medium py-1.5"
             style={{ background: "transparent", border: "none", cursor: "pointer", color: T.muted, fontFamily: T.body }}>
             {t("onboardingFlowB.exitToApp")}

@@ -188,6 +188,8 @@ export function LessonWorkspace({
       const generated = (data as any)?.summary;
       if (!generated) throw new Error(t("lessonWorkspace.aiEmpty"));
       setSummaryDraft(generated);
+      // B19: одразу чернетка в БД — закритий діалог не з'їдає згенероване.
+      void updateLessonField("summary", generated);
       toast({ title: t("lessonWorkspace.aiReady"), description: t("lessonWorkspaceExtra.aiReadyDesc") });
     } catch (e: any) {
       toast({

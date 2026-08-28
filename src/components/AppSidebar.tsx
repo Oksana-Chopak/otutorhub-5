@@ -1,4 +1,5 @@
 import { Link, NavLink as RouterNavLink, useNavigate } from "react-router-dom";
+import { CORE_TOTAL } from "@/lib/onboardingSteps";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -296,7 +297,8 @@ export function AppSidebar() {
             >
               <Sparkles className="h-4 w-4" />
               <span className="flex-1 text-left">{t("nav.setupGuide")}</span>
-              {!settings?.onboarding_completed && (
+              {!settings?.onboarding_completed &&
+                ((settings?.onboarding_step ?? 1) <= CORE_TOTAL) && (
                 <span className="ml-auto inline-flex h-5 items-center justify-center rounded-full bg-[#2BBFAA] px-2 text-[14px] font-semibold text-white animate-pulse">
                   {t("nav.newBadge")}
                 </span>

@@ -5,8 +5,10 @@ import { Sparkles, X, ArrowRight } from "lucide-react";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useTranslation } from "react-i18next";
 
+import { CORE_TOTAL } from "@/lib/onboardingSteps";
+
 const STORAGE_KEY = "tutorhub.welcomeBannerDismissed";
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = CORE_TOTAL; // A11: жодних захардкоджених «6»
 
 /**
  * Shown on the dashboard for independent tutors who haven't completed onboarding.
@@ -26,7 +28,7 @@ export function TutorWelcomeBanner() {
     return null;
   }
 
-  const step = settings.onboarding_step ?? 1;
+  const step = Math.min(settings.onboarding_step ?? 1, TOTAL_STEPS);
   if (dismissed === String(step)) return null;
 
   const pct = Math.round(((step - 1) / TOTAL_STEPS) * 100);

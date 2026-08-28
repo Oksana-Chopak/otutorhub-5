@@ -160,7 +160,7 @@ export default function DashboardPage() {
     if (settings.onboarding_completed) return;
     const sessionKey = `onboarding_redirected_${user.id}`;
     if (sessionStorage.getItem(sessionKey) === "1") return;
-    sessionStorage.setItem(sessionKey, "1");
+    // A12: ключ ставить сам онбординг при прибутті.
     navigate("/onboarding", { replace: true });
   }, [wsLoading, user?.id, isTutor, isManager, settings, navigate]);
 
@@ -1457,6 +1457,9 @@ export default function DashboardPage() {
             />
           )}
 
+          {/* A11: прогрес онбордингу — одразу під блоком дня, не в підвалі. */}
+          <TutorWelcomeBanner />
+
 
           {/* ── INDEPENDENT TUTOR: metric cards (mobile 2-col, desktop 3-col bento) ─── */}
           {isIndependentTutor && (
@@ -2441,7 +2444,6 @@ export default function DashboardPage() {
               <div className="lg:hidden">
                 <TrialCountdownBanner />
               </div>
-              <TutorWelcomeBanner />
             </>
           )}
 
