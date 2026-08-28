@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { bumpDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { getLocale } from "@/lib/locale";
@@ -288,6 +289,7 @@ export function QuickLessonDialog({
       void syncLessonToGoogleCalendar(lessonId, "upsert");
       onOpenChange(false);
       logEvent("lesson_created", { variant }); // C6
+      bumpDataVersion(); // C3
       onCreated?.();
       return;
     }

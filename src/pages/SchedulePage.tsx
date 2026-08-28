@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
@@ -348,9 +349,10 @@ export default function SchedulePage() {
     setLoading(false);
   };
 
+  const dataVersion = useDataVersion(); // C3
   useEffect(() => {
     loadAll();
-  }, [user?.id]);
+  }, [user?.id, dataVersion]);
 
   // Pre-select for tutor/student
   useEffect(() => {
@@ -715,6 +717,7 @@ export default function SchedulePage() {
         : t('schedule.lessonCreated')
     );
     setCreateOpen(false);
+    bumpDataVersion(); // C3
     setForm((f) => ({
       ...f,
       subject: "",

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { bumpDataVersion } from "@/lib/dataBus";
 import { useNavigate } from "react-router-dom";
 import { NextStepBar } from "@/components/NextStepBar";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
@@ -105,6 +106,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
       // B5: не тупик — показуємо підсумок дня з двома наступними діями.
       setDoneStat({ count: doneIds.length, student: doneRows[0]?.student_id ?? null });
       setPhase("summary");
+      bumpDataVersion(); // C3
       onDone?.();
     } catch (e: any) {
       haptic.error();

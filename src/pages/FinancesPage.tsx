@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { getLocale } from "@/lib/locale";
 import { Link, useSearchParams } from "react-router-dom";
@@ -170,6 +171,7 @@ export default function FinancesPage() {
   const canManagePrepay = isManager || isIndependentTutor;
   const [studentFilter, setStudentFilter] = useState("all");
   const [reloadKey, setReloadKey] = useState(0); // B22: рефетч після позначення оплат
+  const dataVersion = useDataVersion(); // C3
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -472,7 +474,7 @@ export default function FinancesPage() {
 
   useEffect(() => {
     fetchData();
-  }, [reloadKey]);
+  }, [reloadKey, dataVersion]);
 
   const nameOf = (id: string) => {
     const p = profiles[id];
@@ -891,7 +893,7 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
         : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
-    if (!error) { setReloadKey((k) => k + 1); logEvent("payment_marked", { page: "finances" }); } // B22+C6
+    if (!error) { setReloadKey((k) => k + 1); logEvent("payment_marked", { page: "finances" }); bumpDataVersion(); } // B22+C6+C3
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>

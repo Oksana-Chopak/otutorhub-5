@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { DayBlock } from "@/components/DayBlock";
@@ -239,6 +240,7 @@ export default function DashboardPage() {
   };
 
   // Pull-to-refresh on mobile
+  const dataVersion = useDataVersion(); // C3
   const { isPulling, pullProgress } = usePullToRefresh(() => loadData());
   useBadgeUnlockToasts(badges, gamificationLoading);
 
@@ -265,7 +267,7 @@ export default function DashboardPage() {
       .select("id", { count: "exact", head: true })
       .eq("referrer_id", user.id)
       .then(({ count }) => setReferralInvitedCount(count ?? 0));
-  }, [user?.id, isIndependentTutor]);
+  }, [user?.id, isIndependentTutor, dataVersion]);
 
   // Announce the monthly recap card on the 1st-7th of each month.
   // Without this, tutors often never notice the "Твій <місяць>" share-card.
@@ -291,7 +293,7 @@ export default function DashboardPage() {
       });
     });
     localStorage.setItem(seenKey, "1");
-  }, [user?.id, isIndependentTutor]);
+  }, [user?.id, isIndependentTutor, dataVersion]);
 
   // FIX (2026-07-28): the big loadData() runs only on [user?.id] and races
   // useWorkspaceSettings — on first run isIndependent is still false, so the
@@ -711,6 +713,7 @@ export default function DashboardPage() {
       return;
     }
     logEvent("payment_marked", { field }); // C6
+    bumpDataVersion(); // C3
     obProgress.refetch(); // A16: оплата впливає на чекліст
     if (value === "paid" && field === "student_payment_status" && lesson) {
       if (lesson.student_price > 0) {
