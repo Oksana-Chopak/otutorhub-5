@@ -18,6 +18,10 @@ export const sv: LocaleTranslations = {
     planNext: "Boka nästa",
   },
   closeDaySummary: {
+    planTitle: "Nästa vecka — samma tid",
+    createAll: "Skapa ({{count}})",
+    createdBulk: "{{count}} lektioner skapade 📅",
+    back: "Tillbaka",
     title: "Dagen stängd 🌙",
     subtitle: "Genomförda lektioner: {{count}}",
     writeSummaries: "Skriv anteckningar ({{count}})",

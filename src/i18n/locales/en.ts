@@ -17,6 +17,10 @@ export const en: LocaleTranslations = {
     planNext: "Plan the next ones",
   },
   closeDaySummary: {
+    planTitle: "Next week — same hour",
+    createAll: "Create ({{count}})",
+    createdBulk: "{{count}} lessons created 📅",
+    back: "Back",
     title: "Day closed 🌙",
     subtitle: "Lessons completed: {{count}}",
     writeSummaries: "Write summaries ({{count}})",

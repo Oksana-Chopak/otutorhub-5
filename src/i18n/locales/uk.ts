@@ -15,6 +15,10 @@ export const uk = {
     planNext: "Запланувати наступні",
   },
   closeDaySummary: {
+    planTitle: "Наступного тижня — та сама година",
+    createAll: "Створити ({{count}})",
+    createdBulk: "Створено {{count}} уроків 📅",
+    back: "Назад",
     title: "День закрито 🌙",
     subtitle: "Проведено уроків: {{count}}",
     writeSummaries: "Написати конспекти ({{count}})",

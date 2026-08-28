@@ -1,4 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
+import { logEvent } from "@/lib/analytics";
+import { createNextWeekLessons } from "@/lib/nextWeekBulk";
 import { bumpDataVersion } from "@/lib/dataBus";
 import { useNavigate } from "react-router-dom";
 import { NextStepBar } from "@/components/NextStepBar";
@@ -6,7 +9,6 @@ import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { completeLessons } from "@/lib/lessonActions";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Loader2, X, Check } from "lucide-react";
@@ -20,6 +22,12 @@ export interface CloseDayRow {
   student_id?: string;
   name: string;
   time: string; // "18:00"
+  /** B-D3: для «Запланувати наступні одним тапом» */
+  starts_at: string;
+  subject: string;
+  duration_minutes?: number | null;
+  source?: string | null;
+  tutor_id: string;
   price: number;
   currency?: string | null;
   paid: boolean;
@@ -83,7 +91,9 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
 
   const { completeMany: flowCompleteMany } = useLessonStatus();
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<"form" | "summary">("form");
+  const [phase, setPhase] = useState<"form" | "summary" | "plan">("form");
+  const [planChecked, setPlanChecked] = useState<Record<string, boolean>>({});
+  const [planBusy, setPlanBusy] = useState(false);
   const [doneStat, setDoneStat] = useState<{ count: number; student: string | null }>({ count: 0, student: null });
   const apply = async () => {
     setBusy(true);
@@ -130,6 +140,62 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     </button>
   );
 
+  const planRows = rows.filter((r) => r.student_id);
+  const planCount = planRows.filter((r) => planChecked[r.id]).length;
+  const createAllNext = async () => {
+    const chosen = planRows.filter((r) => planChecked[r.id]);
+    if (!chosen.length || planBusy) return;
+    setPlanBusy(true);
+    const { count, error } = await createNextWeekLessons(
+      chosen.map((r) => ({ id: r.id, student_id: r.student_id!, tutor_id: r.tutor_id, subject: r.subject, starts_at: r.starts_at, duration_minutes: r.duration_minutes, source: r.source, price: r.price })),
+      user!.id,
+    );
+    setPlanBusy(false);
+    if (error) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+    toast.success(t("closeDaySummary.createdBulk", { count }));
+    logEvent("bulk_next_created", { count }); // C6
+    bumpDataVersion(); // C3
+    setPhase("form");
+    onOpenChange(false);
+    onDone?.();
+  };
+
+  if (phase === "plan") {
+    return (
+      <Dialog open={open} onOpenChange={(v) => { if (!v) setPhase("form"); onOpenChange(v); }}>
+        <DialogContent className="max-w-[420px] rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto">
+          <div className="flex flex-col gap-3 py-1">
+            <p style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.planTitle")}</p>
+            <div style={{ borderRadius: 16, border: "1px solid var(--border,#eceef3)", overflow: "hidden" }}>
+              {planRows.map((r) => {
+                const next = new Date(new Date(r.starts_at).getTime() + 7 * 86400000);
+                return (
+                  <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderBottom: "1px solid var(--border,#eceef3)", cursor: "pointer" }}>
+                    <input type="checkbox" checked={planChecked[r.id] ?? false}
+                      onChange={(e) => setPlanChecked((p) => ({ ...p, [r.id]: e.target.checked }))}
+                      style={{ width: 18, height: 18, accentColor: "#2BBFAA" }} />
+                    <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15 }}>{r.name}</span>
+                    <span style={{ fontSize: 14, color: "var(--sub,#6b7088)", flexShrink: 0 }}>
+                      {next.toLocaleDateString(undefined, { weekday: "short" })} {r.time}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            <button type="button" disabled={planCount === 0 || planBusy} onClick={() => void createAllNext()}
+              style={{ height: 52, borderRadius: 14, border: "none", cursor: planCount && !planBusy ? "pointer" : "default", opacity: planCount && !planBusy ? 1 : 0.5, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#04302a", fontWeight: 800, fontSize: 16 }}>
+              {planBusy ? "…" : t("closeDaySummary.createAll", { count: planCount })}
+            </button>
+            <button type="button" onClick={() => setPhase("summary")}
+              style={{ height: 40, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#6b7088)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              {t("closeDaySummary.back")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   if (phase === "summary") {
     return (
       <Dialog open={open} onOpenChange={(v) => { if (!v) setPhase("form"); onOpenChange(v); }}>
@@ -146,7 +212,11 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
             <NextStepBar icon="📅"
               text={t("closeDaySummary.planNext", { count: doneStat.count })}
               actionLabel={t("nextStep.createNext")}
-              onAction={() => { setPhase("form"); onOpenChange(false); navigate(`/schedule?create=1${doneStat.student ? `&student=${doneStat.student}` : ""}`); }} />
+              onAction={() => {
+                // B-D3: не deep-link на одну пару, а масовий крок по ВСІХ парах дня.
+                setPlanChecked(Object.fromEntries(rows.filter((r) => r.student_id).map((r) => [r.id, true])));
+                setPhase("plan");
+              }} />
           </div>
         </DialogContent>
       </Dialog>

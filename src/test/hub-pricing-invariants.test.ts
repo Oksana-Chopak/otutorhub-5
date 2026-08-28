@@ -136,6 +136,7 @@ describe("hub pricing invariants (маржа хаба — священна)", ()
       "QuickLessonDialog.tsx", // швидка форма репетитора (+ групи) — вливається за планом
       "OnboardingFlowB.tsx",   // майстер першого уроку (first-run, санкціоновано)
       "groupLessons.ts",       // ліб-писар групових уроків (правильний патерн)
+      "nextWeekBulk.ts",       // ліб-писар «наступні одним тапом» (B-D3, дзеркалить QLD-канон)
     ]);
     const offenders: string[] = [];
     const walk = (dir: string) => {
