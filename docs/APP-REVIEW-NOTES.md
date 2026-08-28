@@ -17,9 +17,15 @@ Email: oksana.chopak+review@gmail.com
 Password: Review2026!
 (акаунт живий — ним щодня логіниться CI-смоук; роль: самостійний репетитор.
 Демо-дані — учні/уроки/оплати — наповнюються браузерною сесією, див. чат)
-Password: <встав сюди>
 This account is a tutor with sample students, lessons and payments so you can see
 all features.
+
+ANALYTICS / TRACKING
+The native app contains NO third-party analytics or tracking SDKs.
+(Microsoft Clarity runs on our WEBSITE only, behind a consent banner; native
+builds ship without it.) The app records first-party product events
+(e.g. "lesson created") in our own backend, tied to the signed-in account,
+used solely to improve the product. No ads, no data sale, no cross-app tracking.
 
 SUBSCRIPTION (v1 — IMPORTANT)
 Pro is sold via Apple In-App Purchase (auto-renewable, monthly and yearly).
@@ -93,3 +99,30 @@ Tracking: **No**. We do not use data to track across other apps/sites.
 | Немає тестового акаунта | ⚠️ Зроби демо-акаунт із даними |
 | Privacy policy URL недоступний | ⚠️ Перевір, що /privacy відкривається публічно |
 | Порожній/демо-вигляд застосунку | ⚠️ Заповни демо-акаунт реальними прикладами |
+
+---
+
+## Google Play → Data Safety (готові відповіді, крок 3)
+
+**Does your app collect or share any of the required user data types?** → Yes (collect), No (share)
+
+| Data type | Collected | Shared | Purpose | Optional? |
+|---|---|---|---|---|
+| Email address | ✅ | ❌ | Account management | Ні (потрібен для входу) |
+| Name | ✅ | ❌ | Account management, App functionality | Так |
+| User-generated content (уроки, конспекти, домашки, чат) | ✅ | ❌ | App functionality | Ні |
+| App interactions (first-party події: створив урок, натиснув Приєднатися) | ✅ | ❌ | Analytics (наш власний бекенд, без third-party SDK) | Ні |
+| Photos (аватар, вкладення) | ✅ | ❌ | App functionality | Так |
+
+- Is all of the user data collected by your app encrypted in transit? → **Yes** (HTTPS/TLS)
+- Do you provide a way for users to request that their data is deleted? → **Yes** (Профіль → Видалити акаунт; каскадне видалення в БД)
+- Location, Financial info, Health, Contacts, SMS, Device IDs → **Not collected**
+- Ads → **No ads**. Third-party sharing → **No**.
+
+## App Store Connect → App Privacy (готові відповіді, крок 4)
+
+- **Contact Info → Email Address**: Linked to user · App Functionality · NOT used for tracking
+- **User Content → Other User Content** (lessons, notes, chat, attachments): Linked to user · App Functionality · NOT for tracking
+- **Identifiers → User ID**: Linked to user · App Functionality · NOT for tracking
+- **Usage Data → Product Interaction** (first-party events у власному бекенді): Linked to user · Analytics · NOT for tracking
+- **Tracking (ATT)**: → **No, we do not track** (жодних third-party SDK, жодної реклами; ATT-промпт не потрібен)
