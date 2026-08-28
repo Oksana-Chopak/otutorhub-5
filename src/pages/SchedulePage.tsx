@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { setLessonStatus } from "@/lib/lessonActions";
@@ -1554,7 +1555,7 @@ export default function SchedulePage() {
                         tutorName={tutorName}
                         showTutor={isManager || (isPureStudent && lesson.student_id === user?.id)}
                         meetingUrl={lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? null}
-                        onJoin={() => { void maybeAutoStartFireflies(lesson.id, lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? ""); }}
+                        onJoin={() => { logEvent("join_clicked", { from: "schedule" }); void maybeAutoStartFireflies(lesson.id, lesson.meeting_url ?? defaultMeetingUrls[`${lesson.tutor_id}:${lesson.student_id}`] ?? ""); }}
                         chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                         className={lessonSourceTint(lesson.source)}
                         canEditStatus={canEditStatus}

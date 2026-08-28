@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -1236,6 +1237,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const earnedXP = ALL_STEPS.filter(s => stepIsDone(s.id)).reduce((sum, s) => sum + s.xp, 0);
 
   const markDone = (id: number) => {
+    logEvent("onboarding_step_done", { id }); // C6
     setCompleted(p => new Set([...p, id]));
     const s = ALL_STEPS.find(x => x.id === id)!;
     const isFinal = id === CORE[CORE.length-1].id;
@@ -1328,6 +1330,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 onClick={async () => {
                   const err = await updateSettings({ onboarding_completed: true } as any);
                   if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
+                  logEvent("onboarding_finished"); // C6
                   onFinish();
                 }}>
                 {t("onboardingFlowB.goToDashboard")}
@@ -1446,6 +1449,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
               // а бейдж «Новий!» гасне чесно за onboarding_step.
               const err = await updateSettings({ onboarding_step: idx + 1 } as any);
               if (err) toast.error(t("onboardingFlowB.saveFailed"));
+              logEvent("onboarding_exit_later", { step: idx + 1 }); // C6
               navigate("/");
             }}
             className="mx-auto mt-1 text-[14px] font-medium py-1.5"

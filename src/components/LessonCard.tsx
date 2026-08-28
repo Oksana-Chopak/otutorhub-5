@@ -12,7 +12,6 @@ import { safeHref } from "@/lib/safeUrl";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 
-export type LessonCardVariant = "dashboard" | "schedule" | "compact";
 export type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 
 export interface LessonCardData {
@@ -35,7 +34,6 @@ interface LessonCardProps {
   lesson: LessonCardData;
   /** Adds the 💼 tutor-payout row + "Tutor: …" line. */
   role?: "tutor" | "manager" | "student";
-  variant?: LessonCardVariant;
   studentName?: string;
   tutorName?: string;
   groupName?: string;

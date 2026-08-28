@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { logEvent } from "@/lib/analytics";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -70,6 +71,7 @@ export function useLessonStatus() {
           : undefined,
       },
     );
+    logEvent("lesson_completed", { id: l.id }); // C6
     award(l);
     o.onXp?.();
     void syncLessonToGoogleCalendar(l.id, "upsert");
@@ -89,6 +91,7 @@ export function useLessonStatus() {
     } else {
       void notifyGroupLessonCancelled(l.id, l.subject ?? "");
     }
+    logEvent("lesson_cancelled", { id: l.id }); // C6
     void syncLessonToGoogleCalendar(l.id, "delete");
     toast.success(t("schedule.statusUpdated"));
     return true;

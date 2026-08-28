@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { logEvent } from "@/lib/analytics";
 import { getLocale } from "@/lib/locale";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -890,7 +891,7 @@ export default function FinancesPage() {
       field === "student_payment_status"
         ? await writeStudentPayment(lesson, next, nextPaidAt)
         : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: next });
-    if (!error) setReloadKey((k) => k + 1); // B22: звести всі агрегати сторінки
+    if (!error) { setReloadKey((k) => k + 1); logEvent("payment_marked", { page: "finances" }); } // B22+C6
     if (error) {
       setLessons((prev) =>
         prev.map((l) =>

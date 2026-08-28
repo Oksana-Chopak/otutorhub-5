@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
 import { DayBlock } from "@/components/DayBlock";
 import { setLessonStatus } from "@/lib/lessonActions";
@@ -700,6 +701,7 @@ export default function DashboardPage() {
       toast.error(t("dashboardExtra.paymentFailed"));
       return;
     }
+    logEvent("payment_marked", { field }); // C6
     obProgress.refetch(); // A16: оплата впливає на чекліст
     if (value === "paid" && field === "student_payment_status" && lesson) {
       if (lesson.student_price > 0) {
@@ -1445,7 +1447,7 @@ export default function DashboardPage() {
                 }))}
               tomorrow={dayBlockTomorrow}
               pendingCount={closeDayRows.length}
-              onJoin={(href, id) => { void maybeAutoStartFireflies(id, href); window.open(href, "_blank", "noopener"); }}
+              onJoin={(href, id) => { logEvent("join_clicked", { from: "dayblock" }); void maybeAutoStartFireflies(id, href); window.open(href, "_blank", "noopener"); }}
               onComplete={async (id, alsoPaid) => {
                 await updateStatus(id, "completed");
                 if (alsoPaid) updatePayment(id, "student_payment_status", "paid" as PaymentStatus);
@@ -2068,7 +2070,7 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
-                          onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
                           onWallet={lesson.student_id ? () => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id!, tutor_name: profiles[lesson.tutor_id] ?? "", student_name: profiles[lesson.student_id!] ?? "" }) : undefined}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
@@ -2193,7 +2195,7 @@ export default function DashboardPage() {
                           tutorName={tutorName}
                           showTutor
                           meetingUrl={meetingHref}
-                          onJoin={() => { void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
+                          onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}

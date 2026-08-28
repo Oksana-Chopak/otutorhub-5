@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -286,6 +287,7 @@ export function QuickLessonDialog({
       toast.success(t("quickLessonDialogExtra.groupCreated", { name: selectedGroup.name }));
       void syncLessonToGoogleCalendar(lessonId, "upsert");
       onOpenChange(false);
+      logEvent("lesson_created", { variant }); // C6
       onCreated?.();
       return;
     }
