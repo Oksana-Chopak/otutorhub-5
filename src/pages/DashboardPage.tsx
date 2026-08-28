@@ -118,7 +118,7 @@ export default function DashboardPage() {
   const navigate = useNavigate();
   const haptic = useHaptic();
   const { user, roles, loading: authLoading } = useAuth();
-  const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil } = useWorkspaceSettings();
+  const { isIndependent, settings, loading: wsLoading, isTrial, isPro, trialDaysLeft, trialUntil, updateSettings } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
@@ -220,13 +220,26 @@ export default function DashboardPage() {
 
   // Onboarding bonus progress for "Що зробити далі" section
   const obProgress = useOnboardingProgress();
-  const [skippedTasks, setSkippedTasks] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem("ob_skipped_dashboard") ?? "[]"); } catch { return []; }
-  });
-  const skipTask = (action: string) => {
-    const next = [...skippedTasks, action];
-    setSkippedTasks(next);
-    localStorage.setItem("ob_skipped_dashboard", JSON.stringify(next));
+  // A10/C4: «прибрані» плитки живуть у ПРОФІЛІ (dismissed_tasks) — синк між
+  // пристроями. localStorage читається один раз як міграція старих дісмісів.
+  const [skippedTasks, setSkippedTasks] = useState<string[]>([]);
+  useEffect(() => {
+    const db: string[] = (((settings as any)?.dismissed_tasks ?? []) as string[]);
+    let legacy: string[] = [];
+    try { legacy = JSON.parse(localStorage.getItem("ob_skipped_dashboard") ?? "[]"); } catch { legacy = []; }
+    const merged = Array.from(new Set([...db, ...legacy]));
+    setSkippedTasks(merged);
+    if (legacy.length) {
+      if (merged.length !== db.length) void updateSettings({ dismissed_tasks: merged } as any);
+      localStorage.removeItem("ob_skipped_dashboard");
+    }
+  }, [(settings as any)?.dismissed_tasks]);
+  const skipTask = async (action: string) => {
+    const prev = skippedTasks;
+    const next = Array.from(new Set([...prev, action]));
+    setSkippedTasks(next); // оптимістично
+    const err = await updateSettings({ dismissed_tasks: next } as any);
+    if (err) setSkippedTasks(prev); // тихий реверт — плитка повернеться
   };
 
   // Pull-to-refresh on mobile
