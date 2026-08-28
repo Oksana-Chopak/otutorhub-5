@@ -49,7 +49,8 @@ async function ensureStudent(s) {
     u = data.user;
     console.log("  + учень створений:", s.name);
   } else console.log("  = учень існує:", s.name);
-  await db.from("profiles").upsert({ id: u.id, full_name: s.name }, { onConflict: "id" });
+  const [fn, ...ln] = s.name.split(" ");
+  await db.from("profiles").upsert({ id: u.id, first_name: fn, last_name: ln.join(" ") }, { onConflict: "id" });
   return u.id;
 }
 
@@ -63,13 +64,13 @@ async function main() {
   if (!tutor) { console.error("✗ Рецензентський акаунт не знайдено:", REVIEW_EMAIL); process.exit(1); }
   console.log("Тьютор:", REVIEW_EMAIL, tutor.id);
   await db.from("tutor_workspace_settings").upsert(
-    { user_id: tutor.id, onboarding_completed: true, daily_digest_enabled: true },
-    { onConflict: "user_id" });
+    { tutor_id: tutor.id, onboarding_completed: true, daily_digest_enabled: true },
+    { onConflict: "tutor_id" });
 
   for (const s of STUDENTS) {
     const sid = await ensureStudent(s);
     await db.from("student_rates").upsert(
-      { tutor_id: tutor.id, student_id: sid, source: "independent", price: s.price, currency: "UAH" },
+      { tutor_id: tutor.id, student_id: sid, source: "independent", subject: s.subject, price_per_lesson: s.price },
       { onConflict: "tutor_id,student_id" });
     await db.from("tutor_student_defaults").upsert(
       { tutor_id: tutor.id, student_id: sid, default_meeting_url: "https://meet.google.com/demo-otutorhub" },
@@ -90,17 +91,16 @@ async function main() {
       const { data: ins, error } = await db.from("lessons").insert({
         tutor_id: tutor.id, created_by: tutor.id, student_id: sid,
         subject: s.subject, duration_minutes: 60, status: r.status,
-        source: "independent", starts_at: at(r.d, 18),
-        student_payment_status: r.paid, meeting_url: null,
+        source: "independent", starts_at: at(r.d, 18), meeting_url: null,
       }).select("id").single();
       if (error) throw error;
       if (r.summary || r.homework) {
         await db.from("lesson_details").upsert(
-          { lesson_id: ins.id, summary: r.summary, homework: r.homework, student_price: s.price },
+          { lesson_id: ins.id, summary: r.summary, homework: r.homework, student_price: s.price, student_payment_status: r.paid },
           { onConflict: "lesson_id" });
       } else {
         await db.from("lesson_details").upsert(
-          { lesson_id: ins.id, student_price: s.price }, { onConflict: "lesson_id" });
+          { lesson_id: ins.id, student_price: s.price, student_payment_status: r.paid }, { onConflict: "lesson_id" });
       }
     }
     console.log("  + 4 уроки (2 минулі з конспектами, 1 борг, 2 майбутні) —", s.name);

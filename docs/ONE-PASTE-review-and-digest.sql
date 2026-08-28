@@ -19,9 +19,9 @@ begin
     raise exception 'Рецензентський акаунт oksana.chopak+review@gmail.com не знайдено';
   end if;
 
-  insert into public.tutor_workspace_settings (user_id, onboarding_completed, daily_digest_enabled)
+  insert into public.tutor_workspace_settings (tutor_id, onboarding_completed, daily_digest_enabled)
   values (v_tutor, true, true)
-  on conflict (user_id) do update set onboarding_completed = true;
+  on conflict (tutor_id) do update set onboarding_completed = true;
 
   for s in
     select * from (values
@@ -52,11 +52,12 @@ begin
       raise notice '= учень існує: %', s.name;
     end if;
 
-    insert into public.profiles (id, full_name) values (v_sid, s.name)
-    on conflict (id) do update set full_name = excluded.full_name;
+    insert into public.profiles (id, first_name, last_name)
+    values (v_sid, split_part(s.name,' ',1), split_part(s.name,' ',2))
+    on conflict (id) do update set first_name = excluded.first_name, last_name = excluded.last_name;
 
-    insert into public.student_rates (tutor_id, student_id, source, price, currency)
-    values (v_tutor, v_sid, 'independent', s.price, 'UAH')
+    insert into public.student_rates (tutor_id, student_id, source, subject, price_per_lesson)
+    values (v_tutor, v_sid, 'independent', s.subject, s.price)
     on conflict (tutor_id, student_id) do nothing;
 
     insert into public.tutor_student_defaults (tutor_id, student_id, default_meeting_url)
@@ -74,14 +75,14 @@ begin
       loop
         insert into public.lessons
           (tutor_id, created_by, student_id, subject, duration_minutes,
-           status, source, starts_at, student_payment_status)
+           status, source, starts_at)
         values
           (v_tutor, v_tutor, v_sid, s.subject, 60,
-           r.st, 'independent', (now()::date + r.d)::timestamp + time '18:00', r.pay)
+           r.st, 'independent', (now()::date + r.d)::timestamp + time '18:00')
         returning id into v_lesson;
 
-        insert into public.lesson_details (lesson_id, student_price, summary, homework)
-        values (v_lesson, s.price,
+        insert into public.lesson_details (lesson_id, student_price, student_payment_status, summary, homework)
+        values (v_lesson, s.price, r.pay,
           case when r.st = 'completed' and r.first
                then 'Тема: минулі часи. Past Simple vs Past Continuous, 12 речень усно.' || E'\n' ||
                     '• Добре впізнає маркери часу' || E'\n' || '• Домашка: вправа 4.2'
@@ -101,19 +102,20 @@ begin
 end $$;
 
 -- Підсумок насіву — має показати 3 учні × 4 уроки
-select 'SEED-ПІДСУМОК' as блок, p.full_name as учень,
+select 'SEED-ПІДСУМОК' as блок, (p.first_name || ' ' || coalesce(p.last_name,'')) as учень,
        count(*) filter (where l.status = 'completed') as минулих,
        count(*) filter (where l.status = 'scheduled') as майбутніх,
-       count(*) filter (where l.student_payment_status = 'unpaid' and l.status = 'completed') as боргів
+       count(*) filter (where ld.student_payment_status = 'unpaid' and l.status = 'completed') as боргів
 from public.lessons l
+join public.lesson_details ld on ld.lesson_id = l.id
 join public.profiles p on p.id = l.student_id
 where l.tutor_id = (select id from auth.users where email = 'oksana.chopak+review@gmail.com')
-group by p.full_name order by p.full_name;
+group by p.first_name, p.last_name order by 2;
 
 -- ── (Б) ДІАГНОСТИКА ДАЙДЖЕСТУ 25.07 ──
 select 'ДАЙДЖЕСТ-ПРАПОРЕЦЬ' as блок, u.email, s.daily_digest_enabled
 from auth.users u
-join public.tutor_workspace_settings s on s.user_id = u.id
+join public.tutor_workspace_settings s on s.tutor_id = u.id
 where u.email = 'oksana.chopak@gmail.com';
 
 select 'ВІКНО 23-28.07' as блок, d.*
