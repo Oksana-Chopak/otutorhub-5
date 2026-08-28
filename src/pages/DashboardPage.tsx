@@ -10,7 +10,6 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { AppLayout } from "@/components/AppLayout";
 import { DashboardSkeleton } from "@/components/PageSkeletons";
-import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
 import { TelegramLinkCard } from "@/components/TelegramLinkCard";
@@ -20,10 +19,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { usePaywallTracking } from "@/hooks/usePaywallTracking";
 import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
-import { IndependentTutorStats } from "@/components/IndependentTutorStats";
 import { TutorWelcomeBanner } from "@/components/TutorWelcomeBanner";
 import { MonthlySummaryCard } from "@/components/MonthlySummaryCard";
-import { ReferralNudgeBanner } from "@/components/ReferralNudgeBanner";
 import { StudentWalletCard } from "@/components/StudentWalletCard";
 import { WalletDialog } from "@/components/WalletDialog";
 import { AiNotesDialog } from "@/components/AiNotesDialog";
@@ -40,7 +37,6 @@ import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
 import { StreakCard } from "@/components/StreakCard";
 
-import { AutoCompleteLessonsCard } from "@/components/AutoCompleteLessonsCard";
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
 import { PageFAB } from "@/components/PageFAB";
 import { SkeletonHero, SkeletonList, SkeletonStatCards } from "@/components/SkeletonCard";
@@ -2085,6 +2081,7 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
+                          onAiNotes={() => setAiNotesOpen(true)}
                           onWallet={lesson.student_id ? () => setWalletPair({ tutor_id: lesson.tutor_id, student_id: lesson.student_id!, tutor_name: profiles[lesson.tutor_id] ?? "", student_name: profiles[lesson.student_id!] ?? "" }) : undefined}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
@@ -2210,6 +2207,7 @@ export default function DashboardPage() {
                           meetingUrl={meetingHref}
                           onJoin={() => { logEvent("join_clicked", { from: "card" }); void maybeAutoStartFireflies(lesson.id, meetingHref ?? ""); }}
                           onCopy={() => navigate(lesson.student_id ? `/schedule?create=1&student=${lesson.student_id}` : "/schedule?create=1")}
+                          onAiNotes={() => setAiNotesOpen(true)}
                           chatPartnerId={user?.id === lesson.tutor_id ? lesson.student_id : lesson.tutor_id}
                           onContentClick={() => setOpenLessonId(lesson.id)}
                           className={lessonSourceTint(lesson.source)}

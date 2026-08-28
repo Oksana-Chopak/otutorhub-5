@@ -842,7 +842,7 @@ export default function FinancesPage() {
 
   const [remindingId, setRemindingId] = useState<string | null>(null);
   // Send a REAL payment reminder (email / Telegram) via the remind-payment edge
-  // function — same path PendingPaymentsCard uses, so the student actually gets it.
+  // function — the same notify path the payment reminders use, so the student actually gets it.
   const remindLesson = async (lessonId: string, studentId: string) => {
     setRemindingId(lessonId);
     const { data, error } = await supabase.functions.invoke("remind-payment", { body: { lessonId } });
