@@ -1255,6 +1255,9 @@ export const sv: LocaleTranslations = {
     failed: "Kunde inte radera kontot",
   },
   myStudents: {
+    history: "Lektionshistorik",
+    historyEmpty: "Inga lektioner än",
+    noSummary: "ingen anteckning",
     scheduleLesson: "📅 Boka lektion",
     firstStepToastTitle: "🎯 Första steget klart!",
     firstStepToastDescNamed: "Skapa din första lektion med {{name}}",

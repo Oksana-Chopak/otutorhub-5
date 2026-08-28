@@ -1276,6 +1276,9 @@ export const uk = {
     failed: "Не вдалося видалити акаунт",
   },
   myStudents: {
+    history: "Історія уроків",
+    historyEmpty: "Ще не було уроків",
+    noSummary: "без конспекту",
     scheduleLesson: "📅 Запланувати урок",
     firstStepToastTitle: "🎯 Перший крок зроблено!",
     firstStepToastDescNamed: "Створи перший урок з {{name}}",

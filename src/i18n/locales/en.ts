@@ -1265,6 +1265,9 @@ export const en: LocaleTranslations = {
     failed: "Couldn't delete the account",
   },
   myStudents: {
+    history: "Lesson history",
+    historyEmpty: "No lessons yet",
+    noSummary: "no summary",
     scheduleLesson: "📅 Schedule a lesson",
     firstStepToastTitle: "🎯 First step done!",
     firstStepToastDescNamed: "Create your first lesson with {{name}}",
