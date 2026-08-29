@@ -507,19 +507,6 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
     { v: "after_lesson"  as const, title: t("onboardingFlowB.proRulesModeAfterTitle"),       desc: t("onboardingFlowB.proRulesModeAfterDesc") },
   ];
 
-  const RadioCard = ({ v, title, desc }: any) => (
-    <button onClick={() => setMode(v)}
-      className="w-full text-left rounded-2xl p-3.5 flex items-start gap-3 transition-all"
-      style={{ border: mode === v ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
-               background: mode === v ? T.tealL : "#fff" }}>
-      <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-white transition-all"
-        style={{ border: mode === v ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
-      <span>
-        <span className="block font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</span>
-        <span className="block text-[14px] mt-0.5 leading-snug" style={{ color: T.sub }}>{desc}</span>
-      </span>
-    </button>
-  );
 
   const save = async () => {
     setSaving(true);
@@ -548,7 +535,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       <div style={{ opacity: reminder ? 1 : .5, pointerEvents: reminder ? "auto" : "none" }}>
         <p className="text-[14px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesWhenLabel")}</p>
         <div className="flex flex-col gap-2">
-          {MODES.map(o => <RadioCard key={o.v} {...o} />)}
+          {MODES.map(o => <RadioCard key={o.v} title={o.title} desc={o.desc} active={mode === o.v} onSelect={() => setMode(o.v)} />)}
         </div>
         {mode !== "prepaid" && (
           <div className="flex items-center gap-2.5 mt-3">
@@ -741,29 +728,7 @@ function TelegramAction({ onComplete, user }: { onComplete: () => void; user: an
     onComplete();
   };
 
-  const DigestRow = ({ on, setOn, emoji, title, desc }: any) => (
-    <div className="flex items-center gap-3 rounded-2xl p-3.5 transition-colors"
-      style={{ border: `1px solid ${T.border}`, background: on ? T.tealL : "#fff" }}>
-      <span className="text-2xl flex-shrink-0">{emoji}</span>
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
-        <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
-      </div>
-      <Switch checked={on} onCheckedChange={setOn} />
-    </div>
-  );
 
-  const IncludedRow = ({ emoji, title, desc }: any) => (
-    <div className="flex items-center gap-3 rounded-2xl p-3.5"
-      style={{ border: `1px solid ${T.border}`, background: T.tealL }}>
-      <span className="text-2xl flex-shrink-0">{emoji}</span>
-      <div className="flex-1 min-w-0">
-        <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
-        <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
-      </div>
-      <span className="flex-shrink-0 font-extrabold text-[15px]" style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
-    </div>
-  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -1108,6 +1073,44 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
+const RadioCard = ({ active, onSelect, title, desc }: { active: boolean; onSelect: () => void; title: string; desc: string }) => (
+  <button onClick={onSelect}
+    className="w-full text-left rounded-2xl p-3.5 flex items-start gap-3 transition-all"
+    style={{ border: active ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
+             background: active ? T.tealL : "#fff" }}>
+    <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-white transition-all"
+      style={{ border: active ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
+    <span>
+      <span className="block font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</span>
+      <span className="block text-[14px] mt-0.5 leading-snug" style={{ color: T.sub }}>{desc}</span>
+    </span>
+  </button>
+);
+
+const DigestRow = ({ on, setOn, emoji, title, desc }: any) => (
+  <div className="flex items-center gap-3 rounded-2xl p-3.5 transition-colors"
+    style={{ border: `1px solid ${T.border}`, background: on ? T.tealL : "#fff" }}>
+    <span className="text-2xl flex-shrink-0">{emoji}</span>
+    <div className="flex-1 min-w-0">
+      <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
+      <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
+    </div>
+    <Switch checked={on} onCheckedChange={setOn} />
+  </div>
+);
+
+const IncludedRow = ({ emoji, title, desc }: any) => (
+  <div className="flex items-center gap-3 rounded-2xl p-3.5"
+    style={{ border: `1px solid ${T.border}`, background: T.tealL }}>
+    <span className="text-2xl flex-shrink-0">{emoji}</span>
+    <div className="flex-1 min-w-0">
+      <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</p>
+      <p className="text-[14px] leading-snug mt-0.5" style={{ color: T.sub }}>{desc}</p>
+    </div>
+    <span className="flex-shrink-0 font-extrabold text-[15px]" style={{ color: "var(--teal,#2BBFAA)" }}>✓</span>
+  </div>
+);
+
 export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const { t } = useTranslation();
   const navigate = useNavigate();

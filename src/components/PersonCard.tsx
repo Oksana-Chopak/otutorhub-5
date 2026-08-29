@@ -122,6 +122,26 @@ export function ContactInline({ value }: { value: string | null | undefined }) {
 }
 
 // ── Status / meta badges ──────────────────────────────────────────────────────
+/** P7: хойст — 5 використань ремаунтились на кожен рендер бейджів. */
+const Pill = ({ tone, children }: { tone: string; children: React.ReactNode }) => {
+  const colors: Record<string, { bg: string; color: string; border: string }> = {
+    warn:  { bg: "rgba(245,158,11,.12)", color: "#b45309", border: "rgba(245,158,11,.3)" },
+    muted: { bg: "rgba(148,155,185,.12)", color: T.sub,    border: "rgba(148,155,185,.3)" },
+    teal:  { bg: "rgba(43,191,170,.12)", color: T.tealD,   border: "rgba(43,191,170,.3)" },
+    blue:  { bg: "rgba(99,102,241,.12)", color: "#4f46e5", border: "rgba(99,102,241,.3)" },
+  };
+  const c = colors[tone] ?? colors.muted;
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", height: 22, padding: "0 8px",
+      borderRadius: 999, fontSize: 14, fontFamily: T.display, fontWeight: 700,
+      background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+    }}>
+      {children}
+    </span>
+  );
+};
+
 export function PersonBadges({
   status,
   isPending,
@@ -140,24 +160,6 @@ export function PersonBadges({
   const { t } = useTranslation();
   const pills: React.ReactNode[] = [];
 
-  const Pill = ({ tone, children }: { tone: string; children: React.ReactNode }) => {
-    const colors: Record<string, { bg: string; color: string; border: string }> = {
-      warn:  { bg: "rgba(245,158,11,.12)", color: "#b45309", border: "rgba(245,158,11,.3)" },
-      muted: { bg: "rgba(148,155,185,.12)", color: T.sub,    border: "rgba(148,155,185,.3)" },
-      teal:  { bg: "rgba(43,191,170,.12)", color: T.tealD,   border: "rgba(43,191,170,.3)" },
-      blue:  { bg: "rgba(99,102,241,.12)", color: "#4f46e5", border: "rgba(99,102,241,.3)" },
-    };
-    const c = colors[tone] ?? colors.muted;
-    return (
-      <span style={{
-        display: "inline-flex", alignItems: "center", height: 22, padding: "0 8px",
-        borderRadius: 999, fontSize: 14, fontFamily: T.display, fontWeight: 700,
-        background: c.bg, color: c.color, border: `1px solid ${c.border}`,
-      }}>
-        {children}
-      </span>
-    );
-  };
 
   if (isPending)              pills.push(<Pill key="p" tone="warn">{t("personCard.pendingEntry")}</Pill>);
   else if (status === "debt") pills.push(<Pill key="d" tone="warn">{t("personCard.debt", { amount: unpaidTotal })}</Pill>);

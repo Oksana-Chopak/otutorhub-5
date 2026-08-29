@@ -77,6 +77,21 @@ const statusMeta: Record<
   },
 };
 
+const S = {
+  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3",
+  teal: "#2BBFAA", tealD: "#1f8e7e", successD: "#16a34a",
+  gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
+  gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
+  shadowTeal: "0 8px 20px -8px rgba(43,191,170,.6)",
+  shadowSm: "0 1px 4px rgba(15,15,26,.05)",
+  display: "Inter, system-ui, sans-serif",
+  body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
+);
+
 export default function SubscriptionPage() {
   const navigate = useNavigate();
   // App Store 3.1.1 / Play Payments: у НАТИВНИХ збірках (iOS+Android) не показуємо
@@ -287,16 +302,6 @@ export default function SubscriptionPage() {
       ? EARLY_BIRD_LIMIT - earlyBirdCount
       : null;
 
-  const S = {
-    txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3",
-    teal: "#2BBFAA", tealD: "#1f8e7e", successD: "#16a34a",
-    gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
-    gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
-    shadowTeal: "0 8px 20px -8px rgba(43,191,170,.6)",
-    shadowSm: "0 1px 4px rgba(15,15,26,.05)",
-    display: "Inter, system-ui, sans-serif",
-    body: "'Plus Jakarta Sans', system-ui, sans-serif",
-  };
 
   const pendingRequest =
     latestRequest && (latestRequest.status === "new" || latestRequest.status === "in_progress");
@@ -318,9 +323,6 @@ export default function SubscriptionPage() {
   ];
 
   const tealRing = "rgba(43,191,170,.28)";
-  const Label = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontFamily: S.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: S.sub, margin: "4px 2px 8px" }}>{children}</div>
-  );
 
   return (
     <AppLayout>

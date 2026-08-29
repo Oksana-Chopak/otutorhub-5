@@ -69,6 +69,18 @@ const STEPS = [
   { e: "🎁", n: "3", titleKey: "myReferrals.step3Title", descKey: "myReferrals.step3Desc" },
 ] as const;
 
+const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
+  <div style={{ background: R.surface, border: `1px solid ${R.border}`, borderRadius: 18, boxShadow: R.shadowSm, ...style }}>
+    {children}
+  </div>
+);
+
+const Label = ({ children }: { children: React.ReactNode }) => (
+  <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub, margin: "2px 2px" }}>
+    {children}
+  </div>
+);
+
 export default function MyReferralsPage() {
   const { t } = useTranslation();
   const { user, roles } = useAuth();
@@ -193,16 +205,6 @@ export default function MyReferralsPage() {
   };
 
   // ── UI helpers ──────────────────────────────────────────────────────────────
-  const Card = ({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) => (
-    <div style={{ background: R.surface, border: `1px solid ${R.border}`, borderRadius: 18, boxShadow: R.shadowSm, ...style }}>
-      {children}
-    </div>
-  );
-  const Label = ({ children }: { children: React.ReactNode }) => (
-    <div style={{ fontFamily: R.display, fontWeight: 700, fontSize: 14, letterSpacing: ".09em", textTransform: "uppercase", color: R.sub, margin: "2px 2px" }}>
-      {children}
-    </div>
-  );
 
   if (blockedNonIndependent) return <Navigate to="/" replace />;
 

@@ -23,6 +23,28 @@ interface Props {
   onOpenChange: (o: boolean) => void;
 }
 
+const Mode = ({ icon: Icon, title, desc }: { icon: typeof Mic; title: string; desc: string }) => (
+  <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 0", borderBottom: `1px solid ${C.border}` }}>
+    <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${C.tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.tealD }}>
+      <Icon size={18} />
+    </div>
+    <div style={{ minWidth: 0 }}>
+      <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
+      <div style={{ fontSize: 15, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
+    </div>
+  </div>
+);
+
+const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onChange: (v: boolean) => void; title: string; desc: string; disabled?: boolean }) => (
+  <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "#fff", opacity: disabled ? 0.5 : 1 }}>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
+      <div style={{ fontSize: 14, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
+    </div>
+    <Switch checked={on} onCheckedChange={onChange} disabled={disabled} />
+  </div>
+);
+
 export function AiNotesDialog({ open, onOpenChange }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -48,27 +70,7 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
     setBusy(false);
   };
 
-  const Mode = ({ icon: Icon, title, desc }: { icon: typeof Mic; title: string; desc: string }) => (
-    <div style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 0", borderBottom: `1px solid ${C.border}` }}>
-      <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${C.tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.tealD }}>
-        <Icon size={18} />
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 15, color: C.ink2, lineHeight: 1.5, marginTop: 3 }}>{desc}</div>
-      </div>
-    </div>
-  );
 
-  const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onChange: (v: boolean) => void; title: string; desc: string; disabled?: boolean }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 14, border: `1px solid ${on ? C.tealRing : C.border}`, background: on ? "rgba(43,191,170,.05)" : "#fff", opacity: disabled ? 0.5 : 1 }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 15, color: C.txt }}>{title}</div>
-        <div style={{ fontSize: 14, color: C.ink2, lineHeight: 1.5, marginTop: 2 }}>{desc}</div>
-      </div>
-      <Switch checked={on} onCheckedChange={onChange} disabled={disabled} />
-    </div>
-  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

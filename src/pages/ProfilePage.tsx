@@ -91,6 +91,54 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
   );
 }
 
+const P = {
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
+  border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
+  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
+  display: "Inter, system-ui, sans-serif",
+  body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+type NavRowProps = {
+  icon: React.ReactNode;
+  label: string;
+  val?: string;
+  valColor?: string;
+  onClick: () => void;
+  noBorder?: boolean;
+};
+
+/** P7: хойст — ремаунт 8+5 використань на кожен рендер сторінки. */
+const NavRow = ({ icon, label, val, valColor, onClick, noBorder }: NavRowProps) => (
+  <button onClick={onClick} className="flex items-center gap-3 w-full text-left transition-colors hover:bg-muted/50 active:bg-muted"
+    style={{ height: 52, padding: "0 16px", borderBottom: noBorder ? "none" : `1px solid ${P.border}`, background: "transparent", border: "none", cursor: "pointer" }}>
+    <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+      background: "rgba(43,191,170,.1)", color: P.tealD }}>
+      {icon}
+    </span>
+    <span style={{ flex: 1, fontFamily: P.body, fontWeight: 600, fontSize: 15.5, color: P.txt }}>{label}</span>
+    {val && (
+      <span style={{ fontFamily: P.body, fontWeight: 500, fontSize: 14, color: valColor ?? P.sub,
+        maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: 6 }}>
+        {val}
+      </span>
+    )}
+    <ChevronRight size={16} style={{ color: P.muted, flexShrink: 0 }} />
+  </button>
+);
+
+const Sec = ({ title, children }: { title?: string; children: React.ReactNode }) => (
+  <div className="rounded-[18px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+    {title && (
+      <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 14, fontWeight: 700,
+        letterSpacing: "0.07em", textTransform: "uppercase" as const, color: P.muted }}>
+        {title}
+      </p>
+    )}
+    {children}
+  </div>
+);
+
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { user, roles } = useAuth();
@@ -373,13 +421,6 @@ export default function ProfilePage() {
   };
 
   // ── Design tokens ───────────────────────────────────────────────────────────
-  const P = {
-    teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-    txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
-    display: "Inter, system-ui, sans-serif",
-    body: "'Plus Jakarta Sans', system-ui, sans-serif",
-  };
 
   // ── Computed values ──────────────────────────────────────────────────────────
   const displayName = (profileName.first || profileName.last)
@@ -400,44 +441,8 @@ export default function ProfilePage() {
   const calVal = calendarConnected ? t("profile.valCalConnected") : t("profile.valCalNone");
 
   // ── Nav-row helper ───────────────────────────────────────────────────────────
-  type NavRowProps = {
-    icon: React.ReactNode;
-    label: string;
-    val?: string;
-    valColor?: string;
-    onClick: () => void;
-    noBorder?: boolean;
-  };
-  const NavRow = ({ icon, label, val, valColor, onClick, noBorder }: NavRowProps) => (
-    <button onClick={onClick} className="flex items-center gap-3 w-full text-left transition-colors hover:bg-muted/50 active:bg-muted"
-      style={{ height: 52, padding: "0 16px", borderBottom: noBorder ? "none" : `1px solid ${P.border}`, background: "transparent", border: "none", cursor: "pointer" }}>
-      <span style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-        background: "rgba(43,191,170,.1)", color: P.tealD }}>
-        {icon}
-      </span>
-      <span style={{ flex: 1, fontFamily: P.body, fontWeight: 600, fontSize: 15.5, color: P.txt }}>{label}</span>
-      {val && (
-        <span style={{ fontFamily: P.body, fontWeight: 500, fontSize: 14, color: valColor ?? P.sub,
-          maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginRight: 6 }}>
-          {val}
-        </span>
-      )}
-      <ChevronRight size={16} style={{ color: P.muted, flexShrink: 0 }} />
-    </button>
-  );
 
   // ── Section card ─────────────────────────────────────────────────────────────
-  const Sec = ({ title, children }: { title?: string; children: React.ReactNode }) => (
-    <div className="rounded-[18px] overflow-hidden" style={{ border: `1px solid ${P.border}`, background: P.surface, boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
-      {title && (
-        <p style={{ padding: "12px 16px 0", fontFamily: P.display, fontSize: 14, fontWeight: 700,
-          letterSpacing: "0.07em", textTransform: "uppercase" as const, color: P.muted }}>
-          {title}
-        </p>
-      )}
-      {children}
-    </div>
-  );
 
   const THEMES: Array<{ key: string; emoji: string; label: string }> = [
     { key: "fruits",  emoji: "🍎", label: t("profile.themeFruits") },

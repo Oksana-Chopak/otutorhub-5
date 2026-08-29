@@ -155,6 +155,34 @@ function legacyFilterToTab(value: string | null): TabKey {
   return "debts";
 }
 
+const F = {
+  teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
+  warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
+  border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
+  txt:"#0f0f1a", sub:"var(--sub,#6b7088)", muted:"#b0b4c8",
+  display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+/** P7: хойст — таб-бар ремаунтився на кожен рендер кокпіта. */
+const Tab = ({ active, onClick, label, count }: { active: boolean; onClick: () => void; label: string; count?: number }) => (
+  <button onClick={onClick}
+    style={{
+      flex:1, height:44, border:"none", cursor:"pointer", background:"transparent",
+      fontFamily:F.display, fontWeight:700, fontSize:15,
+      color: active ? F.teal : F.muted,
+      borderBottom: `2.5px solid ${active ? F.teal : "transparent"}`,
+      display:"flex", alignItems:"center", justifyContent:"center", gap:5,
+    }}>
+    {label}
+    {count !== undefined && count > 0 && (
+      <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 14,
+        fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
+        {count}
+      </span>
+    )}
+  </button>
+);
+
 export default function FinancesPage() {
   const { t } = useTranslation();
   const haptic = useHaptic();
@@ -1917,13 +1945,6 @@ export default function FinancesPage() {
   // INDEPENDENT TUTOR: Cockpit (Variant Б)
   // ─────────────────────────────────────────────────────────────────────────────
   if (isIndependentTutor) {
-    const F = {
-      teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
-      warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
-      border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
-      txt:"#0f0f1a", sub:"var(--sub,#6b7088)", muted:"#b0b4c8",
-      display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
-    };
 
     const pill = (p: Period) => (
       <button key={p} onClick={() => setPeriod(p)}
@@ -1941,24 +1962,6 @@ export default function FinancesPage() {
       </button>
     );
 
-    const Tab = ({ id, label, count }: { id: typeof finTab; label: string; count?: number }) => (
-      <button onClick={() => setFinTab(id)}
-        style={{
-          flex:1, height:44, border:"none", cursor:"pointer", background:"transparent",
-          fontFamily:F.display, fontWeight:700, fontSize:15,
-          color: finTab===id ? F.teal : F.muted,
-          borderBottom: `2.5px solid ${finTab===id ? F.teal : "transparent"}`,
-          display:"flex", alignItems:"center", justifyContent:"center", gap:5,
-        }}>
-        {label}
-        {count !== undefined && count > 0 && (
-          <span style={{ background:F.warn, color:"#fff", borderRadius:999, fontSize: 14,
-            fontWeight:800, padding:"0 6px", height:18, display:"inline-flex", alignItems:"center" }}>
-            {count}
-          </span>
-        )}
-      </button>
-    );
 
     return (
       <AppLayout>
@@ -2035,9 +2038,9 @@ export default function FinancesPage() {
               overflow:"hidden", boxShadow:"0 2px 10px -4px rgba(15,15,26,.06)" }}>
               {/* Tab header */}
               <div style={{ display:"flex", borderBottom:`1px solid ${F.border}` }}>
-                <Tab id="ops" label={t("finances.tabOps")} />
-                <Tab id="debts" label={t("finances.tabDebts")} count={debtList.length} />
-                <Tab id="analytics" label={t("finances.tabAnalytics")} />
+                <Tab active={finTab === "ops"} onClick={() => setFinTab("ops")} label={t("finances.tabOps")} />
+                <Tab active={finTab === "debts"} onClick={() => setFinTab("debts")} label={t("finances.tabDebts")} count={debtList.length} />
+                <Tab active={finTab === "analytics"} onClick={() => setFinTab("analytics")} label={t("finances.tabAnalytics")} />
               </div>
 
               {/* ── OPS tab ──────────────────────────────────────────────────── */}

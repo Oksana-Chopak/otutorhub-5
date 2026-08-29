@@ -130,6 +130,31 @@ const emptyForm: FormData = {
   tutor_notes: "",
 };
 
+const T = {
+  teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
+  bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
+  display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+};
+
+/** P7: хойст — власний useState гас від будь-якого ререндеру сторінки. */
+const CopyMini = ({ value, label }: { value: string; label: string }) => {
+  const { t } = useTranslation();
+  const [done, setDone] = useState(false);
+  return (
+    <button aria-label={t("common.copy") || "Копіювати"} title={t("common.copy") || "Копіювати"}
+      onClick={(e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(value);
+        toast.success(`${label} ${t("common.copied") || "скопійовано"}`, { description: value });
+        setDone(true);
+        setTimeout(() => setDone(false), 1500);
+      }}
+      style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, border: "none", cursor: "pointer", background: "transparent", color: done ? "#16a34a" : T.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {done ? <Check size={19} strokeWidth={2.4} /> : <Copy size={19} strokeWidth={2} />}
+    </button>
+  );
+};
+
 export default function MyStudentsPage() {
   const { t } = useTranslation();
   // Історія уроків на картці: лінива, кешована по учню.
@@ -681,29 +706,8 @@ export default function MyStudentsPage() {
   const statusOf = (s: MyStudent) => computeStudentStatus(s);
   const statusDotClass = studentStatusDotClass;
 
-  const T = {
-    teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
-    bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
-    display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
-  };
 
   // Єдина іконка копіювання (без слів/кнопок) — 44px тач-таргет, як у дизайні.
-  const CopyMini = ({ value, label }: { value: string; label: string }) => {
-    const [done, setDone] = useState(false);
-    return (
-      <button aria-label={t("common.copy") || "Копіювати"} title={t("common.copy") || "Копіювати"}
-        onClick={(e) => {
-          e.stopPropagation();
-          navigator.clipboard.writeText(value);
-          toast.success(`${label} ${t("common.copied") || "скопійовано"}`, { description: value });
-          setDone(true);
-          setTimeout(() => setDone(false), 1500);
-        }}
-        style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 11, border: "none", cursor: "pointer", background: "transparent", color: done ? "#16a34a" : T.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        {done ? <Check size={19} strokeWidth={2.4} /> : <Copy size={19} strokeWidth={2} />}
-      </button>
-    );
-  };
 
   return (
     <AppLayout>

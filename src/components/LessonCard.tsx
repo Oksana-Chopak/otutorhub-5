@@ -96,6 +96,32 @@ const avGrad = (n: string) => {
 };
 const initials = (n: string) => n.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
 
+/** P7: хойст із параметром валюти — жодних замикань на lesson. */
+const PayRow = ({ icon, amount, paid, paidLabel, pendLabel, onToggle, currency }: {
+  icon: string; amount: number | string | null | undefined; currency?: string | null; paid: boolean; paidLabel: string; pendLabel: string; onToggle?: () => void;
+}) => {
+  const inner = (
+    <>
+      <span style={{ fontSize: 17, width: 20, textAlign: "center", flexShrink: 0 }}>{icon}</span>
+      <span style={{ fontFamily: L.display, fontWeight: 800, fontSize: 15, minWidth: 48, color: L.txt }}>{formatPrice(amount, currency)}</span>
+      <span style={{ flex: 1, minWidth: 0, textAlign: "right", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: paid ? L.successD : L.warningD }}>
+        {paid ? `✓ ${paidLabel}` : pendLabel}
+      </span>
+    </>
+  );
+  const baseStyle: React.CSSProperties = {
+    display: "flex", alignItems: "center", gap: 11, width: "100%", height: 46, padding: "0 13px",
+    borderRadius: 12, textAlign: "left",
+    border: `1px solid ${paid ? "rgba(34,197,94,.32)" : L.border}`,
+    background: paid ? "rgba(34,197,94,.08)" : L.surface2,
+  };
+  return onToggle ? (
+    <button onClick={(e) => { e.stopPropagation(); onToggle(); }} style={{ ...baseStyle, cursor: "pointer" }}>{inner}</button>
+  ) : (
+    <div style={baseStyle}>{inner}</div>
+  );
+};
+
 export function LessonCard({
   lesson,
   role = "tutor",
@@ -182,30 +208,6 @@ export function LessonCard({
 
   const stop = (fn?: () => void) => (e: React.MouseEvent) => { e.stopPropagation(); fn?.(); };
 
-  const PayRow = ({ icon, amount, paid, paidLabel, pendLabel, onToggle }: {
-    icon: string; amount: number | string | null | undefined; paid: boolean; paidLabel: string; pendLabel: string; onToggle?: () => void;
-  }) => {
-    const inner = (
-      <>
-        <span style={{ fontSize: 17, width: 20, textAlign: "center", flexShrink: 0 }}>{icon}</span>
-        <span style={{ fontFamily: L.display, fontWeight: 800, fontSize: 15, minWidth: 48, color: L.txt }}>{formatPrice(amount, lesson.currency)}</span>
-        <span style={{ flex: 1, minWidth: 0, textAlign: "right", fontFamily: L.display, fontWeight: 700, fontSize: 13.5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: paid ? L.successD : L.warningD }}>
-          {paid ? `✓ ${paidLabel}` : pendLabel}
-        </span>
-      </>
-    );
-    const baseStyle: React.CSSProperties = {
-      display: "flex", alignItems: "center", gap: 11, width: "100%", height: 46, padding: "0 13px",
-      borderRadius: 12, textAlign: "left",
-      border: `1px solid ${paid ? "rgba(34,197,94,.32)" : L.border}`,
-      background: paid ? "rgba(34,197,94,.08)" : L.surface2,
-    };
-    return onToggle ? (
-      <button onClick={stop(onToggle)} style={{ ...baseStyle, cursor: "pointer" }}>{inner}</button>
-    ) : (
-      <div style={baseStyle}>{inner}</div>
-    );
-  };
 
   return (
     <div
@@ -322,14 +324,14 @@ export function LessonCard({
                 payment), so this row is hidden and only their payout row shows — no phantom
                 zero-price tappable toggle. */}
             {lesson.student_price != null && (
-              <PayRow icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
+              <PayRow currency={lesson.currency} icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
                 onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />
             )}
             {/* FINANCE INVARIANT: tutor_payout НІКОЛИ не підмінюється student_price.
                 Якщо сторінка не завантажила payout — рядок не рендеримо взагалі:
                 краще відсутність цифри, ніж чужа цифра (баг «виплата = оплата», 10.06–01.08). */}
             {withPayout && lesson.tutor_payout != null && (
-              <PayRow icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
+              <PayRow currency={lesson.currency} icon="💼" amount={lesson.tutor_payout} paid={tPaid} paidLabel={t("lessonCard.paidOut", "Виплачено")} pendLabel={t("lessonCard.toPayout", "До виплати")}
                 onToggle={onPayChange ? () => onPayChange("tutor", !tPaid) : undefined} />
             )}
           </div>

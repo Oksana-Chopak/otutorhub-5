@@ -52,6 +52,20 @@ const C = {
 };
 
 /** Evening batch: mark today's past lessons completed + paid in one move. */
+const Pill = ({ on, label, gold, onClick }: { on: boolean; label: string; gold?: boolean; onClick: () => void }) => (
+  <button type="button" onClick={onClick}
+    style={{
+      height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
+      fontFamily: C.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap",
+      border: `1.5px solid ${on ? (gold ? C.goldRing : C.teal) : C.border}`,
+      background: on ? (gold ? C.goldBg : C.tealL) : "#fff",
+      color: on ? (gold ? C.gold : C.tealD) : C.muted,
+      display: "inline-flex", alignItems: "center", gap: 5,
+    }}>
+    {on && <Check size={14} strokeWidth={2.6} />}{label}
+  </button>
+);
+
 export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
   const { t } = useTranslation();
   const haptic = useHaptic();
@@ -126,19 +140,6 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     }
   };
 
-  const Pill = ({ on, label, gold, onClick }: { on: boolean; label: string; gold?: boolean; onClick: () => void }) => (
-    <button type="button" onClick={onClick}
-      style={{
-        height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
-        fontFamily: C.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap",
-        border: `1.5px solid ${on ? (gold ? C.goldRing : C.teal) : C.border}`,
-        background: on ? (gold ? C.goldBg : C.tealL) : "#fff",
-        color: on ? (gold ? C.gold : C.tealD) : C.muted,
-        display: "inline-flex", alignItems: "center", gap: 5,
-      }}>
-      {on && <Check size={14} strokeWidth={2.6} />}{label}
-    </button>
-  );
 
   const planRows = rows.filter((r) => r.student_id);
   const planCount = planRows.filter((r) => planChecked[r.id]).length;
