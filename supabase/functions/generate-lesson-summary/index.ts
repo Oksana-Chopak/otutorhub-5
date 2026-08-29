@@ -110,6 +110,13 @@ Deno.serve(async (req) => {
 МАТЕРІАЛИ
 • лише якщо є посилання чи назви
 
+
+Дані уроку:
+Предмет: ${lesson.subject}
+Дата: ${lessonDate}
+Тривалість: ${lesson.duration_minutes} хв
+
+${summary ? `Чорновий конспект від репетитора:\n${summary}\n` : ""}${homework ? `Домашнє завдання:\n${homework}\n` : ""}${studentNotes ? `Нотатки учня:\n${studentNotes}\n` : ""}
 Пиши українською, лаконічно, для учня. Якщо вхідних даних замало — створи короткий шаблон конспекту для предмета "${lesson.subject}".`;
 
     // 5. Call Lovable AI Gateway

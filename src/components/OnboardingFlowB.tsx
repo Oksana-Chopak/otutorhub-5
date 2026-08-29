@@ -50,7 +50,7 @@ const TOTAL_XP = 950;
 
 // ── Step definitions ──────────────────────────────────────────────────────────
 
-import { ALL_STEPS, CORE, type StepDef, type StepProgress } from "@/lib/onboardingSteps";
+import { ALL_STEPS, type StepDef, type StepProgress } from "@/lib/onboardingSteps";
 const BONUS = ALL_STEPS.filter(s => s.group === "bonus");
 
 // ── Confetti ──────────────────────────────────────────────────────────────────

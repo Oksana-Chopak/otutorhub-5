@@ -2,6 +2,8 @@ import type { LocaleTranslations } from "./types";
 
 export const en: LocaleTranslations = {
   dayBlock: {
+    summariesTitle: "Summaries for {{count}} lessons",
+    tomorrowTitle: "Tomorrow {{count}} lessons, first at {{time}}",
     nowTitle: "Now: {{name}}",
     soonTitle: "In {{min}} min — {{name}}",
     join: "Join",
@@ -9,23 +11,33 @@ export const en: LocaleTranslations = {
     markDone: "Done ✓",
     andPaid: "and paid",
     closeAll: "Close the day ({{count}})",
-    summariesTitle: "Summaries for {{count}} lessons",
     write: "Write",
-    tomorrowTitle: "Tomorrow {{count}} lessons, first at {{time}}",
     openSchedule: "Schedule →",
     closedTitle: "Day closed 🌙",
     planNext: "Plan the next ones",
-  },
+  
+    summariesTitle_one: "Summary for {{count}} lesson",
+    summariesTitle_few: "Summaries for {{count}} lessons",
+    summariesTitle_other: "Summaries for {{count}} lessons",
+    tomorrowTitle_one: "Tomorrow {{count}} lesson, first at {{time}}",
+    tomorrowTitle_few: "Tomorrow {{count}} lessons, first at {{time}}",
+    tomorrowTitle_other: "Tomorrow {{count}} lessons, first at {{time}}",},
   closeDaySummary: {
+    createdBulk: "{{count}} lessons created 📅",
+    subtitle: "{{count}} lessons completed",
     planTitle: "Next week — same hour",
     createAll: "Create ({{count}})",
-    createdBulk: "{{count}} lessons created 📅",
     back: "Back",
     title: "Day closed 🌙",
-    subtitle: "Lessons completed: {{count}}",
     writeSummaries: "Write summaries ({{count}})",
     planNext: "Plan the next ones ({{count}})",
-  },
+  
+    createdBulk_one: "{{count}} lesson created 📅",
+    createdBulk_few: "{{count}} lessons created 📅",
+    createdBulk_other: "{{count}} lessons created 📅",
+    subtitle_one: "{{count}} lesson completed",
+    subtitle_few: "{{count}} lessons completed",
+    subtitle_other: "{{count}} lessons completed",},
   nextStep: {
     afterHomework: "Homework saved. Now — the lesson summary",
     afterSummary: "Summary saved. Schedule the next lesson?",

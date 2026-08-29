@@ -3,6 +3,8 @@ import type { LocaleTranslations } from "./types";
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: LocaleTranslations = {
   dayBlock: {
+    summariesTitle: "Anteckningar för {{count}} lektioner",
+    tomorrowTitle: "Imorgon {{count}} lektioner, första kl. {{time}}",
     nowTitle: "Nu: {{name}}",
     soonTitle: "Om {{min}} min — {{name}}",
     join: "Anslut",
@@ -10,23 +12,33 @@ export const sv: LocaleTranslations = {
     markDone: "Klar ✓",
     andPaid: "och betald",
     closeAll: "Stäng dagen ({{count}})",
-    summariesTitle: "Anteckningar för {{count}} lektioner",
     write: "Skriv",
-    tomorrowTitle: "Imorgon {{count}} lektioner, första kl. {{time}}",
     openSchedule: "Schema →",
     closedTitle: "Dagen stängd 🌙",
     planNext: "Boka nästa",
-  },
+  
+    summariesTitle_one: "Anteckning för {{count}} lektion",
+    summariesTitle_few: "Anteckningar för {{count}} lektioner",
+    summariesTitle_other: "Anteckningar för {{count}} lektioner",
+    tomorrowTitle_one: "Imorgon {{count}} lektion, första kl. {{time}}",
+    tomorrowTitle_few: "Imorgon {{count}} lektioner, första kl. {{time}}",
+    tomorrowTitle_other: "Imorgon {{count}} lektioner, första kl. {{time}}",},
   closeDaySummary: {
+    createdBulk: "{{count}} lektioner skapade 📅",
+    subtitle: "{{count}} lektioner genomförda",
     planTitle: "Nästa vecka — samma tid",
     createAll: "Skapa ({{count}})",
-    createdBulk: "{{count}} lektioner skapade 📅",
     back: "Tillbaka",
     title: "Dagen stängd 🌙",
-    subtitle: "Genomförda lektioner: {{count}}",
     writeSummaries: "Skriv anteckningar ({{count}})",
     planNext: "Boka nästa ({{count}})",
-  },
+  
+    createdBulk_one: "{{count}} lektion skapad 📅",
+    createdBulk_few: "{{count}} lektioner skapade 📅",
+    createdBulk_other: "{{count}} lektioner skapade 📅",
+    subtitle_one: "{{count}} lektion genomförd",
+    subtitle_few: "{{count}} lektioner genomförda",
+    subtitle_other: "{{count}} lektioner genomförda",},
   nextStep: {
     afterHomework: "Läxan sparad. Nu — lektionsanteckningen",
     afterSummary: "Anteckningen sparad. Boka nästa lektion?",

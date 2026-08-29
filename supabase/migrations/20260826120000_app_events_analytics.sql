@@ -19,6 +19,8 @@ do $$ begin
   end if;
 end $$;
 
+grant select, insert on public.app_events to authenticated;
+
 create index if not exists app_events_name_created_idx on public.app_events (name, created_at desc);
 
 -- A10/C4: dismissed-плитки чекліста переїдуть із localStorage у профіль.

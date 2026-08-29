@@ -792,11 +792,14 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const todayKey = new Date().toISOString().slice(0, 10);
+  // Аудит-🔴2: toISOString = UTC — між 00:00 і 03:00 Києва «сьогодні» ще вчора.
+  const localKey = (d: Date) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const todayKey = localKey(new Date());
   const nowMs = Date.now();
 
   const todayLessons = useMemo(
-    () => lessons.filter((lesson) => lesson.starts_at.slice(0, 10) === todayKey),
+    () => lessons.filter((lesson) => localKey(new Date(lesson.starts_at)) === todayKey),
     [lessons, todayKey]
   );
 
@@ -862,22 +865,27 @@ export default function DashboardPage() {
   const todayPlusTomorrowLessons = useMemo(() => {
     const tmr = new Date();
     tmr.setDate(tmr.getDate() + 1);
-    const tmrKey = tmr.toISOString().slice(0, 10);
+    const tmrKey = localKey(tmr);
     // B3: «Сьогодні» = ВСІ сьогоднішні (з візуальним станом проведених/скасованих),
     // «завтра» — лише заплановані; лічильник у заголовку бере ЦЕЙ же масив.
-    const todayAll = lessons.filter((l) => l.starts_at.slice(0, 10) === todayKey);
-    const tmrScheduled = lessons.filter((l) => l.starts_at.slice(0, 10) === tmrKey && l.status === "scheduled");
+    const todayAll = lessons.filter((l) => localKey(new Date(l.starts_at)) === todayKey);
+    const tmrScheduled = lessons.filter((l) => localKey(new Date(l.starts_at)) === tmrKey && l.status === "scheduled");
     return [...todayAll, ...tmrScheduled].sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   }, [lessons, todayKey]);
   const upcomingLessons = showAllUpcoming ? upcomingAll : todayPlusTomorrowLessons;
   const dayBlockTomorrow = useMemo(() => {
     const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
-    const tmrKey = tmr.toISOString().slice(0, 10);
+    const tmrKey = localKey(tmr);
     const scope = lessons.filter((l) =>
-      l.starts_at.slice(0, 10) === tmrKey && l.status === "scheduled" &&
+      localKey(new Date(l.starts_at)) === tmrKey && l.status === "scheduled" &&
       (isManager ? true : l.tutor_id === user?.id));
     const first = scope.slice().sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
-    return { count: scope.length, firstTime: first ? first.starts_at.slice(11, 16) : null };
+    return {
+      count: scope.length,
+      firstTime: first
+        ? new Date(first.starts_at).toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" })
+        : null,
+    };
   }, [lessons, isManager, user?.id]);
 
   // ===== Profit (with period) =====
@@ -1357,7 +1365,7 @@ export default function DashboardPage() {
                   className="inline-flex items-center gap-1 transition-colors hover:text-white"
                 >
                   <CalendarDays className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "var(--teal)" }} />
-                  {t("dashboardExtra.lessonsToday", { count: upcomingLessons.length })}
+                  {t("dashboardExtra.lessonsToday", { count: todayLessons.length })}
                 </Link>
                 {!showAllUpcoming && upcomingAll.length > upcomingLessons.length && (
                   <button onClick={() => setShowAllUpcoming(true)}
