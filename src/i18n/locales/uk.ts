@@ -879,7 +879,8 @@ export const uk = {
     csvPaid: "Оплачено",
     csvPending: "Очікує",
     csvPaidOut: "Виплачено",
-  },
+  
+    mixedCurrencyProfit: "Різні валюти — одна цифра прибутку неможлива",},
 
   // Chats
   subjectSelect: {
@@ -3075,11 +3076,11 @@ export const uk = {
     subscribeTitle: "Оформити підписку",
     billingMonthly: "Щомісяця",
     billingYearly: "Щороку",
-    billingYearlyDiscount: "Щороку −20%",
+    billingYearlyDiscount: "Щороку −15%",
     subscribeBtn: "Оформити підписку",
     restorePurchases: "Відновити покупки",
     appStoreNote: "Оплата через App Store · автоподовження, скасування в Налаштуваннях Apple ID",
-    perMonthUnit: "₴/міс",
+    perMonthUnit: "/міс",
     yearlyTotalNote: "{{total}} ₴ на рік · економія 20%",
     liqPayNote: "LiqPay · скасування в один клік",
     orDontPay: "або не плати",
@@ -3153,7 +3154,7 @@ export const uk = {
     payBtn: "Перейти до оплати",
   },
   subscriptionDialog: {
-    yearlyPlan: "Тариф: підписку річний — {{perMonth}} ₴/міс ({{total}} ₴ на рік)",
+    yearlyPlan: "Тариф: річний — {{perMonth}}/міс ({{total}} разово)",
     monthlyPlan: "Тариф: підписку місячний — {{price}}/міс",
     sendFailed: "Не вдалося надіслати запит",
     sent: "Запит надіслано менеджеру",
@@ -3168,7 +3169,9 @@ export const uk = {
     monthly: "Щомісяця",
     msgLabel: "Повідомлення менеджеру (опційно)",
     msgPlaceholder: "Зручний спосіб зв'язку, побажання тощо…",
-  },
+  
+    halfyear: "Піврічний",
+    halfyearPlan: "Тариф: піврічний — {{perMonth}}/міс ({{total}} разово)",},
   walletDialogExtra: {
     confirmPrompt: "Точно {{action}}?",
     deleteFailed: "Не вдалося",

@@ -872,7 +872,9 @@ export const en: LocaleTranslations = {
     csvPaid: "Paid",
     csvPending: "Pending",
     csvPaidOut: "Paid out",
-  },
+  
+
+    mixedCurrencyProfit: "Mixed currencies — a single profit figure is impossible",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -3063,11 +3065,11 @@ export const en: LocaleTranslations = {
     subscribeTitle: "Get a subscription",
     billingMonthly: "Monthly",
     billingYearly: "Yearly",
-    billingYearlyDiscount: "Yearly −20%",
+    billingYearlyDiscount: "Yearly −15%",
     subscribeBtn: "Get a subscription",
     restorePurchases: "Restore purchases",
     appStoreNote: "Payment via App Store · auto-renewal, cancel in your Apple ID Settings",
-    perMonthUnit: "₴/mo",
+    perMonthUnit: "/mo",
     yearlyTotalNote: "{{total}} ₴ per year · save 20%",
     liqPayNote: "LiqPay · cancel in one click",
     orDontPay: "or don't pay",
@@ -3141,7 +3143,7 @@ export const en: LocaleTranslations = {
     payBtn: "Proceed to payment",
   },
   subscriptionDialog: {
-    yearlyPlan: "Plan: subscription yearly — {{perMonth}} /mo ({{total}} /year)",
+    yearlyPlan: "Plan: yearly — {{perMonth}}/mo ({{total}} one-off)",
     monthlyPlan: "Plan: subscription monthly — {{price}} /mo",
     sendFailed: "Failed to send request",
     sent: "Request sent to manager",
@@ -3156,7 +3158,9 @@ export const en: LocaleTranslations = {
     monthly: "Monthly",
     msgLabel: "Message to manager (optional)",
     msgPlaceholder: "Preferred contact method, wishes, etc…",
-  },
+  
+    halfyear: "Half-year",
+    halfyearPlan: "Plan: half-year — {{perMonth}}/mo ({{total}} one-off)",},
   walletDialogExtra: {
     confirmPrompt: "Are you sure to {{action}}?",
     deleteFailed: "Failed",

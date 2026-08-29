@@ -163,7 +163,9 @@ export default function MyReferralsPage() {
   const inviteText = t("referralWidget.inviteText") ||
     "Приєднуйся до oTutorHub — застосунку, що веде всю репетиторську практику в одному місці. 21 день безкоштовно за моїм посиланням 👇";
 
-  const openExternal = (href: string) => {
+  // P0.1: локальна обгортка ЗАТІНЯЛА імпорт і викликала САМА СЕБЕ —
+  // RangeError на головному CTA рефералки. Інше ім'я = інше життя.
+  const openShare = (href: string) => {
     void openExternal(href);
     setShareOpen(false);
   };
@@ -281,7 +283,7 @@ export default function MyReferralsPage() {
                       {t("referralWidget.shareVia") || "Поділитися через"}
                     </div>
                     {shareTargets().map((s) => (
-                      <button key={s.key} onClick={() => openExternal(s.href)}
+                      <button key={s.key} onClick={() => openShare(s.href)}
                         className="hover:bg-black/[0.04]"
                         style={{ display: "flex", alignItems: "center", gap: 11, width: "100%", padding: "9px 8px", borderRadius: 10, border: "none", background: "transparent", cursor: "pointer", textAlign: "left" }}>
                         <span style={{ width: 32, height: 32, borderRadius: 999, background: s.color, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: R.display, fontWeight: 800, fontSize: 16, flexShrink: 0 }}>{s.glyph}</span>

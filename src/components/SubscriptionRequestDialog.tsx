@@ -20,7 +20,7 @@ import { insertNotification } from "@/lib/notifications";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
-type Billing = "monthly" | "yearly";
+type Billing = "monthly" | "halfyear" | "yearly";
 
 interface Props {
   open: boolean;
@@ -30,8 +30,9 @@ interface Props {
 
 const PRICE_MONTHLY = 7; // USD
 const usd = (n: number) => `$${n}`;
-const PRICE_YEARLY_PER_MONTH = 199;
-const PRICE_YEARLY_TOTAL = PRICE_YEARLY_PER_MONTH * 12;
+// P0: єдине джерело цін — USD-сітка (жодних 199/2388 ₴).
+const PRICE_HALF_PM = 6.3;  const PRICE_HALF_TOTAL = 37.8;
+const PRICE_YEAR_PM = 5.95; const PRICE_YEAR_TOTAL = 71.4;
 
 export function SubscriptionRequestDialog({
   open,
@@ -71,14 +72,16 @@ export function SubscriptionRequestDialog({
   }, [open, user?.id]);
 
   const planLabel = billing === "yearly" ? "pro_yearly" : "pro_monthly";
-  const price = billing === "yearly" ? PRICE_YEARLY_TOTAL : PRICE_MONTHLY;
+  const price = billing === "yearly" ? PRICE_YEAR_TOTAL : billing === "halfyear" ? PRICE_HALF_TOTAL : PRICE_MONTHLY;
 
   const submit = async () => {
     if (!user) return;
     setSubmitting(true);
     const billingNote =
       billing === "yearly"
-        ? t("subscriptionDialog.yearlyPlan", { perMonth: PRICE_YEARLY_PER_MONTH, total: PRICE_YEARLY_TOTAL })
+        ? t("subscriptionDialog.yearlyPlan", { perMonth: usd(PRICE_YEAR_PM), total: usd(PRICE_YEAR_TOTAL) })
+        : billing === "halfyear"
+        ? t("subscriptionDialog.halfyearPlan", { perMonth: usd(PRICE_HALF_PM), total: usd(PRICE_HALF_TOTAL) })
         : t("subscriptionDialog.monthlyPlan", { price: usd(PRICE_MONTHLY) });
     const fullMessage = message.trim()
       ? `${billingNote}\n\n${message.trim()}`
@@ -168,8 +171,24 @@ export function SubscriptionRequestDialog({
                       </span>
                     </div>
                     <p className="text-[14px] text-muted-foreground">
-                      {PRICE_YEARLY_PER_MONTH} ₴/міс ·{" "}
-                      {PRICE_YEARLY_TOTAL} ₴ на рік
+                      {usd(PRICE_YEAR_PM)}/міс · {usd(PRICE_YEAR_TOTAL)} на рік (−15%)
+                    </p>
+                  </div>
+                </label>
+                <label
+                  htmlFor="bill-halfyear"
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-[16px] border p-3 text-sm transition",
+                    billing === "halfyear"
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-primary/40"
+                  )}
+                >
+                  <RadioGroupItem id="bill-halfyear" value="halfyear" className="mt-0.5" />
+                  <div className="min-w-0">
+                    <span className="font-medium text-foreground">{t("subscriptionDialog.halfyear")}</span>
+                    <p className="text-[14px] text-muted-foreground">
+                      {usd(PRICE_HALF_PM)}/міс · {usd(PRICE_HALF_TOTAL)} разово
                     </p>
                   </div>
                 </label>

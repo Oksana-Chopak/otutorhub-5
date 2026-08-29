@@ -190,7 +190,7 @@ export default function SubscriptionRequestsPage() {
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
                             locale: uk,
                           })}{" "}
-                          · {r.plan.toUpperCase()} · {Number(r.price)} ₴/міс
+                          · {r.plan.toUpperCase()} · {Number(r.price)}
                         </p>
                         </div>
                       </div>

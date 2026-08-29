@@ -627,7 +627,8 @@ export const sv: LocaleTranslations = {
     csvPaid: "Betald",
     csvPending: "Väntar",
     csvPaidOut: "Utbetald",
-  },
+  
+    mixedCurrencyProfit: "Blandade valutor — en enda vinstsiffra är omöjlig",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",
@@ -3053,11 +3054,11 @@ export const sv: LocaleTranslations = {
     subscribeTitle: "Skaffa en prenumeration",
     billingMonthly: "Månadsvis",
     billingYearly: "Årsvis",
-    billingYearlyDiscount: "Årsvis −20%",
+    billingYearlyDiscount: "Årsvis −15%",
     subscribeBtn: "Skaffa en prenumeration",
     restorePurchases: "Återställ köp",
     appStoreNote: "Betalning via App Store · automatisk förnyelse, avsluta i dina Apple ID-inställningar",
-    perMonthUnit: "₴/mån",
+    perMonthUnit: "/mån",
     yearlyTotalNote: "{{total}} ₴ per år · spara 20%",
     liqPayNote: "LiqPay · avsluta med ett klick",
     orDontPay: "eller betala inte",
@@ -3131,7 +3132,7 @@ export const sv: LocaleTranslations = {
     payBtn: "Gå till betalning",
   },
   subscriptionDialog: {
-    yearlyPlan: "Plan: prenumeration årlig — {{perMonth}} /mån ({{total}} /år)",
+    yearlyPlan: "Plan: årsvis — {{perMonth}}/mån ({{total}} engångs)",
     monthlyPlan: "Plan: prenumeration månadsvis — {{price}} /mån",
     sendFailed: "Kunde inte skicka förfrågan",
     sent: "Förfrågan skickad till manager",
@@ -3146,7 +3147,9 @@ export const sv: LocaleTranslations = {
     monthly: "Månadsvis",
     msgLabel: "Meddelande till manager (valfritt)",
     msgPlaceholder: "Föredraget kontaktsätt, önskemål, etc…",
-  },
+  
+    halfyear: "Halvår",
+    halfyearPlan: "Plan: halvår — {{perMonth}}/mån ({{total}} engångs)",},
   walletDialogExtra: {
     confirmPrompt: "Är du säker på att {{action}}?",
     deleteFailed: "Misslyckades",
