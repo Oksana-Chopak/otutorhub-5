@@ -397,7 +397,7 @@ export function WalletDialog({
                   </div>
                   {ratePerLesson && lessonsCount && parseInt(lessonsCount) > 0 && (
                     <p style={{ fontSize: 14, color: F.sub, fontFamily: F.body, marginTop: 8 }}>
-                      {t("walletDialog.rateHint", { total: parseInt(lessonsCount) * ratePerLesson, rate: ratePerLesson })}
+                      {t("walletDialog.rateHint", { total: formatPrice((parseInt(lessonsCount) * ratePerLesson), "UAH"), rate: formatPrice((ratePerLesson), "UAH")})}
                     </p>
                   )}
                 </div>
@@ -513,7 +513,7 @@ export function WalletDialog({
                 color: "#0f0f1a", fontFamily: F.display, fontWeight: 700, fontSize: 16,
                 boxShadow: checkedIds.size > 0 ? "0 8px 20px -8px rgba(43,191,170,.6)" : "none",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-              {marking ? "…" : t("walletDialog.markCta", { total: checkedTotal })}
+              {marking ? "…" : t("walletDialog.markCta", { total: formatPrice((checkedTotal), "UAH")})}
             </button>
           )}
 

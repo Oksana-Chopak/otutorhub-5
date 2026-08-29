@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
@@ -266,7 +267,7 @@ export default function ChatsPage() {
         const unpaid = isManager ? unpaidAll : unpaidAll.filter((l) => l.source !== "hub");
         if (unpaid.length > 0) {
           const sum = unpaid.reduce((a, l) => a + (Number(l.student_price) || 0), 0);
-          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: sum.toLocaleString(getLocale()), count: unpaid.length }), amount: sum, count: unpaid.length } };
+          return { ...th, ctx: { kind: "debt", text: t("chats.ctxDebt", { amount: formatPrice((sum.toLocaleString(getLocale())), "UAH"), count: unpaid.length }), amount: sum, count: unpaid.length } };
         }
         const next = lessons
           .filter((l) => l.status !== "cancelled" && new Date(l.starts_at).getTime() >= now)
@@ -1324,7 +1325,7 @@ export default function ChatsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
                           {selectedThread.ctx.kind === "debt"
-                            ? t("chats.smartUnpaidTitle", { amount: (selectedThread.ctx.amount ?? 0).toLocaleString(getLocale()) })
+                            ? t("chats.smartUnpaidTitle", { amount: formatPrice(((selectedThread.ctx.amount ?? 0).toLocaleString(getLocale())), "UAH")})
                             : t("chats.smartCreateFirstLesson")}
                         </p>
                         <p className="text-[14px] truncate" style={{ color: "var(--sub,#6b7088)" }}>

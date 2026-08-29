@@ -2562,7 +2562,7 @@ export default function FinancesPage() {
                 <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>
                   {parity.ok
                     ? t("finances.parityOk")
-                    : t("finances.parityMismatch", { db: parity.db.toLocaleString("uk-UA"), app: parity.app.toLocaleString("uk-UA") })}
+                    : t("finances.parityMismatch", { db: formatPrice((parity.db.toLocaleString("uk-UA")), "UAH"), app: formatPrice((parity.app.toLocaleString("uk-UA")), "UAH")})}
                 </p>
               )}
             </div>
@@ -2615,7 +2615,7 @@ export default function FinancesPage() {
                 <span className="text-xl">⚠️</span>
                 <div>
                   <p className="text-[15px] font-bold" style={{ color: "#b45309" }}>
-                    {t("finances.debtTitle", { sum: totalDebt })}
+                    {t("finances.debtTitle", { sum: formatPrice((totalDebt), "UAH")})}
                   </p>
                   <p className="text-[14px]" style={{ color: "#b45309", opacity: 0.8 }}>
                     {t("finances.debtAwaiting", { count: debtsRows.length })}

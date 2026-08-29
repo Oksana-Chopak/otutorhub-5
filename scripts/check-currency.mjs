@@ -15,7 +15,7 @@ function walk(dir) {
       const tl = line.trim();
       if (tl.startsWith("//") || tl.startsWith("*") || tl.startsWith("/*")) return;   // коментарі
       if (/currency|SYMBOL|formatPrice|usd\(/.test(line)) return;                      // канон у дії
-      if (/[₴€£]|(\bkr\b)|(\bzł\b)/.test(line)) hits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
+      if (/[₴€£]|(?<=[\d}]\s?)kr\b|\bkr(?=\s?[\d{])|(?<=[\d}]\s?)zł\b|\bzł(?=\s?[\d{])/.test(line)) hits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
     });
   }
 }
@@ -26,4 +26,4 @@ console.log("═ Літеральні валюти: " + hits.length + " рядк
 Object.entries(byFile).sort((a, b) => b[1] - a[1]).forEach(([f, n]) => console.log(String(n).padStart(4), f));
 console.log("─ перші 40 ─");
 hits.slice(0, 40).forEach((h) => console.log(h));
-process.exit(0); // поки ІНФОРМАЦІЙНО; стане гейтом при 0
+process.exit(hits.length ? 1 : 0); // ГЕЙТ: нуль літеральних валют — назавжди

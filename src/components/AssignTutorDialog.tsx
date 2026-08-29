@@ -175,7 +175,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     // Дозволяємо лише свідомо, через явне підтвердження.
     if (sp <= tp) {
       const ok = await confirmDialog({
-        description: t("assignTutor.zeroMarginConfirm", { sp, tp, margin: sp - tp }),
+        description: t("assignTutor.zeroMarginConfirm", { sp, tp, margin: formatPrice((sp - tp), "UAH")}),
         confirmText: t("common.confirm"),
         destructive: true,
       });
@@ -321,7 +321,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tu.name}</div>
                       {tu.defaultRate != null && (
-                        <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: tu.defaultRate })}</div>
+                        <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: formatPrice((tu.defaultRate), "UAH")})}</div>
                       )}
                     </div>
                     {tu.defaultRate != null && (
@@ -336,7 +336,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</div>
                   {selected.defaultRate != null && (
-                    <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: selected.defaultRate })}</div>
+                    <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: formatPrice((selected.defaultRate), "UAH")})}</div>
                   )}
                 </div>
                 <button type="button" onClick={() => setTutorId("")}

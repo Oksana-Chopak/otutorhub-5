@@ -272,7 +272,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
       title:
         active.kind === "cancel"
           ? feeApplied
-            ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: feeAmount })
+            ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice((feeAmount), "UAH")})
             : t("tutorChangeRequestsExtra.cancelApprovedNotif")
           : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
               when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),

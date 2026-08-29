@@ -1195,7 +1195,7 @@ export default function DashboardPage() {
         icon: Wallet,
         tone: "warning" as const,
         title: t("dashboardExtra.payoutDueTitle", { name: sch.name }),
-        description: sum > 0 ? t("dashboardExtra.payoutDueLessons", { sum: sum.toLocaleString(getLocale()), count: unpaid.length }) : t("dashboardExtra.payoutAllPaid"),
+        description: sum > 0 ? t("dashboardExtra.payoutDueLessons", { sum: formatPrice((sum.toLocaleString(getLocale())), "UAH"), count: unpaid.length }) : t("dashboardExtra.payoutAllPaid"),
         to: "/finances",
         cta: t("dashboardExtra.payoutDueCta"),
         payTutorId: sch.user_id,
@@ -1445,7 +1445,7 @@ export default function DashboardPage() {
                 {t("dashboardExtra.trialEndingTitle", { count: trialDaysLeft })}
               </p>
               <p style={{ fontSize: 15, color: "#9a6a12", marginTop: 3, lineHeight: 1.45 }}>
-                {t("dashboardExtra.trialEndingBodyPrefix")} <b>{trialStats.done}</b> {t("dashboardExtra.trialEndingBodyMid")} <b>{trialStats.earned.toLocaleString(getLocale())} ₴</b> {t("dashboardExtra.trialEndingBodySuffix")}
+                {t("dashboardExtra.trialEndingBodyPrefix")} <b>{trialStats.done}</b> {t("dashboardExtra.trialEndingBodyMid")} <b>{formatPrice(trialStats.earned, profitByCur[0]?.[0] ?? "UAH")}</b> {t("dashboardExtra.trialEndingBodySuffix")}
               </p>
               <button onClick={() => navigate("/subscription")}
                 style={{ marginTop: 10, height: 40, padding: "0 16px", borderRadius: 11, border: "none", cursor: "pointer",
