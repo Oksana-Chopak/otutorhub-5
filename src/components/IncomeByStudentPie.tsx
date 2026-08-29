@@ -1,4 +1,5 @@
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { formatPrice } from "@/lib/currency";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -18,7 +19,7 @@ const COLORS = [
   "hsl(190 80% 45%)",
 ];
 
-export function IncomeByStudentPie({ data }: { data: Slice[] }) {
+export function IncomeByStudentPie({ cur = "UAH", data }: { data: Slice[]; cur?: string }) {
   if (data.length === 0) {
     return (
       <div className="flex h-44 items-center justify-center text-[14px] text-muted-foreground">
@@ -52,7 +53,7 @@ export function IncomeByStudentPie({ data }: { data: Slice[] }) {
                 borderRadius: 8,
                 fontSize: 14,
               }}
-              formatter={(v: number, n: string) => [`${v} ₴`, n]}
+              formatter={(v: number, n: string) => [formatPrice(v, cur), n]}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -68,7 +69,7 @@ export function IncomeByStudentPie({ data }: { data: Slice[] }) {
               />
               <span className="flex-1 truncate text-foreground">{d.name}</span>
               <span className="shrink-0 text-muted-foreground">
-                {d.amount} ₴ · {pct}%
+                {formatPrice(d.amount, cur)} · {pct}%
               </span>
             </li>
           );

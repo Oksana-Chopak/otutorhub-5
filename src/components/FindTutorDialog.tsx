@@ -221,7 +221,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
                 return (
                   <button key={b} onClick={() => setBudget(on ? "" : b)}
                     style={{ minHeight: 50, padding: "0 18px", borderRadius: 14, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4, fontFamily: FONT, fontWeight: 800, fontSize: 17, background: on ? "#fff" : "rgba(255,255,255,.55)", color: on ? GOLD : "#b08a3a", border: `1.5px solid ${on ? "#F5B544" : "rgba(245,181,68,.5)"}`, boxShadow: on ? "0 4px 12px -6px rgba(245,181,68,.6)" : "none" }}>
-                    <span style={{ fontSize: 15 }}>₴</span>{b}
+                    {b}
                   </button>
                 );
               })}

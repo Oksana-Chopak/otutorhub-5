@@ -320,7 +320,7 @@ export function LessonCard({
             {/* Student payment row only when a real student_price is present. For a HUB
                 tutor student_price is masked to NULL (they must not see/mark the student→hub
                 payment), so this row is hidden and only their payout row shows — no phantom
-                ₴0 tappable toggle. */}
+                zero-price tappable toggle. */}
             {lesson.student_price != null && (
               <PayRow icon="🎓" amount={lesson.student_price} paid={sPaid} paidLabel={t("lessonCard.paid", "Оплачено")} pendLabel={t("lessonCard.pending", "Очікує")}
                 onToggle={canTogglePay ? () => (onPayChange ? onPayChange("student", !sPaid) : onTogglePayment?.()) : undefined} />

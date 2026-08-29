@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Wallet, Sparkles } from "lucide-react";
@@ -88,7 +89,7 @@ export function StudentWalletCard({ studentId }: { studentId: string }) {
               <span className="shrink-0 tabular-nums font-medium text-primary">
                 {p.lessons_balance > 0 && `🎟 ${p.lessons_balance} ур.`}
                 {p.lessons_balance > 0 && p.amount_balance > 0 && " · "}
-                {p.amount_balance > 0 && `${p.amount_balance.toFixed(0)} ₴`}
+                {p.amount_balance > 0 && formatPrice(Number(p.amount_balance), (p as any).currency ?? "UAH")}
               </span>
             </li>
           ))}

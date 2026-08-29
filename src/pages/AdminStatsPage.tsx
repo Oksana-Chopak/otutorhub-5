@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +58,7 @@ export default function AdminStatsPage() {
   }, []);
 
   const money = (n: number | null) =>
-    n == null ? "—" : `${Math.round(n).toLocaleString(getLocale())} ₴`;
+    n == null ? "—" : formatPrice(Math.round(n), "UAH");
   const date = (iso: string) =>
     new Date(iso).toLocaleDateString(getLocale(), { day: "numeric", month: "short", year: "numeric" });
 

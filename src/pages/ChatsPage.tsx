@@ -1011,7 +1011,7 @@ export default function ChatsPage() {
                       </div>
 
                       {/* Context pill row — tutor/manager working context ONLY. A student
-                          must not see «Борг ₴X · Нагадати» (tutor-voiced debt tooling on
+                          must not see «Борг X · Нагадати» (tutor-voiced debt tooling on
                           their own chat) or «Новий учень · Створити урок». */}
                       {canShowContext && thread.ctx && thread.ctx.kind !== "none" && (
                         <div

@@ -181,7 +181,7 @@ interface PersonCardProps {
   name: string;
   avatarUrl?: string | null;
   status: string;
-  subLine: string;          // "Англійська · ₴500/урок" / "Математика · Фізика" / "Менеджер"
+  subLine: string;          // "Англійська · 500 ₴/урок (formatPrice)" / "Математика · Фізика" / "Менеджер"
   email?: string | null;
   isPending?: boolean;
   unpaidTotal?: number;

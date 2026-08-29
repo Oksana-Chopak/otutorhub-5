@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatPrice } from "@/lib/currency";
 import { NextStepBar } from "@/components/NextStepBar";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { getLocale } from "@/lib/locale";
@@ -34,6 +35,7 @@ interface LessonWorkspaceProps {
   studentNotes: string | null;
   source?: "hub" | "independent";
   studentPrice?: number;
+  currency?: string | null;
   studentPaymentStatus?: "paid" | "unpaid";
   lessonStatus?: string;
   onUpdated?: () => void;
@@ -103,6 +105,7 @@ export function LessonWorkspace({
   source,
   onClose,
   studentPrice,
+  currency,
   studentPaymentStatus,
   lessonStatus,
   onUpdated,
@@ -481,7 +484,7 @@ export function LessonWorkspace({
               <Banknote className="h-4 w-4 text-primary" />
               {t("lessonWorkspaceExtra.lessonPayment")}
               {studentPrice !== undefined && studentPrice !== null && (
-                <span className="ml-1 text-muted-foreground">— {studentPrice} ₴</span>
+                <span className="ml-1 text-muted-foreground">— {formatPrice(Number(studentPrice) || 0, currency ?? "UAH")}</span>
               )}
             </div>
             <div className="flex items-center gap-2">

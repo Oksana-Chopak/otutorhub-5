@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { formatPrice, currencySymbol } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
 import { insertNotification } from "@/lib/notifications";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -45,7 +46,7 @@ function MoneyInput({ value, onChange, placeholder, accent }: { value: string; o
   const [focused, setFocused] = useState(false);
   return (
     <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "#fff" : "#fbfbfc", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "#eceef3"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
-      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#b0b4c8", marginRight: 6, flexShrink: 0 }}>₴</span>
+      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#b0b4c8", marginRight: 6, flexShrink: 0 }}>{currencySymbol("UAH")}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
@@ -324,7 +325,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                       )}
                     </div>
                     {tu.defaultRate != null && (
-                      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#25a896", whiteSpace: "nowrap" }}>₴{tu.defaultRate}{t("assignTutorExtra.perLessonAbbr")}</span>
+                      <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#25a896", whiteSpace: "nowrap" }}>{formatPrice(tu.defaultRate, "UAH")}{t("assignTutorExtra.perLessonAbbr")}</span>
                     )}
                   </button>
                 ))}
@@ -378,7 +379,7 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
                 <div style={{ fontFamily: F, fontWeight: 700, fontSize: 14, letterSpacing: ".05em", textTransform: "uppercase", color: "rgba(255,255,255,.55)" }}>{t("assignTutorExtra.hubMargin")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,.65)", marginTop: 3 }}>{t("assignTutorExtra.perLessonSub")}</div>
               </div>
-              <div style={{ fontFamily: F, fontWeight: 800, fontSize: 32, letterSpacing: "-.02em", color: margin >= 0 ? "#2BBFAA" : "#FF7A59" }}>₴{margin}</div>
+              <div style={{ fontFamily: F, fontWeight: 800, fontSize: 32, letterSpacing: "-.02em", color: margin >= 0 ? "#2BBFAA" : "#FF7A59" }}>{formatPrice(margin, "UAH")}</div>
             </div>
           )}
         </div>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { formatPrice } from "@/lib/currency";
 import { Navigate } from "react-router-dom";
 import { getLocale } from "@/lib/locale";
 import { AppLayout } from "@/components/AppLayout";
@@ -350,7 +351,7 @@ export default function MyReferralsPage() {
                   {t("myReferrals.savedLabel") || "Заощаджено"}
                 </div>
                 <div style={{ fontFamily: R.display, fontWeight: 800, fontSize: 24, marginTop: 4, color: R.successD }}>
-                  {savedUah.toLocaleString(getLocale())} ₴
+                  {formatPrice(savedUah, "UAH")}
                 </div>
               </Card>
             </div>

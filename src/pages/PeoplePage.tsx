@@ -72,7 +72,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 import { MobileFilters } from "@/components/MobileFilters";
 import { computeStudentStatus, studentStatusDotClass } from "@/lib/studentStatus";
 import { safeHref } from "@/lib/safeUrl";
-import { CURRENCY_OPTIONS, currencySymbol, formatPrice } from "@/lib/currency";
+import { CURRENCY_OPTIONS, currencySymbol, formatPrice} from "@/lib/currency";
 import { SUBJECT_OPTIONS } from "@/lib/subjects";
 import { PayoutScheduleCard } from "@/components/PayoutScheduleCard";
 
@@ -1017,7 +1017,7 @@ export default function PeoplePage() {
                     ? (() => {
                         const s = u.subjects[0];
                         const r = tutorSubjectRates[u.id]?.[s];
-                        return s + (r && r > 0 ? " · " + r + " ₴" : "");
+                        return s + (r && r > 0 ? " · " + formatPrice(r, "UAH") : "");
                       })()
                   : u.role === "student" && u.subjects && u.subjects.length > 0
                     ? u.subjects[0]
@@ -1060,7 +1060,7 @@ export default function PeoplePage() {
                       return (
                         <p key={s} className="break-words text-[15px] text-muted-foreground">
                           <span className="text-foreground">{s}</span>
-                          {r !== undefined && r > 0 ? ` — ${r} ₴${t("myStudents.perLesson")}` : ""}
+                          {r !== undefined && r > 0 ? ` — ${formatPrice(r, "UAH")}${t("myStudents.perLesson")}` : ""}
                         </p>
                       );
                     })}
@@ -1385,7 +1385,7 @@ export default function PeoplePage() {
                         }
                         placeholder={t("people.ratePlaceholder")}
                       />
-                      <span className="text-[14px] text-muted-foreground">₴</span>
+                      <span className="text-[14px] text-muted-foreground">{currencySymbol("UAH")}</span>
                     </div>
                   ))}
                 </div>
@@ -1433,7 +1433,7 @@ export default function PeoplePage() {
                 if (tutorRate !== undefined && tutorRate > 0) {
                   return (
                     <p className="text-[14px]">
-                      {t("people.tutorRateForSubject")} <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                      {t("people.tutorRateForSubject")} <span className="font-medium text-foreground">{formatPrice(tutorRate, "UAH")}</span>
                     </p>
                   );
                 }
@@ -1586,12 +1586,12 @@ export default function PeoplePage() {
                       return (
                         <p className="text-[14px] text-muted-foreground">
                           {t("people.tutorRateForSubject")}{" "}
-                          <span className="font-medium text-foreground">{tutorRate} ₴</span>
+                          <span className="font-medium text-foreground">{formatPrice(tutorRate, "UAH")}</span>
                           {margin !== null && addTutorToStudent.currency === "UAH" && (
                             <>
                               {" · "}{t("people.hubMarginLabel")}{" "}
                               <span className={margin > 0 ? "font-medium text-foreground" : "font-semibold text-destructive"}>
-                                {margin} ₴
+                                {formatPrice(margin, "UAH")}
                               </span>
                             </>
                           )}
@@ -1970,7 +1970,7 @@ export default function PeoplePage() {
                         const r = tutorSubjectRates[u.id]?.[s];
                         return (
                           <p key={s} className="text-[14px] text-foreground">
-                            {s}{r && r > 0 ? ` · ${r} ₴` : ""}
+                            {s}{r && r > 0 ? ` · ${formatPrice(r, "UAH")}` : ""}
                           </p>
                         );
                       })}

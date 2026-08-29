@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
 import { useNavigate } from "react-router-dom";
@@ -283,7 +284,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
         <div style={{ flex: 1 }}>
           <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentPriceLabel")}</Label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>₴</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>{currencySymbol("UAH")}</span>
             <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
               placeholder="500" inputMode="numeric"
               className="h-12 rounded-xl text-[15px] pl-7" />
@@ -858,7 +859,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
             {paid ? t("onboardingFlowB.financePaid") : t("onboardingFlowB.financeAwaiting")}
           </span>
           <span className="font-black text-base" style={{ fontFamily: T.display, color: paid ? T.success : T.txt }}>
-            {price} ₴
+            {formatPrice(Number(price) || 0, "UAH")}
           </span>
         </button>
       </div>

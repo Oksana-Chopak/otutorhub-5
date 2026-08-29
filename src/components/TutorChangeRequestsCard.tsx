@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { formatPrice } from "@/lib/currency";
 import { setLessonStatus } from "@/lib/lessonActions";
 import { DateTimeField } from "@/components/DateTimeField";
 import { insertNotification } from "@/lib/notifications";
@@ -459,12 +460,12 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                           {
                             value: "partial" as ChargeChoice,
                             title: t("tutorChangeRequestsExtra.partialPay"),
-                            desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: `${activeLesson.student_price} ₴` }),
+                            desc: t("tutorChangeRequestsExtra.partialPayDesc", { price: formatPrice(Number(activeLesson.student_price), (activeLesson as any).currency ?? "UAH") }),
                           },
                           {
                             value: "full" as ChargeChoice,
                             title: t("tutorChangeRequestsExtra.fullPay"),
-                            desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: `${activeLesson.student_price} ₴` }),
+                            desc: t("tutorChangeRequestsExtra.fullPayDesc", { price: formatPrice(Number(activeLesson.student_price), (activeLesson as any).currency ?? "UAH") }),
                           },
                         ].map((opt) => (
                           <label

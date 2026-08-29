@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import i18nInstance from "@/i18n";
 import {
@@ -25,6 +26,7 @@ interface LessonForChart {
 }
 
 interface FinanceWeeklyChartProps {
+  cur?: string;
   lessons: LessonForChart[];
   tutorNames: Record<string, string>;
   weeks?: number;
@@ -81,6 +83,7 @@ export function FinanceWeeklyChart({
   lessons,
   tutorNames,
   weeks = 12,
+  cur = "UAH",
 }: FinanceWeeklyChartProps) {
   const { data, tutorIds } = useMemo(() => {
     // Pre-fill last N week keys
@@ -155,7 +158,7 @@ export function FinanceWeeklyChart({
               borderRadius: 8,
               fontSize: 14,
             }}
-            formatter={(v: number) => `${v} ₴`}
+            formatter={(v: number) => formatPrice(v, cur)}
           />
           <Legend wrapperStyle={{ fontSize: 14 }} />
           {tutorIds.map((tid, idx) => {

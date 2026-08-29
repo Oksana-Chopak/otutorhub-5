@@ -1,9 +1,11 @@
 import { Wallet } from "lucide-react";
+import { formatPrice } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface WalletBadgeProps {
+  currency?: string;
   lessons: number;
   amount: number;
   onClick?: () => void;
@@ -14,7 +16,7 @@ interface WalletBadgeProps {
  * Компактний індикатор балансу гаманця учня в межах пари.
  * Показує лише непорожні значення. Якщо порожній — лагідне «—».
  */
-export function WalletBadge({ lessons, amount, onClick, className }: WalletBadgeProps) {
+export function WalletBadge({ currency = "UAH", lessons, amount, onClick, className }: WalletBadgeProps) {
   const hasAny = lessons > 0 || amount > 0;
   const Component = onClick ? "button" : "span";
 
@@ -37,7 +39,7 @@ export function WalletBadge({ lessons, amount, onClick, className }: WalletBadge
         <>
           {lessons > 0 && <span>{lessons} ур.</span>}
           {lessons > 0 && amount > 0 && <span className="opacity-60">·</span>}
-          {amount > 0 && <span>{amount.toFixed(0)} ₴</span>}
+          {amount > 0 && <span>{formatPrice(amount, currency)}</span>}
         </>
       ) : (
         <span>—</span>

@@ -1,4 +1,5 @@
 import i18n from "@/i18n";
+import { formatPrice } from "@/lib/currency";
 
 /**
  * Shared helper for student status across pages.
@@ -16,6 +17,7 @@ export interface StudentStatusInput {
   unpaid_count: number;
   unpaid_total: number;
   last_lesson_at: string | null;
+  currency?: string | null;
 }
 
 export function computeStudentStatus(
@@ -24,7 +26,7 @@ export function computeStudentStatus(
   if (s.unpaid_count > 0) {
     return {
       status: "debt",
-      label: i18n.t("studentStatus.debt", { amount: `${s.unpaid_total} ₴`, count: s.unpaid_count }),
+      label: i18n.t("studentStatus.debt", { amount: formatPrice(s.unpaid_total, s.currency ?? "UAH"), count: s.unpaid_count }),
     };
   }
   if (!s.last_lesson_at) {

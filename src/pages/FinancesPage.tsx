@@ -67,7 +67,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { cn } from "@/lib/utils";
 import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
-import { formatPrice } from "@/lib/currency";
+import { formatPrice} from "@/lib/currency";
 
 type PaymentStatus = "paid" | "unpaid";
 type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
@@ -1214,7 +1214,7 @@ export default function FinancesPage() {
                     <div className="flex shrink-0 items-center gap-2">
                       <div className="text-right text-sm font-semibold text-primary tabular-nums">
                         {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} {t("finances.lessonsUnit")}</div>}
-                        {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                        {Number(tx.amount_delta) > 0 && <div>+{formatPrice(Number(tx.amount_delta), pairCurrencies[`${tx.tutor_id}:${tx.student_id}`] ?? "UAH")}</div>}
                       </div>
                       {isManager && (
                         <span
@@ -1260,7 +1260,7 @@ export default function FinancesPage() {
                       }`}
                       style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}
                     >
-                      {rowCurrency(l) === "UAH" ? `${lessonProfit} ₴` : <span title={t("finances.mixedCurrencyProfit")}>—</span>}
+                      {rowCurrency(l) === "UAH" ? formatPrice(lessonProfit, "UAH") : <span title={t("finances.mixedCurrencyProfit")}>—</span>}
                     </div>
                   )}
                 </div>
@@ -1317,7 +1317,7 @@ export default function FinancesPage() {
                         <span className={cn(
                           "text-sm font-semibold",
                           tutorUnpaid ? "text-warning" : "text-foreground",
-                        )}>-{l.tutor_payout} ₴</span>
+                        )}>-{formatPrice(Number(l.tutor_payout), "UAH")}</span>
                         <button
                           onClick={() => togglePayment(l, "tutor_payout_status")}
                           aria-label={t("finances.statusPaidOut")}
@@ -1423,7 +1423,7 @@ export default function FinancesPage() {
                         <div className="flex items-center justify-end gap-2">
                           <div className="text-right font-semibold text-primary tabular-nums">
                             {tx.lessons_delta > 0 && <div>+{tx.lessons_delta} {t("finances.lessonsUnit")}</div>}
-                            {Number(tx.amount_delta) > 0 && <div>+{Number(tx.amount_delta).toFixed(0)} ₴</div>}
+                            {Number(tx.amount_delta) > 0 && <div>+{formatPrice(Number(tx.amount_delta), pairCurrencies[`${tx.tutor_id}:${tx.student_id}`] ?? "UAH")}</div>}
                           </div>
                           {isManager && (
                             <button
@@ -1517,7 +1517,7 @@ export default function FinancesPage() {
                             <div className={cn(
                               "font-semibold",
                               tutorUnpaid ? "text-warning" : "text-destructive",
-                            )}>-{l.tutor_payout} ₴</div>
+                            )}>-{formatPrice(Number(l.tutor_payout), "UAH")}</div>
                             <button onClick={() => togglePayment(l, "tutor_payout_status")} className="mt-1 inline-block">
                               <Badge
                                 className={
@@ -1535,7 +1535,7 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className={`px-3 py-3 text-right font-semibold ${!isGroup && lessonProfit < 0 ? "text-destructive" : "text-foreground"}`}>
-                        {isGroup ? <span className="text-muted-foreground">—</span> : `${rowCurrency(l) === "UAH" ? `${lessonProfit} ₴` : <span title={t("finances.mixedCurrencyProfit")}>—</span>}`}
+                        {isGroup ? (<span className="text-muted-foreground">—</span>) : rowCurrency(l) === "UAH" ? (formatPrice(lessonProfit, "UAH")) : (<span title={t("finances.mixedCurrencyProfit")}>—</span>)}
                       </td>
                     )}
                   </tr>
@@ -1767,11 +1767,11 @@ export default function FinancesPage() {
                   💰 {t("finances.payoutReceived")}
                 </p>
                 <p style={{ fontFamily: H.display, fontWeight: 900, fontSize: 38, color: H.teal, letterSpacing: "-0.025em", lineHeight: 1 }}>
-                  {totalExpense.toLocaleString(getLocale())} ₴
+                  {formatPrice(totalExpense, "UAH")}
                 </p>
                 {pendingExpense > 0 && (
                   <p style={{ fontFamily: H.body, fontSize: 14, color: "rgba(255,255,255,.45)", marginTop: 6 }}>
-                    + {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
+                    + {t("finances.payoutPendingAmount", { sum: formatPrice(pendingExpense, "UAH") })}
                   </p>
                 )}
               </div>
@@ -1783,7 +1783,7 @@ export default function FinancesPage() {
                   ⏳ {t("finances.payoutPendingLabel")}
                 </p>
                 <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 22, color: H.warnD }}>
-                  {pendingExpense.toLocaleString(getLocale())} ₴
+                  {formatPrice(pendingExpense, "UAH")}
                 </p>
                 <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.7, marginTop: 2 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
@@ -1831,7 +1831,7 @@ export default function FinancesPage() {
                         </div>
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
                           <p style={{ fontFamily: H.display, fontWeight: 800, fontSize: 15, color: paid ? "#16a34a" : H.warnD }}>
-                            {l.tutor_payout.toLocaleString(getLocale())} ₴
+                            {formatPrice(Number(l.tutor_payout), "UAH")}
                           </p>
                           <span style={{ fontFamily: H.display, fontWeight: 700, fontSize: 14,
                             color: paid ? "#16a34a" : H.warnD }}>
@@ -1859,7 +1859,7 @@ export default function FinancesPage() {
             {pendingExpense > 0 && (
               <div style={{ borderRadius: 18, padding: "16px 18px", background: H.warnBg, border: `1px solid ${H.warnBorder}` }}>
                 <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: H.warnD, marginBottom: 4 }}>
-                  ⏳ {t("finances.payoutPendingAmount", { sum: pendingExpense.toLocaleString(getLocale()) })}
+                  ⏳ {t("finances.payoutPendingAmount", { sum: formatPrice(pendingExpense, "UAH") })}
                 </p>
                 <p style={{ fontFamily: H.body, fontSize: 14, color: H.warnD, opacity: 0.8 }}>
                   {t("finances.lessonsCount", { count: pendingCount })}
@@ -1868,7 +1868,7 @@ export default function FinancesPage() {
             )}
             <div style={{ borderRadius: 18, padding: "16px 18px", background: "rgba(34,197,94,.06)", border: "1px solid rgba(34,197,94,.2)" }}>
               <p style={{ fontFamily: H.display, fontWeight: 700, fontSize: 16, color: "#16a34a", marginBottom: 4 }}>
-                ✓ {t("finances.payoutReceived")}: {totalExpense.toLocaleString(getLocale())} ₴
+                ✓ {t("finances.payoutReceived")}: {formatPrice(totalExpense, "UAH")}
               </p>
               <p style={{ fontFamily: H.body, fontSize: 14, color: "#15803d", opacity: 0.85 }}>
                 {t("finances.lessonsCount", { count: paidCount })}
@@ -2537,24 +2537,24 @@ export default function FinancesPage() {
                 <SummaryStat
                   icon={ArrowDownLeft}
                   label={isIndependentTutor ? t("finances.received") : t("finances.incoming")}
-                  value={isIndependentTutor ? fmtCurList(incomeByCur) : `${totalIncome.toLocaleString(getLocale())} ₴`}
+                  value={isIndependentTutor ? fmtCurList(incomeByCur) : formatPrice(totalIncome, "UAH")}
                   tone="success"
                 />
                 {!isIndependentTutor && (
-                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${totalExpense.toLocaleString(getLocale())} ₴`} tone="neutral" />
+                  <SummaryStat icon={ArrowUpRight} label={t("finances.payouts")} value={`${formatPrice(totalExpense, "UAH")}`} tone="neutral" />
                 )}
                 {!isIndependentTutor && (
                   <SummaryStat
                     icon={TrendingUp}
                     label={t("finances.profit")}
-                    value={`${profit.toLocaleString(getLocale())} ₴`}
+                    value={formatPrice(profit, "UAH")}
                     tone={profit >= 0 ? "success" : "warning"}
                   />
                 )}
                 <SummaryStat
                   icon={DollarSign}
                   label={t("finances.debtsTab", { defaultValue: "Заборгованості" })}
-                  value={isIndependentTutor ? fmtCurList(pendingByCur) : `${totalDebt.toLocaleString(getLocale())} ₴`}
+                  value={isIndependentTutor ? fmtCurList(pendingByCur) : formatPrice(totalDebt, "UAH")}
                   tone={parity && !parity.ok ? "warning" : totalDebt > 0 ? "warning" : "neutral"}
                 />
               </div>
@@ -2580,7 +2580,7 @@ export default function FinancesPage() {
                         <span className="shrink-0 font-bold" style={{ color: "var(--teal,#2BBFAA)" }}>
                           {r.lessons > 0 && t("finances.prepaidLessonsShort", { count: r.lessons })}
                           {r.lessons > 0 && r.amount > 0 && " + "}
-                          {r.amount > 0 && `${r.amount.toLocaleString("uk-UA")} ₴`}
+                          {r.amount > 0 && formatPrice(r.amount, "UAH")}
                         </span>
                       </div>
                     ))}
@@ -2744,17 +2744,17 @@ export default function FinancesPage() {
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.profitTrend")}</h2>
                   <span className="text-[14px] text-muted-foreground">
-                    {`${profitSparkline.reduce((s, b) => s + b.profit, 0).toLocaleString(getLocale())} ₴`}
+                    {formatPrice(profitSparkline.reduce((s, b) => s + b.profit, 0), "UAH")}
                   </span>
                 </div>
-                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline data={profitSparkline} /></Suspense>
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><ProfitSparkline cur={domCur} data={profitSparkline} /></Suspense>
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
                   <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}{incomeByStudent[0]?.cur ? ` · ${incomeByStudent[0].cur}` : ""}</h2>
                   <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
                 </div>
-                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>
+                <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie cur={incomeByStudent[0]?.cur ?? "UAH"} data={incomeByStudent} /></Suspense>
               </div>
             </div>
           )}
@@ -2804,7 +2804,7 @@ export default function FinancesPage() {
                 <h2 className="text-sm font-semibold text-foreground">{t("finances.weeklyTrend")}</h2>
                 <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.completedOnly")}</span>
               </div>
-              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart
+              <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><FinanceWeeklyChart cur={domCur}
                 tutorNames={Object.fromEntries(
                   Object.values(profiles).map((p) => [
                     p.id,
@@ -2922,7 +2922,7 @@ export default function FinancesPage() {
               {deletePrepayTx && (
                 <>
                   {deletePrepayTx.lessons_delta > 0 && <b>+{deletePrepayTx.lessons_delta} {t("finances.lessonsUnit")} </b>}
-                  {Number(deletePrepayTx.amount_delta) > 0 && <b>+{Number(deletePrepayTx.amount_delta).toFixed(0)} ₴ </b>}
+                  {Number(deletePrepayTx.amount_delta) > 0 && <b>+{formatPrice(Number(deletePrepayTx.amount_delta), pairCurrencies[`${deletePrepayTx.tutor_id}:${deletePrepayTx.student_id}`] ?? "UAH")} </b>}
                   · {nameOf(deletePrepayTx.student_id)} ↔ {nameOf(deletePrepayTx.tutor_id)}
                   <br />{t("finances.deletePrepayConfirmDesc")}
                 </>

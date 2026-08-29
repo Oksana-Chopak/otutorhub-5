@@ -209,6 +209,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
             studentNotes={row.student_notes}
             source={row.source}
             studentPrice={row.student_price}
+            currency={(row as any)?.currency ?? null}
             studentPaymentStatus={row.student_payment_status}
             lessonStatus={row.status}
             onUpdated={() => {

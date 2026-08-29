@@ -18,7 +18,7 @@ const ENTITLEMENT = "pro";
 export type IapPlan = "monthly" | "yearly";
 
 export interface IapOffer {
-  monthlyPrice?: string; // локалізована ціна, напр. "330,00 ₴"
+  monthlyPrice?: string; // локалізована ціна зі стора (формат StoreKit/Play)
   yearlyPrice?: string;
 }
 

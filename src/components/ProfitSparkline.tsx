@@ -1,4 +1,5 @@
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts";
+import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
@@ -13,7 +14,7 @@ function shortLabel(iso: string): string {
   return d.toLocaleDateString(getLocale(), { day: "2-digit", month: "short" });
 }
 
-export function ProfitSparkline({ data }: { data: Point[] }) {
+export function ProfitSparkline({ cur = "UAH", data }: { data: Point[]; cur?: string }) {
   const hasAny = data.some((d) => d.profit !== 0);
   if (!hasAny) {
     return (
@@ -41,7 +42,7 @@ export function ProfitSparkline({ data }: { data: Point[] }) {
               borderRadius: 8,
               fontSize: 14,
             }}
-            formatter={(v: number) => [`${v} ₴`, t("profitSparkline.profit")]}
+            formatter={(v: number) => [formatPrice(v, cur), t("profitSparkline.profit")]}
             labelFormatter={(l) => t("profitSparkline.weekFrom", { date: l })}
           />
           <Area

@@ -263,7 +263,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                 </div>
                 <Pill on={st.done} label={t("closeDayDialog.conductedPill")} onClick={() => setState((s) => ({ ...s, [r.id]: { ...st, done: !st.done } }))} />
                 {r.showPay !== false && (
-                  <Pill on={st.done && (st.paid || r.paid)} gold label="₴"
+                  <Pill on={st.done && (st.paid || r.paid)} gold label="💰"
                     onClick={() => st.done && !r.paid && setState((s) => ({ ...s, [r.id]: { ...st, paid: !st.paid } }))} />
                 )}
               </div>
