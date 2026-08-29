@@ -13,7 +13,7 @@ export const en: LocaleTranslations = {
     closeAll: "Close the day ({{count}})",
     write: "Write",
     openSchedule: "Schedule →",
-    closedTitle: "Day closed 🌙",
+    closedTitle: "Day closed",
     planNext: "Plan the next ones",
   
     summariesTitle_one: "Summary for {{count}} lesson",
@@ -21,7 +21,10 @@ export const en: LocaleTranslations = {
     summariesTitle_other: "Summaries for {{count}} lessons",
     tomorrowTitle_one: "Tomorrow {{count}} lesson, first at {{time}}",
     tomorrowTitle_few: "Tomorrow {{count}} lessons, first at {{time}}",
-    tomorrowTitle_other: "Tomorrow {{count}} lessons, first at {{time}}",},
+    tomorrowTitle_other: "Tomorrow {{count}} lessons, first at {{time}}",
+    addLink: "Add link",
+    freeDay: "A free day today",
+    nextTodayTitle: "Next at {{time}} — {{name}}",},
   closeDaySummary: {
     createdBulk: "{{count}} lessons created 📅",
     subtitle: "{{count}} lessons completed",

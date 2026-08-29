@@ -114,7 +114,7 @@ export function QuickLessonDialog({
   const [timeTouched, setTimeTouched] = useState(false);
   useEffect(() => { if (!open) setTimeTouched(false); }, [open]);
   useEffect(() => {
-    if (!open || !studentId || !effTutorId || timeTouched) return;
+    if (!open || !studentId || !effTutorId || timeTouched || startsAt) return; // слот із календаря святий
     let off = false;
     void pairNextDefault(effTutorId, studentId).then((d) => {
       if (!off && d && !timeTouched) setWhenLocal(d);

@@ -10,7 +10,7 @@ export const uk = {
     closeAll: "Закрити день ({{count}})",
     write: "Написати",
     openSchedule: "Розклад →",
-    closedTitle: "День закрито 🌙",
+    closedTitle: "День закрито",
     planNext: "Запланувати наступні",
   
     endedTitle: "{{name}} — урок завершився?",
@@ -19,7 +19,10 @@ export const uk = {
     summariesTitle_many: "Конспект для {{count}} уроків",
     tomorrowTitle_one: "Завтра {{count}} урок, перший о {{time}}",
     tomorrowTitle_few: "Завтра {{count}} уроки, перший о {{time}}",
-    tomorrowTitle_many: "Завтра {{count}} уроків, перший о {{time}}",},
+    tomorrowTitle_many: "Завтра {{count}} уроків, перший о {{time}}",
+    addLink: "Додати лінк",
+    freeDay: "Сьогодні вільний день",
+    nextTodayTitle: "Далі о {{time}} — {{name}}",},
   closeDaySummary: {
     createdBulk: "Створено {{count}} уроків 📅",
     subtitle: "Проведено {{count}} уроків",

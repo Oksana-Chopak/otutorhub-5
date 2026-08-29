@@ -168,7 +168,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
             <p style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.planTitle")}</p>
             <div style={{ borderRadius: 16, border: "1px solid var(--border,#eceef3)", overflow: "hidden" }}>
               {planRows.map((r) => {
-                const next = new Date(new Date(r.starts_at).getTime() + 7 * 86400000);
+                const next = new Date(r.starts_at); next.setDate(next.getDate() + 7); // DST-безпечно
                 return (
                   <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderBottom: "1px solid var(--border,#eceef3)", cursor: "pointer" }}>
                     <input type="checkbox" checked={planChecked[r.id] ?? false}

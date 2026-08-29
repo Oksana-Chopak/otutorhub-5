@@ -31,7 +31,7 @@ export async function createNextWeekLessons(
     duration_minutes: r.duration_minutes ?? 60,
     status: "scheduled" as const,
     source: (r.source ?? "independent") as string,
-    starts_at: new Date(new Date(r.starts_at).getTime() + 7 * 86400000).toISOString(),
+    starts_at: (() => { const d = new Date(r.starts_at); d.setDate(d.getDate() + 7); return d.toISOString(); })(), // DST-безпечно
     meeting_url: null as string | null,
   }));
   const { data: createdRows, error } = await supabase.from("lessons").insert(payloads).select("id");

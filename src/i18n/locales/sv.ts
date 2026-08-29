@@ -14,7 +14,7 @@ export const sv: LocaleTranslations = {
     closeAll: "Stäng dagen ({{count}})",
     write: "Skriv",
     openSchedule: "Schema →",
-    closedTitle: "Dagen stängd 🌙",
+    closedTitle: "Dagen är stängd",
     planNext: "Boka nästa",
   
     summariesTitle_one: "Anteckning för {{count}} lektion",
@@ -22,7 +22,10 @@ export const sv: LocaleTranslations = {
     summariesTitle_other: "Anteckningar för {{count}} lektioner",
     tomorrowTitle_one: "Imorgon {{count}} lektion, första kl. {{time}}",
     tomorrowTitle_few: "Imorgon {{count}} lektioner, första kl. {{time}}",
-    tomorrowTitle_other: "Imorgon {{count}} lektioner, första kl. {{time}}",},
+    tomorrowTitle_other: "Imorgon {{count}} lektioner, första kl. {{time}}",
+    addLink: "Lägg till länk",
+    freeDay: "Ledig dag idag",
+    nextTodayTitle: "Nästa kl. {{time}} — {{name}}",},
   closeDaySummary: {
     createdBulk: "{{count}} lektioner skapade 📅",
     subtitle: "{{count}} lektioner genomförda",

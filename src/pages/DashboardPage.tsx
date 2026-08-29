@@ -1478,6 +1478,7 @@ export default function DashboardPage() {
               onCloseDay={() => setCloseDayOpen(true)}
               onPlanNext={() => navigate("/schedule?create=1")}
               onOpenSchedule={() => navigate("/schedule")}
+              canMarkPaid={isIndependentTutor || isManager}
             />
           )}
 

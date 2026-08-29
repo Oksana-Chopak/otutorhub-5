@@ -16,6 +16,7 @@ export async function pairNextDefault(tutorId: string, studentId: string): Promi
   const last = (data as any[])?.[0]?.starts_at as string | undefined;
   if (!last) return null;
   const d = new Date(last);
-  d.setDate(d.getDate() + 7);
+  // P3: остання пара могла бути давно — котимо тижнями вперед, доки не в майбутньому.
+  do { d.setDate(d.getDate() + 7); } while (d.getTime() <= Date.now());
   return d;
 }
