@@ -761,9 +761,14 @@ export default function FinancesPage() {
         if (!curs.has(l.student_id))
           curs.set(l.student_id, (l as any).currency ?? pairCurrencies[`${l.tutor_id}:${l.student_id}`] ?? "UAH");
       });
-    const rows = Array.from(map.entries())
+    const all = Array.from(map.entries())
       .map(([student_id, amount]) => ({ student_id, name: nameOf(student_id), amount, cur: curs.get(student_id) ?? "UAH" }))
       .sort((a, b) => b.amount - a.amount);
+    // P0.8: сектори — ТІЛЬКИ домінантна валюта; площі від чесної суми.
+    const byCur = new Map<string, number>();
+    all.forEach((r) => byCur.set(r.cur, (byCur.get(r.cur) ?? 0) + r.amount));
+    const dom = [...byCur.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "UAH";
+    const rows = all.filter((r) => r.cur === dom);
     const TOP = 6;
     if (rows.length <= TOP) return rows;
     const head = rows.slice(0, TOP);
@@ -1255,7 +1260,7 @@ export default function FinancesPage() {
                       }`}
                       style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}
                     >
-                      {lessonProfit} ₴
+                      {rowCurrency(l) === "UAH" ? `${lessonProfit} ₴` : <span title={t("finances.mixedCurrencyProfit")}>—</span>}
                     </div>
                   )}
                 </div>
@@ -1530,7 +1535,7 @@ export default function FinancesPage() {
                     )}
                     {!isIndependentTutor && (
                       <td className={`px-3 py-3 text-right font-semibold ${!isGroup && lessonProfit < 0 ? "text-destructive" : "text-foreground"}`}>
-                        {isGroup ? <span className="text-muted-foreground">—</span> : `${lessonProfit} ₴`}
+                        {isGroup ? <span className="text-muted-foreground">—</span> : `${rowCurrency(l) === "UAH" ? `${lessonProfit} ₴` : <span title={t("finances.mixedCurrencyProfit")}>—</span>}`}
                       </td>
                     )}
                   </tr>
@@ -1619,7 +1624,6 @@ export default function FinancesPage() {
   [periodStudentDebts]);
 
   const paidLessonsCount = periodBillable.filter(l => l.student_payment_status === "paid").length;
-  const avgLesson = paidLessonsCount > 0 ? Math.round(totalIncome / paidLessonsCount) : 0;
 
   // Multi-currency (independent tutors bill in up to 5 currencies): summing mixed
   // currencies into one «₴» number misstates the money. Group per currency; the
@@ -1629,6 +1633,11 @@ export default function FinancesPage() {
   const incomeByCur = sumByCurrency(
     periodBillable.filter((l) => l.student_payment_status === "paid"),
     (l) => Number(l.student_price ?? 0), rowCurrency);
+  // P0.7: середнє — лише в домінантній валюті, а не сума яблук із метрами.
+  const domCur = incomeByCur[0]?.[0] ?? "UAH";
+  const domPaidCount = periodBillable.filter(
+    (l) => l.student_payment_status === "paid" && rowCurrency(l) === domCur).length;
+  const avgLesson = domPaidCount > 0 ? Math.round((incomeByCur[0]?.[1] ?? 0) / domPaidCount) : 0;
   const pendingByCur = sumByCurrency(
     periodStudentDebts,
     (l) => Number(l.student_price ?? 0), rowCurrency);
@@ -1670,7 +1679,7 @@ export default function FinancesPage() {
       const paid = l.student_payment_status === "paid";
       if (ts >= monthStart) {
         if (paid) thisMonth += price;
-        if (l.status === "cancelled") cancelledLost += price;
+        if (l.status === "cancelled" && !(l as any).is_cancellation_fee) cancelledLost += price; // P0.10
         else if (l.status !== "pending") projected += price; // booked total this month
         if (l.status === "completed") { completedSum += price; completedCount += 1; }
       } else if (ts >= prevStart && ts < prevAlignedEnd) {
@@ -2742,7 +2751,7 @@ export default function FinancesPage() {
               </div>
               <div className="rounded-xl border border-border bg-card p-4">
                 <div className="mb-2 flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}</h2>
+                  <h2 className="text-sm font-semibold text-foreground">{t("finances.incomeByStudent")}{incomeByStudent[0]?.cur ? ` · ${incomeByStudent[0].cur}` : ""}</h2>
                   <span className="hidden text-[14px] text-muted-foreground sm:inline">{t("finances.paidOnly")}</span>
                 </div>
                 <Suspense fallback={<div className="animate-pulse" style={{ height: 180, borderRadius: 16, background: "#f3f4f6" }} />}><IncomeByStudentPie data={incomeByStudent} /></Suspense>

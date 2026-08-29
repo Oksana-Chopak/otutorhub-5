@@ -528,7 +528,7 @@ export default function SubscriptionPage() {
           )}
         </div>
 
-        <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing === "halfyear" ? "yearly" : billing} />
+        <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
         <BackToProfile />
       </div>
     </AppLayout>

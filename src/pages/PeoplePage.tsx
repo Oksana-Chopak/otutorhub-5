@@ -1587,7 +1587,7 @@ export default function PeoplePage() {
                         <p className="text-[14px] text-muted-foreground">
                           {t("people.tutorRateForSubject")}{" "}
                           <span className="font-medium text-foreground">{tutorRate} ₴</span>
-                          {margin !== null && (
+                          {margin !== null && addTutorToStudent.currency === "UAH" && (
                             <>
                               {" · "}{t("people.hubMarginLabel")}{" "}
                               <span className={margin > 0 ? "font-medium text-foreground" : "font-semibold text-destructive"}>
