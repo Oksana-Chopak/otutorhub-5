@@ -147,7 +147,7 @@ export default function ProfilePage() {
   // Live achievements for the profile motivation card (level / streak / badges) —
   // computed for EVERY tutor incl. hub (streak trigger runs on any completion).
   const { level: gamLevel, streak: gamStreak, badges: gamBadges } = useTutorGamification();
-  const { isIndependent, isTrial, isPro, settings, updateSettings, refresh: refreshSettings } = useWorkspaceSettings();
+  const { isIndependent, isTrial, isPro, settings, updateSettings, refresh: refreshSettings, loading: wsLoading } = useWorkspaceSettings();
   // Cross-cutting visibility decisions go through canSee(roleFlags) — see
   // src/lib/roleCapabilities.ts + role-capabilities.test.ts (the role×feature matrix).
   const roleFlags: RoleFlags = { isManager, isTutor, isIndependent, isStudent: roles.includes("student") };
@@ -219,7 +219,7 @@ export default function ProfilePage() {
   // matching sheet) just scroll.
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (!hash) return;
+    if (!hash || wsLoading) return; // Р3
     // P8: rules/automark — незалежні політики; хабовому дип-лінк їх не відкриє.
     const sheetKeys = [
       ...(canSee("paymentRules", roleFlags) ? ["rules"] : []),
@@ -235,7 +235,7 @@ export default function ProfilePage() {
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 350);
     return () => clearTimeout(id);
-  }, []);
+  }, [wsLoading, isIndependent, roles]); // Р3: на монтуванні прапори ще не готові
   const [profileName, setProfileName] = useState<{first: string; last: string}>({ first: "", last: "" });
   const [editFirst, setEditFirst] = useState("");
   const [editLast, setEditLast] = useState("");

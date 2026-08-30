@@ -1567,7 +1567,7 @@ export default function SchedulePage() {
                           : (["scheduled", "completed", "cancelled"] as LessonStatus[])}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
                         onPayChange={
-                          (isManager || (isTutor && lesson.tutor_id === user?.id))
+                          (isManager || (isTutor && lesson.tutor_id === user?.id && lesson.source === "independent"))
                             ? (field, paid) =>
                                 updatePayment(
                                   lesson.id,

@@ -36,7 +36,7 @@ const fmtDate = (iso: string | null) =>
 
 export default function WalletsPage() {
   const { roles, user } = useAuth();
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isIndependentTutor =
     !isManager && roles.includes("tutor") && isIndependent;
@@ -141,6 +141,8 @@ export default function WalletsPage() {
       });
   }, [rows, search, showAll]);
 
+  // Р2: без цього перший рендер (прапор ще false) викидав і НЕЗАЛЕЖНОГО.
+  if (wsLoading) return null;
   // P8: хабовий бачив гаманці СВОЇХ хабових учнів — гроші, сплачені хабу.
   if (!isManager && roles.includes("tutor") && !isIndependent) return <Navigate to="/" replace />;
 

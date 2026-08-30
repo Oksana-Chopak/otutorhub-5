@@ -14,7 +14,7 @@ function walk(dir) {
     src.split("\n").forEach((line, i) => {
       const tl = line.trim();
       if (tl.startsWith("//") || tl.startsWith("*") || tl.startsWith("/*")) return;   // коментарі
-      if (/currency|SYMBOL|formatPrice|usd\(/.test(line)) return;                      // канон у дії
+      if (/SYMBOL|from "@\/lib\/currency"/.test(line)) return; // Р: лише визначення канону, НЕ виклики — гейт не вірить собі на слово
       if (/[₴€£]|(?<=[\d}]\s?)kr\b|\bkr(?=\s?[\d{])|(?<=[\d}]\s?)zł\b|\bzł(?=\s?[\d{])/.test(line)) hits.push(`${p}:${i + 1}: ${tl.slice(0, 100)}`);
     });
   }

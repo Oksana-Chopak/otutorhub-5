@@ -2013,7 +2013,9 @@ export const sv: LocaleTranslations = {
     allSetDesc: "Alla boosters anslutna. Bra jobbat!",
     skipTask: "Hoppa över",
     connectInProfile: "Du kan alltid ansluta i Profilen →",
-  },
+  
+
+    months: "januari,februari,mars,april,maj,juni,juli,augusti,september,oktober,november,december",},
   notifications: {
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",
@@ -4315,7 +4317,7 @@ export const sv: LocaleTranslations = {
     autoSendTitle: "Skicka till eleven automatiskt",
     autoSendDesc: "Den färdiga sammanfattningen skickas direkt till eleven — utan att du behöver göra något.",
     tryCta: "Klar",
-    footerHint: "Öppna valfri lektion blocket \"AI-anteckningar\". En Zoom-/Meet-länk krävs för inspelning.",
+    footerHint: "Öppna valfri lektion → blocket \"AI-anteckningar\". En Zoom-/Meet-länk krävs för inspelning.",
   },
   chatContextPanel: {
     emailCopied: "E-post kopierad",

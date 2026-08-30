@@ -1195,7 +1195,7 @@ export default function DashboardPage() {
         icon: Wallet,
         tone: "warning" as const,
         title: t("dashboardExtra.payoutDueTitle", { name: sch.name }),
-        description: sum > 0 ? t("dashboardExtra.payoutDueLessons", { sum: formatPrice((sum.toLocaleString(getLocale())), "UAH"), count: unpaid.length }) : t("dashboardExtra.payoutAllPaid"),
+        description: sum > 0 ? t("dashboardExtra.payoutDueLessons", { sum: formatPrice(sum, "UAH"), count: unpaid.length }) : t("dashboardExtra.payoutAllPaid"),
         to: "/finances",
         cta: t("dashboardExtra.payoutDueCta"),
         payTutorId: sch.user_id,
@@ -2254,9 +2254,9 @@ export default function DashboardPage() {
                         canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
-                        onPayChange={isManager
+                        onPayChange={(isManager || lesson.source === "independent")
                           ? (field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)
-                          : undefined /* P8: hub-тьютор тапав → RPC «Only managers…» */}
+                          : undefined /* Р4: hub — ні, незалежний на СВОЄМУ уроці — так */}
                       />
                     );
                   })

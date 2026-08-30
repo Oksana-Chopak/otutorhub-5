@@ -452,7 +452,7 @@ export function LessonWorkspace({
       )}
 
       {/* 0b. Post-completion nudge to record payment */}
-      {canMarkCompleted && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && (
+      {canTogglePayment && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && ( /* Р5 */
         <section className="rounded-[16px] border border-warning/30 bg-warning/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">

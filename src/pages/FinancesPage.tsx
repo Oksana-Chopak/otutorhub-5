@@ -2568,7 +2568,7 @@ export default function FinancesPage() {
                 <p className={`mt-1.5 text-[13px] ${parity.ok ? "text-muted-foreground" : "font-semibold text-warning"}`}>
                   {parity.ok
                     ? t("finances.parityOk")
-                    : t("finances.parityMismatch", { db: formatPrice((parity.db.toLocaleString("uk-UA")), "UAH"), app: formatPrice((parity.app.toLocaleString("uk-UA")), "UAH")})}
+                    : t("finances.parityMismatch", { db: formatPrice(parity.db, "UAH"), app: formatPrice(parity.app, "UAH")})}
                 </p>
               )}
             </div>

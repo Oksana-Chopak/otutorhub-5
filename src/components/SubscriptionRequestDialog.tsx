@@ -71,7 +71,7 @@ export function SubscriptionRequestDialog({
       });
   }, [open, user?.id]);
 
-  const planLabel = billing === "yearly" ? "pro_yearly" : "pro_monthly";
+  const planLabel = billing === "yearly" ? "pro_yearly" : billing === "halfyear" ? "pro_halfyear" : "pro_monthly";
   const price = billing === "yearly" ? PRICE_YEAR_TOTAL : billing === "halfyear" ? PRICE_HALF_TOTAL : PRICE_MONTHLY;
 
   const submit = async () => {

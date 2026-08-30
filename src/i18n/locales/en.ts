@@ -2026,7 +2026,9 @@ export const en: LocaleTranslations = {
     allSetDesc: "All boosters connected. Great job!",
     skipTask: "Skip",
     connectInProfile: "You can always connect it in Profile →",
-  },
+  
+
+    months: "January,February,March,April,May,June,July,August,September,October,November,December",},
   notifications: {
     title: "Notifications",
     markAllRead: "Mark all as read",
@@ -4328,7 +4330,7 @@ export const en: LocaleTranslations = {
     autoSendTitle: "Send to the student automatically",
     autoSendDesc: "The finished summary goes to the student right away — with no action from you.",
     tryCta: "Done",
-    footerHint: "Open any lesson the \"AI notes\" block. A Zoom / Meet link is required for recording.",
+    footerHint: "Open any lesson → the \"AI notes\" block. A Zoom / Meet link is required for recording.",
   },
   chatContextPanel: {
     emailCopied: "Email copied",
