@@ -428,6 +428,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
 
               {active.kind === "cancel" ? (
                 <div className="space-y-3">
+                  {isIndependent && ( /* P8: free-hours — політика незалежного, не хаба */
                   <div
                     className={cn(
                       "rounded-lg border p-3 text-[14px]",
@@ -440,6 +441,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
                       ? t("tutorChangeRequestsExtra.lateWarning", { status: hoursUntil < 0 ? t("tutorChangeRequestsExtra.statusPassed") : t("tutorChangeRequestsExtra.statusInHours", { h: hoursUntil }), hours: cancelFreeHours })
                       : t("tutorChangeRequestsExtra.earlyInfo", { hours: hoursUntil, limit: cancelFreeHours })}
                   </div>
+                  )}
                   {/* The cancellation CHARGE is an independent-tutor concept (they own the
                       student price). A hub tutor doesn't set the hub's receivable — student
                       price is masked here — so they just approve the cancellation. */}

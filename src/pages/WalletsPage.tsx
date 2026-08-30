@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
+import { Navigate } from "react-router-dom";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
 import { Wallet, Plus, Search, Loader2, X } from "lucide-react";
@@ -139,6 +140,9 @@ export default function WalletsPage() {
         return a.student_name.localeCompare(b.student_name, "uk");
       });
   }, [rows, search, showAll]);
+
+  // P8: хабовий бачив гаманці СВОЇХ хабових учнів — гроші, сплачені хабу.
+  if (!isManager && roles.includes("tutor") && !isIndependent) return <Navigate to="/" replace />;
 
   return (
     <AppLayout>

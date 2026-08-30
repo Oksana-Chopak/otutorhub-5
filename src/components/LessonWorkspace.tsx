@@ -122,7 +122,7 @@ export function LessonWorkspace({
   // а в самостійному режимі — лише Pro/Trial
   const aiAllowed = !isIndependent || isPro;
   const canTogglePayment = (isTutor && source === "independent") || isManager;
-  const canMarkCompleted = (isTutor && source === "independent") || isManager;
+  const canMarkCompleted = isTutor || isManager; // P8: свій урок — своя кнопка, конфеті для всіх
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paidLocal, setPaidLocal] = useState<"paid" | "unpaid">(studentPaymentStatus ?? "unpaid");
   const [statusLocal, setStatusLocal] = useState<string>(lessonStatus ?? "scheduled");

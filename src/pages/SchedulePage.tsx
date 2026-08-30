@@ -222,7 +222,7 @@ export default function SchedulePage() {
   });
 
   const canEditScheduleFields = (lesson: Lesson | null) =>
-    !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
+    !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id && lesson.source === "independent"));
   const canEditTeachingFields = (lesson: Lesson | null) =>
     !!lesson && (isManager || (isTutor && lesson.tutor_id === user?.id));
 

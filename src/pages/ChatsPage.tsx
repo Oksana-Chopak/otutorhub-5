@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
@@ -103,6 +104,7 @@ function timeShort(iso: string | null | undefined) {
 }
 
 export default function ChatsPage() {
+  const { isIndependent } = useWorkspaceSettings(); // P8: третя персона порожнього стану
   const { t } = useTranslation();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
@@ -826,7 +828,7 @@ export default function ChatsPage() {
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-[14px] text-muted-foreground">
-            {isManager ? t("chats.noChatsManager") : t("chats.noChatsOther")}
+            {isManager ? t("chats.noChatsManager") : isIndependent ? t("chats.noChatsIndependent") : t("chats.noChatsOther")}
           </p>
           {/* Managers can have zero chats and still need to start one — give the
               empty state a forward action instead of dead-ending. */}

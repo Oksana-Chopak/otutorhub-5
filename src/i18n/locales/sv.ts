@@ -631,7 +631,9 @@ export const sv: LocaleTranslations = {
     csvPending: "Väntar",
     csvPaidOut: "Utbetald",
   
-    mixedCurrencyProfit: "Blandade valutor — en enda vinstsiffra är omöjlig",},
+    mixedCurrencyProfit: "Blandade valutor — en enda vinstsiffra är omöjlig",
+    exportKindPaidOut: "Utbetalt",
+    exportKindNotPaidOut: "Ej utbetalt",},
   subjectSelect: {
     removeItem: "Ta bort",
     customPlaceholder: "Eller skriv ett eget ämne…",
@@ -741,7 +743,8 @@ export const sv: LocaleTranslations = {
     reactionRemove: "Ta bort reaktion",
     reactionAdd: "Lägg till reaktion",
     reactionTitle: "Reaktion",
-  },
+  
+    noChatsIndependent: "Chattar visas efter din första lektion med en elev",},
   profile: {
     achStreak_one: "{{count}} dags svit",
     achStreak_other: "{{count}} dagars svit",

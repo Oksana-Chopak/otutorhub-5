@@ -1428,7 +1428,7 @@ export default function DashboardPage() {
         variant={isManager ? "manager" : isHubTutor ? "hub" : "independent"}
       />
 
-      {loading ? (
+      {loading || wsLoading ? ( /* P8: без кадрів чужого кабінету */
         <DashboardSkeleton />
       ) : (
         <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-clip">
@@ -2254,7 +2254,9 @@ export default function DashboardPage() {
                         canEditStatus={canEditStatus}
                         statusOptions={(isManager ? ["pending","scheduled","completed","cancelled"] : ["scheduled","completed","cancelled"]) as LessonStatus[]}
                         onStatusChange={canEditStatus ? (s) => updateStatus(lesson.id, s) : undefined}
-                        onPayChange={(field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)}
+                        onPayChange={isManager
+                          ? (field, paid) => updatePayment(lesson.id, field === "student" ? "student_payment_status" : "tutor_payout_status", (paid ? "paid" : "unpaid") as PaymentStatus)
+                          : undefined /* P8: hub-тьютор тапав → RPC «Only managers…» */}
                       />
                     );
                   })

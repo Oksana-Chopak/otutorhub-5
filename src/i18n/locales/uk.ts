@@ -883,7 +883,9 @@ export const uk = {
     csvPending: "Очікує",
     csvPaidOut: "Виплачено",
   
-    mixedCurrencyProfit: "Різні валюти — одна цифра прибутку неможлива",},
+    mixedCurrencyProfit: "Різні валюти — одна цифра прибутку неможлива",
+    exportKindPaidOut: "Виплачено",
+    exportKindNotPaidOut: "Не виплачено",},
 
   // Chats
   subjectSelect: {
@@ -995,7 +997,8 @@ export const uk = {
     reactionRemove: "Прибрати реакцію",
     reactionAdd: "Додати реакцію",
     reactionTitle: "Реакція",
-  },
+  
+    noChatsIndependent: "Чати з'являться після першого уроку з учнем",},
 
   // Profile
   profile: {

@@ -196,6 +196,9 @@ export default function FinancesPage() {
   // analytics, or mark student payments. They get a dedicated payout-only view below;
   // the leaking manager-style render is reserved for managers.
   const isHubTutor = isTutor && !isManager && !isIndependent;
+  // P8: для хабового «Дохід/Борги» = «Виплачено/Не виплачено» (хаб-модель).
+  const exportPaidKey = isHubTutor ? "exportKindPaidOut" : "exportKindPaid";
+  const exportUnpaidKey = isHubTutor ? "exportKindNotPaidOut" : "exportKindDebts";
   const canManagePrepay = isManager || isIndependentTutor;
   const [studentFilter, setStudentFilter] = useState("all");
   const [reloadKey, setReloadKey] = useState(0); // B22: рефетч після позначення оплат
@@ -1917,7 +1920,7 @@ export default function FinancesPage() {
               <div>
                 <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                  {([["all", "exportKindAll"], ["paid", exportPaidKey], ["unpaid", exportUnpaidKey]] as [typeof exportKind, string][]).map(([val, key]) => (
                     <button key={val} type="button" onClick={() => setExportKind(val)}
                       className={cn(
                         "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
@@ -2414,7 +2417,7 @@ export default function FinancesPage() {
               <div>
                 <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                  {([["all", "exportKindAll"], ["paid", exportPaidKey], ["unpaid", exportUnpaidKey]] as [typeof exportKind, string][]).map(([val, key]) => (
                     <button key={val} type="button" onClick={() => setExportKind(val)}
                       className={cn(
                         "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
@@ -2893,7 +2896,7 @@ export default function FinancesPage() {
             <div>
               <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportInclude")}</p>
               <div className="grid grid-cols-3 gap-2">
-                {([["all", "exportKindAll"], ["paid", "exportKindPaid"], ["unpaid", "exportKindDebts"]] as const).map(([val, key]) => (
+                {([["all", "exportKindAll"], ["paid", exportPaidKey], ["unpaid", exportUnpaidKey]] as [typeof exportKind, string][]).map(([val, key]) => (
                   <button key={val} type="button" onClick={() => setExportKind(val)}
                     className={cn(
                       "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",

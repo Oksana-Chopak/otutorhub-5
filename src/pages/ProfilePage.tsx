@@ -219,7 +219,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     if (!hash) return;
-    const sheetKeys = ["rules", "automark", "subjects", "calendar", "availability"] as const;
+    // P8: rules/automark — незалежні політики; хабовому дип-лінк їх не відкриє.
+    const sheetKeys = (isIndependent
+      ? ["rules", "automark", "subjects", "calendar", "availability"]
+      : ["subjects", "calendar", "availability"]) as readonly string[];
     if ((sheetKeys as readonly string[]).includes(hash)) {
       setActiveSheet(hash as typeof activeSheet);
     }

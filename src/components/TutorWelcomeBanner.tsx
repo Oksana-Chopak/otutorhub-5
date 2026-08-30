@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useAuth } from "@/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 
 import { CORE_TOTAL } from "@/lib/onboardingSteps";
@@ -17,14 +18,18 @@ const TOTAL_STEPS = CORE_TOTAL; // A11: жодних захардкоджени�
 export function TutorWelcomeBanner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { settings, isIndependent, loading } = useWorkspaceSettings();
+  const { settings, loading } = useWorkspaceSettings();
+  const { roles } = useAuth();
+  // P8: матриця каже setupGuide = true для ОБОХ тьюторів; хабового щойно
+  // редіректили в онбординг — банер-повертач мусить існувати і для нього.
+  const isTutorOnly = roles.includes("tutor") && !roles.includes("manager");
   const [dismissed, setDismissed] = useState<string | null>(null);
 
   useEffect(() => {
     setDismissed(localStorage.getItem(STORAGE_KEY));
   }, []);
 
-  if (loading || !settings || !isIndependent || settings.onboarding_completed) {
+  if (loading || !settings || !isTutorOnly || settings.onboarding_completed) {
     return null;
   }
 

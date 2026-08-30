@@ -877,7 +877,11 @@ export const en: LocaleTranslations = {
     csvPaidOut: "Paid out",
   
 
-    mixedCurrencyProfit: "Mixed currencies — a single profit figure is impossible",},
+    mixedCurrencyProfit: "Mixed currencies — a single profit figure is impossible",
+
+    exportKindPaidOut: "Paid out",
+
+    exportKindNotPaidOut: "Not paid out",},
 
   subjectSelect: {
     removeItem: "Remove",
@@ -988,7 +992,8 @@ export const en: LocaleTranslations = {
     reactionRemove: "Remove reaction",
     reactionAdd: "Add reaction",
     reactionTitle: "Reaction",
-  },
+  
+    noChatsIndependent: "Chats will appear after your first lesson with a student",},
 
   profile: {
     achStreak_one: "{{count}}-day streak",
