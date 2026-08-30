@@ -73,6 +73,7 @@ const allNavItems: NavItem[] = [
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["tutor"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["tutor"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["tutor"] },
+  { to: "/wallets", labelKey: "walletsPage.title", icon: Wallet, roles: ["tutor"], independentOnly: true }, // P5: був прихований
   // Достижения — for BOTH tutor kinds: the hub tutor's cabinet must feel as full
   // and motivating as the manager's (streak/level/badges are computed for them too).
   { to: "/achievements", labelKey: "nav.achievements", icon: Trophy, roles: ["tutor"] },
@@ -84,6 +85,7 @@ const allNavItems: NavItem[] = [
   { to: "/groups", labelKey: "nav.groups", icon: Users2, roles: ["manager"] },
   { to: "/chats", labelKey: "nav.chats", icon: MessageSquare, roles: ["manager"], badgeKey: "chats" },
   { to: "/finances", labelKey: "nav.finances", icon: CreditCard, roles: ["manager"] },
+  { to: "/wallets", labelKey: "walletsPage.title", icon: Wallet, roles: ["manager"] },
   { to: "/marketing", labelKey: "nav.marketing", icon: Mail, roles: ["manager"] },
   { to: "/errors", labelKey: "nav.errors", icon: AlertTriangle, roles: ["manager"] },
   { to: "/admin", labelKey: "nav.admin", icon: BarChart3, roles: ["manager"], superadminOnly: true },
@@ -191,7 +193,7 @@ export function AppSidebar() {
         }}
       >
         <Link
-          to="/landing"
+          to="/"
           onClick={() => setOpen(false)}
           className="flex items-center gap-2 py-4 transition-opacity hover:opacity-80"
           style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: sidebarCollapsed ? "16px 14px" : "16px 24px" }}

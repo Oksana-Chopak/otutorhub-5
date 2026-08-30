@@ -26,6 +26,8 @@ const routeTitleKey: Record<string, string> = {
   "/subscription-requests": "nav.subscriptionRequests",
   "/people": "nav.people",
   "/paywall-metrics": "nav.paywallMetrics",
+  "/errors": "nav.errors",
+  "/admin": "nav.admin",
   "/audit": "nav.audit",
   "/onboarding": "nav.setupGuide",
   "/availability": "nav.availability",
