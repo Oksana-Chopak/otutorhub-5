@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { bumpDataVersion } from "@/lib/dataBus";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubjectCanon } from "@/hooks/useSubjectCanon";
@@ -143,6 +144,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
 
     if (linked) {
       // Existing student linked to this tutor — already in the system, no invite needed.
+      bumpDataVersion(); // C3/P4: списки учнів скрізь підтягнуться
       toast.success(t("quickAddStudent.studentLinked"));
       reset();
       onOpenChange(false);

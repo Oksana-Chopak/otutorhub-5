@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { bumpDataVersion } from "@/lib/dataBus";
+import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
 import { getLocale } from "@/lib/locale";
@@ -94,6 +94,7 @@ export function QuickLessonDialog({
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const dataVersion = useDataVersion(); // P4: новий учень з'являється без перевідкриття
   const [students, setStudents] = useState<StudentRow[]>([]);
   useEffect(() => {
     if (!open || !isManager) return;
@@ -108,7 +109,7 @@ export function QuickLessonDialog({
           .sort((a, b) => a.name.localeCompare(b.name, "uk")),
       );
     })();
-  }, [open, isManager]);
+  }, [dataVersion, open, isManager]);
   const [studentId, setStudentId] = useState<string>("");
   // B18: якщо користувач ще не чіпав час — підставляємо «та сама пара +7 днів».
   const [timeTouched, setTimeTouched] = useState(false);
@@ -128,7 +129,6 @@ export function QuickLessonDialog({
   const [groups, setGroups] = useState<GroupRow[]>([]);
   const [groupId, setGroupId] = useState<string>("");
   const [addStudentOpen, setAddStudentOpen] = useState(false);
-  const [reloadTrigger, setReloadTrigger] = useState(0);
   const [whenLocal, setWhenLocal] = useState<Date | null>(null);
   const [timeEditOpen, setTimeEditOpen] = useState(false);
   const [repeatWeeks, setRepeatWeeks] = useState(0);
@@ -735,7 +735,7 @@ export function QuickLessonDialog({
       <QuickAddStudentDialog
         open={addStudentOpen}
         onOpenChange={setAddStudentOpen}
-        onCreated={() => setReloadTrigger(n => n + 1)}
+        onCreated={() => { /* P4: список оновлює C3-шина — QuickAdd бампить */ }}
       />
     </>
   );

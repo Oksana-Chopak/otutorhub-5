@@ -1137,7 +1137,9 @@ function GroupDetailsDialog({
                     }}
                   >
                     {scheduling ? <Loader2 className="h-5 w-5 animate-spin" /> : <CalendarClock size={22} strokeWidth={2} />}
-                    {t("groupsPageExtra.scheduleForCount", { count: active.length })}
+                    {active.length === 0
+                      ? t("groupsPageExtra.addStudentsFirst")
+                      : t("groupsPageExtra.scheduleForCount", { count: active.length })}
                   </button>
                 </div>
               </div>

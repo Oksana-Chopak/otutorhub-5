@@ -107,7 +107,7 @@ function ConfirmedSignIn({
             {error && (
               <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
-                {error.includes("не підтверджено") || error.includes("not confirmed") ? (
+                {error.toLowerCase().includes("confirm") || error.includes("підтверд") ? (
                   <button
                     type="button"
                     className="ml-2 underline font-medium"

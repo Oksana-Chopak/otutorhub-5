@@ -1,4 +1,5 @@
 import "@/styles/landing-fonts.css";
+import { openExternal } from "@/lib/openExternal";
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -666,7 +667,7 @@ export default function LandingPage() {
     event.preventDefault();
 
     try {
-      const opened = window.open(url, "_blank", "noopener,noreferrer");
+      void openExternal(url); const opened = true; // P4: натив — системний браузер
       if (opened) return;
     } catch {
       // Fallback below handles iframe/browser restrictions.
