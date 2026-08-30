@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
 import { AppLayout } from "@/components/AppLayout";
@@ -47,12 +48,129 @@ interface Stats {
 
 const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-white p-4";
 
+
+type CrmRow = NonNullable<Stats["crm"]>["tutors"][number];
+
+/** Крок 5: картка репетитора — таймлайн, помилки, платежі, останні уроки, дії. */
+function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [st, setSt] = useState<"loading" | "ready" | "error">("loading");
+  const [d, setD] = useState<{
+    timeline: { name: string; props: Record<string, unknown> | null; created_at: string }[];
+    errors: { message: string; url: string | null; created_at: string }[];
+    payments: { created_at: string; amount: number; plan: string | null; status: string; period_end: string | null }[];
+    lessons: { subject: string | null; starts_at: string; status: string; paid: boolean }[];
+  } | null>(null);
+  const [gifting, setGifting] = useState(false);
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("admin-stats", { body: { tutor_id: row.user_id } });
+        if (error || !data?.detail) { setSt("error"); return; }
+        setD(data.detail); setSt("ready");
+      } catch { setSt("error"); }
+    })();
+  }, [row.user_id]);
+  const dt = (iso: string) => new Date(iso).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+  const gift = async () => {
+    setGifting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-stats", { body: { tutor_id: row.user_id, action: "gift_pro", days: 7 } });
+      if (error || !data?.ok) toast.error(t("adminCrm.giftProFail"));
+      else toast.success(t("adminCrm.giftProDone", { d: data.days }));
+    } finally { setGifting(false); }
+  };
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
+      <div className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-[20px] bg-white p-4 sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2">
+          <span aria-hidden>{row.risk === "red" ? "🔴" : row.risk === "orange" ? "🟠" : "🟢"}</span>
+          <h3 className="text-[16px] font-bold">{row.name}</h3>
+          <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${row.stage}`)}</span>
+          <button type="button" className="ml-auto rounded-full border px-3 py-1 text-[13px]" onClick={onClose}>{t("adminCrm.close")}</button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {row.contact?.telegram && (
+            <a className="rounded-full border px-3 py-1.5 text-[13px] font-semibold" target="_blank" rel="noreferrer"
+               href={`https://t.me/${String(row.contact.telegram).replace(/^@/, "")}`}>{t("adminCrm.writeTg")}</a>
+          )}
+          {row.contact?.email && (
+            <a className="rounded-full border px-3 py-1.5 text-[13px] font-semibold" href={`mailto:${row.contact.email}`}>{t("adminCrm.writeEmail")}</a>
+          )}
+          <button type="button" disabled={gifting} onClick={gift}
+            className="rounded-full bg-primary px-3 py-1.5 text-[13px] font-semibold text-primary-foreground disabled:opacity-60">
+            {t("adminCrm.giftPro")}
+          </button>
+        </div>
+        {st === "loading" && <p className="mt-4 text-[14px] text-[var(--sub)]">…</p>}
+        {st === "error" && <p className="mt-4 text-[14px] text-[var(--sub)]">{t("admin.noData")}</p>}
+        {st === "ready" && d && (
+          <div className="mt-4 space-y-4">
+            <section>
+              <h4 className="text-[14px] font-bold">{t("adminCrm.cardTimeline")}</h4>
+              {d.timeline.length === 0 ? <p className="text-[13px] text-[var(--sub)]">{t("adminCrm.cardEmpty")}</p> : (
+                <ul className="mt-1 space-y-1">
+                  {d.timeline.map((e, i) => (
+                    <li key={i} className="flex justify-between gap-3 text-[13px]">
+                      <span className="truncate">{t(`adminCrm.evt_${e.name}`, { defaultValue: e.name })}{e.name === "onboarding_step_done" && (e.props as any)?.step ? ` · ${(e.props as any).step}` : ""}</span>
+                      <span className="shrink-0 text-[var(--sub)]">{dt(e.created_at)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section>
+              <h4 className="text-[14px] font-bold">{t("adminCrm.cardErrors")}</h4>
+              {d.errors.length === 0 ? <p className="text-[13px] text-[var(--sub)]">{t("adminCrm.cardEmpty")}</p> : (
+                <ul className="mt-1 space-y-1">
+                  {d.errors.map((e, i) => (
+                    <li key={i} className="text-[13px]">
+                      <span className="text-[var(--sub)]">{dt(e.created_at)}</span> · <span className="break-all">{e.message.slice(0, 140)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section>
+              <h4 className="text-[14px] font-bold">{t("adminCrm.cardPayments")}</h4>
+              {d.payments.length === 0 ? <p className="text-[13px] text-[var(--sub)]">{t("adminCrm.cardEmpty")}</p> : (
+                <ul className="mt-1 space-y-1">
+                  {d.payments.map((pm, i) => (
+                    <li key={i} className="flex flex-wrap justify-between gap-2 text-[13px]">
+                      <span>{dt(pm.created_at)} · {pm.plan ?? "—"} · {pm.status}</span>
+                      <span className="font-semibold">{formatPrice(Number(pm.amount), "UAH")}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+            <section>
+              <h4 className="text-[14px] font-bold">{t("adminCrm.cardLessons")}</h4>
+              {d.lessons.length === 0 ? <p className="text-[13px] text-[var(--sub)]">{t("adminCrm.cardEmpty")}</p> : (
+                <ul className="mt-1 space-y-1">
+                  {d.lessons.map((l, i) => (
+                    <li key={i} className="flex justify-between gap-3 text-[13px]">
+                      <span className="truncate">{l.subject ?? "—"} · {l.status}</span>
+                      <span className="shrink-0 text-[var(--sub)]">{dt(l.starts_at)} {l.paid ? "✓" : ""}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminStatsPage() {
   const { t } = useTranslation();
   // Активність САМОСТІЙНИХ репетиторів (запит власниці): чи проводять уроки.
   // Рахуємо з вікна останніх уроків, що вже приходить у stats.lessons.
   const [state, setState] = useState<"loading" | "noaccess" | "error" | "ready">("loading");
   const [stats, setStats] = useState<Stats | null>(null);
+  const [detail, setDetail] = useState<CrmRow | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -205,7 +323,7 @@ export default function AdminStatsPage() {
                   <h2 className="text-[15px] font-bold">{t("adminCrm.tutorsTitle")}</h2>
                   <div className="mt-3 space-y-2">
                     {stats.crm.tutors.map((r) => (
-                      <div key={r.user_id} className="rounded-[12px] bg-[var(--bg)] p-3">
+                      <div key={r.user_id} role="button" tabIndex={0} onClick={() => setDetail(r)} className="cursor-pointer rounded-[12px] bg-[var(--bg)] p-3 transition hover:bg-white">
                         <div className="flex flex-wrap items-center gap-2">
                           <span aria-hidden>{r.risk === "red" ? "🔴" : r.risk === "orange" ? "🟠" : "🟢"}</span>
                           <span className="text-[15px] font-semibold">{r.name}</span>
@@ -380,6 +498,7 @@ export default function AdminStatsPage() {
           </div>
         )}
       </div>
+      {detail && <CrmDetailSheet row={detail} onClose={() => setDetail(null)} />}
     </AppLayout>
   );
 }

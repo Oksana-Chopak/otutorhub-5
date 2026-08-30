@@ -47,6 +47,42 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!adminRow) return json({ error: "Forbidden — superadmin only" }, 403);
 
+    // ── Картка репетитора (спека, крок 5): деталь по кліку + дія «подарувати Pro» ──
+    const detBody = await req.json().catch(() => null);
+    const detTutor: string | undefined = detBody?.tutor_id;
+    if (detTutor) {
+      if (detBody?.action === "gift_pro") {
+        const detDays = Number(detBody?.days ?? 7) || 7;
+        const { error: gErr } = await admin.rpc("grant_pro_days", {
+          _tutor_id: detTutor, _days: detDays, _reason: "superadmin_gift", _metadata: {},
+        });
+        if (gErr) return json({ error: "gift_failed" }, 400);
+        return json({ ok: true, days: detDays });
+      }
+      const d30 = new Date(Date.now() - 30 * 86400000).toISOString();
+      const [evR, erR, pyR, lsR] = await Promise.all([
+        admin.from("app_events").select("name, props, created_at").eq("user_id", detTutor).gte("created_at", d30).order("created_at", { ascending: false }).limit(100),
+        admin.from("error_log").select("message, url, created_at").eq("user_id", detTutor).gte("created_at", d30).order("created_at", { ascending: false }).limit(30),
+        admin.from("liqpay_payments").select("created_at, amount, plan, status, period_end").eq("tutor_id", detTutor).order("created_at", { ascending: false }).limit(20),
+        admin.from("lessons").select("id, subject, starts_at, status").eq("tutor_id", detTutor).order("starts_at", { ascending: false }).limit(10),
+      ]);
+      const detLessonIds = (lsR.data ?? []).map((l: { id: string }) => l.id);
+      const detPaid = new Map<string, string>();
+      if (detLessonIds.length) {
+        const { data: ldS } = await admin.from("lesson_details")
+          .select("lesson_id, student_payment_status").in("lesson_id", detLessonIds);
+        for (const x of ldS ?? []) detPaid.set(x.lesson_id, x.student_payment_status);
+      }
+      return json({
+        detail: {
+          timeline: evR.data ?? [],
+          errors: erR.data ?? [],
+          payments: pyR.data ?? [],
+          lessons: (lsR.data ?? []).map((l: { id: string }) => ({ ...l, paid: detPaid.get(l.id) === "paid" })),
+        },
+      });
+    }
+
     const safe = async <T,>(p: PromiseLike<{ data: T; error: unknown }>, fb: T): Promise<T> => {
       try { const { data, error } = await p; return error ? fb : (data ?? fb); } catch { return fb; }
     };

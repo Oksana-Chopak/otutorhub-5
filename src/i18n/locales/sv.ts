@@ -42,7 +42,16 @@ export const sv: LocaleTranslations = {
     type_manager: "manager",
     type_independent: "oberoende",
     type_hub: "hub",
-  },
+  
+    cardTimeline: "Tidslinje (30 d)",
+    cardErrors: "Fel (30 d)",
+    cardPayments: "Betalningar",
+    cardLessons: "Senaste 10 lektioner",
+    cardEmpty: "Tomt",
+    close: "Stäng",
+    giftPro: "Ge 7 dagar Pro",
+    giftProDone: "Gav {{d}} Pro-dagar",
+    giftProFail: "Kunde inte ge Pro",},
   index: {
     rolePending: "Förbereder din arbetsyta. Tar det länge — försök igen eller logga ut och in.",
     retry: "Försök igen",

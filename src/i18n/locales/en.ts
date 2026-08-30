@@ -41,7 +41,16 @@ export const en: LocaleTranslations = {
     type_manager: "manager",
     type_independent: "independent",
     type_hub: "hub",
-  },
+  
+    cardTimeline: "Timeline (30d)",
+    cardErrors: "Errors (30d)",
+    cardPayments: "Payments",
+    cardLessons: "Last 10 lessons",
+    cardEmpty: "Empty",
+    close: "Close",
+    giftPro: "Gift 7 days of Pro",
+    giftProDone: "Gifted {{d}} Pro days",
+    giftProFail: "Could not gift Pro",},
   index: {
     rolePending: "Setting up your workspace. If this takes long — retry or sign out and back in.",
     retry: "Retry",

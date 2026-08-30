@@ -39,7 +39,16 @@ export const uk = {
     type_manager: "менеджер",
     type_independent: "незалежний",
     type_hub: "хабовий",
-  },
+  
+    cardTimeline: "Таймлайн (30 дн)",
+    cardErrors: "Помилки (30 дн)",
+    cardPayments: "Платежі",
+    cardLessons: "Останні 10 уроків",
+    cardEmpty: "Порожньо",
+    close: "Закрити",
+    giftPro: "Подарувати 7 днів Pro",
+    giftProDone: "Подаровано {{d}} днів Pro",
+    giftProFail: "Не вдалося подарувати Pro",},
   index: {
     rolePending: "Готуємо твій кабінет. Якщо це триває довго — спробуй ще раз або вийди і зайди знову.",
     retry: "Спробувати ще",
