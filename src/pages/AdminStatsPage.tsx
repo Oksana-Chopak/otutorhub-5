@@ -30,6 +30,19 @@ interface Stats {
   lessons: LessonRow[];
   groups: GroupRow[];
   generatedAt: string;
+  crm?: {
+    funnel: { week: string; signed: number; onboarded: number; l1: number; l5: number; paying: number }[];
+    money: { active: number; trial: number; new_paid_month: number; churned_month: number; mrr_usd: number };
+    tutors: {
+      user_id: string; name: string; contact: { email?: string | null; telegram?: string | null } | null;
+      type: "manager" | "independent" | "hub"; stage: string; onboarding_step?: string | null;
+      days_since_lesson: number | null; lessons_7d: number; lessons_30d: number;
+      active_students: number; students_debt: number; paid_us: number;
+      next_charge: string | null; errors_7d: number;
+      referred: { total: number; paying: number }; trial_left_days: number | null;
+      risk: "red" | "orange" | "green";
+    }[];
+  };
 }
 
 const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-white p-4";
@@ -111,6 +124,114 @@ export default function AdminStatsPage() {
 
         {state === "ready" && stats && (
           <div className="mt-5 space-y-6">
+            {/* ── CRM: хто платить, хто відвалюється, кому писати ── */}
+            {!stats.crm ? (
+              <div className={card}><p className="text-[14px] text-[var(--sub)]">{t("adminCrm.needsDeploy")}</p></div>
+            ) : (
+              <>
+                <section className={card}>
+                  <h2 className="text-[15px] font-bold">{t("adminCrm.attentionTitle")}</h2>
+                  {stats.crm.tutors.filter((r) => r.risk === "red").length === 0 ? (
+                    <p className="mt-2 text-[14px] text-[var(--sub)]">{t("adminCrm.attentionEmpty")}</p>
+                  ) : (
+                    <div className="mt-3 space-y-2">
+                      {stats.crm.tutors.filter((r) => r.risk === "red").slice(0, 10).map((r) => (
+                        <div key={r.user_id} className="flex flex-wrap items-center gap-2 rounded-[12px] bg-[var(--bg)] p-3">
+                          <span aria-hidden>🔴</span>
+                          <span className="text-[15px] font-semibold">{r.name}</span>
+                          <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${r.stage}`)}</span>
+                          <span className="ml-auto flex gap-2">
+                            {r.contact?.telegram && (
+                              <a className="text-[13px] font-semibold text-primary underline" target="_blank" rel="noreferrer"
+                                 href={`https://t.me/${String(r.contact.telegram).replace(/^@/, "")}`}>{t("adminCrm.writeTg")}</a>
+                            )}
+                            {r.contact?.email && (
+                              <a className="text-[13px] font-semibold text-primary underline" href={`mailto:${r.contact.email}`}>{t("adminCrm.writeEmail")}</a>
+                            )}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+
+                <section className={card}>
+                  <h2 className="text-[15px] font-bold">{t("adminCrm.moneyTitle")}</h2>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                    {([
+                      ["moneyActive", stats.crm.money.active],
+                      ["moneyTrial", stats.crm.money.trial],
+                      ["moneyNewPaid", stats.crm.money.new_paid_month],
+                      ["moneyChurned", stats.crm.money.churned_month],
+                      ["moneyMrr", `${stats.crm.money.mrr_usd} $`],
+                    ] as [string, number | string][]).map(([k, v]) => (
+                      <div key={k} className="rounded-[12px] bg-[var(--bg)] p-3 text-center">
+                        <div className="text-[18px] font-extrabold">{v}</div>
+                        <div className="text-[13px] text-[var(--sub)]">{t(`adminCrm.${k}`)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+
+                <section className={card}>
+                  <h2 className="text-[15px] font-bold">{t("adminCrm.funnelTitle")}</h2>
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[420px] text-[13px]">
+                      <thead><tr className="text-left text-[var(--sub)]">
+                        <th className="py-1 pr-2">{t("adminCrm.week")}</th>
+                        <th className="px-2">{t("adminCrm.colSigned")}</th>
+                        <th className="px-2">{t("adminCrm.colOnboarded")}</th>
+                        <th className="px-2">{t("adminCrm.colL1")}</th>
+                        <th className="px-2">{t("adminCrm.colL5")}</th>
+                        <th className="px-2">{t("adminCrm.colPaying")}</th>
+                      </tr></thead>
+                      <tbody>
+                        {stats.crm.funnel.map((w) => (
+                          <tr key={w.week} className="border-t border-[var(--border)]">
+                            <td className="py-1.5 pr-2 font-medium">{w.week}</td>
+                            <td className="px-2">{w.signed}</td>
+                            <td className="px-2">{w.onboarded}</td>
+                            <td className="px-2">{w.l1}</td>
+                            <td className="px-2">{w.l5}</td>
+                            <td className="px-2">{w.paying}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+
+                <section className={card}>
+                  <h2 className="text-[15px] font-bold">{t("adminCrm.tutorsTitle")}</h2>
+                  <div className="mt-3 space-y-2">
+                    {stats.crm.tutors.map((r) => (
+                      <div key={r.user_id} className="rounded-[12px] bg-[var(--bg)] p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span aria-hidden>{r.risk === "red" ? "🔴" : r.risk === "orange" ? "🟠" : "🟢"}</span>
+                          <span className="text-[15px] font-semibold">{r.name}</span>
+                          <span className="rounded-full bg-white px-2 py-0.5 text-[13px] text-[var(--sub)]">{t(`adminCrm.type_${r.type}`)}</span>
+                          <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${r.stage}`)}{r.stage === "stuck_onboarding" && r.onboarding_step ? ` · ${r.onboarding_step}` : ""}</span>
+                          {r.trial_left_days !== null && r.trial_left_days >= 0 && (
+                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[13px] text-amber-800">{t("adminCrm.trialLeftChip", { d: r.trial_left_days })}</span>
+                          )}
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[13px] sm:grid-cols-4">
+                          <span>{t("adminCrm.daysNoLesson")}: <b>{r.days_since_lesson ?? "—"}</b></span>
+                          <span>{t("adminCrm.lessons7_30")}: <b>{r.lessons_7d} / {r.lessons_30d}</b></span>
+                          <span>{t("adminCrm.studentsCol")}: <b>{r.active_students}</b></span>
+                          <span>{t("adminCrm.debtCol")}: <b>{r.students_debt || 0}</b></span>
+                          <span>{t("adminCrm.ltvCol")}: <b>{money(r.paid_us)}</b></span>
+                          <span>{t("adminCrm.nextChargeCol")}: <b>{r.next_charge ? date(r.next_charge) : "—"}</b></span>
+                          <span>{t("adminCrm.errorsCol")}: <b>{r.errors_7d}</b></span>
+                          <span>{t("adminCrm.referredCol")}: <b>{r.referred.total} / {r.referred.paying}</b></span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </>
+            )}
+
             {/* KPI cards */}
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
