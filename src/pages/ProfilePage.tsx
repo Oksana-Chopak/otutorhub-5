@@ -174,7 +174,8 @@ export default function ProfilePage() {
             // Subscription + referrals are independent-only (Pro billing / Pro-reward).
             // Achievements (gamified teaching: level, streak, badges) apply to EVERY
             // tutor — hub tutors teach lessons too, so they keep their achievements.
-            if (!isIndependent && ["/subscription", "/my-referrals"].includes(it.to)) return false;
+            if (it.to === "/subscription" && !canSee("subscription", roleFlags)) return false;
+            if (it.to === "/my-referrals" && !canSee("referrals", roleFlags)) return false;
             return true;
           }),
         },
@@ -220,9 +221,11 @@ export default function ProfilePage() {
     const hash = window.location.hash.slice(1);
     if (!hash) return;
     // P8: rules/automark — незалежні політики; хабовому дип-лінк їх не відкриє.
-    const sheetKeys = (isIndependent
-      ? ["rules", "automark", "subjects", "calendar", "availability"]
-      : ["subjects", "calendar", "availability"]) as readonly string[];
+    const sheetKeys = [
+      ...(canSee("paymentRules", roleFlags) ? ["rules"] : []),
+      ...(canSee("autoMark", roleFlags) ? ["automark"] : []),
+      "subjects", "calendar", "availability",
+    ] as readonly string[];
     if ((sheetKeys as readonly string[]).includes(hash)) {
       setActiveSheet(hash as typeof activeSheet);
     }

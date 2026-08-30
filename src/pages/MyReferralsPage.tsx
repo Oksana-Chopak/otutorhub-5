@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { canSee } from "@/lib/roleCapabilities";
 import { formatPrice } from "@/lib/currency";
 import { Navigate } from "react-router-dom";
 import { getLocale } from "@/lib/locale";
@@ -88,7 +89,10 @@ export default function MyReferralsPage() {
   // The referral / Pro-invite program is INDEPENDENT-tutor only (MON-7). A hub tutor /
   // manager reaching this by URL must not see the independent monetization surface.
   // (Applied at the render return below, after all hooks, to respect the rules of hooks.)
-  const blockedNonIndependent = !wsLoading && (roles.includes("manager") || (roles.includes("tutor") && !isIndependent));
+  const blockedNonIndependent = !wsLoading && !canSee("referrals", {
+    isManager: roles.includes("manager"), isTutor: roles.includes("tutor"),
+    isIndependent, isStudent: roles.includes("student"),
+  }); // P8-системно
 
   const [code, setCode] = useState<string | null>(null);
   const [referrals, setReferrals] = useState<ReferralRow[]>([]);

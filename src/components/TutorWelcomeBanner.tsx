@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, X, ArrowRight } from "lucide-react";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { useAuth } from "@/hooks/useAuth";
+import { canSee } from "@/lib/roleCapabilities";
 import { useTranslation } from "react-i18next";
 
 import { CORE_TOTAL } from "@/lib/onboardingSteps";
@@ -18,18 +19,20 @@ const TOTAL_STEPS = CORE_TOTAL; // A11: жодних захардкоджени�
 export function TutorWelcomeBanner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { settings, loading } = useWorkspaceSettings();
+  const { settings, isIndependent, loading } = useWorkspaceSettings();
   const { roles } = useAuth();
-  // P8: матриця каже setupGuide = true для ОБОХ тьюторів; хабового щойно
-  // редіректили в онбординг — банер-повертач мусить існувати і для нього.
-  const isTutorOnly = roles.includes("tutor") && !roles.includes("manager");
+  // P8-системно: гейт — ЧЕРЕЗ матрицю, не через сирі прапори.
+  const mayShow = canSee("setupGuide", {
+    isManager: roles.includes("manager"), isTutor: roles.includes("tutor"),
+    isIndependent, isStudent: roles.includes("student"),
+  });
   const [dismissed, setDismissed] = useState<string | null>(null);
 
   useEffect(() => {
     setDismissed(localStorage.getItem(STORAGE_KEY));
   }, []);
 
-  if (loading || !settings || !isTutorOnly || settings.onboarding_completed) {
+  if (loading || !settings || !mayShow || settings.onboarding_completed) {
     return null;
   }
 
