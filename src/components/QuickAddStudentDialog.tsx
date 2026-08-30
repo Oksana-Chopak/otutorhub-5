@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { logEvent } from "@/lib/analytics";
 import { bumpDataVersion } from "@/lib/dataBus";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,6 +146,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     if (linked) {
       // Existing student linked to this tutor — already in the system, no invite needed.
       bumpDataVersion(); // C3/P4: списки учнів скрізь підтягнуться
+      logEvent("student_added", { via: "quick_add" }); // CRM-воронка
       toast.success(t("quickAddStudent.studentLinked"));
       reset();
       onOpenChange(false);

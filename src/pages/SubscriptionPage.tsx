@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { logEvent } from "@/lib/analytics";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeApp } from "@/lib/platform";
 import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
@@ -108,10 +109,22 @@ export default function SubscriptionPage() {
     trialDaysLeft,
     refresh,
   } = useWorkspaceSettings();
+  // CRM-воронка: перший перехід у active — один раз, від імені самого тьютора
+  // (менеджерський approve не може вставити подію за нього — RLS insert-own).
+  const proActive = (settings as any)?.subscription_status === "active";
+  useEffect(() => {
+    if (!proActive) return;
+    const k = "evt_subscription_started";
+    if (localStorage.getItem(k)) return;
+    localStorage.setItem(k, "1");
+    logEvent("subscription_started", {});
+  }, [proActive]);
   const { toast } = useToast();
   const [requestOpen, setRequestOpen] = useState(false);
   const [latestRequest, setLatestRequest] = useState<RequestRow | null>(null);
   const [requestLoading, setRequestLoading] = useState(true);
+
+
   const [billing, setBilling] = useState<"monthly" | "halfyear" | "yearly">("yearly");
   const [earlyBirdCount, setEarlyBirdCount] = useState<number | null>(null);
   const EARLY_BIRD_LIMIT = 20;
