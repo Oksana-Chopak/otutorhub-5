@@ -810,7 +810,9 @@ export const sv: LocaleTranslations = {
     reactionAdd: "Lägg till reaktion",
     reactionTitle: "Reaktion",
   
-    noChatsIndependent: "Chattar visas efter din första lektion med en elev",},
+    noChatsIndependent: "Chattar visas efter din första lektion med en elev",
+    moderationTitle: "Moderationsläge",
+    moderationBody: "Du ser alla konversationer på plattformen, även andras. Du kan bara skriva i dina egna trådar.",},
   profile: {
     achStreak_one: "{{count}} dags svit",
     achStreak_other: "{{count}} dagars svit",

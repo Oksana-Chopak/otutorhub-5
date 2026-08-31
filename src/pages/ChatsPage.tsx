@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useIsSuperadmin } from "@/hooks/useIsSuperadmin";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
@@ -108,6 +109,7 @@ export default function ChatsPage() {
   const { t } = useTranslation();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
+  const { isSuperadmin } = useIsSuperadmin(); // модерація: платформна, не рольова
   const myId = user?.id ?? null;
 
   const [loading, setLoading] = useState(true);
@@ -194,13 +196,14 @@ export default function ChatsPage() {
       return;
     }
 
-    // 45 (арм-свіп): RLS більше не віддає менеджеру ЧУЖІ переписки тьюторів з
-    // учнями — приватне листування не є операційними даними хабу. Менеджерські
-    // треди створює start_manager_chat із менеджером у слоті student_id, тож
-    // політика учасника покриває їх повністю. Клієнтський фільтр тепер ОДИН для
-    // всіх ролей — жодного «менеджер бачить усе» в обхід серверної правди.
+    // 45/48: доступ до ЧУЖИХ переписок більше не належить ролі «менеджер»
+    // (власник хабу — платний клієнт, не модератор платформи). Він належить
+    // суперадміну, і серверна правда та сама: RLS-політика на is_superadmin().
+    // Клієнтський прапор лише вирішує, ЩО показати з того, що RLS уже віддав.
     const rawList = (threadRows ?? []) as Thread[];
-    const list = rawList.filter((t) => t.tutor_id === myId || t.student_id === myId);
+    const list = isSuperadmin
+      ? rawList
+      : rawList.filter((t) => t.tutor_id === myId || t.student_id === myId);
     const ids = new Set<string>();
     list.forEach((t) => {
       ids.add(t.tutor_id);
@@ -321,7 +324,7 @@ export default function ChatsPage() {
     if (!myId) return;
     loadThreads();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myId, isManager]);
+  }, [myId, isManager, isSuperadmin]);
 
   // Handle ?with={userId} query param — open or create thread with that user
   useEffect(() => {
@@ -820,6 +823,12 @@ export default function ChatsPage() {
   const Shell = AppLayout;
   return (
     <Shell>
+      {isSuperadmin && (
+        <div className="mb-3 rounded-[12px] border border-amber-300 bg-amber-50 px-3 py-2">
+          <p className="text-[13px] font-semibold text-amber-900">{t("chats.moderationTitle")}</p>
+          <p className="text-[13px] text-amber-900/80">{t("chats.moderationBody")}</p>
+        </div>
+      )}
       {loading ? (
         <ChatsSkeleton />
       ) : threads.length === 0 && !loading ? (

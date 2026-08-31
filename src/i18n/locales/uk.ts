@@ -1057,7 +1057,9 @@ export const uk = {
     reactionAdd: "Додати реакцію",
     reactionTitle: "Реакція",
   
-    noChatsIndependent: "Чати з'являться після першого уроку з учнем",},
+    noChatsIndependent: "Чати з'являться після першого уроку з учнем",
+    moderationTitle: "Режим модерації",
+    moderationBody: "Ви бачите всі переписки платформи, зокрема чужі. Писати можна лише у власні треди.",},
 
   // Profile
   profile: {

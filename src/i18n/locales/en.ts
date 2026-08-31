@@ -1060,7 +1060,9 @@ export const en: LocaleTranslations = {
     reactionAdd: "Add reaction",
     reactionTitle: "Reaction",
   
-    noChatsIndependent: "Chats will appear after your first lesson with a student",},
+    noChatsIndependent: "Chats will appear after your first lesson with a student",
+    moderationTitle: "Moderation mode",
+    moderationBody: "You see every conversation on the platform, including other people's. You can only write in your own threads.",},
 
   profile: {
     achStreak_one: "{{count}}-day streak",
