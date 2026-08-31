@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { LegalLanguageNotice } from "@/components/LegalLanguageNotice";
 import { LegalPageLayout } from "@/components/LegalPageLayout";
 
 export default function TermsPage() {
@@ -15,6 +16,7 @@ export default function TermsPage() {
       title="Публічна оферта"
       subtitle="Дата публікації: 25 квітня 2026 року · Виконавець: ТОВ «КІДІУМ», код ЄДРПОУ 43186926"
     >
+      <LegalLanguageNotice />
       <section>
         <h2 className="text-xl font-semibold mt-8 mb-3">1. Загальні положення</h2>
         <p>1.1. Цей документ є публічною офертою (пропозицією) відповідно до статті 641 Цивільного кодексу України та містить усі істотні умови договору про надання послуг доступу до сервісу oTutorHub (далі — «Договір»).</p>

@@ -4523,4 +4523,9 @@ export const sv: LocaleTranslations = {
     debtTitle: "{{count}} lektioner obetalda",
     homeworkTitle: "{{count}} läxuppgifter",},
 
+  legalNotice: {
+    title: "Dokumentet är på ukrainska",
+    body: "Erbjudandet och integritetspolicyn är bindande dokument enligt ukrainsk lag, därför behåller vi den auktoritativa ukrainska texten i stället för en inofficiell översättning. Behöver du en förklaring av en klausul — skriv till oss så svarar vi skriftligt.",
+  },
+
 };

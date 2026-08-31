@@ -1,3 +1,3 @@
 // ЄДИНИЙ маркер збірки. Бампається кожним значущим пушем.
 // Синхронність із index.html та дайджестом стереже розтяжка №12.
-export const BUILD_TAG = "v25.08-uxstep46";
+export const BUILD_TAG = "v25.08-uxstep47";

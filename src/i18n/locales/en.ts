@@ -4536,4 +4536,9 @@ export const en: LocaleTranslations = {
     debtTitle: "{{count}} lessons unpaid",
     homeworkTitle: "{{count}} homework tasks",},
 
+  legalNotice: {
+    title: "This document is in Ukrainian",
+    body: "The offer and the privacy policy are binding documents under Ukrainian law, so we keep the authoritative Ukrainian text rather than an unofficial translation. If you need an English explanation of any clause, write to us and we will answer in writing.",
+  },
+
 };

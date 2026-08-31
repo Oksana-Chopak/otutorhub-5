@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { LegalLanguageNotice } from "@/components/LegalLanguageNotice";
 import { LegalPageLayout } from "@/components/LegalPageLayout";
 
 export default function PrivacyPage() {
@@ -15,6 +16,7 @@ export default function PrivacyPage() {
       title="Політика конфіденційності"
       subtitle="Дата публікації: 25 квітня 2026 року · Оператор персональних даних: ТОВ «КІДІУМ», код ЄДРПОУ 43186926"
     >
+      <LegalLanguageNotice />
       <section>
         <h2 className="text-xl font-semibold mt-8 mb-3">1. Загальні положення</h2>
         <p>1.1. Ця Політика конфіденційності (далі — «Політика») описує, які персональні дані збирає та обробляє сервіс oTutorHub, як ці дані використовуються, зберігаються та захищаються.</p>

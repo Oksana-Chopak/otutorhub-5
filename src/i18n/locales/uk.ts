@@ -4526,4 +4526,9 @@ export const uk = {
     debtTitle: "{{count}} уроків без оплати",
     homeworkTitle: "{{count}} невиконаних завдань",},
 
+  legalNotice: {
+    title: "Документ українською",
+    body: "Юридично чинною є українська редакція.",
+  },
+
 };
