@@ -6,6 +6,7 @@ import { getLocale } from "@/lib/locale";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe } from "@/lib/lessonDetailsSafe";
+import { useLocalDraft } from "@/hooks/useLocalDraft";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
@@ -212,6 +213,20 @@ export function LessonWorkspace({
     setNotesDraft(studentNotes ?? "");
   }, [lessonId, meetingUrl, homework, summary, studentNotes]);
 
+  // D (офлайн): чернетки полів уроку переживають краш/перезавантаження.
+  // Оголошені ПІСЛЯ prop-sync ефекту, щоб відновлення не затиралось пропсами.
+  const hwLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.homework` : null, homeworkDraft, setHomeworkDraft);
+  const sumLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.summary` : null, summaryDraft, setSummaryDraft);
+  const noteLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.student_notes` : null, notesDraft, setNotesDraft);
+  const meetLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.meeting_url` : null, meetingDraft, setMeetingDraft);
+  const privLocal = useLocalDraft(lessonId ? `lesson.${lessonId}.private` : null, privateNotesDraft, setPrivateNotesDraft);
+  const draftClears: Record<string, () => void> = {
+    homework: hwLocal.clear,
+    summary: sumLocal.clear,
+    student_notes: noteLocal.clear,
+    meeting_url: meetLocal.clear,
+  };
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -306,6 +321,7 @@ export function LessonWorkspace({
       return;
     }
     setPrivateNotesSaved(privateNotesDraft);
+    privLocal.clear(); // D: чернетка приватних нотаток очищується після збереження
     toast({ title: t("lessonWorkspaceExtra.saved") });
   };
 
@@ -356,6 +372,7 @@ export function LessonWorkspace({
       toast({ title: t("lessonWorkspaceExtra.saveFailed"), description: error.message, variant: "destructive" });
       return;
     }
+    draftClears[field]?.(); // D: збережено в БД — локальна чернетка більше не потрібна
     toast({ title: t("lessonWorkspaceExtra.saved") });
     onUpdated?.();
 

@@ -28,6 +28,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { enqueue, isOffline } from "@/lib/offlineQueue";
+import { useLocalDraft } from "@/hooks/useLocalDraft";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles, SlidersHorizontal } from "lucide-react";
@@ -122,6 +124,8 @@ export default function ChatsPage() {
   const [msgLimit, setMsgLimit] = useState(50);
   const [hasMoreMsgs, setHasMoreMsgs] = useState(false);
   const [draft, setDraft] = useState("");
+  // D (офлайн): недописане повідомлення переживає перезавантаження/краш.
+  const chatDraftLocal = useLocalDraft(selectedThread ? `chat.${selectedThread.id}` : null, draft, setDraft);
   const [sending, setSending] = useState(false);
   const [readMap, setReadMap] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
@@ -576,6 +580,18 @@ export default function ChatsPage() {
     const text = draft.trim();
     const file = pendingFile;
     if ((!text && !file) || !selectedThread || !myId) return;
+    // D (офлайн): текстове повідомлення без мережі стає в чергу і надішлеться
+    // саме, щойно з'явиться зв'язок. Файл офлайн не відправити — чесна відмова.
+    if (isOffline()) {
+      if (file) {
+        toast({ title: t("chats.sendFailed"), description: t("offline.fileNeedsNetwork"), variant: "destructive" });
+        return;
+      }
+      enqueue({ kind: "chat_message", threadId: selectedThread.id, senderId: myId, body: text });
+      chatDraftLocal.clear();
+      setDraft("");
+      return;
+    }
     setSending(true);
     const bodyText = text || (file ? `📎 ${file.name}` : "");
     const { data: msgData, error } = await supabase
@@ -619,6 +635,7 @@ export default function ChatsPage() {
       }
     }
     setSending(false);
+    chatDraftLocal.clear(); // D: надіслано — чернетка більше не потрібна
     setDraft("");
     setPendingFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";

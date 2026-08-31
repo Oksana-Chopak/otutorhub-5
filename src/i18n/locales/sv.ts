@@ -4144,6 +4144,12 @@ export const sv: LocaleTranslations = {
   offline: {
     noConnection: "Ingen anslutning — kontrollera internet",
     restored: "Anslutning återställd",
+    queuedToast: "Ingen anslutning — sparar så fort nätet är tillbaka (i kö: {{count}})",
+    synced: "☁️ Online igen — offlineändringar skickade ({{count}})",
+    syncDropped: "Servern avvisade några offlineändringar ({{count}}) — kontrollera uppgifterna",
+    pendingQueued: "Ingen anslutning · {{count}} ändringar sparade, skickas automatiskt",
+    draftRestored: "Återställde ett osparat utkast",
+    fileNeedsNetwork: "Filer kräver anslutning — texten köas utan filen",
   },
   pullToRefresh: {
     pull: "Dra för att uppdatera",

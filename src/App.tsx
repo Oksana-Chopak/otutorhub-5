@@ -1,6 +1,10 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { DeepLinkListener } from "@/components/DeepLinkListener";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient } from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { BUILD_TAG } from "@/lib/buildInfo";
+import { initOfflineQueue } from "@/lib/offlineQueue";
 import { BrowserRouter, Route, Routes, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -68,11 +72,21 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60_000,
-      gcTime: 5 * 60_000,
+      // D (офлайн): кеш живе добу, бо персиститься на диск — холодний старт
+      // без мережі малює останні дані миттєво, свіжі доїжджають за staleTime.
+      gcTime: 24 * 60 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 1,
     },
   },
+});
+
+// D (офлайн): кеш react-query переживає перезавантаження (localStorage);
+// BUILD_TAG як buster — новий реліз не читає старий формат кеша.
+const persister = createSyncStoragePersister({
+  storage: typeof window !== "undefined" ? window.localStorage : undefined,
+  key: "otutorhub.rq-cache.v1",
+  throttleTime: 2000,
 });
 
 const RouteFallback = () => (
@@ -101,6 +115,8 @@ function AppShell() {
 }
 
 function AppRoutes() {
+  // D (офлайн): реплей черги мутацій при старті/поверненні мережі.
+  useEffect(() => initOfflineQueue(), []);
   // Subscribe to global new-message toasts (no UI)
   useGlobalChatToasts();
   // Android hardware back: close open sheets/dialogs, double-press to exit (BUG-4)
@@ -182,7 +198,10 @@ function AppRoutes() {
 
 const App = () => (
   <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister, maxAge: 24 * 60 * 60 * 1000, buster: BUILD_TAG }}
+    >
       <ThemeProvider>
         <TooltipProvider>
           {/* A1: локалі ліниві — усе, що викликає useTranslation (ConfirmProvider,
@@ -200,7 +219,7 @@ const App = () => (
           </Suspense>
         </TooltipProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </ErrorBoundary>
 );
 

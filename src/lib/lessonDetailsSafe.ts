@@ -9,6 +9,7 @@
 // audio_url/action_items/completed_at) can only be written by the manager
 // policy or the Fireflies webhook running as service_role.
 import { supabase } from "@/integrations/supabase/client";
+import { enqueue, isOffline } from "@/lib/offlineQueue";
 
 export type LessonDetailsPatch = {
   homework?: string | null;
@@ -33,6 +34,13 @@ export async function updateLessonDetailsSafe(
   lessonId: string,
   patch: LessonDetailsPatch,
 ): Promise<{ error: { message: string } | null }> {
+  // D (офлайн): без мережі запис їде в чергу і реплеїться при відновленні.
+  // Значення в патчі абсолютні (paid/unpaid, текст) — повтор безпечний.
+  // ВСІ виклики цієї функції стають офлайн-стійкими в одній точці.
+  if (isOffline()) {
+    enqueue({ kind: "lesson_details", lessonId, patch: patch as Record<string, unknown> });
+    return { error: null };
+  }
   const { error } = await supabase.rpc("update_lesson_details_safe", {
     _lesson_id: lessonId,
     _patch: patch,

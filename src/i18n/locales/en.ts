@@ -4157,6 +4157,12 @@ export const en: LocaleTranslations = {
   offline: {
     noConnection: "No connection — check your internet",
     restored: "Connection restored",
+    queuedToast: "No connection — I'll save it as soon as network is back (queued: {{count}})",
+    synced: "☁️ Back online — offline changes sent ({{count}})",
+    syncDropped: "The server rejected some offline changes ({{count}}) — please check the data",
+    pendingQueued: "No connection · {{count}} changes saved, will send automatically",
+    draftRestored: "Restored an unsaved draft",
+    fileNeedsNetwork: "Files need a connection — text will queue without the file",
   },
   pullToRefresh: {
     pull: "Pull to refresh",

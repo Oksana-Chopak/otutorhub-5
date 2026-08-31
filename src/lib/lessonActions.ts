@@ -1,9 +1,16 @@
+import { enqueue, isOffline } from "@/lib/offlineQueue";
 import { supabase } from "@/integrations/supabase/client";
 
 /** ЄДИНИЙ писар статусів уроку (розтяжка №10): одна точка для всіх ролей. */
 export type LessonStatus = "pending" | "scheduled" | "completed" | "cancelled";
 
 export async function setLessonStatus(lessonId: string, status: LessonStatus) {
+  // D (офлайн): «Провів ✓» у метро стає в чергу замість помилки; статус —
+  // абсолютне значення, реплей безпечний.
+  if (isOffline()) {
+    enqueue({ kind: "lesson_status", lessonId, status });
+    return { data: null, error: null } as { data: null; error: null };
+  }
   return supabase.from("lessons").update({ status }).eq("id", lessonId);
 }
 
