@@ -234,8 +234,8 @@ export function WalletDialog({
   // ── Design tokens ─────────────────────────────────────────────────────────────
   const F = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-    border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-    txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
+    border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
+    txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
@@ -356,7 +356,7 @@ export function WalletDialog({
                           background: checked ? F.teal : "transparent",
                           border: checked ? "none" : `2px solid ${F.muted}`,
                           display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "#0f0f1a", fontSize: 14, fontWeight: 700 }}>
+                          color: "var(--ds-txt,#0f0f1a)", fontSize: 14, fontWeight: 700 }}>
                           {checked && "✓"}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>

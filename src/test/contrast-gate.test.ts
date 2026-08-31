@@ -58,6 +58,22 @@ describe("контраст-гейт (WCAG AA)", () => {
     expect(contrast(hexToken("--ds-muted"), WHITE), "--ds-muted на білому").toBeGreaterThanOrEqual(4.5);
   });
 
+  it("E (дарк): txt/sub/muted ≥ 4.5:1 на темному surface", () => {
+    const darkBlock = css.match(/\.dark \{[^}]*--ds-surface:[^}]*\}/)?.[0];
+    if (!darkBlock) throw new Error("dark DS-блок не знайдено в index.css");
+    const darkHex = (name: string): [number, number, number] => {
+      const m = darkBlock.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{6})`));
+      if (!m) throw new Error(`токен ${name} не знайдено в .dark`);
+      return hexToRgb(m[1]);
+    };
+    const surface = darkHex("--ds-surface");
+    const bg = darkHex("--ds-bg");
+    for (const name of ["--ds-txt", "--sub", "--ds-muted"]) {
+      expect(contrast(darkHex(name), surface), `${name} на dark surface`).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(darkHex(name), bg), `${name} на dark bg`).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
   it("фокус-кільце --ring ≥ 3:1 на білому (видно з клавіатури)", () => {
     expect(contrast(hslToken("--ring"), WHITE)).toBeGreaterThanOrEqual(3);
   });

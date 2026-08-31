@@ -137,7 +137,7 @@ function SegSwitch<T extends string>({
           className="flex h-9 items-center gap-1.5 rounded-[9px] px-2.5 sm:px-3 text-[15px] transition-all"
           style={
             value === o.value
-              ? { background: "#fff", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
+              ? { background: "var(--ds-surface,#fff)", color: "#1f8e7e", fontWeight: 700, boxShadow: "0 2px 8px -2px rgba(15,15,26,.18)", fontFamily: "Inter, system-ui, sans-serif" }
               : { color: "var(--sub,#666b82)", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }
           }
         >
@@ -1606,7 +1606,7 @@ export default function SchedulePage() {
                   <button
                     type="button"
                     onClick={() => setPastLimit((n) => n + 12)}
-                    className="mt-2 w-full rounded-[12px] border border-border bg-white py-2.5 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
+                    className="mt-2 w-full rounded-[12px] border border-border bg-card py-2.5 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
                   >
                     {t("schedule.showMorePast", { count: hiddenPast })}
                   </button>

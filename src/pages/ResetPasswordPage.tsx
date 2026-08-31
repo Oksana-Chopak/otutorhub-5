@@ -100,13 +100,13 @@ export default function ResetPasswordPage() {
   return (
     <>
       <OfflineBanner />
-    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
           <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
           <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
         </div>
-        <Card className="rounded-[20px] border-[#eceef3] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
+        <Card className="rounded-[20px] border-[var(--ds-border,#eceef3)] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
           <CardHeader>
             <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22 }}>{t("resetPassword.title")}</CardTitle>
             <CardDescription>

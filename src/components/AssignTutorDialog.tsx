@@ -45,7 +45,7 @@ function Avatar({ name, size = 48 }: { name: string; size?: number }) {
 function MoneyInput({ value, onChange, placeholder, accent }: { value: string; onChange: (v: string) => void; placeholder?: string; accent?: string }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "#fff" : "#fbfbfc", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "#eceef3"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
+    <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "#fff" : "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "var(--ds-border,#eceef3)"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
       <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#6f7489", marginRight: 6, flexShrink: 0 }}>{currencySymbol("UAH")}</span>
       <input
         value={value}
@@ -54,7 +54,7 @@ function MoneyInput({ value, onChange, placeholder, accent }: { value: string; o
         inputMode="numeric"
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        style={{ width: "100%", minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: F, fontWeight: 800, fontSize: 21, color: "#0f0f1a" }}
+        style={{ width: "100%", minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: F, fontWeight: 800, fontSize: 21, color: "var(--ds-txt,#0f0f1a)" }}
       />
     </div>
   );
@@ -62,7 +62,7 @@ function MoneyInput({ value, onChange, placeholder, accent }: { value: string; o
 
 function Lbl({ children }: { children: ReactNode }) {
   return (
-    <div style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "#0f0f1a", marginBottom: 10 }}>
+    <div style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", marginBottom: 10 }}>
       {children}
       <span style={{ color: "#2BBFAA" }}> *</span>
     </div>
@@ -286,19 +286,19 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
         <DialogTitle className="sr-only">{t("assignTutorExtra.title")}</DialogTitle>
         {/* Header */}
-        <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: "1px solid #eceef3", display: "flex", alignItems: "center", gap: 13 }}>
+        <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: "1px solid var(--ds-border,#eceef3)", display: "flex", alignItems: "center", gap: 13 }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
             <Users size={24} strokeWidth={2} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontFamily: F, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("assignTutorExtra.title")}</div>
+            <div style={{ fontFamily: F, fontWeight: 800, fontSize: 22, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("assignTutorExtra.title")}</div>
             <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 2 }}>
-              {t("assignTutorExtra.studentPrefix")}: <b style={{ color: "#0f0f1a" }}>{request?.studentName}</b>
+              {t("assignTutorExtra.studentPrefix")}: <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{request?.studentName}</b>
               {subject ? <> · {subject}</> : null}
             </div>
           </div>
           <button type="button" aria-label={t("common.close")} onClick={() => onOpenChange(false)}
-            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={20} strokeWidth={2.2} />
           </button>
         </div>
@@ -318,10 +318,10 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {tutors.map((tu) => (
                   <button key={tu.id} type="button" onClick={() => setTutorId(tu.id)}
-                    style={{ display: "flex", alignItems: "center", gap: 13, width: "100%", textAlign: "left", padding: 14, borderRadius: 16, border: "1.5px solid #eceef3", background: "#fff", cursor: "pointer", boxShadow: "0 1px 2px rgba(15,15,26,.04)" }}>
+                    style={{ display: "flex", alignItems: "center", gap: 13, width: "100%", textAlign: "left", padding: 14, borderRadius: 16, border: "1.5px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", cursor: "pointer", boxShadow: "0 1px 2px rgba(15,15,26,.04)" }}>
                     <Avatar name={tu.name} size={48} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tu.name}</div>
+                      <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{tu.name}</div>
                       {tu.defaultRate != null && (
                         <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: formatPrice((tu.defaultRate), "UAH")})}</div>
                       )}
@@ -336,13 +336,13 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
               <div style={{ display: "flex", alignItems: "center", gap: 13, padding: 14, borderRadius: 16, border: "1.5px solid #2BBFAA", background: "var(--teal-l, #f0fdf9)" }}>
                 <Avatar name={selected.name} size={48} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</div>
+                  <div style={{ fontFamily: F, fontWeight: 700, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{selected.name}</div>
                   {selected.defaultRate != null && (
                     <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 1 }}>{t("assignTutorExtra.rateFull", { rate: formatPrice((selected.defaultRate), "UAH")})}</div>
                   )}
                 </div>
                 <button type="button" onClick={() => setTutorId("")}
-                  style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "#25a896", fontFamily: F, fontWeight: 700, fontSize: 15, boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
+                  style={{ height: 44, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "#25a896", fontFamily: F, fontWeight: 700, fontSize: 15, boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
                   {t("assignTutorExtra.change")}
                 </button>
               </div>
@@ -387,9 +387,9 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: "1px solid #eceef3", display: "flex", gap: 10 }}>
+        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: "1px solid var(--ds-border,#eceef3)", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onOpenChange(false)} disabled={submitting}
-            style={{ height: 56, padding: "0 22px", borderRadius: 15, border: "1.5px solid #eceef3", background: "#fff", color: "var(--sub,#666b82)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: submitting ? "default" : "pointer" }}>
+            style={{ height: 56, padding: "0 22px", borderRadius: 15, border: "1.5px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: submitting ? "default" : "pointer" }}>
             {t("common.cancel")}
           </button>
           <button type="button" onClick={handleAssign} disabled={!canAssign}

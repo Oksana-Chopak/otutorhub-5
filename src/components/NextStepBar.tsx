@@ -18,7 +18,7 @@ export function NextStepBar({ icon, text, actionLabel, onAction, onDismiss }: {
       style={{ background: "#f0fdf9", border: "1.5px solid #cdeee7" }}
     >
       {icon && <span style={{ fontSize: 20, lineHeight: 1 }}>{icon}</span>}
-      <p className="flex-1 min-w-0" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0f0f1a" }}>
+      <p className="flex-1 min-w-0" style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "var(--ds-txt,#0f0f1a)" }}>
         {text}
       </p>
       <button

@@ -54,7 +54,7 @@ export function AddFab({ onLesson, onStudent, onPayment, bottom = 78 }: Props) {
           <div key={a.key} className="flex items-center gap-2.5"
             style={{ animation: `fabRise .16s ease ${i * 0.04}s both` }}>
             <span className="text-[15px] font-bold px-3 py-1.5 rounded-[9px] whitespace-nowrap shadow-sm"
-              style={{ background: "#fff", fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)",
+              style={{ background: "var(--ds-surface,#fff)", fontFamily: "Inter, system-ui", color: "var(--txt,#0f0f1a)",
                        boxShadow: "0 2px 8px rgba(15,15,26,.1)" }}>
               {t(a.labelKey) || a.key}
             </span>

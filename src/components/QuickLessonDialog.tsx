@@ -503,7 +503,7 @@ export function QuickLessonDialog({
                   <select
                     value={selTutorId}
                     onChange={(e) => setSelTutorId(e.target.value)}
-                    style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "#fbfbfc", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}
+                    style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}
                   >
                     <option value="">{t("quickLessonDialog.pickTutor")}</option>
                     {tutorOptions.map((o) => (
@@ -711,10 +711,10 @@ export function QuickLessonDialog({
 
           {/* Footer */}
           {!loading && (students.length > 0 || groups.length > 0) && (
-            <div style={{ flexShrink: 0, padding: "14px 22px 22px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 11 }}>
+            <div style={{ flexShrink: 0, padding: "14px 22px 22px", borderTop: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 11 }}>
               <button onClick={() => onOpenChange(false)}
                 style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${F.border}`,
-                  background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+                  background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
                 {t("quickLessonDialog.cancelBtn")}
               </button>
               <button disabled={submitting || !canSubmit} onClick={submit}

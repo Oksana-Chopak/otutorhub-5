@@ -42,8 +42,8 @@ export
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const T = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-  dark: "#0f0f1a", bg: "#F5F4F0", surface: "#ffffff",
-  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3",
+  dark: "#0f0f1a", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
   success: "#0CA678", warn: "#F59E0B", tg: "#229ED9",
   display: "'Inter', system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -366,7 +366,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
 
   const selStyle = (hasVal: boolean) => ({
     height: 48, borderRadius: 12, border: `1px solid ${hasVal ? T.teal : T.border}`,
-    background: "#fbfbfc", padding: "0 12px", fontSize: 15, fontFamily: T.body,
+    background: "var(--ds-surface2,#fbfbfc)", padding: "0 12px", fontSize: 15, fontFamily: T.body,
     color: hasVal ? T.txt : T.muted, cursor: "pointer", outline: "none",
     appearance: "none" as const, WebkitAppearance: "none" as const,
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239398b0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
@@ -422,7 +422,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
       {/* Student — the one added this session, or the tutor's existing student */}
       {resolvedName && (
         <div className="h-12 rounded-xl border flex items-center justify-between px-3 text-[15px]"
-          style={{ borderColor: T.border, background: "#fbfbfc", color: T.txt }}>
+          style={{ borderColor: T.border, background: "var(--ds-surface2,#fbfbfc)", color: T.txt }}>
           <span>{resolvedName}{resolvedSubject ? ` · ${resolvedSubject}` : ""}</span>
         </div>
       )}
@@ -473,7 +473,7 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
         style={{ background: "transparent", border: "none", cursor: "pointer", color: T.txt, fontFamily: T.body }}>
         <span className="flex-shrink-0 relative h-6 w-11 rounded-full transition-colors"
           style={{ background: repeat ? T.teal : "rgba(15,15,26,.15)" }}>
-          <span className="absolute top-[3px] h-[18px] w-[18px] rounded-full bg-white transition-all"
+          <span className="absolute top-[3px] h-[18px] w-[18px] rounded-full bg-card transition-all"
             style={{ left: repeat ? "calc(100% - 21px)" : "3px", boxShadow: "0 1px 3px rgba(0,0,0,.2)" }} />
         </span>
         {t("onboardingFlowB.lessonRepeatWeekly")}
@@ -609,7 +609,7 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
           className="w-full text-left rounded-2xl p-4 flex items-start gap-3 transition-all"
           style={{ border: pick === i ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
                    background: pick === i ? T.tealL : "#fff" }}>
-          <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-white"
+          <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-card"
             style={{ border: pick === i ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
           <span>
             <span className="block font-bold text-[15px]" style={{ fontFamily: T.display }}>{o.title}</span>
@@ -791,7 +791,7 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
         {t("onboardingFlowB.financeIntro")}
       </p>
       {/* LessonCard anatomy */}
-      <div className="relative rounded-xl bg-white overflow-hidden transition-colors"
+      <div className="relative rounded-xl bg-card overflow-hidden transition-colors"
         style={{ border: `1px solid ${T.border}`, borderLeft: `4px solid ${paid ? T.success : T.teal}` }}>
         {/* Status pill */}
         <div className="absolute left-3 top-2 rounded-full px-2.5 py-0.5 text-[14px] font-bold"
@@ -855,7 +855,7 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
     <div className="flex flex-col gap-4">
       {/* Student card */}
       <div className="flex items-center gap-3 rounded-2xl p-3.5"
-        style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
+        style={{ border: `1px solid ${T.border}`, background: "var(--ds-surface2,#fbfbfc)" }}>
         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-black text-base flex-shrink-0"
           style={{ background: `linear-gradient(135deg,${T.teal},${T.tealD})`, fontFamily: T.display }}>
           {firstLetter}
@@ -871,8 +871,8 @@ function ChatBonus({ studentId, studentName, subject, onComplete, navigate }: {
       </div>
       {/* Chat preview */}
       <div className="rounded-2xl p-3.5 flex flex-col gap-2.5"
-        style={{ background: "#fbfbfc", border: `1px solid ${T.border}` }}>
-        <div className="self-start max-w-[82%] rounded-[14px_14px_14px_4px] px-3.5 py-2.5 text-sm bg-white"
+        style={{ background: "var(--ds-surface2,#fbfbfc)", border: `1px solid ${T.border}` }}>
+        <div className="self-start max-w-[82%] rounded-[14px_14px_14px_4px] px-3.5 py-2.5 text-sm bg-card"
           style={{ border: `1px solid ${T.border}` }}>
           {t("onboardingFlowB.chatPreviewIncoming")}
         </div>
@@ -923,7 +923,7 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
       </p>
       <div className="flex gap-2">
         <div className="h-12 flex-1 rounded-xl border flex items-center px-3 text-sm font-semibold truncate"
-          style={{ borderColor: T.border, background: "#fbfbfc", color: T.tealD }}>
+          style={{ borderColor: T.border, background: "var(--ds-surface2,#fbfbfc)", color: T.tealD }}>
           {link || "otutorhub.com/join/..."}
         </div>
         <button disabled={!link} onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); }}
@@ -1023,7 +1023,7 @@ function CalendarBonus({ user, onComplete }: { user: any; onComplete: () => void
       ) : (
       <button onClick={connect} disabled={loading}
         className="h-[52px] rounded-2xl border flex items-center justify-center gap-2.5 font-bold text-sm transition-transform active:scale-[.97]"
-        style={{ border: `1px solid ${T.border}`, background: "#fff", fontFamily: T.display, color: T.txt }}>
+        style={{ border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)", fontFamily: T.display, color: T.txt }}>
         {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : (
           <svg width="20" height="20" viewBox="0 0 48 48">
             <path fill="#4285F4" d="M45 24c0-1.6-.1-2.8-.4-4H24v7.5h12c-.2 2-1.6 5-4.6 7l7 5.4C42.6 36.7 45 31 45 24z"/>
@@ -1061,7 +1061,7 @@ function AiBonus({ onComplete }: { onComplete: () => void }) {
           { e: "🎬", t: t("onboardingFlowB.aiRecordingTitle"),   d: t("onboardingFlowB.aiRecordingDesc") },
         ].map(x => (
           <div key={x.t} className="flex items-center gap-3 rounded-xl p-3"
-            style={{ border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
+            style={{ border: `1px solid ${T.border}`, background: "var(--ds-surface2,#fbfbfc)" }}>
             <span className="text-[18px]">{x.e}</span>
             <div className="flex-1">
               <p className="font-bold text-[15px]" style={{ fontFamily: T.display }}>{x.t}</p>
@@ -1081,7 +1081,7 @@ const RadioCard = ({ active, onSelect, title, desc }: { active: boolean; onSelec
     className="w-full text-left rounded-2xl p-3.5 flex items-start gap-3 transition-all"
     style={{ border: active ? `1.5px solid ${T.teal}` : `1px solid ${T.border}`,
              background: active ? T.tealL : "#fff" }}>
-    <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-white transition-all"
+    <span className="w-5 h-5 rounded-full mt-0.5 flex-shrink-0 bg-card transition-all"
       style={{ border: active ? `6px solid ${T.teal}` : `2px solid ${T.muted}`, boxSizing: "border-box" as const }} />
     <span>
       <span className="block font-bold text-[15px]" style={{ fontFamily: T.display }}>{title}</span>
@@ -1312,7 +1312,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
                 return (
                   <button key={step.id} disabled={done}
                     onClick={() => !done && setActiveBonus(step)}
-                    className={cn("flex items-center gap-3 w-full text-left rounded-2xl border p-3.5 bg-white transition-all active:scale-[.98]",
+                    className={cn("flex items-center gap-3 w-full text-left rounded-2xl border p-3.5 bg-card transition-all active:scale-[.98]",
                       done ? "opacity-60 cursor-default" : "cursor-pointer")}
                     style={{ borderColor: T.border }}>
                     <div className="w-11 h-11 rounded-[13px] flex items-center justify-center text-xl flex-shrink-0"
@@ -1351,7 +1351,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
           <div className="fixed inset-0 z-50" onClick={() => setActiveBonus(null)}>
             <div className="absolute inset-0" style={{ background: "rgba(15,15,26,.45)", backdropFilter: "blur(2px)" }} />
             <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-              <div className="ob-sheet w-full max-w-[430px] bg-white rounded-t-[24px] max-h-[88vh] overflow-y-auto"
+              <div className="ob-sheet w-full max-w-[430px] bg-card rounded-t-[24px] max-h-[88vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}>
                 <div className="flex justify-center pt-2.5 pb-1">
                   <div className="w-10 h-1.5 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />

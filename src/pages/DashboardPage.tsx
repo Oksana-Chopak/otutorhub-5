@@ -1576,8 +1576,8 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </Link>
-                <Link to="/my-students" className="flex flex-col justify-center rounded-[18px] border bg-white px-3 py-2 hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/my-students" className="flex flex-col justify-center rounded-[18px] border bg-card px-3 py-2 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div className="w-7 h-7 rounded-[9px] flex items-center justify-center mb-1"
                     style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
@@ -1615,8 +1615,8 @@ export default function DashboardPage() {
                 </Link>
 
                 {/* 2. Students */}
-                <Link to="/my-students" className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
+                <Link to="/my-students" className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }}>
                   <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
                     style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-3.5 w-3.5" style={{ color: "#2BBFAA" }} />
@@ -1635,8 +1635,8 @@ export default function DashboardPage() {
                 {/* 3. Level */}
                 {level ? (
                   <Link to="/achievements" aria-label={t("nav.achievements")}
-                    className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
-                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }}>
+                    className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
+                    style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }}>
                     <div className="min-w-0">
                       <p className="text-[14px] font-bold uppercase tracking-wider" style={{ color: "var(--sub,#666b82)" }}>
                         🏅 {t("dashboardExtra.cardLevel")}
@@ -1647,14 +1647,14 @@ export default function DashboardPage() {
                     </div>
                   </Link>
                 ) : (
-                  <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
+                  <div className="rounded-[14px] border bg-card" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }} />
                 )}
 
                 {/* 4. Streak */}
                 {streak ? (
                   <Link to="/achievements" aria-label={t("nav.achievements")}
-                    className="rounded-[14px] border bg-white px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
-                    style={{ borderColor: "var(--border,#eceef3)", minHeight: 56,
+                    className="rounded-[14px] border bg-card px-3 py-2 flex items-center gap-2.5 transition-shadow hover:shadow-md"
+                    style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56,
                              background: streak.current_streak > 0 ? "linear-gradient(135deg,#fff8f0,#fff)" : "#fff" }}>
                     <span className="text-xl flex-shrink-0">🔥</span>
                     <div className="min-w-0">
@@ -1667,7 +1667,7 @@ export default function DashboardPage() {
                     </div>
                   </Link>
                 ) : (
-                  <div className="rounded-[14px] border bg-white" style={{ borderColor: "var(--border,#eceef3)", minHeight: 56 }} />
+                  <div className="rounded-[14px] border bg-card" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", minHeight: 56 }} />
                 )}
               </div>
 
@@ -1710,7 +1710,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </Link>
-                <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-white p-3 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/people" className="col-span-1 flex flex-col justify-center rounded-[18px] border bg-card p-3 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div className="w-8 h-8 rounded-[10px] flex items-center justify-center mb-2" style={{ background: "rgba(43,191,170,0.1)" }}>
                     <GraduationCap className="h-4 w-4" style={{ color: "#2BBFAA" }} />
                   </div>
@@ -1722,7 +1722,7 @@ export default function DashboardPage() {
               </div>
               {/* Tutors + Lessons today — mobile/tablet (lg uses the 4-col grid below) */}
               <div className="grid grid-cols-2 gap-3 lg:hidden">
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
@@ -1730,7 +1730,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
-                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1 text-[26px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
@@ -1756,7 +1756,7 @@ export default function DashboardPage() {
                     ))}
                   </div>
                 </Link>
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardTutors")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{tutorCount}</p>
@@ -1764,7 +1764,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
-                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/people" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.cardStudents")}</p>
                     {/* MANAGER card: hub-wide studentCount, NOT myStudentCount (see above) */}
@@ -1773,7 +1773,7 @@ export default function DashboardPage() {
                   </div>
                   <ChevronRight className="h-4 w-4 text-slate-300" />
                 </Link>
-                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <Link to="/schedule" className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>{t("dashboard.todayLessons")}</p>
                     <p className="mt-1.5 text-[30px] font-extrabold leading-none" style={{ color: "var(--txt,#0f0f1a)" }}>{todayLessons.length}</p>
@@ -1929,8 +1929,8 @@ export default function DashboardPage() {
                   the bento grid above (stacked on the right of the payout hero on
                   desktop; a 2-col row under it on mobile). */}
                 <div
-                  className="flex flex-col justify-center rounded-[18px] border bg-white p-[18px]"
-                  style={{ borderColor: "var(--border,#eceef3)" }}
+                  className="flex flex-col justify-center rounded-[18px] border bg-card p-[18px]"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div
                     className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px]"
@@ -1949,8 +1949,8 @@ export default function DashboardPage() {
                   </p>
                 </div>
                 <div
-                  className="flex flex-col justify-center rounded-[18px] border bg-white p-[18px]"
-                  style={{ borderColor: "var(--border,#eceef3)" }}
+                  className="flex flex-col justify-center rounded-[18px] border bg-card p-[18px]"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div
                     className="mb-3 flex h-10 w-10 items-center justify-center rounded-[12px]"
@@ -2001,8 +2001,8 @@ export default function DashboardPage() {
                 </Link>
                 {/* Hub students (no dedicated page for hub tutor → plain card, no chevron) */}
                 <div
-                  className="flex items-center justify-between rounded-[16px] border bg-white p-4"
-                  style={{ borderColor: "var(--border,#eceef3)" }}
+                  className="flex items-center justify-between rounded-[16px] border bg-card p-4"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
@@ -2020,8 +2020,8 @@ export default function DashboardPage() {
                 {/* Lessons today → Schedule (chevron) */}
                 <Link
                   to="/schedule"
-                  className="flex items-center justify-between rounded-[16px] border bg-white p-4 hover:shadow-sm transition-shadow"
-                  style={{ borderColor: "var(--border,#eceef3)" }}
+                  className="flex items-center justify-between rounded-[16px] border bg-card p-4 hover:shadow-sm transition-shadow"
+                  style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <div>
                     <p className="text-[14px] font-bold uppercase tracking-[0.08em]" style={{ color: "var(--sub,#666b82)" }}>
@@ -2117,7 +2117,7 @@ export default function DashboardPage() {
               {pendingPayments.length === 0 ? (
                 /* Empty state — all paid */
                 <div
-                  className="flex flex-col items-center gap-3 rounded-[16px] bg-white px-5 py-7 text-center"
+                  className="flex flex-col items-center gap-3 rounded-[16px] bg-card px-5 py-7 text-center"
                   style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.05)" }}
                 >
                   <span className="text-3xl">☀️</span>
@@ -2210,7 +2210,7 @@ export default function DashboardPage() {
               <div className={`space-y-2.5 ${showAllUpcoming ? "max-h-[60vh] overflow-y-auto pr-1" : ""}`}>
                 {upcomingLessons.length === 0 ? (
                   <div
-                    className="flex flex-col items-center gap-3 rounded-[16px] bg-white px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                    className="flex flex-col items-center gap-3 rounded-[16px] bg-card px-5 py-7 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                   >
                     <span className="text-3xl">☀️</span>
                     <div>
@@ -2334,7 +2334,7 @@ export default function DashboardPage() {
                 <div className="space-y-2.5">
                   {smartTasks.length === 0 ? (
                     <div
-                      className="rounded-[16px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
+                      className="rounded-[16px] bg-card px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]"
                     >
                       <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                         <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
@@ -2362,7 +2362,7 @@ export default function DashboardPage() {
                       return (
                         task.payTutorId ? (
                           <div key={task.key}
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-white py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: `3.5px solid ${borderColor}` }}>
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
                               <Icon className="h-4 w-4" style={{ color: iconColor }} />
@@ -2382,7 +2382,7 @@ export default function DashboardPage() {
                         ) : (
                         <Link key={task.key} to={task.to} className="block group">
                           <div
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
+                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
                             style={{ borderLeft: `3.5px solid ${borderColor}` }}
                           >
                             <div
@@ -2414,7 +2414,7 @@ export default function DashboardPage() {
                     <>
                       {studentTutorCount > 0 ? (
                         <Link to="/schedule" className="block group">
-                          <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #2BBFAA" }}>
+                          <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #2BBFAA" }}>
                             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(43,191,170,0.12)" }}>
                               <CalendarDays className="h-4 w-4" style={{ color: "var(--teal)" }} />
                             </div>
@@ -2426,12 +2426,12 @@ export default function DashboardPage() {
                           </div>
                         </Link>
                       ) : (
-                        <div className="ds-pop-in rounded-[18px] bg-white p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #3b82f6" }}>
+                        <div className="ds-pop-in rounded-[18px] bg-card p-4 shadow-[0_1px_4px_rgba(0,0,0,0.06)]" style={{ borderLeft: "3.5px solid #3b82f6" }}>
                           <p className="text-[14px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardPageExtra.findTutor")}</p>
                           <p className="mt-0.5 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("studentPages.noTutorHint")}</p>
                           <div className="mt-3">
                             <FindTutorDialog trigger={
-                              <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "#0f0f1a" }}>
+                              <Button size="sm" className="rounded-xl h-11" style={{ background: "var(--teal)", color: "var(--ds-txt,#0f0f1a)" }}>
                                 {t("dashboardPageExtra.leaveRequest")}
                               </Button>
                             } />
@@ -2444,7 +2444,7 @@ export default function DashboardPage() {
                   {(isIndependentTutor || isHubTutor) && !obProgress.loading && (
                     <>
                       {pendingBonusTasks.length === 0 ? (
-                        <div className="rounded-[16px] bg-white px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+                        <div className="rounded-[16px] bg-card px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
                           <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                             <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
                           </div>
@@ -2453,7 +2453,7 @@ export default function DashboardPage() {
                         </div>
                       ) : (
                         pendingBonusTasks.map((task) => (
-                          <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-white shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+                          <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
                             style={{ borderLeft: "3.5px solid #2BBFAA" }}>
                             {task.action === "ai" ? (
                               <button type="button" onClick={() => setAiNotesOpen(true)} className="flex flex-1 items-center gap-3 py-3.5 pl-4 pr-2 group hover:bg-muted/50 transition-colors min-w-0 text-left">
@@ -2496,7 +2496,7 @@ export default function DashboardPage() {
                   {/* Non-independent tutor: static availability task */}
                   {(isTutor || isManager) && !isIndependentTutor && (
                     <Link to="/availability" className="block group">
-                      <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-white py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #d0d3e0" }}>
+                      <div className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[18px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]" style={{ borderLeft: "3.5px solid #d0d3e0" }}>
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: "rgba(208,211,224,0.25)" }}>
                           <CalendarPlus className="h-4 w-4" style={{ color: "var(--ds-sub)" }} />
                         </div>
@@ -2524,7 +2524,7 @@ export default function DashboardPage() {
               <div id="monthly-summary-anchor">
                 {/* B-D4: афірмація переїхала з hero під сітку — верх лишається робочим. */}
                 {phraseOfDay && (
-                  <div className="rounded-[18px] border px-4 py-3 text-[15px] italic text-muted-foreground" style={{ borderColor: "var(--border,#eceef3)", background: "#fff" }}>
+                  <div className="rounded-[18px] border px-4 py-3 text-[15px] italic text-muted-foreground" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)" }}>
                     ✨ {phraseOfDay}
                   </div>
                 )}

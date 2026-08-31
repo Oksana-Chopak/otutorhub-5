@@ -249,7 +249,7 @@ export function AppSidebar() {
                           : { background: "rgba(255,255,255,0.06)" }
                       }
                     >
-                      <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-[#0f0f1a]")} />
+                      <item.icon className={cn("h-[18px] w-[18px]", isActive && "text-[color:var(--ds-txt,#0f0f1a)]")} />
                     </div>
                     {!sidebarCollapsed && <span className="flex-1">{t(item.labelKey)}</span>}
                     {!sidebarCollapsed && badge > 0 && (

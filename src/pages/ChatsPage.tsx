@@ -882,7 +882,7 @@ export default function ChatsPage() {
           {/* ── Col 1: Thread list ──────────────────────────────────────────── */}
           <div
             className={cn(
-              "flex flex-col border-r border-border bg-white",
+              "flex flex-col border-r border-border bg-card",
               "w-full lg:w-[280px] lg:flex-shrink-0",
               selectedId ? "hidden lg:flex" : "flex"
             )}
@@ -926,7 +926,7 @@ export default function ChatsPage() {
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("chats.searchPlaceholder")}
                   className="w-full pl-9 pr-3 h-11 rounded-xl text-[15px] outline-none"
-                  style={{ border: "1px solid var(--border,#eceef3)", background: "#fbfbfc" }}
+                  style={{ border: "1px solid var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface2,#fbfbfc)" }}
                 />
               </div>
 
@@ -935,7 +935,7 @@ export default function ChatsPage() {
                 <Popover>
                   <PopoverTrigger asChild>
                     <button className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[14px] font-bold"
-                      style={{ background: "#fff", border: "1px solid var(--border,#eceef3)", color: "var(--txt,#0f0f1a)", fontFamily: "Inter, system-ui" }}>
+                      style={{ background: "var(--ds-surface,#fff)", border: "1px solid var(--border,var(--ds-border,#eceef3))", color: "var(--txt,#0f0f1a)", fontFamily: "Inter, system-ui" }}>
                       <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--sub,#666b82)" }} />
                       {t("chats.filters")}
                     </button>
@@ -959,7 +959,7 @@ export default function ChatsPage() {
             {/* Thread rows */}
             {/* Блок тредів: висота = рівно вміст, притиснутий до низу (mt-auto);
                 при переповненні flex-shrink обмежує висотою панелі → скрол. */}
-            <div className="mt-auto min-h-0 overflow-y-auto" style={{ padding: "10px 12px", background: "#F5F4F0", borderRadius: "16px 16px 0 0" }}>
+            <div className="mt-auto min-h-0 overflow-y-auto" style={{ padding: "10px 12px", background: "var(--ds-bg,#F5F4F0)", borderRadius: "16px 16px 0 0" }}>
               {visibleThreads.length === 0 ? (
                 <div className="px-4 py-8 text-center space-y-2">
                   <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
@@ -987,8 +987,8 @@ export default function ChatsPage() {
                       className="w-full text-left transition-all active:scale-[0.995]"
                       style={{
                         borderRadius: 18,
-                        border: `1px solid ${selectedId === thread.id ? "#2BBFAA" : "#eceef3"}`,
-                        background: "#fff",
+                        border: `1px solid ${selectedId === thread.id ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
+                        background: "var(--ds-surface,#fff)",
                         boxShadow: selectedId === thread.id ? "0 4px 16px -6px rgba(43,191,170,.3)" : "0 1px 4px rgba(0,0,0,.04)",
                         padding: 13,
                         marginBottom: 8,
@@ -1007,7 +1007,7 @@ export default function ChatsPage() {
                           <div className="flex items-center justify-between gap-2">
                             <p
                               className="truncate text-[15px]"
-                              style={{ fontWeight: isUnread ? 800 : 600, fontFamily: "Inter, system-ui", color: "#0f0f1a" }}
+                              style={{ fontWeight: isUnread ? 800 : 600, fontFamily: "Inter, system-ui", color: "var(--ds-txt,#0f0f1a)" }}
                             >
                               {tName}
                             </p>
@@ -1082,14 +1082,14 @@ export default function ChatsPage() {
               "flex flex-col flex-1 min-w-0",
               !selectedThread && "hidden lg:flex"
             )}
-            style={{ background: "#F5F4F0" }}
+            style={{ background: "var(--ds-bg,#F5F4F0)" }}
           >
             {selectedThread ? (
               <>
                 {/* Conversation header */}
                 <div
                   className="flex items-center gap-3 px-4 py-3 flex-shrink-0"
-                  style={{ background: "#fff", borderBottom: "1px solid var(--border,#eceef3)" }}
+                  style={{ background: "var(--ds-surface,#fff)", borderBottom: "1px solid var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <button
                     className="lg:hidden h-11 w-11 -ml-1.5 rounded-full flex items-center justify-center hover:bg-muted"
@@ -1256,8 +1256,8 @@ export default function ChatsPage() {
                                       borderRadius: "16px 16px 16px 5px",
                                     }
                                   : {
-                                      background: "#fff",
-                                      border: "1px solid var(--border,#eceef3)",
+                                      background: "var(--ds-surface,#fff)",
+                                      border: "1px solid var(--border,var(--ds-border,#eceef3))",
                                       color: "var(--txt,#0f0f1a)",
                                       borderRadius: "16px 16px 16px 5px",
                                     }),
@@ -1350,7 +1350,7 @@ export default function ChatsPage() {
                         {selectedThread.ctx.kind === "debt" ? <Wallet className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "#0f0f1a" }}>
+                        <p className="text-[14px] font-bold truncate" style={{ fontFamily: "Inter, system-ui", color: "var(--ds-txt,#0f0f1a)" }}>
                           {selectedThread.ctx.kind === "debt"
                             ? t("chats.smartUnpaidTitle", { amount: formatPrice(selectedThread.ctx.amount ?? 0, "UAH")})
                             : t("chats.smartCreateFirstLesson")}
@@ -1398,7 +1398,7 @@ export default function ChatsPage() {
                 {pendingFile && (
                   <div
                     className="flex items-center gap-2 px-3 py-2 text-[14px] flex-shrink-0"
-                    style={{ borderTop: "1px solid var(--border,#eceef3)", background: "#fff" }}
+                    style={{ borderTop: "1px solid var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)" }}
                   >
                     <Paperclip className="h-3.5 w-3.5 flex-shrink-0" style={{ color: "#2BBFAA" }} />
                     <span className="flex-1 truncate" style={{ color: "var(--txt,#0f0f1a)" }}>{pendingFile.name}</span>
@@ -1419,7 +1419,7 @@ export default function ChatsPage() {
                 <form
                   onSubmit={(e) => { e.preventDefault(); sendMessage(); }}
                   className="flex items-center gap-2 px-3 py-3 flex-shrink-0"
-                  style={{ background: "#fff", borderTop: "1px solid var(--border,#eceef3)" }}
+                  style={{ background: "var(--ds-surface,#fff)", borderTop: "1px solid var(--border,var(--ds-border,#eceef3))" }}
                 >
                   <input
                     ref={fileInputRef}
@@ -1469,8 +1469,8 @@ export default function ChatsPage() {
                     rows={1}
                     className="flex-1 rounded-full border px-4 py-2.5 text-[15px] resize-none"
                     style={{
-                      background: "#fbfbfc",
-                      borderColor: "var(--border,#eceef3)",
+                      background: "var(--ds-surface2,#fbfbfc)",
+                      borderColor: "var(--border,var(--ds-border,#eceef3))",
                       color: "var(--txt,#0f0f1a)",
                       caretColor: "var(--teal,#2BBFAA)",
                       minHeight: 44,
@@ -1505,7 +1505,7 @@ export default function ChatsPage() {
           {canShowContext && (
             <div
               className="hidden lg:flex flex-col border-l border-border overflow-y-auto flex-shrink-0"
-              style={{ width: 260, background: "#fff" }}
+              style={{ width: 260, background: "var(--ds-surface,#fff)" }}
             >
               {selectedThread ? (
                 <>

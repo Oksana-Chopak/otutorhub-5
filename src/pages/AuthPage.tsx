@@ -77,11 +77,11 @@ function ConfirmedSignIn({
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center gap-2 justify-center">
           <img src="/logo-96.webp" alt="oTutorHub" className="h-11 w-11" />
-          <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", color: "#0f0f1a" }}>oTutorHub</span>
+          <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", color: "var(--ds-txt,#0f0f1a)" }}>oTutorHub</span>
         </div>
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
           <div className="flex flex-col items-center gap-2 text-center">
@@ -542,7 +542,7 @@ export default function AuthPage() {
   // ── Email sent screen ───────────────────────────────────────────────────────
   if (emailSent) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
+      <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
         <div className="w-full max-w-md text-center">
           <div className="mb-6 flex items-center gap-2 justify-center">
             <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
@@ -598,7 +598,7 @@ export default function AuthPage() {
   return (
     <>
       <OfflineBanner />
-    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
+    <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -608,7 +608,7 @@ export default function AuthPage() {
           <LanguageSwitcher variant="ghost" size="sm" />
         </div>
 
-        <Card className="rounded-[20px] border-[#eceef3] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
+        <Card className="rounded-[20px] border-[var(--ds-border,#eceef3)] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">
           <CardHeader>
             <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 23, letterSpacing: "-.01em" }}>{t("auth.welcome")}</CardTitle>
             <CardDescription className="text-[14px]">{t("auth.welcomeSub")}</CardDescription>

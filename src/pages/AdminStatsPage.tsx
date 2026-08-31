@@ -45,7 +45,7 @@ interface Stats {
   };
 }
 
-const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-white p-4";
+const card = "rounded-[16px] border-[0.5px] border-[var(--border)] bg-card p-4";
 
 
 type CrmRow = NonNullable<Stats["crm"]>["tutors"][number];
@@ -81,7 +81,7 @@ function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) 
   };
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
-      <div className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-[20px] bg-white p-4 sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-[20px] bg-card p-4 sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2">
           <RiskChip risk={row.risk} t={t} />
           <h3 className="text-[16px] font-bold">{row.name}</h3>
@@ -345,7 +345,7 @@ export default function AdminStatsPage() {
                         <div className="flex flex-wrap items-center gap-2">
                           <RiskChip risk={r.risk} t={t} />
                           <span className="text-[15px] font-semibold">{r.name}</span>
-                          <span className="rounded-full bg-white px-2 py-0.5 text-[13px] text-[var(--sub)]">{t(`adminCrm.type_${r.type}`)}</span>
+                          <span className="rounded-full bg-card px-2 py-0.5 text-[13px] text-[var(--sub)]">{t(`adminCrm.type_${r.type}`)}</span>
                           <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${r.stage}`)}{r.stage === "stuck_onboarding" && r.onboarding_step ? ` · ${r.onboarding_step}` : ""}</span>
                           {r.trial_left_days !== null && r.trial_left_days >= 0 && (
                             <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[13px] text-amber-800">{t("adminCrm.trialLeftChip", { d: r.trial_left_days })}</span>

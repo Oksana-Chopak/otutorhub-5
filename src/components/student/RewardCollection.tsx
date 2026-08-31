@@ -10,15 +10,15 @@ interface Props {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#1f8e7e", txt: "#0f0f1a", sub: "var(--sub,#666b82)",
-  border: "#eceef3", display: "Inter, system-ui, sans-serif",
+  teal: "#2BBFAA", tealD: "#1f8e7e", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)",
+  border: "var(--ds-border,#eceef3)", display: "Inter, system-ui, sans-serif",
 };
 
 export function RewardCollection({ rewards, loading }: Props) {
   const { t } = useTranslation();
 
   return (
-    <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
+    <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: C.display, fontWeight: 700, fontSize: 15.5, color: C.txt }}>
           <Sparkles className="h-4 w-4" style={{ color: C.teal }} />

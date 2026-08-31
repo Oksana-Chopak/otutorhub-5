@@ -62,7 +62,7 @@ export function DeleteAccountSection() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "1.5px solid rgba(224,85,47,.45)", background: "#fff", color: "#b3441f", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
+        style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7, height: 44, padding: "0 16px", borderRadius: 12, cursor: "pointer", border: "1.5px solid rgba(224,85,47,.45)", background: "var(--ds-surface,#fff)", color: "#b3441f", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15 }}
       >
         <Trash2 size={16} /> {t("accountDeletion.btn")}
       </button>

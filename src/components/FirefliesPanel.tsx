@@ -128,8 +128,8 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
   const isReady = !!(state.summary || state.transcript?.length || state.recordingUrl);
 
   const L = {
-    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "#0f0f1a",
-    sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#fbfbfc",
+    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+    sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const label: React.CSSProperties = {
@@ -138,7 +138,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
   };
 
   return (
-    <section className="md:col-span-2" style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "#fff", padding: 14, fontFamily: L.body, color: L.txt }}>
+    <section className="md:col-span-2" style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "var(--ds-surface,#fff)", padding: 14, fontFamily: L.body, color: L.txt }}>
       <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: state.status || canRecord ? 10 : 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span style={{ width: 36, height: 36, borderRadius: 11, background: "rgba(59,130,246,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>🎙</span>
@@ -201,13 +201,13 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {state.recordingUrl && (
                 <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "var(--ds-surface,#fff)", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <ExternalLink className="h-4 w-4" /> {t("firefliesPanel.openRecording")}
                 </a>
               )}
               {state.audioUrl && (
                 <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "var(--ds-surface,#fff)", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <FileAudio className="h-4 w-4" /> {t("firefliesPanel.audio")}
                 </a>
               )}

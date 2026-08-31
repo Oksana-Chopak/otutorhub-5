@@ -130,8 +130,8 @@ const emptyForm: FormData = {
 };
 
 const T = {
-  teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
-  bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
+  teal: "#2BBFAA", tealD: "#25a896", border: "var(--ds-border,#eceef3)",
+  bg: "var(--ds-bg,#F5F4F0)", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -721,7 +721,7 @@ export default function MyStudentsPage() {
       {/* ── Search (full-width row, appears only when open) ───────────── */}
       {searchOpen && (
         <div className="mb-3">
-          <div className="flex items-center gap-2.5" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: `1px solid ${T.border}`, boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+          <div className="flex items-center gap-2.5" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}`, boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
             <Search size={20} style={{ color: T.sub, flexShrink: 0 }} />
             <input
               autoFocus
@@ -746,7 +746,7 @@ export default function MyStudentsPage() {
             <button key={key} onClick={() => { setView(key); setSearchQuery(""); }}
               className="px-4 h-10 rounded-[9px] text-[14px] font-bold transition-all"
               style={view === key
-              ? { background: "#fff", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
+              ? { background: "var(--ds-surface,#fff)", color: T.txt, fontFamily: T.display, boxShadow: "0 1px 3px rgba(15,15,26,.1)" }
               : { background: "transparent", color: T.sub, fontFamily: T.display }}>
             {label}
           </button>
@@ -754,7 +754,7 @@ export default function MyStudentsPage() {
         </div>
         {!searchOpen && (
           <button onClick={() => setSearchOpen(true)} aria-label={t("myStudents.searchPlaceholder")}
-            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
             <Search size={21} strokeWidth={2} />
           </button>
         )}
@@ -822,15 +822,15 @@ export default function MyStudentsPage() {
                   <div className="hidden lg:block" />
                   <div className="flex gap-1.5">
                     <button onClick={() => openEdit(s)} aria-label={t("common.edit")}
-                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                       <Pencil size={20} />
                     </button>
                     <button onClick={() => s.archived_at ? unarchive(s) : archive(s)} aria-label={s.archived_at ? t("people.unarchiveBtn") : t("people.archiveBtn")}
-                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: T.sub, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                       {s.archived_at ? <ArchiveRestore size={20} /> : <Archive size={20} />}
                     </button>
                     <button onClick={() => fullDelete(s)} aria-label={t("myStudents.deleteBtn")}
-                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
+                      style={{ width: 44, height: 44, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "#dc2626", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.06)" }}>
                       <Trash2 size={20} />
                     </button>
                   </div>
@@ -907,11 +907,11 @@ export default function MyStudentsPage() {
 
                   {/* Stats */}
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                    <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
+                    <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}` }}>
                       <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 26, color: T.txt }}>{(s as any).total_lessons ?? 0}</div>
                       <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.totalLessonsLabel")}</div>
                     </div>
-                    <div style={{ borderRadius: 16, padding: 14, background: "#fff", border: `1px solid ${T.border}` }}>
+                    <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}` }}>
                       <div style={{ fontFamily: T.display, fontWeight: 800, fontSize: 19, color: (s as any).next_lesson_at ? T.tealD : T.muted }}>{nextLessonLabel}</div>
                       <div style={{ fontFamily: T.body, fontSize: 14, color: T.sub }}>{t("myStudents.nextLessonLabel")}</div>
                     </div>
@@ -931,7 +931,7 @@ export default function MyStudentsPage() {
                       <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: T.sub, margin: "2px 2px 9px" }}>{t("myStudents.contactsSectionLabel")}</div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                         {contacts.map((c) => (
-                          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "#fff" }}>
+                          <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 12, borderRadius: 13, padding: "8px 8px 8px 14px", border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)" }}>
                             <div style={{ minWidth: 0, flex: 1 }}>
                               <div style={{ fontFamily: T.display, fontWeight: 700, fontSize: 14, letterSpacing: ".05em", textTransform: "uppercase", color: T.muted }}>{c.label}</div>
                               <div style={{ fontFamily: T.body, fontSize: 15.5, color: T.txt, marginTop: 1 }} className="truncate">{c.value}</div>
@@ -950,10 +950,10 @@ export default function MyStudentsPage() {
                 </div>
 
                 {/* Sticky actions */}
-                <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "12px 16px 16px", borderTop: `1px solid ${T.border}`, background: "#fff" }}>
+                <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "12px 16px 16px", borderTop: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)" }}>
                   {s.phone && (
                     <a href={`tel:${s.phone}`}
-                      style={{ flexShrink: 0, height: 50, padding: "0 18px", borderRadius: 14, border: `1px solid ${T.border}`, background: "#fff", color: T.tealD, fontFamily: T.display, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                      style={{ flexShrink: 0, height: 50, padding: "0 18px", borderRadius: 14, border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)", color: T.tealD, fontFamily: T.display, fontWeight: 700, fontSize: 15, textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                       <Phone size={18} strokeWidth={2} /> {t("people.call")}
                     </a>
                   )}
@@ -981,8 +981,8 @@ export default function MyStudentsPage() {
           </div>
           {(() => {
             const F = {
-              border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-              txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", gold: "#9a6a12",
+              border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
+              txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", gold: "#9a6a12",
               display: "Inter, system-ui, sans-serif",
               body: "'Plus Jakarta Sans', system-ui, sans-serif",
             };
@@ -1117,11 +1117,11 @@ export default function MyStudentsPage() {
                         <input autoFocus aria-label={t("myStudents.subjectDraftPlaceholder")} value={subjectDraft} onChange={(e) => setSubjectDraft(e.target.value)}
                           placeholder={t("myStudents.subjectDraftPlaceholder")}
                           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSubject(subjectDraft); } }}
-                          style={{ ...inp(false), background: "#fff", borderColor: F.teal, boxShadow: "0 0 0 3px rgba(43,191,170,.12)" }} />
+                          style={{ ...inp(false), background: "var(--ds-surface,#fff)", borderColor: F.teal, boxShadow: "0 0 0 3px rgba(43,191,170,.12)" }} />
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 10 }}>
                           {subMatches.map((s) => (
                             <button key={s} type="button" onClick={() => addSubject(s)}
-                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
+                              style={{ height: 34, padding: "0 13px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${F.border}`, background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.body, fontWeight: 600, fontSize: 15 }}>
                               {s}
                             </button>
                           ))}
@@ -1143,18 +1143,18 @@ export default function MyStudentsPage() {
                       <div style={{ flex: 1 }}>
                         <input aria-label={t("myStudents.priceCardTitle")} inputMode="decimal" placeholder="500" value={form.price}
                           onChange={(e) => setForm({ ...form, price: e.target.value.replace(/[^\d.]/g, "") })}
-                          onFocus={focusOn} onBlur={focusOff} style={{ ...inp(true), background: "#fff" }} />
+                          onFocus={focusOn} onBlur={focusOff} style={{ ...inp(true), background: "var(--ds-surface,#fff)" }} />
                       </div>
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <button type="button" onClick={() => setCurOpen((v) => !v)}
-                          style={{ ...inp(false), width: "auto", display: "flex", alignItems: "center", gap: 5, padding: "0 12px", cursor: "pointer", fontFamily: F.display, fontWeight: 800, background: "#fff" }}>
+                          style={{ ...inp(false), width: "auto", display: "flex", alignItems: "center", gap: 5, padding: "0 12px", cursor: "pointer", fontFamily: F.display, fontWeight: 800, background: "var(--ds-surface,#fff)" }}>
                           <span style={{ color: F.tealD }}>{currencySymbol(form.currency)}</span>{form.currency}
                           <ChevronDown size={15} style={{ color: F.muted, marginLeft: 2 }} />
                         </button>
                         {curOpen && (
                           <>
                             <div onClick={() => setCurOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 60 }} />
-                            <div style={{ position: "absolute", top: 56, right: 0, zIndex: 61, background: "#fff", borderRadius: 12, border: `1px solid ${F.border}`, boxShadow: "0 8px 24px -8px rgba(15,15,26,.25)", padding: 5, minWidth: 124 }}>
+                            <div style={{ position: "absolute", top: 56, right: 0, zIndex: 61, background: "var(--ds-surface,#fff)", borderRadius: 12, border: `1px solid ${F.border}`, boxShadow: "0 8px 24px -8px rgba(15,15,26,.25)", padding: 5, minWidth: 124 }}>
                               {CURRENCY_OPTIONS.map((c) => (
                                 <button key={c.code} type="button" onClick={() => { setForm({ ...form, currency: c.code }); setCurOpen(false); }}
                                   style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", height: 40, padding: "0 11px", borderRadius: 9, border: "none", cursor: "pointer", textAlign: "left",
@@ -1203,9 +1203,9 @@ export default function MyStudentsPage() {
                 </div>
 
                 {/* ── Footer ── */}
-                <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 10 }}>
+                <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
                   <button type="button" onClick={close}
-                    style={{ height: 50, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+                    style={{ height: 50, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
                     {t("myStudents.cancelBtn")}
                   </button>
                   <button type="button" onClick={submit} disabled={submitting}

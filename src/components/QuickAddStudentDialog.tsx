@@ -181,7 +181,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   // central token/WCAG fixes reach this dialog (sub → the WCAG-fixed #666b82).
   const F = {
     teal: "var(--teal,#2BBFAA)", tealD: "var(--teal-d,#25a896)", tealL: "var(--teal-l,#f0fdf9)",
-    border: "var(--ds-border,#eceef3)", bg: "#fbfbfc", txt: "var(--ds-txt,#0f0f1a)",
+    border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)", txt: "var(--ds-txt,#0f0f1a)",
     sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", warnD: "#B4740B",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -261,7 +261,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   </div>
                 ) : (
                   <div style={{ width: 60, height: 60, borderRadius: 20, flexShrink: 0, position: "relative",
-                    background: "#fff", border: `1.5px solid ${F.border}`,
+                    background: "var(--ds-surface,#fff)", border: `1.5px solid ${F.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
                       <circle cx="12" cy="8" r="4" stroke="#6f7489" strokeWidth="1.6"/>
@@ -343,7 +343,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
               </span>
               <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 10, alignItems: "stretch" }}>
                 <input aria-label={t("quickAddStudent.pricePerLesson")} inputMode="decimal" min={0}
-                  style={{ ...inpSt(), height: 48, fontSize: 18, fontWeight: 700, fontFamily: F.display, background: "#fff",
+                  style={{ ...inpSt(), height: 48, fontSize: 18, fontWeight: 700, fontFamily: F.display, background: "var(--ds-surface,#fff)",
                     border: "1.5px solid rgba(245,181,68,.4)" }}
                   placeholder="500"
                   value={form.price}
@@ -355,7 +355,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   <button type="button" aria-label={t("quickAddStudent.currency")}
                     onClick={() => setCurrencyOpen(v => !v)}
                     style={{ width: "100%", height: 48, borderRadius: 13, padding: "0 12px", cursor: "pointer",
-                      background: "#fff", border: "1.5px solid rgba(245,181,68,.4)",
+                      background: "var(--ds-surface,#fff)", border: "1.5px solid rgba(245,181,68,.4)",
                       display: "flex", alignItems: "center", justifyContent: "space-between",
                       fontFamily: F.body, fontWeight: 600, fontSize: 15, color: F.txt }}>
                     <span><span style={{ color: F.tealD, fontWeight: 800, marginRight: 6 }}>{sym}</span>{curOption.code}</span>
@@ -364,7 +364,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   {currencyOpen && (
                     <>
                       <div onClick={() => setCurrencyOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
-                      <div style={{ position: "absolute", top: 54, left: 0, right: 0, zIndex: 41, background: "#fff",
+                      <div style={{ position: "absolute", top: 54, left: 0, right: 0, zIndex: 41, background: "var(--ds-surface,#fff)",
                         borderRadius: 13, border: `1px solid ${F.border}`, boxShadow: "0 4px 16px rgba(15,15,26,.08)", overflow: "hidden", padding: 5 }}>
                         {CURRENCIES.map(c => {
                           const sel = c.code === form.currency;
@@ -471,7 +471,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <div style={{ display: "flex", gap: 11, marginTop: 4 }}>
               <button type="button" onClick={() => { reset(); onOpenChange(false); }}
                 style={{ height: 50, padding: "0 20px", borderRadius: 14, cursor: "pointer", flexShrink: 0,
-                  border: `1px solid ${F.border}`, background: "#fff",
+                  border: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)",
                   fontFamily: F.display, fontWeight: 700, fontSize: 15, color: F.sub }}>
                 {t("quickAddStudent.cancelBtn")}
               </button>

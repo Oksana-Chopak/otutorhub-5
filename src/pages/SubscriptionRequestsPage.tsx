@@ -218,7 +218,7 @@ export default function SubscriptionRequestsPage() {
                     </div>
 
                     {r.message && (
-                      <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid var(--ds-border,#eceef3)", color: "var(--ds-txt,#0f0f1a)" }}>
+                      <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)", color: "var(--ds-txt,#0f0f1a)" }}>
                         <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> {t("subscriptionRequestsExtra.messageLabel")}
                         </div>

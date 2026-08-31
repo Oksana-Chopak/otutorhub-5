@@ -61,7 +61,7 @@ export default function ErrorLogPage() {
         <button
           type="button"
           onClick={load}
-          className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-white px-3 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
+          className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
         >
           <RefreshCw className="h-4 w-4" /> {t("errorLog.refresh")}
         </button>
@@ -69,7 +69,7 @@ export default function ErrorLogPage() {
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-white px-3 text-[14px] font-semibold text-destructive transition-colors hover:bg-destructive/5"
+            className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-destructive transition-colors hover:bg-destructive/5"
           >
             <Trash2 className="h-4 w-4" /> {t("errorLog.clear")}
           </button>
@@ -79,7 +79,7 @@ export default function ErrorLogPage() {
       {loading ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-[16px] border border-border bg-white p-3.5">
+            <div key={i} className="rounded-[16px] border border-border bg-card p-3.5">
               <div className="h-4 w-3/4 animate-pulse rounded-md bg-muted" />
               <div className="mt-2 h-3 w-40 animate-pulse rounded-md bg-muted" />
             </div>
@@ -92,7 +92,7 @@ export default function ErrorLogPage() {
           {rows.map((r) => {
             const on = openId === r.id;
             return (
-              <div key={r.id} className="rounded-[16px] border border-border bg-white">
+              <div key={r.id} className="rounded-[16px] border border-border bg-card">
                 <button
                   type="button"
                   onClick={() => setOpenId(on ? null : r.id)}

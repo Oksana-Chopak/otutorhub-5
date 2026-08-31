@@ -11,8 +11,8 @@ interface RewardRow {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#25a896", txt: "#0f0f1a", sub: "var(--sub,#666b82)",
-  border: "#eceef3", display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
+  teal: "#2BBFAA", tealD: "#25a896", txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)",
+  border: "var(--ds-border,#eceef3)", display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
 /** Student-facing rewards shelf: every completed lesson drops an emoji here. */
@@ -89,7 +89,7 @@ export function StudentRewardsShelf() {
 
       {/* Shelf */}
       {rewards.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 18, border: `1px dashed ${C.border}`, background: "#fff" }}>
+        <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 18, border: `1px dashed ${C.border}`, background: "var(--ds-surface,#fff)" }}>
           <div style={{ fontSize: 40 }}>🍎</div>
           <p style={{ fontFamily: C.display, fontWeight: 800, fontSize: 17, marginTop: 8 }}>{t("studentRewardsShelf.emptyTitle")}</p>
           <p style={{ fontSize: 14, color: C.sub, marginTop: 4, lineHeight: 1.5 }}>
@@ -97,7 +97,7 @@ export function StudentRewardsShelf() {
           </p>
         </div>
       ) : (
-        <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
+        <div style={{ borderRadius: 18, border: `1px solid ${C.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
           <div style={{ fontFamily: C.display, fontWeight: 700, fontSize: 14, color: C.sub, marginBottom: 10, textTransform: "uppercase", letterSpacing: ".07em" }}>
             {t("studentRewardsShelf.collectionLabel")}
           </div>

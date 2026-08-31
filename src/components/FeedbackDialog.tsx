@@ -21,8 +21,8 @@ interface FeedbackDialogProps {
 // DS tokens — same palette/typography the newer sheets use
 const F = {
   teal: "#2BBFAA",
-  border: "#eceef3",
-  txt: "#0f0f1a",
+  border: "var(--ds-border,#eceef3)",
+  txt: "var(--ds-txt,#0f0f1a)",
   sub: "var(--sub,#666b82)",
   display: "Inter, system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -156,7 +156,7 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
             rows={4}
             style={{
               width: "100%", borderRadius: 14, border: `1px solid ${F.border}`, padding: "12px 14px",
-              fontFamily: F.body, fontSize: 15, resize: "none", outline: "none", background: "#fff",
+              fontFamily: F.body, fontSize: 15, resize: "none", outline: "none", background: "var(--ds-surface,#fff)",
             }}
             onFocus={(e) => { e.currentTarget.style.border = `1.5px solid ${F.teal}`; }}
             onBlur={(e) => { e.currentTarget.style.border = `1px solid ${F.border}`; }}

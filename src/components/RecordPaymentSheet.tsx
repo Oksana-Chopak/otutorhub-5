@@ -205,7 +205,7 @@ export function RecordPaymentSheet({
         </div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div>
-            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               {t("recordPayment.title")}
             </div>
             <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 2 }}>
@@ -213,7 +213,7 @@ export function RecordPaymentSheet({
             </div>
           </div>
           <button onClick={close} aria-label="✕"
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -309,7 +309,7 @@ export function RecordPaymentSheet({
                 </div>
 
                 {/* Велике поле на ДС-картці */}
-                <div style={{ borderRadius: 16, padding: 14, background: "#fbfbfc", border: "1px solid #eceef3" }}>
+                <div style={{ borderRadius: 16, padding: 14, background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)" }}>
                   <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 8 }}>
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
@@ -319,9 +319,9 @@ export function RecordPaymentSheet({
                       placeholder={t("recordPaymentExtra.countPlaceholder")}
                       value={lessonsCount}
                       onChange={(e) => setLessonsCount(e.target.value)}
-                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid #eceef3", padding: "0 14px",
+                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid var(--ds-border,#eceef3)", padding: "0 14px",
                         fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
-                        background: "#fff", outline: "none" }}
+                        background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   ) : (
                     <input
@@ -329,19 +329,19 @@ export function RecordPaymentSheet({
                       placeholder={t("recordPaymentExtra.amountPlaceholder")}
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid #eceef3", padding: "0 14px",
+                      style={{ width: "100%", height: 52, borderRadius: 13, border: "1.5px solid var(--ds-border,#eceef3)", padding: "0 14px",
                         fontSize: 22, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, color: "#1f8e7e",
-                        background: "#fff", outline: "none" }}
+                        background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   )}
                   {mode === "lessons" && pickedPair.rate && lessonsCount ? (
                     <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
-                      ≈ <b style={{ color: "#0f0f1a" }}>{formatPrice(parseInt(lessonsCount, 10) * pickedPair.rate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
+                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{formatPrice(parseInt(lessonsCount, 10) * pickedPair.rate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && pickedPair.rate && amount ? (
                     <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
-                      ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
+                      ≈ <b style={{ color: "var(--ds-txt,#0f0f1a)" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
                     </p>
                   ) : null}
                 </div>
@@ -355,9 +355,9 @@ export function RecordPaymentSheet({
                     placeholder={t("recordPaymentExtra.commentPlaceholder")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
-                    style={{ width: "100%", height: 46, borderRadius: 12, border: "1.5px solid #eceef3", padding: "0 13px",
-                      fontSize: 15, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "#0f0f1a",
-                      background: "#fff", outline: "none" }}
+                    style={{ width: "100%", height: 46, borderRadius: 12, border: "1.5px solid var(--ds-border,#eceef3)", padding: "0 13px",
+                      fontSize: 15, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "var(--ds-txt,#0f0f1a)",
+                      background: "var(--ds-surface,#fff)", outline: "none" }}
                   />
                 </div>
 

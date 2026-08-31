@@ -69,8 +69,8 @@ function inferPlatform(url: string): string {
 // компонента — новий тип на кожен рендер → textarea перестворюється і губить
 // фокус після ПЕРШОГО символу. Розтяжка №13 стереже. openRow/toggleRow — пропси.
 const L = {
-  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-  sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#fbfbfc",
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+  sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 const Row = ({ emoji, tint, title, preview, k, last, children, openRow, toggleRow }: {
@@ -615,7 +615,7 @@ export function LessonWorkspace({
           </div>
 
           {/* Accordion */}
-          <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "#fff" }}>
+          <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "var(--ds-surface,#fff)" }}>
             {/* 📚 Homework */}
             <Row openRow={openRow} toggleRow={toggleRow} emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
               preview={homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
@@ -650,7 +650,7 @@ export function LessonWorkspace({
                   </button>
                 ) : (
                   <button type="button" onClick={() => { trackPaywallClick("ai_summary", "lesson_workspace", { lessonId }); navigate("/subscription?from=ai_summary"); }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "#fff", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: "var(--ds-surface,#fff)", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                     <Lock className="h-4 w-4" /> {t("lessonWorkspaceExtra.aiBtnPro")}
                   </button>
                 )}
@@ -670,7 +670,7 @@ export function LessonWorkspace({
                         else { await navigator.clipboard.writeText(text); toast({ title: t("lessonWorkspaceExtra.copied"), description: t("lessonWorkspaceExtra.copiedDesc") }); }
                       } catch { /* user cancelled */ }
                     }}
-                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "#fff", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, cursor: "pointer", border: `1px solid ${L.border}`, background: "var(--ds-surface,#fff)", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                     <Share2 className="h-4 w-4" /> {t("lessonWorkspaceExtra.shareBtn")}
                   </button>
                 )}
@@ -721,7 +721,7 @@ export function LessonWorkspace({
               </div>
               {effectiveMeetingUrl && (
                 <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
-                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "#0f0f1a", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
+                  style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "var(--ds-txt,#0f0f1a)", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                   <ExternalLink className="h-4 w-4" /> {t("lessonWorkspaceExtra.joinBtn")}
                 </a>
               )}

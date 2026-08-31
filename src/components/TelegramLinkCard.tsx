@@ -122,7 +122,7 @@ export function TelegramLinkCard() {
   }
 
   return (
-    <Card className="p-4 rounded-[16px] border-[0.5px] border-[var(--border,#eceef3)] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
+    <Card className="p-4 rounded-[16px] border-[0.5px] border-[var(--border,var(--ds-border,#eceef3))] shadow-[0_1px_4px_rgba(0,0,0,0.06)]">
       <div className="flex items-start gap-3">
         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px]" style={{ background: "rgba(43,191,170,0.12)" }}>
           <MessageCircle className="h-4 w-4" style={{ color: "var(--teal,#2BBFAA)" }} />

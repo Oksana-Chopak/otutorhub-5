@@ -13,11 +13,11 @@ import { MessageCircle, Copy, Check, Mail } from "lucide-react";
 const T = {
   teal:    "#2BBFAA",
   tealD:   "#25a896",
-  border:  "#eceef3",
-  bg:      "#F5F4F0",
-  txt:     "#0f0f1a",
+  border:  "var(--ds-border,#eceef3)",
+  bg:      "var(--ds-bg,#F5F4F0)",
+  txt:     "var(--ds-txt,#0f0f1a)",
   sub:     "var(--sub,#666b82)",
-  muted:   "#6f7489",
+  muted:   "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif",
   body:    "'Plus Jakarta Sans', system-ui, sans-serif",
 };

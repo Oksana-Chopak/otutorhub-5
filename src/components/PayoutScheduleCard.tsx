@@ -6,7 +6,7 @@ import { Loader2, CalendarClock } from "lucide-react";
 import { WEEKDAYS_UK, describePayoutSchedule, type PayoutSchedule } from "@/lib/payoutSchedule";
 
 const C = {
-  teal: "#2BBFAA", tealD: "#1f8e7e", ink: "#0f0f1a", sub: "var(--sub,#666b82)", border: "#eceef3",
+  teal: "#2BBFAA", tealD: "#1f8e7e", ink: "#0f0f1a", sub: "var(--sub,#666b82)", border: "var(--ds-border,#eceef3)",
   display: "Inter, system-ui, sans-serif",
 };
 
@@ -90,7 +90,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
   });
 
   return (
-    <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: "#fff", padding: 14 }}>
+    <div style={{ borderRadius: 16, border: `1px solid ${C.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <CalendarClock className="h-4 w-4" style={{ color: C.tealD }} />
         <span style={{ fontFamily: C.display, fontWeight: 800, fontSize: 15, color: C.ink }}>{t("payoutScheduleCard.title")}</span>

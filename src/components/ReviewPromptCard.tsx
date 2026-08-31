@@ -171,7 +171,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
     >
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8 }}>
         <div style={{ minWidth: 0 }}>
-          <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 16, color: "#0f0f1a", lineHeight: 1.25 }}>
+          <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.25 }}>
             {t("reviewPrompt.title", { tutor: current.tutor_name }) || `Як пройшов урок з ${current.tutor_name}?`}
           </p>
           <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "#6b7280", marginTop: 3 }}>
@@ -216,7 +216,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
             placeholder={t("reviewPrompt.commentPlaceholder") || "Додай кілька слів (необов'язково)…"}
             rows={2}
             style={{
-              width: "100%", borderRadius: 12, border: "1px solid #eceef3", padding: "10px 12px",
+              width: "100%", borderRadius: 12, border: "1px solid var(--ds-border,#eceef3)", padding: "10px 12px",
               fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, resize: "none", outline: "none",
               marginBottom: 10,
             }}

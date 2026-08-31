@@ -113,8 +113,8 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
   }, [open, person.id, user?.id]);
 
   const F = {
-    border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-    txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", gold: "#9a6a12",
+    border: "var(--ds-border,#eceef3)", bg: "var(--ds-surface2,#fbfbfc)", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
+    txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", gold: "#9a6a12",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const inp = (big?: boolean): React.CSSProperties => ({
@@ -290,7 +290,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
               {pairs.length ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {pairs.map((p) => (
-                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "#fff", borderRadius: 11, padding: "9px 12px", border: "1px solid rgba(245,181,68,.25)" }}>
+                    <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--ds-surface,#fff)", borderRadius: 11, padding: "9px 12px", border: "1px solid rgba(245,181,68,.25)" }}>
                       <span style={{ fontFamily: F.display, fontWeight: 700, fontSize: 14, color: F.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {p.subject || t("shared.lesson")}
                       </span>
@@ -385,9 +385,9 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "#fff", display: "flex", gap: 10 }}>
+        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onOpenChange(false)}
-            style={{ height: 50, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "#fff", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
+            style={{ height: 50, padding: "0 20px", borderRadius: 14, border: `1px solid ${F.border}`, background: "var(--ds-surface,#fff)", color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
             {t("myStudents.cancelBtn")}
           </button>
           <button type="button" onClick={save} disabled={saving}

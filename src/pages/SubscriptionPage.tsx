@@ -78,7 +78,7 @@ const statusMeta: Record<
 };
 
 const S = {
-  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
   teal: "#2BBFAA", tealD: "#1f8e7e", successD: "#16a34a",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
   gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
@@ -308,7 +308,7 @@ export default function SubscriptionPage() {
         <div className="flex flex-col gap-3">
           <div className="h-8 w-56 animate-pulse rounded-md bg-muted" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-[16px] border bg-white p-5" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+            <div key={i} className="rounded-[16px] border bg-card p-5" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
               <div className="h-5 w-40 animate-pulse rounded-md bg-muted" />
               <div className="mt-3 h-4 w-full max-w-md animate-pulse rounded-md bg-muted" />
               <div className="mt-2 h-4 w-3/4 max-w-sm animate-pulse rounded-md bg-muted" />
@@ -422,7 +422,7 @@ export default function SubscriptionPage() {
               нативній збірці не було «мертвої» кнопки покупки (причина реджекту
               в Apple/Play). Коли налаштуєш продукти — картка зʼявиться сама. */}
           {!isActive && nativeApp && (iapOffer.monthlyPrice || iapOffer.yearlyPrice) && (
-            <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+            <div style={{ borderRadius: 16, padding: 18, background: "var(--ds-surface,#fff)", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</div>
               <div style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: "rgba(15,15,26,.05)", margin: "12px 0" }}>
                 {([{ v: "monthly" as const, l: t("subscriptionPageExtra.billingMonthly") }, { v: "yearly" as const, l: t("subscriptionPageExtra.billingYearly") }]).map((o) => {
@@ -454,7 +454,7 @@ export default function SubscriptionPage() {
 
           {/* ── Path 1 — pay (прихована в iOS-збірці: App Store 3.1.1) ──── */}
           {!isActive && !nativeApp && (
-            <div style={{ borderRadius: 16, padding: 18, background: "#fff", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
+            <div style={{ borderRadius: 16, padding: 18, background: "var(--ds-surface,#fff)", border: `1.5px solid ${S.teal}`, boxShadow: "0 10px 30px -16px rgba(43,191,170,.5)" }}>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
                 <span style={{ fontFamily: S.display, fontWeight: 800, fontSize: 16 }}>{t("subscriptionPageExtra.subscribeTitle")}</span>
                 <span>
@@ -499,7 +499,7 @@ export default function SubscriptionPage() {
                 <div style={{ fontSize: 14, color: S.sub, lineHeight: 1.4, marginTop: 1 }}>{t("subscriptionPageExtra.inviteDesc")}{nativeApp ? "." : <>. {t("subscriptionPageExtra.inviteSavingsPrefix")} <b style={{ color: S.tealD }}>{t("subscriptionPageExtra.inviteSavingsValue", { price: PRO_PRICE_MONTHLY })}</b>.</>}</div>
               </div>
             </div>
-            <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "#fff", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <button onClick={() => navigate("/my-referrals")} style={{ marginTop: 12, width: "100%", height: 44, borderRadius: 12, border: `1.5px solid ${S.teal}`, background: "var(--ds-surface,#fff)", color: S.tealD, cursor: "pointer", fontFamily: S.display, fontWeight: 700, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               <Share2 size={18} /> {t("subscriptionPageExtra.inviteBtn")}
             </button>
           </div>
@@ -509,7 +509,7 @@ export default function SubscriptionPage() {
             <Label>{t("subscriptionPageExtra.benefitsLabel")}</Label>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {BENEFITS.map((b, i) => (
-                <div key={i} style={{ background: "#fff", border: `1px solid ${S.border}`, borderRadius: 16, boxShadow: S.shadowSm, padding: 14 }}>
+                <div key={i} style={{ background: "var(--ds-surface,#fff)", border: `1px solid ${S.border}`, borderRadius: 16, boxShadow: S.shadowSm, padding: 14 }}>
                   <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                     <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg, rgba(43,191,170,.14), rgba(43,191,170,.04))", boxShadow: `inset 0 0 0 1px ${tealRing}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21 }}>{b.e}</div>
                     <div style={{ minWidth: 0 }}>
@@ -524,7 +524,7 @@ export default function SubscriptionPage() {
 
           {/* ── Manager fallback (зовнішні способи оплати → не для iOS) ──── */}
           {!isActive && !nativeApp && (
-            <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "#fff", padding: 16 }}>
+            <div style={{ borderRadius: 16, border: `1px dashed ${S.border}`, background: "var(--ds-surface,#fff)", padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(147,152,176,.16)", color: S.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <Headset size={18} />

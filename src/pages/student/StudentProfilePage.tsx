@@ -28,7 +28,7 @@ interface MyTutor {
 
 const C = {
   teal: "#2BBFAA", tealD: "#1f8e7e", ink: "#0f0f1a", sub: "var(--sub,#666b82)",
-  border: "#eceef3", surface: "#fff", bg: "#F5F4F0",
+  border: "var(--ds-border,#eceef3)", surface: "var(--ds-surface,#fff)", bg: "var(--ds-bg,#F5F4F0)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui",
 };
 

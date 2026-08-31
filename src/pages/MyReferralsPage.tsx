@@ -16,13 +16,13 @@ import { openExternal } from "@/lib/openExternal";
 
 // ── Design tokens (oTutorHub DS — variant C "Запроси колегу") ─────────────────
 const R = {
-  bg: "#F5F4F0",
-  surface: "#FFFFFF",
+  bg: "var(--ds-bg,#F5F4F0)",
+  surface: "var(--ds-surface,#fff)",
   surface2: "#f6f5f1",
-  txt: "#0f0f1a",
+  txt: "var(--ds-txt,#0f0f1a)",
   sub: "var(--sub,#666b82)",
-  muted: "#6f7489",
-  border: "#eceef3",
+  muted: "var(--ds-muted,#6f7489)",
+  border: "var(--ds-border,#eceef3)",
   teal: "#2BBFAA",
   tealD: "#1f8e7e",
   tealRing: "rgba(43,191,170,.28)",

@@ -84,9 +84,9 @@ export default function StudentSchedulePage() {
       return (
         // Warm empty state (mandatory positive framing) — same dashed-card treatment
         // as the homework page, not a bare muted line.
-        <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
+        <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
           <div style={{ fontSize: 38 }}>📅</div>
-          <p style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noLessonsInTabTitle")}</p>
+          <p style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{t("studentPagesExtra.noLessonsInTabTitle")}</p>
           <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
         </div>
       );
@@ -110,7 +110,7 @@ export default function StudentSchedulePage() {
           const joinHref = safeHref(l.meeting_url);
           const hasJoinLink = joinHref !== "#" && l.status === "scheduled";
           return (
-            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "#fff", opacity: isCancelled ? 0.7 : 1 }}>
+            <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: "0.5px solid var(--border)", overflow: "hidden", background: "var(--ds-surface,#fff)", opacity: isCancelled ? 0.7 : 1 }}>
               <div style={{ position: "relative", width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                 <span style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 4, background: sm.accent }} />
                 <span style={{ fontFamily: D, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
@@ -127,7 +127,7 @@ export default function StudentSchedulePage() {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                      <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
+                      <p style={{ fontFamily: D, fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{l.subject}</p>
                       <span style={{ flexShrink: 0, height: 24, padding: "0 9px", borderRadius: 999, display: "inline-flex", alignItems: "center", fontFamily: D, fontWeight: 700, fontSize: 14, background: live ? "rgba(43,191,170,.18)" : sm.bg, color: live ? "#1f8e7e" : sm.fg }}>
                         {joinStatus ?? statusLabel[l.status]}
                       </span>
@@ -155,7 +155,7 @@ export default function StudentSchedulePage() {
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
                 ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "var(--sub,#666b82)", fontSize: 14, fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", fontSize: 14, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}

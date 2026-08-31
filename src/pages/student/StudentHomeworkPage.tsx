@@ -187,17 +187,17 @@ export default function StudentHomeworkPage() {
   const plainBtn: React.CSSProperties = {
     flex: 1, height: 44, borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
     fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
-    border: "1px solid #eceef3", background: "#fff", color: "#0f0f1a",
+    border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "#0f0f1a",
   };
 
   const renderCard = (r: HomeworkRow) => {
     const done = doneSet.has(r.lesson_id);
     return (
-    <li key={r.lesson_id} style={{ borderRadius: 18, border: done ? "1px solid rgba(34,197,94,.4)" : "1px solid #eceef3", background: done ? "#f6fdf8" : "#fff", padding: 14, transition: "background .2s, border-color .2s" }}>
+    <li key={r.lesson_id} style={{ borderRadius: 18, border: done ? "1px solid rgba(34,197,94,.4)" : "1px solid var(--ds-border,#eceef3)", background: done ? "#f6fdf8" : "#fff", padding: 14, transition: "background .2s, border-color .2s" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
         <span style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? "rgba(34,197,94,.14)" : "rgba(43,191,170,.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 17 }}>{done ? "✅" : "📚"}</span>
         <div style={{ minWidth: 0, flex: 1 }}>
-          <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
+          <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject}</p>
           <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
         </div>
         {done && (
@@ -206,7 +206,7 @@ export default function StudentHomeworkPage() {
           </span>
         )}
       </div>
-      <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "#fbfbfc", border: "1px solid #eceef3", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a" }}>
+      <p style={{ marginTop: 11, whiteSpace: "pre-wrap", borderRadius: 13, background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)" }}>
         {r.homework}
       </p>
       {(r.hasAiNote || r.hasFile) && (
@@ -235,7 +235,7 @@ export default function StudentHomeworkPage() {
           marginTop: 11, width: "100%", height: 46, borderRadius: 13, cursor: "pointer",
           display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
           fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15,
-          border: done ? "1px solid #eceef3" : "none",
+          border: done ? "1px solid var(--ds-border,#eceef3)" : "none",
           background: done ? "#fff" : "linear-gradient(135deg,#2BBFAA,#25a896)",
           color: done ? "#666b82" : "#0f0f1a",
           boxShadow: done ? "none" : "0 8px 20px -8px rgba(43,191,170,.6)",
@@ -245,7 +245,7 @@ export default function StudentHomeworkPage() {
         {done ? t("studentPagesExtra.markedDone") : t("studentPagesExtra.markDone")}
       </button>
       {r.hasAiNote && openNoteId === r.lesson_id && (
-        <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "#0f0f1a" }}>
+        <p style={{ marginTop: 10, whiteSpace: "pre-wrap", borderRadius: 13, background: "#FFFCF4", border: "1px solid rgba(245,181,68,.35)", padding: "11px 13px", fontSize: 15, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)" }}>
           {r.aiNote}
         </p>
       )}
@@ -257,9 +257,9 @@ export default function StudentHomeworkPage() {
     // Completed homework sinks to the bottom so the next thing to do is on top.
     const items = [...itemsRaw].sort((a, b) => Number(doneSet.has(a.lesson_id)) - Number(doneSet.has(b.lesson_id)));
     return items.length === 0 ? (
-      <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
+      <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
         <div style={{ fontSize: 38 }}>📚</div>
-        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{emptyTitle}</p>
+        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{emptyTitle}</p>
         <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
       </div>
     ) : (
@@ -276,9 +276,9 @@ export default function StudentHomeworkPage() {
         {loading ? (
           <SkeletonList count={3} />
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
+          <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
             <div style={{ fontSize: 38 }}>📚</div>
-            <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noHomeworkTitle")}</p>
+            <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", marginTop: 8 }}>{t("studentPagesExtra.noHomeworkTitle")}</p>
             <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noHomework")}</p>
           </div>
         ) : (

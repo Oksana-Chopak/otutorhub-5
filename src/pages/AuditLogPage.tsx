@@ -223,7 +223,7 @@ export default function AuditLogPage() {
           <div className="flex items-center gap-3">
             <ShieldAlert className="h-7 w-7 text-primary" />
             <div>
-              <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+              <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
                 Журнал аудиту
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -240,23 +240,23 @@ export default function AuditLogPage() {
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen ? (
-            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 44, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 44, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
               <input
                 autoFocus
                 placeholder={t("auditLog.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", minWidth: 0 }}
               />
               <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={16} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("auditLog.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -346,7 +346,7 @@ export default function AuditLogPage() {
               const isOpen = openIds.has(e.id);
               const diff = hasPayload ? computeDiff(e.before, e.after) : [];
               return (
-                <Card key={e.id} className="p-4 rounded-[18px] border-[#eceef3] shadow-none">
+                <Card key={e.id} className="p-4 rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">

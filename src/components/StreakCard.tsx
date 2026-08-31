@@ -27,12 +27,12 @@ export function StreakCard({ streak, className }: Props) {
   const toNextBonus = current >= 30 ? 0 : 30 - current;
 
   return (
-    <div className={cn("rounded-[18px] border border-[#eceef3] bg-gradient-to-br from-orange-500/10 to-rose-500/5 p-4", className)}>
+    <div className={cn("rounded-[18px] border border-[var(--ds-border,#eceef3)] bg-gradient-to-br from-orange-500/10 to-rose-500/5 p-4", className)}>
       <div className="flex items-center gap-3">
         <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-500 to-rose-500 text-white">
           <Flame className="h-7 w-7" />
           {current > 0 && (
-            <span className="absolute -bottom-1 -right-1 flex h-6 min-w-[24px] items-center justify-center rounded-full px-1 text-[14px] font-bold shadow" style={{ background: "#fff", color: "#0f0f1a" }}>
+            <span className="absolute -bottom-1 -right-1 flex h-6 min-w-[24px] items-center justify-center rounded-full px-1 text-[14px] font-bold shadow" style={{ background: "var(--ds-surface,#fff)", color: "var(--ds-txt,#0f0f1a)" }}>
               {current}
             </span>
           )}
@@ -58,7 +58,7 @@ export function StreakCard({ streak, className }: Props) {
               {freezes} {freezes === 1 ? t("streak.freezeOne") : t("streak.freezeMany")}
             </div>
           </div>
-          <div className="text-lg font-bold" style={{ color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif" }}>
+          <div className="text-lg font-bold" style={{ color: "var(--ds-txt,#0f0f1a)", fontFamily: "Inter, system-ui, sans-serif" }}>
             {current === 0 ? t("streak.startToday") : t("streak.daysStreak", { count: current })}
           </div>
           {longest > current && (
@@ -73,7 +73,7 @@ export function StreakCard({ streak, className }: Props) {
         </p>
       )}
       {!usedFreeze && freezes === 0 && current > 0 && (
-        <p className="mt-3 rounded-[10px] p-2 text-[14px]" style={{ background: "#fbfbfc", color: "var(--sub,#666b82)", border: "1px solid #eceef3" }}>
+        <p className="mt-3 rounded-[10px] p-2 text-[14px]" style={{ background: "var(--ds-surface2,#fbfbfc)", color: "var(--sub,#666b82)", border: "1px solid var(--ds-border,#eceef3)" }}>
           {t("streak.noFreeze")}
         </p>
       )}

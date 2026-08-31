@@ -31,7 +31,7 @@ export function MonthlySummaryCard() {
 
   if (loading) {
     return (
-      <Card className="flex h-40 items-center justify-center rounded-[18px] border-[#eceef3] shadow-none">
+      <Card className="flex h-40 items-center justify-center rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </Card>
     );
@@ -80,7 +80,7 @@ export function MonthlySummaryCard() {
   };
 
   return (
-    <Card className="overflow-hidden rounded-[18px] border-[#eceef3] shadow-none">
+    <Card className="overflow-hidden rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
       <div
         ref={cardRef}
         className="relative bg-gradient-to-br from-primary via-primary to-primary/70 p-6 text-primary-foreground"
@@ -101,7 +101,7 @@ export function MonthlySummaryCard() {
             </div>
           )}
           {summary.top_percentile && summary.top_percentile <= 50 && (
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 text-sm font-semibold backdrop-blur">
+            <div className="inline-flex items-center gap-2 rounded-full bg-card/20 px-3 py-1.5 text-sm font-semibold backdrop-blur">
               {t("monthlySummaryExtra.topPercentile", { pct: summary.top_percentile })}
             </div>
           )}

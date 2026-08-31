@@ -121,7 +121,7 @@ export default function PaywallMetricsPage() {
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="hidden lg:flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+            <h1 className="hidden lg:flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               <BarChart3 className="h-6 w-6 text-primary" /> {t("paywallMetricsExtra.pageTitle")}
             </h1>
             <p className="text-sm text-muted-foreground">
@@ -155,7 +155,7 @@ export default function PaywallMetricsPage() {
 
         {/* Totals */}
         <div className="grid gap-4 sm:grid-cols-3">
-          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+          <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <MousePointerClick className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.featureClicks")}
@@ -163,7 +163,7 @@ export default function PaywallMetricsPage() {
               <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.allClicks}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+          <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <Users className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.uniqueUsersTotal")}
@@ -171,7 +171,7 @@ export default function PaywallMetricsPage() {
               <CardTitle className="text-3xl" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{totals.uniqueUsers}</CardTitle>
             </CardHeader>
           </Card>
-          <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+          <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-1.5">
                 <TrendingUp className="h-3.5 w-3.5" /> {t("paywallMetricsExtra.subscriptionVisits")}
@@ -182,7 +182,7 @@ export default function PaywallMetricsPage() {
         </div>
 
         {/* Bar chart */}
-        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+        <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.topFeatures")}</CardTitle>
             <CardDescription>
@@ -243,7 +243,7 @@ export default function PaywallMetricsPage() {
         </Card>
 
         {/* Per-feature breakdown */}
-        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+        <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.details")}</CardTitle>
           </CardHeader>
@@ -313,7 +313,7 @@ export default function PaywallMetricsPage() {
         </Card>
 
         {/* Recent events */}
-        <Card className="rounded-[18px] border-[#eceef3] shadow-none">
+        <Card className="rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
           <CardHeader>
             <CardTitle className="text-lg" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("paywallMetricsExtra.recentEvents")}</CardTitle>
             <CardDescription>{t("paywallMetricsExtra.recentEventsDesc")}</CardDescription>

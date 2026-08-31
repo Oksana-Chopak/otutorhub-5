@@ -45,8 +45,8 @@ interface Props {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-  sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
+  teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+  sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
   gold: "#9a6a12", goldBg: "rgba(245,181,68,.16)", goldRing: "rgba(245,181,68,.4)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -187,11 +187,11 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         <DialogTitle className="sr-only">{t("closeDayDialog.title")}</DialogTitle>
           <div className="flex flex-col gap-3 py-1">
             <p style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.planTitle")}</p>
-            <div style={{ borderRadius: 16, border: "1px solid var(--border,#eceef3)", overflow: "hidden" }}>
+            <div style={{ borderRadius: 16, border: "1px solid var(--border,var(--ds-border,#eceef3))", overflow: "hidden" }}>
               {planRows.map((r) => {
                 const next = new Date(r.starts_at); next.setDate(next.getDate() + 7); // DST-безпечно
                 return (
-                  <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderBottom: "1px solid var(--border,#eceef3)", cursor: "pointer" }}>
+                  <label key={r.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderBottom: "1px solid var(--border,var(--ds-border,#eceef3))", cursor: "pointer" }}>
                     <input type="checkbox" checked={planChecked[r.id] ?? false}
                       onChange={(e) => setPlanChecked((p) => ({ ...p, [r.id]: e.target.checked }))}
                       style={{ width: 18, height: 18, accentColor: "#2BBFAA" }} />
@@ -293,9 +293,9 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${C.border}`, background: "#fff", display: "flex", gap: 10 }}>
+        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${C.border}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onOpenChange(false)}
-            style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${C.border}`, background: "#fff", color: C.sub, fontFamily: C.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
+            style={{ height: 52, padding: "0 18px", borderRadius: 14, border: `1px solid ${C.border}`, background: "var(--ds-surface,#fff)", color: C.sub, fontFamily: C.display, fontWeight: 700, fontSize: 15, cursor: "pointer", flexShrink: 0 }}>
             {t("closeDayDialog.cancel")}
           </button>
           <button type="button" onClick={apply} disabled={busy || doneCount === 0}

@@ -73,7 +73,7 @@ function StatusPicker({ status, onChange }: { status: ReferralRow["status"]; onC
       {open && (
         <>
           <button type="button" aria-hidden onClick={() => setOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 29, background: "transparent", border: "none", cursor: "default" }} />
-          <div style={{ position: "absolute", top: 48, right: 0, zIndex: 30, background: "#fff", border: "1px solid var(--ds-border,#eceef3)", borderRadius: 14, boxShadow: "0 18px 40px -16px rgba(15,15,26,.3)", padding: 6, minWidth: 188 }}>
+          <div style={{ position: "absolute", top: 48, right: 0, zIndex: 30, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", borderRadius: 14, boxShadow: "0 18px 40px -16px rgba(15,15,26,.3)", padding: 6, minWidth: 188 }}>
             {STATUSES.map((k) => (
               <button key={k} type="button" onClick={() => { onChange(k); setOpen(false); }}
                 style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", border: "none", background: k === status ? "var(--ds-bg,#F5F4F0)" : "transparent", cursor: "pointer", padding: "12px 13px", borderRadius: 10, fontFamily: F, fontWeight: 700, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", textAlign: "left" }}>
@@ -181,7 +181,7 @@ export default function ReferralsPage() {
       {loading ? (
         <div className="flex flex-col gap-2">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+            <div key={i} className="rounded-[16px] border bg-card p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
               <div className="flex items-center gap-3">
                 <div className="h-11 w-11 shrink-0 animate-pulse rounded-full bg-muted" />
                 <div className="flex-1 space-y-2">
@@ -230,7 +230,7 @@ export default function ReferralsPage() {
               ].filter(([, , v]) => v) as [string, typeof Mail, string][];
 
               return (
-                <div key={r.id} style={{ borderRadius: 20, border: `1.5px solid ${on ? "var(--teal,#2BBFAA)" : r.status === "open" ? "rgba(245,158,11,.4)" : "var(--ds-border,#eceef3)"}`, background: "#fff", boxShadow: "0 1px 2px rgba(15,15,26,.05)", overflow: "hidden" }}>
+                <div key={r.id} style={{ borderRadius: 20, border: `1.5px solid ${on ? "var(--teal,#2BBFAA)" : r.status === "open" ? "rgba(245,158,11,.4)" : "var(--ds-border,#eceef3)"}`, background: "var(--ds-surface,#fff)", boxShadow: "0 1px 2px rgba(15,15,26,.05)", overflow: "hidden" }}>
                   {/* Collapsed row */}
                   <button type="button" onClick={() => setOpenId(on ? null : r.id)}
                     style={{ width: "100%", border: "none", background: "transparent", cursor: "pointer", textAlign: "left", padding: 15, display: "flex", alignItems: "center", gap: 13 }}>
@@ -251,7 +251,7 @@ export default function ReferralsPage() {
                       {facts.length > 0 && (
                         <div style={{ borderTop: "1px solid var(--ds-border,#eceef3)", paddingTop: 15, display: "grid", gridTemplateColumns: `repeat(${facts.length}, 1fr)`, gap: 10 }}>
                           {facts.map(([labelKey, val], i) => (
-                            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5, borderRadius: 14, background: "#fbfbfc", border: "1px solid var(--ds-border,#eceef3)", padding: "12px 13px", minWidth: 0 }}>
+                            <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5, borderRadius: 14, background: "var(--ds-surface2,#fbfbfc)", border: "1px solid var(--ds-border,#eceef3)", padding: "12px 13px", minWidth: 0 }}>
                               <span style={{ fontFamily: F, fontWeight: 700, fontSize: 14, color: "var(--ds-muted,#6f7489)" }}>{t(labelKey)}</span>
                               <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.2 }}>{prettyRequestValue(val)}</span>
                             </div>
@@ -272,7 +272,7 @@ export default function ReferralsPage() {
                                 <IconC size={19} style={{ color: "var(--ds-muted,#6f7489)", flexShrink: 0 }} />
                                 <span style={{ flex: 1, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{val}</span>
                                 <button type="button" aria-label={t("chatContextPanel.copy")} onClick={() => copy(val.replace(/^@/, ""))}
-                                  style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "var(--teal-d,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
+                                  style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--teal-d,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>
                                   <Copy size={20} strokeWidth={2} />
                                 </button>
                               </div>
@@ -288,7 +288,7 @@ export default function ReferralsPage() {
                       {!done && (
                         <div style={{ display: "flex", gap: 10 }}>
                           <button type="button" onClick={() => setAssignTarget(r)}
-                            style={{ flex: 1, height: 56, borderRadius: 15, border: "1.5px solid var(--ds-border,#eceef3)", background: "#fff", color: "var(--ds-txt,#0f0f1a)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                            style={{ flex: 1, height: 56, borderRadius: 15, border: "1.5px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--ds-txt,#0f0f1a)", fontFamily: F, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                             <Users size={20} strokeWidth={2} style={{ color: "var(--teal-d,#25a896)" }} />{t("referralsPageExtra.assignBtn")}
                           </button>
                           <button type="button" onClick={() => writeStudent(r.student_id)}

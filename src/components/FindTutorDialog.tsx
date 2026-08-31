@@ -24,7 +24,7 @@ const SHADOW_SM = "0 1px 2px rgba(15,15,26,.06)";
 const TXT = "#0f0f1a";
 const SUB = "var(--sub,#666b82)";
 const MUTED = "#6f7489";
-const BORDER = "#eceef3";
+const BORDER = "var(--ds-border,#eceef3)";
 const GOLD = "#9a6a12";
 const FONT = "Inter, system-ui, sans-serif";
 // Emoji + hour ranges are locale-independent; the time NAMES come from i18n.
@@ -157,7 +157,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
             </div>
           </div>
           <button onClick={() => setOpen(false)} aria-label={t("findTutor.cancelBtn")}
-            style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, border: "none", background: "#F5F4F0", color: SUB, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: SUB, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={20} />
           </button>
         </div>
@@ -179,7 +179,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
               )}
               {quickSubjects.map((s) => (
                 <button key={s} onClick={() => pickSubject(s)}
-                  style={{ minHeight: 50, padding: "0 18px", borderRadius: 15, cursor: "pointer", fontFamily: FONT, fontWeight: 700, fontSize: 17, background: "#fff", color: TXT, border: `1.5px solid ${BORDER}`, boxShadow: SHADOW_SM }}>
+                  style={{ minHeight: 50, padding: "0 18px", borderRadius: 15, cursor: "pointer", fontFamily: FONT, fontWeight: 700, fontSize: 17, background: "var(--ds-surface,#fff)", color: TXT, border: `1.5px solid ${BORDER}`, boxShadow: SHADOW_SM }}>
                   {s}
                 </button>
               ))}
@@ -189,16 +189,16 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
               </button>
             </div>
             {otherOpen && (
-              <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: "#fbfbfc", border: `1px solid ${BORDER}` }}>
+              <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: "var(--ds-surface2,#fbfbfc)", border: `1px solid ${BORDER}` }}>
                 <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
                   placeholder={t("findTutor.otherSubjectPlaceholder")}
                   onFocus={() => setSubjFocus(true)} onBlur={() => setSubjFocus(false)}
                   onKeyDown={(e) => { if (e.key === "Enter" && draft.trim()) { e.preventDefault(); pickSubject(draft); } }}
-                  style={{ width: "100%", height: 52, borderRadius: 14, padding: "0 16px", fontSize: 16, fontFamily: FONT, color: TXT, boxSizing: "border-box", outline: "none", background: "#fff", border: `1.5px solid ${subjFocus ? TEAL : BORDER}`, boxShadow: subjFocus ? "0 0 0 3px rgba(43,191,170,.12)" : "none" }} />
+                  style={{ width: "100%", height: 52, borderRadius: 14, padding: "0 16px", fontSize: 16, fontFamily: FONT, color: TXT, boxSizing: "border-box", outline: "none", background: "var(--ds-surface,#fff)", border: `1.5px solid ${subjFocus ? TEAL : BORDER}`, boxShadow: subjFocus ? "0 0 0 3px rgba(43,191,170,.12)" : "none" }} />
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 12 }}>
                   {matches.map((s) => (
                     <button key={s} onClick={() => pickSubject(s)}
-                      style={{ minHeight: 44, padding: "0 16px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${BORDER}`, background: "#fff", color: SUB, fontFamily: FONT, fontWeight: 600, fontSize: 15 }}>
+                      style={{ minHeight: 44, padding: "0 16px", borderRadius: 999, cursor: "pointer", border: `1px dashed ${BORDER}`, background: "var(--ds-surface,#fff)", color: SUB, fontFamily: FONT, fontWeight: 600, fontSize: 15 }}>
                       {s}
                     </button>
                   ))}
@@ -288,9 +288,9 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         </div>
 
         {/* Footer */}
-        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${BORDER}`, background: "#fff", display: "flex", gap: 10 }}>
+        <div style={{ flexShrink: 0, padding: "14px 20px 20px", borderTop: `1px solid ${BORDER}`, background: "var(--ds-surface,#fff)", display: "flex", gap: 10 }}>
           <button onClick={() => setOpen(false)}
-            style={{ height: 54, padding: "0 22px", borderRadius: 15, border: `1.5px solid ${BORDER}`, background: "#fff", color: SUB, fontFamily: FONT, fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
+            style={{ height: 54, padding: "0 22px", borderRadius: 15, border: `1.5px solid ${BORDER}`, background: "var(--ds-surface,#fff)", color: SUB, fontFamily: FONT, fontWeight: 700, fontSize: 16, cursor: "pointer" }}>
             {t("findTutor.cancelBtn")}
           </button>
           <button onClick={submit} disabled={submitting}

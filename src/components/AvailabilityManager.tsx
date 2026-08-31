@@ -84,8 +84,8 @@ const fullName = (p?: Profile) => (p ? `${p.first_name} ${p.last_name}`.trim() |
 
 // ── Design tokens (DS — variant B "Доступні години") ──────────────────────────
 const A = {
-  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
-  surface: "#FFFFFF", teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
+  surface: "var(--ds-surface,#fff)", teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9",
   tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", coral: "#e0552f", warning: "#d97706",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
   gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
@@ -547,7 +547,7 @@ export function AvailabilityManager() {
                     <button onClick={() => (off ? enableWeekday(day) : clearWeekday(day))} role="switch" aria-checked={!off}
                       aria-label={WEEKDAYS_FULL_UK[day]}
                       style={{ width: 43, height: 24, flexShrink: 0, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", position: "relative", transition: "background .25s", background: off ? "rgba(15,15,26,.12)" : A.gradTeal }}>
-                      <span style={{ position: "absolute", top: 3, left: off ? 3 : 22, width: 18, height: 18, borderRadius: 999, background: "#fff", boxShadow: "0 2px 5px rgba(15,15,26,.25)", transition: "left .25s cubic-bezier(.34,1.56,.64,1)" }} />
+                      <span style={{ position: "absolute", top: 3, left: off ? 3 : 22, width: 18, height: 18, borderRadius: 999, background: "var(--ds-surface,#fff)", boxShadow: "0 2px 5px rgba(15,15,26,.25)", transition: "left .25s cubic-bezier(.34,1.56,.64,1)" }} />
                     </button>
                   )}
                 </div>

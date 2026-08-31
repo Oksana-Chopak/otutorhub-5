@@ -241,7 +241,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, padding: "12px 20px 10px", flexShrink: 0 }}>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+            <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
               {t("contactEditExtra.titleFormat", { name: userName })}
             </div>
             <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>
@@ -249,7 +249,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>

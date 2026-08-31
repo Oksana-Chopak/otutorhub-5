@@ -151,7 +151,7 @@ export default function WalletsPage() {
         <header className="space-y-2">
           <div className="hidden lg:flex items-center gap-2">
             <Wallet className="h-6 w-6 text-primary" />
-            <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("walletsPage.title")}</h1>
+            <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>{t("walletsPage.title")}</h1>
           </div>
           <p className="text-sm" style={{ color: "var(--sub,#666b82)" }}>
             {t("walletsPage.subtitle")}
@@ -160,23 +160,23 @@ export default function WalletsPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {searchOpen ? (
-            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "#fff", border: "1px solid #eceef3", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+            <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
               <input
                 autoFocus
                 placeholder={t("walletsPage.searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", minWidth: 0 }}
+                style={{ flex: 1, border: "none", outline: "none", background: "transparent", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", minWidth: 0 }}
               />
               <button onClick={() => { setSearch(""); setSearchOpen(false); }} aria-label={t("common.close")}
-                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#F5F4F0", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                style={{ width: 38, height: 38, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={17} />
               </button>
             </div>
           ) : (
             <button onClick={() => setSearchOpen(true)} aria-label={t("walletsPage.searchPlaceholder")}
-              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "#fff", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
+              style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 999, border: "none", cursor: "pointer", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={21} strokeWidth={2} />
             </button>
           )}
@@ -192,7 +192,7 @@ export default function WalletsPage() {
         {loading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
+              <div key={i} className="rounded-[16px] border bg-card p-4" style={{ borderColor: "var(--ds-border,#eceef3)" }}>
                 <div className="h-4 w-44 animate-pulse rounded-md bg-muted" />
                 <div className="mt-2 h-3 w-64 max-w-full animate-pulse rounded-md bg-muted" />
               </div>
@@ -215,13 +215,13 @@ export default function WalletsPage() {
             {/* Mobile: cards */}
             <div className="grid gap-3 md:hidden">
               {filtered.map((r) => (
-                <div key={`${r.tutor_id}:${r.student_id}`} className="rounded-[18px] p-4 space-y-3" style={{ border: "1px solid #eceef3", background: "#fff", boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
+                <div key={`${r.tutor_id}:${r.student_id}`} className="rounded-[18px] p-4 space-y-3" style={{ border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
                   <div className="flex items-center gap-3">
                     <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "linear-gradient(135deg,#2BBFAA,#1f8e7e)", color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15 }}>
                       {(r.student_name.split(" ").map((w: string) => w[0]).filter(Boolean).slice(0, 2).join("") || "?").toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>{r.student_name}</div>
+                      <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>{r.student_name}</div>
                       <div className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>↔ {r.tutor_name}</div>
                     </div>
                   </div>
@@ -251,9 +251,9 @@ export default function WalletsPage() {
             </div>
 
             {/* Desktop: table */}
-            <div className="hidden md:block overflow-x-auto rounded-[16px]" style={{ border: "1px solid #eceef3" }}>
+            <div className="hidden md:block overflow-x-auto rounded-[16px]" style={{ border: "1px solid var(--ds-border,#eceef3)" }}>
               <table className="w-full text-[15px]">
-                <thead className="text-[14px] uppercase" style={{ background: "#fbfbfc", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                <thead className="text-[14px] uppercase" style={{ background: "var(--ds-surface2,#fbfbfc)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                   <tr>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.studentCol")}</th>
                     <th className="px-4 py-3 text-left">{t("walletsPageExtra.tutorCol")}</th>
@@ -267,7 +267,7 @@ export default function WalletsPage() {
                   {filtered.map((r) => (
                     <tr
                       key={`${r.tutor_id}:${r.student_id}`}
-                      style={{ borderTop: "1px solid #eceef3" }} className="hover:bg-muted/50"
+                      style={{ borderTop: "1px solid var(--ds-border,#eceef3)" }} className="hover:bg-muted/50"
                     >
                       <td className="px-4 py-3 font-medium">{r.student_name}</td>
                       <td className="px-4 py-3" style={{ color: "var(--sub,#666b82)" }}>{r.tutor_name}</td>
@@ -293,7 +293,7 @@ export default function WalletsPage() {
                       <td className="px-4 py-3 text-right">
                         <button type="button" onClick={() => setActive(r)}
                           className="rounded-[10px] px-4 h-11 text-[14px] font-bold"
-                          style={{ border: "1px solid #eceef3", background: "#f0fdf9", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}>
+                          style={{ border: "1px solid var(--ds-border,#eceef3)", background: "#f0fdf9", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}>
                           {t("walletsPage.openBtn")}
                         </button>
                       </td>

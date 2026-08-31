@@ -81,7 +81,7 @@ export default function OAuthConsent() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
+    <main className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "var(--ds-bg,#F5F4F0)" }}>
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
         <div className="mb-4 flex items-center gap-2">
           <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />

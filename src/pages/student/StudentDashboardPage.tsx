@@ -214,8 +214,8 @@ export default function StudentDashboardPage() {
           </div>
           <SkeletonList count={2} />
           <div className="grid grid-cols-2 gap-3">
-            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-white" />
-            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-white" />
+            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-card" />
+            <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-card" />
           </div>
         </div>
       </>
@@ -236,8 +236,8 @@ export default function StudentDashboardPage() {
   }
 
   const DS = {
-    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "#0f0f1a",
-    sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3",
+    teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9", txt: "var(--ds-txt,#0f0f1a)",
+    sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
 
@@ -268,7 +268,7 @@ export default function StudentDashboardPage() {
           />
         )}
         {/* Block 1: Upcoming lessons — DS cards with dark time rail */}
-        <div style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: 14 }}>
+        <div style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: DS.display, fontWeight: 700, fontSize: 15.5 }}>
               <CalendarDays className="h-4 w-4" style={{ color: DS.teal }} /> {t("studentPages.upcomingLessonsTitle")}
@@ -335,7 +335,7 @@ export default function StudentDashboardPage() {
                   ? (now >= startMs ? t("studentPages.lessonLive") : t("studentPages.startsInMin", { min: Math.max(1, minsTo) }))
                   : null;
                 return (
-                  <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "#fff" }}>
+                  <li key={l.id} style={{ display: "flex", alignItems: "stretch", borderRadius: 16, border: `1px solid ${DS.border}`, overflow: "hidden", background: "var(--ds-surface,#fff)" }}>
                     <div style={{ width: 78, flexShrink: 0, background: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)", color: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "12px 4px", textAlign: "center" }}>
                       <span style={{ fontFamily: DS.display, fontWeight: 700, fontSize: 14, letterSpacing: ".08em", textTransform: "uppercase", color: "rgba(255,255,255,.6)" }}>
                         {isToday ? t("common.today") : d.toLocaleDateString(getLocale(), { weekday: "short" }).replace(".", "")}
@@ -378,7 +378,7 @@ export default function StudentDashboardPage() {
                           <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                         </a>
                       ) : isToday ? (
-                        <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: DS.sub, fontSize: 14, fontWeight: 600 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "var(--ds-bg,#F5F4F0)", color: DS.sub, fontSize: 14, fontWeight: 600 }}>
                           <Clock size={15} /> {t("studentPages.linkComingSoon")}
                         </div>
                       ) : null}
@@ -393,7 +393,7 @@ export default function StudentDashboardPage() {
         {/* Block 2 & 3: Quick stats — DS bubbles */}
         <div className="grid grid-cols-2 gap-3">
           <Link to="/student/payments" style={{ textDecoration: "none" }}>
-            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(245,181,68,.16)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <DollarSign className="h-5 w-5" style={{ color: "#b4740b" }} />
               </div>
@@ -404,7 +404,7 @@ export default function StudentDashboardPage() {
             </div>
           </Link>
           <Link to="/student/homework" style={{ textDecoration: "none" }}>
-            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="hover:shadow-sm transition-shadow" style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "var(--ds-surface,#fff)", padding: "14px 15px", display: "flex", alignItems: "center", gap: 12 }}>
               <div style={{ width: 42, height: 42, borderRadius: 13, flexShrink: 0, background: "rgba(43,191,170,.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <BookOpen className="h-5 w-5" style={{ color: DS.tealD }} />
               </div>

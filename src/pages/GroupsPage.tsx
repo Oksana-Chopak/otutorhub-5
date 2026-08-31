@@ -28,11 +28,11 @@ const t = i18nInstance.t.bind(i18nInstance);
 const T = {
   teal: "#2BBFAA",
   tealD: "#25a896",
-  txt: "#0f0f1a",
+  txt: "var(--ds-txt,#0f0f1a)",
   sub: "#666b82",
-  muted: "#6f7489",
-  border: "#eceef3",
-  bg: "#F5F4F0",
+  muted: "var(--ds-muted,#6f7489)",
+  border: "var(--ds-border,#eceef3)",
+  bg: "var(--ds-bg,#F5F4F0)",
   gold: "#9a6a12",
   coral: "#e0552f",
   tealL: "var(--teal-l, #f0fdf9)",
@@ -180,14 +180,14 @@ export default function GroupsPage() {
                 key={g.id}
                 onClick={() => setDetailGroupId(g.id)}
                 className="text-left transition-shadow hover:shadow-md"
-                style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 14, cursor: "pointer" }}
+                style={{ borderRadius: 18, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: 14, cursor: "pointer" }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 46, height: 46, borderRadius: 999, flexShrink: 0, background: "rgba(43,191,170,.12)", color: "#1f8e7e", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Users2 size={22} />
                   </div>
                   <div style={{ minWidth: 0, flex: 1 }}>
-                    <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
+                    <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
                     {g.subject && (
                       <p style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
                     )}
@@ -361,7 +361,7 @@ function CreateGroupDialog({
         <DialogTitle className="sr-only">{t("groupsPageExtra.newGroupFab")}</DialogTitle>
         {done ? (
           /* ── Success screen ───────────────────────────────────────────── */
-          <div style={{ display: "flex", flexDirection: "column", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
+          <div style={{ display: "flex", flexDirection: "column", background: "var(--ds-surface,#fff)", fontFamily: FONT_B, color: T.txt }}>
             <div
               style={{
                 display: "flex", flexDirection: "column", alignItems: "center",
@@ -412,7 +412,7 @@ function CreateGroupDialog({
           </div>
         ) : (
           /* ── Step wizard ──────────────────────────────────────────────── */
-          <div style={{ display: "flex", flexDirection: "column", maxHeight: "85vh", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
+          <div style={{ display: "flex", flexDirection: "column", maxHeight: "85vh", background: "var(--ds-surface,#fff)", fontFamily: FONT_B, color: T.txt }}>
             {/* header: back · progress · close */}
             <div style={{ flexShrink: 0, padding: "18px 20px 10px", display: "flex", alignItems: "center", gap: 12 }}>
               {step > 0 ? (
@@ -609,7 +609,7 @@ function WizardField({
       style={{
         display: "flex", alignItems: "center", gap: 11,
         minHeight: big ? 64 : 58, borderRadius: 16, padding: "0 18px",
-        background: focused ? "#fff" : "#fbfbfc",
+        background: focused ? "#fff" : "var(--ds-surface2,#fbfbfc)",
         border: `2px solid ${focused ? T.teal : T.border}`,
         boxShadow: focused ? "0 0 0 4px rgba(43,191,170,.13)" : "none",
         transition: "all .15s",
@@ -655,7 +655,7 @@ function PricePill({
       <div
         style={{
           display: "inline-flex", alignItems: "center", height: 44, padding: "0 12px",
-          borderRadius: 12, background: "#fff", border: `2px solid ${T.teal}`,
+          borderRadius: 12, background: "var(--ds-surface,#fff)", border: `2px solid ${T.teal}`,
           boxShadow: "0 0 0 3px rgba(43,191,170,.13)", flexShrink: 0,
         }}
       >
@@ -990,7 +990,7 @@ function GroupDetailsDialog({
         <DialogContent className="max-w-md gap-0 overflow-hidden p-0 rounded-t-[24px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
         {/* C3 */}
         <DialogTitle className="sr-only">{t("groupsPage.title")}</DialogTitle>
-          <div style={{ display: "flex", flexDirection: "column", maxHeight: "88vh", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
+          <div style={{ display: "flex", flexDirection: "column", maxHeight: "88vh", background: "var(--ds-surface,#fff)", fontFamily: FONT_B, color: T.txt }}>
             {/* header */}
             <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 13 }}>
               <div style={{ width: 50, height: 50, borderRadius: 15, flexShrink: 0, background: GRAD_TEAL, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: SHADOW_TEAL }}>
@@ -1039,7 +1039,7 @@ function GroupDetailsDialog({
                       {active.map((e) => {
                         const nm = studentNames.get(e.student_id) ?? t("shared.student");
                         return (
-                          <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, border: `1px solid ${T.border}`, background: "#fff", boxShadow: SHADOW_SM }}>
+                          <div key={e.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, border: `1px solid ${T.border}`, background: "var(--ds-surface,#fff)", boxShadow: SHADOW_SM }}>
                             <Avatar name={nm} size={46} />
                             <div style={{ flex: 1, minWidth: 0, fontFamily: FONT_D, fontWeight: 700, fontSize: 17, color: T.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{nm}</div>
                             {/* MON-2: group price = hub money — visible/editable only for
@@ -1087,7 +1087,7 @@ function GroupDetailsDialog({
                   {pickOpen && (
                     <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 10 }}>
                       {available.map((s) => (
-                        <div key={s.student_id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, border: `1px solid ${T.border}`, background: "#fbfbfc" }}>
+                        <div key={s.student_id} style={{ display: "flex", alignItems: "center", gap: 12, padding: 12, borderRadius: 15, border: `1px solid ${T.border}`, background: "var(--ds-surface2,#fbfbfc)" }}>
                           <Avatar name={s.name} size={42} />
                           <span style={{ flex: 1, minWidth: 0, fontFamily: FONT_D, fontWeight: 700, fontSize: 16, color: T.txt, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</span>
                           <button
@@ -1115,7 +1115,7 @@ function GroupDetailsDialog({
                     <div style={{ flex: 1 }}>
                       <DateTimeField value={schedStart} onChange={setSchedStart} />
                     </div>
-                    <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 58, borderRadius: 15, background: "#fbfbfc", border: `1.5px solid ${T.border}` }}>
+                    <div style={{ width: 96, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 58, borderRadius: 15, background: "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${T.border}` }}>
                       <input
                         inputMode="numeric"
                         value={schedDuration}
@@ -1153,7 +1153,7 @@ function GroupDetailsDialog({
             <div style={{ flexShrink: 0, padding: "14px 20px 22px", borderTop: `1px solid ${T.border}`, display: "flex", gap: 12 }}>
               <button
                 onClick={archiveGroup}
-                style={{ minHeight: 58, padding: "0 20px", borderRadius: 16, border: `2px solid ${T.border}`, background: "#fff", color: T.coral, fontFamily: FONT_D, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+                style={{ minHeight: 58, padding: "0 20px", borderRadius: 16, border: `2px solid ${T.border}`, background: "var(--ds-surface,#fff)", color: T.coral, fontFamily: FONT_D, fontWeight: 700, fontSize: 16, cursor: "pointer", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7 }}
               >
                 <Trash2 size={19} strokeWidth={2} />
                 {t("common.delete")}

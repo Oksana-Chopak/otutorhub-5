@@ -135,9 +135,9 @@ export function GroupLessonParticipants({
         {rows.map((p) => {
           const paid = p.student_payment_status === "paid";
           return (
-            <li key={p.id} className="flex items-center gap-2 rounded-[13px] border border-border bg-white px-3 py-2.5">
+            <li key={p.id} className="flex items-center gap-2 rounded-[13px] border border-border bg-card px-3 py-2.5">
               <div className="min-w-0 flex-1">
-                <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</p>
+                <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</p>
                 {canSeeMoney && (
                   <p style={{ fontSize: 14, color: "var(--sub,#666b82)" }}>
                     {p.student_price != null ? `${p.student_price} ${currencySymbol(p.currency)}` : t("groupPayments.noPrice")}

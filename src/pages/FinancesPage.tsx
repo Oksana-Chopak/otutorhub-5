@@ -158,8 +158,8 @@ function legacyFilterToTab(value: string | null): TabKey {
 const F = {
   teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
   warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
-  border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
-  txt:"#0f0f1a", sub:"var(--sub,#666b82)", muted:"#6f7489",
+  border:"var(--ds-border,#eceef3)", bg:"var(--ds-bg,#F5F4F0)", surface:"var(--ds-surface,#fff)",
+  txt:"var(--ds-txt,#0f0f1a)", sub:"var(--sub,#666b82)", muted:"var(--ds-muted,#6f7489)",
   display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -1315,7 +1315,7 @@ export default function FinancesPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#0f0f1a" }}>
+                    <p className="flex items-center gap-1.5 truncate" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                       <span className="truncate">{l.subject}</span>
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                       {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
@@ -1798,8 +1798,8 @@ export default function FinancesPage() {
     const H = {
       teal: "#2BBFAA", tealD: "#25a896",
       warn: "#f59e0b", warnD: "#b4740b", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
-      border: "#eceef3", surface: "#fff",
-      txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
+      border: "var(--ds-border,#eceef3)", surface: "var(--ds-surface,#fff)",
+      txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
       display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
     };
     // Their own lessons, individual only (group lessons carry no tutor payout), newest
@@ -1977,7 +1977,7 @@ export default function FinancesPage() {
                     <button key={val} type="button" onClick={() => setExportKind(val)}
                       className={cn(
                         "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
-                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground",
                       )}>
                       {t(`finances.${key}`)}
                     </button>
@@ -2476,7 +2476,7 @@ export default function FinancesPage() {
                     <button key={val} type="button" onClick={() => setExportKind(val)}
                       className={cn(
                         "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
-                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                        exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground",
                       )}>
                       {t(`finances.${key}`)}
                     </button>
@@ -2629,7 +2629,7 @@ export default function FinancesPage() {
             </div>
 
               {isManager && prepaidRows.length > 0 && (
-                <div className="mt-3 rounded-[16px] border bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
+                <div className="mt-3 rounded-[16px] border bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
                   <p className="mb-2 text-[14px] font-bold text-foreground">💳 {t("finances.prepaidTitle")}</p>
                   <div className="space-y-1.5">
                     {prepaidRows.map((r) => (
@@ -2735,7 +2735,7 @@ export default function FinancesPage() {
             <button
               onClick={() => setExportOpen(true)}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors hover:bg-muted"
-              style={{ color: "var(--sub,#666b82)", border: "1px solid var(--border,#eceef3)" }}
+              style={{ color: "var(--sub,#666b82)", border: "1px solid var(--border,var(--ds-border,#eceef3))" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
               CSV
@@ -2744,7 +2744,7 @@ export default function FinancesPage() {
 
           {/* === Main tabs: Income / Debts === */}
           <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,#eceef3)"}}>
+            <TabsList className="grid w-full grid-cols-2 h-11 bg-transparent border-b rounded-none p-0" style={{borderColor:"var(--border,var(--ds-border,#eceef3))"}}>
               <TabsTrigger value="income" className="gap-1.5 rounded-none border-b-2 border-transparent data-[state=active]:border-[#2BBFAA] data-[state=active]:text-[#2BBFAA] data-[state=active]:shadow-none data-[state=active]:bg-transparent font-medium h-11 -mb-px">
                 <ArrowDownLeft className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">{t("finances.incomeTab", { defaultValue: "Доходи" })}</span>
@@ -2766,8 +2766,8 @@ export default function FinancesPage() {
           {/* === Selection bar — sticky, only when rows are selected (desktop) === */}
           {selected.size > 0 && (
             <div
-              className="sticky bottom-4 z-30 mt-4 hidden items-center gap-2 rounded-[14px] border-[0.5px] bg-white px-4 py-3 lg:flex"
-              style={{ borderColor: "var(--border,#eceef3)", boxShadow: "0 12px 32px -12px rgba(15,15,26,.3)" }}
+              className="sticky bottom-4 z-30 mt-4 hidden items-center gap-2 rounded-[14px] border-[0.5px] bg-card px-4 py-3 lg:flex"
+              style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", boxShadow: "0 12px 32px -12px rgba(15,15,26,.3)" }}
             >
               <span className="text-[14px] font-bold text-foreground">
                 {t("finances.selectedCount", { count: selected.size })}
@@ -2788,7 +2788,7 @@ export default function FinancesPage() {
                   type="button"
                   disabled={bulkBusy}
                   onClick={() => bulkMark("tutor_payout_status")}
-                  className="flex h-10 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-white px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
+                  className="flex h-10 items-center gap-1.5 rounded-[12px] border-[0.5px] bg-card px-4 text-[14px] font-bold transition-colors hover:bg-[#f0fdf9] disabled:opacity-50"
                   style={{ borderColor: "#5DCAA5", color: "#1f8e7e", fontFamily: "Inter, system-ui, sans-serif" }}
                 >
                   <CheckCheck className="h-4 w-4" />
@@ -2964,7 +2964,7 @@ export default function FinancesPage() {
                   <button key={val} type="button" onClick={() => setExportKind(val)}
                     className={cn(
                       "h-10 rounded-[12px] border text-[14px] font-semibold transition-colors",
-                      exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-white text-muted-foreground hover:text-foreground",
+                      exportKind === val ? "border-primary bg-primary/10 text-primary" : "border-border bg-card text-muted-foreground hover:text-foreground",
                     )}>
                     {t(`finances.${key}`)}
                   </button>

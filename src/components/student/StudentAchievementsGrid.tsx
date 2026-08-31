@@ -48,10 +48,10 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
           <div
             key={def.key}
             className={cn(
-              "relative flex flex-col items-center gap-[9px] rounded-[16px] bg-white px-2.5 pb-3.5 pt-4 text-center",
+              "relative flex flex-col items-center gap-[9px] rounded-[16px] bg-card px-2.5 pb-3.5 pt-4 text-center",
               earned && "shadow-sm",
             )}
-            style={{ border: `1px solid ${earned ? TIER_RING[tier] : "#eceef3"}` }}
+            style={{ border: `1px solid ${earned ? TIER_RING[tier] : "var(--ds-border,#eceef3)"}` }}
             title={t(def.descKey)}
           >
             {/* medal tile */}
@@ -79,8 +79,8 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                 </span>
               ) : (
                 <span
-                  className="absolute -bottom-1 -right-1 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-white shadow-sm"
-                  style={{ border: "1px solid #eceef3" }}
+                  className="absolute -bottom-1 -right-1 flex h-[26px] w-[26px] items-center justify-center rounded-full bg-card shadow-sm"
+                  style={{ border: "1px solid var(--ds-border,#eceef3)" }}
                   aria-hidden
                 >
                   <Lock className="h-3.5 w-3.5" style={{ color: "#6f7489" }} strokeWidth={2} />

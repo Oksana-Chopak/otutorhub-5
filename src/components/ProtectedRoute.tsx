@@ -12,10 +12,10 @@ function AppLoadingSkeleton() {
     <div className="flex h-screen bg-[#F5F4F0]">
       {/* Sidebar skeleton */}
       <div className="hidden w-[68px] flex-col gap-3 bg-[#0f0f1a] px-3 py-4 lg:flex">
-        <div className="mx-auto h-8 w-8 rounded-full bg-white/10" />
+        <div className="mx-auto h-8 w-8 rounded-full bg-card/10" />
         <div className="mt-4 flex flex-col gap-2">
           {[...Array(7)].map((_, i) => (
-            <div key={i} className="h-9 w-9 rounded-[10px] bg-white/06 animate-pulse" />
+            <div key={i} className="h-9 w-9 rounded-[10px] bg-card/06 animate-pulse" />
           ))}
         </div>
       </div>
@@ -25,12 +25,12 @@ function AppLoadingSkeleton() {
         <div className="h-4 w-64 rounded-lg bg-gray-100 animate-pulse" />
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 rounded-[16px] border border-gray-100 bg-white animate-pulse" />
+            <div key={i} className="h-24 rounded-[16px] border border-gray-100 bg-card animate-pulse" />
           ))}
         </div>
         <div className="flex flex-col gap-3 mt-2">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-16 rounded-[16px] border border-gray-100 bg-white animate-pulse" />
+            <div key={i} className="h-16 rounded-[16px] border border-gray-100 bg-card animate-pulse" />
           ))}
         </div>
       </div>

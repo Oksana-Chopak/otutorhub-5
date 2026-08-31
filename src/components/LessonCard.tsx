@@ -77,8 +77,8 @@ const STATUS_META: Record<LessonStatus, { key: string; accent: string; bg: strin
 };
 
 const L = {
-  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
-  surface: "#FFFFFF", surface2: "#f6f5f1", teal: "#2BBFAA", tealD: "#1f8e7e",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)",
+  surface: "var(--ds-surface,#fff)", surface2: "#f6f5f1", teal: "#2BBFAA", tealD: "#1f8e7e",
   tealTint: "#f0fdf9", tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", warningD: "#B4740B",
   coral: "#e0552f", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
@@ -301,7 +301,7 @@ function LessonCardImpl({
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               {href && (
                 <a href={href} target="_blank" rel="noopener noreferrer" onClick={(e) => { e.stopPropagation(); onJoin?.(); }} aria-label="Zoom"
-                  style={{ width: 44, height: 44, borderRadius: 14, background: L.teal, color: "#0f0f1a", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
+                  style={{ width: 44, height: 44, borderRadius: 14, background: L.teal, color: "var(--ds-txt,#0f0f1a)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 14px -6px rgba(43,191,170,.7)" }}>
                   <Video size={21} />
                 </a>
               )}

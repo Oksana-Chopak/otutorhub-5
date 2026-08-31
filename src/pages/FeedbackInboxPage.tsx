@@ -78,7 +78,7 @@ export default function FeedbackInboxPage() {
     <>
       <div className="mx-auto max-w-2xl">
         <div className="mb-5 hidden lg:block">
-          <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
+          <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
             {t("feedbackInbox.title")}
           </h1>
           <p className="mt-1 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("feedbackInbox.subtitle")}</p>
@@ -98,7 +98,7 @@ export default function FeedbackInboxPage() {
                 style={{ height: 34, padding: "0 14px", borderRadius: 999, cursor: "pointer",
                   fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                   background: on ? "#f0fdf9" : "#fff",
-                  border: `1.5px solid ${on ? "#2BBFAA" : "#eceef3"}`,
+                  border: `1.5px solid ${on ? "#2BBFAA" : "var(--ds-border,#eceef3)"}`,
                   color: on ? "#1f8e7e" : "var(--sub,#666b82)" }}>
                 {label}
               </button>
@@ -119,7 +119,7 @@ export default function FeedbackInboxPage() {
         ) : loading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 15 }}>
+              <div key={i} style={{ borderRadius: 18, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: 15 }}>
                 <div className="flex items-center gap-2.5">
                   <div className="h-[38px] w-[38px] shrink-0 animate-pulse rounded-[11px] bg-muted" />
                   <div className="flex-1 space-y-2">
@@ -132,7 +132,7 @@ export default function FeedbackInboxPage() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "44px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff" }}>
+          <div style={{ textAlign: "center", padding: "44px 16px", borderRadius: 18, border: "1px dashed var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)" }}>
             <Inbox className="mx-auto h-8 w-8" style={{ color: "var(--sub,#666b82)" }} />
             <p className="mt-2 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("feedbackInbox.empty")}</p>
           </div>
@@ -143,14 +143,14 @@ export default function FeedbackInboxPage() {
               const Icon = cat.icon;
               const resolved = r.status === "resolved";
               return (
-                <div key={r.id} style={{ borderRadius: 18, border: "1px solid #eceef3", background: "#fff", padding: 15, opacity: resolved ? 0.7 : 1 }}>
+                <div key={r.id} style={{ borderRadius: 18, border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", padding: 15, opacity: resolved ? 0.7 : 1 }}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <span style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, background: cat.bg, color: cat.color, display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <Icon className="h-[18px] w-[18px]" />
                       </span>
                       <div className="min-w-0">
-                        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
+                        <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                           {r.user_id ? (names[r.user_id] ?? "…") : t("feedbackInbox.anonymous")}
                         </p>
                         <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
@@ -165,7 +165,7 @@ export default function FeedbackInboxPage() {
                     )}
                   </div>
 
-                  <p style={{ marginTop: 11, fontSize: 15, lineHeight: 1.5, color: "#0f0f1a", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                  <p style={{ marginTop: 11, fontSize: 15, lineHeight: 1.5, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
                     {r.message}
                   </p>
                   {r.page_url && (
@@ -188,7 +188,7 @@ export default function FeedbackInboxPage() {
                   )}
                   {resolved && (
                     <button type="button" disabled={busyId === r.id} onClick={() => setStatus(r.id, "new")}
-                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid #eceef3", background: "#fff", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
+                      style={{ marginTop: 10, height: 32, padding: "0 12px", borderRadius: 9, cursor: "pointer", border: "1px solid var(--ds-border,#eceef3)", background: "var(--ds-surface,#fff)", color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14 }}>
                       {t("feedbackInbox.reopen")}
                     </button>
                   )}

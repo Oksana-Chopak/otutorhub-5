@@ -42,8 +42,8 @@ function PushSettingsCard() {
   // Push is web-only) — hide the whole card too, not just its content.
   if (isNativeApp()) return null;
   return (
-    <div className="mb-4 rounded-[16px] border-[0.5px] bg-white p-4" style={{ borderColor: "var(--border,#eceef3)" }}>
-      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
+    <div className="mb-4 rounded-[16px] border-[0.5px] bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+      <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
         {t("pushNotif.cardTitle")}
       </p>
       <p className="mt-0.5 mb-3 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
@@ -58,7 +58,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
   const nonEmpty = groups.filter((g) => g.items.length > 0);
   if (nonEmpty.length === 0) return null;
   return (
-    <Card className="mt-6 rounded-[18px] border-[#eceef3] shadow-none">
+    <Card className="mt-6 rounded-[18px] border-[var(--ds-border,#eceef3)] shadow-none">
       <CardHeader>
         <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{title}</CardTitle>
       </CardHeader>
@@ -73,7 +73,7 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
                 <Link
                   key={it.to}
                   to={it.to}
-                  className="group flex items-center gap-3 rounded-[16px] border border-[#eceef3] bg-white p-3 transition-colors hover:bg-[#f0fdf9]"
+                  className="group flex items-center gap-3 rounded-[16px] border border-[var(--ds-border,#eceef3)] bg-card p-3 transition-colors hover:bg-[#f0fdf9]"
                 >
                   <span className="flex h-10 w-10 items-center justify-center rounded-[16px] bg-primary/10 text-primary">
                     <it.icon className="h-5 w-5" />
@@ -92,8 +92,8 @@ function MoreSection({ title, groups }: { title: string; groups: SectionGroup[] 
 
 const P = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
-  border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
+  border: "var(--ds-border,#eceef3)", bg: "var(--ds-bg,#F5F4F0)", surface: "var(--ds-surface,#fff)",
+  txt: "var(--ds-txt,#0f0f1a)", sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)",
   display: "Inter, system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -532,7 +532,7 @@ export default function ProfilePage() {
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
-              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
               <div style={{ display: "flex", justifyContent: "center", margin: "12px 0 18px" }}>
@@ -545,13 +545,13 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
                 <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
                 <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
@@ -778,7 +778,7 @@ export default function ProfilePage() {
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
-              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 4 }}>
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 4 }}>
                 {t("profile.editTitle") || "Редагувати профіль"}
               </p>
               <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--sub,#666b82)", marginBottom: 16 }}>
@@ -794,7 +794,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
                 <Input
@@ -805,7 +805,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
                 <Input
@@ -820,7 +820,7 @@ export default function ProfilePage() {
                 {t("profile.editContacts") || "Контактні дані"}
               </p>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Email
                 </label>
                 <Input
@@ -832,7 +832,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("shared.phone", { defaultValue: "Телефон" })}
                 </label>
                 <Input
@@ -844,7 +844,7 @@ export default function ProfilePage() {
                 />
               </div>
               <div style={{ marginBottom: 4 }}>
-                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a", marginBottom: 6 }}>
+                <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Telegram
                 </label>
                 <Input
@@ -870,12 +870,12 @@ export default function ProfilePage() {
                 onClick={() => setContactDialogOpen(true)}
                 className="hover:bg-muted/50"
                 style={{ marginTop: 12, width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-                  gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid #eceef3",
-                  background: "#fff", cursor: "pointer" }}>
+                  gap: 8, padding: "13px 14px", borderRadius: 14, border: "1px solid var(--ds-border,#eceef3)",
+                  background: "var(--ds-surface,#fff)", cursor: "pointer" }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <Mail size={18} style={{ color: "var(--sub,#666b82)" }} />
                   <span style={{ textAlign: "left" }}>
-                    <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "#0f0f1a" }}>
+                    <span style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
                       {t("profile.editSocials") || "Соцмережі та месенджери"}
                     </span>
                     <span style={{ display: "block", fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 14, color: "var(--sub,#666b82)" }}>
@@ -889,11 +889,11 @@ export default function ProfilePage() {
               {/* Student reviews */}
               <div style={{ marginTop: 18 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                  <span style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>
+                  <span style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                     {t("profile.reviewsTitle") || "Відгуки учнів"}
                   </span>
                   {reviews.length > 0 && (
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "#0f0f1a" }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
                       <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
                       {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
                       <span style={{ color: "var(--sub,#666b82)", fontWeight: 600 }}>({reviews.length})</span>
@@ -907,13 +907,13 @@ export default function ProfilePage() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                     {reviews.filter(r => r.comment).slice(0, 5).map((r, i) => (
-                      <div key={i} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid #eceef3", background: "#fafafa" }}>
+                      <div key={i} style={{ padding: "10px 12px", borderRadius: 12, border: "1px solid var(--ds-border,#eceef3)", background: "#fafafa" }}>
                         <div style={{ display: "flex", gap: 2, marginBottom: 4 }}>
                           {Array.from({ length: 5 }).map((_, s) => (
                             <Star key={s} size={12} style={{ color: s < r.rating ? "#F5B400" : "#e5e7eb", fill: s < r.rating ? "#F5B400" : "#e5e7eb" }} />
                           ))}
                         </div>
-                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "#0f0f1a", lineHeight: 1.5 }}>
+                        <p style={{ fontFamily: "'Plus Jakarta Sans', system-ui", fontSize: 15, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.5 }}>
                           {r.comment}
                         </p>
                       </div>
@@ -931,7 +931,7 @@ export default function ProfilePage() {
               <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
             </div>
             <div className="px-5 py-4">
-              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "#0f0f1a", marginBottom: 16 }}>
+              <p style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 18, color: "var(--ds-txt,#0f0f1a)", marginBottom: 16 }}>
                 {t("profile.subjectsSheetTitle")}
               </p>
               {/* Subject chips — existing subjects */}
@@ -966,7 +966,7 @@ export default function ProfilePage() {
                   .map(s => (
                     <button key={s} onClick={() => setSubjects(prev => [...prev, s])}
                       style={{ padding: "5px 12px", borderRadius: 999, fontSize: 14, fontWeight: 600,
-                        background: "transparent", border: "1px solid #eceef3", cursor: "pointer",
+                        background: "transparent", border: "1px solid var(--ds-border,#eceef3)", cursor: "pointer",
                         color: "var(--sub,#666b82)" }}>
                       + {s}
                     </button>
@@ -977,7 +977,7 @@ export default function ProfilePage() {
                 <input
                   placeholder={t("profile.customSubjectPlaceholder")}
                   style={{ flex: 1, height: 44, borderRadius: 12, padding: "0 12px",
-                    fontSize: 15, border: "1.5px solid #eceef3", outline: "none",
+                    fontSize: 15, border: "1.5px solid var(--ds-border,#eceef3)", outline: "none",
                     fontFamily: "'Plus Jakarta Sans', system-ui" }}
                   onKeyDown={e => {
                     if (e.key === "Enter") {
@@ -1028,7 +1028,7 @@ export default function ProfilePage() {
         <Sheet open={activeSheet === "availability"} onOpenChange={o => !o && setActiveSheet(null)}>
           <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-[20px] p-0">
             <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
-              style={{ borderColor: "var(--border,#eceef3)" }}>
+              style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
               <p className="font-black text-[18px]" style={{ fontFamily: "Inter, system-ui" }}>
                 {t("profile.availableHoursTitle")}
               </p>
@@ -1067,7 +1067,7 @@ export default function ProfilePage() {
 
         {/* Danger zone — clearly separated from the settings/guide above it so it
             never looks "stuck" to the setup-guide row (binding ТЗ). */}
-        <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--border,#eceef3)" }}>
+        <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
           <DeleteAccountSection />
         </div>
 
