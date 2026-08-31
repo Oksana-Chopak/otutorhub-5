@@ -153,20 +153,34 @@ Deno.serve(async (req) => {
     .in("user_id", studentIds)
     .not("chat_id", "is", null);
   const chatByUser = new Map<string, number>();
-  // B8: мова кожного одержувача (default uk) — одним запитом.
-  const allRecipientIds = [...new Set([
-    ...(lessons ?? []).map((l: { student_id?: string | null }) => l.student_id).filter(Boolean),
-    ...(gParts ?? []).map((p: { student_id: string }) => p.student_id),
-  ])] as string[];
+  // B8: мови й валюти — ЛІНИВО, двома фазами (індивідуальна + групова),
+  // бо групові учасники відомі лише нижче. Перша версія читала неіснуючий
+  // gParts і клала функцію ReferenceError-ом на кожному запуску.
   const langByUser = new Map<string, RtLang>();
-  if (allRecipientIds.length) {
-    const { data: langRows } = await supabase.from("profiles").select("id, preferred_language").in("id", allRecipientIds);
-    for (const r of langRows ?? []) {
+  const ensureLangs = async (ids: (string | null | undefined)[]) => {
+    const need = [...new Set(ids.filter(Boolean) as string[])].filter((x) => !langByUser.has(x));
+    if (!need.length) return;
+    const { data } = await supabase.from("profiles").select("id, preferred_language").in("id", need);
+    for (const r of data ?? []) {
       const v = (r as { preferred_language?: string }).preferred_language;
       langByUser.set((r as { id: string }).id, v === "en" ? "en" : v === "sv" ? "sv" : "uk");
     }
-  }
+    for (const x of need) if (!langByUser.has(x)) langByUser.set(x, "uk");
+  };
   const rlang = (id: string): RtLang => langByUser.get(id) ?? "uk";
+  // Валюта пари — зі student_rates (у lessons такої колонки немає).
+  const curByPair = new Map<string, string>();
+  const ensureCurrencies = async (ids: (string | null | undefined)[]) => {
+    const need = [...new Set(ids.filter(Boolean) as string[])];
+    if (!need.length) return;
+    const { data } = await supabase.from("student_rates").select("tutor_id, student_id, currency").in("student_id", need);
+    for (const r of data ?? []) {
+      const row = r as { tutor_id: string; student_id: string; currency?: string | null };
+      if (row.currency) curByPair.set(`${row.tutor_id}:${row.student_id}`, row.currency);
+    }
+  };
+  await ensureLangs((lessons ?? []).map((l: { student_id?: string | null }) => l.student_id));
+  await ensureCurrencies((lessons ?? []).map((l: { student_id?: string | null }) => l.student_id));
   for (const link of tgLinks ?? []) {
     if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
   }
@@ -262,7 +276,7 @@ Deno.serve(async (req) => {
     // Compose message
     const lang = rlang(lesson.student_id);
     const T = RT[lang];
-    const cur = rsym((lesson as { currency?: string | null }).currency);
+    const cur = rsym(curByPair.get(`${lesson.tutor_id}:${lesson.student_id}`));
     const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], {
       timeZone: "Europe/Kyiv",
       day: "2-digit",
@@ -335,6 +349,9 @@ Deno.serve(async (req) => {
     .filter((p: any) => p.lesson);
 
   if (parts.length > 0) {
+    // B8, фаза 2: мови+валюти групових учасників (тепер вони відомі).
+    await ensureLangs(parts.map((p: { student_id: string }) => p.student_id));
+    await ensureCurrencies(parts.map((p: { student_id: string }) => p.student_id));
     // Load settings / names / telegram for any group tutors+students not already cached.
     const gTutorIds = Array.from(new Set(parts.map((p: any) => p.lesson.tutor_id))).filter((id) => !settingsByTutor.has(id as string));
     if (gTutorIds.length) {
@@ -377,7 +394,7 @@ Deno.serve(async (req) => {
 
       const lang = rlang(p.student_id);
       const T = RT[lang];
-      const cur = rsym((lesson as { currency?: string | null }).currency);
+      const cur = rsym(curByPair.get(`${lesson.tutor_id}:${p.student_id}`));
       const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
       const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
       const price = Number(p.student_price ?? 0);
