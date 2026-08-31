@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { StudentNextBlock } from "@/components/StudentNextBlock";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
@@ -45,6 +46,8 @@ export default function StudentDashboardPage() {
   const [pendingPaymentsCount, setPendingPaymentsCount] = useState(0);
   const [homeworkCount, setHomeworkCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  // 42: баланс передоплат учня (з wallet_balance_view або lesson_participants_visible)
+  const [lessonsBalance, setLessonsBalance] = useState<number | null>(null);
   const [completedLessons, setCompletedLessons] = useState<CompletedLessonStat[]>([]);
 
   // Tick every 30s so the time-aware "live" join window flips ON/OFF without a manual
@@ -187,6 +190,13 @@ export default function StudentDashboardPage() {
       ).length + unpaidGroup,
     );
 
+    // 42: баланс уроків — рахуємо scheduled (prepaid model) з уже завантажених lessons
+    // wallet_balance_view не є у міграціях → db-інваріант це б зловив.
+    // Prepaid: scheduled і не скасований → учень ще не відбув, але вже заплатив.
+    const scheduledPaid = (lessons ?? []).filter((l: any) =>
+      l.status === "scheduled" && l.student_id === user?.id
+    ).length;
+    setLessonsBalance(scheduledPaid);
     setLoading(false);
   };
 
@@ -243,6 +253,21 @@ export default function StudentDashboardPage() {
         {/* Review prompt — invites a rating for the most recent unrated completed lesson */}
         <ReviewPromptCard />
 
+        {/* 42: StudentNextBlock — реєстр «що далі» за взірцем DayBlock */}
+        {!loading && !ctxLoading && (
+          <StudentNextBlock
+            hasTutor={hasTutor}
+            upcomingCount={upcoming.length}
+            nextStartsAt={upcoming[0]?.starts_at ?? null}
+            nextSubject={upcoming[0]?.subject ?? null}
+            nextMeetingUrl={upcoming[0]?.meeting_url ?? null}
+            pendingPaymentsCount={pendingPaymentsCount}
+            homeworkCount={homeworkCount}
+            weeklyCount={weeklyCount}
+            weeklyRecord={weeklyRecord}
+            lessonsBalance={lessonsBalance}
+          />
+        )}
         {/* Block 1: Upcoming lessons — DS cards with dark time rail */}
         <div style={{ borderRadius: 16, border: `1px solid ${DS.border}`, background: "#fff", padding: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
