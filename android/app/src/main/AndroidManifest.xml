@@ -23,6 +23,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- Deep links: https://otutorhub.com/* відкривається В застосунку.
+                 autoVerify спрацює після публікації assetlinks.json (див.
+                 public/.well-known + docs/ANDROID-RELEASE.md, крок 5). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="otutorhub.com" />
+            </intent-filter>
+
         </activity>
 
         <provider

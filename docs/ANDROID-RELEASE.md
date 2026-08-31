@@ -10,3 +10,8 @@
 
 Origin WebView задано як `https://otutorhub.com` (capacitor.config.ts → server)
 — email-підтвердження і /join/* посилання ведуть на живий сайт (М5).
+
+5. **App Links (після першого завантаження в Play Console):**
+   Console → Setup → App integrity → App signing → скопіюй **SHA-256** →
+   встав замість TODO у `public/.well-known/assetlinks.json` → Publish сайту.
+   Після цього https://otutorhub.com/join/* відкривається одразу в застосунку.

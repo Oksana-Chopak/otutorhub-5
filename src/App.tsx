@@ -1,4 +1,5 @@
 import { lazy, Suspense } from "react";
+import { DeepLinkListener } from "@/components/DeepLinkListener";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate, useLocation } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -96,7 +97,8 @@ function AppRoutes() {
             on navigation (keyed by pathname), so one bad page can't brick the session.
             The outer ErrorBoundary stays as the last-resort catch. */}
         <ErrorBoundary key={location.pathname}>
-        <Routes>
+        <DeepLinkListener />
+          <Routes>
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
