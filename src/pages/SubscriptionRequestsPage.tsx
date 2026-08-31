@@ -185,7 +185,7 @@ export default function SubscriptionRequestsPage() {
                         <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 18, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
                           {name}
                         </p>
-                        <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>
+                        <p className="text-[14px]" style={{ color: "var(--sub,#666b82)", marginTop: 2 }}>
                           {format(new Date(r.created_at), "d MMM yyyy, HH:mm", {
                             locale: uk,
                           })}{" "}
@@ -219,7 +219,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.message && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ background: "#fbfbfc", border: "1px solid var(--ds-border,#eceef3)", color: "var(--ds-txt,#0f0f1a)" }}>
-                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 inline-flex items-center gap-1.5 text-[14px]" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           <MessageCircle className="h-3.5 w-3.5" /> {t("subscriptionRequestsExtra.messageLabel")}
                         </div>
                         {r.message}
@@ -228,7 +228,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.manager_response && (
                       <div className="rounded-[13px] p-3 text-[14px]" style={{ border: "1px solid var(--ds-border,#eceef3)" }}>
-                        <div className="mb-1.5 text-[14px]" style={{ color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
+                        <div className="mb-1.5 text-[14px]" style={{ color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700 }}>
                           {t("subscriptionRequestsExtra.responseLabel")}
                         </div>
                         {r.manager_response}

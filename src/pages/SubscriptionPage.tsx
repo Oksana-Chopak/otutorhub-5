@@ -78,7 +78,7 @@ const statusMeta: Record<
 };
 
 const S = {
-  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3",
+  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3",
   teal: "#2BBFAA", tealD: "#1f8e7e", successD: "#16a34a",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",
   gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",

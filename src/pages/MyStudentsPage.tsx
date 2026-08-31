@@ -131,7 +131,7 @@ const emptyForm: FormData = {
 
 const T = {
   teal: "#2BBFAA", tealD: "#25a896", border: "#eceef3",
-  bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
+  bg: "#F5F4F0", txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -982,7 +982,7 @@ export default function MyStudentsPage() {
           {(() => {
             const F = {
               border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-              txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", gold: "#9a6a12",
+              txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", gold: "#9a6a12",
               display: "Inter, system-ui, sans-serif",
               body: "'Plus Jakarta Sans', system-ui, sans-serif",
             };
@@ -1095,9 +1095,12 @@ export default function MyStudentsPage() {
                           background: "#f0fdf9", color: F.tealD, boxShadow: "inset 0 0 0 1px rgba(43,191,170,.3)",
                           fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
                           {s}
+                          {/* C5: ціль дотику була 20×20 — тепер 44×44 (візуально те саме коло) */}
                           <button type="button" onClick={() => setSubjects(subjList.filter((x) => x !== s))} aria-label={`${t("myStudents.removeSubjectAria") || "Remove"} ${s}`}
-                            style={{ width: 20, height: 20, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(43,191,170,.18)", color: F.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            <X size={12} strokeWidth={2.4} />
+                            style={{ width: 44, height: 44, margin: -12, flexShrink: 0, border: "none", cursor: "pointer", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span style={{ width: 20, height: 20, borderRadius: 999, background: "rgba(43,191,170,.18)", color: F.tealD, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <X size={12} strokeWidth={2.4} />
+                            </span>
                           </button>
                         </span>
                       ))}

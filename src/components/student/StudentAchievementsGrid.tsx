@@ -83,7 +83,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                   style={{ border: "1px solid #eceef3" }}
                   aria-hidden
                 >
-                  <Lock className="h-3.5 w-3.5" style={{ color: "#b0b4c8" }} strokeWidth={2} />
+                  <Lock className="h-3.5 w-3.5" style={{ color: "#6f7489" }} strokeWidth={2} />
                 </span>
               )}
             </div>
@@ -91,7 +91,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
             {/* title */}
             <div
               className="text-sm font-extrabold leading-tight"
-              style={{ color: earned ? "#0f0f1a" : "var(--sub,#6b7088)" }}
+              style={{ color: earned ? "#0f0f1a" : "var(--sub,#666b82)" }}
             >
               {t(def.nameKey)}
             </div>
@@ -109,7 +109,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
               <div className="flex w-full flex-col items-center gap-1.5">
                 <div
                   className="min-h-[31px] text-[14px] leading-snug"
-                  style={{ color: "#b0b4c8" }}
+                  style={{ color: "#6f7489" }}
                 >
                   {t(def.descKey)}
                 </div>
@@ -123,7 +123,7 @@ export function StudentAchievementsGrid({ achievements, className }: Props) {
                         style={{ width: `${pct}%`, background: TIER_GRADIENT[tier] }}
                       />
                     </div>
-                    <div className="text-[14px] font-bold tabular-nums" style={{ color: "var(--sub,#6b7088)" }}>
+                    <div className="text-[14px] font-bold tabular-nums" style={{ color: "var(--sub,#666b82)" }}>
                       {Math.min(current, target)} / {target}
                     </div>
                   </>

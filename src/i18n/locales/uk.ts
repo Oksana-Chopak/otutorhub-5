@@ -1,5 +1,8 @@
 export const uk = {
   adminCrm: {
+    risk_red: "Терміново",
+    risk_orange: "Увага",
+    risk_green: "ОК",
     needsDeploy: "CRM-дані з'являться після Pull → Publish у Lovable (функція admin-stats оновиться сама).",
     attentionTitle: "Потребують тебе сьогодні",
     attentionEmpty: "Гарячих немає — всі 🔴 закриті.",

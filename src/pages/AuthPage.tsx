@@ -107,7 +107,8 @@ function ConfirmedSignIn({
               />
             </div>
             {error && (
-              <div className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              // C3: role="alert" — скрінрідер озвучує помилку входу, а не мовчить
+              <div role="alert" aria-live="assertive" className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {error}
                 {error.toLowerCase().includes("confirm") || error.includes("підтверд") ? (
                   <button
@@ -838,7 +839,7 @@ export default function AuthPage() {
           </CardContent>
         </Card>
       </div>
-      <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#6b7088)", opacity: .6 }}>{BUILD_TAG}</p>
+      <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#666b82)", opacity: .6 }}>{BUILD_TAG}</p>
       </div>
     </>
   );

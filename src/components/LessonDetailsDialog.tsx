@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { LessonWorkspace } from "@/components/LessonWorkspace";
 import { GroupLessonParticipants } from "@/components/GroupLessonParticipants";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
@@ -148,6 +148,8 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-card w-full max-w-3xl p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{row ? row.subject : t("lessonDetails.fallbackTitle")}</DialogTitle>
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div className="bg-foreground/15" style={{ width: 38, height: 4, borderRadius: 999 }} />

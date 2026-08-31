@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -27,9 +28,9 @@ function Field({
 }) {
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={htmlFor} className="text-[14px] font-medium text-[#6b7088]">{label}</Label>
+      <Label htmlFor={htmlFor} className="text-[14px] font-medium text-[#666b82]">{label}</Label>
       <div className="relative">
-        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#6b7088)]" />
+        <Icon size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--sub,#666b82)]" />
         {children}
       </div>
     </div>
@@ -40,7 +41,7 @@ function Field({
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[var(--sub,#6b7088)]">{label}</div>
+      <div className="text-[14px] font-bold uppercase tracking-[0.08em] text-[var(--sub,#666b82)]">{label}</div>
       {children}
     </section>
   );
@@ -233,6 +234,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("contactEditExtra.titleFormat", { name: userName })}</DialogTitle>
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div style={{ width: 36, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
         </div>
@@ -241,12 +244,12 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 20, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               {t("contactEditExtra.titleFormat", { name: userName })}
             </div>
-            <div style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 2, lineHeight: 1.4 }}>
+            <div style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, lineHeight: 1.4 }}>
               {t("contactEdit.visibilityHint")}
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -293,8 +296,8 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
                 value={cardInput} onChange={(e) => setCardInput(e.target.value)} />
             </Field>
             <div className="flex items-start gap-2 rounded-[12px] bg-[#F5F4F0] px-3 py-2.5">
-              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#6b7088)]" />
-              <p className="text-[14px] leading-snug text-[#6b7088]">{t("contactEditExtra.securityNote")}</p>
+              <ShieldCheck size={15} className="mt-0.5 flex-shrink-0 text-[var(--sub,#666b82)]" />
+              <p className="text-[14px] leading-snug text-[#666b82]">{t("contactEditExtra.securityNote")}</p>
             </div>
           </Section>
         </div>

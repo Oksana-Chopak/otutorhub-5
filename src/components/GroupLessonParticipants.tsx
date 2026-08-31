@@ -114,7 +114,7 @@ export function GroupLessonParticipants({
   }
 
   if (rows.length === 0) {
-    return <p style={{ fontSize: 14, color: "var(--sub,#6b7088)" }}>{t("groupPayments.noParticipants")}</p>;
+    return <p style={{ fontSize: 14, color: "var(--sub,#666b82)" }}>{t("groupPayments.noParticipants")}</p>;
   }
 
   const paidCount = rows.filter((r) => r.student_payment_status === "paid").length;
@@ -122,7 +122,7 @@ export function GroupLessonParticipants({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)" }}>
+        <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)" }}>
           {t("groupPayments.title")}
         </p>
         {canSeeMoney && (
@@ -139,7 +139,7 @@ export function GroupLessonParticipants({
               <div className="min-w-0 flex-1">
                 <p style={{ fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 15, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.name}</p>
                 {canSeeMoney && (
-                  <p style={{ fontSize: 14, color: "var(--sub,#6b7088)" }}>
+                  <p style={{ fontSize: 14, color: "var(--sub,#666b82)" }}>
                     {p.student_price != null ? `${p.student_price} ${currencySymbol(p.currency)}` : t("groupPayments.noPrice")}
                   </p>
                 )}

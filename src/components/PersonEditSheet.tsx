@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -114,7 +114,7 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
 
   const F = {
     border: "#eceef3", bg: "#fbfbfc", chip: "#F5F4F0", teal: "#2BBFAA", tealD: "#25a896",
-    txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", gold: "#9a6a12",
+    txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", gold: "#9a6a12",
     display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
   const inp = (big?: boolean): React.CSSProperties => ({
@@ -241,6 +241,8 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-full max-w-[480px] p-0 gap-0 overflow-hidden rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[88vh] flex flex-col [&>button.absolute]:hidden">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("personEdit.title")}</DialogTitle>
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div className="w-9 h-1 rounded-full" style={{ background: "rgba(15,15,26,.14)" }} />
         </div>

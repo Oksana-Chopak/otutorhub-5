@@ -56,7 +56,7 @@ export function DeleteAccountSection() {
       <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, color: "#b3441f" }}>
         {t("accountDeletion.title")}
       </div>
-      <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 4, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4, lineHeight: 1.5 }}>
         {t("accountDeletion.desc")}
       </p>
       <button

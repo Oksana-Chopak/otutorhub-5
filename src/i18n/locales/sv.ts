@@ -3,6 +3,9 @@ import type { LocaleTranslations } from "./types";
 // Swedish locale: provides full landing translation; other strings fall back to uk via i18next.
 export const sv: LocaleTranslations = {
   adminCrm: {
+    risk_red: "Brådskande",
+    risk_orange: "Obs",
+    risk_green: "OK",
     needsDeploy: "CRM-data visas efter Pull → Publish i Lovable (admin-stats omdistribueras automatiskt).",
     attentionTitle: "Behöver dig idag",
     attentionEmpty: "Inga heta — alla 🔴 hanterade.",

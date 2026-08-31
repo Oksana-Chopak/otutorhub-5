@@ -77,7 +77,7 @@ const STATUS_META: Record<LessonStatus, { key: string; accent: string; bg: strin
 };
 
 const L = {
-  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
   surface: "#FFFFFF", surface2: "#f6f5f1", teal: "#2BBFAA", tealD: "#1f8e7e",
   tealTint: "#f0fdf9", tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", warningD: "#B4740B",
   coral: "#e0552f", gradIncome: "linear-gradient(160deg,#23232f 0%,#0f0f1a 100%)",
@@ -212,6 +212,10 @@ function LessonCardImpl({
   return (
     <div
       onClick={tap ? () => tap() : undefined}
+      // C2: відкриття уроку було недосяжне з клавіатури і невидиме скрінрідеру
+      role={tap ? "button" : undefined}
+      tabIndex={tap ? 0 : undefined}
+      onKeyDown={tap ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tap(); } } : undefined}
       className={cn(pulse && "animate-pulse", className)}
       style={{
         position: "relative", display: "flex", background: L.surface, border: `1px solid ${L.border}`,

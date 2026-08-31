@@ -24,7 +24,7 @@ interface RulesState {
 
 // ── Design tokens (DS — variant C "Обери політику") ───────────────────────────
 const C = {
-  txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
   surface: "#FFFFFF", teal: "#2BBFAA", tealD: "#1f8e7e", tealL: "#f0fdf9",
   tealRing: "rgba(43,191,170,.28)", successD: "#16a34a", warningD: "#B4740B", coral: "#e0552f",
   gradTeal: "linear-gradient(135deg,#2BBFAA,#25a896)",

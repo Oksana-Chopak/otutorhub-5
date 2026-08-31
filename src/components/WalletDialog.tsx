@@ -235,7 +235,7 @@ export function WalletDialog({
   const F = {
     teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9",
     border: "#eceef3", bg: "#F5F4F0", surface: "#fff",
-    txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
+    txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };

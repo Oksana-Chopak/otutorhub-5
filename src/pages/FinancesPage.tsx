@@ -159,7 +159,7 @@ const F = {
   teal:"#2BBFAA", tealD:"#25a896", tealL:"#f0fdf9",
   warn:"#f59e0b", warnD:"#b4740b", warnBg:"rgba(245,158,11,.1)", warnBorder:"rgba(245,158,11,.3)",
   border:"#eceef3", bg:"#F5F4F0", surface:"#fff",
-  txt:"#0f0f1a", sub:"var(--sub,#6b7088)", muted:"#b0b4c8",
+  txt:"#0f0f1a", sub:"var(--sub,#666b82)", muted:"#6f7489",
   display:"Inter, system-ui, sans-serif", body:"'Plus Jakarta Sans', system-ui, sans-serif",
 };
 
@@ -1284,9 +1284,13 @@ export default function FinancesPage() {
                       {isManager && (
                         <span
                           role="button"
+                          // C2: role="button" без tabIndex — скрінрідер каже «кнопка»,
+                          // а сфокусувати неможливо; Enter/Space тепер працюють.
+                          tabIndex={0}
                           aria-label={t("finances.deletePrepayAria")}
                           onClick={(e) => { e.stopPropagation(); setDeletePrepayTx(tx); }}
-                          style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center",
+                          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); setDeletePrepayTx(tx); } }}
+                          style={{ width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center",
                             justifyContent: "center", color: "#b3441f", background: "rgba(224,85,47,.08)",
                             border: "1px solid rgba(224,85,47,.25)" }}
                         >
@@ -1316,7 +1320,7 @@ export default function FinancesPage() {
                       {isGroup && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#1f8e7e", background: "rgba(43,191,170,.12)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.groupTag")}</span>}
                       {(l as any).is_cancellation_fee && <span style={{ flexShrink: 0, fontSize: 14, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("finances.cancellationFeeTag")}</span>}
                     </p>
-                    <p className="text-[14px]" style={{ color: "var(--sub,#6b7088)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
+                    <p className="text-[14px]" style={{ color: "var(--sub,#666b82)", marginTop: 1 }}>{formatDate(l.starts_at)}</p>
                   </div>
                   {!isIndependentTutor && !isGroup && (
                     <div
@@ -1795,7 +1799,7 @@ export default function FinancesPage() {
       teal: "#2BBFAA", tealD: "#25a896",
       warn: "#f59e0b", warnD: "#b4740b", warnBg: "rgba(245,158,11,.1)", warnBorder: "rgba(245,158,11,.3)",
       border: "#eceef3", surface: "#fff",
-      txt: "#0f0f1a", sub: "var(--sub,#6b7088)", muted: "#b0b4c8",
+      txt: "#0f0f1a", sub: "var(--sub,#666b82)", muted: "#6f7489",
       display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
     };
     // Their own lessons, individual only (group lessons carry no tutor payout), newest
@@ -2276,13 +2280,15 @@ export default function FinancesPage() {
                                 {t("finances.remindBtn")}
                               </button>
                             )}
+                            {/* C5: було 32×32 за 6px від «Нагадати» — випадковий тап
+                                позначав урок оплаченим. Тепер 44×40 з відступом. */}
                             <button
                               onClick={() => togglePayment(l, "student_payment_status")}
                               aria-label={t("finances.statusPaid")}
-                              style={{ width:32, height:32, borderRadius:9, border:"1.5px solid rgba(43,191,170,.4)",
+                              style={{ width:44, height:40, marginLeft:6, borderRadius:10, border:"1.5px solid rgba(43,191,170,.4)",
                                 background:"#f0fdf9", color:"#1f8e7e", cursor:"pointer", flexShrink:0,
                                 display:"flex", alignItems:"center", justifyContent:"center",
-                                fontWeight:800, fontSize:14 }}>
+                                fontWeight:800, fontSize:15 }}>
                               ✓
                             </button>
                           </div>
@@ -2574,7 +2580,7 @@ export default function FinancesPage() {
                         height: 32, padding: "0 12px", borderRadius: 999, border: "none", cursor: "pointer",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
                         background: period === p ? "var(--teal,#2BBFAA)" : "var(--bg,#F5F4F0)",
-                        color: period === p ? "#0f0f1a" : "var(--sub,#6b7088)",
+                        color: period === p ? "#0f0f1a" : "var(--sub,#666b82)",
                         boxShadow: period === p ? "0 4px 12px -4px rgba(43,191,170,.5)" : "none",
                         transition: "all .15s",
                       }}
@@ -2729,7 +2735,7 @@ export default function FinancesPage() {
             <button
               onClick={() => setExportOpen(true)}
               className="flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[14px] font-semibold transition-colors hover:bg-muted"
-              style={{ color: "var(--sub,#6b7088)", border: "1px solid var(--border,#eceef3)" }}
+              style={{ color: "var(--sub,#666b82)", border: "1px solid var(--border,#eceef3)" }}
               title={t("finances.exportCsv")}>
               <Download className="h-3.5 w-3.5" />
               CSV
@@ -2794,7 +2800,7 @@ export default function FinancesPage() {
                 onClick={() => setSelected(new Set())}
                 aria-label={t("common.close")}
                 className="flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors hover:bg-[rgba(15,15,26,.05)]"
-                style={{ color: "var(--sub,#6b7088)" }}
+                style={{ color: "var(--sub,#666b82)" }}
               >
                 <X className="h-4 w-4" />
               </button>

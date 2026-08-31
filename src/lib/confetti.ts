@@ -5,6 +5,10 @@
  */
 export function burstConfetti(opts?: { count?: number; originY?: number }): void {
   if (typeof document === "undefined") return;
+  // C6: людина з вестибулярним розладом вмикає «Зменшити рух» — і не має
+  // отримувати 28 частинок на весь екран. Викликається з семи місць — одна
+  // перевірка тут закриває всі.
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
   const colors = ["#2BBFAA", "#22c55e", "#f59e0b", "#3b82f6", "#a855f7"];
   const count = opts?.count ?? 18;
   const top = `${opts?.originY ?? 45}%`;

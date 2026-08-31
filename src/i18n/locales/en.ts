@@ -2,6 +2,9 @@ import type { LocaleTranslations } from "./types";
 
 export const en: LocaleTranslations = {
   adminCrm: {
+    risk_red: "Urgent",
+    risk_orange: "Attention",
+    risk_green: "OK",
     needsDeploy: "CRM data appears after Pull → Publish in Lovable (admin-stats redeploys automatically).",
     attentionTitle: "Need you today",
     attentionEmpty: "No hot ones — every 🔴 is handled.",

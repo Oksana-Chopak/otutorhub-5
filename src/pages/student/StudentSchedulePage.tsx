@@ -87,7 +87,7 @@ export default function StudentSchedulePage() {
         <div style={{ textAlign: "center", padding: "36px 16px", borderRadius: 16, border: "1px dashed #eceef3", background: "#fff" }}>
           <div style={{ fontSize: 38 }}>📅</div>
           <p style={{ fontFamily: D, fontWeight: 800, fontSize: 17, color: "#0f0f1a", marginTop: 8 }}>{t("studentPagesExtra.noLessonsInTabTitle")}</p>
-          <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
+          <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 4 }}>{t("studentPagesExtra.noLessonsInTab")}</p>
         </div>
       );
     return (
@@ -132,7 +132,7 @@ export default function StudentSchedulePage() {
                         {joinStatus ?? statusLabel[l.status]}
                       </span>
                     </div>
-                    <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {l.duration_minutes} {t("lessonCard.min")} · {l.tutor_name}
                     </p>
                   </div>
@@ -155,7 +155,7 @@ export default function StudentSchedulePage() {
                     <Video size={19} /> {live ? t("studentPages.joinNow") : t("studentPages.joinLesson")}
                   </a>
                 ) : (!hasJoinLink && l.status === "scheduled" && isToday) ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "var(--sub,#6b7088)", fontSize: 14, fontWeight: 600 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 12px", borderRadius: 12, background: "#F5F4F0", color: "var(--sub,#666b82)", fontSize: 14, fontWeight: 600 }}>
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}

@@ -237,7 +237,7 @@ export default function ReferralsPage() {
                     <Avatar name={r.studentName ?? "?"} size={50} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: F, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.subject || t("referralsPageExtra.subjectAny")}</div>
-                      <div style={{ fontWeight: 600, fontSize: 16, color: "var(--sub,#6b7088)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
+                      <div style={{ fontWeight: 600, fontSize: 16, color: "var(--sub,#666b82)", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.studentName}</div>
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 7, flexShrink: 0 }}>
                       {r.budget_note && <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "var(--teal-d,#25a896)", whiteSpace: "nowrap" }}>{r.budget_note}</span>}
@@ -252,7 +252,7 @@ export default function ReferralsPage() {
                         <div style={{ borderTop: "1px solid var(--ds-border,#eceef3)", paddingTop: 15, display: "grid", gridTemplateColumns: `repeat(${facts.length}, 1fr)`, gap: 10 }}>
                           {facts.map(([labelKey, val], i) => (
                             <div key={i} style={{ display: "flex", flexDirection: "column", gap: 5, borderRadius: 14, background: "#fbfbfc", border: "1px solid var(--ds-border,#eceef3)", padding: "12px 13px", minWidth: 0 }}>
-                              <span style={{ fontFamily: F, fontWeight: 700, fontSize: 14, color: "var(--ds-muted,#b0b4c8)" }}>{t(labelKey)}</span>
+                              <span style={{ fontFamily: F, fontWeight: 700, fontSize: 14, color: "var(--ds-muted,#6f7489)" }}>{t(labelKey)}</span>
                               <span style={{ fontFamily: F, fontWeight: 800, fontSize: 16, color: "var(--ds-txt,#0f0f1a)", lineHeight: 1.2 }}>{prettyRequestValue(val)}</span>
                             </div>
                           ))}
@@ -262,14 +262,14 @@ export default function ReferralsPage() {
                       {r.message && <div style={{ fontSize: 17, lineHeight: 1.55, color: "var(--ds-txt,#0f0f1a)" }}>“{r.message}”</div>}
 
                       <div>
-                        <div style={{ fontFamily: F, fontWeight: 700, fontSize: 15, color: "var(--sub,#6b7088)", marginBottom: 11 }}>{t("referralsPageExtra.studentContacts")}</div>
+                        <div style={{ fontFamily: F, fontWeight: 700, fontSize: 15, color: "var(--sub,#666b82)", marginBottom: 11 }}>{t("referralsPageExtra.studentContacts")}</div>
                         {contacts.length === 0 ? (
-                          <div style={{ fontSize: 16, color: "var(--ds-muted,#b0b4c8)" }}>{t("referralsPageExtra.noContacts")}</div>
+                          <div style={{ fontSize: 16, color: "var(--ds-muted,#6f7489)" }}>{t("referralsPageExtra.noContacts")}</div>
                         ) : (
                           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
                             {contacts.map(([, IconC, val], i) => (
                               <div key={i} style={{ display: "flex", alignItems: "center", gap: 11 }}>
-                                <IconC size={19} style={{ color: "var(--ds-muted,#b0b4c8)", flexShrink: 0 }} />
+                                <IconC size={19} style={{ color: "var(--ds-muted,#6f7489)", flexShrink: 0 }} />
                                 <span style={{ flex: 1, fontSize: 17, color: "var(--ds-txt,#0f0f1a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{val}</span>
                                 <button type="button" aria-label={t("chatContextPanel.copy")} onClick={() => copy(val.replace(/^@/, ""))}
                                   style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, border: "none", cursor: "pointer", background: "#fff", color: "var(--teal-d,#25a896)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 2px rgba(15,15,26,.06)" }}>

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent,
+  DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { HandHeart, Loader2, X, Plus, Send } from "lucide-react";
 import { toast } from "sonner";
 import { notifyManagers } from "@/lib/notifications";
@@ -21,8 +22,8 @@ const GRAD_TEAL = "linear-gradient(135deg,#2BBFAA,#25a896)";
 const SHADOW_TEAL = "0 8px 20px -8px rgba(43,191,170,.6)";
 const SHADOW_SM = "0 1px 2px rgba(15,15,26,.06)";
 const TXT = "#0f0f1a";
-const SUB = "var(--sub,#6b7088)";
-const MUTED = "#b0b4c8";
+const SUB = "var(--sub,#666b82)";
+const MUTED = "#6f7489";
 const BORDER = "#eceef3";
 const GOLD = "#9a6a12";
 const FONT = "Inter, system-ui, sans-serif";
@@ -138,6 +139,8 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
         )}
       </DialogTrigger>
       <DialogContent className="w-full max-w-lg p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("findTutor.headerTitle")}</DialogTitle>
         {/* Drag handle (mobile) */}
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />

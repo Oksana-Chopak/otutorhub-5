@@ -10,7 +10,7 @@ interface Props {
 }
 
 const C = {
-  teal: "#2BBFAA", tealD: "#1f8e7e", txt: "#0f0f1a", sub: "var(--sub,#6b7088)",
+  teal: "#2BBFAA", tealD: "#1f8e7e", txt: "#0f0f1a", sub: "var(--sub,#666b82)",
   border: "#eceef3", display: "Inter, system-ui, sans-serif",
 };
 

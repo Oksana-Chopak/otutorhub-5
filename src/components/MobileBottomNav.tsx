@@ -40,7 +40,9 @@ export function MobileBottomNav() {
                   className={({ isActive }) =>
                     cn(
                       "relative flex min-h-[60px] flex-col items-center justify-center gap-1 px-1 py-2 text-[14px] font-medium transition-colors",
-                      isActive ? "text-[#E9A93C] dark:text-[#F5C56A]" : "text-muted-foreground"
+                      // C1: активне золото #E9A93C давало 2.06:1 на білому —
+                      // темніший відтінок читається (≥4.5:1), у дарку світлий на темному ок.
+                      isActive ? "text-[#9a6a12] dark:text-[#F5C56A]" : "text-muted-foreground"
                     )
                   }
                 >
@@ -62,7 +64,11 @@ export function MobileBottomNav() {
     );
   }
 
-  // ── Tutor / manager: 4 іконки без підписів ──────────────────────────────────
+  // ── Tutor / manager ─────────────────────────────────────────────────────────
+  // C1: іконки БЕЗ підписів і активне золото 2.06:1 (неактивне 1.38:1) — людина
+  // 50+ надворі не бачила ні іконок, ні де вона зараз. Тепер: підпис 13px
+  // (мінімум доступності) + читабельні кольори; активний таб видно і кольором,
+  // і жирністю, і крапкою — не лише відтінком.
   const tabs = [
     { to: "/", icon: Home, labelKey: "nav.dashboard" },
     { to: "/schedule", icon: CalendarDays, labelKey: "nav.schedule" },
@@ -74,7 +80,7 @@ export function MobileBottomNav() {
     <div
       className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-card/95 backdrop-blur lg:hidden shadow-[0_-4px_20px_-8px_rgba(15,15,26,.12)]"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
-      <div style={{ display: "flex", alignItems: "stretch", padding: "6px 0" }}>
+      <div style={{ display: "flex", alignItems: "stretch", padding: "5px 0 3px" }}>
         {tabs.map(tab => {
           const active = tab.to === "/"
             ? location.pathname === "/"
@@ -84,17 +90,17 @@ export function MobileBottomNav() {
           return (
             <NavLink
               key={tab.to} to={tab.to}
-              aria-label={t(tab.labelKey)}
               aria-current={active ? "page" : undefined}
               className={active
-                ? "text-[#E9A93C] dark:text-[#F5C56A]"
-                : "text-[#E9A93C]/45 dark:text-[#F5C56A]/40"}
+                ? "text-[#9a6a12] dark:text-[#F5C56A]"
+                : "text-muted-foreground"}
               style={{
-                flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                minHeight: 52, textDecoration: "none", position: "relative",
+                flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", gap: 2, minHeight: 54, textDecoration: "none",
+                position: "relative",
               }}>
               <div style={{ position: "relative" }}>
-                <Icon size={27} strokeWidth={active ? 2.3 : 1.7} />
+                <Icon size={23} strokeWidth={active ? 2.4 : 1.8} />
                 {hasUnread && (
                   <span className="border-2 border-card" style={{
                     position: "absolute", top: -4, right: -5,
@@ -103,9 +109,12 @@ export function MobileBottomNav() {
                   }} />
                 )}
               </div>
+              <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, lineHeight: 1.05 }}>
+                {t(tab.labelKey)}
+              </span>
               {active && (
-                <span style={{
-                  position: "absolute", bottom: -6, left: "50%", transform: "translateX(-50%)",
+                <span aria-hidden style={{
+                  position: "absolute", top: 2, left: "50%", transform: "translateX(-50%)",
                   width: 4, height: 4, borderRadius: 999,
                   background: "#E9A93C",
                 }} />

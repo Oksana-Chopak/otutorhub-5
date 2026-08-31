@@ -55,7 +55,7 @@ export default function AchievementsPage() {
         <div className="rounded-[18px] overflow-hidden" style={{ border: "1px solid #eceef3", background: "#fff", boxShadow: "0 2px 10px -4px rgba(15,15,26,.06)" }}>
           <div style={{ padding: "16px 18px 4px" }}>
             <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 19, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("achievements.title")}</p>
-            <p className="text-[15px]" style={{ color: "var(--sub,#6b7088)", marginTop: 2 }}>{t("achievements.badgesCollected", { count: badges.length })}</p>
+            <p className="text-[15px]" style={{ color: "var(--sub,#666b82)", marginTop: 2 }}>{t("achievements.badgesCollected", { count: badges.length })}</p>
           </div>
           <div style={{ padding: "12px 18px 18px" }}>
             <BadgesGrid earned={badges} />

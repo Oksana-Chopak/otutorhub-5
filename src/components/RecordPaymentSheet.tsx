@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { formatPrice } from "@/lib/currency";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -198,6 +198,8 @@ export function RecordPaymentSheet({
   return (
     <Dialog open={open} onOpenChange={(o) => (o ? onOpenChange(true) : close())}>
       <DialogContent className="w-full max-w-lg p-0 gap-0 rounded-t-[26px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto max-h-[92vh] flex flex-col [&>button.absolute]:hidden">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("recordPayment.title")}</DialogTitle>
         <div className="flex justify-center pt-2.5 pb-1 sm:hidden flex-shrink-0">
           <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
         </div>
@@ -206,12 +208,12 @@ export function RecordPaymentSheet({
             <div style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: "#0f0f1a" }}>
               {t("recordPayment.title")}
             </div>
-            <div style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 2 }}>
+            <div style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 2 }}>
               {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
           <button onClick={close} aria-label="✕"
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -300,7 +302,7 @@ export function RecordPaymentSheet({
                         background: mode === key ? "#fff" : "transparent",
                         boxShadow: mode === key ? "0 1px 4px rgba(15,15,26,.12)" : "none",
                         fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14,
-                        color: mode === key ? "#1f8e7e" : "#b0b4c8" }}>
+                        color: mode === key ? "#1f8e7e" : "#6f7489" }}>
                       {label}
                     </button>
                   ))}
@@ -308,7 +310,7 @@ export function RecordPaymentSheet({
 
                 {/* Велике поле на ДС-картці */}
                 <div style={{ borderRadius: 16, padding: 14, background: "#fbfbfc", border: "1px solid #eceef3" }}>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 8 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 8 }}>
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
                   {mode === "lessons" ? (
@@ -333,12 +335,12 @@ export function RecordPaymentSheet({
                     />
                   )}
                   {mode === "lessons" && pickedPair.rate && lessonsCount ? (
-                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#6b7088)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
                       ≈ <b style={{ color: "#0f0f1a" }}>{formatPrice(parseInt(lessonsCount, 10) * pickedPair.rate, pickedPair.currency ?? "UAH")}</b> {t("recordPaymentExtra.atCurrentRate")}
                     </p>
                   ) : null}
                   {mode === "amount" && pickedPair.rate && amount ? (
-                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#6b7088)" }}>
+                    <p style={{ marginTop: 8, fontSize: 14, color: "var(--sub,#666b82)" }}>
                       ≈ <b style={{ color: "#0f0f1a" }}>{t("recordPaymentExtra.lessonsCount", { count: Math.floor(parseFloat(amount.replace(",", ".")) / pickedPair.rate) })}</b>
                     </p>
                   ) : null}
@@ -346,7 +348,7 @@ export function RecordPaymentSheet({
 
                 {/* Коментар */}
                 <div>
-                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#6b7088)", marginBottom: 6 }}>
+                  <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 6 }}>
                     {t("recordPaymentExtra.commentLabel")}
                   </p>
                   <input

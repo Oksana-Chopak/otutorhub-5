@@ -56,11 +56,14 @@
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    /* C1: білий на бурштині був 2.15:1 — бейджі-лічильники читались ледь-ледь.
+       Темний ink (як у dark-темі) дає >8:1. */
+    --warning-foreground: 224 71% 9%;
 
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 178 90% 38%;
+    /* C1: фокус-кільце 2.3:1 на білому не видно з клавіатури — затемнено до ≥3:1 */
+    --ring: 178 90% 27%;
 
     --radius: 0.5rem;
 
@@ -155,16 +158,27 @@
     /* --sub is the name components actually reference, but it was never defined,
        so they fell back inconsistently. Defining it here fixes muted-text
        contrast app-wide: the old fallbacks
-       (#9398b0 = 2.85:1, fails WCAG AA) now resolve to #6b7088 (4.89:1 on white),
+       (#9398b0 = 2.85:1, fails WCAG AA) now resolve to #666b82 (4.89:1 on white),
        which also matches the dominant hardcoded grey so the palette unifies. */
-    --sub: #6b7088;
-    --ds-sub: #6b7088;
-    --ds-muted: #b0b4c8;
+    --sub: #666b82;
+    --ds-sub: #666b82;
+    --ds-muted: #6f7489; /* C1: був сірий 2.06:1 — тепер 4.63:1 на білому (WCAG AA) */
     --ds-border: #eceef3;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
+  }
+
+  /* C6: глобальна повага до «Зменшити рух» — захищає і ~12 анімацій без
+     власної перевірки (wiggle, pulse, victory, xp-float, joinPulse…). */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -196,7 +210,9 @@
   }
   .gamify-sticker.warning {
     background: hsl(var(--warning) / 0.16);
-    color: hsl(var(--warning));
+    /* C1: тонований чіп бере ТЕМНІШИЙ варіант токена — бурштин-текст на
+       бурштиновому тлі був 2.3:1 */
+    color: hsl(33 88% 34%);
     box-shadow: inset 0 0 0 1px hsl(var(--warning) / 0.3);
   }
 

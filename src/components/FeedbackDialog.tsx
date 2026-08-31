@@ -23,7 +23,7 @@ const F = {
   teal: "#2BBFAA",
   border: "#eceef3",
   txt: "#0f0f1a",
-  sub: "var(--sub,#6b7088)",
+  sub: "var(--sub,#666b82)",
   display: "Inter, system-ui, sans-serif",
   body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };

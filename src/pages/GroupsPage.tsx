@@ -5,6 +5,7 @@ import { GroupsSkeleton } from "@/components/PageSkeletons";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { SubjectSelect } from "@/components/SubjectSelect";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
@@ -28,8 +29,8 @@ const T = {
   teal: "#2BBFAA",
   tealD: "#25a896",
   txt: "#0f0f1a",
-  sub: "#6b7088",
-  muted: "#b0b4c8",
+  sub: "#666b82",
+  muted: "#6f7489",
   border: "#eceef3",
   bg: "#F5F4F0",
   gold: "#9a6a12",
@@ -188,7 +189,7 @@ export default function GroupsPage() {
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <h3 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 16, color: "#0f0f1a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.name}</h3>
                     {g.subject && (
-                      <p style={{ fontSize: 15, color: "var(--sub,#6b7088)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
+                      <p style={{ fontSize: 15, color: "var(--sub,#666b82)", marginTop: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.subject}</p>
                     )}
                   </div>
                 </div>
@@ -356,6 +357,8 @@ function CreateGroupDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden p-0 rounded-t-[24px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
+        {/* C3 */}
+        <DialogTitle className="sr-only">{t("groupsPageExtra.newGroupFab")}</DialogTitle>
         {done ? (
           /* ── Success screen ───────────────────────────────────────────── */
           <div style={{ display: "flex", flexDirection: "column", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
@@ -985,6 +988,8 @@ function GroupDetailsDialog({
     <>
       <Dialog open onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md gap-0 overflow-hidden p-0 rounded-t-[24px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto [&>button.absolute]:hidden">
+        {/* C3 */}
+        <DialogTitle className="sr-only">{t("groupsPage.title")}</DialogTitle>
           <div style={{ display: "flex", flexDirection: "column", maxHeight: "88vh", background: "#fff", fontFamily: FONT_B, color: T.txt }}>
             {/* header */}
             <div style={{ flexShrink: 0, padding: "20px 20px 16px", borderBottom: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: 13 }}>

@@ -218,18 +218,18 @@ export default function StudentPaymentsPage() {
         {currencyEntries.length === 0 ? (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#b4740b" }}>0</p>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <p style={{ marginTop: 4, fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, color: "#16a34a" }}>0</p>
             </div>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.toPay")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#b4740b" }}>
@@ -239,7 +239,7 @@ export default function StudentPaymentsPage() {
               </div>
             </div>
             <div style={{ borderRadius: 16, border: "1px solid #eceef3", background: "#fff", padding: "14px 15px" }}>
-              <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
+              <p style={{ fontSize: 14, color: "var(--sub,#666b82)", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".05em" }}>{t("studentPages.paid")}</p>
               <div className="mt-1 space-y-0.5">
                 {currencyEntries.map(([c, v]) => (
                   <p key={c} style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 22, color: "#16a34a" }}>
@@ -289,7 +289,7 @@ export default function StudentPaymentsPage() {
         {loading ? (
           <SkeletonList count={3} />
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff", fontSize: 14, color: "var(--sub,#6b7088)" }}>{t("studentPagesExtra.noLessonsCard")}</div>
+          <div style={{ textAlign: "center", padding: "32px 16px", borderRadius: 18, border: "1px dashed #eceef3", background: "#fff", fontSize: 14, color: "var(--sub,#666b82)" }}>{t("studentPagesExtra.noLessonsCard")}</div>
         ) : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
             {rows.map((r) => {
@@ -301,7 +301,7 @@ export default function StudentPaymentsPage() {
                         {r.subject}
                         {r.is_cancellation_fee && <span style={{ marginLeft: 6, fontSize: 13, fontWeight: 700, color: "#b4740b", background: "rgba(245,158,11,.14)", borderRadius: 7, padding: "1px 7px" }}>{t("studentPagesExtra.cancellationFee")}</span>}
                       </p>
-                      <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
+                      <p style={{ fontSize: 14, color: "var(--sub,#666b82)", marginTop: 1 }}>{fmt(r.starts_at)} · {r.tutor_name}</p>
                     </div>
                     <div className="flex items-center gap-2.5 flex-shrink-0">
                       <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "#0f0f1a" }}>{formatPrice(r.student_price, r.currency, { decimals: 0 })}</span>

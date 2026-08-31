@@ -223,7 +223,7 @@ export function ChatThreadDialog({
             </div>
           </div>
           <button type="button" onClick={() => onOpenChange(false)} aria-label={t("common.close")}
-            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#6b7088)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "#F5F4F0", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>
         </div>
@@ -269,7 +269,7 @@ export function ChatThreadDialog({
                         <div className="whitespace-pre-wrap break-words">{m.body}</div>
                         <div
                           className={`mt-0.5 text-[14px] ${
-                            mine ? "text-white/70" : "text-[var(--sub,#6b7088)]"
+                            mine ? "text-white/70" : "text-[var(--sub,#666b82)]"
                           }`}
                         >
                           {new Date(m.created_at).toLocaleTimeString(getLocale(), {

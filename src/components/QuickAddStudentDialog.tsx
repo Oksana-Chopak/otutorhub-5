@@ -7,6 +7,7 @@ import { useSubjectCanon } from "@/hooks/useSubjectCanon";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Check, ChevronDown, Info, Loader2, Lock } from "lucide-react";
@@ -177,11 +178,11 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
 
   // ── design tokens ──────────────────────────────────────────────────────────
   // Reference the DS tokens (index.css) instead of a private raw-hex palette, so
-  // central token/WCAG fixes reach this dialog (sub → the WCAG-fixed #6b7088).
+  // central token/WCAG fixes reach this dialog (sub → the WCAG-fixed #666b82).
   const F = {
     teal: "var(--teal,#2BBFAA)", tealD: "var(--teal-d,#25a896)", tealL: "var(--teal-l,#f0fdf9)",
     border: "var(--ds-border,#eceef3)", bg: "#fbfbfc", txt: "var(--ds-txt,#0f0f1a)",
-    sub: "var(--sub,#6b7088)", muted: "var(--ds-muted,#b0b4c8)", warnD: "#B4740B",
+    sub: "var(--sub,#666b82)", muted: "var(--ds-muted,#6f7489)", warnD: "#B4740B",
     display: "Inter, system-ui, sans-serif",
     body: "'Plus Jakarta Sans', system-ui, sans-serif",
   };
@@ -229,6 +230,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     <>
       <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
         <DialogContent className="max-w-[480px] p-0 gap-0 rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] max-h-[90vh] overflow-y-auto">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("quickAddStudent.title")}</DialogTitle>
           {/* Drag handle */}
           <div className="flex justify-center pt-2.5 pb-1 sm:hidden">
             <div style={{ width: 38, height: 4, borderRadius: 999, background: "rgba(15,15,26,.14)" }} />
@@ -261,8 +264,8 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     background: "#fff", border: `1.5px solid ${F.border}`,
                     display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="8" r="4" stroke="#b0b4c8" strokeWidth="1.6"/>
-                      <path d="M5 20a7 7 0 0114 0" stroke="#b0b4c8" strokeWidth="1.6" strokeLinecap="round"/>
+                      <circle cx="12" cy="8" r="4" stroke="#6f7489" strokeWidth="1.6"/>
+                      <path d="M5 20a7 7 0 0114 0" stroke="#6f7489" strokeWidth="1.6" strokeLinecap="round"/>
                     </svg>
                     <span style={{ position: "absolute", right: -3, bottom: -3, width: 24, height: 24, borderRadius: 999,
                       background: "linear-gradient(135deg,#2BBFAA,#25a896)", boxShadow: "0 0 0 2.5px #fff",

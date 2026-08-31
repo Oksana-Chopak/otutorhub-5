@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { NextStepBar } from "@/components/NextStepBar";
 import { useLessonStatus } from "@/hooks/useLessonStatus";
 import { completeLessons } from "@/lib/lessonActions";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
@@ -46,7 +46,7 @@ interface Props {
 
 const C = {
   teal: "#2BBFAA", tealD: "#25a896", tealL: "#f0fdf9", txt: "#0f0f1a",
-  sub: "var(--sub,#6b7088)", muted: "#b0b4c8", border: "#eceef3", bg: "#F5F4F0",
+  sub: "var(--sub,#666b82)", muted: "#6f7489", border: "#eceef3", bg: "#F5F4F0",
   gold: "#9a6a12", goldBg: "rgba(245,181,68,.16)", goldRing: "rgba(245,181,68,.4)",
   display: "Inter, system-ui, sans-serif", body: "'Plus Jakarta Sans', system-ui, sans-serif",
 };
@@ -183,6 +183,8 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     return (
       <Dialog open={open} onOpenChange={(v) => { if (!v) setPhase("form"); onOpenChange(v); }}>
         <DialogContent className="max-w-[420px] rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto">
+        {/* C3: VoiceOver казав просто «діалог» — тепер діалог названо */}
+        <DialogTitle className="sr-only">{t("closeDayDialog.title")}</DialogTitle>
           <div className="flex flex-col gap-3 py-1">
             <p style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.planTitle")}</p>
             <div style={{ borderRadius: 16, border: "1px solid var(--border,#eceef3)", overflow: "hidden" }}>
@@ -194,7 +196,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
                       onChange={(e) => setPlanChecked((p) => ({ ...p, [r.id]: e.target.checked }))}
                       style={{ width: 18, height: 18, accentColor: "#2BBFAA" }} />
                     <span style={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: 15 }}>{r.name}</span>
-                    <span style={{ fontSize: 14, color: "var(--sub,#6b7088)", flexShrink: 0 }}>
+                    <span style={{ fontSize: 14, color: "var(--sub,#666b82)", flexShrink: 0 }}>
                       {next.toLocaleDateString(undefined, { weekday: "short" })} {r.time}
                     </span>
                   </label>
@@ -206,7 +208,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
               {planBusy ? "…" : t("closeDaySummary.createAll", { count: planCount })}
             </button>
             <button type="button" onClick={() => setPhase("summary")}
-              style={{ height: 40, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#6b7088)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              style={{ height: 40, borderRadius: 12, border: "none", background: "transparent", color: "var(--sub,#666b82)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
               {t("closeDaySummary.back")}
             </button>
           </div>
@@ -221,7 +223,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         <DialogContent className="max-w-[420px] rounded-t-[20px] rounded-b-none sm:rounded-[20px] bottom-0 top-auto translate-y-0 sm:translate-y-[-50%] sm:top-[50%] sm:bottom-auto">
           <div className="flex flex-col gap-3 py-1">
             <p style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>{t("closeDaySummary.title")}</p>
-            <p style={{ fontSize: 14, color: "var(--sub,#6b7088)", margin: 0 }}>
+            <p style={{ fontSize: 14, color: "var(--sub,#666b82)", margin: 0 }}>
               {t("closeDaySummary.subtitle", { count: doneStat.count })}
             </p>
             <NextStepBar icon="✍️"

@@ -83,7 +83,7 @@ function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) 
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center" onClick={onClose}>
       <div className="max-h-[88vh] w-full max-w-lg overflow-y-auto rounded-t-[20px] bg-white p-4 sm:rounded-[20px]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-2">
-          <span aria-hidden>{row.risk === "red" ? "🔴" : row.risk === "orange" ? "🟠" : "🟢"}</span>
+          <RiskChip risk={row.risk} t={t} />
           <h3 className="text-[16px] font-bold">{row.name}</h3>
           <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${row.stage}`)}</span>
           <button type="button" className="ml-auto rounded-full border px-3 py-1 text-[13px]" onClick={onClose}>{t("adminCrm.close")}</button>
@@ -160,6 +160,25 @@ function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) 
         )}
       </div>
     </div>
+  );
+}
+
+// C7: ризик передавався ЛИШЕ кольором емодзі з aria-hidden — дальтонік не
+// відрізняв, скрінрідер не отримував узагалі. Текстовий чип видно всім.
+function RiskChip({ risk, t }: { risk: string; t: (k: string) => string }) {
+  const cfg =
+    risk === "red"
+      ? { bg: "rgba(239,68,68,.14)", color: "#b91c1c", key: "adminCrm.risk_red" }
+      : risk === "orange"
+        ? { bg: "rgba(245,158,11,.16)", color: "#92400e", key: "adminCrm.risk_orange" }
+        : { bg: "rgba(34,197,94,.14)", color: "#15803d", key: "adminCrm.risk_green" };
+  return (
+    <span
+      className="rounded-full px-2 py-0.5 text-[13px] font-bold"
+      style={{ background: cfg.bg, color: cfg.color }}
+    >
+      {t(cfg.key)}
+    </span>
   );
 }
 
@@ -322,9 +341,9 @@ export default function AdminStatsPage() {
                   <h2 className="text-[15px] font-bold">{t("adminCrm.tutorsTitle")}</h2>
                   <div className="mt-3 space-y-2">
                     {stats.crm.tutors.map((r) => (
-                      <div key={r.user_id} role="button" tabIndex={0} onClick={() => setDetail(r)} className="cursor-pointer rounded-[12px] bg-[var(--bg)] p-3 transition hover:bg-white">
+                      <div key={r.user_id} role="button" tabIndex={0} onClick={() => setDetail(r)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setDetail(r); } }} className="cursor-pointer rounded-[12px] bg-[var(--bg)] p-3 transition hover:bg-white">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span aria-hidden>{r.risk === "red" ? "🔴" : r.risk === "orange" ? "🟠" : "🟢"}</span>
+                          <RiskChip risk={r.risk} t={t} />
                           <span className="text-[15px] font-semibold">{r.name}</span>
                           <span className="rounded-full bg-white px-2 py-0.5 text-[13px] text-[var(--sub)]">{t(`adminCrm.type_${r.type}`)}</span>
                           <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${r.stage}`)}{r.stage === "stuck_onboarding" && r.onboarding_step ? ` · ${r.onboarding_step}` : ""}</span>
