@@ -45,10 +45,21 @@ export function useLessonStatus() {
     const tutorId = l.tutor_id ?? user?.id;
     if (!l.student_id || !tutorId) return;
     const theme: RewardTheme = "fruits";
-    (supabase as any).from("student_rewards").insert({
+    // B5: upsert з ignoreDuplicates + UNIQUE(lesson_id, student_id) у БД
+    // (міграція 20260901090001) — повторний виклик за той самий урок більше
+    // не дарує учневі другу нагороду.
+    const row = {
       student_id: l.student_id, lesson_id: l.id, tutor_id: tutorId,
       emoji: getRandomEmoji(theme), theme,
-    });
+    };
+    void (async () => {
+      const { error } = await (supabase as any)
+        .from("student_rewards")
+        .upsert(row, { onConflict: "lesson_id,student_id", ignoreDuplicates: true });
+      // Фолбек: поки UNIQUE-міграцію не застосовано, on_conflict відхиляється —
+      // пишемо по-старому, щоб нагорода не зникла взагалі.
+      if (error) await (supabase as any).from("student_rewards").insert(row);
+    })();
   };
 
   const complete = async (l: LessonLite, o: CompleteOpts = {}): Promise<boolean> => {

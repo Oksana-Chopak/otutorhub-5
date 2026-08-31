@@ -77,14 +77,9 @@ export function AvatarUploader({
     const ext = "jpg";
     const path = `${userId}/avatar.${ext}`;
 
-    // Cleanup any old avatar files for this user
-    const { data: list } = await supabase.storage.from("avatars").list(userId);
-    if (list && list.length > 0) {
-      await supabase.storage
-        .from("avatars")
-        .remove(list.map((f) => `${userId}/${f.name}`));
-    }
-
+    // B8: СПОЧАТКУ вантажимо нове (upsert перезапише canonical-шлях), і лише
+    // ПІСЛЯ успіху прибираємо старі файли. Раніше порядок був зворотний:
+    // збій між remove() і upload() лишав юзера взагалі без аватара (404).
     const { error: upErr } = await supabase.storage
       .from("avatars")
       .upload(path, uploadBlob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" });
@@ -93,6 +88,15 @@ export function AvatarUploader({
       toast.error(t("avatarUploader.uploadFailed"));
       setBusy(false);
       return;
+    }
+
+    // Cleanup old avatar files (все, крім щойно записаного canonical-шляху).
+    const { data: list } = await supabase.storage.from("avatars").list(userId);
+    const stale = (list ?? []).filter((f) => `${userId}/${f.name}` !== path);
+    if (stale.length > 0) {
+      await supabase.storage
+        .from("avatars")
+        .remove(stale.map((f) => `${userId}/${f.name}`));
     }
 
     const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);

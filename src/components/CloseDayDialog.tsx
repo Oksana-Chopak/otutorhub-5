@@ -127,11 +127,24 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
         if (!ok) throw new Error("close-day-failed");
       }
       const paidRows = rows.filter((r) => r.showPay !== false && state[r.id]?.done && state[r.id]?.paid && !r.paid);
-      await Promise.all(
+      // B1: updateLessonDetailsSafe повертає {error}, не кидає — Promise.all тут
+      // НІКОЛИ не відхиляється. Раніше три провалені записи оплат з п'яти все
+      // одно отримували конфеті, і репетитор дізнавався про це при звірці.
+      const payResults = await Promise.all(
         paidRows.map((r) =>
           updateLessonDetailsSafe(r.id, { student_payment_status: "paid" })
         )
       );
+      const failedPays = payResults.filter((r) => r.error).length;
+      if (failedPays > 0) {
+        haptic.error();
+        toast.error(
+          t("closeDayDialog.paymentsPartialError", { failed: failedPays, total: paidRows.length })
+        );
+        bumpDataVersion(); // C3: список перечитається — незаписані оплати видно одразу
+        onDone?.();
+        return; // без святкування: день НЕ закрито чисто
+      }
       // B5: не тупик — показуємо підсумок дня з двома наступними діями.
       setDoneStat({ count: doneIds.length, student: doneRows[0]?.student_id ?? null });
       setPhase("summary");

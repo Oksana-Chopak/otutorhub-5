@@ -688,7 +688,12 @@ export default function SchedulePage() {
         detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any)),
       );
       const detErr = results.find((r) => r.error)?.error;
-      if (detErr) console.warn("lesson_details write after create failed", detErr);
+      if (detErr) {
+        // B2: це «КОРІНЬ ціна=0» — урок створено, а ціна не записалась. Урок без
+        // ціни не потрапляє ні в борги, ні в прибуток; мовчати тут не можна.
+        console.warn("lesson_details write after create failed", detErr);
+        toast.error(t("schedule.detailsWriteFailed"));
+      }
     }
     (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
     // Notify the individual student (mirrors QuickLessonDialog) — the canonical

@@ -40,6 +40,18 @@ export async function updateLessonDetailsSafe(
   return { error: error ? { message: error.message } : null };
 }
 
+/** B4: як Bulk, але повертає ПОІМЕННО, які записи не вдалися — щоб масові дії
+ * відкочували лише невдалі рядки, а не всі 50 разом із 40 успішними. */
+export async function updateLessonDetailsSafeEach(
+  lessonIds: string[],
+  patch: LessonDetailsPatch,
+): Promise<{ failedIds: string[]; error: { message: string } | null }> {
+  if (lessonIds.length === 0) return { failedIds: [], error: null };
+  const results = await Promise.all(lessonIds.map((id) => updateLessonDetailsSafe(id, patch)));
+  const failedIds = lessonIds.filter((_, i) => results[i].error);
+  return { failedIds, error: results.find((r) => r.error)?.error ?? null };
+}
+
 /** Same RPC applied to many lesson_ids — replaces `.in("lesson_id", ids).update(patch)`. */
 export async function updateLessonDetailsSafeBulk(
   lessonIds: string[],

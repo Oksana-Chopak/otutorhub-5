@@ -76,6 +76,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     onUpdated?.();
   };
   const [loading, setLoading] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false); // B9
   const [deleting, setDeleting] = useState(false);
 
   // Guard parity with the schedule card: only a manager, or the owning tutor on a
@@ -111,13 +112,16 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
 
   const load = async (id: string) => {
     setLoading(true);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("lessons_visible")
       .select(
         "id, tutor_id, student_id, subject, starts_at, duration_minutes, status, student_price, student_payment_status, meeting_url, homework, summary, student_notes, source, group_id"
       )
       .eq("id", id)
       .maybeSingle();
+    // B9: раніше error не читався — і збій мережі, і видалений урок давали
+    // ВІЧНИЙ спінер без тексту. Тепер три стани: завантаження / помилка / немає.
+    setLoadFailed(!!error);
     setRow((data as LessonRowFull | null) ?? null);
     setLoading(false);
   };
@@ -185,9 +189,24 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
         </div>
         {/* Body */}
         <div style={{ flex: 1, minHeight: 0, overflowY: "auto", overflowX: "hidden", padding: "4px 20px 20px" }}>
-        {loading || !row ? (
+        {loading ? (
           <div className="flex items-center justify-center py-10">
             <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : !row ? (
+          /* B9: урок видалили або читання впало — кажемо, що сталося, і даємо дію */
+          <div className="flex flex-col items-center justify-center gap-4 py-10 text-center">
+            <p className="text-[15px] text-muted-foreground max-w-sm">
+              {t(loadFailed ? "lessonDetails.loadFailed" : "lessonDetails.notFound")}
+            </p>
+            <button
+              type="button"
+              onClick={() => (loadFailed && lessonId ? load(lessonId) : onOpenChange(false))}
+              className="h-11 rounded-[12px] px-5 text-[14px] font-semibold"
+              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", border: "none", cursor: "pointer" }}
+            >
+              {t(loadFailed ? "lessonDetails.retryBtn" : "lessonDetails.closeBtn")}
+            </button>
           </div>
         ) : row.group_id ? (
           /* Group lesson: per-participant roster + payment marking (student_id is

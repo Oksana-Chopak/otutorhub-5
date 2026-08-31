@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import { PageFAB } from "@/components/PageFAB";
 import { supabase } from "@/integrations/supabase/client";
-import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
+import { updateLessonDetailsSafe, updateLessonDetailsSafeEach } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
 import {
   ArrowDownLeft,
@@ -884,6 +884,7 @@ export default function FinancesPage() {
       : updateLessonDetailsSafe(lesson.id, { student_payment_status: status });
 
   const [remindingId, setRemindingId] = useState<string | null>(null);
+  const [remindingAll, setRemindingAll] = useState(false); // B5: анти-дубль масової розсилки
   // Send a REAL payment reminder (email / Telegram) via the remind-payment edge
   // function — the same notify path the payment reminders use, so the student actually gets it.
   const remindLesson = async (lessonId: string, studentId: string) => {
@@ -973,10 +974,15 @@ export default function FinancesPage() {
               : l
           )
         );
-        if (field === "student_payment_status") {
-          await writeStudentPayment(lesson, lesson.student_payment_status, lesson.student_paid_at);
-        } else {
-          await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: lesson.tutor_payout_status });
+        // B3: відкат по «Скасувати» в тості теж пише в БД — і теж може впасти.
+        // Раніше екран показував «не оплачено», а в базі лишалось «оплачено».
+        const res =
+          field === "student_payment_status"
+            ? await writeStudentPayment(lesson, lesson.student_payment_status, lesson.student_paid_at)
+            : await supabase.rpc("set_lesson_tutor_payout_status", { _lesson_id: lesson.id, _status: lesson.tutor_payout_status });
+        if ((res as { error?: unknown } | null)?.error) {
+          toast.error(t("dashboardExtra.paymentFailed"));
+          setReloadKey((k) => k + 1); // екран повертається до правди БД
         }
       };
       // Money IN (student paid the hub) is the manager's most rewarding beat —
@@ -1050,31 +1056,51 @@ export default function FinancesPage() {
       )
     );
     haptic.success(); // instant felt feedback before the DB round-trip (reverted on error)
-    let error: unknown = null;
+    // B4: збираємо невдалі ПОІМЕННО — відкат лише їх, а не всіх 50 разом із
+    // 40 успішно записаними (раніше setLessons(previousLessons) «розписував»
+    // назад і те, що в БД уже стояло як оплачене).
+    const failedRowKeys = new Set<string>();
+    const rowKey = (l: LessonRow) => `${l.id}:${(l as any).participant_id ?? ""}`;
     if (field === "student_payment_status") {
-      const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
-      const grpIds = selRows.filter((l) => l.kind === "group").map((l) => l.participant_id!).filter(Boolean);
-      const results = await Promise.all([
-        indIds.length
-          ? updateLessonDetailsSafeBulk(indIds, { student_payment_status: "paid" as PaymentStatus })
-          : Promise.resolve({ error: null }),
+      const indRows = selRows.filter((l) => l.kind !== "group");
+      const grpRows = selRows.filter((l) => l.kind === "group");
+      const grpIds = grpRows.map((l) => l.participant_id!).filter(Boolean);
+      const [indRes, grpRes] = await Promise.all([
+        updateLessonDetailsSafeEach(indRows.map((l) => l.id), { student_payment_status: "paid" as PaymentStatus }),
         grpIds.length
           ? (supabase.rpc as any)("set_group_participant_payment", { _participant_ids: grpIds, _status: "paid" })
           : Promise.resolve({ error: null }),
       ]);
-      error = results.find((r) => (r as any).error)?.error ?? null;
+      const failedInd = new Set(indRes.failedIds);
+      indRows.forEach((l) => { if (failedInd.has(l.id)) failedRowKeys.add(rowKey(l)); });
+      // Груповий RPC — один виклик на всіх: якщо впав, невдалі всі групові рядки.
+      if ((grpRes as { error?: unknown }).error) grpRows.forEach((l) => failedRowKeys.add(rowKey(l)));
     } else {
-      const indIds = selRows.filter((l) => l.kind !== "group").map((l) => l.id);
-      const res = indIds.length
-        ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indIds, _status: "paid" })
+      const indRows = selRows.filter((l) => l.kind !== "group");
+      const res = indRows.length
+        ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indRows.map((l) => l.id), _status: "paid" })
         : { error: null };
-      error = (res as any).error;
+      // Bulk-RPC атомарний: помилка = не записалось нічого з індивідуальних.
+      if ((res as { error?: unknown }).error) indRows.forEach((l) => failedRowKeys.add(rowKey(l)));
     }
     setBulkBusy(false);
-    if (error) {
+    if (failedRowKeys.size > 0) {
       haptic.error();
-      toast.error(t("finances.bulkUpdateFailed"));
-      setLessons(previousLessons);
+      // Відкат лише невдалих рядків до попереднього стану.
+      setLessons((prev) =>
+        prev.map((l) => {
+          if (!failedRowKeys.has(rowKey(l))) return l;
+          return previousLessons.find((p) => rowKey(p) === rowKey(l)) ?? l;
+        })
+      );
+      const okCount = selRows.length - failedRowKeys.size;
+      if (okCount > 0) {
+        toast.error(t("finances.bulkPartialFailed", { ok: okCount, failed: failedRowKeys.size }));
+      } else {
+        toast.error(t("finances.bulkUpdateFailed"));
+      }
+      // Невдалі лишаються виділеними — повторити можна одним тапом.
+      setSelected(new Set(selRows.filter((l) => failedRowKeys.has(rowKey(l))).map((l) => l.id)));
       return;
     }
     // Clearing a whole debt list at once is a real win — celebrate it (haptic already
@@ -2652,7 +2678,13 @@ export default function FinancesPage() {
                 </div>
               </div>
               <button
+                disabled={remindingAll}
                 onClick={async () => {
+                  // B5: подвійний тап слав кожному боржнику ДВА нагадування —
+                  // кнопка блокується на час розсилки.
+                  if (remindingAll) return;
+                  setRemindingAll(true);
+                  try {
                   // One REAL reminder (email / Telegram) per student — anchor on their first debt lesson.
                   // Group debts are skipped: remind-payment is individual-only and 404s on a
                   // group row's synthetic id (write to those students in chat instead).
@@ -2680,8 +2712,11 @@ export default function FinancesPage() {
                     toast.error(t("pendingPaymentsExtra.reminderGeneric"));
                   }
                   handleTabChange("debts");
+                  } finally {
+                    setRemindingAll(false);
+                  }
                 }}
-                className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[14px] font-bold transition-opacity hover:opacity-80"
+                className="flex-shrink-0 rounded-[10px] px-3 py-1.5 text-[14px] font-bold transition-opacity hover:opacity-80 disabled:opacity-50"
                 style={{ background: "rgba(245,158,11,.2)", color: "#b45309", border: "1px solid rgba(245,158,11,.4)" }}>
                 {t("people.remindBtn")}
               </button>

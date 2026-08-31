@@ -185,8 +185,13 @@ export function RecordPaymentSheet({
 
     haptic.success();
     toast.success(t("recordPayment.saved"));
-    await onWalletTopUp();
-    setBusy(false);
+    // B6: гроші ВЖЕ записані — якщо рефреш батька впаде, кнопка не має
+    // лишитись мертвою до перезавантаження.
+    try {
+      await onWalletTopUp();
+    } finally {
+      setBusy(false);
+    }
     close();
   };
 

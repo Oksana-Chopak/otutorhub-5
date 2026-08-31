@@ -397,10 +397,17 @@ export default function DashboardPage() {
   };
 
   const markPaymentLessonPaid = async (lessonId: string) => {
-    await updateLessonDetailsSafe(lessonId, {
+    // B3: раніше результат ігнорувався — урок зникав зі списку неоплачених,
+    // а оплата в БД могла не записатись. Тихий фальшивий успіх на грошах.
+    const { error } = await updateLessonDetailsSafe(lessonId, {
       student_payment_status: "paid",
       student_paid_at: new Date().toISOString(),
     });
+    if (error) {
+      haptic.error();
+      toast.error(t("dashboardExtra.paymentFailed"));
+      return; // рядок лишається в списку — правда важливіша за красу
+    }
     setPaymentUnpaid((prev) => prev.filter((l) => l.id !== lessonId));
     loadData();
   };

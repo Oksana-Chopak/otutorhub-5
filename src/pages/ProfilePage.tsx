@@ -994,8 +994,13 @@ export default function ProfilePage() {
               <button
                 onClick={async () => {
                   if (!user) return;
-                  await supabase.from("tutor_details")
+                  // B3: раніше результат не перевірявся — тост «збережено», у БД нічого.
+                  const { error } = await supabase.from("tutor_details")
                     .upsert({ user_id: user.id, subjects }, { onConflict: "user_id" });
+                  if (error) {
+                    toast.error(t("profile.subjectsSaveFailed"));
+                    return; // шит лишається відкритим — нічого не втрачено
+                  }
                   setActiveSheet(null);
                   toast.success(t("profile.subjectsSavedToast"));
                 }}

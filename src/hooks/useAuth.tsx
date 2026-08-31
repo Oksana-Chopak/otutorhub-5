@@ -31,11 +31,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const fetchRoles = useCallback(async (userId: string) => {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", userId);
         if (mountedRef.current) {
+                // B10: збій ЧИТАННЯ ролей — не те саме, що «ролей немає».
+                // Раніше error ігнорувався → roles=[] → ProtectedRoute виштовхував
+                // залогіненого репетитора з /finances через один невдалий запит.
+                if (error) {
+                        console.warn("[auth] roles read failed — keeping previous roles", error);
+                        return;
+                }
                 setRoles((data ?? []).map((r) => r.role as AppRole));
         }
   }, []);
@@ -116,6 +123,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         } else {
                                   setLoading(false);
                         }
+                }).catch((e) => {
+                        // B10: без catch відхилений проміс лишав loading=true назавжди —
+                        // застосунок застигав на скелетоні до перезавантаження.
+                        console.warn("[auth] getSession failed", e);
+                        if (mountedRef.current) setLoading(false);
                 });
 
                 // "Remember me": if user opted out, clear the persisted Supabase token on tab close

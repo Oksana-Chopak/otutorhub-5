@@ -53,6 +53,7 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
   const [nowMs, setNowMs] = useState(() => Date.now());
   useEffect(() => { const i = setInterval(() => setNowMs(Date.now()), 30000); return () => clearInterval(i); }, []);
   const [alsoPaid, setAlsoPaid] = useState(false);
+  const [marking, setMarking] = useState(false); // B5: анти-дубль «Провів ✓»
   const [noSummaryIds, setNoSummaryIds] = useState<string[]>([]);
 
   const sorted = useMemo(() => [...lessons].sort((a, b) => a.starts_at.localeCompare(b.starts_at)), [lessons]);
@@ -121,8 +122,16 @@ export function DayBlock({ lessons, tomorrow, pendingCount, onJoin, onComplete, 
               </button>
             )}
           </span>
-          <button type="button" onClick={() => { void onComplete(justPast.id, alsoPaid); setAlsoPaid(false); }}
-            style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+          <button type="button" disabled={marking}
+            onClick={async () => {
+              // B5: подвійний тап давав учневі дві нагороди за один урок —
+              // кнопка блокується, поки запис не завершився.
+              if (marking) return;
+              setMarking(true);
+              try { await onComplete(justPast.id, alsoPaid); setAlsoPaid(false); }
+              finally { setMarking(false); }
+            }}
+            style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: marking ? "default" : "pointer", opacity: marking ? 0.6 : 1, background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
             {t("dayBlock.markDone")}
           </button>
         </div>

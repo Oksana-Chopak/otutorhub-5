@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 import { brokeredPreviewStorage } from './previewAuthStorage';
+import { fetchWithTimeout } from './fetchWithTimeout';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -14,5 +15,9 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: brokeredPreviewStorage(),
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  // B7: таймаут 15с + бекоф-ретрай ідемпотентних читань — «вічний спінер у
+  // метро» стає помилкою, яку ловлять catch/error-гілки. Якщо Lovable
+  // регенерує цей файл і рядок зникне, впаде тест supabase-client-invariants.
+  global: { fetch: fetchWithTimeout },
 });

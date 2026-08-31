@@ -121,22 +121,49 @@ export function WalletDialog({
       amountDelta = a;
     }
 
+    if (busy) return; // B5: подвійний тап = гаманець на 20 уроків замість 10
     setBusy(true);
-    const { error } = await supabase.rpc("wallet_topup" as any, {
-      _tutor_id: tutorId,
-      _student_id: studentId,
-      _lessons_delta: lessonsDelta,
-      _amount_delta: amountDelta,
-      _note: note || null,
-    });
-    setBusy(false);
-    if (error) {
-      toast.error(t("walletDialogExtra.topupFailed"), { description: error.message });
-      return;
+    try {
+      const submittedAt = new Date().toISOString();
+      const { error } = await supabase.rpc("wallet_topup" as any, {
+        _tutor_id: tutorId,
+        _student_id: studentId,
+        _lessons_delta: lessonsDelta,
+        _amount_delta: amountDelta,
+        _note: note || null,
+      });
+      if (error) {
+        // B5: цикл верифікації, як у RecordPaymentSheet — відповідь могла
+        // загубитись у тунелі, а запис УЖЕ стояти в БД. Без цієї перевірки
+        // репетитор тисне ще раз і поповнює гаманець двічі.
+        let writtenTx: { id: string } | null = null;
+        for (let attempt = 0; attempt < 3 && !writtenTx; attempt += 1) {
+          if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 350));
+          const { data } = await supabase
+            .from("student_wallet_transactions" as any)
+            .select("id")
+            .eq("tutor_id", tutorId)
+            .eq("student_id", studentId)
+            .eq("kind", "topup")
+            .eq("lessons_delta", lessonsDelta)
+            .eq("amount_delta", amountDelta)
+            .gte("created_at", submittedAt)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          writtenTx = data as unknown as { id: string } | null;
+        }
+        if (!writtenTx) {
+          toast.error(t("walletDialogExtra.topupFailed"), { description: error.message });
+          return;
+        }
+      }
+      toast.success(t("walletDialogExtra.topupSuccess"));
+      reset();
+      refresh();
+    } finally {
+      setBusy(false); // B6: кнопка ніколи не лишається мертвою
     }
-    toast.success(t("walletDialogExtra.topupSuccess"));
-    reset();
-    refresh();
   };
 
   // ── Variant В: Unified tabs state ────────────────────────────────────────────
