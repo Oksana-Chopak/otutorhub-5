@@ -7,12 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
+import { lazyArray } from "@/lib/lazyI18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 // t("months") is a comma-joined list — split() IS the array. The old
 // `[t(...).split(",")]` wrapped it in a one-element array, so MONTH_NAMES[month-1]
 // was undefined for every month but January («…у undefined» in the greeting).
-const MONTH_NAMES = t("months").split(",");
+// A1: лінивий масив — обчислюється при зверненні, не при імпорті (див. lazyI18n.ts).
+const MONTH_NAMES: readonly string[] = lazyArray(() => t("months").split(","));
 
 export function MonthlySummaryCard() {
   const { user } = useAuth();

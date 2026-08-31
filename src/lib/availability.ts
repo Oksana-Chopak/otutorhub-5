@@ -1,8 +1,11 @@
 import i18n from "@/i18n";
+import { lazyArray } from "@/lib/lazyI18n";
 
 // Time helpers — minutes since midnight in local timezone
 export const WEEKDAYS_UK = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
-export const WEEKDAYS_FULL_UK = [
+// A1: лінивий масив — переклад береться в момент звернення, не в момент імпорту
+// (інакше з лінивими локалями тут були б сирі ключі, а зміна мови не діяла б).
+export const WEEKDAYS_FULL_UK: readonly string[] = lazyArray(() => [
   i18n.t("weekdays.sun"),
   i18n.t("weekdays.mon"),
   i18n.t("weekdays.tue"),
@@ -10,7 +13,7 @@ export const WEEKDAYS_FULL_UK = [
   i18n.t("weekdays.thu"),
   i18n.t("weekdays.fri"),
   i18n.t("weekdays.sat"),
-] as const;
+]);
 
 export const minutesToHHMM = (m: number): string => {
   const h = Math.floor(m / 60);

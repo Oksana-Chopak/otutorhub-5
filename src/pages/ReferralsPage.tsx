@@ -9,6 +9,7 @@ import { AssignTutorDialog } from "@/components/AssignTutorDialog";
 import { HandHeart, Loader2, Users, MessageSquare, Copy, ChevronDown, Check, Mail, Phone, Send, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import i18nInstance from "@/i18n";
+import { lazyRecord } from "@/lib/lazyI18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
 interface ReferralRow {
@@ -45,12 +46,13 @@ function Avatar({ name, size = 50 }: { name: string; size?: number }) {
 }
 
 const STATUSES: ReferralRow["status"][] = ["open", "in_progress", "fulfilled", "closed"];
-const statusLabel: Record<ReferralRow["status"], string> = {
+// A1: лінивий record — переклад у момент звернення, не імпорту (див. lazyI18n.ts)
+const statusLabel: Record<ReferralRow["status"], string> = lazyRecord(() => ({
   open: t("referralsPage.statusOpen"),
   in_progress: t("referralsPage.statusInProgress"),
   fulfilled: t("referralsPage.statusFulfilled"),
   closed: t("referralsPage.statusClosed"),
-};
+})) as Record<ReferralRow["status"], string>;
 const ST: Record<ReferralRow["status"], { dot: string; bg: string; color: string }> = {
   open: { dot: "#F59E0B", bg: "rgba(245,158,11,.16)", color: "#B4740B" },
   in_progress: { dot: "var(--teal,#2BBFAA)", bg: "rgba(43,191,170,.14)", color: "#1f8e7e" },

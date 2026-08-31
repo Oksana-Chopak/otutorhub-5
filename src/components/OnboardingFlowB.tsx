@@ -14,6 +14,7 @@
  */
 import { useEffect, useState, useCallback } from "react";
 import { appOrigin } from "@/lib/webOrigin";
+import { lazyArray } from "@/lib/lazyI18n";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
@@ -126,7 +127,8 @@ function ProgressSegments({ total, active }: { total: number; active: number }) 
   );
 }
 
-const SUBJECTS_LIST = [
+// A1: лінивий масив — переклад у момент звернення, не імпорту (див. lazyI18n.ts)
+const SUBJECTS_LIST: readonly string[] = lazyArray(() => [
   i18nInstance.t("onboardingFlowB.subjectOptionEnglish"),
   i18nInstance.t("onboardingFlowB.subjectOptionMath"),
   i18nInstance.t("onboardingFlowB.subjectOptionUkrainian"),
@@ -137,7 +139,7 @@ const SUBJECTS_LIST = [
   i18nInstance.t("onboardingFlowB.subjectOptionBiology"),
   i18nInstance.t("onboardingFlowB.subjectOptionGeography"),
   i18nInstance.t("onboardingFlowB.subjectOptionHistory"),
-];
+]);
 const DAYS_UA       = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
 
 // ── Subject inline action ─────────────────────────────────────────────────────

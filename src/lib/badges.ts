@@ -1,4 +1,5 @@
 import i18n from "@/i18n";
+import { lazyArray, lazyRecord } from "@/lib/lazyI18n";
 
 // Badge definitions for the gamification system
 export interface BadgeDef {
@@ -8,7 +9,8 @@ export interface BadgeDef {
   description: string;
 }
 
-export const BADGE_DEFS: Record<string, BadgeDef> = {
+// A1: лінивий record — переклади в момент звернення, не імпорту (див. lazyI18n.ts)
+export const BADGE_DEFS: Record<string, BadgeDef> = lazyRecord(() => ({
   first_lesson: {
     key: "first_lesson",
     emoji: "🎯",
@@ -45,6 +47,6 @@ export const BADGE_DEFS: Record<string, BadgeDef> = {
     name: i18n.t("badgesExtra.topTutor"),
     description: i18n.t("badgesExtra.topTutorDesc"),
   },
-};
+}));
 
-export const ALL_BADGES = Object.values(BADGE_DEFS);
+export const ALL_BADGES: readonly BadgeDef[] = lazyArray(() => Object.values(BADGE_DEFS));

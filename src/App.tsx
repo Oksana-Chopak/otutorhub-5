@@ -329,6 +329,9 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
+          {/* A1: локалі ліниві — усе, що викликає useTranslation (ConfirmProvider,
+              CookieConsent…), мусить жити під Suspense, поки чанк мови їде. */}
+          <Suspense fallback={<RouteFallback />}>
           <ConfirmProvider>
             <Toaster />
             <Sonner />
@@ -338,6 +341,7 @@ const App = () => (
               </AuthProvider>
             </BrowserRouter>
           </ConfirmProvider>
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

@@ -1,4 +1,12 @@
 import "@testing-library/jest-dom";
+import i18n, { i18nReady } from "@/i18n";
+
+// A1: локалі тепер ліниві (окремі чанки). Тести чекають готовності uk,
+// інакше кожен render() компонента з useTranslation зависає в Suspense.
+beforeAll(async () => {
+  await i18nReady;
+  if (i18n.language !== "uk") await i18n.changeLanguage("uk");
+});
 
 Object.defineProperty(window, "matchMedia", {
   writable: true,

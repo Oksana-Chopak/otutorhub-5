@@ -2,6 +2,7 @@
 // Кожен репетитор має власну періодичність на tutor_details.
 
 import i18n from "@/i18n";
+import { lazyArray } from "@/lib/lazyI18n";
 
 export type PayoutFrequency = "weekly" | "biweekly" | "monthly";
 
@@ -72,7 +73,8 @@ export function nextPayoutDate(s: PayoutSchedule, from = new Date()): Date | nul
   return null;
 }
 
-const WEEKDAYS_UK = [
+// A1: ліниві масиви — переклад у момент звернення, не імпорту (див. lazyI18n.ts)
+const WEEKDAYS_UK: readonly string[] = lazyArray(() => [
   i18n.t("payoutSchedule.weekdaySun"),
   i18n.t("payoutSchedule.weekdayMon"),
   i18n.t("payoutSchedule.weekdayTue"),
@@ -80,8 +82,8 @@ const WEEKDAYS_UK = [
   i18n.t("payoutSchedule.weekdayThu"),
   i18n.t("payoutSchedule.weekdayFri"),
   i18n.t("payoutSchedule.weekdaySat"),
-];
-const WEEKDAYS_UK_SHORT = [
+]);
+const WEEKDAYS_UK_SHORT: readonly string[] = lazyArray(() => [
   i18n.t("payoutSchedule.weekdayShortSun"),
   i18n.t("payoutSchedule.weekdayShortMon"),
   i18n.t("payoutSchedule.weekdayShortTue"),
@@ -89,7 +91,7 @@ const WEEKDAYS_UK_SHORT = [
   i18n.t("payoutSchedule.weekdayShortThu"),
   i18n.t("payoutSchedule.weekdayShortFri"),
   i18n.t("payoutSchedule.weekdayShortSat"),
-];
+]);
 
 /** Людський опис графіка: «щоп'ятниці», «раз на 2 тижні (пн)», «5 числа щомісяця». */
 export function describePayoutSchedule(s: PayoutSchedule): string | null {
