@@ -1291,15 +1291,20 @@ export default function PeoplePage() {
         <PeopleSkeleton />
       ) : (
         <>
-          {visiblePeopleCount === 0 && (
-            <p className="py-8 text-center text-sm text-muted-foreground">{t("people.nothingFound")}</p>
-          )}
-
+          {/* 46: глобальний рядок дублював табовий — «Нічого не знайдено» двічі. */}
           {/* TAB-BASED RENDERING */}
           {activeRoleTab === "tutors" && (
             <div className="space-y-2.5">
               {[...tutors, ...(statusFilter === "all" ? noRole : [])].length === 0 ? (
-                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                <div className="py-8 text-center">
+                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                  {searchQuery.trim() !== "" && (
+                    <button type="button" onClick={() => setSearchQuery("")}
+                      className="mt-2 text-sm font-semibold text-primary underline">
+                      {t("people.resetSearch")}
+                    </button>
+                  )}
+                </div>
               ) : (
                 [...tutors, ...(statusFilter === "all" ? noRole : [])].map((u) => renderUserCard(u, "primary"))
               )}
@@ -1308,7 +1313,15 @@ export default function PeoplePage() {
           {activeRoleTab === "students" && (
             <div className="space-y-2.5">
               {students.length === 0 ? (
-                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                <div className="py-8 text-center">
+                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                  {searchQuery.trim() !== "" && (
+                    <button type="button" onClick={() => setSearchQuery("")}
+                      className="mt-2 text-sm font-semibold text-primary underline">
+                      {t("people.resetSearch")}
+                    </button>
+                  )}
+                </div>
               ) : (
                 students.map((u) => renderUserCard(u))
               )}
@@ -1317,7 +1330,15 @@ export default function PeoplePage() {
           {activeRoleTab === "managers" && (
             <div className="space-y-2.5">
               {managers.length === 0 ? (
-                <p className="py-8 text-center text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                <div className="py-8 text-center">
+                  <p className="text-sm" style={{ color: "var(--sub)" }}>{t("people.nothingFound")}</p>
+                  {searchQuery.trim() !== "" && (
+                    <button type="button" onClick={() => setSearchQuery("")}
+                      className="mt-2 text-sm font-semibold text-primary underline">
+                      {t("people.resetSearch")}
+                    </button>
+                  )}
+                </div>
               ) : (
                 managers.map((u) => renderUserCard(u, "primary"))
               )}
@@ -2053,7 +2074,8 @@ export default function PeoplePage() {
                 {tutorProgress && (
                   <div className="px-4 py-3 border-b border-border">
                     <div className="flex justify-between text-[14px] mb-1.5" style={{ color: "var(--sub,#6b7088)" }}>
-                      <span>{t("people.progressTitle", { done: tutorProgress.doneCount })}</span>
+                      {/* 46: заголовок уже ніс дріб — «Прогрес · 2/3   2/3». Ліворуч назва, праворуч число. */}
+                      <span>{t("people.progressLabel")}</span>
                       <span style={{ color: "#1D9E75", fontWeight: 500 }}>{tutorProgress.doneCount}/{tutorProgress.steps.length}</span>
                     </div>
                     <div className="h-1.5 w-full rounded-full" style={{ background: "var(--border,#eceef3)" }}>

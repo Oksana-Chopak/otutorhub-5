@@ -25,8 +25,14 @@ export function sanitizeHttpUrl(value: string | null | undefined): string | null
   return `https://${v}`;
 }
 
-/** Returns the URL if it is a safe http(s) URL, otherwise "#". */
+/**
+ * Returns a safe http(s) URL, otherwise "#".
+ *
+ * 46: раніше ця функція вимагала явну схему, а sanitizeHttpUrl такий самий
+ * рядок («meet.google.com/abc») добудовувала до https://. Через розбіжність
+ * кнопка «Приєднатися» рендерилась живою і не вела нікуди. Тепер обидві
+ * функції відповідають на питання «чи це безпечне посилання» однаково.
+ */
 export function safeHref(value: string | null | undefined): string {
-  if (!value) return "#";
-  return /^https?:\/\//i.test(String(value).trim()) ? String(value).trim() : "#";
+  return sanitizeHttpUrl(value) ?? "#";
 }

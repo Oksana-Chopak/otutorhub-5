@@ -40,6 +40,8 @@ interface Props {
   /** Student-only: the per-tutor rate rows (read-only summary). */
   pairs?: PersonEditPair[];
   tutorNameOf?: (tutorId: string) => string;
+  /** 46: призначити репетитора прямо з картки — інструкція без кнопки була тупиком. */
+  onAssignTutor?: (studentId: string) => void;
   onSaved: () => void;
 }
 
@@ -55,7 +57,7 @@ interface Props {
  *  - manager  → identity + contacts only.
  * All roles: avatar+name, contacts (phone/email/telegram + socials), private manager note.
  */
-export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], tutorNameOf, onSaved }: Props) {
+export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], tutorNameOf, onAssignTutor, onSaved }: Props) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isTutor = role === "tutor";
@@ -301,7 +303,21 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
                   <p style={{ fontFamily: F.body, fontSize: 14, color: F.gold, opacity: .85, margin: "2px 2px 0" }}>{t("studentEdit.ratesPerTutorHint")}</p>
                 </div>
               ) : (
-                <p style={{ fontFamily: F.body, fontSize: 14, color: F.gold }}>{t("studentEdit.noTutorYet")}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-start" }}>
+                  <p style={{ fontFamily: F.body, fontSize: 14, color: F.gold, margin: 0 }}>{t("studentEdit.noTutorYet")}</p>
+                  {/* 46: інструкція «призначте в картці учня» без кнопки — тупик. */}
+                  <button
+                    type="button"
+                    onClick={() => onAssignTutor?.(person.id)}
+                    style={{
+                      fontFamily: F.body, fontSize: 14, fontWeight: 700,
+                      padding: "7px 14px", borderRadius: 999, cursor: "pointer",
+                      border: `1px solid ${F.gold}`, background: "transparent", color: F.gold,
+                    }}
+                  >
+                    {t("studentEdit.assignTutorCta")}
+                  </button>
+                </div>
               )}
             </div>
           )}

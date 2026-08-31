@@ -1314,7 +1314,11 @@ export const en: LocaleTranslations = {
     deleteFailed: "Could not delete: {{message}}",
     deleteSuccess: "{{name}} and all related data deleted",
     card: "Card",
-  },
+  
+
+    progressLabel: "Tutor progress",
+
+    resetSearch: "Reset search",},
 
   iap: {
     purchaseDone: "Subscription activated 💚",
@@ -3791,7 +3795,8 @@ export const en: LocaleTranslations = {
     subjectsRatesTitle: "Subjects & rates",
     ratesPerTutorHint: "Rate is set per tutor (edit it in the student card)",
     noTutorYet: "No tutor yet — assign one in the student card",
-  },
+  
+    assignTutorCta: "Assign a tutor",},
   personEdit: {
     title: "Edit profile",
   },
@@ -3872,7 +3877,7 @@ export const en: LocaleTranslations = {
     seriesCreated_one: "🔁 Series created: {{count}} lesson weekly — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Series created: {{count}} lessons weekly — {{name}}, {{time}}",
     seriesCreated_other: "🔁 Series created: {{count}} lessons weekly — {{name}}, {{time}}",
-    newLessonTitle: "New lesson",
+    newLessonTitle: "Quick lesson",
     cancelBtn: "Cancel",
     createLessonBtn: "Create lesson",
     studentsShort: "st.",

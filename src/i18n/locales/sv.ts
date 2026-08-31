@@ -1301,7 +1301,11 @@ export const sv: LocaleTranslations = {
     deleteFailed: "Det gick inte att ta bort: {{message}}",
     deleteSuccess: "{{name}} och alla relaterade data borttagna",
     card: "Kort",
-  },
+  
+
+    progressLabel: "Lärarens framsteg",
+
+    resetSearch: "Rensa sökning",},
 
   iap: {
     purchaseDone: "Prenumerationen aktiverat 💚",
@@ -3778,7 +3782,8 @@ export const sv: LocaleTranslations = {
     subjectsRatesTitle: "Ämnen & taxor",
     ratesPerTutorHint: "Taxan sätts per lärare (redigeras i elevkortet)",
     noTutorYet: "Ingen lärare än — tilldela en i elevkortet",
-  },
+  
+    assignTutorCta: "Tilldela lärare",},
   personEdit: {
     title: "Redigera profil",
   },
@@ -3859,7 +3864,7 @@ export const sv: LocaleTranslations = {
     seriesCreated_one: "🔁 Serie skapad: {{count}} lektion varje vecka — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Serie skapad: {{count}} lektioner varje vecka — {{name}}, {{time}}",
     seriesCreated_other: "🔁 Serie skapad: {{count}} lektioner varje vecka — {{name}}, {{time}}",
-    newLessonTitle: "Ny lektion",
+    newLessonTitle: "Snabb lektion",
     cancelBtn: "Avbryt",
     createLessonBtn: "Skapa lektion",
     studentsShort: "el.",

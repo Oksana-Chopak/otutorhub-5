@@ -1,4 +1,4 @@
--- 45: арм-свіп, частина 1 — ПРИВАТНЕ.
+-- 45: арм-свіп, частина 1 — ПРИВАТНЕ.  (ІДЕМПОТЕНТНО — можна запускати повторно)
 --
 -- Аудит: ~40 живих політик мають голий has_role(manager) над даними ВСІЄЇ
 -- платформи. Правильна заміна — одна з трьох: is_superadmin() (платформне),
@@ -33,9 +33,11 @@ drop policy if exists "Managers manage financial contacts" on public.profile_fin
 
 -- ── 4. Платформні журнали → суперадмін ───────────────────────────────────────
 drop policy if exists "Managers view paywall events" on public.paywall_events;
+drop policy if exists "Superadmin views paywall events" on public.paywall_events;
 create policy "Superadmin views paywall events" on public.paywall_events
   for select to authenticated using (public.is_superadmin());
 
 drop policy if exists "Managers view bonus ledger" on public.pro_bonus_ledger;
+drop policy if exists "Superadmin views bonus ledger" on public.pro_bonus_ledger;
 create policy "Superadmin views bonus ledger" on public.pro_bonus_ledger
   for select to authenticated using (public.is_superadmin());

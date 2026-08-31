@@ -1314,7 +1314,11 @@ export const uk = {
     deleteFailed: "Не вдалося видалити: {{message}}",
     deleteSuccess: "{{name}} та всі пов'язані дані видалено",
     card: "Картка",
-  },
+  
+
+    progressLabel: "Прогрес репетитора",
+
+    resetSearch: "Скинути пошук",},
 
   iap: {
     purchaseDone: "Підписку активовано 💚",
@@ -3781,7 +3785,8 @@ export const uk = {
     subjectsRatesTitle: "Предмети та ставки",
     ratesPerTutorHint: "Ставка — окремо для кожного репетитора (редагується в картці учня)",
     noTutorYet: "Ще без репетитора — призначте його в картці учня",
-  },
+  
+    assignTutorCta: "Призначити репетитора",},
   personEdit: {
     title: "Редагувати профіль",
   },
@@ -3862,7 +3867,7 @@ export const uk = {
     seriesCreated_one: "🔁 Серію створено: {{count}} урок щотижня — {{name}}, {{time}}",
     seriesCreated_few: "🔁 Серію створено: {{count}} уроки щотижня — {{name}}, {{time}}",
     seriesCreated_many: "🔁 Серію створено: {{count}} уроків щотижня — {{name}}, {{time}}",
-    newLessonTitle: "Новий урок",
+    newLessonTitle: "Швидкий урок",
     cancelBtn: "Скасувати",
     createLessonBtn: "Створити урок",
     studentsShort: "уч.",
