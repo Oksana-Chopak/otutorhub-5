@@ -194,12 +194,13 @@ export default function ChatsPage() {
       return;
     }
 
-    // Defense-in-depth: even though RLS already filters, double-check on the client
-    // that non-managers only see threads where they are tutor or student.
+    // 45 (арм-свіп): RLS більше не віддає менеджеру ЧУЖІ переписки тьюторів з
+    // учнями — приватне листування не є операційними даними хабу. Менеджерські
+    // треди створює start_manager_chat із менеджером у слоті student_id, тож
+    // політика учасника покриває їх повністю. Клієнтський фільтр тепер ОДИН для
+    // всіх ролей — жодного «менеджер бачить усе» в обхід серверної правди.
     const rawList = (threadRows ?? []) as Thread[];
-    const list = isManager
-      ? rawList
-      : rawList.filter((t) => t.tutor_id === myId || t.student_id === myId);
+    const list = rawList.filter((t) => t.tutor_id === myId || t.student_id === myId);
     const ids = new Set<string>();
     list.forEach((t) => {
       ids.add(t.tutor_id);
