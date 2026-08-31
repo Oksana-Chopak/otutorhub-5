@@ -199,7 +199,7 @@ export function AppSidebar() {
           style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: sidebarCollapsed ? "16px 14px" : "16px 24px" }}
           aria-label="oTutorHub"
         >
-          <img src="/logo.png" alt="oTutorHub" className="h-8 w-8 shrink-0" />
+          <img src="/logo-96.webp" alt="oTutorHub" className="h-8 w-8 shrink-0" loading="lazy" />
           {!sidebarCollapsed && (
             <span className="font-display text-lg font-bold text-white">oTutorHub</span>
           )}

@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { LevelBadge } from "@/components/LevelBadge";
 import { BadgesGrid } from "@/components/BadgesGrid";
@@ -17,15 +16,15 @@ export default function AchievementsPage() {
 
   if (isPureStudent) {
     return (
-      <AppLayout>
+      <>
         <StudentRewardsShelf />
-      </AppLayout>
+      </>
     );
   }
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         <div className="space-y-6">
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="h-32 animate-pulse rounded-[18px] bg-muted" />
@@ -41,12 +40,12 @@ export default function AchievementsPage() {
           </div>
           <div className="h-40 animate-pulse rounded-[18px] bg-muted" />
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6">
         <div className="grid gap-4 lg:grid-cols-2">
           {level && <LevelBadge level={level} variant="full" />}
@@ -66,6 +65,6 @@ export default function AchievementsPage() {
         <MonthlySummaryCard />
       </div>
       <BackToProfile />
-    </AppLayout>
+    </>
   );
 }

@@ -2368,6 +2368,7 @@ export const sv: LocaleTranslations = {
     title: "Något gick fel",
     unknownError: "Ett tekniskt fel på vår sida — vi har fått en signal. Ladda om sidan, det hjälper nästan alltid.",
     reload: "Ladda om",
+    home: "Till startsidan",
   },
   googleCalendar: {
     connected: "Google Kalender ansluten",

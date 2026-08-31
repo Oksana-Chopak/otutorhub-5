@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from "react";
 import { DateTimeField } from "@/components/DateTimeField";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
-import { AppLayout } from "@/components/AppLayout";
 import {
   Dialog,
   DialogContent,
@@ -151,7 +150,7 @@ export default function GroupsPage() {
     enrollments.filter((e) => e.group_id === gid && e.status === "active").length;
 
   return (
-    <AppLayout>
+    <>
       <div>
         <div className="mb-6 hidden lg:flex items-center justify-between">
           <div>
@@ -224,7 +223,7 @@ export default function GroupsPage() {
         )}
       </div>
       <PageFAB onClick={() => setCreateOpen(true)} label={t("groupsPageExtra.newGroupFab")} />
-    </AppLayout>
+    </>
   );
 }
 

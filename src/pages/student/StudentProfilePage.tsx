@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { computeWeeklyStats } from "@/lib/studentStats";
-import { AppLayout } from "@/components/AppLayout";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { AvatarUploader } from "@/components/AvatarUploader";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -145,7 +144,7 @@ export default function StudentProfilePage() {
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || t("studentPages.profileTitle");
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-4">
         <h1 className="hidden lg:block" style={{ fontFamily: C.display, fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: C.ink }}>
           {t("studentPages.profileTitle")}
@@ -271,6 +270,6 @@ export default function StudentProfilePage() {
           </>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

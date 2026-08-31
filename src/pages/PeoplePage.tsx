@@ -1,7 +1,6 @@
 import { PageFAB } from "@/components/PageFAB";
 import { getLocale } from "@/lib/locale";
 import { PeopleSkeleton } from "@/components/PageSkeletons";
-import { AppLayout } from "@/components/AppLayout";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
@@ -1157,7 +1156,7 @@ export default function PeoplePage() {
   };
 
   return (
-    <AppLayout>
+    <>
       {/* Header — desktop only; mobile title+bell come from AppLayout */}
       <div className="mb-4 hidden lg:flex items-center justify-between gap-3">
         <h1 className="text-2xl font-extrabold text-foreground">{t("people.title")}</h1>
@@ -2217,6 +2216,6 @@ export default function PeoplePage() {
           label={activeRoleTab === "tutors" ? t("people.addTutor") : activeRoleTab === "managers" ? t("people.addManager") : t("people.addStudent")}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPrice } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
@@ -147,7 +146,7 @@ export default function WalletsPage() {
   if (!isManager && roles.includes("tutor") && !isIndependent) return <Navigate to="/" replace />;
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6">
         <header className="space-y-2">
           <div className="hidden lg:flex items-center gap-2">
@@ -325,6 +324,6 @@ export default function WalletsPage() {
           canDelete={isManager}
         />
       )}
-    </AppLayout>
+    </>
   );
 }

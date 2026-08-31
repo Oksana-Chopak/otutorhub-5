@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
 import { ShieldCheck, Trash2, RefreshCw, ChevronDown } from "lucide-react";
@@ -52,7 +51,7 @@ export default function ErrorLogPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-[22px] font-extrabold text-foreground sm:text-2xl">{t("errorLog.title")}</h1>
         {/* Desktop bell now comes from AppLayout (one global fixed bell) */}
@@ -125,6 +124,6 @@ export default function ErrorLogPage() {
           })}
         </div>
       )}
-    </AppLayout>
+    </>
   );
 }

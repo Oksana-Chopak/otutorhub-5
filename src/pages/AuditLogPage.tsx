@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -218,7 +217,7 @@ export default function AuditLogPage() {
     search.trim().length > 0;
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6">
         <header className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
@@ -439,6 +438,6 @@ export default function AuditLogPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

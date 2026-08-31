@@ -4,7 +4,6 @@ import { canSee } from "@/lib/roleCapabilities";
 import { formatPrice } from "@/lib/currency";
 import { Navigate } from "react-router-dom";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -214,7 +213,7 @@ export default function MyReferralsPage() {
   if (blockedNonIndependent) return <Navigate to="/" replace />;
 
   return (
-    <AppLayout>
+    <>
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: R.body, color: R.txt }}>
         {/* Header — desktop only. On mobile AppLayout already renders the title + bell + menu;
             on desktop the bell lives in the sidebar. So this page must NOT add its own bell. */}
@@ -439,6 +438,6 @@ export default function MyReferralsPage() {
         )}
       </div>
       <BackToProfile />
-    </AppLayout>
+    </>
   );
 }

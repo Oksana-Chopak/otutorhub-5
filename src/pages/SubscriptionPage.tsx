@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { isNativeApp, isIosApp } from "@/lib/platform";
 import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
 import { useToast } from "@/hooks/use-toast";
-import { AppLayout } from "@/components/AppLayout";
 import { BackToProfile } from "@/components/BackToProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -304,7 +303,7 @@ export default function SubscriptionPage() {
 
   if (loading) {
     return (
-      <AppLayout>
+      <>
         {/* Skeleton, not a full-page spinner — same treatment as every other page. */}
         <div className="flex flex-col gap-3">
           <div className="h-8 w-56 animate-pulse rounded-md bg-muted" />
@@ -316,7 +315,7 @@ export default function SubscriptionPage() {
             </div>
           ))}
         </div>
-      </AppLayout>
+      </>
     );
   }
 
@@ -362,7 +361,7 @@ export default function SubscriptionPage() {
   const tealRing = "rgba(43,191,170,.28)";
 
   return (
-    <AppLayout>
+    <>
       <div style={{ maxWidth: 480, margin: "0 auto", fontFamily: S.body, color: S.txt }}>
         {/* Desktop-only header; mobile title from AppLayout */}
         <div className="mb-4 hidden lg:block">
@@ -570,6 +569,6 @@ export default function SubscriptionPage() {
         <SubscriptionRequestDialog open={requestOpen} onOpenChange={setRequestOpen} defaultBilling={billing} />
         <BackToProfile />
       </div>
-    </AppLayout>
+    </>
   );
 }

@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { CalendarClock } from "lucide-react";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 import { useTranslation } from "react-i18next";
@@ -13,12 +12,12 @@ import { useTranslation } from "react-i18next";
 export default function AvailabilityPage() {
   const { t } = useTranslation();
   return (
-    <AppLayout>
+    <>
       <h1 className="mb-6 hidden lg:flex font-display text-2xl font-bold text-foreground items-center gap-2">
         <CalendarClock className="h-6 w-6 text-primary" />
         {t("availability.title")}
       </h1>
       <AvailabilityManager />
-    </AppLayout>
+    </>
   );
 }

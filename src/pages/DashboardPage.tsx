@@ -10,7 +10,6 @@ import { getLocale } from "@/lib/locale";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { AppLayout } from "@/components/AppLayout";
 import { DashboardSkeleton } from "@/components/PageSkeletons";
 import { Button } from "@/components/ui/button";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
@@ -1373,7 +1372,7 @@ export default function DashboardPage() {
   ]);
 
   return (
-    <AppLayout>
+    <>
       {/* Pull-to-refresh indicator — driven by pullProgress (0→1). Without this the
           pull gesture silently reloaded with no feedback and read as broken. */}
       {isPulling && (
@@ -2600,6 +2599,6 @@ export default function DashboardPage() {
         lessonCount={dayClosedCount}
         onDone={() => setShowDayClosed(false)}
       />
-    </AppLayout>
+    </>
   );
 }

@@ -103,7 +103,7 @@ export default function ResetPasswordPage() {
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
-          <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+          <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
           <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
         </div>
         <Card className="rounded-[20px] border-[#eceef3] shadow-[0_14px_40px_-20px_rgba(15,15,26,.25)]">

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -125,7 +124,7 @@ export default function SubscriptionRequestsPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="mx-auto max-w-4xl">
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -308,6 +307,6 @@ export default function SubscriptionRequestsPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

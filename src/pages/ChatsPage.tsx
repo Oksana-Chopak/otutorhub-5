@@ -5,7 +5,6 @@ import { formatPrice } from "@/lib/currency";
 import { getLocale } from "@/lib/locale";
 import { PageFAB } from "@/components/PageFAB";
 import { ChatsSkeleton } from "@/components/PageSkeletons";
-import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -818,11 +817,10 @@ export default function ChatsPage() {
     return d.toLocaleDateString(getLocale(), { day: "numeric", month: "long" });
   };
 
-  // Everyone — including pure students — now rides the same shared AppLayout chrome
-  // (dark AppSidebar + golden bell + burger), so /chats no longer flips shells.
-  const Shell = AppLayout;
+  // Everyone — including pure students — rides the shared AppLayout chrome,
+  // which now lives in the AppShell layout-route (A5) — no wrapper here.
   return (
-    <Shell>
+    <>
       {isSuperadmin && (
         <div className="mb-3 rounded-[12px] border border-amber-300 bg-amber-50 px-3 py-2">
           <p className="text-[13px] font-semibold text-amber-900">{t("chats.moderationTitle")}</p>
@@ -1606,6 +1604,6 @@ export default function ChatsPage() {
       {isManager && !selectedId && (
         <PageFAB onClick={openNewChatDialog} label={t("chats.startChat")} className="lg:hidden" />
       )}
-    </Shell>
+    </>
   );
 }

@@ -80,7 +80,7 @@ function ConfirmedSignIn({
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center gap-2 justify-center">
-          <img src="/logo.png" alt="oTutorHub" className="h-11 w-11" />
+          <img src="/logo-96.webp" alt="oTutorHub" className="h-11 w-11" />
           <span style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", color: "#0f0f1a" }}>oTutorHub</span>
         </div>
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
@@ -544,7 +544,7 @@ export default function AuthPage() {
       <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
         <div className="w-full max-w-md text-center">
           <div className="mb-6 flex items-center gap-2 justify-center">
-            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
             <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
           </div>
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-8 shadow-sm">
@@ -601,7 +601,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="oTutorHub" className="h-10 w-10" />
+            <img src="/logo-96.webp" alt="oTutorHub" className="h-10 w-10" loading="lazy" />
             <span className="font-display text-2xl font-bold text-foreground">oTutorHub</span>
           </div>
           <LanguageSwitcher variant="ghost" size="sm" />

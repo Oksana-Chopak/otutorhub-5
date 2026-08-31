@@ -2381,6 +2381,7 @@ export const en: LocaleTranslations = {
     title: "Something went wrong",
     unknownError: "A technical hiccup on our side — we've been notified. Reloading the page almost always helps.",
     reload: "Reload",
+    home: "Go home",
   },
   googleCalendar: {
     connected: "Google Calendar connected",

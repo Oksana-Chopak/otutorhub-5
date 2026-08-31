@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Bug, Lightbulb, HelpCircle, MessageSquare, Check, Inbox } from "lucide-react";
 
@@ -76,7 +75,7 @@ export default function FeedbackInboxPage() {
   const newCount = rows.filter((r) => r.status === "new").length;
 
   return (
-    <AppLayout>
+    <>
       <div className="mx-auto max-w-2xl">
         <div className="mb-5 hidden lg:block">
           <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>
@@ -199,6 +198,6 @@ export default function FeedbackInboxPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

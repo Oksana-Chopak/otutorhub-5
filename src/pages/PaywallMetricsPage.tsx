@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -118,7 +117,7 @@ export default function PaywallMetricsPage() {
   const recent = filtered.slice(0, 100);
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -419,6 +418,6 @@ export default function PaywallMetricsPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

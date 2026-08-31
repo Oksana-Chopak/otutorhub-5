@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { StudentNextBlock } from "@/components/StudentNextBlock";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { StudentOnboarding } from "@/components/student/StudentOnboarding";
 import { useStudentContext } from "@/hooks/useStudentContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -207,7 +206,7 @@ export default function StudentDashboardPage() {
 
   if (ctxLoading) {
     return (
-      <AppLayout>
+      <>
         <div className="space-y-5">
           <div className="space-y-2">
             <div className="h-7 w-40 animate-pulse rounded-lg bg-muted" />
@@ -219,20 +218,20 @@ export default function StudentDashboardPage() {
             <div className="h-[70px] animate-pulse rounded-[16px] border border-border bg-white" />
           </div>
         </div>
-      </AppLayout>
+      </>
     );
   }
 
   if (showOnboarding) {
     return (
-      <AppLayout>
+      <>
         <StudentOnboarding
           onComplete={async () => {
             setShowOnboarding(false);
             await refresh();
           }}
         />
-      </AppLayout>
+      </>
     );
   }
 
@@ -243,7 +242,7 @@ export default function StudentDashboardPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-5" style={{ fontFamily: DS.body, color: DS.txt }}>
         <div>
           <h1 style={{ fontFamily: DS.display, fontWeight: 800, fontSize: 26, letterSpacing: "-.02em", lineHeight: 1.15 }}>{t("studentPages.greeting")}</h1>
@@ -455,6 +454,6 @@ export default function StudentDashboardPage() {
           </div>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

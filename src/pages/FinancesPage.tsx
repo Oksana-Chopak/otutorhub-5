@@ -6,7 +6,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { PageFAB } from "@/components/PageFAB";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { updateLessonDetailsSafe, updateLessonDetailsSafeBulk } from "@/lib/lessonDetailsSafe";
 import { insertNotification } from "@/lib/notifications";
@@ -1731,9 +1730,9 @@ export default function FinancesPage() {
   // we know the role for sure. (Managers resolve wsLoading instantly: not a tutor.)
   if (isTutor && wsLoading) {
     return (
-      <AppLayout>
+      <>
         <FinancesSkeleton />
-      </AppLayout>
+      </>
     );
   }
 
@@ -1775,7 +1774,7 @@ export default function FinancesPage() {
     );
 
     return (
-      <AppLayout>
+      <>
         <div className="mb-4">
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
           <p className="text-[14px] text-muted-foreground sm:text-sm">{t("finances.pageSubtitleHubTutor")}</p>
@@ -1941,7 +1940,7 @@ export default function FinancesPage() {
             </div>
           </DialogContent>
         </Dialog>
-      </AppLayout>
+      </>
     );
   }
 
@@ -1968,7 +1967,7 @@ export default function FinancesPage() {
 
 
     return (
-      <AppLayout>
+      <>
         {/* Period pills */}
         <div role="radiogroup" aria-label={t("finances.periodFilterAria")} style={{ display:"flex", gap:8, marginBottom:20, flexWrap:"wrap" }}>
           {(["week","month","all"] as Period[]).map(pill)}
@@ -2451,13 +2450,13 @@ export default function FinancesPage() {
           onWalletTopUp={fetchData}
         />
         <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
-      </AppLayout>
+      </>
     );
   }
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
-    <AppLayout>
+    <>
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3 sm:mb-6 sm:gap-4">
         <div>
           <h1 className="hidden lg:block font-display text-xl font-bold text-foreground sm:text-2xl">{t("finances.title")}</h1>
@@ -2953,7 +2952,7 @@ export default function FinancesPage() {
       {canManagePrepay && (
         <PageFAB onClick={() => setRecordOpen(true)} label={t("finances.recordPayment")} />
       )}
-    </AppLayout>
+    </>
   );
 }
 

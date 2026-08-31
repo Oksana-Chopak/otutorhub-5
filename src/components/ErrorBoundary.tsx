@@ -6,6 +6,17 @@ import { logError } from "@/lib/errorLog";
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
+  /**
+   * A5: коли значення змінюється (навігація), межа СКИДАЄ стан помилки —
+   * без key={pathname}, який перемонтовував усе піддерево (і всі його
+   * запити з realtime-хендшейками) на КОЖЕН перехід, навіть без помилки.
+   */
+  resetKey?: unknown;
+  /**
+   * B11: вихід із краху без window.location.reload() — навігація на головну
+   * зберігає незбережений стан інших частин застосунку (чернетки, кеш).
+   */
+  onHome?: () => void;
 }
 
 interface State {
@@ -25,6 +36,19 @@ export class ErrorBoundary extends Component<Props, State> {
     void logError(error.message, error.stack, { componentStack: info.componentStack?.slice(0, 4000) });
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // Скидаємось лише КОЛИ вже впали і користувач кудись перейшов —
+    // у здоровому стані зміна resetKey нічого не перемонтовує.
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: null });
+    }
+  }
+
+  private goHome = () => {
+    this.setState({ hasError: false, error: null });
+    this.props.onHome?.();
+  };
+
   render() {
     if (this.state.hasError) {
       return (
@@ -37,7 +61,17 @@ export class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground text-sm max-w-md">
               {i18n.t("errorBoundary.unknownError")}
             </p>
-            <Button onClick={() => window.location.reload()}>{i18n.t("errorBoundary.reload")}</Button>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              {this.props.onHome && (
+                <Button onClick={this.goHome}>{i18n.t("errorBoundary.home")}</Button>
+              )}
+              <Button
+                variant={this.props.onHome ? "outline" : "default"}
+                onClick={() => window.location.reload()}
+              >
+                {i18n.t("errorBoundary.reload")}
+              </Button>
+            </div>
           </div>
         )
       );

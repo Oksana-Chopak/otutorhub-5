@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { prettyRequestValue } from "@/lib/tutorRequestLabels";
 import { useAuth } from "@/hooks/useAuth";
@@ -170,7 +169,7 @@ export default function ReferralsPage() {
   const openCount = requests.filter((r) => r.status === "open").length;
 
   return (
-    <AppLayout>
+    <>
       {/* Desktop header (mobile title/bell/burger come from AppLayout) */}
       <div className="mb-4 hidden items-center justify-between lg:flex">
         <h1 style={{ fontFamily: F, fontWeight: 800, fontSize: 25, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
@@ -313,6 +312,6 @@ export default function ReferralsPage() {
         request={assignTarget}
         onAssigned={load}
       />
-    </AppLayout>
+    </>
   );
 }

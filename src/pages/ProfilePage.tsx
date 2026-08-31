@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { AppLayout } from "@/components/AppLayout";
 import { DeleteAccountSection } from "@/components/DeleteAccountSection";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
@@ -464,7 +463,7 @@ export default function ProfilePage() {
       : user?.email?.split("@")[0] ?? t("profile.defaultManagerName");
     const mgrInitials = ((mgrName.split(" ")[0]?.[0] ?? "") + (mgrName.split(" ")[1]?.[0] ?? "")).toUpperCase() || "?";
     return (
-      <AppLayout>
+      <>
         <div className="mx-auto max-w-[680px]">
           <div className="lg:grid lg:grid-cols-2 lg:gap-4 flex flex-col gap-4">
 
@@ -568,12 +567,12 @@ export default function ProfilePage() {
             </div>
           </SheetContent>
         </Sheet>
-      </AppLayout>
+      </>
     );
   }
 
   return (
-    <AppLayout>
+    <>
       <div className="mx-auto max-w-[680px]">
 
         {/* ── Desktop grid layout ─────────────────────────────────────────── */}
@@ -1073,6 +1072,6 @@ export default function ProfilePage() {
         </div>
 
       </div>
-    </AppLayout>
+    </>
   );
 }

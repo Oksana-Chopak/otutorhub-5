@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2, Sparkles, Download, Clock, Check } from "lucide-react";
@@ -271,7 +270,7 @@ export default function StudentHomeworkPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-4">
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.homeworkTitle")}</h1>
         {loading ? (
@@ -301,6 +300,6 @@ export default function StudentHomeworkPage() {
           </Tabs>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

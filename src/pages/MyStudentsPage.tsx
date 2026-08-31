@@ -3,7 +3,6 @@ import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PageFAB } from "@/components/PageFAB";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { useAuth } from "@/hooks/useAuth";
@@ -710,7 +709,7 @@ export default function MyStudentsPage() {
   // Єдина іконка копіювання (без слів/кнопок) — 44px тач-таргет, як у дизайні.
 
   return (
-    <AppLayout>
+    <>
       {/* ── Header (desktop only — mobile header is AppLayout's) ───────── */}
       <div className="mb-3 hidden lg:flex items-center justify-between gap-3">
         <div className="min-w-0">
@@ -1285,6 +1284,6 @@ export default function MyStudentsPage() {
         />
       )}
       <PageFAB onClick={openCreate} label={t("myStudents.addStudent")} />
-    </AppLayout>
+    </>
   );
 }

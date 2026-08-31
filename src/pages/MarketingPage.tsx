@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,7 +122,7 @@ export default function MarketingPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="container mx-auto max-w-6xl space-y-6 py-6">
         {/* Mobile title comes from AppLayout's sticky header (with bell + burger);
             show this inline header only on desktop to avoid a duplicate + a header-less
@@ -298,6 +297,6 @@ export default function MarketingPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </>
   );
 }

@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getLocale } from "@/lib/locale";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Check, Clock, Wallet, Copy, MessageCircle } from "lucide-react";
@@ -186,7 +185,7 @@ export default function StudentPaymentsPage() {
   );
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-4">
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.paymentsTitle")}</h1>
 
@@ -342,6 +341,6 @@ export default function StudentPaymentsPage() {
           </ul>
         )}
       </div>
-    </AppLayout>
+    </>
   );
 }

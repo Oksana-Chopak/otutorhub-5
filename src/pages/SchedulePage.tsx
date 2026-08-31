@@ -1,4 +1,3 @@
-import { AppLayout } from "@/components/AppLayout";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { pairNextDefault } from "@/lib/nextLessonDefault";
@@ -939,7 +938,7 @@ export default function SchedulePage() {
   }, []);
 
   return (
-    <AppLayout>
+    <>
       <div className="mb-5 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h1 className="hidden lg:flex font-display text-xl font-bold text-foreground sm:text-2xl items-center gap-2">
@@ -1679,6 +1678,6 @@ export default function SchedulePage() {
         onOpenChange={(o) => { if (!o) setDetailsLessonId(null); }}
         onUpdated={loadAll}
       />
-    </AppLayout>
+    </>
   );
 }

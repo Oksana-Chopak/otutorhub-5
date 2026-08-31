@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { getLocale } from "@/lib/locale";
 import {
@@ -220,7 +219,7 @@ export default function AdminStatsPage() {
       : s;
 
   return (
-    <AppLayout>
+    <>
       <div className="mx-auto w-full max-w-[1100px] px-4 py-5">
         <h1 className="text-[22px] font-extrabold sm:text-2xl">{t("admin.title")}</h1>
         <p className="mt-1 text-[14px] text-[var(--sub)]">{t("admin.subtitle")}</p>
@@ -499,6 +498,6 @@ export default function AdminStatsPage() {
         )}
       </div>
       {detail && <CrmDetailSheet row={detail} onClose={() => setDetail(null)} />}
-    </AppLayout>
+    </>
   );
 }

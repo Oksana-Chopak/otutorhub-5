@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -17,48 +18,74 @@ export interface WorkspaceSettings {
   liqpay_recurring_active?: boolean;
 }
 
+interface WorkspaceQueryData {
+  settings: WorkspaceSettings | null;
+  studentCount: number;
+}
+
 /**
  * Free план тепер має необмежену кількість учнів — лімітів немає,
  * лишаємо лічильник для статистики у дашборді.
  * Premium-фічі: нагадування про оплату, керування скасуванням/перенесенням,
  * детальна аналітика та експорт звітів.
+ *
+ * A4: хук викликається у ~26 місцях (на дашборді ≥6 інстансів одночасно);
+ * раніше кожен інстанс робив власні 2 запити за ті самі два рядки даних.
+ * Тепер це один спільний useQuery-кеш (staleTime 60с з App.tsx) — один запит
+ * на всіх. Це водночас фікс стійкості: при збої REFETCH react-query лишає
+ * попередні дані, тож платний передплатник у метро більше не бачить пейвол
+ * через те, що isPro «обнулився» на невдалому читанні.
  */
 export function useWorkspaceSettings() {
   const { user, roles } = useAuth();
+  const queryClient = useQueryClient();
   const isTutor = roles.includes("tutor");
-  const [settings, setSettings] = useState<WorkspaceSettings | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [studentCount, setStudentCount] = useState(0);
+  const enabled = !!user && isTutor;
 
-  const load = useCallback(async () => {
-    if (!user || !isTutor) {
-      setSettings(null);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    const [{ data: ws }, { data: rates }] = await Promise.all([
-      supabase
-        .from("tutor_workspace_settings")
-        .select("*")
-        .eq("tutor_id", user.id)
-        .maybeSingle(),
-      supabase
-        .from("student_rates")
-        .select("student_id, archived_at")
-        .eq("tutor_id", user.id)
-        .eq("source", "independent"),
-    ]);
-    setSettings(ws as unknown as WorkspaceSettings | null);
-    // Той самий контракт, що й /my-students: distinct АКТИВНІ (без архіву).
-    const ids = new Set((rates ?? []).filter((r: any) => !r.archived_at).map((r: any) => r.student_id));
-    setStudentCount(ids.size);
-    setLoading(false);
-  }, [user?.id, isTutor]);
+  const queryKey = ["workspace-settings", user?.id ?? null];
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  const { data, isPending, error } = useQuery<WorkspaceQueryData>({
+    queryKey,
+    enabled,
+    // Збій читання — виняток, щоб спрацювали ретраї (retry: 1 з App.tsx),
+    // а не тихий null, який вимикає Pro-фічі.
+    queryFn: async () => {
+      const [wsRes, ratesRes] = await Promise.all([
+        supabase
+          .from("tutor_workspace_settings")
+          .select("*")
+          .eq("tutor_id", user!.id)
+          .maybeSingle(),
+        supabase
+          .from("student_rates")
+          .select("student_id, archived_at")
+          .eq("tutor_id", user!.id)
+          .eq("source", "independent"),
+      ]);
+      if (wsRes.error) throw wsRes.error;
+      if (ratesRes.error) throw ratesRes.error;
+      // Той самий контракт, що й /my-students: distinct АКТИВНІ (без архіву).
+      const ids = new Set(
+        (ratesRes.data ?? [])
+          .filter((r: { archived_at: string | null }) => !r.archived_at)
+          .map((r: { student_id: string }) => r.student_id),
+      );
+      return {
+        settings: wsRes.data as unknown as WorkspaceSettings | null,
+        studentCount: ids.size,
+      };
+    },
+  });
+
+  const settings = data?.settings ?? null;
+  const studentCount = data?.studentCount ?? 0;
+  // Контракт loading не змінився: true лише поки перший запит справді летить;
+  // для не-тьютора (query вимкнено) — одразу false, як і раніше.
+  const loading = enabled ? isPending : false;
+
+  const refresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ["workspace-settings", user?.id ?? null] });
+  }, [queryClient, user?.id]);
 
   const updateSettings = async (patch: Partial<WorkspaceSettings>) => {
     if (!user) return;
@@ -66,9 +93,9 @@ export function useWorkspaceSettings() {
     // expose the privileged billing/subscription columns to a static security scan).
     // Safe settings go through the SECURITY DEFINER RPC, which only applies whitelisted
     // columns and physically cannot touch subscription/trial/workspace flags.
-    const { error } = await (supabase as any).rpc("update_my_workspace_settings", { _patch: patch });
-    if (!error) await load();
-    return error;
+    const { error: rpcError } = await (supabase as any).rpc("update_my_workspace_settings", { _patch: patch });
+    if (!rpcError) await refresh();
+    return rpcError;
   };
 
   const isIndependent = settings?.independent_workspace ?? false;
@@ -90,6 +117,8 @@ export function useWorkspaceSettings() {
   return {
     settings,
     loading,
+    /** Збій читання (після ретраїв). Дані попереднього успішного читання при цьому зберігаються. */
+    error: error ?? null,
     studentCount,
     isIndependent,
     isPro,
@@ -97,6 +126,6 @@ export function useWorkspaceSettings() {
     trialUntil,
     trialDaysLeft,
     updateSettings,
-    refresh: load,
+    refresh,
   };
 }

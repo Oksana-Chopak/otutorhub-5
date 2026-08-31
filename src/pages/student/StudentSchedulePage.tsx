@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
-import { AppLayout } from "@/components/AppLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Video, MessageCircle, Clock } from "lucide-react";
@@ -179,7 +178,7 @@ export default function StudentSchedulePage() {
   };
 
   return (
-    <AppLayout>
+    <>
       <div className="space-y-4">
         <h1 className="hidden text-2xl font-bold text-foreground lg:block">{t("studentPages.scheduleTitle")}</h1>
         <Tabs defaultValue="upcoming">
@@ -191,6 +190,6 @@ export default function StudentSchedulePage() {
           <TabsContent value="past" className="mt-4">{renderList(past)}</TabsContent>
         </Tabs>
       </div>
-    </AppLayout>
+    </>
   );
 }
