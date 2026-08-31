@@ -15,3 +15,13 @@ Origin WebView задано як `https://otutorhub.com` (capacitor.config.ts �
    Console → Setup → App integrity → App signing → скопіюй **SHA-256** →
    встав замість TODO у `public/.well-known/assetlinks.json` → Publish сайту.
    Після цього https://otutorhub.com/join/* відкривається одразу в застосунку.
+
+6. **Пуші (Firebase / FCM):**
+   - Firebase Console → створити/відкрити проєкт → Add app → **Android**,
+     package `ua.otutorhub.app` → завантажити `google-services.json`
+     → покласти в `android/app/` (шаблон Capacitor підхопить його сам).
+   - Там же: Project settings → Service accounts → Generate new private key
+     → **вміст JSON цілком** вставити в Lovable → Edge Function Secrets як
+     `FCM_SERVICE_ACCOUNT_JSON`.
+   - Без цих двох кроків збірка й веб-пуші працюють як раніше: нативна
+     гілка `send-push` просто пропускається з одним рядком у логах.

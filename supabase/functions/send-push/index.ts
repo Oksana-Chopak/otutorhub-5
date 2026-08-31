@@ -147,6 +147,97 @@ async function sendOne(sub: { endpoint: string; p256dh: string; auth: string }, 
   return res.status === 201 || res.status === 200;
 }
 
+// ── FCM HTTP v1: нативний Android (40b) ─────────────────────────────────
+// Секрет FCM_SERVICE_ACCOUNT_JSON — JSON ключа сервісного акаунта Firebase.
+// Немає секрету → нативна гілка мовчки пропускається, веб-пуш працює далі.
+const FCM_SA_RAW = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON") ?? "";
+
+function fcmPemToPkcs8(pem: string): Uint8Array {
+  const b64 = pem
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s+/g, "");
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+let fcmTokenCache: { value: string; exp: number } | null = null;
+
+async function fcmMintToken(sa: { client_email: string; private_key: string; token_uri?: string }): Promise<string> {
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (fcmTokenCache && fcmTokenCache.exp > nowSec + 60) return fcmTokenCache.value;
+  const enc = new TextEncoder();
+  const head = b64url(enc.encode(JSON.stringify({ alg: "RS256", typ: "JWT" })));
+  const claim = b64url(enc.encode(JSON.stringify({
+    iss: sa.client_email,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: nowSec,
+    exp: nowSec + 3600,
+  })));
+  const key = await crypto.subtle.importKey(
+    "pkcs8", fcmPemToPkcs8(sa.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"],
+  );
+  const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc.encode(`${head}.${claim}`));
+  const jwt = `${head}.${claim}.${b64url(new Uint8Array(sig))}`;
+  const res = await fetch(sa.token_uri ?? "https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+  const json = await res.json();
+  if (!json.access_token) throw new Error(`fcm token mint failed: ${res.status}`);
+  fcmTokenCache = { value: json.access_token, exp: nowSec + Number(json.expires_in ?? 3600) };
+  return json.access_token;
+}
+
+// deno-lint-ignore no-explicit-any
+async function fcmSendNative(fcmDb: any, fcmUserId: string, msg: { title: string; body: string; link: string; tag?: string }): Promise<number> {
+  if (!FCM_SA_RAW) {
+    console.log("FCM_SERVICE_ACCOUNT_JSON not set — native push skipped");
+    return 0;
+  }
+  let sa: { client_email: string; private_key: string; project_id: string; token_uri?: string };
+  try { sa = JSON.parse(FCM_SA_RAW); } catch {
+    console.error("FCM_SERVICE_ACCOUNT_JSON is not valid JSON — native push skipped");
+    return 0;
+  }
+  const { data: fcmRows } = await fcmDb.from("device_push_tokens").select("token").eq("user_id", fcmUserId);
+  if (!fcmRows || fcmRows.length === 0) return 0;
+  let access: string;
+  try { access = await fcmMintToken(sa); } catch (e) { console.error("fcm mint failed", e); return 0; }
+  let okCount = 0;
+  for (const row of fcmRows as { token: string }[]) {
+    const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${access}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: {
+          token: row.token,
+          notification: { title: msg.title, body: msg.body },
+          data: { link: msg.link, ...(msg.tag ? { tag: msg.tag } : {}) },
+          android: { priority: "HIGH", notification: { ...(msg.tag ? { tag: msg.tag } : {}) } },
+        },
+      }),
+    });
+    if (res.ok) { okCount++; continue; }
+    const txt = await res.text();
+    // Токен помер разом із застосунком — прибираємо, щоб не довбати FCM вічно.
+    if (res.status === 404 || txt.includes("UNREGISTERED") || txt.includes("NOT_FOUND")) {
+      await fcmDb.from("device_push_tokens").delete().eq("token", row.token);
+    } else {
+      console.error("fcm send failed", res.status, txt.slice(0, 200));
+    }
+  }
+  return okCount;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -186,17 +277,16 @@ Deno.serve(async (req) => {
     .select("endpoint, p256dh, auth")
     .eq("user_id", userId);
 
-  if (!subs || subs.length === 0) {
-    return new Response(JSON.stringify({ ok: true, sent: 0 }), { headers: { "Content-Type": "application/json" } });
-  }
-
+  // 40b: раніше тут був ранній вихід «немає веб-підписок → sent 0», і нативні
+  // токени не питались зовсім. Тепер обидва транспорти незалежні.
   const payload = { title, body: msgBody, link, ...(tag ? { tag } : {}) };
   const results = await Promise.allSettled(
-    (subs as { endpoint: string; p256dh: string; auth: string }[]).map((s) => sendOne(s, payload))
+    ((subs ?? []) as { endpoint: string; p256dh: string; auth: string }[]).map((s) => sendOne(s, payload))
   );
   const sent = results.filter((r) => r.status === "fulfilled" && r.value).length;
+  const sentNative = await fcmSendNative(db, userId, { title, body: msgBody, link, tag });
 
-  return new Response(JSON.stringify({ ok: true, sent }), {
+  return new Response(JSON.stringify({ ok: true, sent, sentNative }), {
     headers: { "Content-Type": "application/json" },
   });
 });

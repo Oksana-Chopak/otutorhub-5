@@ -2,10 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { VAPID_PUBLIC_KEY, urlBase64ToUint8Array } from "@/lib/pushConfig";
+import { isNativeApp } from "@/lib/platform";
 
 type PermissionState = "default" | "granted" | "denied";
 
 const db = supabase as any;
+
+/** Ключ локального кешу токена пристрою — щоб знати, чи вже підписані. */
+const NATIVE_TOKEN_KEY = "native_push_token";
 
 export function usePushNotifications() {
   const { user } = useAuth();
@@ -25,16 +29,52 @@ export function usePushNotifications() {
     }
   }, []);
 
+  const native = isNativeApp();
+
   // Check initial state
   useEffect(() => {
+    // 40b: у наативі web-push (SW+VAPID) не працює — там FCM через плагін,
+    // тож підтримка є ЗАВЖДИ, просто іншим транспортом.
+    if (native) {
+      setSupported(true);
+      void (async () => {
+        try {
+          const { PushNotifications } = await import("@capacitor/push-notifications");
+          const perm = await PushNotifications.checkPermissions();
+          setPermission(perm.receive === "granted" ? "granted" : perm.receive === "denied" ? "denied" : "default");
+          setSubscribed(perm.receive === "granted" && !!localStorage.getItem(NATIVE_TOKEN_KEY));
+        } catch { /* плагін недоступний — лишаємось у default */ }
+      })();
+      return;
+    }
     const ok = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
     setSupported(ok);
     if (ok) setPermission(Notification.permission as PermissionState);
-  }, []);
+  }, [native]);
+
+  // 40b: слухач видачі токена — пише його в device_push_tokens (RLS own-only).
+  useEffect(() => {
+    if (!native || !user) return;
+    let remove: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { PushNotifications } = await import("@capacitor/push-notifications");
+        const sub = await PushNotifications.addListener("registration", (tk) => {
+          localStorage.setItem(NATIVE_TOKEN_KEY, tk.value);
+          void db.from("device_push_tokens")
+            .upsert({ token: tk.value, user_id: user.id, platform: "android" }, { onConflict: "token" })
+            .then(() => setSubscribed(true));
+        });
+        const errSub = await PushNotifications.addListener("registrationError", () => setSubscribed(false));
+        remove = () => { void sub.remove(); void errSub.remove(); };
+      } catch { /* ignore */ }
+    })();
+    return () => remove?.();
+  }, [native, user?.id]);
 
   // Check if already subscribed in DB
   useEffect(() => {
-    if (!user || !supported) return;
+    if (!user || !supported || native) return;
     (async () => {
       const reg = await swReg();
       if (!reg) return;
@@ -48,10 +88,23 @@ export function usePushNotifications() {
         .maybeSingle();
       setSubscribed(!!data);
     })();
-  }, [user?.id, supported]);
+  }, [user?.id, supported, native, swReg]);
 
   const subscribe = useCallback(async () => {
     if (!user || !supported) return;
+    if (native) {
+      setLoading(true);
+      try {
+        const { PushNotifications } = await import("@capacitor/push-notifications");
+        let perm = await PushNotifications.checkPermissions();
+        if (perm.receive !== "granted") perm = await PushNotifications.requestPermissions();
+        setPermission(perm.receive === "granted" ? "granted" : perm.receive === "denied" ? "denied" : "default");
+        // register() віддає токен у слухач 'registration' вище — там і зберігаємо.
+        if (perm.receive === "granted") await PushNotifications.register();
+      } catch { /* ignore */ }
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const perm = await Notification.requestPermission();
@@ -86,10 +139,21 @@ export function usePushNotifications() {
       /* permission denied or other error */
     }
     setLoading(false);
-  }, [user?.id, supported, swReg]);
+  }, [user?.id, supported, swReg, native]);
 
   const unsubscribe = useCallback(async () => {
     if (!user || !supported) return;
+    if (native) {
+      setLoading(true);
+      try {
+        const tk = localStorage.getItem(NATIVE_TOKEN_KEY);
+        if (tk) await db.from("device_push_tokens").delete().eq("token", tk);
+        localStorage.removeItem(NATIVE_TOKEN_KEY);
+        setSubscribed(false);
+      } catch { /* ignore */ }
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const reg = await swReg();
@@ -103,7 +167,7 @@ export function usePushNotifications() {
       setSubscribed(false);
     } catch { /* ignore */ }
     setLoading(false);
-  }, [user?.id, supported, swReg]);
+  }, [user?.id, supported, swReg, native]);
 
   return { supported, permission, subscribed, loading, subscribe, unsubscribe };
 }

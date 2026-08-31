@@ -30,7 +30,7 @@ describe("db surface invariants", () => {
       .map((f) => readFileSync(join(migDir, f), "utf8")).join("\n");
     const missing = [...names].filter(
       (n) => !types.includes(`${n}:`) &&
-             !new RegExp(`CREATE (TABLE|OR REPLACE VIEW|VIEW)[^;]*${n}`).test(migs)
+             !new RegExp(`CREATE (TABLE|OR REPLACE VIEW|VIEW)[^;]*${n}`, "i").test(migs)
     );
     expect(missing).toEqual([]);
   });
