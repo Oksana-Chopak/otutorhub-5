@@ -795,8 +795,16 @@ export default function DashboardPage() {
   // Аудит-🔴2: toISOString = UTC — між 00:00 і 03:00 Києва «сьогодні» ще вчора.
   const localKey = (d: Date) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  const todayKey = localKey(new Date());
-  const nowMs = Date.now();
+  // A6: nowMs через тикер (як у DayBlock:53), а не Date.now() у тілі рендера —
+  // інакше всі useMemo із залежністю nowMs ніколи не влучали в кеш, а
+  // closeDayRows отримував нову ідентичність щорендеру і CloseDayDialog
+  // скидав галочки користувача. Бонус: після півночі todayKey оновлюється сам.
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const i = setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => clearInterval(i);
+  }, []);
+  const todayKey = localKey(new Date(nowMs));
 
   const todayLessons = useMemo(
     () => lessons.filter((lesson) => localKey(new Date(lesson.starts_at)) === todayKey),

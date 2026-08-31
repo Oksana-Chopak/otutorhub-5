@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, memo, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { MessageCircle, ChevronDown, Check, Pencil, Copy, Trash2, MoreVertical, Video, Users2, Wallet, Sparkles } from "lucide-react";
 import {
@@ -122,7 +122,7 @@ const PayRow = ({ icon, amount, paid, paidLabel, pendLabel, onToggle, currency }
   );
 };
 
-export function LessonCard({
+function LessonCardImpl({
   lesson,
   role = "tutor",
   studentName,
@@ -341,4 +341,7 @@ export function LessonCard({
   );
 }
 
+// A7: рядок списку — мемоїзований. Поведінка без змін; перерендер лише коли
+// змінились пропси (нові дані уроку чи інші хендлери), а не кожен тік батька.
+export const LessonCard = memo(LessonCardImpl);
 export default LessonCard;

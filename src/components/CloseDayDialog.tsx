@@ -93,13 +93,18 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     })();
   }, [open, user, rows]);
 
+  // A6: скидаємо галочки лише коли реально змінився НАБІР уроків (або діалог
+  // перевідкрили), а не коли батько перерендерився і масив отримав нову
+  // ідентичність — раніше зняту галочку «оплачено» тихо повертало назад.
+  const rowsKey = rows.map((r) => r.id).join(",");
   useEffect(() => {
     if (open) {
       const init: Record<string, { done: boolean; paid: boolean }> = {};
       rows.forEach((r) => { init[r.id] = { done: true, paid: true }; });
       setState(init);
     }
-  }, [open, rows]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rows навмисно через rowsKey
+  }, [open, rowsKey]);
 
   const doneCount = useMemo(() => rows.filter((r) => state[r.id]?.done).length, [rows, state]);
 

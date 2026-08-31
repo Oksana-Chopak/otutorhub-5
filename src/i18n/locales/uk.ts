@@ -898,6 +898,7 @@ export const uk = {
     noPaymentsFiltered: "За цим фільтром платежів немає 🔎",
     noPaymentsDesc: "Спробуйте змінити місяць, репетитора або тип. Завершені уроки та передоплати з'являться тут одразу.",
     selectAll: "Обрати все",
+    showMoreRows: "Показати ще ({{count}})",
     selectRow: "Обрати рядок",
     paidDate: "опл.:",
     payoutDate: "вип.:",

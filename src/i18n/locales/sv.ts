@@ -650,6 +650,7 @@ export const sv: LocaleTranslations = {
     noPaymentsFiltered: "Inga betalningar matchar filtret 🔎",
     noPaymentsDesc: "Försök ändra månad, lärare eller typ. Avslutade lektioner och förskott visas här direkt.",
     selectAll: "Välj alla",
+    showMoreRows: "Visa fler ({{count}})",
     selectRow: "Välj rad",
     paidDate: "bet:",
     payoutDate: "utbet:",

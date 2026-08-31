@@ -64,6 +64,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
+import { useMediaQuery } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, grossMarkupPct, sumByCurrency } from "@/lib/financials";
 import { formatPrice} from "@/lib/currency";
@@ -200,6 +201,10 @@ export default function FinancesPage() {
   const exportUnpaidKey = isHubTutor ? "exportKindNotPaidOut" : "exportKindDebts";
   const canManagePrepay = isManager || isIndependentTutor;
   const [studentFilter, setStudentFilter] = useState("all");
+  // A8: одна гілка списку в DOM (моб. картки АБО десктоп-таблиця) + пагінація —
+  // раніше при .limit(500) телефон тримав до 1000 піддерев одночасно.
+  const isLgUp = useMediaQuery("(min-width: 1024px)");
+  const [rowsShown, setRowsShown] = useState(100);
   const [reloadKey, setReloadKey] = useState(0); // B22: рефетч після позначення оплат
   const dataVersion = useDataVersion(); // C3
 
@@ -313,6 +318,7 @@ export default function FinancesPage() {
     const next = value as TabKey;
     setActiveTab(next);
     setSelected(new Set());
+    setRowsShown(100); // A8: нова вкладка — пагінація з початку
     const params = new URLSearchParams(searchParams);
     params.delete("filter");
     params.set("tab", next);
@@ -1218,9 +1224,11 @@ export default function FinancesPage() {
             />
           )}
         </div>
-        {/* Mobile cards */}
+        {/* Mobile cards — A8: рендеримо ЛИШЕ активну гілку (раніше обидві жили
+            в DOM постійно, до 1000 піддерев на телефоні при .limit(500)) */}
+        {!isLgUp && (
         <div className="divide-y divide-border lg:hidden">
-          {rows.map((row) => {
+          {rows.slice(0, rowsShown).map((row) => {
             if (row.type === "prepay") {
               const tx = row.tx;
               return (
@@ -1371,8 +1379,10 @@ export default function FinancesPage() {
             );
           })}
         </div>
+        )}
 
-        {/* Desktop table */}
+        {/* Desktop table — A8: лише коли активний брейкпоінт */}
+        {isLgUp && (
         <div className="hidden lg:block overflow-x-auto">
           <table className="w-full text-[15px]">
             <thead>
@@ -1426,7 +1436,7 @@ export default function FinancesPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {rows.slice(0, rowsShown).map((row) => {
                 if (row.type === "prepay") {
                   const tx = row.tx;
                   return (
@@ -1575,6 +1585,19 @@ export default function FinancesPage() {
             </tbody>
           </table>
         </div>
+        )}
+        {/* A8: пагінація — DOM тримає до rowsShown рядків, решта за кнопкою */}
+        {rows.length > rowsShown && (
+          <div className="border-t border-border p-3 text-center">
+            <button
+              type="button"
+              onClick={() => setRowsShown((n) => n + 100)}
+              className="h-11 rounded-[12px] px-5 text-[14px] font-semibold text-primary hover:bg-primary/5"
+            >
+              {t("finances.showMoreRows", { count: rows.length - rowsShown })}
+            </button>
+          </div>
+        )}
       </div>
     );
   };

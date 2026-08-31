@@ -5,7 +5,7 @@
  * Логіку даних НЕ містить — лише відображення.
  * Аватар з градієнтом + статус-крапка + ім'я + підрядок + бейджі + email+Copy + «Написати».
  */
-import { useState } from "react";
+import { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MessageCircle, Copy, Check, Mail } from "lucide-react";
 
@@ -195,7 +195,7 @@ interface PersonCardProps {
   onWrite: () => void;
 }
 
-export function PersonCard({
+function PersonCardImpl({
   name, avatarUrl, status, subLine, email, isPending,
   unpaidTotal, obDone, kind, isOwner, active, onOpen, onWrite,
 }: PersonCardProps) {
@@ -263,3 +263,7 @@ export function PersonCard({
     </div>
   );
 }
+
+// A7: рядок списку — мемоїзований (довгі списки учнів перерендерюються при
+// кожному наборі в пошуку; картки з незмінними пропсами тепер пропускаються).
+export const PersonCard = memo(PersonCardImpl);

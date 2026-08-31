@@ -896,6 +896,7 @@ export const en: LocaleTranslations = {
     noPaymentsFiltered: "No payments match this filter 🔎",
     noPaymentsDesc: "Try changing the month, tutor, or type. Completed lessons and prepayments appear here instantly.",
     selectAll: "Select all",
+    showMoreRows: "Show more ({{count}})",
     selectRow: "Select row",
     paidDate: "paid:",
     payoutDate: "paid out:",

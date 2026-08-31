@@ -242,48 +242,10 @@ export default function PeoplePage() {
       // Independent tutor rates filtered at RLS level
       supabase.from("student_rates").select("id, tutor_id, student_id, subject, price_per_lesson, currency"),
       supabase.from("tutor_subject_rates").select("tutor_id, subject, rate_per_lesson"),
-      // Last interaction + payment aggregates source: independent of the profile batch,
-      // so it belongs in the SAME round-trip (was a second serial await = extra latency
-      // on every People open). Only lesson_details (below) truly depends on these ids.
-      supabase
-        .from("lessons")
-        .select("id, tutor_id, student_id, starts_at, status")
-        .order("starts_at", { ascending: false })
-        .limit(2000),
+      // A9: агрегати рахує БД (RPC нижче) — раніше клієнт вивантажував до 2000
+      // уроків + 4 чанк-дозапити лише щоб порахувати борги/останню взаємодію.
+      (supabase as any).rpc("get_people_aggregates"),
     ]);
-
-    const { data: recentLessons, error: recentLessonsErr } = recentLessonsRes;
-    if (recentLessonsErr) {
-      console.error("Failed to load recent lessons", recentLessonsErr);
-    }
-    const lessonIds = (recentLessons ?? []).map((l: any) => l.id);
-    const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null }>();
-    if (lessonIds.length > 0) {
-      // Chunk to avoid overly long IN clauses, but fire chunks in parallel.
-      const chunkSize = 500;
-      const chunks: string[][] = [];
-      for (let i = 0; i < lessonIds.length; i += chunkSize) {
-        chunks.push(lessonIds.slice(i, i + chunkSize));
-      }
-      // Read student money through the masked lessons_visible view (GRANT-locked on
-      // lesson_details); a manager sees the real values for hub lessons here.
-      const chunkResults = await Promise.all(
-        chunks.map((chunk) =>
-          supabase
-            .from("lessons_visible")
-            .select("id, student_payment_status, student_price")
-            .in("id", chunk)
-        )
-      );
-      chunkResults.forEach(({ data: detailsData }) => {
-        (detailsData ?? []).forEach((d: any) => {
-          detailsByLesson.set(d.id, {
-            student_payment_status: d.student_payment_status,
-            student_price: d.student_price,
-          });
-        });
-      });
-    }
 
     const lastInteractionMap = new Map<string, string>();
     const studentStatsMap = new Map<
@@ -292,46 +254,99 @@ export default function PeoplePage() {
     >();
     const tutorHasLesson = new Set<string>();
     const tutorHasPaid = new Set<string>();
-    (recentLessons ?? []).forEach((l: any) => {
-      for (const uid of [l.tutor_id, l.student_id]) {
-        if (uid) {
-          const cur = lastInteractionMap.get(uid);
-          if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
-        }
-      }
-      if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
-      const det = detailsByLesson.get(l.id);
-      const payStatus = det?.student_payment_status ?? null;
-      const price = det?.student_price ?? null;
-      if (l.tutor_id && payStatus === "paid") tutorHasPaid.add(l.tutor_id);
 
-      const sid = l.student_id;
-      if (!sid) return;
-      const s = studentStatsMap.get(sid) ?? {
-        unpaid_count: 0,
-        unpaid_total: 0,
-        last_lesson_at: null as string | null,
-      };
-      // PREPAYMENT model: an unpaid priced lesson is a debt whether it already
-      // happened or is upcoming (hub students pay before lessons) — the old
-      // completed-only rule hid real receivables from the «⚠️ Борг» status.
-      if (
-        l.status !== "cancelled" &&
-        l.status !== "pending" &&
-        (payStatus ?? "unpaid") === "unpaid" &&
-        Number(price ?? 0) > 0
-      ) {
-        s.unpaid_count += 1;
-        s.unpaid_total += Number(price ?? 0);
+    if (!recentLessonsRes.error && Array.isArray(recentLessonsRes.data)) {
+      (recentLessonsRes.data as any[]).forEach((r) => {
+        if (r.last_interaction_at) lastInteractionMap.set(r.user_id, r.last_interaction_at);
+        if (r.has_lesson) tutorHasLesson.add(r.user_id);
+        if (r.has_paid) tutorHasPaid.add(r.user_id);
+        if (Number(r.unpaid_count ?? 0) > 0 || r.last_lesson_at) {
+          studentStatsMap.set(r.user_id, {
+            unpaid_count: Number(r.unpaid_count ?? 0),
+            unpaid_total: Number(r.unpaid_total ?? 0),
+            last_lesson_at: r.last_lesson_at ?? null,
+          });
+        }
+      });
+    } else {
+      // Фолбек: RPC ще не застосований у проді (міграція їде через Lovable) —
+      // рахуємо по-старому на клієнті, щоб сторінка не деградувала ні на день.
+      const { data: recentLessons, error: recentLessonsErr } = await supabase
+        .from("lessons")
+        .select("id, tutor_id, student_id, starts_at, status")
+        .order("starts_at", { ascending: false })
+        .limit(2000);
+      if (recentLessonsErr) console.error("Failed to load recent lessons", recentLessonsErr);
+      const lessonIds = (recentLessons ?? []).map((l: any) => l.id);
+      const detailsByLesson = new Map<string, { student_payment_status: string | null; student_price: number | null }>();
+      if (lessonIds.length > 0) {
+        // Chunk to avoid overly long IN clauses, but fire chunks in parallel.
+        const chunkSize = 500;
+        const chunks: string[][] = [];
+        for (let i = 0; i < lessonIds.length; i += chunkSize) {
+          chunks.push(lessonIds.slice(i, i + chunkSize));
+        }
+        // Read student money through the masked lessons_visible view (GRANT-locked on
+        // lesson_details); a manager sees the real values for hub lessons here.
+        const chunkResults = await Promise.all(
+          chunks.map((chunk) =>
+            supabase
+              .from("lessons_visible")
+              .select("id, student_payment_status, student_price")
+              .in("id", chunk)
+          )
+        );
+        chunkResults.forEach(({ data: detailsData }) => {
+          (detailsData ?? []).forEach((d: any) => {
+            detailsByLesson.set(d.id, {
+              student_payment_status: d.student_payment_status,
+              student_price: d.student_price,
+            });
+          });
+        });
       }
-      if (
-        (l.status === "completed" || l.status === "scheduled") &&
-        (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
-      ) {
-        s.last_lesson_at = l.starts_at;
-      }
-      studentStatsMap.set(sid, s);
-    });
+
+      (recentLessons ?? []).forEach((l: any) => {
+        for (const uid of [l.tutor_id, l.student_id]) {
+          if (uid) {
+            const cur = lastInteractionMap.get(uid);
+            if (!cur || l.starts_at > cur) lastInteractionMap.set(uid, l.starts_at);
+          }
+        }
+        if (l.tutor_id) tutorHasLesson.add(l.tutor_id);
+        const det = detailsByLesson.get(l.id);
+        const payStatus = det?.student_payment_status ?? null;
+        const price = det?.student_price ?? null;
+        if (l.tutor_id && payStatus === "paid") tutorHasPaid.add(l.tutor_id);
+
+        const sid = l.student_id;
+        if (!sid) return;
+        const s = studentStatsMap.get(sid) ?? {
+          unpaid_count: 0,
+          unpaid_total: 0,
+          last_lesson_at: null as string | null,
+        };
+        // PREPAYMENT model: an unpaid priced lesson is a debt whether it already
+        // happened or is upcoming (hub students pay before lessons) — the old
+        // completed-only rule hid real receivables from the «⚠️ Борг» status.
+        if (
+          l.status !== "cancelled" &&
+          l.status !== "pending" &&
+          (payStatus ?? "unpaid") === "unpaid" &&
+          Number(price ?? 0) > 0
+        ) {
+          s.unpaid_count += 1;
+          s.unpaid_total += Number(price ?? 0);
+        }
+        if (
+          (l.status === "completed" || l.status === "scheduled") &&
+          (!s.last_lesson_at || l.starts_at > s.last_lesson_at)
+        ) {
+          s.last_lesson_at = l.starts_at;
+        }
+        studentStatsMap.set(sid, s);
+      });
+    }
 
     const tutorHasStudent = new Set<string>(((ratesRes.data ?? []) as any[]).map((r) => r.tutor_id));
 
