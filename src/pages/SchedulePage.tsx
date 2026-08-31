@@ -1405,7 +1405,7 @@ export default function SchedulePage() {
         </div>
       )}
 
-      {isTutor && !isManager && (
+      {(isTutor || isManager) && ( /* 43: менеджер ухвалює рішення — має бачити */
         <div className="mb-6">
           <TutorChangeRequestsCard nameOf={(id) => profilesMap[id] ?? "?"} />
         </div>

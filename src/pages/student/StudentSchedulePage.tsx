@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { StudentLessonActions } from "@/components/StudentLessonActions";
 import { getLocale } from "@/lib/locale";
 import { Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
@@ -159,6 +160,16 @@ export default function StudentSchedulePage() {
                     <Clock size={15} /> {t("studentPages.linkComingSoon")}
                   </div>
                 ) : null}
+                {/* 43: скасувати / перенести — компонент був написаний і перекладений,
+                    але змонтований ЛИШЕ в тьюторському SchedulePage, куди учень не ходить. */}
+                {l.status === "scheduled" && (
+                  <StudentLessonActions
+                    lessonId={l.id}
+                    tutorId={l.tutor_id}
+                    startsAt={l.starts_at}
+                    status={l.status}
+                  />
+                )}
               </div>
             </li>
           );

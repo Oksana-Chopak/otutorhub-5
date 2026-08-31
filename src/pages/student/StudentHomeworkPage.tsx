@@ -64,8 +64,9 @@ export default function StudentHomeworkPage() {
     (async () => {
       const { data: details, error } = await supabase
         .from("lesson_details_student" as any)
-        .select("lesson_id, homework, summary")
-        .not("homework", "is", null);
+        .select("lesson_id, homework, summary");
+      // 43: фільтр .not("homework","is",null) робив конспект БЕЗ домашки
+      // недосяжним — сповіщення «Конспект готовий» вело в порожнечу.
 
       const lessonIds0 = Array.from(
         new Set(((details ?? []) as any[]).map((d) => d.lesson_id).filter(Boolean)),
@@ -120,10 +121,11 @@ export default function StudentHomeworkPage() {
       }
 
       const list: HomeworkRow[] = ((data ?? []) as any[])
-        .filter((d) => d.homework && d.homework.trim())
+        // 43: рядок лишається, якщо є домашка АБО конспект
+        .filter((d) => (d.homework && d.homework.trim()) || (d.summary && d.summary.trim()))
         .map((d) => ({
           lesson_id: d.lesson_id,
-          homework: d.homework,
+          homework: d.homework ?? "",
           subject: d.lessons.subject,
           starts_at: d.lessons.starts_at,
           tutor_id: d.lessons.tutor_id,

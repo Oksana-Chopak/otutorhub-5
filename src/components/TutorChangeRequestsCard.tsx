@@ -83,6 +83,8 @@ function toLocalInputValue(iso: string) {
 export function TutorChangeRequestsCard({ nameOf }: Props) {
   const { user } = useAuth();
   const { settings, isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { roles } = useAuth();
+  const isManager = roles.includes("manager");
   const [requests, setRequests] = useState<ChangeRequestRow[]>([]);
   const [lessons, setLessons] = useState<Record<string, LessonInfo>>({});
   const [loading, setLoading] = useState(true);
@@ -98,14 +100,16 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const { data: reqs } = await supabase
+    // 43: менеджер бачить запити ВСІХ репетиторів хабу — текст картки завжди
+    // казав «рішення ухвалює менеджер», але сам менеджер не бачив жодного.
+    let q = supabase
       .from("lesson_change_requests")
       .select(
         "id, lesson_id, student_id, tutor_id, kind, proposed_starts_at, reason, status, created_at"
       )
-      .eq("tutor_id", user.id)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false });
+      .eq("status", "pending");
+    if (!isManager) q = q.eq("tutor_id", user.id);
+    const { data: reqs } = await q.order("created_at", { ascending: false });
     const list = (reqs as ChangeRequestRow[] | null) ?? [];
     setRequests(list);
     if (list.length > 0) {
@@ -144,7 +148,7 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
           event: "*",
           schema: "public",
           table: "lesson_change_requests",
-          filter: `tutor_id=eq.${user.id}`,
+          ...(isManager ? {} : { filter: `tutor_id=eq.${user.id}` }), // 43
         },
         () => load()
       )

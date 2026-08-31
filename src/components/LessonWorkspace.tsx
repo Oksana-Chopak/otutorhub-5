@@ -370,7 +370,9 @@ export function LessonWorkspace({
           ? t("lessonWorkspaceExtra.notifHomeworkBody")
           : t("lessonWorkspaceExtra.notifSummaryBody"),
         // B17: учень живе у своїх маршрутах — домашка в /student/homework.
-        link: isHomework ? "/student/homework" : "/student/schedule",
+        // 43: конспект теж живе на сторінці домашки (там і рендериться) —
+        // /student/schedule не показує конспект узагалі, лінк вів у порожнечу.
+        link: "/student/homework",
       });
     }
   };
