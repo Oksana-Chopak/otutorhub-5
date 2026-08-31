@@ -208,6 +208,8 @@ export default function WalletsPage() {
                 ? t("walletsPage.noActivePairs")
                 : t("walletsPage.noPrepaidsHint")
             }
+            actionLabel={showAll ? null : t("walletsPage.showAll")}
+            onAction={showAll ? undefined : () => setShowAll(true)}
           />
         ) : (
           <>

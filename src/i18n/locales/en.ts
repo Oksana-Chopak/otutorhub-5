@@ -102,7 +102,10 @@ export const en: LocaleTranslations = {
     afterSummary: "Summary saved. Schedule the next lesson?",
     openSummary: "Open",
     createNext: "Create →",
-  },
+  
+    lessonUnpaid: "Lesson completed, payment not yet recorded",
+    addSummary: "Summary not added yet",
+    markPaid: "Mark as paid",},
   reviewPrompt: {
     title: "How was your lesson with {{tutor}}?",
     commentPlaceholder: "Add a few words (optional)…",
@@ -2085,7 +2088,19 @@ export const en: LocaleTranslations = {
     connectInProfile: "You can always connect it in Profile →",
   
 
-    months: "January,February,March,April,May,June,July,August,September,October,November,December",},
+    months: "January,February,March,April,May,June,July,August,September,October,November,December",
+
+    tutorUnpaidTitle: "{{count}} conducted lessons unpaid",
+
+    tutorUnpaidDesc: "Mark as paid — students paid, but the system doesn't know yet.",
+
+    tutorUnpaidCta: "To finances",
+
+    tutorNoUpcomingTitle: "Empty schedule ahead",
+
+    tutorNoUpcomingDesc: "All lessons are done. Time to schedule new ones.",
+
+    tutorNoUpcomingCta: "Schedule a lesson",},
   notifications: {
     title: "Notifications",
     markAllRead: "Mark all as read",

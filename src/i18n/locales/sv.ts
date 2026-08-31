@@ -103,7 +103,10 @@ export const sv: LocaleTranslations = {
     afterSummary: "Anteckningen sparad. Boka nästa lektion?",
     openSummary: "Öppna",
     createNext: "Skapa →",
-  },
+  
+    lessonUnpaid: "Lektionen klar, betalning ej registrerad",
+    addSummary: "Sammanfattning saknas",
+    markPaid: "Markera som betald",},
   reviewPrompt: {
     title: "Hur var din lektion med {{tutor}}?",
     commentPlaceholder: "Lägg till några ord (valfritt)…",
@@ -2072,7 +2075,19 @@ export const sv: LocaleTranslations = {
     connectInProfile: "Du kan alltid ansluta i Profilen →",
   
 
-    months: "januari,februari,mars,april,maj,juni,juli,augusti,september,oktober,november,december",},
+    months: "januari,februari,mars,april,maj,juni,juli,augusti,september,oktober,november,december",
+
+    tutorUnpaidTitle: "{{count}} genomförda lektioner obetalda",
+
+    tutorUnpaidDesc: "Markera som betald — elever har betalat men systemet vet inte om det ännu.",
+
+    tutorUnpaidCta: "Till ekonomi",
+
+    tutorNoUpcomingTitle: "Tomt schema framöver",
+
+    tutorNoUpcomingDesc: "Alla lektioner är klara. Dags att planera nya.",
+
+    tutorNoUpcomingCta: "Schemalägg en lektion",},
   notifications: {
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",

@@ -196,6 +196,7 @@ export default function ReferralsPage() {
           icon={HandHeart}
           title={t("referralsPageExtra.noRequests")}
           description={t("referralsPageExtra.noRequestsDesc")}
+          actionLabel={null}
         />
       ) : (
         <>

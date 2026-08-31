@@ -1191,6 +1191,7 @@ export default function FinancesPage() {
             icon={DollarSign}
             title={t("finances.noPaymentsFiltered")}
             description={t("finances.noPaymentsDesc")}
+            actionLabel={null}
           />
         </div>
       );

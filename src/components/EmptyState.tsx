@@ -20,7 +20,8 @@ interface EmptyStateProps {
   title: string;
   description?: string;
   hint?: string;
-  actionLabel?: string;
+  /** Текст кнопки. Передай null коли дії немає — явний вибір, не забутий проп. */
+  actionLabel: string | null;
   onAction?: () => void;
   secondaryLabel?: string;
   onSecondary?: () => void;
@@ -78,9 +79,9 @@ export function EmptyState({
         <p className="mt-1 max-w-xs text-[14px] italic text-muted-foreground/70">{hint}</p>
       )}
 
-      {(actionLabel || secondaryLabel || children) && (
+      {(actionLabel !== null || secondaryLabel || children) && (
         <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-          {actionLabel && onAction && (
+          {actionLabel !== null && onAction && (
             <Button onClick={onAction} size="sm">
               {actionLabel}
             </Button>
@@ -166,6 +167,7 @@ EmptyState.Payments = function EmptyStatePayments() {
     <EmptyState
       icon={Wallet}
       variant="subtle"
+      actionLabel={null}
       title={t("finances.noDebts")}
       description={t("finances.noDebtsDesc")}
     />
@@ -194,6 +196,7 @@ EmptyState.Analytics = function EmptyStateAnalytics() {
     <EmptyState
       icon={BarChart3}
       variant="subtle"
+      actionLabel={null}
       title={t("analytics.noData")}
       description={t("analytics.noDataDesc")}
       hint={t("emptyState.analyticsHint")}
@@ -205,6 +208,7 @@ EmptyState.AllClear = function EmptyStateAllClear() {
   return (
     <EmptyState
       title={t("emptyState.allClear")}
+      actionLabel={null}
       description={t("emptyState.allClearDesc")}
       variant="subtle"
     />

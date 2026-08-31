@@ -328,6 +328,7 @@ export default function AuditLogPage() {
           <EmptyState
             icon={ShieldAlert}
             title={entries.length === 0 ? t("auditLogExtra.noRecords") : t("auditLogExtra.noResults")}
+            actionLabel={null}
             description={
               entries.length === 0
                 ? t("auditLogExtra.noRecordsDesc")

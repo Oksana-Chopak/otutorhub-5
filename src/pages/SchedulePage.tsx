@@ -1491,6 +1491,7 @@ export default function SchedulePage() {
             icon={HandHeart}
             title={t('schedule.noTutorTitle')}
             description={t('schedule.noTutorDesc')}
+            actionLabel={null}
           >
             <FindTutorDialog
               trigger={
@@ -1510,7 +1511,7 @@ export default function SchedulePage() {
                 ? t('schedule.noLessonsDescCreate')
                 : t('schedule.noLessonsDescWait')
             }
-            actionLabel={canCreate ? t('schedule.createFirstLesson') : undefined}
+            actionLabel={canCreate ? t('schedule.createFirstLesson') : null}
             onAction={canCreate ? () => setCreateOpen(true) : undefined}
           />
         )

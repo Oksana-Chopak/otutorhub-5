@@ -87,7 +87,7 @@ export default function ErrorLogPage() {
           ))}
         </div>
       ) : rows.length === 0 ? (
-        <EmptyState icon={ShieldCheck} title={t("errorLog.empty")} description={t("errorLog.emptyDesc")} />
+        <EmptyState icon={ShieldCheck} title={t("errorLog.empty")} description={t("errorLog.emptyDesc")} actionLabel={null} />
       ) : (
         <div className="flex flex-col gap-2">
           {rows.map((r) => {

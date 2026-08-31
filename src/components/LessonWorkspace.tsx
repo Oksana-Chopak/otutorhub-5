@@ -420,17 +420,29 @@ export function LessonWorkspace({
   return (
     <div className="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 [&>*]:min-w-0">
       {/* 0. Primary CTA — mark lesson as completed */}
-      {lastSaved && (
+      {(lastSaved || (statusLocal === "completed" && (!summary || paidLocal === "unpaid"))) && (
         <div className="mb-3">
           <NextStepBar
-            icon={lastSaved === "homework" ? "✍️" : "📅"}
-            text={lastSaved === "homework" ? t("nextStep.afterHomework") : t("nextStep.afterSummary")}
-            actionLabel={lastSaved === "homework" ? t("nextStep.openSummary") : t("nextStep.createNext")}
+            icon={lastSaved === "homework" ? "✍️" : lastSaved === "summary" ? "📅" : paidLocal === "unpaid" ? "💳" : "📝"}
+            text={
+              lastSaved === "homework" ? t("nextStep.afterHomework")
+              : lastSaved === "summary" ? t("nextStep.afterSummary")
+              : paidLocal === "unpaid" ? t("nextStep.lessonUnpaid")
+              : t("nextStep.addSummary")
+            }
+            actionLabel={
+              lastSaved === "homework" ? t("nextStep.openSummary")
+              : lastSaved === "summary" ? t("nextStep.createNext")
+              : paidLocal === "unpaid" ? t("nextStep.markPaid")
+              : t("nextStep.openSummary")
+            }
             onAction={() => {
               if (lastSaved === "homework") { toggleRow("summary"); setLastSaved(null); }
-              else { onClose?.(); navigate(`/schedule?create=1${studentId ? `&student=${studentId}` : ""}`); }
+              else if (lastSaved === "summary") { onClose?.(); navigate(`/schedule?create=1${studentId ? `&student=${studentId}` : ""}`); }
+              else if (paidLocal === "unpaid") { void togglePayment(); }
+              else { toggleRow("summary"); }
             }}
-            onDismiss={() => setLastSaved(null)}
+            onDismiss={() => { setLastSaved(null); /* bar може повернутися зі стану, якщо урок досі unpaid */ }}
           />
         </div>
       )}
@@ -452,7 +464,7 @@ export function LessonWorkspace({
       )}
 
       {/* 0b. Post-completion nudge to record payment */}
-      {canTogglePayment && statusLocal === "completed" && justCompleted && paidLocal === "unpaid" && ( /* Р5 */
+      {canTogglePayment && statusLocal === "completed" && paidLocal === "unpaid" && !lastSaved && ( /* Р5+41: стан, не подія */
         <section className="rounded-[16px] border border-warning/30 bg-warning/5 p-4 md:col-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-sm text-foreground">

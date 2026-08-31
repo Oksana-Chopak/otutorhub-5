@@ -766,7 +766,7 @@ export default function MyStudentsPage() {
           <EmptyState icon={UserPlus} title={t("myStudents.emptyActiveTitle")}
             description={t("myStudents.emptyActiveDesc")} actionLabel={t("myStudents.addStudentBtn")} onAction={openCreate} />
         ) : (
-          <EmptyState icon={Archive} title={t("myStudents.emptyArchiveTitle")} description={t("myStudents.emptyArchiveDesc")} />
+          <EmptyState icon={Archive} title={t("myStudents.emptyArchiveTitle")} description={t("myStudents.emptyArchiveDesc")} actionLabel={null} />
         )
       ) : (
         /* ── Two-column desktop layout ─────────────────────────────────── */

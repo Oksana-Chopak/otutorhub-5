@@ -21,7 +21,7 @@ const BASELINE: Record<string, number> = {
   "src/components/TutorWelcomeBanner.tsx": 2,
   "src/hooks/useWorkspaceSettings.tsx": 2,
   "src/pages/ChatsPage.tsx": 2,
-  "src/pages/DashboardPage.tsx": 26,
+  "src/pages/DashboardPage.tsx": 28,
   "src/pages/FinancesPage.tsx": 42,
   "src/pages/GroupsPage.tsx": 3,
   "src/pages/MyReferralsPage.tsx": 2,

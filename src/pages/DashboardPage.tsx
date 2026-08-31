@@ -30,7 +30,7 @@ import { CloseDayDialog, type CloseDayRow } from "@/components/CloseDayDialog";
 import { QuickAddStudentDialog } from "@/components/QuickAddStudentDialog";
 import { LessonDetailsDialog } from "@/components/LessonDetailsDialog";
 import { TrialCountdownBanner } from "@/components/TrialCountdownBanner";
-import { GraduationCap, Sparkles, X, Wallet, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Sparkles, X, Wallet, CheckCircle2 , Banknote } from "lucide-react";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
 import { useTutorGamification } from "@/hooks/useTutorGamification";
 import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
@@ -1167,17 +1167,61 @@ export default function DashboardPage() {
   );
 
   const smartTasks = useMemo(() => {
-    if (!isManager) return [] as Array<{
-      key: string;
-      icon: any;
-      tone: "warning" | "destructive" | "primary";
-      title: string;
-      description: string;
-      to: string;
-      cta: string;
-      payTutorId?: string;
-    }>;
+    // 41: реєстр відкритий усім персонам — не лише менеджеру.
     const tasks: Array<any> = [];
+
+    // ── Гілка репетитора (незалежний або хабовий) ──
+    if (isTutor && !isManager) {
+      // Проведені та не оплачені (незалежний бачить свої, хабовий — нічого, менеджер нижче)
+      if (isIndependentTutor && pendingPayments.length > 0) {
+        tasks.push({
+          key: "tutor-unpaid",
+          icon: Banknote,
+          tone: "warning" as const,
+          title: t("dashboardExtra.tutorUnpaidTitle", { count: pendingPayments.length }),
+          description: t("dashboardExtra.tutorUnpaidDesc"),
+          to: "/finances",
+          cta: t("dashboardExtra.tutorUnpaidCta"),
+        });
+      }
+      // Уроки без ціни
+      if (lessonsWithoutPrice > 0) {
+        tasks.push({
+          key: "tutor-no-price",
+          icon: Tag,
+          tone: "warning" as const,
+          title: t("dashboardPageExtra.lessonsWithoutPrice", { count: lessonsWithoutPrice }),
+          description: t("dashboardExtra.noRateDesc"),
+          to: "/schedule?view=list&filter=unpriced",
+          cta: t("dashboardExtra.noRateCta"),
+        });
+      }
+      // Уроки без посилання
+      if (lessonsWithoutMeeting > 0) {
+        tasks.push({
+          key: "tutor-no-link",
+          icon: Video,
+          tone: "primary" as const,
+          title: t("dashboardPageExtra.lessonsWithoutLink", { count: lessonsWithoutMeeting }),
+          description: t("dashboardExtra.noMeetingLinkDesc"),
+          to: "/schedule?view=list&filter=nolink",
+          cta: t("dashboardExtra.pendingLessonRequestsCta"),
+        });
+      }
+      // Порожній розклад — немає жодного запланованого уроку
+      const hasUpcoming = lessons.some((l) => l.status === "scheduled" && new Date(l.starts_at).getTime() > nowMs);
+      if (!hasUpcoming && lessons.length > 0) {
+        tasks.push({
+          key: "tutor-no-upcoming",
+          icon: CalendarPlus,
+          tone: "primary" as const,
+          title: t("dashboardExtra.tutorNoUpcomingTitle"),
+          description: t("dashboardExtra.tutorNoUpcomingDesc"),
+          to: "/schedule?create=1",
+          cta: t("dashboardExtra.tutorNoUpcomingCta"),
+        });
+      }
+    }
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
       if (!isPayoutDueToday(sch)) return;
@@ -1311,6 +1355,8 @@ export default function DashboardPage() {
     return tasks;
   }, [
     isManager,
+    isTutor,
+    isIndependentTutor,
     payoutSchedules,
     lessons,
     moneyLessons,
