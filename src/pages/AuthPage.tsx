@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { appOrigin } from "@/lib/webOrigin";
 import { BUILD_TAG } from "@/lib/buildInfo";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -594,6 +595,8 @@ export default function AuthPage() {
   }
 
   return (
+    <>
+      <OfflineBanner />
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0", paddingBottom: "calc(2rem + var(--cookie-banner-h, 0px))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-between gap-2">
@@ -837,5 +840,6 @@ export default function AuthPage() {
       </div>
       <p className="mt-6 text-center text-[13px]" style={{ color: "var(--sub,#6b7088)", opacity: .6 }}>{BUILD_TAG}</p>
       </div>
+    </>
   );
 }

@@ -31,13 +31,18 @@ Deno.serve(async (req) => {
 
     // Маппінг подій RevenueCat → наш статус.
     const ACTIVE = ['INITIAL_PURCHASE', 'RENEWAL', 'UNCANCELLATION', 'PRODUCT_CHANGE'];
-    const ENDED = ['CANCELLATION', 'EXPIRATION', 'SUBSCRIPTION_PAUSED'];
+    const ENDED = ['EXPIRATION'];
+    // CANCELLATION/PAUSED = лише вимкнене автопоновлення: доступ ДІЄ до кінця
+    // сплаченого періоду; фіксуємо subscription_until, статус не чіпаємо —
+    // добовий expire_lapsed_subscriptions зніме Pro рівно в expiration_at_ms.
+    const KEEP_ACCESS = ['CANCELLATION', 'SUBSCRIPTION_PAUSED'];
     const PAST_DUE = ['BILLING_ISSUE'];
 
     let status: string | null = null;
     if (ACTIVE.includes(type)) status = 'active';
     else if (PAST_DUE.includes(type)) status = 'past_due';
     else if (ENDED.includes(type)) status = 'cancelled';
+    else if (KEEP_ACCESS.includes(type)) status = 'keep';
 
     // Події без зміни статусу (TEST, TRANSFER тощо) — підтверджуємо й виходимо.
     if (!status) {
@@ -49,7 +54,17 @@ Deno.serve(async (req) => {
     // RevenueCat app_user_id). There is NO user_id column, so the old .eq('user_id')
     // filter matched zero rows and silently failed to revoke — keeping users Pro after
     // a cancellation/expiration. Mirror the LiqPay callback, which uses tutor_id.
-    const update: Record<string, unknown> = { subscription_status: status };
+    const update: Record<string, unknown> =
+      status === 'keep' ? {} : { subscription_status: status };
+    if (status === 'keep') {
+      const expMs: unknown = event.expiration_at_ms;
+      if (typeof expMs === 'number' && expMs > 0) {
+        update.subscription_until = new Date(expMs).toISOString();
+      } else {
+        // Немає дати кінця — нема чого фіксувати; підтверджуємо і виходимо.
+        return new Response(JSON.stringify({ ok: true, noted: type }), { status: 200 });
+      }
+    }
     if (status === 'active') {
       // CRITICAL: persist an expiry so the daily expire_lapsed_subscriptions cron is a
       // real safety net for IAP too. Without subscription_until, an 'active' row is

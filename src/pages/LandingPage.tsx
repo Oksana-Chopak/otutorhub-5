@@ -1,4 +1,5 @@
 import "@/styles/landing-fonts.css";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { isNativeApp } from "@/lib/platform";
 import { openExternal } from "@/lib/openExternal";
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -693,6 +694,8 @@ export default function LandingPage() {
   ]), [displayedPersonaId, t]);
 
   return (
+    <>
+      <OfflineBanner />
     <div className="landing-root" onClickCapture={stopPersonaRotation}>
       <style>{landingStyles}</style>
 
@@ -951,5 +954,6 @@ export default function LandingPage() {
         <span className="hidden sm:inline">Telegram</span>
       </a>
     </div>
+    </>
   );
 }

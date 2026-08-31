@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -61,6 +62,8 @@ export default function JoinPage() {
   const referrerName = referrer ? `${referrer.first_name} ${referrer.last_name}`.trim() : t("join.defaultName");
 
   return (
+    <>
+      <OfflineBanner />
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-primary/10 via-background to-primary/5 px-4 py-8">
       <Card className="w-full max-w-md overflow-hidden rounded-[20px] shadow-xl border-0">
         <div className="rounded-t-[20px] p-6 text-white" style={{background:"linear-gradient(135deg,#0f0f1a 0%,#1a1a3e 100%)"}}>
@@ -99,5 +102,6 @@ export default function JoinPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   );
 }

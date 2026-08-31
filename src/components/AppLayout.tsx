@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+import { useSyncLanguage } from "@/hooks/useSyncLanguage";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -43,6 +44,7 @@ const routeTitleKey: Record<string, string> = {
 };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  useSyncLanguage();
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const titleKey = routeTitleKey[pathname];

@@ -48,6 +48,39 @@ function escapeHtml(value: unknown): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+// ── i18n сповіщень: мова одержувача з profiles.preferred_language ──
+const RLOC: Record<string, string> = { uk: "uk-UA", en: "en-GB", sv: "sv-SE" };
+const RSYM: Record<string, string> = { UAH: "₴", USD: "$", EUR: "€", GBP: "£", SEK: "kr", PLN: "zł" };
+const rsym = (c?: string | null) => RSYM[c ?? "UAH"] ?? (c ?? "₴");
+const RT = {
+  uk: {
+    header: "💳 Нагадування про оплату", tutor: "репетитор", sum: "Сума", subj: "Предмет",
+    prepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній урок (${d}) з ${t}.`,
+    before: (d: string, t: string, n: number) => `Нагадуємо про оплату уроку ${d} з ${t}. До початку залишилось ~${n} ${n === 1 ? "день" : "днів"}.`,
+    after: (d: string, t: string) => `Дякуємо за урок ${d} з ${t}! Час оплатити заняття.`,
+    gPrepaid: (d: string, t: string) => `Нагадуємо про передоплату за майбутній груповий урок (${d}) з ${t}.`,
+    gPay: (d: string, t: string) => `Груповий урок ${d} з ${t} — час оплатити заняття.`,
+  },
+  en: {
+    header: "💳 Payment reminder", tutor: "your tutor", sum: "Amount", subj: "Subject",
+    prepaid: (d: string, t: string) => `A prepayment reminder for the upcoming lesson (${d}) with ${t}.`,
+    before: (d: string, t: string, n: number) => `Payment reminder for the lesson ${d} with ${t}. ~${n} ${n === 1 ? "day" : "days"} to go.`,
+    after: (d: string, t: string) => `Thanks for the lesson ${d} with ${t}! Time to pay for it.`,
+    gPrepaid: (d: string, t: string) => `A prepayment reminder for the upcoming group lesson (${d}) with ${t}.`,
+    gPay: (d: string, t: string) => `Group lesson ${d} with ${t} — time to pay.`,
+  },
+  sv: {
+    header: "💳 Betalningspåminnelse", tutor: "din lärare", sum: "Belopp", subj: "Ämne",
+    prepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande lektion (${d}) med ${t}.`,
+    before: (d: string, t: string, n: number) => `Betalningspåminnelse för lektionen ${d} med ${t}. ~${n} ${n === 1 ? "dag" : "dagar"} kvar.`,
+    after: (d: string, t: string) => `Tack för lektionen ${d} med ${t}! Dags att betala.`,
+    gPrepaid: (d: string, t: string) => `Påminnelse om förskottsbetalning för kommande grupplektion (${d}) med ${t}.`,
+    gPay: (d: string, t: string) => `Grupplektion ${d} med ${t} — dags att betala.`,
+  },
+} as const;
+type RtLang = keyof typeof RT;
+
 Deno.serve(async (req) => {
   const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -62,6 +95,12 @@ Deno.serve(async (req) => {
   const { data: expected } = await supabase.rpc("get_cron_shared_secret");
   if (!provided || !expected || provided !== expected) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+  }
+
+  // B5: нічний спокій — 09:00–21:00 за Києвом; cron лишається щогодинним.
+  const kyivHour = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hour12: false, timeZone: "Europe/Kyiv" }).format(new Date()));
+  if (kyivHour < 9 || kyivHour >= 21) {
+    return new Response(JSON.stringify({ ok: true, skipped: "night", kyivHour }), { status: 200, headers: { "Content-Type": "application/json" } });
   }
   const now = new Date();
 
@@ -114,6 +153,20 @@ Deno.serve(async (req) => {
     .in("user_id", studentIds)
     .not("chat_id", "is", null);
   const chatByUser = new Map<string, number>();
+  // B8: мова кожного одержувача (default uk) — одним запитом.
+  const allRecipientIds = [...new Set([
+    ...(lessons ?? []).map((l: { student_id?: string | null }) => l.student_id).filter(Boolean),
+    ...(gParts ?? []).map((p: { student_id: string }) => p.student_id),
+  ])] as string[];
+  const langByUser = new Map<string, RtLang>();
+  if (allRecipientIds.length) {
+    const { data: langRows } = await supabase.from("profiles").select("id, preferred_language").in("id", allRecipientIds);
+    for (const r of langRows ?? []) {
+      const v = (r as { preferred_language?: string }).preferred_language;
+      langByUser.set((r as { id: string }).id, v === "en" ? "en" : v === "sv" ? "sv" : "uk");
+    }
+  }
+  const rlang = (id: string): RtLang => langByUser.get(id) ?? "uk";
   for (const link of tgLinks ?? []) {
     if (link.chat_id) chatByUser.set(link.user_id, Number(link.chat_id));
   }
@@ -207,34 +260,31 @@ Deno.serve(async (req) => {
     }
 
     // Compose message
-    const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", {
+    const lang = rlang(lesson.student_id);
+    const T = RT[lang];
+    const cur = rsym((lesson as { currency?: string | null }).currency);
+    const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], {
       timeZone: "Europe/Kyiv",
       day: "2-digit",
       month: "long",
       hour: "2-digit",
       minute: "2-digit",
     });
-    const tname = tutorName.get(lesson.tutor_id) ?? "репетитор";
+    const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
     const price = Number(lesson.student_price ?? 0);
-    let header = "💳 Нагадування про оплату";
+    const header = T.header;
     let body = "";
-    if (mode === "prepaid") {
-      body = `Нагадуємо про передоплату за майбутній урок (${dateStr}) з ${tname}.`;
-    } else if (mode === "before_lesson") {
-      body = `Нагадуємо про оплату уроку ${dateStr} з ${tname}. До початку залишилось ~${days} ${
-        days === 1 ? "день" : "днів"
-      }.`;
-    } else {
-      body = `Дякуємо за урок ${dateStr} з ${tname}! Час оплатити заняття.`;
-    }
-    const priceLine = price > 0 ? `\n\nСума: <b>${price} ₴</b>` : "";
-    const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
+    if (mode === "prepaid") body = T.prepaid(dateStr, tname);
+    else if (mode === "before_lesson") body = T.before(dateStr, tname, days);
+    else body = T.after(dateStr, tname);
+    const priceLine = price > 0 ? `\n\n${T.sum}: <b>${price} ${cur}</b>` : "";
+    const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}`;
 
     const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
     const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
       userId: lesson.student_id,
       title: header,
-      body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+      body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
       link: "/student/payments",
       tag: `payrem-${lesson.id}`,
     });
@@ -246,7 +296,7 @@ Deno.serve(async (req) => {
       user_id: lesson.student_id,
       type: "payment_reminder",
       title: header,
-      body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+      body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
       link: "/student/payments",
     });
 
@@ -325,22 +375,23 @@ Deno.serve(async (req) => {
       if (triggerTimeMs > nowMs || nowMs - triggerTimeMs > 2 * DAY_MS) { skipped++; continue; }
       if (gSentSet.has(`${lesson.id}:${p.student_id}:${reminderKind}`)) { skipped++; continue; }
 
-      const dateStr = new Date(lesson.starts_at).toLocaleString("uk-UA", { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
-      const tname = tutorName.get(lesson.tutor_id) ?? "репетитор";
+      const lang = rlang(p.student_id);
+      const T = RT[lang];
+      const cur = rsym((lesson as { currency?: string | null }).currency);
+      const dateStr = new Date(lesson.starts_at).toLocaleString(RLOC[lang], { timeZone: "Europe/Kyiv", day: "2-digit", month: "long", hour: "2-digit", minute: "2-digit" });
+      const tname = tutorName.get(lesson.tutor_id) ?? T.tutor;
       const price = Number(p.student_price ?? 0);
-      const header = "💳 Нагадування про оплату";
-      const body = mode === "prepaid"
-        ? `Нагадуємо про передоплату за майбутній груповий урок (${dateStr}) з ${tname}.`
-        : `Груповий урок ${dateStr} з ${tname} — час оплатити заняття.`;
-      const priceLine = price > 0 ? `\n\nСума: <b>${price} ₴</b>` : "";
-      const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\nПредмет: ${escapeHtml(lesson.subject)}`;
+      const header = T.header;
+      const body = mode === "prepaid" ? T.gPrepaid(dateStr, tname) : T.gPay(dateStr, tname);
+      const priceLine = price > 0 ? `\n\n${T.sum}: <b>${price} ${cur}</b>` : "";
+      const text = `${header}\n\n${escapeHtml(body)}${priceLine}\n\n${T.subj}: ${escapeHtml(lesson.subject)}`;
 
       const chatId = chatByUser.get(p.student_id);
       const tgOk = chatId ? await sendTg(TELEGRAM_BOT_TOKEN, chatId, text) : false;
       const pushOk = await sendWebPush(supabaseUrl, serviceKey, {
         userId: p.student_id,
         title: header,
-        body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+        body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
         link: "/student/payments",
         tag: `payrem-${lesson.id}-${p.student_id}`,
       });
@@ -349,7 +400,7 @@ Deno.serve(async (req) => {
         user_id: p.student_id,
         type: "payment_reminder",
         title: header,
-        body: `${body}${price > 0 ? ` Сума: ${price} ₴.` : ""}`,
+        body: `${body}${price > 0 ? ` ${T.sum}: ${price} ${cur}.` : ""}`,
         link: "/student/payments",
       });
       await supabase.from("lesson_payment_reminders").insert({

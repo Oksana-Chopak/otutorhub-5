@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -97,6 +98,8 @@ export default function ResetPasswordPage() {
   };
 
   return (
+    <>
+      <OfflineBanner />
     <div className="flex min-h-screen items-center justify-center px-4 py-8" style={{ background: "#F5F4F0" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 flex items-center justify-center gap-2">
@@ -153,5 +156,6 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
     </div>
+    </>
   );
 }

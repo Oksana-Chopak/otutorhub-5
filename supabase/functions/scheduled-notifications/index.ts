@@ -59,13 +59,15 @@ Deno.serve(async (req) => {
   // ── Deduplication helper ────────────────────────────────────────────────
   async function upsertNotif(userId: string, type: string, title: string, body_: string, link: string, dedupeMs = 24 * 60 * 60 * 1000) {
     const since = new Date(Date.now() - dedupeMs).toISOString();
-    const { data: existing } = await db
+    const { data: existing, error: exErr } = await db
       .from("notifications")
       .select("id")
       .eq("user_id", userId)
       .eq("type", type)
       .gte("created_at", since)
+      .limit(1)               // два записи у вікні = PostgREST-помилка без цього
       .maybeSingle();
+    if (exErr) { console.error("dedupe check failed", type, exErr); return; } // наосліп не плодимо
     if (existing) return;
     await db.from("notifications").insert({ user_id: userId, type, title, body: body_, link });
   }
