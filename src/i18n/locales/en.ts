@@ -493,7 +493,8 @@ export const en: LocaleTranslations = {
       pro5: "Group sessions", pro6: "Google Calendar sync",
       pro7: "Unlimited students & sessions",
       proCta: "30 days free →", proNote: "No card required. Cancel anytime.",
-    },
+    
+      ctaNative: "Try for free",},
     footer: {
       app: "App",
       terms: "Terms of service",
@@ -1319,7 +1320,11 @@ export const en: LocaleTranslations = {
     restoreDone: "Purchases restored",
     restoreNone: "No active purchases found",
     restoreFailed: "Restore failed",
-  },
+  
+
+    activating: "Payment received — activating Pro…",
+
+    activationPending: "Payment done. Activation can take up to a minute — Pro will switch on by itself",},
   feedbackInbox: {
     category_bug: "Bug",
     category_idea: "Idea",
@@ -1529,7 +1534,9 @@ export const en: LocaleTranslations = {
     day_one: "{{count}} day",
     day_few: "{{count}} days",
     day_other: "{{count}} days",
-  },
+  
+
+    connectProNative: "Get Pro",},
 
   studentNav: {
     dashboard: "Home",
@@ -3217,7 +3224,8 @@ export const en: LocaleTranslations = {
     contactManager: "Contact manager",
     yourRequest: "Your subscription request",
     payBtn: "Proceed to payment",
-  },
+  
+    playStoreNote: "Billed via Google Play · auto-renews, cancel in Google Play → Subscriptions",},
   subscriptionDialog: {
     yearlyPlan: "Plan: yearly — {{perMonth}}/mo ({{total}} one-off)",
     monthlyPlan: "Plan: subscription monthly — {{price}} /mo",

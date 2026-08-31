@@ -1,4 +1,5 @@
 import "@/styles/landing-fonts.css";
+import { isNativeApp } from "@/lib/platform";
 import { openExternal } from "@/lib/openExternal";
 import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -528,6 +529,7 @@ export default function LandingPage() {
   const { t, i18n } = useTranslation();
   // Тарифи в USD (рішення власниці, 10.08): Founding $5 · Regular $7 · Enterprise на запит.
   // Річна оплата = −15%: 5*12*0.85=51, 7*12*0.85=71.4 → $71 (знижка ≥15%).
+  const native = isNativeApp(); // М1: Play забороняє чужі прайси цифрових підписок
   const PRICES = { founding: "$5", foundingY: "$51", regular: "$7", regularY: "$71" };
   const [quizOpen, setQuizOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -829,6 +831,7 @@ export default function LandingPage() {
       />
 
       {/* PRICING */}
+      {!native && (
       <section className="l-section section-alt" id="pricing">
         <div className="section-inner" style={{ textAlign: "center" }}>
           <div className="section-label">{t("landing.pricing.label")}</div>
@@ -847,7 +850,7 @@ export default function LandingPage() {
                 <li>✓ {t("landing.pricing.pro2")}</li>
                 <li>✓ {t("landing.pricing.pro3")}</li>
               </ul>
-              <Link to={signupHref} className="price-cta">{t("landing.pricing.foundingCta")}</Link>
+              <Link to={signupHref} className="price-cta">{t(native ? "landing.pricing.ctaNative" : "landing.pricing.foundingCta")}</Link>
               <div className="price-note">{t("landing.pricing.foundingNote")}</div>
             </div>
 
@@ -886,6 +889,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* FINAL CTA */}
       <section className="cta-section">

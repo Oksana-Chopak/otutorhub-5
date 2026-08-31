@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { appOrigin } from "@/lib/webOrigin";
 import { BUILD_TAG } from "@/lib/buildInfo";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation, Trans } from "react-i18next";
@@ -387,7 +388,7 @@ export default function AuthPage() {
     }
     setResetSending(true);
     const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${appOrigin()}/reset-password`,
     });
     setResetSending(false);
     if (error) {
@@ -451,7 +452,7 @@ export default function AuthPage() {
       email: parsed.data.email,
       password: parsed.data.password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
+        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(parsed.data.email)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
         data: {
           first_name: parsed.data.firstName,
           last_name: parsed.data.lastName,
@@ -526,7 +527,7 @@ export default function AuthPage() {
       type: "signup",
       email: target,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth?confirmed=1&email=${encodeURIComponent(target)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
+        emailRedirectTo: `${appOrigin()}/auth?confirmed=1&email=${encodeURIComponent(target)}${nextPath !== "/" ? `&next=${encodeURIComponent(nextPath)}` : ""}`,
       },
     });
     toast(

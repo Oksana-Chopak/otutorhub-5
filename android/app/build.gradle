@@ -40,8 +40,12 @@ android {
     }
     buildTypes {
         release {
-            // Only sign with the release key when key.properties is present.
-            signingConfig hasKeystore ? signingConfigs.release : null
+            // М7: непідписаний .aab Play відхиляє незрозумілою помилкою —
+            // падаємо ГОЛОСНО ще на збірці (див. docs/ANDROID-RELEASE.md).
+            if (!hasKeystore) {
+                throw new GradleException("android/key.properties відсутній — release МУСИТЬ бути підписаний. Інструкція: docs/ANDROID-RELEASE.md")
+            }
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

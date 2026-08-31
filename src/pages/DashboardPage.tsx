@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { isNativeApp } from "@/lib/platform";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { maybeAutoStartFireflies } from "@/lib/aiNotes";
@@ -1394,7 +1395,7 @@ export default function DashboardPage() {
                   <Sparkles className="h-4 w-4 shrink-0" style={{ color: trialDaysLeft <= 3 ? "#f59e0b" : "#2BBFAA" }} />
                   {t("trial.remaining")}{" "}
                   <strong>{t("trial.day", { count: trialDaysLeft })}</strong>
-                  <span className="hidden sm:inline">{" "}· {t("trial.connectPro")} →</span>
+                  <span className="hidden sm:inline">{" "}· {t(isNativeApp() ? "trial.connectProNative" : "trial.connectPro")} →</span>
                   <span className="sm:hidden">{" "}→</span>
                 </Link>
               )}

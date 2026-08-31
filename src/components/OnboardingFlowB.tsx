@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { appOrigin } from "@/lib/webOrigin";
 import { formatPrice, currencySymbol } from "@/lib/currency";
 import { logEvent } from "@/lib/analytics";
 import { DateField, TimeField } from "@/components/DateTimeField";
@@ -901,11 +902,11 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
     if (!user) return;
     (supabase.from("referral_codes") as any).select("code").eq("tutor_id", user.id).limit(1)
       .then(async ({ data }: any) => {
-        if (data?.[0]?.code) { setLink(`${window.location.origin}/join/${data[0].code}`); return; }
+        if (data?.[0]?.code) { setLink(`${appOrigin()}/join/${data[0].code}`); return; }
         // A4: коду ще нема — генеруємо RPC-ом (як MyReferralsPage), бо голий
         // /join — неіснуючий маршрут: «Копіювати» роздавав 404-лінк.
         const { data: newCode } = await supabase.rpc("generate_referral_code", { _tutor_id: user.id });
-        if (newCode) setLink(`${window.location.origin}/join/${newCode}`);
+        if (newCode) setLink(`${appOrigin()}/join/${newCode}`);
       });
   }, [user?.id]);
 

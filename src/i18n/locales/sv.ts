@@ -1153,7 +1153,8 @@ export const sv: LocaleTranslations = {
       pro5: "Grupplektioner", pro6: "Google Kalender-synk",
       pro7: "Obegränsat antal elever och lektioner",
       proCta: "30 dagar gratis →", proNote: "Inget kort krävs. Avbryt när som helst.",
-    },
+    
+      ctaNative: "Prova gratis",},
     footer: {
       app: "Appen",
       terms: "Användarvillkor",
@@ -1306,7 +1307,11 @@ export const sv: LocaleTranslations = {
     restoreDone: "Köp återställda",
     restoreNone: "Inga aktiva köp hittades",
     restoreFailed: "Återställning misslyckades",
-  },
+  
+
+    activating: "Betalning mottagen — aktiverar Pro…",
+
+    activationPending: "Betalningen är klar. Aktiveringen kan ta upp till en minut — Pro slås på själv",},
   feedbackInbox: {
     category_bug: "Fel",
     category_idea: "Idé",
@@ -1516,7 +1521,9 @@ export const sv: LocaleTranslations = {
     day_one: "{{count}} dag",
     day_few: "{{count}} dagar",
     day_other: "{{count}} dagar",
-  },
+  
+
+    connectProNative: "Skaffa Pro",},
 
   studentNav: {
     dashboard: "Hem",
@@ -3204,7 +3211,8 @@ export const sv: LocaleTranslations = {
     contactManager: "Kontakta manager",
     yourRequest: "Din prenumerationsförfrågan",
     payBtn: "Gå till betalning",
-  },
+  
+    playStoreNote: "Betalas via Google Play · autoförnyas, avsluta i Google Play → Prenumerationer",},
   subscriptionDialog: {
     yearlyPlan: "Plan: årsvis — {{perMonth}}/mån ({{total}} engångs)",
     monthlyPlan: "Plan: prenumeration månadsvis — {{price}} /mån",

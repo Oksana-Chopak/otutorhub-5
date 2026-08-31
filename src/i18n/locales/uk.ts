@@ -493,7 +493,8 @@ export const uk = {
       pro5: "Групові заняття", pro6: "Google Calendar sync",
       pro7: "Безліміт учнів і уроків",
       proCta: "30 днів безкоштовно →", proNote: "Без картки. Скасування в один клік.",
-    },
+    
+      ctaNative: "Спробувати безкоштовно",},
     footer: {
       app: "Застосунок",
       terms: "Договір оферти",
@@ -1319,7 +1320,11 @@ export const uk = {
     restoreDone: "Покупки відновлено",
     restoreNone: "Активних покупок не знайдено",
     restoreFailed: "Не вдалося відновити",
-  },
+  
+
+    activating: "Оплату отримано — вмикаємо Pro…",
+
+    activationPending: "Оплата пройшла. Активація триває до хвилини — Pro увімкнеться сам",},
   feedbackInbox: {
     category_bug: "Помилка",
     category_idea: "Ідея",
@@ -1530,7 +1535,9 @@ export const uk = {
     day_one: "{{count}} день",
     day_few: "{{count}} дні",
     day_many: "{{count}} днів",
-  },
+  
+
+    connectProNative: "Підключити Pro",},
 
   studentNav: {
     dashboard: "Кабінет",
@@ -3214,7 +3221,8 @@ export const uk = {
     contactManager: "Написати менеджеру",
     yourRequest: "Ваш запит на підписку",
     payBtn: "Перейти до оплати",
-  },
+  
+    playStoreNote: "Оплата через Google Play · автоподовження, скасування: Google Play → Підписки",},
   subscriptionDialog: {
     yearlyPlan: "Тариф: річний — {{perMonth}}/міс ({{total}} разово)",
     monthlyPlan: "Тариф: підписку місячний — {{price}}/міс",

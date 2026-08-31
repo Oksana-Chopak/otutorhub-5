@@ -9,6 +9,10 @@ const config: CapacitorConfig = {
   appId: "ua.otutorhub.app",
   appName: "oTutorHub",
   webDir: "dist",
+  server: {
+    androidScheme: "https",
+    hostname: "otutorhub.com", // М5: інакше origin WebView = https://localhost і email-редіректи мертві
+  },
   backgroundColor: "#F5F4F0",
   android: {
     allowMixedContent: false,

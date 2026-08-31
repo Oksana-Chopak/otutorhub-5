@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { logEvent } from "@/lib/analytics";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { isNativeApp } from "@/lib/platform";
+import { isNativeApp, isIosApp } from "@/lib/platform";
 import { configureIap, getIapOffer, purchaseIap, restoreIap, type IapOffer } from "@/lib/iap";
 import { useToast } from "@/hooks/use-toast";
 import { AppLayout } from "@/components/AppLayout";
@@ -109,7 +109,10 @@ export default function SubscriptionPage() {
     trialDaysLeft,
     refresh,
   } = useWorkspaceSettings();
-  // CRM-воронка: перший перехід у active — один раз, від імені самого тьютора
+  // CRM-воронка: перший перехід у active — один раз, від імені самого тьютора.
+  // ⚠️ Дедуп через localStorage — НЕНАДІЙНИЙ в обидва боки (інший пристрій ⇒ дубль;
+  // не відкрив сторінку ⇒ тиша). Подія — лише фарба таймлайну картки репетитора.
+  // ЖОДНОЇ звітності на ній: воронка рахує «Платять» із subscription_status=active.
   // (менеджерський approve не може вставити подію за нього — RLS insert-own).
   const proActive = (settings as any)?.subscription_status === "active";
   useEffect(() => {
@@ -161,13 +164,30 @@ export default function SubscriptionPage() {
     return () => { alive = false; };
   }, [nativeApp, user]);
 
+
+  // М4: subscription_status пише ЛИШЕ вебхук — чекаємо його, а не віримо клієнту.
+  const waitForActive = async (): Promise<boolean> => {
+    for (let i = 0; i < 15; i++) {
+      const { data } = await supabase.from("tutor_workspace_settings")
+        .select("subscription_status").eq("tutor_id", user!.id).maybeSingle();
+      if ((data as { subscription_status?: string } | null)?.subscription_status === "active") {
+        await refresh?.();
+        return true;
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    return false;
+  };
+
   const handleIapPurchase = async () => {
     setIapBusy("buy");
     try {
       const ok = await purchaseIap(billing === "halfyear" ? "yearly" : billing);
       if (ok) {
-        toast({ title: t("iap.purchaseDone"), description: t("iap.purchaseDoneDesc") });
-        await refresh?.();
+        toast({ title: t("iap.activating") });
+        const active = await waitForActive();
+        if (active) toast({ title: t("iap.purchaseDone"), description: t("iap.purchaseDoneDesc") });
+        else toast({ title: t("iap.activationPending") });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -182,8 +202,12 @@ export default function SubscriptionPage() {
     setIapBusy("restore");
     try {
       const ok = await restoreIap();
-      toast({ title: ok ? t("iap.restoreDone") : t("iap.restoreNone") });
-      if (ok) await refresh?.();
+      if (!ok) { toast({ title: t("iap.restoreNone") }); }
+      else {
+        toast({ title: t("iap.activating") });
+        const active = await waitForActive();
+        toast({ title: active ? t("iap.restoreDone") : t("iap.activationPending") });
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       toast({ title: t("iap.restoreFailed"), description: msg, variant: "destructive" });
@@ -424,7 +448,7 @@ export default function SubscriptionPage() {
                 {t("subscriptionPageExtra.restorePurchases")}
               </button>
               <div style={{ fontSize: 14, color: S.muted, textAlign: "center", marginTop: 8, lineHeight: 1.45 }}>
-                {t("subscriptionPageExtra.appStoreNote")}
+                {t(isIosApp() ? "subscriptionPageExtra.appStoreNote" : "subscriptionPageExtra.playStoreNote")}
               </div>
             </div>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isNativeApp } from "@/lib/platform";
 import { Link } from "react-router-dom";
 import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { useTranslation } from "react-i18next";
  * Becomes more urgent in the last 3 days.
  */
 export function TrialCountdownBanner() {
+  const native = isNativeApp();
   const { t } = useTranslation();
   const { isIndependent, isTrial, trialDaysLeft, trialUntil, isPro, settings } =
     useWorkspaceSettings();
@@ -43,7 +45,7 @@ export function TrialCountdownBanner() {
           </span>
           <Button size="sm" asChild className="rounded-full">
             <Link to="/subscription">
-              {t("trial.connectPro")}
+              {t(native ? "trial.connectProNative" : "trial.connectPro")}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Button>
@@ -75,7 +77,7 @@ export function TrialCountdownBanner() {
           className="rounded-full"
         >
           <Link to="/subscription">
-            {t("trial.connectPro")}
+            {t(native ? "trial.connectProNative" : "trial.connectPro")}
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </Button>

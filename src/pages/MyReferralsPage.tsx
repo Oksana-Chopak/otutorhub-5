@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { appOrigin } from "@/lib/webOrigin";
 import { canSee } from "@/lib/roleCapabilities";
 import { formatPrice } from "@/lib/currency";
 import { Navigate } from "react-router-dom";
@@ -155,7 +156,7 @@ export default function MyReferralsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, year, month, wsLoading, blockedNonIndependent]);
 
-  const link = code ? `${window.location.origin}/join/${code}` : "";
+  const link = code ? `${appOrigin()}/join/${code}` : "";
   const linkLabel = code ? `${window.location.host}/join/${code}` : "";
   const proUpgrades = referrals.filter((r) => r.upgraded_to_pro_at).length;
   const monthly = useMemo(
