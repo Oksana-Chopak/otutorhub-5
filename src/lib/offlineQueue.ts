@@ -15,6 +15,9 @@ export type OfflineQueueItem =
   | { id: string; ts: number; kind: "lesson_status"; lessonId: string; status: string }
   | { id: string; ts: number; kind: "chat_message"; threadId: string; senderId: string; body: string };
 
+type DistributeOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
+export type OfflineQueueItemInput = DistributeOmit<OfflineQueueItem, "id" | "ts">;
+
 const KEY = "otutorhub.offlineQueue.v1";
 const listeners = new Set<(n: number) => void>();
 let flushing = false;
@@ -58,7 +61,7 @@ function toastQueued() {
   toast.info(i18n.t("offline.queuedToast", { count: read().length }));
 }
 
-export function enqueue(item: Omit<OfflineQueueItem, "id" | "ts">) {
+export function enqueue(item: OfflineQueueItemInput) {
   const items = read();
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto

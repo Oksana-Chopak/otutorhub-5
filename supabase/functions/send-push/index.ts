@@ -56,10 +56,10 @@ async function vapidToken(audience: string): Promise<string> {
 
 // HKDF using SHA-256
 async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const ikmKey = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
-  const prk = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info: new Uint8Array(0) }, ikmKey, 256);
-  const prkKey = await crypto.subtle.importKey("raw", prk, "HKDF", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info }, prkKey, length * 8);
+  const ikmKey = await crypto.subtle.importKey("raw", ikm as any, "HKDF", false, ["deriveBits"]);
+  const prk = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: salt as any, info: new Uint8Array(0) as any }, ikmKey, 256);
+  const prkKey = await crypto.subtle.importKey("raw", prk as any, "HKDF", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0) as any, info: info as any }, prkKey, length * 8);
   return new Uint8Array(bits);
 }
 
@@ -74,7 +74,7 @@ async function encryptPayload(
 
   // Import client public key
   const clientPub = await crypto.subtle.importKey(
-    "raw", b64urlDecode(p256dh), { name: "ECDH", namedCurve: "P-256" }, false, [],
+    "raw", b64urlDecode(p256dh) as any, { name: "ECDH", namedCurve: "P-256" }, false, [],
   );
 
   // ECDH shared secret
@@ -103,10 +103,10 @@ async function encryptPayload(
   const cek   = await hkdf(prkKey, salt, concat(keyInfo, context), 16);
   const nonce = await hkdf(prkKey, salt, concat(nonceInfo, context), 12);
 
-  const aesKey = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
+  const aesKey = await crypto.subtle.importKey("raw", cek as any, "AES-GCM", false, ["encrypt"]);
   // Pad plaintext: record size = 4096, add delimiter 0x02
   const padded = concat(plaintext, new Uint8Array([2]));
-  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded);
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce as any }, aesKey, padded as any);
 
   // Build aes128gcm content-encoding header: salt(16) + rs(4) + keyid_len(1) + keyid(65)
   const rs = new Uint8Array(4);
@@ -178,7 +178,7 @@ async function fcmMintToken(sa: { client_email: string; private_key: string; tok
     exp: nowSec + 3600,
   })));
   const key = await crypto.subtle.importKey(
-    "pkcs8", fcmPemToPkcs8(sa.private_key),
+    "pkcs8", fcmPemToPkcs8(sa.private_key) as any,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"],
   );
   const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc.encode(`${head}.${claim}`));

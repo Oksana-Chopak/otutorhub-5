@@ -124,6 +124,10 @@ export default function ChatsPage() {
   const [msgLimit, setMsgLimit] = useState(50);
   const [hasMoreMsgs, setHasMoreMsgs] = useState(false);
   const [draft, setDraft] = useState("");
+  const selectedThread = useMemo(
+    () => threads.find((t) => t.id === selectedId) ?? null,
+    [threads, selectedId]
+  );
   // D (офлайн): недописане повідомлення переживає перезавантаження/краш.
   const chatDraftLocal = useLocalDraft(selectedThread ? `chat.${selectedThread.id}` : null, draft, setDraft);
   const [sending, setSending] = useState(false);
@@ -571,10 +575,6 @@ export default function ChatsPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedId) ?? null,
-    [threads, selectedId]
-  );
 
   const sendMessage = async () => {
     const text = draft.trim();

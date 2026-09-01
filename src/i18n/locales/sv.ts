@@ -920,7 +920,7 @@ export const sv: LocaleTranslations = {
     subjectNameTooLong: "Ämnesnamnet är för långt",
     subjectAlreadyExists: "Det här ämnet finns redan i listan",
     subjectsSaved: "Ämnen sparade",
-    subjectsSaveFailed: "Kunde inte spara ämnen",
+    
     groupScheduleAvail: "📅 Schema och tillgänglighet",
     groupAccount: "💼 Konto",
     groupStudentsRequests: "👥 Elever och förfrågningar",

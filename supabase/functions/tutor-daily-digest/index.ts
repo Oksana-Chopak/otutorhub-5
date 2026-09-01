@@ -146,8 +146,12 @@ Deno.serve(async (req) => {
     .in("status", ["completed", "scheduled", "cancelled"]);
   const BUILD_TAG = "v25.08-uxstep49";
   const nowMs = Date.now();
+  const detailOf = (l: any) => {
+    const d = l.lesson_details;
+    return Array.isArray(d) ? d[0] : d;
+  };
   const isStudentDebt = (l: any) => {
-    const d = l.lesson_details ?? {};
+    const d = detailOf(l) ?? {};
     if ((d.student_payment_status ?? "unpaid") !== "unpaid") return false;
     if (Number(d.student_price ?? 0) <= 0) return false;
     if (l.status === "cancelled") return d.is_cancellation_fee === true;
@@ -155,7 +159,7 @@ Deno.serve(async (req) => {
     return true; // completed АБО майбутній scheduled — передоплатна модель
   };
   const isPayoutDue = (l: any) => {
-    const d = l.lesson_details ?? {};
+    const d = detailOf(l) ?? {};
     if (l.group_id) return false;
     if (d.tutor_payout_status === "paid") return false;
     if (Number(d.tutor_payout ?? 0) <= 0) return false;
@@ -252,14 +256,14 @@ Deno.serve(async (req) => {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
             timeZone: TZ, hour: "2-digit", minute: "2-digit",
           });
-          const paid = l.lesson_details?.student_payment_status === "paid" ? " ✅" : "";
+          const paid = detailOf(l)?.student_payment_status === "paid" ? " ✅" : "";
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})${paid}`);
         }
       }
       const myDebts = new Map<string, number>();
       for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId)) {
         const prev = myDebts.get(l.student_id) ?? 0;
-        myDebts.set(l.student_id, prev + Number(l.lesson_details?.student_price ?? 0));
+        myDebts.set(l.student_id, prev + Number(detailOf(l)?.student_price ?? 0));
       }
       for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId)) {
         myDebts.set(r.student_id, (myDebts.get(r.student_id) ?? 0) + r.price);
