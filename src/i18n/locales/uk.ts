@@ -1171,7 +1171,7 @@ export const uk = {
     subjectNameTooLong: "Назва предмета занадто довга",
     subjectAlreadyExists: "Цей предмет вже є у списку",
     subjectsSaved: "Предмети збережено",
-    subjectsSaveFailed: "Не вдалося зберегти предмети",
+    
     groupScheduleAvail: "📅 Розклад і доступність",
     groupAccount: "💼 Аккаунт",
     groupStudentsRequests: "👥 Учні і запити",

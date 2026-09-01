@@ -1171,7 +1171,7 @@ export const en: LocaleTranslations = {
     subjectNameTooLong: "Subject name is too long",
     subjectAlreadyExists: "This subject is already in the list",
     subjectsSaved: "Subjects saved",
-    subjectsSaveFailed: "Could not save subjects",
+    
     groupScheduleAvail: "📅 Schedule & availability",
     groupAccount: "💼 Account",
     groupStudentsRequests: "👥 Students & requests",
