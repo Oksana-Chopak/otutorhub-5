@@ -605,6 +605,11 @@ export const sv: LocaleTranslations = {
     lessonsThisMonth: "Lektioner denna månad",
     cancellationsPre: "Avbokningar denna månad — förlorat",
     cancellationsPost: ".",
+    cancelRate90d: "Avbokningar på 90 dagar: {{count}} ({{pct}} % av alla lektioner).",
+    cancelTopStudent: "Oftast — {{name}} ({{count}}).",
+    bySubjectTitle: "Per ämne",
+    perHourShort: "≈ {{sum}}/tim",
+    bySubjectRow: "{{sum}} · lektioner: {{count}}",
     downloadCsv: "Ladda ner CSV",
     deletePrepayConfirmTitle: "Ta bort förskottsbetalning?",
     deletePrepayConfirmDesc: "Posten försvinner från historiken och plånbokssaldot räknas om automatiskt. Åtgärden kan inte ångras.",
@@ -2184,7 +2189,10 @@ export const sv: LocaleTranslations = {
 
     tutorNoUpcomingDesc: "Alla lektioner är klara. Dags att planera nya.",
 
-    tutorNoUpcomingCta: "Schemalägg en lektion",},
+    tutorNoUpcomingCta: "Schemalägg en lektion",
+    cancelStreakTitle: "{{name}}: tre avbokningar i rad",
+    cancelStreakDesc: "Något verkar vara fel. Bästa draget — skriv och fråga försiktigt vad som hänt.",
+    cancelStreakCta: "Skriv",},
   notifications: {
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",
@@ -3822,6 +3830,12 @@ export const sv: LocaleTranslations = {
     quietDesc: "Det händer. Här är eleverna du inte undervisat på ett tag — ett tryck för att komma igång igen:",
     quietAgo: "för {{count}} d sedan",
     quietCta: "Boka",
+  },
+  studentGoalCard: {
+    title: "Från elevens svar",
+  },
+  actionItemsCard: {
+    title: "Överenskommelser från lektioner",
   },
   walletsPageExtra: {
     studentCol: "Elev",

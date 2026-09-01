@@ -853,6 +853,11 @@ export const en: LocaleTranslations = {
     lessonsThisMonth: "Lessons this month",
     cancellationsPre: "Cancellations this month — lost",
     cancellationsPost: ".",
+    cancelRate90d: "Cancellations in 90 days: {{count}} ({{pct}}% of all lessons).",
+    cancelTopStudent: "Most often — {{name}} ({{count}}).",
+    bySubjectTitle: "By subject",
+    perHourShort: "≈ {{sum}}/hr",
+    bySubjectRow: "{{sum}} · lessons: {{count}}",
     downloadCsv: "Download CSV",
     deletePrepayConfirmTitle: "Delete prepayment?",
     deletePrepayConfirmDesc: "The entry will disappear from history and the wallet balance will be recalculated automatically. This action cannot be undone.",
@@ -2199,7 +2204,10 @@ export const en: LocaleTranslations = {
 
     tutorNoUpcomingDesc: "All lessons are done. Time to schedule new ones.",
 
-    tutorNoUpcomingCta: "Schedule a lesson",},
+    tutorNoUpcomingCta: "Schedule a lesson",
+    cancelStreakTitle: "{{name}}: three cancellations in a row",
+    cancelStreakDesc: "Something seems off. Best move — message them and gently ask what's going on.",
+    cancelStreakCta: "Message",},
   notifications: {
     title: "Notifications",
     markAllRead: "Mark all as read",
@@ -3837,6 +3845,12 @@ export const en: LocaleTranslations = {
     quietDesc: "It happens. Here's who you haven't taught in a while — one tap to get back on track:",
     quietAgo: "{{count}} d ago",
     quietCta: "Schedule",
+  },
+  studentGoalCard: {
+    title: "From the student's intake",
+  },
+  actionItemsCard: {
+    title: "Lesson agreements",
   },
   walletsPageExtra: {
     studentCol: "Student",

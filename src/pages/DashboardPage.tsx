@@ -37,6 +37,7 @@ import { useBadgeUnlockToasts } from "@/hooks/useBadgeUnlockToasts";
 import { LessonCard } from "@/components/LessonCard";
 import { AddFab } from "@/components/AddFab";
 import { TutorNotesCard } from "@/components/TutorNotesCard";
+import { ActionItemsCard } from "@/components/ActionItemsCard";
 import { StreakCard } from "@/components/StreakCard";
 
 import { RecordPaymentSheet, type PairOption, type UnpaidLessonOption } from "@/components/RecordPaymentSheet";
@@ -1260,6 +1261,31 @@ export default function DashboardPage() {
           cta: t("dashboardExtra.tutorNoUpcomingCta"),
         });
       }
+      // №9 (ідеї 01.09): три скасування поспіль — найважливіший сигнал
+      // у репетиторстві, і досі його не було видно ніде. Останні 3 минулі
+      // уроки пари (без pending) всі cancelled → задача «написати учневі».
+      const pastByStudent: Record<string, Array<{ ts: number; status: string }>> = {};
+      lessons.forEach((l) => {
+        if (!l.student_id) return; // групові — повз (нема одного «винного»)
+        const ts = new Date(l.starts_at).getTime();
+        if (ts > nowMs || l.status === "pending") return;
+        (pastByStudent[l.student_id] ??= []).push({ ts, status: l.status });
+      });
+      Object.entries(pastByStudent).forEach(([sid, arr]) => {
+        arr.sort((a, b) => b.ts - a.ts);
+        const last3 = arr.slice(0, 3);
+        if (last3.length === 3 && last3.every((x) => x.status === "cancelled")) {
+          tasks.push({
+            key: `cancel-streak-${sid}`,
+            icon: AlertTriangle,
+            tone: "destructive" as const,
+            title: t("dashboardExtra.cancelStreakTitle", { name: profiles[sid] ?? t("roles.student") }),
+            description: t("dashboardExtra.cancelStreakDesc"),
+            to: `/chats?with=${sid}`,
+            cta: t("dashboardExtra.cancelStreakCta"),
+          });
+        }
+      });
     }
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
@@ -1412,6 +1438,7 @@ export default function DashboardPage() {
     lessonsWithoutPrice,
     lessonsWithoutMeeting,
     pendingPayments.length,
+    profiles, // №9: імʼя учня в задачі про скасування
   ]);
 
   // №1 (ідеї 01.09): ОДНА картка розумної задачі для обох гілок (менеджер і
@@ -1768,8 +1795,11 @@ export default function DashboardPage() {
 
           {/* ── INDEPENDENT TUTOR: Notes always above lessons ── */}
           {isIndependentTutor && (
-            <div>
+            <div className="space-y-3">
               <TutorNotesCard />
+              {/* №11 (ідеї 01.09): домовленості з останніх уроків (Fireflies) —
+                  на дашборд, а не на три тапи вглиб. Лише репетиторська персона. */}
+              <ActionItemsCard onOpenLesson={(id) => setOpenLessonId(id)} />
             </div>
           )}
 
@@ -2136,6 +2166,9 @@ export default function DashboardPage() {
               {/* Notes — ALWAYS directly under the bubbles, nowhere else (hub tutor:
                   the payout card + these two stat tiles ARE the hub "bubbles"). */}
               <TutorNotesCard />
+
+              {/* №11: домовленості з уроків (Fireflies) — і хабовому репетитору */}
+              <ActionItemsCard onOpenLesson={(id) => setOpenLessonId(id)} />
 
               {/* «Pro активний — від хабу» — replaces any upsell for hub tutors. */}
               <div

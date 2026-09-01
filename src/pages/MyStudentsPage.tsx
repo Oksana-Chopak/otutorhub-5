@@ -54,6 +54,7 @@ import { SubjectComboBox } from "@/components/SubjectComboBox";
 import { toast } from "sonner";
 import { RatePropagationDialog } from "@/components/RatePropagationDialog";
 import { WalletDialog } from "@/components/WalletDialog";
+import { StudentGoalCard } from "@/components/StudentGoalCard";
 import { ChatThreadDialog } from "@/components/ChatThreadDialog";
 import { safeHref, sanitizeHttpUrl } from "@/lib/safeUrl";
 import { QuickLessonDialog } from "@/components/QuickLessonDialog";
@@ -926,6 +927,10 @@ export default function MyStudentsPage() {
                       </button>
                     </div>
                   )}
+
+                  {/* №6 (ідеї 01.09): що учень розповів у квізі — мета, рівень,
+                      зручний час. Рендерить null, якщо квіза немає. */}
+                  <StudentGoalCard studentId={s.id} />
 
                   {/* Історія уроків: конспекти нарешті видно прямо з картки. */}
                   <button onClick={() => void loadHistory(s.id)}

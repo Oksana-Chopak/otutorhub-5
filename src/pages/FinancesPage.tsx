@@ -90,6 +90,8 @@ interface LessonRow {
   tutor_paid_at: string | null;
   /** Cancelled lesson whose price is a withheld cancellation fee (billable). */
   is_cancellation_fee?: boolean;
+  /** №8 (ідеї 01.09): для «₴/год» у розрізі по предметах. */
+  duration_minutes?: number;
   // Group lessons have lessons.student_id = NULL and one lesson_participants row per
   // student (each with its own price/payment). We flatten each participant into its
   // OWN LessonRow so income/debts/totals work unchanged. kind="group" rows carry the
@@ -355,7 +357,7 @@ export default function FinancesPage() {
         const run = (withFee: boolean) => {
           let q = supabase
             .from("lessons_visible")
-            .select("id, subject, starts_at, status, student_id, tutor_id, source, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") as any)
+            .select("id, subject, starts_at, status, student_id, tutor_id, source, duration_minutes, student_price, tutor_payout, student_payment_status, tutor_payout_status, student_paid_at, tutor_paid_at" + (withFee ? ", is_cancellation_fee" : "") as any)
             .not("student_id", "is", null)
             .gte("starts_at", oneYearAgo)
             .limit(500);
@@ -470,6 +472,7 @@ export default function FinancesPage() {
       tutor_payout_status: (l.tutor_payout_status ?? "unpaid") as PaymentStatus,
       student_paid_at: l.student_paid_at ?? null,
       tutor_paid_at: l.tutor_paid_at ?? null,
+      duration_minutes: Number(l.duration_minutes ?? 60),
       kind: "individual" as const,
     }));
     // Flatten each group lesson into one row per participant (their own price/payment).
@@ -1796,6 +1799,61 @@ export default function FinancesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tutorScoped, pairCurrencies]);
 
+  // №8 (ідеї 01.09): «який предмет вигідніший за годину» — перший розріз по
+  // предметах у застосунку. Оплачені уроки домінантної валюти за весь
+  // завантажений рік; показуємо лише коли предметів ≥2 (інакше нема порівняння).
+  const bySubjectCockpit = useMemo(() => {
+    const agg = new Map<string, { amount: number; minutes: number; count: number }>();
+    tutorScoped.forEach((l) => {
+      if (rowCurrency(l) !== analyticsStats.cur) return;
+      if (l.student_payment_status !== "paid") return;
+      const price = Number(l.student_price) || 0;
+      if (price <= 0) return;
+      const key = (l.subject ?? "").trim() || "—";
+      const e = agg.get(key) ?? { amount: 0, minutes: 0, count: 0 };
+      e.amount += price;
+      e.minutes += Number(l.duration_minutes) || 60;
+      e.count += 1;
+      agg.set(key, e);
+    });
+    return Array.from(agg.entries())
+      .map(([subject, v]) => ({
+        subject, ...v,
+        perHour: v.minutes > 0 ? Math.round(v.amount / (v.minutes / 60)) : 0,
+      }))
+      .sort((a, b) => b.perHour - a.perHour);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tutorScoped, analyticsStats.cur, pairCurrencies]);
+
+  // №9 (ідеї 01.09): скасування нарешті зведені — частка зривів за 90 днів
+  // і хто скасовує найчастіше (сигнал «щось не так з парою»).
+  const cancelStats = useMemo(() => {
+    const nowTs = Date.now();
+    const windowStart = nowTs - 90 * 86400000;
+    let cancelled = 0, held = 0;
+    const byStudent = new Map<string, number>();
+    tutorScoped.forEach((l) => {
+      const ts = new Date(l.starts_at).getTime();
+      if (ts < windowStart || ts > nowTs) return;
+      if (l.status === "cancelled") {
+        cancelled += 1;
+        if (l.student_id) byStudent.set(l.student_id, (byStudent.get(l.student_id) ?? 0) + 1);
+      } else if (l.status === "completed") {
+        held += 1;
+      }
+    });
+    const total = cancelled + held;
+    const top = Array.from(byStudent.entries()).sort((a, b) => b[1] - a[1])[0];
+    return {
+      cancelled,
+      ratePct: total > 0 ? Math.round((cancelled / total) * 100) : 0,
+      // Імʼя показуємо лише від 2 скасувань — один раз буває у всіх.
+      topName: top && top[1] >= 2 ? nameOf(top[0]) : null,
+      topCount: top?.[1] ?? 0,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tutorScoped]);
+
 
 
   // While independence is still loading, a hub tutor would momentarily read as
@@ -2419,6 +2477,35 @@ export default function FinancesPage() {
                     </div>
                   )}
 
+                  {/* №8 (ідеї 01.09): по предметах — «що вигідніше за годину» */}
+                  {bySubjectCockpit.length >= 2 && (
+                    <div>
+                      <p style={{ fontFamily:F.display, fontSize: 14, fontWeight:700, color:F.muted, textTransform:"uppercase", letterSpacing:"0.07em", marginBottom:10 }}>{t("finances.bySubjectTitle")}</p>
+                      <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                        {bySubjectCockpit.map((s) => {
+                          const maxHr = bySubjectCockpit[0]?.perHour || 1;
+                          const pct = Math.max((s.perHour / maxHr) * 100, 4);
+                          return (
+                            <div key={s.subject}>
+                              <div style={{ display:"flex", justifyContent:"space-between", gap:8, marginBottom:4 }}>
+                                <span style={{ fontFamily:F.body, fontSize:14, color:F.txt, minWidth:0, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{s.subject}</span>
+                                <span style={{ fontFamily:F.display, fontWeight:700, fontSize:14, color:F.txt, flexShrink:0 }}>
+                                  {t("finances.perHourShort", { sum: formatPrice(s.perHour, analyticsStats.cur) })}
+                                </span>
+                              </div>
+                              <div style={{ height:7, borderRadius:999, background:F.border }}>
+                                <div style={{ height:"100%", borderRadius:999, width:`${pct}%`, background:F.teal, transition:"width .4s ease" }} />
+                              </div>
+                              <p style={{ fontFamily:F.body, fontSize:13, color:F.sub, marginTop:3 }}>
+                                {t("finances.bySubjectRow", { sum: formatPrice(s.amount, analyticsStats.cur), count: s.count })}
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Stats */}
                   <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
                     <div style={{ borderRadius:16, padding:"14px 16px", background:F.surface, border:`1px solid ${F.border}` }}>
@@ -2431,13 +2518,23 @@ export default function FinancesPage() {
                     </div>
                   </div>
 
-                  {/* Cancellations */}
-                  {analyticsStats.cancelledLost > 0 && (
-                    <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"center", gap:10 }}>
+                  {/* Cancellations — №9: тепер зі зведенням, не лише сума втрат */}
+                  {(analyticsStats.cancelledLost > 0 || cancelStats.cancelled > 0) && (
+                    <div style={{ borderRadius:14, padding:"12px 14px", background:"rgba(239,68,68,.06)", border:"1px solid rgba(239,68,68,.2)", display:"flex", alignItems:"flex-start", gap:10 }}>
                       <span style={{ fontSize:18 }}>🚫</span>
-                      <p style={{ fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.4 }}>
-                        {t("finances.cancellationsPre")} <b>{formatPrice(analyticsStats.cancelledLost, analyticsStats.cur)}</b>{t("finances.cancellationsPost")}
-                      </p>
+                      <div style={{ minWidth:0 }}>
+                        {analyticsStats.cancelledLost > 0 && (
+                          <p style={{ fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.4 }}>
+                            {t("finances.cancellationsPre")} <b>{formatPrice(analyticsStats.cancelledLost, analyticsStats.cur)}</b>{t("finances.cancellationsPost")}
+                          </p>
+                        )}
+                        {cancelStats.cancelled > 0 && (
+                          <p style={{ fontFamily:F.body, fontSize:14, color:F.txt, lineHeight:1.4, marginTop: analyticsStats.cancelledLost > 0 ? 4 : 0 }}>
+                            {t("finances.cancelRate90d", { count: cancelStats.cancelled, pct: cancelStats.ratePct })}
+                            {cancelStats.topName ? " " + t("finances.cancelTopStudent", { name: cancelStats.topName, count: cancelStats.topCount }) : ""}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   )}
 

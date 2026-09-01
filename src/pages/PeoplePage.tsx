@@ -60,6 +60,7 @@ import {
 } from "lucide-react";
 import { ManagerNotes } from "@/components/ManagerNotes";
 import { PersonEditSheet } from "@/components/PersonEditSheet";
+import { StudentGoalCard } from "@/components/StudentGoalCard";
 import { WalletDialog } from "@/components/WalletDialog";
 import {
   Sheet,
@@ -2118,6 +2119,14 @@ export default function PeoplePage() {
                       />
                     </div>
                   </div>
+                )}
+
+                {/* №6 (ідеї 01.09): мета/рівень/зручний час з квіза учня — те, що
+                    менеджер досі тримав у голові чи зошиті. Без обгортки з
+                    рамкою: коли квіза немає, компонент рендерить null — порожня
+                    смужка з border-b тут була б багом. */}
+                {u.role === "student" && !u.is_pending && (
+                  <StudentGoalCard studentId={u.id} className="mx-4 my-3" />
                 )}
 
                 {/* Manager notes */}

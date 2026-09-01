@@ -857,6 +857,11 @@ export const uk = {
     lessonsThisMonth: "Уроків цей місяць",
     cancellationsPre: "Скасування цього місяця — недоотримано",
     cancellationsPost: ".",
+    cancelRate90d: "Скасувань за 90 днів: {{count}} ({{pct}}% від усіх уроків).",
+    cancelTopStudent: "Найчастіше — {{name}} ({{count}}).",
+    bySubjectTitle: "По предметах",
+    perHourShort: "≈ {{sum}}/год",
+    bySubjectRow: "{{sum}} · уроків: {{count}}",
     downloadCsv: "Скачати CSV",
     deletePrepayConfirmTitle: "Видалити передоплату?",
     deletePrepayConfirmDesc: "Запис зникне з історії, баланс гаманця перерахується автоматично. Дію не можна скасувати.",
@@ -2190,7 +2195,10 @@ export const uk = {
     tutorUnpaidCta: "До фінансів",
     tutorNoUpcomingTitle: "Порожній розклад попереду",
     tutorNoUpcomingDesc: "Всі уроки вже проведені. Час запланувати нові.",
-    tutorNoUpcomingCta: "Запланувати урок",},
+    tutorNoUpcomingCta: "Запланувати урок",
+    cancelStreakTitle: "{{name}}: три скасування поспіль",
+    cancelStreakDesc: "Схоже, щось не так. Найкращий хід — написати і мʼяко спитати, що сталось.",
+    cancelStreakCta: "Написати",},
   notifications: {
     title: "Сповіщення",
     markAllRead: "Позначити всі прочитаними",
@@ -3824,6 +3832,12 @@ export const uk = {
     quietDesc: "Буває. Ось з ким давно не було уроку — один тап, щоб повернутись у ритм:",
     quietAgo: "{{count}} дн. тому",
     quietCta: "Запланувати",
+  },
+  studentGoalCard: {
+    title: "З анкети учня",
+  },
+  actionItemsCard: {
+    title: "Домовленості з уроків",
   },
   walletsPageExtra: {
     studentCol: "Учень",

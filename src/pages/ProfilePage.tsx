@@ -246,6 +246,9 @@ export default function ProfilePage() {
   const [contacts, setContacts] = useState<ContactFields>({ email: "", phone: "", telegram: "", messenger_url: "", facebook_url: "", instagram_url: "" });
   const [contactDialogOpen, setContactDialogOpen] = useState(false);
   const [reviews, setReviews] = useState<Array<{ rating: number; comment: string | null; created_at: string }>>([]);
+  // №7 (ідеї 01.09): чесний рейтинг за ВСІМА оцінками, а не за останніми 20 —
+  // «4.9 з 47 оцінок» і є та сама мотиваційна цифра/соцдоказ.
+  const [ratingAgg, setRatingAgg] = useState<{ avg: number; count: number } | null>(null);
   const [studentCount, setStudentCount] = useState(0);
   const [calendarConnected, setCalendarConnected] = useState(false);
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -271,13 +274,14 @@ export default function ProfilePage() {
       return;
     }
     (async () => {
-      const [detailsRes, lessonsRes, ratesRes, profileRes, contactsRes, feedbackRes] = await Promise.all([
+      const [detailsRes, lessonsRes, ratesRes, profileRes, contactsRes, feedbackRes, ratingAllRes] = await Promise.all([
         supabase.from("tutor_details").select("subjects").eq("user_id", user.id).maybeSingle(),
         supabase.from("lessons").select("subject").eq("tutor_id", user.id),
         supabase.from("student_rates").select("subject").eq("tutor_id", user.id),
         supabase.from("profiles").select("first_name, last_name, avatar_url").eq("id", user.id).maybeSingle(),
         supabase.from("profile_contacts").select("email, phone, telegram, messenger_url, facebook_url, instagram_url").eq("user_id", user.id).maybeSingle(),
         supabase.from("lesson_feedback").select("rating, comment, created_at, student_id").eq("tutor_id", user.id).order("created_at", { ascending: false }).limit(20),
+        supabase.from("lesson_feedback").select("rating").eq("tutor_id", user.id),
       ]);
 
       setProfileName({
@@ -295,6 +299,14 @@ export default function ProfilePage() {
       });
       const fb = (feedbackRes.data ?? []) as Array<{ rating: number; comment: string | null; created_at: string }>;
       setReviews(fb);
+      const allRatings = (ratingAllRes.data ?? []) as Array<{ rating: number }>;
+      // Помилка запиту ≠ «оцінок нема»: тоді агрегат не показуємо зовсім
+      // (заголовок відкотиться до середнього за останніми 20 — як досі).
+      setRatingAgg(
+        !ratingAllRes.error && allRatings.length > 0
+          ? { avg: allRatings.reduce((s, r) => s + r.rating, 0) / allRatings.length, count: allRatings.length }
+          : null,
+      );
 
       const stored = (detailsRes.data?.subjects as string[] | null) ?? [];
       const fromLessons = (lessonsRes.data ?? [])
@@ -900,11 +912,12 @@ export default function ProfilePage() {
                   <span style={{ fontFamily: "Inter, system-ui", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
                     {t("profile.reviewsTitle") || "Відгуки учнів"}
                   </span>
-                  {reviews.length > 0 && (
+                  {(ratingAgg || reviews.length > 0) && (
                     <span style={{ display: "flex", alignItems: "center", gap: 4, fontFamily: "Inter, system-ui", fontWeight: 700, fontSize: 14, color: "var(--ds-txt,#0f0f1a)" }}>
                       <Star size={15} style={{ color: "#F5B400", fill: "#F5B400" }} />
-                      {(reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
-                      <span style={{ color: "var(--sub,#666b82)", fontWeight: 600 }}>({reviews.length})</span>
+                      {/* №7: середнє за ВСІМА оцінками (не за останніми 20) */}
+                      {(ratingAgg ? ratingAgg.avg : reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)}
+                      <span style={{ color: "var(--sub,#666b82)", fontWeight: 600 }}>({ratingAgg ? ratingAgg.count : reviews.length})</span>
                     </span>
                   )}
                 </div>
