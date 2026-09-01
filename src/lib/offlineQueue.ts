@@ -9,11 +9,12 @@ import { bumpDataVersion } from "@/lib/dataBus";
 import { toast } from "sonner";
 import i18n from "@/i18n";
 
-export type OfflineQueueItem =
+type WithAttempts = { attempts?: number };
+export type OfflineQueueItem = WithAttempts & (
   | { id: string; ts: number; kind: "lesson_details"; lessonId: string; patch: Record<string, unknown> }
   | { id: string; ts: number; kind: "lesson_update"; lessonId: string; patch: Record<string, unknown> }
   | { id: string; ts: number; kind: "lesson_status"; lessonId: string; status: string }
-  | { id: string; ts: number; kind: "chat_message"; threadId: string; senderId: string; body: string };
+  | { id: string; ts: number; kind: "chat_message"; threadId: string; senderId: string; body: string });
 
 type DistributeOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never;
 export type OfflineQueueItemInput = DistributeOmit<OfflineQueueItem, "id" | "ts">;
@@ -118,10 +119,19 @@ export function enqueue(item: OfflineQueueItemInput) {
 /** Постійна помилка (RLS/валідація) — реплей не допоможе; мережева — тимчасова. */
 function isPermanentError(error: { message?: string } | null): boolean {
   const m = (error?.message ?? "").toLowerCase();
-  const transient =
-    m.includes("fetch") || m.includes("network") || m.includes("timeout") ||
-    m.includes("abort") || m.includes("load failed") || m.includes("connection");
-  return !transient;
+  const code = String((error as { code?: string } | null)?.code ?? "");
+  // Аудит 01.09: логіка була інвертована — «постійним» вважалось УСЕ, що не
+  // збіглося зі списком мережевих слів, тож 503 з тілом «Service Unavailable»
+  // або прострочений токен паркувались як «сервер відхилив назавжди».
+  // Тепер навпаки: постійна відмова — це те, що ми ВПІЗНАЛИ як постійне
+  // (порушення правил доступу чи валідації). Все інше вважаємо тимчасовим і
+  // лишаємо в черзі — повторити безпечно, бо в черзі лише абсолютні записи.
+  const permanent =
+    m.includes("row-level security") || m.includes("permission denied") ||
+    m.includes("violates") || m.includes("invalid input") ||
+    m.includes("not found") || m.includes("does not exist") ||
+    /^(22|23|42)/.test(code); // Postgres: дані / обмеження / права
+  return permanent;
 }
 
 async function runItem(item: OfflineQueueItem): Promise<{ ok: boolean; permanent: boolean; message?: string }> {
@@ -180,6 +190,18 @@ export async function flushOfflineQueue(): Promise<void> {
         write(read().filter((i) => i.id !== item.id));
         continue;
       }
+      const attempts = ((item as { attempts?: number }).attempts ?? 0) + 1;
+      // Аудит 01.09: після інверсії isPermanentError невпізнана помилка лишається
+      // тимчасовою — тож потрібен запобіжник, інакше один «отруйний» запис
+      // блокував би чергу назавжди. Пʼять спроб — і він теж їде в «Не надіслано»,
+      // звідки користувач може повторити або прибрати сам.
+      if (!res.permanent && attempts >= 5) {
+        dropped += 1;
+        console.warn("[offline-queue] 5 failed attempts, parking for manual retry", item, res.message);
+        writeFailed([...readFailed(), item]);
+        write(read().filter((i) => i.id !== item.id));
+        continue;
+      }
       if (res.permanent) {
         dropped += 1;
         console.warn("[offline-queue] server rejected the record permanently, parking it for retry", item, res.message);
@@ -187,7 +209,10 @@ export async function flushOfflineQueue(): Promise<void> {
         write(read().filter((i) => i.id !== item.id));
         continue;
       }
-      break; // мережа ще не жива — решта лишається в черзі
+      // мережа ще не жива (або помилка невпізнана) — лишаємо запис у черзі,
+      // збільшивши лічильник спроб, і зупиняємось до наступної події
+      write(read().map((i) => (i.id === item.id ? { ...i, attempts } : i)));
+      break;
     }
   } finally {
     flushing = false;

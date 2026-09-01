@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { copyToClipboard } from "@/lib/clipboard";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -141,11 +142,16 @@ const CopyMini = ({ value, label }: { value: string; label: string }) => {
   const { t } = useTranslation();
   const [done, setDone] = useState(false);
   return (
-    <button aria-label={t("common.copy") || "Копіювати"} title={t("common.copy") || "Копіювати"}
-      onClick={(e) => {
+    <button aria-label={t("common.copy")} title={t("common.copy")}
+      onClick={async (e) => {
         e.stopPropagation();
-        navigator.clipboard.writeText(value);
-        toast.success(`${label} ${t("common.copied") || "скопійовано"}`, { description: value });
+        // Аудит 01.09: копіювання не чекалось і не перевірялось — у нативному
+        // WebView воно падає, а тост усе одно казав «скопійовано».
+        if (!(await copyToClipboard(value))) {
+          toast.error(t("common.copyFailed"));
+          return;
+        }
+        toast.success(`${label} ${t("common.copied")}`, { description: value });
         setDone(true);
         setTimeout(() => setDone(false), 1500);
       }}

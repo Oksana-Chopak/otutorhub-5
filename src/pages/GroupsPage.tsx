@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { DateTimeField } from "@/components/DateTimeField";
 import { PageFAB } from "@/components/PageFAB";
 import { GroupsSkeleton } from "@/components/PageSkeletons";
@@ -96,6 +97,7 @@ export default function GroupsPage() {
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [studentNames, setStudentNames] = useState<Map<string, string>>(new Map());
@@ -105,11 +107,12 @@ export default function GroupsPage() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
+    setLoadError(false);
     let q = supabase.from("lesson_groups").select("*").order("created_at", { ascending: false });
     if (!isManager) q = q.eq("tutor_id", user.id);
     const { data: gs, error } = await q;
     if (error) {
-      toast.error(error.message);
+      setLoadError(true);
       setLoading(false);
       return;
     }
@@ -165,6 +168,8 @@ export default function GroupsPage() {
 
         {loading ? (
           <GroupsSkeleton />
+        ) : loadError ? (
+          <ErrorState onRetry={() => void load()} />
         ) : groups.length === 0 ? (
           <EmptyState
             icon={Users2}
@@ -1076,7 +1081,9 @@ function GroupDetailsDialog({
                             {/* MON-2: group price = hub money — visible/editable only for
                                 hub-scoped managers and independent owner-tutors (server
                                 enforces via set_group_enrollment_price + column lock). */}
-                            {(isManager || isIndependent) && (
+                            {/* Аудит 01.09: без гейта на завантаження самостійний
+                                власник групи в першому кадрі не міг редагувати ціну. */}
+                            {(isManager || isIndependent || wsLoading) && (
                               <PricePill
                                 value={e.price_per_lesson}
                                 currency={e.currency || "UAH"}

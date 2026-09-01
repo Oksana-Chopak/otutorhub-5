@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -83,6 +84,7 @@ export default function AuditLogPage() {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [profiles, setProfiles] = useState<Map<string, ProfileLite>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [openIds, setOpenIds] = useState<Set<string>>(new Set());
 
   // Filters
@@ -93,15 +95,16 @@ export default function AuditLogPage() {
   const [search, setSearch] = useState<string>("");
   const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data, error } = await supabase
+  const load = async () => {
+    setLoading(true);
+    setLoadError(false);
+    const { data, error } = await supabase
         .from("manager_audit_log")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) {
-        toast.error(t("auditLog.loadFailed"));
+        setLoadError(true);
         setLoading(false);
         return;
       }
@@ -125,9 +128,9 @@ export default function AuditLogPage() {
         setProfiles(map);
       }
       setLoading(false);
-    };
-    load();
-  }, []);
+  };
+
+  useEffect(() => { void load(); }, []);
 
   const actorOptions = useMemo(() => {
     const set = new Map<string, string>();
@@ -323,6 +326,8 @@ export default function AuditLogPage() {
               <Skeleton key={i} className="h-16 w-full" />
             ))}
           </div>
+        ) : loadError ? (
+          <ErrorState onRetry={() => void load()} />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={ShieldAlert}

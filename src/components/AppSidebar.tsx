@@ -123,7 +123,7 @@ export function AppSidebar() {
   const chatsBadge = useUnreadChats();
   const subscriptionBadge = useSubscriptionRequestCount();
   const { theme, toggleTheme } = useTheme();
-  const { isIndependent, settings } = useWorkspaceSettings();
+  const { isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
   const isTutorRole = roles.includes("tutor") && !roles.includes("manager");
   // The setup guide (/onboarding) is for EVERY tutor: independent tutors set up their own
   // workspace; hub tutors get the hub-scoped step set (OnboardingFlowB skips the
@@ -144,7 +144,10 @@ export function AppSidebar() {
   const navItems = allNavItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (!item.roles.some((r) => roles.includes(r))) return false;
-    if (item.independentOnly && !isIndependent && !roles.includes("manager")) return false;
+    // Аудит 01.09: поки налаштування летять, прапор = false, тож пункти
+    // «Мої учні» і «Гаманці» встигали блимнути і зникнути. Під час завантаження
+    // не приховуємо нічого — краще показати на пів секунди більше, ніж смикати меню.
+    if (item.independentOnly && !wsLoading && !isIndependent && !roles.includes("manager")) return false;
     return true;
   });
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { isNativeApp } from "@/lib/platform";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
@@ -163,6 +164,7 @@ export default function DashboardPage() {
   }, [wsLoading, user?.id, isTutor, isManager, settings, navigate]);
 
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   // Money-only rows for the profit card / payout figures: 6 calendar months back
   // (the main `lessons` window is 30d back / 14d fwd — mid-month that hides most
@@ -413,6 +415,8 @@ export default function DashboardPage() {
   };
 
   const loadData = async () => {
+
+    setLoadError(false);
     // Wait for auth to finish — prevents new users from seeing stale/other users' data
     if (!user || authLoading) return;
     // New user with no roles yet — don't load — show empty state
@@ -470,7 +474,9 @@ export default function DashboardPage() {
     ]);
 
     if (lessonsError) {
-      toast.error(t("dashboardExtra.loadFailed"));
+      // Аудит 01.09: був лише тост, який зникав за 4 секунди, а екран лишався
+      // з «Прибуток 0 ₴» і «Репетиторів 0» — тобто впевнено брехав нулями.
+      setLoadError(true);
       setLoading(false);
       return;
     }
@@ -1491,6 +1497,8 @@ export default function DashboardPage() {
 
       {loading || wsLoading ? ( /* P8: без кадрів чужого кабінету */
         <DashboardSkeleton />
+      ) : loadError ? (
+        <ErrorState onRetry={() => void loadData()} />
       ) : (
         <div className="space-y-4 sm:space-y-6 max-w-full overflow-x-clip">
           {/* Trial banner moved: mobile shows under Streak; desktop shows compact chip in hero header */}
@@ -2567,8 +2575,11 @@ export default function DashboardPage() {
           variant reads the tutor's hub students and creates source='hub' lessons —
           same modern form as independents (add-student stays hidden: the manager
           owns hub students). PageFAB, not AddFab (single primary action). */}
-      {isHubTutor && <PageFAB onClick={() => setQuickLessonOpen(true)} />}
-      {(isManager || isIndependentTutor) && (
+      {/* Аудит 01.09: обидві кнопки стояли поза гейтом wsLoading, тож поки
+          летіли налаштування, самостійний репетитор бачив ОДИНАРНУ хабову
+          кнопку замість своїх трьох дій («Урок / Учня / Оплату»). */}
+      {!wsLoading && isHubTutor && <PageFAB onClick={() => setQuickLessonOpen(true)} />}
+      {!wsLoading && (isManager || isIndependentTutor) && (
         <AddFab
           onLesson={() => (setQuickLessonOpen(true))}
           onStudent={() => (isManager ? navigate("/people?add=student") : setAddStudentOpen(true))}

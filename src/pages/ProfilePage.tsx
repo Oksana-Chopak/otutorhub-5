@@ -609,7 +609,7 @@ export default function ProfilePage() {
                     {displayName}
                   </p>
                   <p style={{ fontFamily: P.body, fontSize: 14, color: P.sub, marginTop: 3 }}>
-                    {isIndependent ? t("profile.independentTutorSub") : t("profile.hubTutorSub")}
+                    {wsLoading ? "\u00A0" : isIndependent ? t("profile.independentTutorSub") : t("profile.hubTutorSub")}
                   </p>
                 </div>
                 {/* Edit button */}

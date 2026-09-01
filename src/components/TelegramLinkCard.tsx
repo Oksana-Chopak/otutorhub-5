@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { copyToClipboard } from "@/lib/clipboard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -189,7 +190,7 @@ export function TelegramLinkCard() {
                   variant="ghost"
                   className="tap-44 h-6 w-6"
                   onClick={() => {
-                    navigator.clipboard.writeText(`/start ${link.link_code}`);
+                    void copyToClipboard(`/start ${link.link_code}`);
                     toast.success(t("telegramLinkExtra.copied"));
                   }}
                 >

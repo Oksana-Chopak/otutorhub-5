@@ -167,7 +167,10 @@ function AppRoutes() {
             <Route path="/availability" element={<ProtectedRoute allowedRoles={["manager", "tutor"]}><AvailabilityPage /></ProtectedRoute>} />
             <Route path="/people" element={<ProtectedRoute allowedRoles={["manager"]}><PeoplePage /></ProtectedRoute>} />
             <Route path="/audit" element={<ProtectedRoute allowedRoles={["manager"]}><AuditLogPage /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute><AdminStatsPage /></ProtectedRoute>} />
+            {/* Аудит 01.09: єдиний маршрут без allowedRoles — учень чи хабовий репетитор
+                відкривали сторінку й бачили замок. Витоку не було (тримає RLS), але
+                маршрут має збігатися з тим, що показує сайдбар. */}
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={["manager"]}><AdminStatsPage /></ProtectedRoute>} />
             <Route path="/errors" element={<ProtectedRoute allowedRoles={["manager"]}><ErrorLogPage /></ProtectedRoute>} />
             <Route path="/feedback-inbox" element={<ProtectedRoute allowedRoles={["manager"]}><FeedbackInboxPage /></ProtectedRoute>} />
             <Route path="/marketing" element={<ProtectedRoute allowedRoles={["manager"]}><MarketingPage /></ProtectedRoute>} />

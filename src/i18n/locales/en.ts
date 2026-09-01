@@ -137,6 +137,7 @@ export const en: LocaleTranslations = {
     retry: "Try again",
   },
   common: {
+    copyFailed: "Couldn't copy — please copy manually",
     copy: "Copy",
     copied: "copied",
     done: "Done",

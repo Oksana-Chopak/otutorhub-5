@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -64,24 +65,34 @@ const COLORS = ["#8B5CF6", "#0EA5E9", "#F59E0B", "#10B981", "#EF4444", "#EC4899"
 export default function PaywallMetricsPage() {
   const [events, setEvents] = useState<PaywallEventRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [period, setPeriod] = useState<"7" | "30" | "90">("30");
   const [statusFilter, setStatusFilter] = useState<string>("free");
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const since = new Date();
-      since.setDate(since.getDate() - parseInt(period, 10));
-      const { data } = await supabase
-        .from("paywall_events")
-        .select("id, user_id, feature_key, source, subscription_status, metadata, created_at")
-        .gte("created_at", since.toISOString())
-        .order("created_at", { ascending: false })
-        .limit(2000);
-      setEvents((data ?? []) as PaywallEventRow[]);
+  // Аудит 01.09: load піднято з useEffect, щоб кнопка «Спробувати ще» могла
+  // його викликати, і додано перевірку помилки — раніше провал читання
+  // показувався як «Даних поки немає».
+  const load = async () => {
+    setLoading(true);
+    setLoadError(false);
+    const since = new Date();
+    since.setDate(since.getDate() - parseInt(period, 10));
+    const { data, error } = await supabase
+      .from("paywall_events")
+      .select("id, user_id, feature_key, source, subscription_status, metadata, created_at")
+      .gte("created_at", since.toISOString())
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    if (error) {
+      setLoadError(true);
       setLoading(false);
-    })();
-  }, [period]);
+      return;
+    }
+    setEvents((data ?? []) as PaywallEventRow[]);
+    setLoading(false);
+  };
+
+  useEffect(() => { void load(); }, [period]);
 
   const filtered = useMemo(() => {
     if (statusFilter === "all") return events;
@@ -204,6 +215,8 @@ export default function PaywallMetricsPage() {
                   </div>
                 ))}
               </div>
+            ) : loadError ? (
+              <ErrorState onRetry={() => void load()} />
             ) : featureStats.length === 0 ? (
               <p className="py-12 text-center text-sm text-muted-foreground">
                 {t("paywallMetricsExtra.noEventsForPeriod")}

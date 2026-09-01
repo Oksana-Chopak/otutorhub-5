@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { copyToClipboard } from "@/lib/clipboard";
+import { ErrorState } from "@/components/ErrorState";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { prettyRequestValue } from "@/lib/tutorRequestLabels";
@@ -93,6 +95,7 @@ export default function ReferralsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [requests, setRequests] = useState<ReferralRow[]>([]);
   const [savingId, setSavingId] = useState<string | null>(null);
   const [assignTarget, setAssignTarget] = useState<ReferralRow | null>(null);
@@ -100,10 +103,16 @@ export default function ReferralsPage() {
 
   const load = async () => {
     setLoading(true);
-    const { data: rows } = await supabase
+    setLoadError(false);
+    const { data: rows, error: rowsErr } = await supabase
       .from("tutor_referral_requests")
       .select("*")
       .order("created_at", { ascending: false });
+    if (rowsErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
 
     const ids = Array.from(new Set((rows ?? []).map((r: any) => r.student_id)));
     const profileMap = new Map<string, { name: string; avatar: string | null }>();
@@ -158,7 +167,7 @@ export default function ReferralsPage() {
   };
 
   const copy = (text: string) => {
-    navigator.clipboard?.writeText(text);
+    void copyToClipboard(text);
     toast.success(t("referralsPageExtra.copied"));
   };
 
@@ -192,6 +201,8 @@ export default function ReferralsPage() {
             </div>
           ))}
         </div>
+      ) : loadError ? (
+        <ErrorState onRetry={() => void load()} />
       ) : requests.length === 0 ? (
         <EmptyState
           icon={HandHeart}

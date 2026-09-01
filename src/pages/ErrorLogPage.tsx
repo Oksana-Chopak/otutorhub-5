@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
@@ -20,16 +21,25 @@ interface ErrorRow {
 
 export default function ErrorLogPage() {
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [rows, setRows] = useState<ErrorRow[]>([]);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await (supabase as any)
+    setLoadError(false);
+    // Аудит 01.09: помилка читання не діставалась — провал показувався як
+    // «Помилок немає ✓», тобто найгірша можлива брехня саме на цьому екрані.
+    const { data, error } = await (supabase as any)
       .from("error_log")
       .select("id, created_at, user_id, message, stack, url, user_agent")
       .order("created_at", { ascending: false })
       .limit(200);
+    if (error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     setRows((data ?? []) as ErrorRow[]);
     setLoading(false);
   };
@@ -94,6 +104,8 @@ export default function ErrorLogPage() {
             </div>
           ))}
         </div>
+      ) : loadError ? (
+        <ErrorState onRetry={() => void load()} />
       ) : rows.length === 0 ? (
         <EmptyState icon={ShieldCheck} title={t("errorLog.empty")} description={t("errorLog.emptyDesc")} actionLabel={null} />
       ) : (

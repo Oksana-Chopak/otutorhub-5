@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { copyToClipboard } from "@/lib/clipboard";
 import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { appOrigin } from "@/lib/webOrigin";
 import { lazyArray } from "@/lib/lazyI18n";
@@ -955,7 +956,7 @@ function ReferralBonus({ user, onComplete }: { user: any; onComplete: () => void
           style={{ borderColor: T.border, background: "var(--ds-surface2,#fbfbfc)", color: T.tealD }}>
           {link || "otutorhub.com/join/..."}
         </div>
-        <button disabled={!link} onClick={() => { navigator.clipboard?.writeText(link); setCopied(true); }}
+        <button disabled={!link} onClick={async () => { if (await copyToClipboard(link)) setCopied(true); else toast.error(t("common.copyFailed")); }}
           className="h-12 px-4 rounded-xl font-bold text-sm text-white flex-shrink-0"
           style={{ background: copied ? T.success : T.dark, fontFamily: T.display, opacity: link ? 1 : 0.5, cursor: link ? "pointer" : "default" }}>
           {copied ? t("onboardingFlowB.referralCopied") : t("onboardingFlowB.referralCopy")}

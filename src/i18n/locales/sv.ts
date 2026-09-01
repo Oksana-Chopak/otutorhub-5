@@ -138,6 +138,7 @@ export const sv: LocaleTranslations = {
     retry: "Försök igen",
   },
   common: {
+    copyFailed: "Kunde inte kopiera — kopiera manuellt",
     copy: "Kopiera",
     copied: "kopierat",
     done: "Klar",

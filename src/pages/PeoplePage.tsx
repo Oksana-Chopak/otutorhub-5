@@ -1,4 +1,5 @@
 import { PageFAB } from "@/components/PageFAB";
+import { ErrorState } from "@/components/ErrorState";
 import { getLocale } from "@/lib/locale";
 import { PeopleSkeleton } from "@/components/PageSkeletons";
 import { useEffect, useMemo, useState } from "react";
@@ -121,6 +122,7 @@ export default function PeoplePage() {
   const { user: currentUser, roles } = useAuth();
   const isManager = roles.includes("manager");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [studentRates, setStudentRates] = useState<
     Array<{ id: string; tutor_id: string; student_id: string; subject: string; price_per_lesson: number; currency: string }>
@@ -230,6 +232,7 @@ export default function PeoplePage() {
 
   const loadData = async () => {
     setLoading(true);
+    setLoadError(false);
     const isManager = roles.includes("manager");
     
     const [profilesRes, contactsRes, rolesRes, tutorRes, ratesRes, subjectRatesRes, recentLessonsRes] = await Promise.all([
@@ -246,6 +249,15 @@ export default function PeoplePage() {
       // уроків + 4 чанк-дозапити лише щоб порахувати борги/останню взаємодію.
       (supabase as any).rpc("get_people_aggregates"),
     ]);
+
+    // Аудит 01.09: жоден із семи запитів не перевірявся — обрив мережі малював
+    // «Нічого не знайдено» замість «не вдалося прочитати». Агрегати (RPC) не
+    // рахуються: для них є свідомий фолбек на старий клієнтський шлях нижче.
+    if (profilesRes.error || contactsRes.error || rolesRes.error || tutorRes.error || ratesRes.error || subjectRatesRes.error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
 
     const lastInteractionMap = new Map<string, string>();
     const studentStatsMap = new Map<
@@ -1181,7 +1193,7 @@ export default function PeoplePage() {
       </div>
 
       {/* Search + filters (filters collapse on mobile) */}
-      {!loading && (
+      {!loading && !loadError && (
         <div className="mb-4 flex min-w-0 items-center gap-2 lg:mb-5">
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "0.5px solid var(--border, #f0f1f5)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
@@ -1246,7 +1258,7 @@ export default function PeoplePage() {
       )}
 
       {/* ── ROLE TABS ── */}
-      {!loading && (
+      {!loading && !loadError && (
         <div
           className="mb-1 flex gap-0 border-b"
           style={{ borderColor: "var(--border, var(--ds-border,#eceef3))" }}
@@ -1274,8 +1286,12 @@ export default function PeoplePage() {
         </div>
       )}
 
+      {!loading && loadError && (
+        <ErrorState onRetry={() => void loadData()} />
+      )}
+
       {/* ── STATUS PILLS ── */}
-      {!loading && (
+      {!loading && !loadError && (
         <div className="mb-3 flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           {[
             { value: "all", label: t("people.statusAll") },

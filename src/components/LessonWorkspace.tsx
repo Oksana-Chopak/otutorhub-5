@@ -113,7 +113,7 @@ export function LessonWorkspace({
 }: LessonWorkspaceProps) {
   const { user, roles } = useAuth();
   const navigate = useNavigate();
-  const { isPro, isIndependent, settings } = useWorkspaceSettings();
+  const { isPro, isIndependent, settings, loading: wsLoading } = useWorkspaceSettings();
   const { trackPaywallClick } = usePaywallTracking();
   const isTutor = user?.id === tutorId;
   const [lastSaved, setLastSaved] = useState<null | "homework" | "summary">(null); // B-D2
@@ -121,7 +121,10 @@ export function LessonWorkspace({
   const isManager = roles.includes("manager");
   // AI summary доступний всім тьюторам у hub-режимі (школа платить),
   // а в самостійному режимі — лише Pro/Trial
-  const aiAllowed = !isIndependent || isPro;
+  // Аудит 01.09: поки налаштування летять, прапор самостійності = false, тож
+  // вираз давав true — безкоштовний самостійний репетитор бачив кнопку AI
+  // замість пейволу, а потім вона зникала під рукою. Поки не знаємо — не даємо.
+  const aiAllowed = wsLoading ? false : (!isIndependent || isPro);
   const canTogglePayment = (isTutor && source === "independent") || isManager;
   const canMarkCompleted = isTutor || isManager; // P8: свій урок — своя кнопка, конфеті для всіх
   const [paymentBusy, setPaymentBusy] = useState(false);

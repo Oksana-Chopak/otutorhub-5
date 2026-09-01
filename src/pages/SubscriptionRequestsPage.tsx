@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,18 +50,20 @@ const statusMeta: Record<
 export default function SubscriptionRequestsPage() {
   const [requests, setRequests] = useState<SubscriptionRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [responseDrafts, setResponseDrafts] = useState<Record<string, string>>({});
   const [savingId, setSavingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setLoadError(false);
     const { data, error } = await supabase
       .from("subscription_requests")
       .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
-      toast.error(t("subscriptionRequests.loadFailed"));
+      setLoadError(true);
       setLoading(false);
       return;
     }
@@ -157,6 +160,8 @@ export default function SubscriptionRequestsPage() {
               </Card>
             ))}
           </div>
+        ) : loadError ? (
+          <ErrorState onRetry={() => void load()} />
         ) : requests.length === 0 ? (
           <Card className="rounded-[18px] border-dashed border-[var(--ds-border,#eceef3)] shadow-none">
             <CardContent className="p-8 text-center text-sm text-muted-foreground">

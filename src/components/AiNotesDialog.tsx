@@ -48,8 +48,10 @@ const ToggleRow = ({ on, onChange, title, desc, disabled }: { on: boolean; onCha
 export function AiNotesDialog({ open, onOpenChange }: Props) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { settings, isPro, isIndependent, updateSettings } = useWorkspaceSettings();
-  const aiAllowed = !isIndependent || isPro;
+  const { settings, isPro, isIndependent, updateSettings, loading: wsLoading } = useWorkspaceSettings();
+  // Аудит 01.09: поки налаштування летять, прапор = false і вираз давав true —
+  // безкоштовний самостійний репетитор бачив AI замість пейволу.
+  const aiAllowed = wsLoading ? false : (!isIndependent || isPro);
 
   const [auto, setAuto] = useState(!!settings?.ai_notes_auto);
   const [autoSend, setAutoSend] = useState(!!settings?.ai_notes_auto_send);
