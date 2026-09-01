@@ -104,6 +104,7 @@ export default function SubscriptionPage() {
     settings,
     loading,
     isIndependent,
+    roleReady,
     isTrial,
     trialDaysLeft,
     refresh,
@@ -216,7 +217,7 @@ export default function SubscriptionPage() {
   };
 
   useEffect(() => {
-    if (!loading && user && (!roles.includes("tutor") || !isIndependent)) {
+    if (roleReady && !loading && user && (!roles.includes("tutor") || !isIndependent)) {
       navigate("/", { replace: true });
     }
   }, [loading, user, roles, isIndependent, navigate]);

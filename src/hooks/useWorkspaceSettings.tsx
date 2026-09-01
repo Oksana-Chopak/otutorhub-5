@@ -83,6 +83,27 @@ export function useWorkspaceSettings() {
   // для не-тьютора (query вимкнено) — одразу false, як і раніше.
   const loading = enabled ? isPending : false;
 
+  /**
+   * Аудит 01.09 — корінь цілого класу помилок: `isIndependent` дорівнює
+   * `settings?.independent_workspace ?? false`, тобто «ще не знаю» невідрізнимо
+   * від «хабовий». Через це самостійний репетитор устигав побачити чужий
+   * інтерфейс (одинарний FAB, кнопку AI замість пейволу, підпис «Репетитор
+   * хабу»), а форма встигала записати урок із source:"hub".
+   *
+   * `roleReady` — це і є відповідь на питання «чи можна вже вирішувати долю UI».
+   * Для не-репетитора (запит вимкнено) персона визначається ролями, тож true
+   * одразу. Гейт `src/test/persona-readiness.test.ts` вимагає, щоб КОЖЕН файл,
+   * який читає `isIndependent`, згадував і готовність — інакше CI падає.
+   */
+  const roleReady = !enabled || !loading;
+
+  /**
+   * Запит завершився, а рядка налаштувань немає: збій читання після ретраїв або
+   * (теоретично) відсутній рядок. Персона досі невідома — для грошей, пейволу
+   * і будь-якого ЗАПИСУ це означає «не можна», а не «хабовий».
+   */
+  const workspaceUnknown = enabled && !loading && !settings;
+
   const refresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ["workspace-settings", user?.id ?? null] });
   }, [queryClient, user?.id]);
@@ -117,6 +138,10 @@ export function useWorkspaceSettings() {
   return {
     settings,
     loading,
+    /** Чи вже відомо, яка це персона. Перевіряй ЦЕ, а не loading. */
+    roleReady,
+    /** Запит завершився, але налаштувань немає — персона невідома. */
+    workspaceUnknown,
     /** Збій читання (після ретраїв). Дані попереднього успішного читання при цьому зберігаються. */
     error: error ?? null,
     studentCount,

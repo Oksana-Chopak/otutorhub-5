@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 export function TrialCountdownBanner() {
   const native = isNativeApp();
   const { t } = useTranslation();
-  const { isIndependent, isTrial, trialDaysLeft, trialUntil, isPro, settings } =
+  const { isIndependent, isTrial, trialDaysLeft, trialUntil, isPro, settings, roleReady } =
     useWorkspaceSettings();
 
   // Tick every minute so the countdown updates without reload
@@ -23,7 +23,9 @@ export function TrialCountdownBanner() {
     return () => window.clearInterval(id);
   }, []);
 
-  if (!isIndependent || !settings) return null;
+  // roleReady замість непрямої перевірки через settings: поки персона невідома,
+  // банер тріалу не має права зʼявитись ані показатись помилково.
+  if (!roleReady || !isIndependent || !settings) return null;
 
   // Active paid Pro — no banner needed
   if (isPro && !isTrial) return null;

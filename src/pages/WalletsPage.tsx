@@ -36,7 +36,7 @@ const fmtDate = (iso: string | null) =>
 
 export default function WalletsPage() {
   const { roles, user } = useAuth();
-  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading, workspaceUnknown, refresh: refreshSettings } = useWorkspaceSettings();
   const isManager = roles.includes("manager");
   const isIndependentTutor =
     !isManager && roles.includes("tutor") && isIndependent;
@@ -159,6 +159,10 @@ export default function WalletsPage() {
   // Аудит 01.09: тут був `return null` — білий екран, поки летять
   // налаштування робочого простору. Решта сторінок дає скелет.
   if (wsLoading) return <div className="p-4"><div className="h-24 animate-pulse rounded-[16px] bg-muted" /></div>;
+  // P8: хабовий бачив гаманці СВОЇХ хабових учнів — гроші, сплачені хабу.
+  // Аудит 01.09: персона невідома (збій читання) — це не привід вигнати
+  // самостійного репетитора; показуємо помилку з повтором.
+  if (workspaceUnknown) return <div className="p-4"><ErrorState onRetry={() => void refreshSettings()} /></div>;
   // P8: хабовий бачив гаманці СВОЇХ хабових учнів — гроші, сплачені хабу.
   if (!isManager && roles.includes("tutor") && !isIndependent) return <Navigate to="/" replace />;
 

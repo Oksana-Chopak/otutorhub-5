@@ -106,15 +106,17 @@ function timeShort(iso: string | null | undefined) {
 }
 
 export default function ChatsPage() {
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, roleReady } = useWorkspaceSettings();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
   // P8 + аудит 01.09: персона порожнього стану рахується ОДИН раз — і текст, і
   // кнопка беруть її звідси, а не перевіряють прапор кожен по-своєму.
-  const emptyPersona: "manager" | "independent" | "other" =
-    isManager ? "manager" : isIndependent ? "independent" : "other";
+  // Поки персона невідома — «unknown»: краще не показати кнопку зовсім, ніж
+  // показати хабовий текст самостійному репетитору й забрати його за мить.
+  const emptyPersona: "manager" | "independent" | "other" | "unknown" =
+    isManager ? "manager" : !roleReady ? "unknown" : isIndependent ? "independent" : "other";
   const { isSuperadmin } = useIsSuperadmin(); // модерація: платформна, не рольова
   const myId = user?.id ?? null;
 
@@ -866,7 +868,13 @@ export default function ChatsPage() {
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-[14px] text-muted-foreground">
-            {emptyPersona === "manager" ? t("chats.noChatsManager") : emptyPersona === "independent" ? t("chats.noChatsIndependent") : t("chats.noChatsOther")}
+            {emptyPersona === "unknown"
+              ? "\u00A0"
+              : emptyPersona === "manager"
+                ? t("chats.noChatsManager")
+                : emptyPersona === "independent"
+                  ? t("chats.noChatsIndependent")
+                  : t("chats.noChatsOther")}
           </p>
           {/* Managers can have zero chats and still need to start one — give the
               empty state a forward action instead of dead-ending. */}

@@ -19,7 +19,7 @@ const TOTAL_STEPS = CORE_TOTAL; // A11: жодних захардкоджени�
 export function TutorWelcomeBanner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { settings, isIndependent, loading } = useWorkspaceSettings();
+  const { settings, isIndependent, loading, roleReady } = useWorkspaceSettings();
   const { roles } = useAuth();
   // P8-системно: гейт — ЧЕРЕЗ матрицю, не через сирі прапори.
   const mayShow = canSee("setupGuide", {

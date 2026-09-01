@@ -8,7 +8,14 @@ import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join } from "path";
 
-const ALLOW = new Set(["src/lib/roleCapabilities.ts", "src/hooks/useWorkspaceSettings.ts"]);
+// Аудит 01.09: у списку стояв "useWorkspaceSettings.ts", а файл насправді .tsx —
+// тобто джерело правди роками рахувалось нарівні зі споживачами. Виправлено;
+// стара помилкова назва лишена, щоб перейменування файла не зламало гейт мовчки.
+const ALLOW = new Set([
+  "src/lib/roleCapabilities.ts",
+  "src/hooks/useWorkspaceSettings.ts",
+  "src/hooks/useWorkspaceSettings.tsx",
+]);
 const BASELINE: Record<string, number> = {
   "src/components/AiNotesDialog.tsx": 2,
   "src/components/AppSidebar.tsx": 2,

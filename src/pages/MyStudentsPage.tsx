@@ -194,7 +194,7 @@ export default function MyStudentsPage() {
   const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isTutor = roles.includes("tutor");
-  const { isIndependent, studentCount, refresh, loading: wsLoading } =
+  const { isIndependent, studentCount, refresh, loading: wsLoading, workspaceUnknown } =
     useWorkspaceSettings();
 
   const [loading, setLoading] = useState(true);
@@ -243,6 +243,10 @@ export default function MyStudentsPage() {
   // ще-не-завантаженому isIndependent і відкине незалежного репетитора (минулий баг).
   useEffect(() => {
     if (wsLoading) return;
+    // Аудит 01.09: при збої читання налаштувань прапор дорівнює false — і
+    // самостійного репетитора викидало з його ж головної сторінки. Не знаємо
+    // персону — не викидаємо: нижче покажеться помилка з кнопкою повтору.
+    if (workspaceUnknown) return;
     if (!isIndependent) navigate("/", { replace: true });
   }, [wsLoading, isIndependent, navigate]);
 
@@ -744,6 +748,12 @@ export default function MyStudentsPage() {
 
 
   // Єдина іконка копіювання (без слів/кнопок) — 44px тач-таргет, як у дизайні.
+
+  // Аудит 01.09: персона невідома (збій читання налаштувань) — не вгадуємо і не
+  // викидаємо, а чесно кажемо й даємо повтор.
+  if (workspaceUnknown) {
+    return <div className="p-4"><ErrorState onRetry={() => void refresh()} /></div>;
+  }
 
   return (
     <>
