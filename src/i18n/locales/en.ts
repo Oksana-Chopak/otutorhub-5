@@ -131,7 +131,16 @@ export const en: LocaleTranslations = {
     payment: "Payment",
   },
 
+  errorState: {
+    title: "Couldn't load this",
+    description: "This doesn't mean there is no data — it couldn't be read. Check your connection and try again.",
+    retry: "Try again",
+  },
   common: {
+    copy: "Copy",
+    copied: "copied",
+    done: "Done",
+    backToFinances: "Back to Finances",
     date: "Date",
     time: "Time",
     backToProfile: "Back to profile",
@@ -630,6 +639,9 @@ export const en: LocaleTranslations = {
   },
 
   schedule: {
+    createLessonFailed: "Couldn't create the lesson",
+    noLessons: "No lessons yet",
+    noLessonsDesc: "Create your first lesson — pick a student, subject and time",
     studentPaidQuestion: "Has the student paid?",
     markPaidAction: "Paid ✓",
     noPriceSetWarning: "⚠️ No price has been set for this student in the selected subject yet. Enter it manually or set it on the \"People\" → \"Tutor's students\" page.",
@@ -736,6 +748,19 @@ export const en: LocaleTranslations = {
   },
 
   finances: {
+    sortBy: "Sort:",
+    sortPaidShort: "Paid",
+    sortPayoutShort: "Payout",
+    sortByLessonDate: "by lesson date",
+    sortByPaidDateShort: "by payment date",
+    sortByPaidDate: "Sort by student payment date",
+    sortByPayoutDateShort: "by payout date",
+    sortByPayoutDate: "Sort by tutor payout date",
+    periodWeek: "This week",
+    periodMonth: "This month",
+    periodAll: "All time",
+    noDebts: "No debts",
+    noDebtsDesc: "All lessons in this period are paid",
     parityOk: "Figures verified against the database ✓",
     parityMismatch: "⚠️ Mismatch: database {{db}} vs app {{app}} — copy this line to Claude",
     prepaidTitle: "Student prepayments",
@@ -1073,6 +1098,8 @@ export const en: LocaleTranslations = {
     moderationBody: "You see every conversation on the platform, including other people's. You can only write in your own threads.",},
 
   profile: {
+    email: "Email",
+    phone: "Phone",
     achStreak_one: "{{count}}-day streak",
     achStreak_other: "{{count}}-day streak",
     achStreak: "{{count}}-day streak",
@@ -1377,6 +1404,12 @@ export const en: LocaleTranslations = {
     failed: "Couldn't delete the account",
   },
   myStudents: {
+    saveFailed: "Couldn't save the changes. Please try again.",
+    priceSaveFailed: "Couldn't save the price. The old price is still in place — please try again.",
+    loadFailed: "Couldn't load students",
+    searchPlaceholder: "Search students",
+    removeSubjectAria: "Remove subject",
+    addStudent: "Add student",
     history: "Lesson history",
     historyEmpty: "No lessons yet",
     noSummary: "no summary",
@@ -2225,6 +2258,7 @@ export const en: LocaleTranslations = {
     perMonth: "/month",
   },
   groupsPage: {
+    nameRequired: "Enter a group name",
     subtitle: "Combine students into groups for pair and group lessons",
     membersCount: "{{count}} students",
     membersCount_one: "{{count}} student",
@@ -2428,6 +2462,7 @@ export const en: LocaleTranslations = {
     submitBtn: "Submit feedback",
   },
   lessonWorkspace: {
+    meetingLink: "Meeting link",
     paymentFailed: "Failed to update payment",
     markedPaid: "Marked as paid",
     markedUnpaid: "Marked as unpaid",
@@ -2736,6 +2771,7 @@ export const en: LocaleTranslations = {
     empty: "All good here! 🎉",
   },
   inviteLink: {
+    resendBtn: "Resend",
     tutorNoun: "tutor",
     tutorDative: "tutor",
     studentNoun: "student",
@@ -3305,6 +3341,7 @@ export const en: LocaleTranslations = {
     commentPlaceholder: "e.g. cash, transfer 02.05",
   },
   groupsPageExtra: {
+    removeStudentConfirm: "Remove the student from the group? Their price in this group will be lost too.",
     newGroupFab: "New group",
     nameRequiredFallback: "Enter a group name",
     cancel: "Cancel",
@@ -3817,6 +3854,9 @@ export const en: LocaleTranslations = {
     title: "Edit profile",
   },
   errorLog: {
+    clearConfirmTitle: "Clear the error log?",
+    clearConfirmDesc: "All entries will be deleted permanently. This can't be undone.",
+    clearConfirmBtn: "Clear",
     title: "Errors",
     refresh: "Refresh",
     clear: "Clear",
@@ -3875,6 +3915,7 @@ export const en: LocaleTranslations = {
     proPromptDesc: "Automatic payment reminders, student-initiated cancellation/rescheduling by your rules, detailed reports and export.",
   },
   quickLessonDialog: {
+    selectGroup: "Select a group",
     tutorLabel: "Tutor",
     pickTutor: "Choose a tutor",
     slotTaken: "This time is already taken by another lesson of this tutor — pick a different slot",
@@ -4157,6 +4198,7 @@ export const en: LocaleTranslations = {
   },
 
   offline: {
+    discardConfirm: "Discard {{count}} unsent changes? They may include payments and messages — this can't be undone.",
     failedPending: "Not sent: {{count}}",
     retry: "Try again",
     discard: "Discard",

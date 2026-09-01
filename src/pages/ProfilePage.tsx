@@ -831,7 +831,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Email
                 </label>
-                <Input aria-label="you@email.com"
+                <Input aria-label={t("profile.email")}
                   type="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
@@ -843,7 +843,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("shared.phone", { defaultValue: "Телефон" })}
                 </label>
-                <Input aria-label="+380…"
+                <Input aria-label={t("profile.phone")}
                   type="tel"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
@@ -855,7 +855,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Telegram
                 </label>
-                <Input aria-label="@username"
+                <Input aria-label={t("profile.telegram")}
                   value={editTelegram}
                   onChange={(e) => setEditTelegram(e.target.value)}
                   placeholder="@username"

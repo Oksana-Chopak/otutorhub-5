@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { confirmDialog } from "@/hooks/useConfirm";
 import { supabase } from "@/integrations/supabase/client";
 import { EmptyState } from "@/components/EmptyState";
 import { ShieldCheck, Trash2, RefreshCw, ChevronDown } from "lucide-react";
@@ -38,6 +39,14 @@ export default function ErrorLogPage() {
   }, []);
 
   const clearAll = async () => {
+    // Аудит 01.09: один тап знищував увесь журнал назавжди. Сусідній .tap-44
+    // ще й віддавав цій кнопці 8px проміжку від «Оновити».
+    if (!(await confirmDialog({
+      title: t("errorLog.clearConfirmTitle"),
+      description: t("errorLog.clearConfirmDesc"),
+      confirmText: t("errorLog.clearConfirmBtn"),
+      destructive: true,
+    }))) return;
     const { error } = await (supabase as any)
       .from("error_log")
       .delete()

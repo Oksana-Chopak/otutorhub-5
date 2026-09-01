@@ -33,7 +33,7 @@ import { useLocalDraft } from "@/hooks/useLocalDraft";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Loader2, MessageSquare, Plus, Send, ShieldCheck, Search, X, Paperclip, FileText, ArrowLeft, Info, Menu, Wallet, Calendar, Sparkles, SlidersHorizontal } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { ChatAttachment } from "@/components/ChatAttachment";
@@ -106,10 +106,15 @@ function timeShort(iso: string | null | undefined) {
 }
 
 export default function ChatsPage() {
-  const { isIndependent } = useWorkspaceSettings(); // P8: третя персона порожнього стану
+  const { isIndependent } = useWorkspaceSettings();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { user, roles } = useAuth();
   const isManager = roles.includes("manager");
+  // P8 + аудит 01.09: персона порожнього стану рахується ОДИН раз — і текст, і
+  // кнопка беруть її звідси, а не перевіряють прапор кожен по-своєму.
+  const emptyPersona: "manager" | "independent" | "other" =
+    isManager ? "manager" : isIndependent ? "independent" : "other";
   const { isSuperadmin } = useIsSuperadmin(); // модерація: платформна, не рольова
   const myId = user?.id ?? null;
 
@@ -861,11 +866,11 @@ export default function ChatsPage() {
           </div>
           <p className="text-sm font-medium text-foreground">{t("chats.noChatsTitle")}</p>
           <p className="mx-auto mt-2 max-w-md text-[14px] text-muted-foreground">
-            {isManager ? t("chats.noChatsManager") : isIndependent ? t("chats.noChatsIndependent") : t("chats.noChatsOther")}
+            {emptyPersona === "manager" ? t("chats.noChatsManager") : emptyPersona === "independent" ? t("chats.noChatsIndependent") : t("chats.noChatsOther")}
           </p>
           {/* Managers can have zero chats and still need to start one — give the
               empty state a forward action instead of dead-ending. */}
-          {isManager && (
+          {emptyPersona === "manager" ? (
             <button
               onClick={openNewChatDialog}
               className="mx-auto mt-5 flex items-center gap-1.5 h-11 px-5 rounded-full font-bold text-[14px] transition-opacity active:opacity-80"
@@ -874,7 +879,19 @@ export default function ChatsPage() {
               <Plus className="h-4 w-4" />
               {t("chats.startChat")}
             </button>
-          )}
+          ) : emptyPersona === "independent" ? (
+            // Аудит 01.09: дію мав лише менеджер, а самостійний репетитор упирався
+            // в глухий кут — текст «чати зʼявляться після першого уроку» без жодного
+            // способу до цього уроку дійти.
+            <button
+              onClick={() => navigate("/my-students")}
+              className="mx-auto mt-5 flex items-center gap-1.5 h-11 px-5 rounded-full font-bold text-[14px] transition-opacity active:opacity-80"
+              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui" }}
+            >
+              <Plus className="h-4 w-4" />
+              {t("myStudents.addStudent")}
+            </button>
+          ) : null}
         </div>
       ) : (
        <div className="flex min-h-[calc(100dvh-140px)] flex-col">

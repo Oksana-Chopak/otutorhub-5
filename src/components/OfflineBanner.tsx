@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { confirmDialog } from '@/hooks/useConfirm';
 import { subscribePending, subscribeFailed, retryFailed, discardFailed } from '@/lib/offlineQueue';
 import { WifiOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -42,7 +43,20 @@ export function OfflineBanner() {
         <button type="button" onClick={() => void retryFailed()} className="tap-44 rounded-full bg-white/20 px-3 py-1 font-bold">
           {t('offline.retry')}
         </button>
-        <button type="button" onClick={discardFailed} className="tap-44 rounded-full px-3 py-1 underline">
+        <button
+          type="button"
+          onClick={async () => {
+            // Аудит 01.09: тут лежать НЕнадіслані оплати й повідомлення —
+            // стирати їх мовчки не можна, тим паче що кнопка стоїть впритул
+            // до «Спробувати ще».
+            if (await confirmDialog({
+              description: t('offline.discardConfirm', { count: failed }),
+              confirmText: t('offline.discard'),
+              destructive: true,
+            })) discardFailed();
+          }}
+          className="tap-44 rounded-full px-3 py-1 underline"
+        >
           {t('offline.discard')}
         </button>
       </div>

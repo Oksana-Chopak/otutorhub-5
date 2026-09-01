@@ -261,7 +261,7 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
             <div style={{ fontFamily: C.display, fontWeight: 800, fontSize: 21, letterSpacing: "-.01em", color: C.txt }}>{t("closeDayDialog.title")}</div>
             <div style={{ fontSize: 15, color: C.sub, marginTop: 2 }}>{t("closeDayDialog.subtitle")}</div>
           </div>
-          <button onClick={() => onOpenChange(false)} aria-label="✕"
+          <button onClick={() => onOpenChange(false)} aria-label={t("common.close")}
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: C.bg, color: C.sub, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>

@@ -13,6 +13,7 @@
  * - State: pickedSubjects → student prefill; addedStudentId → lesson/chat
  */
 import { useEffect, useState, useCallback } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { appOrigin } from "@/lib/webOrigin";
 import { lazyArray } from "@/lib/lazyI18n";
 import { formatPrice, currencySymbol } from "@/lib/currency";
@@ -296,7 +297,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
           <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentPriceLabel")}</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>{currencySymbol("UAH")}</span>
-            <Input aria-label="500" value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
+            <Input aria-label={t("schedule.pricePerLesson")} value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
               placeholder="500" inputMode="numeric"
               className="h-12 rounded-xl text-[15px] pl-7" />
           </div>
@@ -1014,7 +1015,7 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
       </p>
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.zoomUrlLabel")}</Label>
-        <Input aria-label="https://zoom.us/j/..." value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
+        <Input aria-label={t("lessonWorkspace.meetingLink")} value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
           className="h-12 rounded-xl text-[15px]" />
       </div>
       <Btn disabled={!url.trim() || saving} onClick={save}>

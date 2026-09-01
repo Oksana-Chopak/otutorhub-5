@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 /**
  * C2: єдиний компонент «наступна дія» — принцип аудиту «екран сам каже, що
@@ -12,6 +13,7 @@ export function NextStepBar({ icon, text, actionLabel, onAction, onDismiss }: {
   onAction: () => void;
   onDismiss?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex items-center gap-3 rounded-[14px] px-3.5 py-3"
@@ -30,7 +32,7 @@ export function NextStepBar({ icon, text, actionLabel, onAction, onDismiss }: {
         {actionLabel}
       </button>
       {onDismiss && (
-        <button type="button" onClick={onDismiss} aria-label="dismiss"
+        <button type="button" onClick={onDismiss} aria-label={t("common.close")}
           className="tap-44 shrink-0 h-8 w-8 rounded-lg flex items-center justify-center"
           style={{ border: "none", background: "transparent", color: "var(--sub,#666b82)", cursor: "pointer" }}>
           <X className="h-4 w-4" />

@@ -969,7 +969,7 @@ export function LessonWorkspace({
               <div>
                 <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
-                  <Input aria-label="https://meet.google.com/…"
+                  <Input aria-label={t("lessonWorkspace.meetingLink")}
                     placeholder="https://meet.google.com/…"
                     value={meetingDraft}
                     onChange={(e) => setMeetingDraft(e.target.value)}
@@ -987,7 +987,7 @@ export function LessonWorkspace({
               <div>
                 <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
-                  <Input aria-label="https://us02web.zoom.us/j/…"
+                  <Input aria-label={t("lessonWorkspace.meetingLink")}
                     placeholder="https://us02web.zoom.us/j/…"
                     value={defaultUrl}
                     onChange={(e) => setDefaultUrl(e.target.value)}

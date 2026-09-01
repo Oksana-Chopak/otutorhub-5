@@ -216,7 +216,7 @@ export function RecordPaymentSheet({
               {t("recordPaymentExtra.subtitle")}
             </div>
           </div>
-          <button onClick={close} aria-label="✕"
+          <button onClick={close} aria-label={t("common.close")}
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>

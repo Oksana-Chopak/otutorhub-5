@@ -712,7 +712,7 @@ function GroupDetailsDialog({
   // Independence decides group-lesson source: ONLY a truly independent tutor's group
   // lesson is "independent". A HUB tutor (not manager, not independent) must stamp "hub"
   // so the lesson stays visible to the manager — `isManager` alone missed that case.
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const [group, setGroup] = useState<Group | null>(null);
   const [tutorName, setTutorName] = useState<string>("");
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
@@ -767,6 +767,15 @@ function GroupDetailsDialog({
   const [scheduling, setScheduling] = useState(false);
 
   const scheduleGroupLesson = async () => {
+    // Аудит 01.09: прапор самостійності дефолтиться у false, поки налаштування
+    // робочого простору ще вантажаться. Якщо дати сабмітити в цей момент,
+    // урок самостійного репетитора запишеться з source:"hub" і зникне з його
+    // «Моїх учнів», фінансів і підрахунку учнів. Чекаємо, поки прапор відомий.
+    if (wsLoading) {
+      toast.error(t("common.loading"));
+      return;
+    }
+
     if (!user || !group) return;
     if (active.length === 0) {
       toast.error(t("groupsPageExtra.scheduleNoMembers"));
@@ -902,7 +911,9 @@ function GroupDetailsDialog({
         status: "active",
         price_per_lesson: priceVal,
       });
-      setBusy(false);
+      // Аудит 01.09: тут стояв ранній setBusy(false) — кнопка ставала
+      // активною, поки дія ще тривала, і другий тап створював дубль.
+      // Гасіння лишилось одне, у finally.
       if (error) {
         // Перетворюємо технічні помилки БД на зрозумілі.
         const code = (error as any).code;
@@ -958,6 +969,13 @@ function GroupDetailsDialog({
   };
 
   const removeStudent = async (enrollmentId: string) => {
+    // Аудит 01.09: hard delete разом із введеною ціною, без підтвердження —
+    // тоді як видалення самої групи підтвердження має.
+    if (!(await confirmDialog({
+      description: t("groupsPageExtra.removeStudentConfirm"),
+      confirmText: t("common.delete"),
+      destructive: true,
+    }))) return;
     setBusy(true);
     try {
       const { error } = await supabase.from("group_enrollments").delete().eq("id", enrollmentId);

@@ -192,7 +192,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
               </div>
             )}
           </div>
-          <button onClick={() => onOpenChange(false)} aria-label="✕"
+          <button onClick={() => onOpenChange(false)} aria-label={t("common.close")}
             className="bg-secondary text-muted-foreground" style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>

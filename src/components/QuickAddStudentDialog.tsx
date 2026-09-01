@@ -143,7 +143,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
           { onConflict: "tutor_id,student_id" }
         );
       }
-      setSubmitting(false);
+      // Аудит 01.09: тут стояв ранній setSubmitting(false) — кнопка ставала
+      // активною, поки дія ще тривала, і другий тап створював дубль.
+      // Гасіння лишилось одне, у finally.
 
       if (linked) {
         // Existing student linked to this tutor — already in the system, no invite needed.

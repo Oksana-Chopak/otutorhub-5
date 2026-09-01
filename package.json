@@ -14,7 +14,8 @@
     "cap:sync": "vite build && cap sync",
     "cap:android": "vite build && cap sync android && cap open android",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "typecheck": "tsc -p tsconfig.app.json --noEmit"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",

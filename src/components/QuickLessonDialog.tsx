@@ -335,7 +335,9 @@ export function QuickLessonDialog({
           )
         );
       }
-      setSubmitting(false);
+      // Аудит 01.09: тут стояв ранній setSubmitting(false) — кнопка ставала
+      // активною, поки дія ще тривала, і другий тап створював дубль.
+      // Гасіння лишилось одне, у finally.
       if (error) {
         console.error(error);
         toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));

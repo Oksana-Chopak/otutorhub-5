@@ -252,7 +252,7 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
               {t("contactEdit.visibilityHint")}
             </div>
           </div>
-          <button type="button" onClick={() => onOpenChange(false)} aria-label="✕"
+          <button type="button" onClick={() => onOpenChange(false)} aria-label={t("common.close")}
             style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, border: "none", background: "var(--ds-bg,#F5F4F0)", color: "var(--sub,#666b82)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <X size={18} />
           </button>

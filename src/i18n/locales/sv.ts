@@ -132,7 +132,16 @@ export const sv: LocaleTranslations = {
     payment: "Betalning",
   },
 
+  errorState: {
+    title: "Kunde inte ladda",
+    description: "Det betyder inte att data saknas — den kunde inte läsas. Kontrollera anslutningen och försök igen.",
+    retry: "Försök igen",
+  },
   common: {
+    copy: "Kopiera",
+    copied: "kopierat",
+    done: "Klar",
+    backToFinances: "Tillbaka till Ekonomi",
     date: "Datum",
     time: "Tid",
     backToProfile: "Tillbaka till profilen",
@@ -385,6 +394,9 @@ export const sv: LocaleTranslations = {
     togglePaymentTitle: "Klicka för att ändra betalningsstatus",
   },
   schedule: {
+    createLessonFailed: "Kunde inte skapa lektionen",
+    noLessons: "Inga lektioner än",
+    noLessonsDesc: "Skapa din första lektion — välj elev, ämne och tid",
     studentPaidQuestion: "Har eleven betalat?",
     markPaidAction: "Betald ✓",
     noPriceSetWarning: "⚠️ Inget pris har ännu angetts för den här eleven i det valda ämnet. Ange det manuellt eller ställ in det på sidan \"Personer\" → \"Handledarens elever\".",
@@ -490,6 +502,19 @@ export const sv: LocaleTranslations = {
     createLessonBtn: "Skapa lektion",
   },
   finances: {
+    sortBy: "Sort.:",
+    sortPaidShort: "Betalning",
+    sortPayoutShort: "Utbetalning",
+    sortByLessonDate: "efter lektionsdatum",
+    sortByPaidDateShort: "efter betaldatum",
+    sortByPaidDate: "Sortera efter elevens betaldatum",
+    sortByPayoutDateShort: "efter utbetalningsdatum",
+    sortByPayoutDate: "Sortera efter lärarens utbetalningsdatum",
+    periodWeek: "Denna vecka",
+    periodMonth: "Denna månad",
+    periodAll: "All tid",
+    noDebts: "Inga skulder",
+    noDebtsDesc: "Alla lektioner under perioden är betalda",
     parityOk: "Siffror verifierade mot databasen ✓",
     parityMismatch: "⚠️ Avvikelse: databas {{db}} vs app {{app}} — kopiera raden till Claude",
     prepaidTitle: "Elevers förskott",
@@ -822,6 +847,8 @@ export const sv: LocaleTranslations = {
     moderationTitle: "Moderationsläge",
     moderationBody: "Du ser alla konversationer på plattformen, även andras. Du kan bara skriva i dina egna trådar.",},
   profile: {
+    email: "E-post",
+    phone: "Telefon",
     achStreak_one: "{{count}} dags svit",
     achStreak_other: "{{count}} dagars svit",
     achStreak: "{{count}} dagars svit",
@@ -1364,6 +1391,12 @@ export const sv: LocaleTranslations = {
     failed: "Kunde inte radera kontot",
   },
   myStudents: {
+    saveFailed: "Kunde inte spara ändringarna. Försök igen.",
+    priceSaveFailed: "Kunde inte spara priset. Det gamla priset gäller fortfarande — försök igen.",
+    loadFailed: "Kunde inte ladda elever",
+    searchPlaceholder: "Sök elev",
+    removeSubjectAria: "Ta bort ämne",
+    addStudent: "Lägg till elev",
     history: "Lektionshistorik",
     historyEmpty: "Inga lektioner än",
     noSummary: "ingen anteckning",
@@ -2212,6 +2245,7 @@ export const sv: LocaleTranslations = {
     perMonth: "/månad",
   },
   groupsPage: {
+    nameRequired: "Ange ett gruppnamn",
     subtitle: "Samla elever i grupper för par- och grupplektioner",
     membersCount: "{{count}} elever",
     membersCount_one: "{{count}} elev",
@@ -2415,6 +2449,7 @@ export const sv: LocaleTranslations = {
     submitBtn: "Skicka feedback",
   },
   lessonWorkspace: {
+    meetingLink: "Möteslänk",
     paymentFailed: "Kunde inte uppdatera betalning",
     markedPaid: "Markerad som betald",
     markedUnpaid: "Markerad som obetald",
@@ -2723,6 +2758,7 @@ export const sv: LocaleTranslations = {
     empty: "Allt är lugnt! 🎉",
   },
   inviteLink: {
+    resendBtn: "Skicka igen",
     tutorNoun: "lärare",
     tutorDative: "lärare",
     studentNoun: "elev",
@@ -3292,6 +3328,7 @@ export const sv: LocaleTranslations = {
     commentPlaceholder: "t.ex. kontant, överföring 02.05",
   },
   groupsPageExtra: {
+    removeStudentConfirm: "Ta bort eleven från gruppen? Elevens pris i gruppen försvinner också.",
     newGroupFab: "Ny grupp",
     nameRequiredFallback: "Ange ett gruppnamn",
     cancel: "Avbryt",
@@ -3804,6 +3841,9 @@ export const sv: LocaleTranslations = {
     title: "Redigera profil",
   },
   errorLog: {
+    clearConfirmTitle: "Rensa fellogg?",
+    clearConfirmDesc: "Alla poster raderas permanent. Detta kan inte ångras.",
+    clearConfirmBtn: "Rensa",
     title: "Fel",
     refresh: "Uppdatera",
     clear: "Rensa",
@@ -3862,6 +3902,7 @@ export const sv: LocaleTranslations = {
     proPromptDesc: "Automatiska betalningspåminnelser, avbokning/ombokning av elev enligt dina regler, detaljerade rapporter och export.",
   },
   quickLessonDialog: {
+    selectGroup: "Välj en grupp",
     tutorLabel: "Lärare",
     pickTutor: "Välj lärare",
     slotTaken: "Tiden är redan upptagen av en annan lektion — välj en annan tid",
@@ -4144,6 +4185,7 @@ export const sv: LocaleTranslations = {
   },
 
   offline: {
+    discardConfirm: "Ta bort {{count}} osända ändringar? De kan innehålla betalningar och meddelanden — detta kan inte ångras.",
     failedPending: "Ej skickat: {{count}}",
     retry: "Försök igen",
     discard: "Ta bort",

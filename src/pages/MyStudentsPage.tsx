@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { UserAvatar } from "@/components/UserAvatar";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import { StudentsSkeleton } from "@/components/PageSkeletons";
 import { studentToasts } from "@/lib/toasts";
 import { InviteLinkDialog } from "@/components/InviteLinkDialog";
@@ -191,6 +192,8 @@ export default function MyStudentsPage() {
     useWorkspaceSettings();
 
   const [loading, setLoading] = useState(true);
+
+  const [loadError, setLoadError] = useState(false);
   const [students, setStudents] = useState<MyStudent[]>([]);
   const [view, setView] = useState<"active" | "archived">("active");
   const [dialog, setDialog] = useState<{ open: boolean; mode: "create" | "edit"; studentId: string | null }>(
@@ -240,11 +243,19 @@ export default function MyStudentsPage() {
   const load = async () => {
     if (!user) return;
     setLoading(true);
-    const { data: rates } = await supabase
+    setLoadError(false);
+    // Аудит 01.09: помилка читання не діставалась — обрив мережі давав
+    // rates=null, ids=[] і екран «Додайте першого учня» людині, у якої їх сорок.
+    const { data: rates, error: ratesErr } = await supabase
       .from("student_rates")
       .select("id, student_id, subject, price_per_lesson, archived_at, currency, payment_details")
       .eq("tutor_id", user.id)
       .eq("source", "independent");
+    if (ratesErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
 
     const ids = Array.from(new Set((rates ?? []).map((r: any) => r.student_id)));
     if (ids.length === 0) {
@@ -556,14 +567,21 @@ export default function MyStudentsPage() {
           emailSent: inviteSent,
         });
       } else if (dialog.mode === "edit" && dialog.studentId) {
+        // Аудит 01.09: жоден із трьох записів нижче не перевірявся, а тост
+        // казав «Учня оновлено». Відмова RLS чи обрив мережі = стара ціна в БД
+        // і пропозиція «розповсюдити нову ціну», якої не існує.
         // Update profile
-        await supabase
+        const { error: profErr } = await supabase
           .from("profiles")
           .update({ first_name: fn, last_name: ln })
           .eq("id", dialog.studentId);
+        if (profErr) {
+          toast.error(t("myStudents.saveFailed"));
+          return;
+        }
 
         // Update contacts (upsert)
-        await supabase.from("profile_contacts").upsert(
+        const { error: contactsErr } = await supabase.from("profile_contacts").upsert(
           {
             user_id: dialog.studentId,
             email: email || null,
@@ -574,13 +592,17 @@ export default function MyStudentsPage() {
           },
           { onConflict: "user_id" }
         );
+        if (contactsErr) {
+          toast.error(t("myStudents.saveFailed"));
+          return;
+        }
 
         // Update rate
         const existing = students.find((s) => s.id === dialog.studentId);
         let priceChanged: { tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number } | null = null;
         if (existing?.rate_id) {
           const oldPrice = Number(existing.price ?? 0);
-          await supabase
+          const { error: rateErr } = await supabase
             .from("student_rates")
             .update({
               subject,
@@ -589,6 +611,11 @@ export default function MyStudentsPage() {
               payment_details: form.payment_details.trim() || null,
             } as any)
             .eq("id", existing.rate_id);
+          if (rateErr) {
+            // Ціна — це гроші: мовчати про невдалий запис не можна.
+            toast.error(t("myStudents.priceSaveFailed"));
+            return;
+          }
           if (oldPrice !== price) {
             priceChanged = {
               tutorId: user.id,
@@ -764,7 +791,9 @@ export default function MyStudentsPage() {
         )}
       </div>
 
-      {loading ? <StudentsSkeleton /> : visibleStudents.length === 0 ? (
+      {loading ? <StudentsSkeleton /> : loadError ? (
+        <ErrorState description={t("myStudents.loadFailed")} onRetry={() => void load()} />
+      ) : visibleStudents.length === 0 ? (
         view === "active" ? (
           <EmptyState icon={UserPlus} title={t("myStudents.emptyActiveTitle")}
             description={t("myStudents.emptyActiveDesc")} actionLabel={t("myStudents.addStudentBtn")} onAction={openCreate} />

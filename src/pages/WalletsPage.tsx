@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Wallet, Plus, Search, Loader2, X } from "lucide-react";
 import { WalletDialog } from "@/components/WalletDialog";
 import { EmptyState } from "@/components/EmptyState";
+import { ErrorState } from "@/components/ErrorState";
 import i18nInstance from "@/i18n";
 const t = i18nInstance.t.bind(i18nInstance);
 
@@ -42,12 +43,14 @@ export default function WalletsPage() {
 
   const [rows, setRows] = useState<PairRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [active, setActive] = useState<PairRow | null>(null);
   const [showAll, setShowAll] = useState(true);
 
   const loadData = async () => {
+    setLoadError(false);
     setLoading(true);
 
     // 1. Pairs (student_rates) + balances in ONE round-trip — they're independent;
@@ -59,22 +62,34 @@ export default function WalletsPage() {
     if (isIndependentTutor && user) {
       ratesQ = ratesQ.eq("tutor_id", user.id).eq("source", "independent");
     }
-    const [{ data: rates }, { data: balances }] = await Promise.all([
+    // Аудит 01.09: помилки не дістались — провал читання балансів малював
+    // «0 уроків» на КОЖНОМУ гаманці, тобто екран прямо брехав про гроші.
+    const [{ data: rates, error: ratesErr }, { data: balances, error: balErr }] = await Promise.all([
       ratesQ,
       supabase
         .from("student_wallet_balances" as any)
         .select("tutor_id, student_id, lessons_balance, amount_balance, last_transaction_at"),
     ]);
+    if (ratesErr || balErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     const pairs = (rates ?? []) as any[];
 
     // 2. Profiles (depends on the pair ids)
     const ids = Array.from(
       new Set(pairs.flatMap((p) => [p.tutor_id, p.student_id])),
     );
-    const { data: profiles } = await supabase
+    const { data: profiles, error: profErr } = await supabase
       .from("profiles")
       .select("id, first_name, last_name")
       .in("id", ids);
+    if (profErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     const nameMap = new Map(
       (profiles ?? []).map((p: any) => [
         p.id,
@@ -141,7 +156,9 @@ export default function WalletsPage() {
   }, [rows, search, showAll]);
 
   // Р2: без цього перший рендер (прапор ще false) викидав і НЕЗАЛЕЖНОГО.
-  if (wsLoading) return null;
+  // Аудит 01.09: тут був `return null` — білий екран, поки летять
+  // налаштування робочого простору. Решта сторінок дає скелет.
+  if (wsLoading) return <div className="p-4"><div className="h-24 animate-pulse rounded-[16px] bg-muted" /></div>;
   // P8: хабовий бачив гаманці СВОЇХ хабових учнів — гроші, сплачені хабу.
   if (!isManager && roles.includes("tutor") && !isIndependent) return <Navigate to="/" replace />;
 
@@ -198,6 +215,8 @@ export default function WalletsPage() {
               </div>
             ))}
           </div>
+        ) : loadError ? (
+          <ErrorState onRetry={() => void loadData()} />
         ) : filtered.length === 0 ? (
           <EmptyState
             icon={Wallet}

@@ -156,7 +156,7 @@ export default function SchedulePage() {
   const isManager = roles.includes("manager");
   const isTutor = roles.includes("tutor");
   const isStudent = roles.includes("student");
-  const { isIndependent } = useWorkspaceSettings();
+  const { isIndependent, loading: wsLoading } = useWorkspaceSettings();
   const isIndependentTutor = isTutor && !isManager && isIndependent;
 
   const [loading, setLoading] = useState(true);
@@ -560,6 +560,15 @@ export default function SchedulePage() {
   }, [form.tutor_id, form.starts_at, form.duration_minutes, lessons]);
 
   const handleCreate = async () => {
+    // Аудит 01.09: прапор самостійності дефолтиться у false, поки налаштування
+    // робочого простору ще вантажаться. Якщо дати сабмітити в цей момент,
+    // урок самостійного репетитора запишеться з source:"hub" і зникне з його
+    // «Моїх учнів», фінансів і підрахунку учнів. Чекаємо, поки прапор відомий.
+    if (wsLoading) {
+      toast.error(t("common.loading"));
+      return;
+    }
+
     if (!user) return;
 
     if (isIndependentTutor && students.length === 0) {
@@ -653,7 +662,9 @@ export default function SchedulePage() {
         .from("lessons")
         .insert(payloads)
         .select("id, starts_at, student_id");
-      setSubmitting(false);
+      // Аудит 01.09: тут стояв ранній setSubmitting(false) — кнопка ставала
+      // активною, поки дія ще тривала, і другий тап створював дубль.
+      // Гасіння лишилось одне, у finally.
       if (error) {
         console.error("Failed to create lesson", error);
         if (isIndependentTutor && students.length === 0) {

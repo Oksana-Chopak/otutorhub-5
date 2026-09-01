@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
 import { logEvent } from "@/lib/analytics";
 import { getLocale } from "@/lib/locale";
@@ -213,6 +214,7 @@ export default function FinancesPage() {
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [tutorFilter, setTutorFilter] = useState<string>("all");
   const [exportOpen, setExportOpen] = useState(false);
   const [exportTutor, setExportTutor] = useState("all");
@@ -340,10 +342,10 @@ export default function FinancesPage() {
     // see it, a hub tutor gets NULL — enforced server-side, no per-role column lists.
     const [
       { data: lessonsData, error: lErr },
-      { data: groupLessonsData },
-      { data: txData },
-      { data: balData },
-      { data: ratesData },
+      { data: groupLessonsData, error: gErr },
+      { data: txData, error: txErr },
+      { data: balData, error: balErr },
+      { data: ratesData, error: rErr },
     ] = await Promise.all([
       (async () => {
         const oneYearAgo = new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString();
@@ -406,7 +408,14 @@ export default function FinancesPage() {
         .select("tutor_id, student_id, price_per_lesson, currency, archived_at")
         .is("archived_at", null),
     ]);
-    if (lErr) toast.error(t("finances.loadLessonsError"));
+    // Аудит 01.09: перевірявся лише перший запит, і навіть він лише тостом —
+    // після невдалого читання екран малював «Прибуток 0 ₴» і «Оплат не знайдено»,
+    // тобто помилка виглядала точно як «даних немає». Груповий дохід зникав тихо.
+    if (lErr || gErr || txErr || balErr || rErr) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
 
     // Fetch profiles for EVERY referenced user id (individual student/tutor +
     // GROUP participant student ids + wallet/rate pairs) via .in() — a blind
@@ -2567,6 +2576,8 @@ export default function FinancesPage() {
 
       {loading ? (
         <FinancesSkeleton />
+      ) : loadError ? (
+        <ErrorState onRetry={() => void fetchData()} />
       ) : (
         <>
           {/* === Sticky summary card — always visible at top while scrolling === */}

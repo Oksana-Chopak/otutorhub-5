@@ -267,7 +267,9 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
         link: "/chats",
       });
 
-      setSubmitting(false);
+      // Аудит 01.09: тут стояв ранній setSubmitting(false) — кнопка ставала
+      // активною, поки дія ще тривала, і другий тап створював дубль.
+      // Гасіння лишилось одне, у finally.
       // FINANCE: ставка збережена — протягнути на ВЖЕ СТВОРЕНІ неоплачені уроки
       // цього репетитора (Assign-тракт це пропускав → «нулі замість ставки»).
       await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });

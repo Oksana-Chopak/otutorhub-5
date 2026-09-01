@@ -129,7 +129,16 @@ export const uk = {
   },
   // Common
 
+  errorState: {
+    title: "Не вдалося завантажити",
+    description: "Це не означає, що даних немає — їх не вдалося прочитати. Перевір інтернет і спробуй ще.",
+    retry: "Спробувати ще",
+  },
   common: {
+    copy: "Копіювати",
+    copied: "скопійовано",
+    done: "Готово",
+    backToFinances: "Назад до Фінансів",
     date: "Дата",
     time: "Час",
     backToProfile: "Назад до профілю",
@@ -635,6 +644,9 @@ export const uk = {
 
   // Schedule
   schedule: {
+    createLessonFailed: "Не вдалося створити урок",
+    noLessons: "Уроків ще немає",
+    noLessonsDesc: "Створіть перший урок — оберіть учня, предмет і час",
     studentPaidQuestion: "Учень оплатив?",
     markPaidAction: "Оплачено ✓",
     noPriceSetWarning: "⚠️ Для цього учня з обраного предмета ще не задано ціну. Введіть її вручну або задайте на сторінці «Люди» → «Учні репетитора».",
@@ -742,6 +754,19 @@ export const uk = {
 
   // Finances
   finances: {
+    sortBy: "Сорт.:",
+    sortPaidShort: "Оплата",
+    sortPayoutShort: "Виплата",
+    sortByLessonDate: "за датою уроку",
+    sortByPaidDateShort: "за датою оплати",
+    sortByPaidDate: "Сортувати за датою оплати від учня",
+    sortByPayoutDateShort: "за датою виплати",
+    sortByPayoutDate: "Сортувати за датою виплати репетитору",
+    periodWeek: "Цей тиждень",
+    periodMonth: "Цей місяць",
+    periodAll: "Весь час",
+    noDebts: "Боргів немає",
+    noDebtsDesc: "Усі уроки за цей період оплачені",
     parityOk: "Цифри звірені з базою ✓",
     parityMismatch: "⚠️ Розбіжність із базою: у базі {{db}}, у застосунку {{app}} — скопіюй цей рядок Клоду",
     prepaidTitle: "Передоплати учнів",
@@ -1071,6 +1096,8 @@ export const uk = {
 
   // Profile
   profile: {
+    email: "Email",
+    phone: "Телефон",
     achStreak_one: "серія {{count}} день",
     achStreak_few: "серія {{count}} дні",
     achStreak_many: "серія {{count}} днів",
@@ -1377,6 +1404,12 @@ export const uk = {
     failed: "Не вдалося видалити акаунт",
   },
   myStudents: {
+    saveFailed: "Не вдалося зберегти зміни. Спробуйте ще раз.",
+    priceSaveFailed: "Не вдалося зберегти ціну. Стара ціна лишилась — спробуйте ще раз.",
+    loadFailed: "Не вдалося завантажити учнів",
+    searchPlaceholder: "Пошук учня",
+    removeSubjectAria: "Прибрати предмет",
+    addStudent: "Додати учня",
     history: "Історія уроків",
     historyEmpty: "Ще не було уроків",
     noSummary: "без конспекту",
@@ -2218,6 +2251,7 @@ export const uk = {
     perMonth: "/місяць",
   },
   groupsPage: {
+    nameRequired: "Вкажіть назву групи",
     subtitle: "Об'єднуйте учнів у групи для парних та групових уроків",
     membersCount: "{{count}} учнів",
     membersCount_one: "{{count}} учень",
@@ -2420,6 +2454,7 @@ export const uk = {
     submitBtn: "Надіслати відгук",
   },
   lessonWorkspace: {
+    meetingLink: "Посилання на зустріч",
     paymentFailed: "Не вдалося оновити оплату",
     markedPaid: "Позначено як оплачено",
     markedUnpaid: "Позначено як неоплачено",
@@ -2728,6 +2763,7 @@ export const uk = {
     empty: "Все під контролем! 🎉",
   },
   inviteLink: {
+    resendBtn: "Надіслати ще раз",
     tutorNoun: "репетитора",
     tutorDative: "репетитору",
     studentNoun: "учня",
@@ -3296,6 +3332,7 @@ export const uk = {
     commentPlaceholder: "напр. готівка, переказ 02.05",
   },
   groupsPageExtra: {
+    removeStudentConfirm: "Прибрати учня з групи? Його ціна в цій групі теж зникне.",
     newGroupFab: "Нова група",
     nameRequiredFallback: "Вкажіть назву групи",
     cancel: "Скасувати",
@@ -3807,6 +3844,9 @@ export const uk = {
     title: "Редагувати профіль",
   },
   errorLog: {
+    clearConfirmTitle: "Очистити журнал помилок?",
+    clearConfirmDesc: "Усі записи буде видалено назавжди. Скасувати це неможливо.",
+    clearConfirmBtn: "Очистити",
     title: "Помилки",
     refresh: "Оновити",
     clear: "Очистити",
@@ -3865,6 +3905,7 @@ export const uk = {
     proPromptDesc: "Авто-нагадування про оплату, скасування/перенесення учнем за вашими правилами, детальні звіти та експорт.",
   },
   quickLessonDialog: {
+    selectGroup: "Виберіть групу",
     tutorLabel: "Репетитор",
     pickTutor: "Оберіть репетитора",
     slotTaken: "Цей час уже зайнятий іншим уроком цього репетитора — обери інший слот",
@@ -4147,6 +4188,7 @@ export const uk = {
   },
 
   offline: {
+    discardConfirm: "Прибрати {{count}} ненадісланих змін? Серед них можуть бути оплати й повідомлення — відновити їх буде неможливо.",
     failedPending: "Не надіслано: {{count}}",
     retry: "Спробувати ще",
     discard: "Прибрати",

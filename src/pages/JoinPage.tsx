@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ErrorState } from "@/components/ErrorState";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,14 +17,22 @@ export default function JoinPage() {
   const [referrer, setReferrer] = useState<{ first_name: string; last_name: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [invalid, setInvalid] = useState(false);
+  // Аудит 01.09: мережевий збій теж давав «Посилання недійсне» — людина, яку
+  // запросили, бачила впевнену брехню і більше не поверталась.
+  const [netError, setNetError] = useState(false);
 
   useEffect(() => {
-    if (!code) return;
+    if (!code) { setInvalid(true); setLoading(false); return; }
     (async () => {
       const { data, error } = await supabase
         .rpc("resolve_referral_code", { _code: code })
         .maybeSingle();
-      if (error || !data) {
+      if (error) {
+        setNetError(true);
+        setLoading(false);
+        return;
+      }
+      if (!data) {
         setInvalid(true);
         setLoading(false);
         return;
@@ -39,6 +48,14 @@ export default function JoinPage() {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (netError) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center p-4">
+        <ErrorState onRetry={() => window.location.reload()} />
       </div>
     );
   }

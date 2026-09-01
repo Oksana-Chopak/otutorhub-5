@@ -20,11 +20,19 @@ export function useIsSuperadmin(): { isSuperadmin: boolean; loading: boolean } {
     let active = true;
     setLoading(true);
     // cast: is_superadmin потрапляє у згенеровані типи лише після міграції
-    (supabase as any).rpc("is_superadmin").then(({ data }: { data: unknown }) => {
-      if (!active) return;
-      setIsSuperadmin(data === true);
-      setLoading(false);
-    });
+    (supabase as any)
+      .rpc("is_superadmin")
+      .then(({ data }: { data: unknown }) => {
+        if (!active) return;
+        setIsSuperadmin(data === true);
+        setLoading(false);
+      })
+      // Аудит 01.09: без catch відхилений проміс лишав loading=true назавжди,
+      // а прапор — false: модерація чатів тихо вимикалась назовсім.
+      .catch(() => {
+        if (!active) return;
+        setLoading(false);
+      });
     return () => { active = false; };
   }, [user?.id]);
 

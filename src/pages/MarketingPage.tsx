@@ -156,7 +156,7 @@ export default function MarketingPage() {
 
               <div className="space-y-2">
                 <Label>Тема листа</Label>
-                <Input aria-label="Наприклад: Нові функції TutorHub"
+                <Input aria-label="Тема листа"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="Наприклад: Нові функції TutorHub"

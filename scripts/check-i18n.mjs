@@ -167,14 +167,13 @@ const SKIP_FILES = new Set([
   "LandingPage.tsx", "MarketingPage.tsx",
 ]);
 
-const SKIP_KEY_PREFIXES = [
-  "common.", "nav.", "auth.", "roles.", "schedule.", "finances.",
-  "myStudents.", "lessonCard.", "profile.", "onboarding.", "streak.",
-  "trial.", "referralWidget.", "quickLessonDialog.", "walletDialog.",
-  "authExtra.", "scheduleExtra.", "studentPages.", "dashboardExtra.",
-  "pendingPaymentsExtra.", "groupsPageExtra.", "inviteLinkExtra.", "emptyState.",
-  "chatContext.", "groupsPage.", "inviteLink.",
-];
+// Раніше тут був список із 25 префіксів — common., schedule., finances.,
+// myStudents., profile., groupsPage. … тобто майже весь застосунок. Через нього
+// гейт роками показував «✅», поки 26 ключів реально бракувало і користувач
+// бачив на екрані сирі рядки на кшталт «myStudents.searchPlaceholder».
+// Список спорожнено 01.09 після того, як усі 26 ключів додано в uk/en/sv.
+// Не наповнювати його знову: якщо ключа немає — його треба додати, а не сховати.
+const SKIP_KEY_PREFIXES = [];
 
 const missingTCalls = new Map(); // key → [files]
 
@@ -188,7 +187,14 @@ for (const file of getAllFiles(SRC)) {
   const matches = content.matchAll(/\bt\(["']([^"']+)["']/g);
   for (const [, key] of matches) {
     const baseKey = key.split(",")[0].trim();
-    if (!ukKeys.has(baseKey)) {
+    // i18next сам добирає суфікс множини (_one/_few/_many/_other) і вміє
+    // повертати вкладений обʼєкт чи масив (returnObjects). Обидва випадки —
+    // валідні, тож ключ вважається наявним, якщо є він сам, будь-яка його
+    // форма множини або хоч один вкладений ключ.
+    const existsWithPlural = ["_one", "_few", "_many", "_other", "_zero"]
+      .some((sfx) => ukKeys.has(baseKey + sfx));
+    const existsAsObject = [...ukKeys].some((k) => k.startsWith(baseKey + "."));
+    if (!ukKeys.has(baseKey) && !existsWithPlural && !existsAsObject) {
       // Check if it's just a known-missing prefix (acceptable)
       const knownMissing = SKIP_KEY_PREFIXES.some((p) => baseKey.startsWith(p));
       if (!knownMissing) {

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { getLocale } from "@/lib/locale";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,9 +64,21 @@ export default function FeedbackInboxPage() {
 
   const setStatus = async (id: string, status: Status) => {
     setBusyId(id);
-    await supabase.from("feedback_submissions").update({ status, updated_at: new Date().toISOString() }).eq("id", id);
-    setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
-    setBusyId(null);
+    try {
+      // Аудит 01.09: результат не перевірявся — картка ставала «Вирішено»
+      // навіть коли запис не пройшов, і звернення тихо лишалось відкритим.
+      const { error } = await supabase
+        .from("feedback_submissions")
+        .update({ status, updated_at: new Date().toISOString() })
+        .eq("id", id);
+      if (error) {
+        toast.error(t("errorState.title"));
+        return;
+      }
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    } finally {
+      setBusyId(null);
+    }
   };
 
   const filtered = useMemo(

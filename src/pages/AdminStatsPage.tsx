@@ -196,7 +196,11 @@ export default function AdminStatsPage() {
     (async () => {
       try {
         // cast: is_superadmin enters generated types only after the migration is applied
-        const { data: isAdmin } = await (supabase as any).rpc("is_superadmin");
+        // Аудит 01.09: error не діставався — обрив мережі давав data=null і
+        // власниця платформи бачила замок «доступ лише для суперадміна»
+        // замість «не вдалося перевірити, спробувати ще».
+        const { data: isAdmin, error: adminErr } = await (supabase as any).rpc("is_superadmin");
+        if (adminErr) { setState("error"); return; }
         if (isAdmin !== true) { setState("noaccess"); return; }
         const { data, error } = await supabase.functions.invoke("admin-stats");
         if (error || !data) { setState("error"); return; }

@@ -3,6 +3,7 @@
  * Design: design_handoff_dashboard §6 + detail-add-fab.png
  */
 import { useState } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { Plus, X, CalendarPlus, GraduationCap, CreditCard } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";

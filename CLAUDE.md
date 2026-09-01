@@ -33,7 +33,15 @@ until Lovable applies/deploys it** (see Deploy model). Apply these in order:
 
 ### Git workflow
 - Lovable publishes to `main` after every Publish — always `git pull` before editing
-- After every commit: `npx tsc --noEmit && npm run test && npm run build && node scripts/check-i18n.mjs && node scripts/check-ux.mjs`
+- After every commit: `npm run typecheck && npm run test && npm run build && node scripts/check-i18n.mjs && node scripts/check-ux.mjs`
+- ⚠️ **NEVER use bare `npx tsc --noEmit` as the gate** (fixed 2026-09-01). The root
+  `tsconfig.json` has `"files": []` and only `references`, so that command typechecks
+  NOTHING and always prints 0 errors. `npm run build` is `vite build` — esbuild strips
+  types without checking them. Together they let two `useEscapeKey` calls with no import
+  reach `main`: the independent tutor's dashboard and the whole onboarding crashed into
+  ErrorBoundary while every gate was green. Use `npm run typecheck`
+  (`tsc -p tsconfig.app.json --noEmit`); it is also locked by
+  `src/test/typecheck-gate.test.ts` so the suite fails if src stops compiling.
 - Only push if ALL checks are green
 - ⚠️ `npm run build` IS a required gate (added 2026-07-07 after a JSX-comment-after-`: (`
   in GroupsPage broke the store build but passed tsc+vitest — vitest only transforms
