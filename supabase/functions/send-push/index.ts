@@ -106,7 +106,7 @@ async function encryptPayload(
   const aesKey = await crypto.subtle.importKey("raw", cek as any, "AES-GCM", false, ["encrypt"]);
   // Pad plaintext: record size = 4096, add delimiter 0x02
   const padded = concat(plaintext, new Uint8Array([2]));
-  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded as any);
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce as any }, aesKey, padded as any);
 
   // Build aes128gcm content-encoding header: salt(16) + rs(4) + keyid_len(1) + keyid(65)
   const rs = new Uint8Array(4);
