@@ -575,10 +575,6 @@ export default function ChatsPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length]);
 
-  const selectedThread = useMemo(
-    () => threads.find((t) => t.id === selectedId) ?? null,
-    [threads, selectedId]
-  );
 
   const sendMessage = async () => {
     const text = draft.trim();
