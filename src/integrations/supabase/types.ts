@@ -2644,6 +2644,18 @@ export type Database = {
         Args: { _student_id: string; _tutor_id: string }
         Returns: string
       }
+      get_people_aggregates: {
+        Args: never
+        Returns: {
+          has_lesson: boolean
+          has_paid: boolean
+          last_interaction_at: string
+          last_lesson_at: string
+          unpaid_count: number
+          unpaid_total: number
+          user_id: string
+        }[]
+      }
       get_referral_leaderboard: {
         Args: { _month: number; _year: number }
         Returns: {
