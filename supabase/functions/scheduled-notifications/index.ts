@@ -45,8 +45,14 @@ Deno.serve(async (req) => {
   let authorized = envSecret && provided === envSecret;
   if (!authorized) {
     // Fallback: check DB-stored secret (set up by Lovable pg_cron integration)
-    const { data: dbSecret } = await db.rpc("get_cron_shared_secret").catch(() => ({ data: null }));
-    authorized = dbSecret && provided === dbSecret;
+    let dbSecret: string | null = null;
+    try {
+      const { data } = await db.rpc("get_cron_shared_secret");
+      dbSecret = data as string | null;
+    } catch {
+      dbSecret = null;
+    }
+    authorized = !!dbSecret && provided === dbSecret;
   }
   if (!authorized) {
     return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
