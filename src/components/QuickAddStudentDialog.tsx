@@ -87,7 +87,10 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
   const emailTrim = form.email.trim();
   const phoneTrim = form.phone.trim();
   const nameError = !fnTrim && !lnTrim;
-  const contactError = !emailTrim && !phoneTrim;
+  // №13 (ідеї 01.09): контакти НЕобовʼязкові. Репетитор часто заводить картку
+  // учня, з яким уже займається офлайн — контакт у телефоні, запрошення можна
+  // надіслати пізніше. RPC add_or_link_independent_student і так підтримує
+  // порожні email+phone (NULLIF → привид-картка без контактів).
 
   const submit = async () => {
     if (!user) return;
@@ -104,10 +107,6 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     const currency = form.currency || "UAH";
 
     if (!fn && !ln) return toast.error(t("quickAddStudent.nameRequired"));
-    if (!email && !phone) {
-      if (!more) setMore(true);
-      return toast.error(t("quickAddStudent.contactRequired"));
-    }
     if (!subject) return toast.error(t("quickAddStudent.subjectRequired"));
     if (isNaN(price) || price < 0) return toast.error(t("quickAddStudent.invalidPrice"));
 
@@ -168,14 +167,18 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
       }
       reset();
       onOpenChange(false);
-      setInvite({
-        open: true,
-        name: `${fn} ${ln}`.trim(),
-        email,
-        phone,
-        studentId: newId,
-        emailSent: inviteSent,
-      });
+      // №13: без контактів запрошувати нема куди — не відкриваємо діалог
+      // запрошення взагалі (картка заведена, invite — коли зʼявиться контакт).
+      if (email || phone) {
+        setInvite({
+          open: true,
+          name: `${fn} ${ln}`.trim(),
+          email,
+          phone,
+          studentId: newId,
+          emailSent: inviteSent,
+        });
+      }
       onCreated?.();
     } finally {
       setSubmitting(false);
@@ -401,9 +404,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
             <button type="button" onClick={() => setMore(v => !v)}
               style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                 minHeight: 44, borderRadius: 12, cursor: "pointer",
-                border: `1px dashed ${tried && contactError ? "rgba(245,158,11,0.6)" : F.border}`,
-                background: tried && contactError ? "rgba(245,158,11,0.05)" : "transparent",
-                color: tried && contactError ? F.warnD : F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
+                border: `1px dashed ${F.border}`,
+                background: "transparent",
+                color: F.sub, fontFamily: F.display, fontWeight: 700, fontSize: 14 }}>
               <ChevronDown size={15} style={{ transform: more ? "rotate(180deg)" : "none", transition: "transform .2s" }} />
               {more ? t("quickAddStudent.hideExtra") : t("quickAddStudent.addContactsDetails")}
             </button>
@@ -416,7 +419,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     <div>
                       <span style={lblSt}>{t("quickAddStudent.phone")}</span>
                       <input aria-label={t("quickAddStudent.phone")} type="tel"
-                        style={{ ...inpSt(), borderColor: tried && contactError ? "rgba(245,158,11,0.55)" : F.border }}
+                        style={{ ...inpSt(), borderColor: F.border }}
                         placeholder="+380 67 123 45 67"
                         value={form.phone}
                         onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
@@ -426,7 +429,7 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                     <div>
                       <span style={lblSt}>{t("quickAddStudent.email")}</span>
                       <input aria-label={t("quickAddStudent.email")} type="email"
-                        style={{ ...inpSt(), borderColor: tried && contactError ? "rgba(245,158,11,0.55)" : F.border }}
+                        style={{ ...inpSt(), borderColor: F.border }}
                         placeholder="anna@mail.com"
                         value={form.email}
                         onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
@@ -436,10 +439,9 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8,
                     fontSize: 14, lineHeight: 1.4, fontFamily: F.body,
-                    color: tried && contactError ? F.warnD : F.muted,
-                    fontWeight: tried && contactError ? 600 : 400 }}>
+                    color: F.muted, fontWeight: 400 }}>
                     <Info size={13} style={{ flexShrink: 0 }} />
-                    {tried && contactError ? t("quickAddStudent.contactRequired") : t("quickAddStudent.contactHint")}
+                    {t("quickAddStudent.contactHint")}
                   </div>
                 </div>
 

@@ -15,7 +15,7 @@ import { StudentProgressBar } from "@/components/student/StudentProgressBar";
 import { ReviewPromptCard } from "@/components/ReviewPromptCard";
 import { SkeletonList } from "@/components/SkeletonCard";
 import { FindTutorDialog } from "@/components/FindTutorDialog";
-import { readHomeworkDone } from "@/lib/homeworkDone";
+import { fetchHomeworkDone } from "@/lib/homeworkDone";
 import { computeWeeklyStats } from "@/lib/studentStats";
 import { studentLessonsOrFilter } from "@/lib/studentLessons";
 
@@ -171,9 +171,10 @@ export default function StudentDashboardPage() {
     setUpcoming(upcomingList);
 
     const detailsArr = (details ?? []) as any[];
-    // Drop homework the student has personally marked done (local checklist),
-    // so finishing it on the Homework page is reflected here too.
-    const hwDone = readHomeworkDone(user.id);
+    // №16: позначки «виконано» тепер серверні (fetchHomeworkDone обʼєднує
+    // сервер + локальний кеш) — виконане на іншому пристрої теж зникає з
+    // лічильника.
+    const hwDone = await fetchHomeworkDone(user.id);
     setHomeworkCount(
       detailsArr.filter((d) => d.homework && d.homework.trim() && !hwDone.has(d.lesson_id)).length,
     );

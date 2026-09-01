@@ -288,6 +288,25 @@ export function LessonWorkspace({
     return () => { cancelled = true; };
   }, [lessonId, tutorId, studentId, isTutor]);
 
+  // №16 (ідеї 01.09): чи позначив учень домашку виконаною (homework_done).
+  // Стійко до незастосованої міграції: помилка → просто без чипа.
+  const [hwDoneByStudent, setHwDoneByStudent] = useState(false);
+  useEffect(() => {
+    setHwDoneByStudent(false);
+    if (!isTutor || !lessonId || !studentId) return;
+    let cancelled = false;
+    void (async () => {
+      const { data, error } = await (supabase as any)
+        .from("homework_done")
+        .select("lesson_id")
+        .eq("lesson_id", lessonId)
+        .eq("student_id", studentId)
+        .limit(1);
+      if (!cancelled) setHwDoneByStudent(!error && !!data && data.length > 0);
+    })();
+    return () => { cancelled = true; };
+  }, [lessonId, studentId, isTutor]);
+
   // Load private per-lesson tutor notes (tutor-only table); resilient if not migrated yet.
   useEffect(() => {
     if (!isTutor) return;
@@ -629,7 +648,13 @@ export function LessonWorkspace({
           <div style={{ borderRadius: 16, border: `1.5px solid ${L.border}`, background: "var(--ds-surface,#fff)" }}>
             {/* 📚 Homework */}
             <Row openRow={openRow} toggleRow={toggleRow} emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
-              preview={homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
+              preview={hwDoneByStudent ? `✅ ${t("lessonWorkspaceExtra.homeworkDoneByStudent")}` : homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
+              {/* №16: петля замкнулась — учень позначив, репетитор бачить */}
+              {isTutor && hwDoneByStudent && (
+                <div style={{ display: "flex", alignItems: "center", gap: 7, borderRadius: 11, padding: "8px 12px", marginBottom: 9, background: "rgba(34,197,94,.1)", border: "1px solid rgba(34,197,94,.3)", fontFamily: L.body, fontSize: 14, fontWeight: 600, color: "#16a34a" }}>
+                  ✅ {t("lessonWorkspaceExtra.homeworkDoneByStudent")}
+                </div>
+              )}
               <textarea aria-label={t("lessonWorkspaceExtra.homeworkPlaceholder")} rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
                 placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
               {homeworkDraft !== (homework ?? "") && (

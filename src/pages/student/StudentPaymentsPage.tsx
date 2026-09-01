@@ -45,6 +45,18 @@ export default function StudentPaymentsPage() {
     hapticTap();
     toast.success(t("studentPagesExtra.detailsCopied"));
   };
+  // №17 (ідеї 01.09): якщо в реквізитах є посилання (банка monobank, LiqPay,
+  // будь-який https) — «скопіюй і йди в банк» перетворюється на КНОПКУ оплати.
+  // Оплата уроку живій людині — послуга офлайн: Apple 3.1.1 стосується
+  // цифрових підписок, але перед релізом у сторі перевіримо окремо.
+  const paymentLinkOf = (details: string | null | undefined): string | null => {
+    const m = (details ?? "").match(/https?:\/\/\S+/);
+    return m ? m[0].replace(/[),.;]+$/, "") : null;
+  };
+  const openPayLink = (link: string) => {
+    hapticTap();
+    window.open(link, "_blank", "noopener,noreferrer");
+  };
   const [rows, setRows] = useState<Row[]>([]);
   const [tutorPayInfos, setTutorPayInfos] = useState<TutorPayInfo[]>([]);
   const [walletBalances, setWalletBalances] = useState<{ tutor_id: string; lessons_balance: number; amount_balance: number }[]>([]);
@@ -280,6 +292,17 @@ export default function StudentPaymentsPage() {
                       <Copy className="h-3.5 w-3.5" />
                     </button>
                   </div>
+                  {/* №17: реквізити містять посилання → справжня кнопка оплати */}
+                  {paymentLinkOf(tp.payment_details) && (
+                    <button
+                      type="button"
+                      onClick={() => openPayLink(paymentLinkOf(tp.payment_details)!)}
+                      className="mt-2.5 flex h-11 w-full items-center justify-center gap-2 rounded-[12px] transition-opacity active:opacity-90"
+                      style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}
+                    >
+                      💳 {t("studentPagesExtra.payNow")}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
@@ -309,6 +332,17 @@ export default function StudentPaymentsPage() {
                         {paid ? <Check className="h-3 w-3" aria-hidden="true" /> : <Clock className="h-3 w-3" aria-hidden="true" />}
                         {paid ? t("studentPagesExtra.paidStatus") : t("studentPagesExtra.awaitingStatus")}
                       </span>
+                      {/* №17: посилання в реквізитах → кнопка «Оплатити» просто в рядку боргу */}
+                      {!paid && paymentLinkOf(payInfoFor(r.tutor_id)?.payment_details) && (
+                        <button
+                          type="button"
+                          onClick={() => openPayLink(paymentLinkOf(payInfoFor(r.tutor_id)?.payment_details)!)}
+                          className="flex h-11 flex-shrink-0 items-center justify-center gap-1 rounded-[10px] px-3 transition-opacity active:opacity-90"
+                          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#fff", border: "none", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 14 }}
+                        >
+                          💳 {t("studentPagesExtra.payNow")}
+                        </button>
+                      )}
                       {!paid && payInfoFor(r.tutor_id) && (
                         <button
                           type="button"

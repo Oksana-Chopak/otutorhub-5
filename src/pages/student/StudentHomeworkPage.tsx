@@ -9,7 +9,8 @@ import { SkeletonList } from "@/components/SkeletonCard";
 import { toast } from "sonner";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
-import { readHomeworkDone, writeHomeworkDone } from "@/lib/homeworkDone";
+import { readHomeworkDone, fetchHomeworkDone, setHomeworkDoneServer } from "@/lib/homeworkDone";
+import { insertNotification } from "@/lib/notifications";
 import { openExternal } from "@/lib/openExternal";
 
 interface HomeworkRow {
@@ -36,26 +37,55 @@ export default function StudentHomeworkPage() {
   const haptic = useHaptic();
 
   useEffect(() => {
+    // №16: спершу миттєво локальний кеш, потім серверні позначки (щоб
+    // позначене на іншому телефоні теж було «виконано»).
     setDoneSet(readHomeworkDone(user?.id));
+    let alive = true;
+    void fetchHomeworkDone(user?.id).then((s) => { if (alive) setDoneSet(s); });
+    return () => { alive = false; };
   }, [user?.id]);
 
-  // Personal "done" marker (local, per device). Marking complete celebrates;
-  // unmarking is silent. Closes the homework loop without tutor-facing submission.
+  // №16 (ідеї 01.09): позначка тепер СПРАВЖНЯ — пишеться в БД, репетитор її
+  // бачить і отримує сповіщення. Оптимістично: миттєвий відгук → сервер →
+  // чесний тост залежно від того, чи доїхало.
   const toggleDone = (lessonId: string) => {
     if (!user) return;
-    setDoneSet((prev) => {
-      const next = new Set(prev);
-      const wasDone = next.has(lessonId);
-      if (wasDone) next.delete(lessonId);
-      else next.add(lessonId);
-      writeHomeworkDone(user.id, next);
+    const wasDone = doneSet.has(lessonId);
+    const next = new Set(doneSet);
+    if (wasDone) next.delete(lessonId); else next.add(lessonId);
+    setDoneSet(next);
+    if (!wasDone) {
+      haptic.success();
+      burstConfetti({ count: 14 });
+    }
+    void (async () => {
+      const serverOk = await setHomeworkDoneServer(user.id, lessonId, !wasDone);
       if (!wasDone) {
-        haptic.success();
-        burstConfetti({ count: 14 });
-        toast.success(t("studentPagesExtra.homeworkDoneToast"));
+        toast.success(t("studentPagesExtra.homeworkDoneToast"), {
+          // Чесність: якщо сервер не прийняв (офлайн/стара БД) — не обіцяємо,
+          // що репетитор побачить.
+          description: serverOk ? t("studentPagesExtra.homeworkDoneTutorSees") : undefined,
+        });
+        if (serverOk) {
+          // Сповіщення репетитору — петля «зробив → побачив → похвалив».
+          const row = rows.find((r) => r.lesson_id === lessonId);
+          if (row?.tutor_id) {
+            const { data: me } = await supabase
+              .from("profiles").select("first_name, last_name").eq("id", user.id).maybeSingle();
+            const myName = me ? `${me.first_name ?? ""} ${me.last_name ?? ""}`.trim() : "";
+            void insertNotification({
+              userId: row.tutor_id,
+              type: `homework_done_${lessonId}`,
+              title: myName
+                ? t("notifications.homeworkDoneTitle", { name: myName })
+                : t("notifications.homeworkDoneTitleNoName"),
+              body: row.subject,
+              link: "/schedule",
+            });
+          }
+        }
       }
-      return next;
-    });
+    })();
   };
 
   useEffect(() => {
