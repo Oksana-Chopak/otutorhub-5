@@ -74,7 +74,7 @@ async function encryptPayload(
 
   // Import client public key
   const clientPub = await crypto.subtle.importKey(
-    "raw", b64urlDecode(p256dh), { name: "ECDH", namedCurve: "P-256" }, false, [],
+    "raw", b64urlDecode(p256dh) as BufferSource, { name: "ECDH", namedCurve: "P-256" }, false, [],
   );
 
   // ECDH shared secret
@@ -103,10 +103,10 @@ async function encryptPayload(
   const cek   = await hkdf(prkKey, salt, concat(keyInfo, context), 16);
   const nonce = await hkdf(prkKey, salt, concat(nonceInfo, context), 12);
 
-  const aesKey = await crypto.subtle.importKey("raw", cek, "AES-GCM", false, ["encrypt"]);
+  const aesKey = await crypto.subtle.importKey("raw", cek as BufferSource, "AES-GCM", false, ["encrypt"]);
   // Pad plaintext: record size = 4096, add delimiter 0x02
   const padded = concat(plaintext, new Uint8Array([2]));
-  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded);
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-GCM", iv: nonce }, aesKey, padded as BufferSource);
 
   // Build aes128gcm content-encoding header: salt(16) + rs(4) + keyid_len(1) + keyid(65)
   const rs = new Uint8Array(4);
@@ -178,7 +178,7 @@ async function fcmMintToken(sa: { client_email: string; private_key: string; tok
     exp: nowSec + 3600,
   })));
   const key = await crypto.subtle.importKey(
-    "pkcs8", fcmPemToPkcs8(sa.private_key),
+    "pkcs8", fcmPemToPkcs8(sa.private_key) as BufferSource,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"],
   );
   const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, enc.encode(`${head}.${claim}`));
