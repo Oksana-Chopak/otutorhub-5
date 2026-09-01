@@ -63,8 +63,15 @@ function EveningSummaryCard() {
   // settings існують лише для репетиторів (хук вантажить їх тільки для ролі
   // tutor) — тож перевірка на settings і є перевіркою персони.
   const { settings, updateSettings } = useWorkspaceSettings();
+  // Перевірка 01.09: колонки ще немає в живій БД, тож RPC мовчки викидає ключ,
+  // а `refresh()` повертає старе значення — тумблер стрибав назад під пальцем.
+  // Локальний стан лишає перемикач чесним: він показує те, що обрав користувач,
+  // а якщо запис не пройшов — каже про це, а не вдає, що все гаразд.
+  // Хук оголошений ДО раннього виходу: інакше порядок хуків залежав би від даних.
+  const [pending, setPending] = useState<boolean | null>(null);
   if (!settings) return null;
-  const enabled = (settings as any).evening_summary_enabled !== false;
+  const serverEnabled = (settings as any).evening_summary_enabled !== false;
+  const enabled = pending ?? serverEnabled;
   return (
     <div className="mb-4 rounded-[16px] border-[0.5px] bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
       <div className="flex items-center justify-between gap-3">
@@ -79,7 +86,16 @@ function EveningSummaryCard() {
         <Switch
           checked={enabled}
           aria-label={t("eveningSummary.cardTitle")}
-          onCheckedChange={(v) => void updateSettings({ evening_summary_enabled: v } as any)}
+          onCheckedChange={(v) => {
+            setPending(v);
+            void (async () => {
+              const err = await updateSettings({ evening_summary_enabled: v } as any);
+              if (err) {
+                setPending(null);
+                toast.error(t("profile.saveFailed"));
+              }
+            })();
+          }}
         />
       </div>
     </div>

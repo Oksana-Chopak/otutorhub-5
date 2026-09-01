@@ -1966,7 +1966,6 @@ export const uk = {
     back: "← Назад",
     subjectGermanNote: "Німецька",
     nameRequired: "Вкажіть ім'я учня",
-    contactRequired: "Потрібен email або телефон",
     subjectRequired: "Вкажіть предмет",
     invalidPrice: "Введіть коректну ціну",
     createFailed: "Не вдалося створити профіль",

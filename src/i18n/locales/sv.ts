@@ -1953,7 +1953,6 @@ export const sv: LocaleTranslations = {
     back: "← Tillbaka",
     subjectGermanNote: "Tyska",
     nameRequired: "Ange elevens namn",
-    contactRequired: "E-post eller telefon krävs",
     subjectRequired: "Ange ett ämne",
     invalidPrice: "Ange ett giltigt pris",
     createFailed: "Det gick inte att skapa profil",

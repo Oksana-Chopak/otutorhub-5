@@ -1968,7 +1968,6 @@ export const en: LocaleTranslations = {
     back: "← Back",
     subjectGermanNote: "German",
     nameRequired: "Please provide a student name",
-    contactRequired: "Email or phone required",
     subjectRequired: "Please specify a subject",
     invalidPrice: "Enter a valid price",
     createFailed: "Could not create profile",

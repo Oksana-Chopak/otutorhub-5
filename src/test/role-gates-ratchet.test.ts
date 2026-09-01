@@ -15,6 +15,8 @@ const ALLOW = new Set([
   "src/lib/roleCapabilities.ts",
   "src/hooks/useWorkspaceSettings.ts",
   "src/hooks/useWorkspaceSettings.tsx",
+  // фінансові предикати: прапор приходить аргументом, рендеру немає
+  "src/lib/financials.ts",
 ]);
 const BASELINE: Record<string, number> = {
   "src/components/AiNotesDialog.tsx": 2,
@@ -28,7 +30,12 @@ const BASELINE: Record<string, number> = {
   "src/components/TutorWelcomeBanner.tsx": 2,
   "src/hooks/useWorkspaceSettings.tsx": 2,
   "src/pages/ChatsPage.tsx": 2,
-  "src/pages/DashboardPage.tsx": 28,
+  // 01.09: 28 → 31. Це ЄДИНИЙ раз, коли baseline піднято, і причина зворотна
+  // духу ратчета лише на вигляд: прапор переїхав із неявного припущення в
+  // ОБОВʼЯЗКОВИЙ аргумент чистої функції `countLessonsMissingPrice(rows,
+  // { isIndependent })`. Згадок стало більше, а можливостей помилитись — менше.
+  // Далі число знову може лише падати.
+  "src/pages/DashboardPage.tsx": 31,
   "src/pages/FinancesPage.tsx": 42,
   "src/pages/GroupsPage.tsx": 3,
   "src/pages/MyReferralsPage.tsx": 2,

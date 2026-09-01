@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAwardBadges } from "@/hooks/useAwardBadges";
 import { ErrorState } from "@/components/ErrorState";
 import { isNativeApp } from "@/lib/platform";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
@@ -47,7 +48,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { lessonSourceTint } from "@/components/SourceBadge";
 import { EmptyState } from "@/components/EmptyState";
 import { formatPrice } from "@/lib/currency";
-import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency } from "@/lib/financials";
+import { isBillableLesson, isStudentDebtLesson, isPayoutDueLesson, paidIncome, paidExpense, paidProfit, sumByCurrency, countLessonsMissingPrice } from "@/lib/financials";
 import { syncLessonToGoogleCalendar } from "@/lib/googleCalendarSync";
 import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
@@ -257,21 +258,7 @@ export default function DashboardPage() {
   // завершення уроку, оплата). Чекаємо, поки перший список бейджів завантажиться:
   // useBadgeUnlockToasts спершу синхронізує «бачене», і аж потім свіжий бейдж
   // прилітає як приємний тост, а не ковтається як «старий».
-  const awardInFlight = useRef(false);
-  useEffect(() => {
-    if (!user || !isTutor || isManager || gamificationLoading) return;
-    if (awardInFlight.current) return;
-    awardInFlight.current = true;
-    void (async () => {
-      try {
-        // Каст: типи RPC регенеруються Lovable після застосування міграції
-        // 20260901120000; до того помилка тихо ігнорується — поведінка як досі.
-        const { data, error } = await (supabase as any).rpc("award_my_badges");
-        if (!error && Array.isArray(data) && data.length > 0) await gamification.refresh();
-      } catch { /* міграцію ще не застосовано — без шуму */ }
-      finally { awardInFlight.current = false; }
-    })();
-  }, [user?.id, isTutor, isManager, gamificationLoading, dataVersion]);
+  useAwardBadges(!!user && isTutor && !isManager && !gamificationLoading, gamification.refresh);
 
   // "Сьогодні день X твоєї серії" — once per day greeting
   useEffect(() => {
@@ -1045,20 +1032,11 @@ export default function DashboardPage() {
     [lessons, nowMs, groupUnpaidLessonIds]
   );
 
+  // Інваріант живе у financials.ts разом із рештою грошових предикатів:
+  // прапор самостійності — обовʼязковий аргумент, забути його неможливо.
   const lessonsWithoutPrice = useMemo(
-    () =>
-      lessons.filter(
-        (l) =>
-          // Group lessons (student_id NULL) price per-participant on group_enrollments,
-          // not on the lesson row — never count them as "needs a price".
-          l.student_id &&
-          (l.status === "scheduled" || l.status === "completed") &&
-          // Independent lessons have no tutor_payout (it stays 0 by design), so a 0
-          // payout must NOT flag them as "missing a price" — only the student price does.
-          (Number(l.student_price) === 0 ||
-            (l.source !== "independent" && Number(l.tutor_payout) === 0))
-      ).length,
-    [lessons]
+    () => countLessonsMissingPrice(lessons, { isIndependent: isIndependentTutor }),
+    [lessons, isIndependentTutor],
   );
 
   const effectiveMeetingUrl = (l: LessonRow): string | null => {
@@ -1240,7 +1218,10 @@ export default function DashboardPage() {
           cta: t("dashboardExtra.tutorUnpaidCta"),
         });
       }
-      // Уроки без ціни
+      // Уроки без ціни — ЛИШЕ самостійному. Перевірка 01.09: для хабового
+      // `lessons_visible` маскує student_price у NULL (він не має права бачити
+      // гроші школи), а `Number(null) === 0` — тобто КОЖЕН його урок рахувався
+      // «без ціни», і задача вела в список, який він однаково не може виправити.
       if (lessonsWithoutPrice > 0) {
         tasks.push({
           key: "tutor-no-price",

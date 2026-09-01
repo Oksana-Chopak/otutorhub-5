@@ -26,6 +26,10 @@ const READINESS = /roleReady|wsLoading|workspaceUnknown/;
 const EXEMPT = new Set([
   "src/hooks/useWorkspaceSettings.tsx", // сам джерело правди
   "src/lib/roleCapabilities.ts",        // чиста матриця можливостей, без рендеру
+  // Чиста функція, яка ВИМАГАЄ прапор обовʼязковим аргументом
+  // (`countLessonsMissingPrice(rows, { isIndependent })`) — забути його
+  // неможливо за побудовою. Це і є ліки від того, що ловить цей гейт.
+  "src/lib/financials.ts",
 ]);
 
 describe("гейт готовності персони", () => {

@@ -1,4 +1,5 @@
 import { BackToProfile } from "@/components/BackToProfile";
+import { useAwardBadges } from "@/hooks/useAwardBadges";
 import { LevelBadge } from "@/components/LevelBadge";
 import { BadgesGrid } from "@/components/BadgesGrid";
 import { StreakCard } from "@/components/StreakCard";
@@ -12,7 +13,11 @@ export default function AchievementsPage() {
   const { t } = useTranslation();
   const { roles } = useAuth();
   const isPureStudent = roles.includes("student") && !roles.includes("tutor") && !roles.includes("manager");
-  const { level, streak, badges, loading } = useTutorGamification();
+  const gamification = useTutorGamification();
+  const { level, streak, badges, loading } = gamification;
+  // Перевірка 01.09: тост про бейдж веде саме сюди — сторінка мусить нараховувати
+  // сама, інакше той, хто прийшов за тостом, бачить стару сітку.
+  useAwardBadges(!isPureStudent && !loading, gamification.refresh);
 
   if (isPureStudent) {
     return (

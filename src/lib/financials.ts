@@ -141,3 +141,30 @@ export const grossMarkupPct = (rows: MoneyLesson[]): number | null => {
   if (income === 0) return null;
   return ((income - payout) / income) * 100;
 };
+
+/**
+ * Скільки уроків лишились БЕЗ ЦІНИ — задача «проставити ціну» на дашборді.
+ *
+ * ІНВАРІАНТ (перевірка 01.09, реальний баг): рахувати це можна ЛИШЕ для
+ * самостійного репетитора. Для хабового `lessons_visible` маскує
+ * `student_price` у NULL — він не має права бачити гроші школи, — а
+ * `Number(null) === 0`, тож КОЖЕН його урок виглядав «без ціни», і задача
+ * вела в список, який він однаково не може виправити.
+ *
+ * Тому прапор — обовʼязковий аргумент, а не умова десь у JSX: забути його
+ * тепер неможливо.
+ */
+export function countLessonsMissingPrice(
+  rows: Array<{ student_id?: string | null; status?: string | null; student_price?: number | null; tutor_payout?: number | null; source?: string | null }>,
+  opts: { isIndependent: boolean },
+): number {
+  if (!opts.isIndependent) return 0;
+  return rows.filter(
+    (l) =>
+      // Групові уроки (student_id = NULL) мають ціну на учасниках, не на рядку уроку.
+      l.student_id &&
+      (l.status === "scheduled" || l.status === "completed") &&
+      (Number(l.student_price) === 0 ||
+        (l.source !== "independent" && Number(l.tutor_payout) === 0)),
+  ).length;
+}

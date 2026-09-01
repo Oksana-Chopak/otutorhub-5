@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { openExternal } from "@/lib/openExternal";
 import { getLocale } from "@/lib/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -55,7 +56,9 @@ export default function StudentPaymentsPage() {
   };
   const openPayLink = (link: string) => {
     hapticTap();
-    window.open(link, "_blank", "noopener,noreferrer");
+    // BUG-6: сирий window.open у нативному WebView відводить застосунок без
+    // кнопки назад — користувач у пастці. Усі зовнішні посилання йдуть через це.
+    openExternal(link);
   };
   const [rows, setRows] = useState<Row[]>([]);
   const [tutorPayInfos, setTutorPayInfos] = useState<TutorPayInfo[]>([]);
