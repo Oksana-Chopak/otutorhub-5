@@ -53,7 +53,7 @@ const C = {
 
 /** Evening batch: mark today's past lessons completed + paid in one move. */
 const Pill = ({ on, label, gold, onClick }: { on: boolean; label: string; gold?: boolean; onClick: () => void }) => (
-  <button type="button" onClick={onClick}
+  <button className="tap-44" type="button" onClick={onClick}
     style={{
       height: 36, padding: "0 12px", borderRadius: 999, cursor: "pointer",
       fontFamily: C.display, fontWeight: 700, fontSize: 14, whiteSpace: "nowrap",
@@ -165,18 +165,22 @@ export function CloseDayDialog({ open, onOpenChange, rows, onDone }: Props) {
     const chosen = planRows.filter((r) => planChecked[r.id]);
     if (!chosen.length || planBusy) return;
     setPlanBusy(true);
-    const { count, error } = await createNextWeekLessons(
-      chosen.map((r) => ({ id: r.id, student_id: r.student_id!, tutor_id: r.tutor_id, subject: r.subject, starts_at: r.starts_at, duration_minutes: r.duration_minutes, source: r.source, price: r.price })),
-      user!.id,
-    );
-    setPlanBusy(false);
-    if (error) { toast.error(t("onboardingFlowB.saveFailed")); return; }
-    toast.success(t("closeDaySummary.createdBulk", { count }));
-    logEvent("bulk_next_created", { count }); // C6
-    bumpDataVersion(); // C3
-    setPhase("form");
-    onOpenChange(false);
-    onDone?.();
+    try {
+      const { count, error } = await createNextWeekLessons(
+        chosen.map((r) => ({ id: r.id, student_id: r.student_id!, tutor_id: r.tutor_id, subject: r.subject, starts_at: r.starts_at, duration_minutes: r.duration_minutes, source: r.source, price: r.price })),
+        user!.id,
+      );
+      setPlanBusy(false);
+      if (error) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+      toast.success(t("closeDaySummary.createdBulk", { count }));
+      logEvent("bulk_next_created", { count }); // C6
+      bumpDataVersion(); // C3
+      setPhase("form");
+      onOpenChange(false);
+      onDone?.();
+    } finally {
+      setPlanBusy(false);
+    }
   };
 
   if (phase === "plan") {

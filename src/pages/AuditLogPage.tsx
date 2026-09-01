@@ -242,7 +242,7 @@ export default function AuditLogPage() {
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 44, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
-              <input
+              <input aria-label={t("auditLog.searchPlaceholder")}
                 autoFocus
                 placeholder={t("auditLog.searchPlaceholder")}
                 value={search}
@@ -261,7 +261,7 @@ export default function AuditLogPage() {
             </button>
           )}
           <Select value={actorFilter} onValueChange={setActorFilter}>
-            <SelectTrigger className="h-10 w-[160px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
+            <SelectTrigger aria-label={t("auditLogExtra.actorPlaceholder")} className="h-10 w-[160px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actorPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActors")}</SelectItem>
               {actorOptions.map((a) => (
@@ -270,7 +270,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={actionFilter} onValueChange={setActionFilter}>
-            <SelectTrigger className="h-10 w-[180px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
+            <SelectTrigger aria-label={t("auditLogExtra.actionPlaceholder")} className="h-10 w-[180px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.actionPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
@@ -279,7 +279,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={entityFilter} onValueChange={setEntityFilter}>
-            <SelectTrigger className="h-10 w-[140px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
+            <SelectTrigger aria-label={t("auditLogExtra.entityPlaceholder")} className="h-10 w-[140px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.entityPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allEntities")}</SelectItem>
               {entityOptions.map((a) => (
@@ -288,7 +288,7 @@ export default function AuditLogPage() {
             </SelectContent>
           </Select>
           <Select value={periodFilter} onValueChange={(v) => setPeriodFilter(v as Period)}>
-            <SelectTrigger className="h-10 w-[130px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
+            <SelectTrigger aria-label={t("auditLogExtra.periodPlaceholder")} className="h-10 w-[130px] text-[14px]"><SelectValue placeholder={t("auditLogExtra.periodPlaceholder")} /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allTime")}</SelectItem>
               <SelectItem value="today">{t("auditLogExtra.today")}</SelectItem>
@@ -300,7 +300,7 @@ export default function AuditLogPage() {
             <Button
               size="sm"
               variant="ghost"
-              className="h-10 text-[14px]"
+              className="tap-44 h-10 text-[14px]"
               onClick={() => {
                 setActorFilter("all");
                 setActionFilter("all");
@@ -366,7 +366,7 @@ export default function AuditLogPage() {
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="h-7 text-[14px]"
+                        className="tap-44 h-7 text-[14px]"
                         onClick={() => toggleOpen(e.id)}
                       >
                         {isOpen ? (

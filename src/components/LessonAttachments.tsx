@@ -184,7 +184,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
               <Button
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7"
+                className="tap-44 h-7 w-7"
                 onClick={() => handleOpen(it)}
                 disabled={busyId === it.id}
                 title={t("lessonAttachmentsExtra.openTooltip")}
@@ -195,7 +195,7 @@ export function LessonAttachments({ lessonId, tutorId, studentId, compact = fals
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-7 w-7 text-destructive hover:text-destructive"
+                  className="tap-44 h-7 w-7 text-destructive hover:text-destructive"
                   onClick={() => handleDelete(it)}
                   disabled={busyId === it.id}
                   title={t("lessonAttachmentsExtra.deleteTooltip")}

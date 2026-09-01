@@ -131,27 +131,31 @@ export function ProRulesCard() {
 
   const save = async () => {
     setSaving(true);
-    const days = Math.max(0, Math.min(30, state.payment_due_days || 0));
-    const hours = Math.max(0, Math.min(168, state.cancel_free_hours || 0));
-    const reschedules = Math.max(0, Math.min(31, state.free_reschedules_per_month || 0));
-    const error = await updateSettings({
-      payment_reminder_enabled: state.payment_reminder_enabled,
-      payment_due_mode: state.payment_due_mode,
-      payment_due_days: days,
-      cancel_free_hours: hours,
-      cancel_fee_percent: state.cancel_fee_percent,
-      noshow_charge: state.noshow_charge,
-      free_reschedules_per_month: reschedules,
-      notify_telegram: state.notify_telegram,
-      notify_email: state.notify_email,
-      payment_rules_configured: true,
-    } as never);
-    setSaving(false);
-    if (error) {
-      toast.error(t("proRulesCard.saveFailed"), { description: (error as { message?: string }).message });
-      return;
+    try {
+      const days = Math.max(0, Math.min(30, state.payment_due_days || 0));
+      const hours = Math.max(0, Math.min(168, state.cancel_free_hours || 0));
+      const reschedules = Math.max(0, Math.min(31, state.free_reschedules_per_month || 0));
+      const error = await updateSettings({
+        payment_reminder_enabled: state.payment_reminder_enabled,
+        payment_due_mode: state.payment_due_mode,
+        payment_due_days: days,
+        cancel_free_hours: hours,
+        cancel_fee_percent: state.cancel_fee_percent,
+        noshow_charge: state.noshow_charge,
+        free_reschedules_per_month: reschedules,
+        notify_telegram: state.notify_telegram,
+        notify_email: state.notify_email,
+        payment_rules_configured: true,
+      } as never);
+      setSaving(false);
+      if (error) {
+        toast.error(t("proRulesCard.saveFailed"), { description: (error as { message?: string }).message });
+        return;
+      }
+      toast.success(t("proRulesCard.saveSuccess"));
+    } finally {
+      setSaving(false);
     }
-    toast.success(t("proRulesCard.saveSuccess"));
   };
 
   return (
@@ -248,7 +252,7 @@ export function ProRulesCard() {
               })}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <Input type="number" min={0} max={168} value={state.cancel_free_hours}
+              <Input aria-label={t("proRulesCard.hoursBeforeLesson")} type="number" min={0} max={168} value={state.cancel_free_hours}
                 onChange={(e) => set("cancel_free_hours", Number(e.target.value) || 0)}
                 className="w-20 h-11 text-[15px] rounded-[12px]" />
               <span style={{ fontSize: 14, color: C.sub }}>{t("proRulesCard.hoursBeforeLesson")}</span>
@@ -390,7 +394,7 @@ export function ProRulesCard() {
                     <span style={{ fontSize: 14, color: C.sub }}>
                       {state.payment_due_mode === "before_lesson" ? t("proRulesCard.daysBefore") : t("proRulesCard.daysAfter")}
                     </span>
-                    <Input type="number" min={0} max={30} value={state.payment_due_days}
+                    <Input aria-label={state.payment_due_mode === "before_lesson" ? t("proRulesCard.daysBefore") : t("proRulesCard.daysAfter")} type="number" min={0} max={30} value={state.payment_due_days}
                       onChange={(e) => set("payment_due_days", Number(e.target.value) || 0)}
                       className="w-20 h-11 text-[15px] rounded-[12px]" />
                   </div>

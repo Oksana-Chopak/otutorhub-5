@@ -441,7 +441,7 @@ export default function StudentDashboardPage() {
                 <FindTutorDialog
                   onCreated={refresh}
                   trigger={
-                    <button
+                    <button className="tap-44"
                       style={{ marginTop: 12, height: 42, padding: "0 16px", borderRadius: 12, border: "none", cursor: "pointer",
                         background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a",
                         fontFamily: DS.display, fontWeight: 700, fontSize: 14, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>

@@ -162,7 +162,7 @@ export default function WalletsPage() {
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-[200px]" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "1px solid var(--ds-border,#eceef3)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
-              <input
+              <input aria-label={t("walletsPage.searchPlaceholder")}
                 autoFocus
                 placeholder={t("walletsPage.searchPlaceholder")}
                 value={search}

@@ -726,6 +726,9 @@ export default function LandingPage() {
             <span
               className={cn("persona-word", isAnimating && "swap")}
               onClick={stopPersonaRotation}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); stopPersonaRotation(); } }}
               title={t("landing.hero.fixHint")}
             >
               {personaVars.label}

@@ -19,7 +19,12 @@ type DistributeOmit<T, K extends keyof any> = T extends any ? Omit<T, K> : never
 export type OfflineQueueItemInput = DistributeOmit<OfflineQueueItem, "id" | "ts">;
 
 const KEY = "otutorhub.offlineQueue.v1";
+// Хвіст B12: раніше запис, який сервер відхилив назавжди, зникав із самим лише
+// тостом — користувач бачив «частину відхилено» і не мав способу повторити.
+// Тепер такі записи лежать окремо, банер їх показує, і їх можна вернути в чергу.
+const FAILED_KEY = "otutorhub.offlineQueue.failed.v1";
 const listeners = new Set<(n: number) => void>();
+const failedListeners = new Set<(n: number) => void>();
 let flushing = false;
 let lastQueuedToastAt = 0;
 
@@ -46,6 +51,44 @@ export function isOffline(): boolean {
 }
 export function pendingCount(): number {
   return read().length;
+}
+
+function readFailed(): OfflineQueueItem[] {
+  try {
+    const raw = localStorage.getItem(FAILED_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as OfflineQueueItem[]) : [];
+  } catch {
+    return [];
+  }
+}
+function writeFailed(items: OfflineQueueItem[]) {
+  try {
+    localStorage.setItem(FAILED_KEY, JSON.stringify(items));
+  } catch {
+    /* сховище недоступне — деградуємо тихо, застосунок живе далі */
+  }
+  failedListeners.forEach((l) => l(items.length));
+}
+export function failedCount(): number {
+  return readFailed().length;
+}
+export function subscribeFailed(cb: (n: number) => void): () => void {
+  failedListeners.add(cb);
+  cb(readFailed().length);
+  return () => failedListeners.delete(cb);
+}
+/** Вернути відхилені записи в чергу і спробувати ще раз. */
+export async function retryFailed(): Promise<void> {
+  const failed = readFailed();
+  if (failed.length === 0) return;
+  writeFailed([]);
+  write([...read(), ...failed]);
+  await flushOfflineQueue();
+}
+/** Прибрати відхилені записи назовсім (користувач вирішив, що вони не потрібні). */
+export function discardFailed(): void {
+  writeFailed([]);
 }
 export function subscribePending(cb: (n: number) => void): () => void {
   listeners.add(cb);
@@ -139,7 +182,8 @@ export async function flushOfflineQueue(): Promise<void> {
       }
       if (res.permanent) {
         dropped += 1;
-        console.warn("[offline-queue] запис відхилено сервером, прибираю з черги", item, res.message);
+        console.warn("[offline-queue] server rejected the record permanently, parking it for retry", item, res.message);
+        writeFailed([...readFailed(), item]);
         write(read().filter((i) => i.id !== item.id));
         continue;
       }

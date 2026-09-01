@@ -141,7 +141,7 @@ export default function MarketingPage() {
               <div className="space-y-2">
                 <Label>Сегмент</Label>
                 <Select value={segment} onValueChange={(v) => { setSegment(v as Segment); setCount(null); }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label="Сегмент"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {SEGMENTS.map((s) => (
                       <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
@@ -156,7 +156,7 @@ export default function MarketingPage() {
 
               <div className="space-y-2">
                 <Label>Тема листа</Label>
-                <Input
+                <Input aria-label="Наприклад: Нові функції TutorHub"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   placeholder="Наприклад: Нові функції TutorHub"
@@ -166,7 +166,7 @@ export default function MarketingPage() {
 
               <div className="space-y-2">
                 <Label>HTML-тіло</Label>
-                <Textarea
+                <Textarea aria-label={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
                   value={htmlBody}
                   onChange={(e) => setHtmlBody(e.target.value)}
                   rows={12}

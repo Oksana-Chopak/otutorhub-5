@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { toast } from "sonner";
 import { formatPrice } from "@/lib/currency";
 import { useTranslation } from "react-i18next";
@@ -52,6 +53,7 @@ type CrmRow = NonNullable<Stats["crm"]>["tutors"][number];
 
 /** Крок 5: картка репетитора — таймлайн, помилки, платежі, останні уроки, дії. */
 function CrmDetailSheet({ row, onClose }: { row: CrmRow; onClose: () => void }) {
+  useEscapeKey(true, onClose);
   const { t } = useTranslation();
   const [st, setSt] = useState<"loading" | "ready" | "error">("loading");
   const [d, setD] = useState<{
@@ -273,7 +275,8 @@ export default function AdminStatsPage() {
                     <div className="mt-3 space-y-2">
                       {stats.crm.tutors.filter((r) => r.risk === "red").slice(0, 10).map((r) => (
                         <div key={r.user_id} className="flex flex-wrap items-center gap-2 rounded-[12px] bg-[var(--bg)] p-3">
-                          <span aria-hidden>🔴</span>
+                          {/* C7: замість самого лише кольору — той самий текстовий чип, що й у таблиці */}
+                          <RiskChip risk={r.risk} t={t} />
                           <span className="text-[15px] font-semibold">{r.name}</span>
                           <span className="text-[13px] text-[var(--sub)]">{t(`adminCrm.stage_${r.stage}`)}</span>
                           <span className="ml-auto flex gap-2">

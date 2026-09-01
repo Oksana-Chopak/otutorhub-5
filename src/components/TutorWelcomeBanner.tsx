@@ -85,7 +85,7 @@ export function TutorWelcomeBanner() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 rounded-full"
+              className="tap-44 h-10 w-10 rounded-full"
               onClick={dismiss}
               title={t("tutorWelcome.hide")}
               aria-label={t("tutorWelcome.hideAria")}

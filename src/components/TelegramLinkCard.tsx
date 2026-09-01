@@ -187,7 +187,7 @@ export function TelegramLinkCard() {
                 <Button
                   size="icon"
                   variant="ghost"
-                  className="h-6 w-6"
+                  className="tap-44 h-6 w-6"
                   onClick={() => {
                     navigator.clipboard.writeText(`/start ${link.link_code}`);
                     toast.success(t("telegramLinkExtra.copied"));

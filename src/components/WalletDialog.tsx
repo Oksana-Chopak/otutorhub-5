@@ -208,14 +208,18 @@ export function WalletDialog({
   const handleMarkPaid = async () => {
     if (checkedIds.size === 0) return;
     setMarking(true);
-    const ids = Array.from(checkedIds);
-    const { error } = await updateLessonDetailsSafeBulk(ids, { student_payment_status: "paid" });
-    setMarking(false);
-    if (error) { toast.error(t("walletDialog.markFailed")); return; }
-    toast.success(t("walletDialog.markedPaid", { count: checkedIds.size }));
-    setUnpaidLessons(prev => prev.filter(l => !checkedIds.has(l.id)));
-    setCheckedIds(new Set());
-    refresh();
+    try {
+      const ids = Array.from(checkedIds);
+      const { error } = await updateLessonDetailsSafeBulk(ids, { student_payment_status: "paid" });
+      setMarking(false);
+      if (error) { toast.error(t("walletDialog.markFailed")); return; }
+      toast.success(t("walletDialog.markedPaid", { count: checkedIds.size }));
+      setUnpaidLessons(prev => prev.filter(l => !checkedIds.has(l.id)));
+      setCheckedIds(new Set());
+      refresh();
+    } finally {
+      setMarking(false);
+    }
   };
 
   const toggleCheck = (id: string) => {
@@ -403,7 +407,7 @@ export function WalletDialog({
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                     {t("walletDialog.lessonsCountLabel")}
                   </p>
-                  <input
+                  <input aria-label={t("walletDialog.lessonsCountLabel")}
                     type="number" min={1} placeholder="1"
                     value={lessonsCount}
                     onChange={e => setLessonsCount(e.target.value)}
@@ -434,7 +438,7 @@ export function WalletDialog({
                     color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                     {t("walletDialog.amountLabel")}
                   </p>
-                  <input
+                  <input aria-label={t("walletDialog.amountLabel")}
                     type="number" min={0} placeholder="0"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
@@ -451,7 +455,7 @@ export function WalletDialog({
                   color: F.sub, marginBottom: 8, textTransform: "uppercase" as const, letterSpacing: "0.06em" }}>
                   {t("walletDialog.noteLabel")}
                 </p>
-                <input
+                <input aria-label={t("walletDialog.notePlaceholder")}
                   placeholder={t("walletDialog.notePlaceholder")}
                   value={note}
                   onChange={e => setNote(e.target.value)}

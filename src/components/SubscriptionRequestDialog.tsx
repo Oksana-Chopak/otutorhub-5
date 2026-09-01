@@ -77,45 +77,49 @@ export function SubscriptionRequestDialog({
   const submit = async () => {
     if (!user) return;
     setSubmitting(true);
-    const billingNote =
-      billing === "yearly"
-        ? t("subscriptionDialog.yearlyPlan", { perMonth: usd(PRICE_YEAR_PM), total: usd(PRICE_YEAR_TOTAL) })
-        : billing === "halfyear"
-        ? t("subscriptionDialog.halfyearPlan", { perMonth: usd(PRICE_HALF_PM), total: usd(PRICE_HALF_TOTAL) })
-        : t("subscriptionDialog.monthlyPlan", { price: usd(PRICE_MONTHLY) });
-    const fullMessage = message.trim()
-      ? `${billingNote}\n\n${message.trim()}`
-      : billingNote;
-    const { error } = await supabase.from("subscription_requests").insert({
-      tutor_id: user.id,
-      plan: planLabel,
-      price,
-      message: fullMessage,
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(t("subscriptionDialog.sendFailed"), { description: error.message });
-      return;
-    }
-    toast.success(t("subscriptionDialog.sent"), {
-      description: t("subscriptionDialog.sentDesc"),
-    });
-    // Notify all managers about the Pro request
-    const { data: managerRoles } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "manager");
-    const tutorName = user?.email?.split("@")[0] ?? t("shared.tutor");
-    (managerRoles ?? []).forEach(({ user_id }) => {
-      insertNotification({
-        userId: user_id,
-        type: "pro_request",
-        title: t("notifications.proRequestTitle", { name: tutorName }),
-        link: "/subscription-requests",
+    try {
+      const billingNote =
+        billing === "yearly"
+          ? t("subscriptionDialog.yearlyPlan", { perMonth: usd(PRICE_YEAR_PM), total: usd(PRICE_YEAR_TOTAL) })
+          : billing === "halfyear"
+          ? t("subscriptionDialog.halfyearPlan", { perMonth: usd(PRICE_HALF_PM), total: usd(PRICE_HALF_TOTAL) })
+          : t("subscriptionDialog.monthlyPlan", { price: usd(PRICE_MONTHLY) });
+      const fullMessage = message.trim()
+        ? `${billingNote}\n\n${message.trim()}`
+        : billingNote;
+      const { error } = await supabase.from("subscription_requests").insert({
+        tutor_id: user.id,
+        plan: planLabel,
+        price,
+        message: fullMessage,
       });
-    });
-    setMessage("");
-    onOpenChange(false);
+      setSubmitting(false);
+      if (error) {
+        toast.error(t("subscriptionDialog.sendFailed"), { description: error.message });
+        return;
+      }
+      toast.success(t("subscriptionDialog.sent"), {
+        description: t("subscriptionDialog.sentDesc"),
+      });
+      // Notify all managers about the Pro request
+      const { data: managerRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "manager");
+      const tutorName = user?.email?.split("@")[0] ?? t("shared.tutor");
+      (managerRoles ?? []).forEach(({ user_id }) => {
+        insertNotification({
+          userId: user_id,
+          type: "pro_request",
+          title: t("notifications.proRequestTitle", { name: tutorName }),
+          link: "/subscription-requests",
+        });
+      });
+      setMessage("");
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (

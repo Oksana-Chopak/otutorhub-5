@@ -53,42 +53,46 @@ export function RatePropagationDialog({
     setBusy(true);
     // student_payment_status read through the masked lessons_visible view
     // (GRANT-locked on lesson_details); a manager sees the real status here.
-    let q = supabase
-      .from("lessons_visible")
-      .select("id, student_payment_status")
-      .eq("tutor_id", tutorId)
-      .eq("student_id", studentId)
-      .eq("subject", subject);
+    try {
+      let q = supabase
+        .from("lessons_visible")
+        .select("id, student_payment_status")
+        .eq("tutor_id", tutorId)
+        .eq("student_id", studentId)
+        .eq("subject", subject);
 
-    if (scope === "future_unpaid") {
-      q = q.eq("student_payment_status", "unpaid").gte("starts_at", new Date().toISOString());
-    } else if (scope === "all_unpaid") {
-      q = q.eq("student_payment_status", "unpaid");
-    }
+      if (scope === "future_unpaid") {
+        q = q.eq("student_payment_status", "unpaid").gte("starts_at", new Date().toISOString());
+      } else if (scope === "all_unpaid") {
+        q = q.eq("student_payment_status", "unpaid");
+      }
 
-    const { data: rows, error: selErr } = await q;
-    if (selErr) {
+      const { data: rows, error: selErr } = await q;
+      if (selErr) {
+        setBusy(false);
+        toast.error(t("ratePropagation.updateFailed"));
+        return;
+      }
+      const ids = (rows ?? []).map((r: any) => r.id);
+      if (ids.length === 0) {
+        setBusy(false);
+        toast.success(t("ratePropagation.updatedZero"));
+        onOpenChange(false);
+        onDone?.();
+        return;
+      }
+      const { error } = await updateLessonDetailsSafeBulk(ids, { student_price: newPrice });
       setBusy(false);
-      toast.error(t("ratePropagation.updateFailed"));
-      return;
-    }
-    const ids = (rows ?? []).map((r: any) => r.id);
-    if (ids.length === 0) {
-      setBusy(false);
-      toast.success(t("ratePropagation.updatedZero"));
+      if (error) {
+        toast.error(t("ratePropagation.updateFailed"));
+        return;
+      }
+      toast.success(t("ratePropagation.updated", { count: ids.length }));
       onOpenChange(false);
       onDone?.();
-      return;
+    } finally {
+      setBusy(false);
     }
-    const { error } = await updateLessonDetailsSafeBulk(ids, { student_price: newPrice });
-    setBusy(false);
-    if (error) {
-      toast.error(t("ratePropagation.updateFailed"));
-      return;
-    }
-    toast.success(t("ratePropagation.updated", { count: ids.length }));
-    onOpenChange(false);
-    onDone?.();
   };
 
   return (

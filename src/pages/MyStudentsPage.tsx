@@ -445,193 +445,197 @@ export default function MyStudentsPage() {
 
     setSubmitting(true);
 
-    if (dialog.mode === "create") {
-      // Robust add-or-link via ONE SECURITY DEFINER RPC — handles new / existing-student /
-      // already-mine / non-student-email / ghost. No insert→fail→rollback→link dance.
-      const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
-        _first_name: fn ?? "", _last_name: ln ?? "",
-        _email: email ?? "", _phone: phone ?? "",
-        _telegram: form.telegram.trim(), _subject: subject,
-        _price: price, _currency: form.currency || "UAH",
-      } as any);
-      if (rpcErr || !res) {
-        console.error(rpcErr);
-        const msg = String(rpcErr?.message || "");
-        toast.error(msg.includes("EMAIL_NOT_STUDENT")
-          ? t("myStudents.emailNotStudent")
-          : (rpcErr?.message || t("myStudents.createProfileFailed")));
-        setSubmitting(false);
-        return;
-      }
-      const newId = (res as any).student_id as string;
-      const linked = (res as any).action === "linked";
+    try {
+      if (dialog.mode === "create") {
+        // Robust add-or-link via ONE SECURITY DEFINER RPC — handles new / existing-student /
+        // already-mine / non-student-email / ghost. No insert→fail→rollback→link dance.
+        const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+          _first_name: fn ?? "", _last_name: ln ?? "",
+          _email: email ?? "", _phone: phone ?? "",
+          _telegram: form.telegram.trim(), _subject: subject,
+          _price: price, _currency: form.currency || "UAH",
+        } as any);
+        if (rpcErr || !res) {
+          console.error(rpcErr);
+          const msg = String(rpcErr?.message || "");
+          toast.error(msg.includes("EMAIL_NOT_STUDENT")
+            ? t("myStudents.emailNotStudent")
+            : (rpcErr?.message || t("myStudents.createProfileFailed")));
+          setSubmitting(false);
+          return;
+        }
+        const newId = (res as any).student_id as string;
+        const linked = (res as any).action === "linked";
 
-      // Per-tutor payment details (the RPC's rate doesn't carry them). Best-effort.
-      if (form.payment_details.trim()) {
-        await supabase.from("student_rates").update({ payment_details: form.payment_details.trim() } as any)
-          .eq("tutor_id", user.id).eq("student_id", newId).eq("source", "independent");
-      }
+        // Per-tutor payment details (the RPC's rate doesn't carry them). Best-effort.
+        if (form.payment_details.trim()) {
+          await supabase.from("student_rates").update({ payment_details: form.payment_details.trim() } as any)
+            .eq("tutor_id", user.id).eq("student_id", newId).eq("source", "independent");
+        }
 
-      if (linked) {
-        // Existing student linked to this tutor — already in the system, no invite needed.
-        toast.success(t("quickAddStudent.studentLinked"));
-        await load();
-        setDialog({ open: false, mode: "create", studentId: null });
-        setSubmitting(false);
-        return;
-      }
+        if (linked) {
+          // Existing student linked to this tutor — already in the system, no invite needed.
+          toast.success(t("quickAddStudent.studentLinked"));
+          await load();
+          setDialog({ open: false, mode: "create", studentId: null });
+          setSubmitting(false);
+          return;
+        }
 
-      // New/reclaimed student: add the extra social contacts the RPC didn't set.
-      if (form.facebook_url.trim() || form.instagram_url.trim()) {
-        await supabase.from("profile_contacts").update({
-          facebook_url: form.facebook_url.trim() || null,
-          instagram_url: form.instagram_url.trim() || null,
-        } as any).eq("user_id", newId);
-      }
+        // New/reclaimed student: add the extra social contacts the RPC didn't set.
+        if (form.facebook_url.trim() || form.instagram_url.trim()) {
+          await supabase.from("profile_contacts").update({
+            facebook_url: form.facebook_url.trim() || null,
+            instagram_url: form.instagram_url.trim() || null,
+          } as any).eq("user_id", newId);
+        }
 
-      // 6. Default meeting URL (Zoom/Meet) — optional
-      const meetingUrlRaw = form.default_meeting_url.trim();
-      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
-      if (meetingUrlRaw && !meetingUrl) {
-        // Reset the busy flag — this early return used to leave the save button
-        // permanently spinning/disabled after an invalid URL.
-        setSubmitting(false);
-        toast.error(t("myStudents.invalidMeetingUrl"));
-        return;
-      }
-      if (meetingUrl) {
+        // 6. Default meeting URL (Zoom/Meet) — optional
+        const meetingUrlRaw = form.default_meeting_url.trim();
+        const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+        if (meetingUrlRaw && !meetingUrl) {
+          // Reset the busy flag — this early return used to leave the save button
+          // permanently spinning/disabled after an invalid URL.
+          setSubmitting(false);
+          toast.error(t("myStudents.invalidMeetingUrl"));
+          return;
+        }
+        if (meetingUrl) {
+          await supabase.from("tutor_student_defaults").upsert(
+            {
+              tutor_id: user.id,
+              student_id: newId,
+              default_meeting_url: meetingUrl,
+            },
+            { onConflict: "tutor_id,student_id" }
+          );
+        }
+
+        // 7. Private tutor notes — tutor-only RLS table, the student can never read these
+        const notesVal = form.tutor_notes.trim();
+        if (notesVal) {
+          await (supabase as any).from("tutor_student_notes").upsert(
+            { tutor_id: user.id, student_id: newId, notes: notesVal },
+            { onConflict: "tutor_id,student_id" }
+          );
+        }
+
+        toast.success(t("myStudents.studentAdded"));
+        {
+          const newName = `${form.first_name} ${form.last_name}`.trim();
+          window.setTimeout(() => {
+            toast(t("myStudents.firstStepToastTitle"), {
+              description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
+              action: { label: t("myStudents.createLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${newId}`) },
+            });
+          }, 600);
+        }
+
+        // Auto-send email invite if we have an email
+        let inviteSent = false;
+        if (email) {
+          const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
+            "send-student-invite",
+            { body: { studentId: newId } }
+          );
+          if (!inviteErr && (inviteResp as any)?.success) {
+            inviteSent = true;
+            toast.success(t("myStudents.inviteSent"));
+          } else if (inviteErr) {
+            console.warn("Auto-invite failed", inviteErr);
+          }
+        }
+
+        // Show invite dialog so the tutor can copy/resend the registration link
+        setInvite({
+          open: true,
+          name: `${fn} ${ln}`.trim(),
+          email: email || null,
+          phone: phone || null,
+          studentId: newId,
+          emailSent: inviteSent,
+        });
+      } else if (dialog.mode === "edit" && dialog.studentId) {
+        // Update profile
+        await supabase
+          .from("profiles")
+          .update({ first_name: fn, last_name: ln })
+          .eq("id", dialog.studentId);
+
+        // Update contacts (upsert)
+        await supabase.from("profile_contacts").upsert(
+          {
+            user_id: dialog.studentId,
+            email: email || null,
+            phone: phone || null,
+            telegram: form.telegram.trim() || null,
+            facebook_url: form.facebook_url.trim() || null,
+            instagram_url: form.instagram_url.trim() || null,
+          },
+          { onConflict: "user_id" }
+        );
+
+        // Update rate
+        const existing = students.find((s) => s.id === dialog.studentId);
+        let priceChanged: { tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number } | null = null;
+        if (existing?.rate_id) {
+          const oldPrice = Number(existing.price ?? 0);
+          await supabase
+            .from("student_rates")
+            .update({
+              subject,
+              price_per_lesson: price,
+              currency: form.currency || "UAH",
+              payment_details: form.payment_details.trim() || null,
+            } as any)
+            .eq("id", existing.rate_id);
+          if (oldPrice !== price) {
+            priceChanged = {
+              tutorId: user.id,
+              studentId: dialog.studentId,
+              subject,
+              oldPrice,
+              newPrice: price,
+            };
+          }
+        }
+
+        // Default meeting URL — upsert or clear
+        const meetingUrlRaw = form.default_meeting_url.trim();
+        const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
+        if (meetingUrlRaw && !meetingUrl) {
+          // Same busy-flag reset as the create branch — no stuck spinner.
+          setSubmitting(false);
+          toast.error(t("myStudents.invalidMeetingUrl"));
+          return;
+        }
         await supabase.from("tutor_student_defaults").upsert(
           {
             tutor_id: user.id,
-            student_id: newId,
-            default_meeting_url: meetingUrl,
+            student_id: dialog.studentId,
+            default_meeting_url: meetingUrl || null,
           },
           { onConflict: "tutor_id,student_id" }
         );
-      }
 
-      // 7. Private tutor notes — tutor-only RLS table, the student can never read these
-      const notesVal = form.tutor_notes.trim();
-      if (notesVal) {
+        // Private tutor notes — upsert (null clears)
         await (supabase as any).from("tutor_student_notes").upsert(
-          { tutor_id: user.id, student_id: newId, notes: notesVal },
+          { tutor_id: user.id, student_id: dialog.studentId, notes: form.tutor_notes.trim() || null },
           { onConflict: "tutor_id,student_id" }
         );
-      }
 
-      toast.success(t("myStudents.studentAdded"));
-      {
-        const newName = `${form.first_name} ${form.last_name}`.trim();
-        window.setTimeout(() => {
-          toast(t("myStudents.firstStepToastTitle"), {
-            description: newName ? t("myStudents.firstStepToastDescNamed", { name: newName }) : t("myStudents.firstStepToastDesc"),
-            action: { label: t("myStudents.createLessonAction"), onClick: () => navigate(`/schedule?create=1&student=${newId}`) },
-          });
-        }, 600);
-      }
-
-      // Auto-send email invite if we have an email
-      let inviteSent = false;
-      if (email) {
-        const { data: inviteResp, error: inviteErr } = await supabase.functions.invoke(
-          "send-student-invite",
-          { body: { studentId: newId } }
-        );
-        if (!inviteErr && (inviteResp as any)?.success) {
-          inviteSent = true;
-          toast.success(t("myStudents.inviteSent"));
-        } else if (inviteErr) {
-          console.warn("Auto-invite failed", inviteErr);
+        toast.success(t("myStudents.studentUpdated"));
+        if (priceChanged) {
+          setPropagate({ open: true, ...priceChanged });
         }
       }
 
-      // Show invite dialog so the tutor can copy/resend the registration link
-      setInvite({
-        open: true,
-        name: `${fn} ${ln}`.trim(),
-        email: email || null,
-        phone: phone || null,
-        studentId: newId,
-        emailSent: inviteSent,
-      });
-    } else if (dialog.mode === "edit" && dialog.studentId) {
-      // Update profile
-      await supabase
-        .from("profiles")
-        .update({ first_name: fn, last_name: ln })
-        .eq("id", dialog.studentId);
-
-      // Update contacts (upsert)
-      await supabase.from("profile_contacts").upsert(
-        {
-          user_id: dialog.studentId,
-          email: email || null,
-          phone: phone || null,
-          telegram: form.telegram.trim() || null,
-          facebook_url: form.facebook_url.trim() || null,
-          instagram_url: form.instagram_url.trim() || null,
-        },
-        { onConflict: "user_id" }
-      );
-
-      // Update rate
-      const existing = students.find((s) => s.id === dialog.studentId);
-      let priceChanged: { tutorId: string; studentId: string; subject: string; oldPrice: number; newPrice: number } | null = null;
-      if (existing?.rate_id) {
-        const oldPrice = Number(existing.price ?? 0);
-        await supabase
-          .from("student_rates")
-          .update({
-            subject,
-            price_per_lesson: price,
-            currency: form.currency || "UAH",
-            payment_details: form.payment_details.trim() || null,
-          } as any)
-          .eq("id", existing.rate_id);
-        if (oldPrice !== price) {
-          priceChanged = {
-            tutorId: user.id,
-            studentId: dialog.studentId,
-            subject,
-            oldPrice,
-            newPrice: price,
-          };
-        }
-      }
-
-      // Default meeting URL — upsert or clear
-      const meetingUrlRaw = form.default_meeting_url.trim();
-      const meetingUrl = meetingUrlRaw ? sanitizeHttpUrl(meetingUrlRaw) : "";
-      if (meetingUrlRaw && !meetingUrl) {
-        // Same busy-flag reset as the create branch — no stuck spinner.
-        setSubmitting(false);
-        toast.error(t("myStudents.invalidMeetingUrl"));
-        return;
-      }
-      await supabase.from("tutor_student_defaults").upsert(
-        {
-          tutor_id: user.id,
-          student_id: dialog.studentId,
-          default_meeting_url: meetingUrl || null,
-        },
-        { onConflict: "tutor_id,student_id" }
-      );
-
-      // Private tutor notes — upsert (null clears)
-      await (supabase as any).from("tutor_student_notes").upsert(
-        { tutor_id: user.id, student_id: dialog.studentId, notes: form.tutor_notes.trim() || null },
-        { onConflict: "tutor_id,student_id" }
-      );
-
-      toast.success(t("myStudents.studentUpdated"));
-      if (priceChanged) {
-        setPropagate({ open: true, ...priceChanged });
-      }
+      setSubmitting(false);
+      setDialog({ open: false, mode: "create", studentId: null });
+      await Promise.all([load(), refresh()]);
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
-    setDialog({ open: false, mode: "create", studentId: null });
-    await Promise.all([load(), refresh()]);
   };
 
   const archive = async (s: MyStudent) => {
@@ -723,7 +727,7 @@ export default function MyStudentsPage() {
         <div className="mb-3">
           <div className="flex items-center gap-2.5" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: `1px solid ${T.border}`, boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
             <Search size={20} style={{ color: T.sub, flexShrink: 0 }} />
-            <input
+            <input aria-label={t("myStudents.searchPlaceholder")}
               autoFocus
               value={searchQuery}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setSearchQuery(e.target.value); setSelectedStudentId(null); }}

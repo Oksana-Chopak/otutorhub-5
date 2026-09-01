@@ -68,66 +68,74 @@ export function AvatarUploader({
     setBusy(true);
 
     // Випрямляємо орієнтацію + центрований квадратний кроп (фікс «кривого» фото).
-    let uploadBlob: Blob = file;
     try {
-      uploadBlob = await normalizeAvatar(file);
-    } catch (e) {
-      console.warn("avatar normalize failed, uploading original", e);
-    }
-    const ext = "jpg";
-    const path = `${userId}/avatar.${ext}`;
+      let uploadBlob: Blob = file;
+      try {
+        uploadBlob = await normalizeAvatar(file);
+      } catch (e) {
+        console.warn("avatar normalize failed, uploading original", e);
+      }
+      const ext = "jpg";
+      const path = `${userId}/avatar.${ext}`;
 
-    // B8: СПОЧАТКУ вантажимо нове (upsert перезапише canonical-шлях), і лише
-    // ПІСЛЯ успіху прибираємо старі файли. Раніше порядок був зворотний:
-    // збій між remove() і upload() лишав юзера взагалі без аватара (404).
-    const { error: upErr } = await supabase.storage
-      .from("avatars")
-      .upload(path, uploadBlob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" });
-    if (upErr) {
-      console.error(upErr);
-      toast.error(t("avatarUploader.uploadFailed"));
-      setBusy(false);
-      return;
-    }
-
-    // Cleanup old avatar files (все, крім щойно записаного canonical-шляху).
-    const { data: list } = await supabase.storage.from("avatars").list(userId);
-    const stale = (list ?? []).filter((f) => `${userId}/${f.name}` !== path);
-    if (stale.length > 0) {
-      await supabase.storage
+      // B8: СПОЧАТКУ вантажимо нове (upsert перезапише canonical-шлях), і лише
+      // ПІСЛЯ успіху прибираємо старі файли. Раніше порядок був зворотний:
+      // збій між remove() і upload() лишав юзера взагалі без аватара (404).
+      const { error: upErr } = await supabase.storage
         .from("avatars")
-        .remove(stale.map((f) => `${userId}/${f.name}`));
-    }
+        .upload(path, uploadBlob, { upsert: true, cacheControl: "3600", contentType: "image/jpeg" });
+      if (upErr) {
+        console.error(upErr);
+        toast.error(t("avatarUploader.uploadFailed"));
+        setBusy(false);
+        return;
+      }
 
-    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-    const url = `${pub.publicUrl}?t=${Date.now()}`;
-    const { error: profErr } = await supabase
-      .from("profiles")
-      .update({ avatar_url: url })
-      .eq("id", userId);
-    if (profErr) {
-      console.error(profErr);
-      toast.error(t("avatarUploader.updateFailed"));
+      // Cleanup old avatar files (все, крім щойно записаного canonical-шляху).
+      const { data: list } = await supabase.storage.from("avatars").list(userId);
+      const stale = (list ?? []).filter((f) => `${userId}/${f.name}` !== path);
+      if (stale.length > 0) {
+        await supabase.storage
+          .from("avatars")
+          .remove(stale.map((f) => `${userId}/${f.name}`));
+      }
+
+      const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${pub.publicUrl}?t=${Date.now()}`;
+      const { error: profErr } = await supabase
+        .from("profiles")
+        .update({ avatar_url: url })
+        .eq("id", userId);
+      if (profErr) {
+        console.error(profErr);
+        toast.error(t("avatarUploader.updateFailed"));
+        setBusy(false);
+        return;
+      }
+      toast.success(t("avatarUploader.uploaded"));
+      onChanged?.(url);
       setBusy(false);
-      return;
+    } finally {
+      setBusy(false);
     }
-    toast.success(t("avatarUploader.uploaded"));
-    onChanged?.(url);
-    setBusy(false);
   };
 
   const handleRemove = async () => {
     setBusy(true);
-    const { data: list } = await supabase.storage.from("avatars").list(userId);
-    if (list && list.length > 0) {
-      await supabase.storage
-        .from("avatars")
-        .remove(list.map((f) => `${userId}/${f.name}`));
+    try {
+      const { data: list } = await supabase.storage.from("avatars").list(userId);
+      if (list && list.length > 0) {
+        await supabase.storage
+          .from("avatars")
+          .remove(list.map((f) => `${userId}/${f.name}`));
+      }
+      await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId);
+      toast.success(t("avatarUploader.deleted"));
+      onChanged?.(null);
+      setBusy(false);
+    } finally {
+      setBusy(false);
     }
-    await supabase.from("profiles").update({ avatar_url: null }).eq("id", userId);
-    toast.success(t("avatarUploader.deleted"));
-    onChanged?.(null);
-    setBusy(false);
   };
 
   return (
@@ -158,7 +166,7 @@ export function AvatarUploader({
           onClick={() => inputRef.current?.click()}
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-          Завантажити фото
+          {t("profile.uploadAvatar")}
         </Button>
         {currentUrl && (
           <Button
@@ -169,7 +177,7 @@ export function AvatarUploader({
             onClick={handleRemove}
           >
             <Trash2 className="h-4 w-4" />
-            Видалити
+            {t("common.delete")}
           </Button>
         )}
       </div>

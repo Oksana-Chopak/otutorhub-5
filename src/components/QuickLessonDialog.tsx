@@ -269,29 +269,33 @@ export function QuickLessonDialog({
     setSubmitting(true);
       // Shared helper: snapshots each participant's group price into
       // lesson_participants + notifies every enrolled student.
-      const { lessonId, error } = await createGroupLesson({
-        tutorId: user.id,
-        groupId: selectedGroup.id,
-        subject: selectedGroup.subject || t("shared.lesson"),
-        startsAt: effStartsAt.toISOString(),
-        durationMinutes: parseInt(duration) || 60,
-        source: variant === "independent" ? "independent" : "hub",
-        createdBy: user.id,
-      });
-      setSubmitting(false);
-      if (error || !lessonId) {
-        toast.error(error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
+      try {
+        const { lessonId, error } = await createGroupLesson({
+          tutorId: user.id,
+          groupId: selectedGroup.id,
+          subject: selectedGroup.subject || t("shared.lesson"),
+          startsAt: effStartsAt.toISOString(),
+          durationMinutes: parseInt(duration) || 60,
+          source: variant === "independent" ? "independent" : "hub",
+          createdBy: user.id,
+        });
+        setSubmitting(false);
+        if (error || !lessonId) {
+          toast.error(error || (t("schedule.createLessonFailed") ?? "Не вдалося створити урок"));
+          return;
+        }
+        localStorage.setItem(LAST_MODE_KEY, "group");
+        localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
+        toast.success(t("quickLessonDialogExtra.groupCreated", { name: selectedGroup.name }));
+        void syncLessonToGoogleCalendar(lessonId, "upsert");
+        onOpenChange(false);
+        logEvent("lesson_created", { variant }); // C6
+        bumpDataVersion(); // C3
+        onCreated?.();
         return;
+      } finally {
+        setSubmitting(false);
       }
-      localStorage.setItem(LAST_MODE_KEY, "group");
-      localStorage.setItem(LAST_GROUP_KEY, selectedGroup.id);
-      toast.success(t("quickLessonDialogExtra.groupCreated", { name: selectedGroup.name }));
-      void syncLessonToGoogleCalendar(lessonId, "upsert");
-      onOpenChange(false);
-      logEvent("lesson_created", { variant }); // C6
-      bumpDataVersion(); // C3
-      onCreated?.();
-      return;
     }
 
     if (!selected) return;
@@ -300,115 +304,119 @@ export function QuickLessonDialog({
       return;
     }
     setSubmitting(true);
-    const seriesCount = repeatWeeks > 0 ? repeatWeeks : 1;
-    const basePayload = {
-      tutor_id: effTutorId,
-      student_id: selected.student_id,
-      subject: selected.subject,
-      duration_minutes: parseInt(duration) || 60,
-      status: "scheduled" as const,
-      created_by: user.id,
-      source: isHubVariant ? "hub" : "independent",
-      meeting_url: selected.default_meeting_url || null,
-    };
-    const payloads = Array.from({ length: seriesCount }, (_, i) => ({
-      ...basePayload,
-      starts_at: new Date(effStartsAt.getTime() + i * 7 * 86400000).toISOString(),
-    }));
-    const { data: createdRows, error } = await supabase
-      .from("lessons")
-      .insert(payloads)
-      .select("id");
-    const created = createdRows?.[0] ?? null;
-    if (!error && createdRows?.length && !isHubVariant) {
-      // Independent: pin the displayed price onto the lesson. HUB lessons get their
-      // price + payout from the server-side autofill trigger (rates snapshot); a hub
-      // tutor's student_price write is RPC-gated anyway (MON-2) — skip the round-trip.
-      await Promise.all(
-        createdRows.map((r) =>
-          updateLessonDetailsSafe(r.id, { student_price: selected.price || 0 })
-        )
-      );
-    }
-    setSubmitting(false);
-    if (error) {
-      console.error(error);
-      toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));
-      return;
-    }
-    localStorage.setItem(LAST_KEY, selected.student_id);
-    createdRows?.forEach((r) => void syncLessonToGoogleCalendar(r.id, "upsert"));
-    // Notify student that a new lesson has been scheduled
-    if (created && selected.student_id) {
-      const dateStr = effStartsAt.toLocaleString(getLocale(), {
-        weekday: "long", day: "numeric", month: "long",
-        hour: "2-digit", minute: "2-digit",
-      });
-      insertNotification({
-        userId: selected.student_id,
-        type: `lesson_scheduled_${created.id}`,
-        title: t("quickLessonDialog.notifLessonScheduledTitle"),
-        body: seriesCount > 1
-          ? t("quickLessonDialog.notifLessonSeriesBody", { count: seriesCount, date: dateStr })
-          : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
-        link: "/schedule",
-      });
-
-      // TAIL D — if the tutor enabled a notify channel, also send the cancellation
-      // rules to the student as an in-app notification. Telegram/email delivery is a
-      // future edge function; this implements only the in-app channel. The cancel-rule
-      // columns may not exist in the live DB until the D migration is applied, so we
-      // read defensively (optional chaining / defaults) and simply skip when absent.
-      // Wrapped in try/catch — must NEVER block or fail lesson creation.
-      try {
-        const { data: ws } = await supabase
-          .from("tutor_workspace_settings")
-          .select(
-            "notify_telegram, notify_email, cancel_free_hours, cancel_fee_percent, noshow_charge, free_reschedules_per_month"
+    try {
+      const seriesCount = repeatWeeks > 0 ? repeatWeeks : 1;
+      const basePayload = {
+        tutor_id: effTutorId,
+        student_id: selected.student_id,
+        subject: selected.subject,
+        duration_minutes: parseInt(duration) || 60,
+        status: "scheduled" as const,
+        created_by: user.id,
+        source: isHubVariant ? "hub" : "independent",
+        meeting_url: selected.default_meeting_url || null,
+      };
+      const payloads = Array.from({ length: seriesCount }, (_, i) => ({
+        ...basePayload,
+        starts_at: new Date(effStartsAt.getTime() + i * 7 * 86400000).toISOString(),
+      }));
+      const { data: createdRows, error } = await supabase
+        .from("lessons")
+        .insert(payloads)
+        .select("id");
+      const created = createdRows?.[0] ?? null;
+      if (!error && createdRows?.length && !isHubVariant) {
+        // Independent: pin the displayed price onto the lesson. HUB lessons get their
+        // price + payout from the server-side autofill trigger (rates snapshot); a hub
+        // tutor's student_price write is RPC-gated anyway (MON-2) — skip the round-trip.
+        await Promise.all(
+          createdRows.map((r) =>
+            updateLessonDetailsSafe(r.id, { student_price: selected.price || 0 })
           )
-          .eq("tutor_id", effTutorId)
-          .maybeSingle();
-        const s = (ws ?? {}) as Record<string, unknown>;
-        const notifyTelegram = (s.notify_telegram as boolean | undefined) ?? false;
-        const notifyEmail = (s.notify_email as boolean | undefined) ?? false;
-        if (notifyTelegram || notifyEmail) {
-          const rules = t("quickLessonDialog.notifCancellationRulesBody", {
-            hours: Number(s.cancel_free_hours ?? 24),
-            fee: Number(s.cancel_fee_percent ?? 50),
-            noshow: Number(s.noshow_charge ?? 100),
-            reschedules: Number(s.free_reschedules_per_month ?? 0),
-          });
-          insertNotification({
-            userId: selected.student_id,
-            type: `cancellation_rules_${created.id}`,
-            title: t("quickLessonDialog.notifCancellationRulesTitle"),
-            body: rules,
-            link: "/schedule",
-          });
-
-          // Also deliver the rules to the student via Telegram + email.
-          // Fire-and-forget: the edge function re-reads settings server-side and
-          // hardcodes the uk copy. Must NEVER block or fail lesson creation.
-          void supabase.functions
-            .invoke("notify-lesson-rules", { body: { lessonId: created.id } })
-            .catch((err) =>
-              console.error("[QuickLessonDialog] notify-lesson-rules failed:", err)
-            );
-        }
-      } catch (e) {
-        // Best-effort only — never block lesson creation on a notification failure.
-        console.error("[QuickLessonDialog] cancellation-rules notify failed:", e);
+        );
       }
+      setSubmitting(false);
+      if (error) {
+        console.error(error);
+        toast.error((/23505|unique_visible_slot/.test(String((error as any)?.code ?? "") + String(error.message ?? "")) ? t("quickLessonDialog.slotTaken") : error.message) || t("quickLessonDialogExtra.lessonCreateFailed"));
+        return;
+      }
+      localStorage.setItem(LAST_KEY, selected.student_id);
+      createdRows?.forEach((r) => void syncLessonToGoogleCalendar(r.id, "upsert"));
+      // Notify student that a new lesson has been scheduled
+      if (created && selected.student_id) {
+        const dateStr = effStartsAt.toLocaleString(getLocale(), {
+          weekday: "long", day: "numeric", month: "long",
+          hour: "2-digit", minute: "2-digit",
+        });
+        insertNotification({
+          userId: selected.student_id,
+          type: `lesson_scheduled_${created.id}`,
+          title: t("quickLessonDialog.notifLessonScheduledTitle"),
+          body: seriesCount > 1
+            ? t("quickLessonDialog.notifLessonSeriesBody", { count: seriesCount, date: dateStr })
+            : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
+          link: "/schedule",
+        });
+
+        // TAIL D — if the tutor enabled a notify channel, also send the cancellation
+        // rules to the student as an in-app notification. Telegram/email delivery is a
+        // future edge function; this implements only the in-app channel. The cancel-rule
+        // columns may not exist in the live DB until the D migration is applied, so we
+        // read defensively (optional chaining / defaults) and simply skip when absent.
+        // Wrapped in try/catch — must NEVER block or fail lesson creation.
+        try {
+          const { data: ws } = await supabase
+            .from("tutor_workspace_settings")
+            .select(
+              "notify_telegram, notify_email, cancel_free_hours, cancel_fee_percent, noshow_charge, free_reschedules_per_month"
+            )
+            .eq("tutor_id", effTutorId)
+            .maybeSingle();
+          const s = (ws ?? {}) as Record<string, unknown>;
+          const notifyTelegram = (s.notify_telegram as boolean | undefined) ?? false;
+          const notifyEmail = (s.notify_email as boolean | undefined) ?? false;
+          if (notifyTelegram || notifyEmail) {
+            const rules = t("quickLessonDialog.notifCancellationRulesBody", {
+              hours: Number(s.cancel_free_hours ?? 24),
+              fee: Number(s.cancel_fee_percent ?? 50),
+              noshow: Number(s.noshow_charge ?? 100),
+              reschedules: Number(s.free_reschedules_per_month ?? 0),
+            });
+            insertNotification({
+              userId: selected.student_id,
+              type: `cancellation_rules_${created.id}`,
+              title: t("quickLessonDialog.notifCancellationRulesTitle"),
+              body: rules,
+              link: "/schedule",
+            });
+
+            // Also deliver the rules to the student via Telegram + email.
+            // Fire-and-forget: the edge function re-reads settings server-side and
+            // hardcodes the uk copy. Must NEVER block or fail lesson creation.
+            void supabase.functions
+              .invoke("notify-lesson-rules", { body: { lessonId: created.id } })
+              .catch((err) =>
+                console.error("[QuickLessonDialog] notify-lesson-rules failed:", err)
+              );
+          }
+        } catch (e) {
+          // Best-effort only — never block lesson creation on a notification failure.
+          console.error("[QuickLessonDialog] cancellation-rules notify failed:", e);
+        }
+      }
+      localStorage.setItem(LAST_MODE_KEY, "individual");
+      const timeStr = effStartsAt.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
+      toast.success(
+        seriesCount > 1
+          ? t("quickLessonDialog.seriesCreated", { count: seriesCount, name: selected.name, time: timeStr })
+          : `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: timeStr })}`
+      );
+      onOpenChange(false);
+      onCreated?.();
+    } finally {
+      setSubmitting(false);
     }
-    localStorage.setItem(LAST_MODE_KEY, "individual");
-    const timeStr = effStartsAt.toLocaleTimeString(getLocale(), { hour: "2-digit", minute: "2-digit" });
-    toast.success(
-      seriesCount > 1
-        ? t("quickLessonDialog.seriesCreated", { count: seriesCount, name: selected.name, time: timeStr })
-        : `${t("quickLessonDialogExtra.lessonCreated", { name: selected.name, time: timeStr })}`
-    );
-    onOpenChange(false);
-    onCreated?.();
   };
 
   const canSubmit =
@@ -500,7 +508,7 @@ export function QuickLessonDialog({
                   <label style={{ display: "block", marginBottom: 6, fontWeight: 800, fontSize: 14, color: F.sub }}>
                     {t("quickLessonDialog.tutorLabel")}
                   </label>
-                  <select
+                  <select aria-label={t("quickLessonDialog.tutorLabel")}
                     value={selTutorId}
                     onChange={(e) => setSelTutorId(e.target.value)}
                     style={{ width: "100%", height: 58, borderRadius: 15, padding: "0 14px", background: "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${F.border}`, fontWeight: 700, fontSize: 17, color: selTutorId ? F.txt : F.muted }}

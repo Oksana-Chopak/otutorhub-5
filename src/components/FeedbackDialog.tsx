@@ -51,28 +51,32 @@ export function FeedbackDialog({ open, onOpenChange }: FeedbackDialogProps) {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("feedback_submissions").insert({
-      user_id: user?.id,
-      category,
-      message: message.trim(),
-      rating: rating > 0 ? rating : null,
-      page_url: typeof window !== "undefined" ? window.location.pathname : null,
-      user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-    });
-    setSubmitting(false);
-    if (error) {
-      const friendly = /does not exist|42P01/i.test(error.message)
-        ? t("feedback.storageNotReady")
-        : error.message;
-      toast({ title: t("feedback.errorTitle"), description: friendly, variant: "destructive" });
-      return;
+    try {
+      const { error } = await supabase.from("feedback_submissions").insert({
+        user_id: user?.id,
+        category,
+        message: message.trim(),
+        rating: rating > 0 ? rating : null,
+        page_url: typeof window !== "undefined" ? window.location.pathname : null,
+        user_agent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      });
+      setSubmitting(false);
+      if (error) {
+        const friendly = /does not exist|42P01/i.test(error.message)
+          ? t("feedback.storageNotReady")
+          : error.message;
+        toast({ title: t("feedback.errorTitle"), description: friendly, variant: "destructive" });
+        return;
+      }
+      haptic.success();
+      toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });
+      setMessage("");
+      setRating(0);
+      setCategory("idea");
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
     }
-    haptic.success();
-    toast({ title: t("feedback.thankYouTitle"), description: t("feedback.thankYouDesc") });
-    setMessage("");
-    setRating(0);
-    setCategory("idea");
-    onOpenChange(false);
   };
 
   if (!user) return null;

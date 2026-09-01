@@ -277,7 +277,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
               </button>
             </div>
             {otherSubjectActive && (
-              <Input
+              <Input aria-label="Введіть свій предмет"
                 value={otherSubject}
                 onChange={(e) => setOtherSubject(e.target.value)}
                 placeholder="Введіть свій предмет"
@@ -403,7 +403,7 @@ export function LandingFindTutorQuizDialog({ open, onOpenChange }: Props) {
               })}
             </div>
             {goal === "other" && (
-              <Textarea
+              <Textarea aria-label="Розкажи про свою ціль…"
                 placeholder="Розкажи про свою ціль…"
                 value={goalOther}
                 onChange={(e) => setGoalOther(e.target.value)}

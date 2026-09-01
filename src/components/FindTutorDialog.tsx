@@ -91,32 +91,36 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("tutor_referral_requests").insert({
-      student_id: user.id,
-      subject: subject.trim(),
-      preferred_level: level.trim() || null,
-      budget_note: budget.trim() || null,
-      preferred_days: days.length ? days.join(", ") : null,
-      preferred_times: times.length ? times.join(", ") : null,
-      message: message.trim() || null,
-      source: "self_service",
-    });
-    setSubmitting(false);
-    if (error) {
-      console.error(error);
-      toast.error(t("findTutor.requestFailed"));
-      return;
+    try {
+      const { error } = await supabase.from("tutor_referral_requests").insert({
+        student_id: user.id,
+        subject: subject.trim(),
+        preferred_level: level.trim() || null,
+        budget_note: budget.trim() || null,
+        preferred_days: days.length ? days.join(", ") : null,
+        preferred_times: times.length ? times.join(", ") : null,
+        message: message.trim() || null,
+        source: "self_service",
+      });
+      setSubmitting(false);
+      if (error) {
+        console.error(error);
+        toast.error(t("findTutor.requestFailed"));
+        return;
+      }
+      toast.success(t("findTutor.requestSent"));
+      const studentName = user.email?.split("@")[0] || t("shared.student");
+      void notifyManagers({
+        type: "tutor_request",
+        title: t("notifications.tutorRequestTitle", { name: studentName, subject: subject.trim() }),
+        link: "/referrals",
+      });
+      setOpen(false);
+      reset();
+      onCreated?.();
+    } finally {
+      setSubmitting(false);
     }
-    toast.success(t("findTutor.requestSent"));
-    const studentName = user.email?.split("@")[0] || t("shared.student");
-    void notifyManagers({
-      type: "tutor_request",
-      title: t("notifications.tutorRequestTitle", { name: studentName, subject: subject.trim() }),
-      link: "/referrals",
-    });
-    setOpen(false);
-    reset();
-    onCreated?.();
   };
 
   const lbl = (text: string, opts?: { req?: boolean; hint?: string }) => (
@@ -190,7 +194,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
             </div>
             {otherOpen && (
               <div style={{ marginTop: 12, padding: 14, borderRadius: 16, background: "var(--ds-surface2,#fbfbfc)", border: `1px solid ${BORDER}` }}>
-                <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
+                <input aria-label={t("findTutor.otherSubjectPlaceholder")} autoFocus value={draft} onChange={(e) => setDraft(e.target.value)}
                   placeholder={t("findTutor.otherSubjectPlaceholder")}
                   onFocus={() => setSubjFocus(true)} onBlur={() => setSubjFocus(false)}
                   onKeyDown={(e) => { if (e.key === "Enter" && draft.trim()) { e.preventDefault(); pickSubject(draft); } }}
@@ -280,7 +284,7 @@ export function FindTutorDialog({ trigger, onCreated }: Props) {
           {/* 5 · Wishes (gold note) */}
           <div>
             {lbl(t("findTutor.wishesTitle"), { hint: t("findTutor.wishesHint") })}
-            <textarea rows={3} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={1500}
+            <textarea aria-label={t("findTutor.wishesPlaceholder")} rows={3} value={message} onChange={(e) => setMessage(e.target.value)} maxLength={1500}
               placeholder={t("findTutor.wishesPlaceholder")}
               onFocus={() => setNotesFocus(true)} onBlur={() => setNotesFocus(false)}
               style={{ width: "100%", borderRadius: 14, padding: "13px 16px", fontSize: 16, fontFamily: FONT, color: TXT, boxSizing: "border-box", outline: "none", resize: "none", lineHeight: 1.5, background: notesFocus ? "#fff" : "#FFFCF4", border: `1.5px solid ${notesFocus ? "#F5B544" : "rgba(245,181,68,.35)"}`, boxShadow: notesFocus ? "0 0 0 3px rgba(245,181,68,.16)" : "none" }} />

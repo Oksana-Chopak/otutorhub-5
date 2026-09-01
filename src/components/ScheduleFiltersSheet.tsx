@@ -57,7 +57,7 @@ function FilterControls({
         value={filters.status}
         onValueChange={(v) => filters.setStatus(v as any)}
       >
-        <SelectTrigger className="h-10 text-sm">
+        <SelectTrigger aria-label={t("common.status")} className="h-10 text-sm">
           <SelectValue placeholder={t("common.status")} />
         </SelectTrigger>
         <SelectContent>
@@ -70,7 +70,7 @@ function FilterControls({
 
       {showTutorFilter && (
         <Select value={filters.tutor} onValueChange={filters.setTutor}>
-          <SelectTrigger className="h-10 text-sm">
+          <SelectTrigger aria-label={t("roles.tutor")} className="h-10 text-sm">
             <SelectValue placeholder={t("roles.tutor")} />
           </SelectTrigger>
           <SelectContent>
@@ -86,7 +86,7 @@ function FilterControls({
 
       {showStudentFilter && (
         <Select value={filters.student} onValueChange={filters.setStudent}>
-          <SelectTrigger className="h-10 text-sm">
+          <SelectTrigger aria-label={t("schedule.student")} className="h-10 text-sm">
             <SelectValue placeholder={t("schedule.student")} />
           </SelectTrigger>
           <SelectContent>
@@ -104,7 +104,7 @@ function FilterControls({
         value={filters.period}
         onValueChange={(v) => filters.setPeriod(v as any)}
       >
-        <SelectTrigger className="h-10 text-sm">
+        <SelectTrigger aria-label={t("common.month")} className="h-10 text-sm">
           <SelectValue placeholder={t("common.month")} />
         </SelectTrigger>
         <SelectContent>
@@ -121,7 +121,7 @@ function FilterControls({
           value={filters.source}
           onValueChange={(v) => filters.setSource(v as any)}
         >
-          <SelectTrigger className="h-10 text-sm">
+          <SelectTrigger aria-label={t("schedule.sourceAll")} className="h-10 text-sm">
             <SelectValue placeholder={t("schedule.sourceAll")} />
           </SelectTrigger>
           <SelectContent>
@@ -154,7 +154,7 @@ export function ScheduleFiltersSheet(props: Props) {
       type="button"
       variant="outline"
       size="sm"
-      className="relative h-10 gap-2"
+      className="tap-44 relative h-10 gap-2"
     >
       <Filter className="h-4 w-4" />
       <span>{triggerLabel}</span>

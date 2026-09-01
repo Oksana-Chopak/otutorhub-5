@@ -147,52 +147,56 @@ export function RecordPaymentSheet({
       amountDelta = a;
     }
     setBusy(true);
-    const submittedAt = new Date().toISOString();
-    const { error } = await supabase.rpc("wallet_topup" as any, {
-      _tutor_id: pickedPair.tutor_id,
-      _student_id: pickedPair.student_id,
-      _lessons_delta: lessonsDelta,
-      _amount_delta: amountDelta,
-      _note: note || null,
-    });
-
-    if (error) {
-      let writtenTx: { id: string } | null = null;
-      for (let attempt = 0; attempt < 3 && !writtenTx; attempt += 1) {
-        if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 350));
-        const { data } = await supabase
-          .from("student_wallet_transactions" as any)
-          .select("id")
-          .eq("tutor_id", pickedPair.tutor_id)
-          .eq("student_id", pickedPair.student_id)
-          .eq("kind", "topup")
-          .eq("lessons_delta", lessonsDelta)
-          .eq("amount_delta", amountDelta)
-          .gte("created_at", submittedAt)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        writtenTx = data as unknown as { id: string } | null;
-      }
-
-      if (!writtenTx) {
-        setBusy(false);
-        haptic.error();
-        toast.error(t("recordPayment.saveFailed"), { description: error.message });
-        return;
-      }
-    }
-
-    haptic.success();
-    toast.success(t("recordPayment.saved"));
-    // B6: гроші ВЖЕ записані — якщо рефреш батька впаде, кнопка не має
-    // лишитись мертвою до перезавантаження.
     try {
-      await onWalletTopUp();
+      const submittedAt = new Date().toISOString();
+      const { error } = await supabase.rpc("wallet_topup" as any, {
+        _tutor_id: pickedPair.tutor_id,
+        _student_id: pickedPair.student_id,
+        _lessons_delta: lessonsDelta,
+        _amount_delta: amountDelta,
+        _note: note || null,
+      });
+
+      if (error) {
+        let writtenTx: { id: string } | null = null;
+        for (let attempt = 0; attempt < 3 && !writtenTx; attempt += 1) {
+          if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 350));
+          const { data } = await supabase
+            .from("student_wallet_transactions" as any)
+            .select("id")
+            .eq("tutor_id", pickedPair.tutor_id)
+            .eq("student_id", pickedPair.student_id)
+            .eq("kind", "topup")
+            .eq("lessons_delta", lessonsDelta)
+            .eq("amount_delta", amountDelta)
+            .gte("created_at", submittedAt)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          writtenTx = data as unknown as { id: string } | null;
+        }
+
+        if (!writtenTx) {
+          setBusy(false);
+          haptic.error();
+          toast.error(t("recordPayment.saveFailed"), { description: error.message });
+          return;
+        }
+      }
+
+      haptic.success();
+      toast.success(t("recordPayment.saved"));
+      // B6: гроші ВЖЕ записані — якщо рефреш батька впаде, кнопка не має
+      // лишитись мертвою до перезавантаження.
+      try {
+        await onWalletTopUp();
+      } finally {
+        setBusy(false);
+      }
+      close();
     } finally {
       setBusy(false);
     }
-    close();
   };
 
   return (
@@ -314,7 +318,7 @@ export function RecordPaymentSheet({
                     {mode === "lessons" ? t("recordPaymentExtra.countLabel") : t("recordPaymentExtra.amountLabel")}
                   </p>
                   {mode === "lessons" ? (
-                    <input
+                    <input aria-label={t("recordPaymentExtra.countPlaceholder")}
                       type="number" min="1" inputMode="numeric"
                       placeholder={t("recordPaymentExtra.countPlaceholder")}
                       value={lessonsCount}
@@ -324,7 +328,7 @@ export function RecordPaymentSheet({
                         background: "var(--ds-surface,#fff)", outline: "none" }}
                     />
                   ) : (
-                    <input
+                    <input aria-label={t("recordPaymentExtra.amountPlaceholder")}
                       type="number" min="1" step="0.01" inputMode="decimal"
                       placeholder={t("recordPaymentExtra.amountPlaceholder")}
                       value={amount}
@@ -351,7 +355,7 @@ export function RecordPaymentSheet({
                   <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 14, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--sub,#666b82)", marginBottom: 6 }}>
                     {t("recordPaymentExtra.commentLabel")}
                   </p>
-                  <input
+                  <input aria-label={t("recordPaymentExtra.commentPlaceholder")}
                     placeholder={t("recordPaymentExtra.commentPlaceholder")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
@@ -396,7 +400,7 @@ function PairPicker({
     <>
       <div className="relative">
         <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
+        <Input aria-label={t("recordPaymentExtra.searchPlaceholder")}
           placeholder={t("recordPaymentExtra.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}

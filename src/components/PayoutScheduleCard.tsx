@@ -49,29 +49,33 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
 
   const save = async () => {
     setSaving(true);
-    const wd = freq === "weekly" || freq === "biweekly" ? weekday : null;
-    const md = freq === "monthly" ? monthday : null;
-    const anchor = freq === "biweekly" ? new Date().toISOString().slice(0, 10) : null;
-    const { error } = await supabase.rpc("set_tutor_payout_schedule", {
-      _tutor_id: tutorId,
-      _frequency: freq || null,
-      _weekday: wd,
-      _monthday: md,
-      _anchor: anchor,
-    });
-    setSaving(false);
-    if (error) {
-      toast.error(t("payoutScheduleCard.saveErrorTitle"), { description: error.message });
-      return;
+    try {
+      const wd = freq === "weekly" || freq === "biweekly" ? weekday : null;
+      const md = freq === "monthly" ? monthday : null;
+      const anchor = freq === "biweekly" ? new Date().toISOString().slice(0, 10) : null;
+      const { error } = await supabase.rpc("set_tutor_payout_schedule", {
+        _tutor_id: tutorId,
+        _frequency: freq || null,
+        _weekday: wd,
+        _monthday: md,
+        _anchor: anchor,
+      });
+      setSaving(false);
+      if (error) {
+        toast.error(t("payoutScheduleCard.saveErrorTitle"), { description: error.message });
+        return;
+      }
+      toast.success(t("payoutScheduleCard.saveSuccessTitle"), {
+        description: describePayoutSchedule({
+          payout_frequency: freq || null,
+          payout_weekday: wd,
+          payout_monthday: md,
+          payout_anchor: anchor,
+        } as PayoutSchedule) ?? t("payoutScheduleCard.noSchedule"),
+      });
+    } finally {
+      setSaving(false);
     }
-    toast.success(t("payoutScheduleCard.saveSuccessTitle"), {
-      description: describePayoutSchedule({
-        payout_frequency: freq || null,
-        payout_weekday: wd,
-        payout_monthday: md,
-        payout_anchor: anchor,
-      } as PayoutSchedule) ?? t("payoutScheduleCard.noSchedule"),
-    });
   };
 
   if (loading) {
@@ -133,7 +137,7 @@ export function PayoutScheduleCard({ tutorId }: { tutorId: string }) {
       {freq === "monthly" && (
         <div>
           <p style={{ fontSize: 14, color: C.sub, fontFamily: C.display, fontWeight: 700, marginBottom: 7 }}>{t("payoutScheduleCard.monthdayLabel")}</p>
-          <input type="number" min={1} max={28} value={monthday}
+          <input aria-label={t("payoutScheduleCard.monthdayLabel")} type="number" min={1} max={28} value={monthday}
             onChange={(e) => setMonthday(Math.min(28, Math.max(1, parseInt(e.target.value, 10) || 1)))}
             style={{ width: 90, height: 44, borderRadius: 12, border: `1.5px solid ${C.border}`, padding: "0 13px",
               fontSize: 17, fontFamily: C.display, fontWeight: 700, color: C.tealD, outline: "none" }} />

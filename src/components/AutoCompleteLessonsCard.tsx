@@ -32,19 +32,23 @@ export function AutoCompleteLessonsCard() {
   const onToggle = async (next: boolean) => {
     if (!user) return;
     setSaving(true);
-    setEnabled(next);
-    // Writes go through the SECURITY DEFINER RPC (tutors have no direct write policy
-    // on tutor_workspace_settings — it holds privileged billing columns).
-    const { error } = await (supabase as any).rpc("update_my_workspace_settings", {
-      _patch: { auto_complete_lessons: next, auto_complete_prompted: true },
-    });
-    setSaving(false);
-    if (error) {
-      toast.error(t("autoComplete.saveFailed"));
-      setEnabled(!next);
-      return;
+    try {
+      setEnabled(next);
+      // Writes go through the SECURITY DEFINER RPC (tutors have no direct write policy
+      // on tutor_workspace_settings — it holds privileged billing columns).
+      const { error } = await (supabase as any).rpc("update_my_workspace_settings", {
+        _patch: { auto_complete_lessons: next, auto_complete_prompted: true },
+      });
+      setSaving(false);
+      if (error) {
+        toast.error(t("autoComplete.saveFailed"));
+        setEnabled(!next);
+        return;
+      }
+      toast.success(next ? t("autoComplete.enabledSuccess") : t("autoComplete.disabledSuccess"));
+    } finally {
+      setSaving(false);
     }
-    toast.success(next ? t("autoComplete.enabledSuccess") : t("autoComplete.disabledSuccess"));
   };
 
   return (

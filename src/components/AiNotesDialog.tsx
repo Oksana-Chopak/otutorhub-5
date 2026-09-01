@@ -64,10 +64,14 @@ export function AiNotesDialog({ open, onOpenChange }: Props) {
 
   const setFlag = async (patch: { ai_notes_auto?: boolean; ai_notes_auto_send?: boolean }) => {
     setBusy(true);
-    if (patch.ai_notes_auto !== undefined) setAuto(patch.ai_notes_auto);
-    if (patch.ai_notes_auto_send !== undefined) setAutoSend(patch.ai_notes_auto_send);
-    await updateSettings(patch);
-    setBusy(false);
+    try {
+      if (patch.ai_notes_auto !== undefined) setAuto(patch.ai_notes_auto);
+      if (patch.ai_notes_auto_send !== undefined) setAutoSend(patch.ai_notes_auto_send);
+      await updateSettings(patch);
+      setBusy(false);
+    } finally {
+      setBusy(false);
+    }
   };
 
 

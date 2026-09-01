@@ -169,7 +169,7 @@ export function ChatContextPanel({ tutorId, studentId, className, onClose, viewe
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-foreground">{t("chatContext.title")}</h3>
         {onClose && (
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClose} aria-label={t("common.close")}>
+          <Button variant="ghost" size="icon" className="tap-44 h-7 w-7" onClick={onClose} aria-label={t("common.close")}>
             <X className="h-4 w-4" />
           </Button>
         )}

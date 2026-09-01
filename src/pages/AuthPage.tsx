@@ -389,26 +389,30 @@ export default function AuthPage() {
       return;
     }
     setResetSending(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
-      redirectTo: `${appOrigin()}/reset-password`,
-    });
-    setResetSending(false);
-    if (error) {
-      toast({ title: t("auth.resetFailedTitle"), description: error.message, variant: "destructive" });
-      return;
-    }
-    // 60-с кулдаун із лічильником — і видимий фідбек, і захист від дублів.
-    setResetCooldown(60);
-    const timer = window.setInterval(() => {
-      setResetCooldown((s) => {
-        if (s <= 1) { window.clearInterval(timer); return 0; }
-        return s - 1;
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(emailParse.data, {
+        redirectTo: `${appOrigin()}/reset-password`,
       });
-    }, 1000);
-    toast({
-      title: t("auth.checkInbox"),
-      description: t("auth.resetSentTo") + emailParse.data,
-    });
+      setResetSending(false);
+      if (error) {
+        toast({ title: t("auth.resetFailedTitle"), description: error.message, variant: "destructive" });
+        return;
+      }
+      // 60-с кулдаун із лічильником — і видимий фідбек, і захист від дублів.
+      setResetCooldown(60);
+      const timer = window.setInterval(() => {
+        setResetCooldown((s) => {
+          if (s <= 1) { window.clearInterval(timer); return 0; }
+          return s - 1;
+        });
+      }, 1000);
+      toast({
+        title: t("auth.checkInbox"),
+        description: t("auth.resetSentTo") + emailParse.data,
+      });
+    } finally {
+      setResetSending(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {

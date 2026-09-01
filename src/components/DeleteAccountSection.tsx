@@ -31,23 +31,27 @@ export function DeleteAccountSection() {
   const run = async () => {
     setBusy(true);
     try {
-      const { data, error } = await supabase.functions.invoke("delete-account");
-      if (error || (data as { error?: string } | null)?.error) {
-        const raw = error?.message || (data as { error?: string }).error || "";
-        // Якщо edge-функцію ще не задеплоєно — даємо людську підказку, а не сире "Failed to send a request".
-        if (/failed to send|not found|fetch|network|edge function/i.test(raw)) {
-          throw new Error(t("accountDeletion.serviceUnavailable"));
+      try {
+        const { data, error } = await supabase.functions.invoke("delete-account");
+        if (error || (data as { error?: string } | null)?.error) {
+          const raw = error?.message || (data as { error?: string }).error || "";
+          // Якщо edge-функцію ще не задеплоєно — даємо людську підказку, а не сире "Failed to send a request".
+          if (/failed to send|not found|fetch|network|edge function/i.test(raw)) {
+            throw new Error(t("accountDeletion.serviceUnavailable"));
+          }
+          throw new Error(raw);
         }
-        throw new Error(raw);
+        toast.success(t("accountDeletion.done"));
+        try { await signOut(); } catch { /* сесія вже мертва — ок */ }
+        navigate("/landing", { replace: true });
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        toast.error(t("accountDeletion.failed"), { description: msg });
+        setBusy(false);
+        setOpen(false);
       }
-      toast.success(t("accountDeletion.done"));
-      try { await signOut(); } catch { /* сесія вже мертва — ок */ }
-      navigate("/landing", { replace: true });
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error(t("accountDeletion.failed"), { description: msg });
+    } finally {
       setBusy(false);
-      setOpen(false);
     }
   };
 

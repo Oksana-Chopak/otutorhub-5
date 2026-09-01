@@ -970,6 +970,9 @@ export default function PeoplePage() {
             : "border-border"
       }`}
       onClick={() => setSelectedPerson(u)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedPerson(u); } }}
     >
       <div className="flex items-start justify-between gap-2 lg:items-center">
         <button
@@ -1183,7 +1186,7 @@ export default function PeoplePage() {
           {searchOpen ? (
             <div className="flex items-center gap-2.5 flex-1 min-w-0" style={{ height: 46, padding: "0 8px 0 14px", borderRadius: 13, background: "var(--ds-surface,#fff)", border: "0.5px solid var(--border, #f0f1f5)", boxShadow: "0 1px 4px rgba(0,0,0,.05)" }}>
               <Search size={20} style={{ color: "var(--sub,#666b82)", flexShrink: 0 }} />
-              <input
+              <input aria-label={t("people.searchPlaceholder")}
                 autoFocus
                 placeholder={t("people.searchPlaceholder")}
                 value={searchQuery}
@@ -1211,7 +1214,7 @@ export default function PeoplePage() {
           >
             <div className="w-full lg:w-48">
               <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger className="h-11">
+                <SelectTrigger aria-label={t("people.allSubjects")} className="h-11">
                   <SelectValue placeholder={t("people.allSubjects")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1226,7 +1229,7 @@ export default function PeoplePage() {
             </div>
             <div className="w-full lg:w-44">
               <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as typeof statusFilter)}>
-                <SelectTrigger className="h-11">
+                <SelectTrigger aria-label={t("common.status")} className="h-11">
                   <SelectValue placeholder={t("common.status")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1406,7 +1409,7 @@ export default function PeoplePage() {
                   {tutorDialog.subjects.map((subj) => (
                     <div key={subj} className="flex items-center gap-2">
                       <span className="text-sm text-foreground flex-1 truncate">{subj}</span>
-                      <Input
+                      <Input aria-label={t("people.ratePlaceholder")}
                         type="number"
                         min="0"
                         step="any"
@@ -1495,7 +1498,7 @@ export default function PeoplePage() {
                   value={studentDialog.currency}
                   onValueChange={(v) => setStudentDialog((s) => ({ ...s, currency: v }))}
                 >
-                  <SelectTrigger className="h-[52px] bg-card rounded-[13px] font-bold">
+                  <SelectTrigger aria-label={t("quickAddStudent.currency")} className="h-[52px] bg-card rounded-[13px] font-bold">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1548,7 +1551,7 @@ export default function PeoplePage() {
                   setAddTutorToStudent((s) => ({ ...s, tutorId: v, subject: "" }))
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label={t("people.selectTutorPlaceholder")}>
                   <SelectValue placeholder={t("people.selectTutorPlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -1600,7 +1603,7 @@ export default function PeoplePage() {
                         }));
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger aria-label={t("people.selectSubjectPlaceholder")}>
                         <SelectValue placeholder={t("people.selectSubjectPlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
@@ -1653,7 +1656,7 @@ export default function PeoplePage() {
                         value={addTutorToStudent.currency}
                         onValueChange={(v) => setAddTutorToStudent((s) => ({ ...s, currency: v }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger aria-label={t("quickAddStudent.currency")}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

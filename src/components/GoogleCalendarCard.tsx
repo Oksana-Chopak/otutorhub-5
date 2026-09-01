@@ -69,18 +69,22 @@ export function GoogleCalendarCard() {
   const disconnect = async () => {
     if (!user) return;
     setBusy(true);
-    const { error } = await supabase
-      .from("google_calendar_tokens" as any)
-      .delete()
-      .eq("user_id", user.id);
-    setBusy(false);
-    if (error) {
-      toast.error(t("googleCalendar.disconnectFailed"));
-      return;
+    try {
+      const { error } = await supabase
+        .from("google_calendar_tokens" as any)
+        .delete()
+        .eq("user_id", user.id);
+      setBusy(false);
+      if (error) {
+        toast.error(t("googleCalendar.disconnectFailed"));
+        return;
+      }
+      toast.success(t("googleCalendar.disconnected"));
+      setConnected(false);
+      setEmail(null);
+    } finally {
+      setBusy(false);
     }
-    toast.success(t("googleCalendar.disconnected"));
-    setConnected(false);
-    setEmail(null);
   };
 
   // BUG-6 (2026-07-25): the connect flow is an OAuth redirect that would

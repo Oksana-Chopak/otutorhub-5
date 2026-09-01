@@ -180,62 +180,66 @@ export function PersonEditSheet({ open, onOpenChange, person, role, pairs = [], 
 
     setSaving(true);
     // 1) name → profiles
-    const { error: pErr } = await supabase
-      .from("profiles")
-      .update({ first_name: fn, last_name: ln })
-      .eq("id", person.id);
-    // 2) contacts → profile_contacts
-    const { error: cErr } = await supabase
-      .from("profile_contacts")
-      .upsert(
-        {
-          user_id: person.id,
-          phone: phone.trim() || null,
-          email: em || null,
-          telegram: telegram.trim().replace(/^@/, "") || null,
-          messenger_url: messenger.trim() || null,
-          facebook_url: facebook.trim() || null,
-          instagram_url: instagram.trim() || null,
-        },
-        { onConflict: "user_id" },
-      );
-    // 3) tutor: subjects → tutor_details; payout → profile_financial_contacts
-    let tErr: { message: string } | null = null;
-    if (isTutor) {
-      const { error: subErr } = await supabase
-        .from("tutor_details")
-        .upsert({ user_id: person.id, subjects }, { onConflict: "user_id" });
-      tErr = subErr;
-      if (!tErr && (last4 || bankName.trim())) {
-        const { error: finErr } = await supabase
-          .from("profile_financial_contacts")
-          .upsert({ user_id: person.id, bank_name: bankName.trim() || null, bank_card_last4: last4 || null }, { onConflict: "user_id" });
-        tErr = finErr;
+    try {
+      const { error: pErr } = await supabase
+        .from("profiles")
+        .update({ first_name: fn, last_name: ln })
+        .eq("id", person.id);
+      // 2) contacts → profile_contacts
+      const { error: cErr } = await supabase
+        .from("profile_contacts")
+        .upsert(
+          {
+            user_id: person.id,
+            phone: phone.trim() || null,
+            email: em || null,
+            telegram: telegram.trim().replace(/^@/, "") || null,
+            messenger_url: messenger.trim() || null,
+            facebook_url: facebook.trim() || null,
+            instagram_url: instagram.trim() || null,
+          },
+          { onConflict: "user_id" },
+        );
+      // 3) tutor: subjects → tutor_details; payout → profile_financial_contacts
+      let tErr: { message: string } | null = null;
+      if (isTutor) {
+        const { error: subErr } = await supabase
+          .from("tutor_details")
+          .upsert({ user_id: person.id, subjects }, { onConflict: "user_id" });
+        tErr = subErr;
+        if (!tErr && (last4 || bankName.trim())) {
+          const { error: finErr } = await supabase
+            .from("profile_financial_contacts")
+            .upsert({ user_id: person.id, bank_name: bankName.trim() || null, bank_card_last4: last4 || null }, { onConflict: "user_id" });
+          tErr = finErr;
+        }
       }
-    }
-    // 4) private manager note → manager_notes (update-in-place or insert)
-    let nErr: { message: string } | null = null;
-    const content = notes.trim();
-    if (noteId) {
-      const { error } = await supabase.from("manager_notes").update({ content }).eq("id", noteId);
-      nErr = error;
-    } else if (content) {
-      const { error } = await supabase.from("manager_notes").insert({ author_id: user.id, subject_user_id: person.id, content });
-      nErr = error;
-    }
-    setSaving(false);
-    if (pErr || cErr || tErr || nErr) {
-      const msg = (pErr || cErr || tErr || nErr)?.message || "";
-      if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
-        toast.error(t("contactEditExtra.emailDuplicate"));
+      // 4) private manager note → manager_notes (update-in-place or insert)
+      let nErr: { message: string } | null = null;
+      const content = notes.trim();
+      if (noteId) {
+        const { error } = await supabase.from("manager_notes").update({ content }).eq("id", noteId);
+        nErr = error;
+      } else if (content) {
+        const { error } = await supabase.from("manager_notes").insert({ author_id: user.id, subject_user_id: person.id, content });
+        nErr = error;
+      }
+      setSaving(false);
+      if (pErr || cErr || tErr || nErr) {
+        const msg = (pErr || cErr || tErr || nErr)?.message || "";
+        if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
+          toast.error(t("contactEditExtra.emailDuplicate"));
+          return;
+        }
+        toast.error(t("studentEdit.saveFailed"), { description: msg });
         return;
       }
-      toast.error(t("studentEdit.saveFailed"), { description: msg });
-      return;
+      toast.success(t("contactEdit.saved"));
+      onOpenChange(false);
+      onSaved();
+    } finally {
+      setSaving(false);
     }
-    toast.success(t("contactEdit.saved"));
-    onOpenChange(false);
-    onSaved();
   };
 
   return (

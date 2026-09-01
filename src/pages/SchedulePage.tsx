@@ -590,150 +590,154 @@ export default function SchedulePage() {
     setFormErrors({});
     setSubmitting(true);
 
-    const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
-    const baseStart = new Date(form.starts_at);
+    try {
+      const status: LessonStatus = isStudent && !isManager && !isTutor ? "pending" : "scheduled";
+      const baseStart = new Date(form.starts_at);
 
-    // For independent tutors: if the form contains a price and we don't yet have
-    // a saved student_rate for this exact (student, subject) pair, save it first.
-    // The autofill_lesson_prices trigger will then pick it up automatically when
-    // the lesson is inserted, and all future lessons for the same subject will
-    // inherit the price as well.
-    if (isIndependentTutor) {
-      const priceFromForm = Number(form.student_price);
-      if (!existingRateForPair && priceFromForm > 0) {
-        const { error: rateErr } = await supabase
-          .from("student_rates")
-          .upsert(
-            {
-              tutor_id: user.id,
-              student_id: form.student_id,
-              subject: form.subject,
-              price_per_lesson: priceFromForm,
-              source: "independent",
-            },
-            { onConflict: "tutor_id,student_id,subject" }
-          );
-        if (rateErr) {
-          // Not fatal: we'll still try to create the lesson, but warn the user.
-          console.warn("Could not save subject rate", rateErr);
-        } else {
-          setExistingRateForPair(true);
+      // For independent tutors: if the form contains a price and we don't yet have
+      // a saved student_rate for this exact (student, subject) pair, save it first.
+      // The autofill_lesson_prices trigger will then pick it up automatically when
+      // the lesson is inserted, and all future lessons for the same subject will
+      // inherit the price as well.
+      if (isIndependentTutor) {
+        const priceFromForm = Number(form.student_price);
+        if (!existingRateForPair && priceFromForm > 0) {
+          const { error: rateErr } = await supabase
+            .from("student_rates")
+            .upsert(
+              {
+                tutor_id: user.id,
+                student_id: form.student_id,
+                subject: form.subject,
+                price_per_lesson: priceFromForm,
+                source: "independent",
+              },
+              { onConflict: "tutor_id,student_id,subject" }
+            );
+          if (rateErr) {
+            // Not fatal: we'll still try to create the lesson, but warn the user.
+            console.warn("Could not save subject rate", rateErr);
+          } else {
+            setExistingRateForPair(true);
+          }
         }
       }
-    }
 
-    const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
-    const payloads: any[] = [];
-    for (let i = 0; i < repeats; i++) {
-      const dt = new Date(baseStart);
-      dt.setDate(dt.getDate() + i * 7);
-      const payload: any = {
-        tutor_id: form.tutor_id,
-        student_id: form.student_id,
-        subject: form.subject,
-        starts_at: dt.toISOString(),
-        duration_minutes: parseInt(form.duration_minutes) || 60,
-        notes: form.notes || null,
-        meeting_url: form.meeting_url.trim()
-          ? form.meeting_url.trim()
-          : (defaultMeetingUrls[`${form.tutor_id}:${form.student_id}`] ?? null),
-        status: isManager ? form.status : status,
-        created_by: user.id,
-        source: isIndependentTutor ? "independent" : "hub",
-      };
-      // Financial fields (student_price / tutor_payout / *_status) live in
-      // lesson_details, NOT on `lessons` — those columns were dropped. Sending them in
-      // the lessons insert made the whole create fail ("column does not exist"). They
-      // are written to lesson_details via detailRows right after the insert below.
-      payloads.push(payload);
-    }
+      const repeats = Math.max(1, Math.min(52, parseInt(repeatWeeks) || 1));
+      const payloads: any[] = [];
+      for (let i = 0; i < repeats; i++) {
+        const dt = new Date(baseStart);
+        dt.setDate(dt.getDate() + i * 7);
+        const payload: any = {
+          tutor_id: form.tutor_id,
+          student_id: form.student_id,
+          subject: form.subject,
+          starts_at: dt.toISOString(),
+          duration_minutes: parseInt(form.duration_minutes) || 60,
+          notes: form.notes || null,
+          meeting_url: form.meeting_url.trim()
+            ? form.meeting_url.trim()
+            : (defaultMeetingUrls[`${form.tutor_id}:${form.student_id}`] ?? null),
+          status: isManager ? form.status : status,
+          created_by: user.id,
+          source: isIndependentTutor ? "independent" : "hub",
+        };
+        // Financial fields (student_price / tutor_payout / *_status) live in
+        // lesson_details, NOT on `lessons` — those columns were dropped. Sending them in
+        // the lessons insert made the whole create fail ("column does not exist"). They
+        // are written to lesson_details via detailRows right after the insert below.
+        payloads.push(payload);
+      }
 
-    const { data: insertedLessons, error } = await supabase
-      .from("lessons")
-      .insert(payloads)
-      .select("id, starts_at, student_id");
-    setSubmitting(false);
-    if (error) {
-      console.error("Failed to create lesson", error);
-      if (isIndependentTutor && students.length === 0) {
-        toast.error(t("schedule.addStudentFirst"));
-      } else {
-        toast.error(t('schedule.createFailed') + (error?.message ? `: ${error.message}` : ""));
+      const { data: insertedLessons, error } = await supabase
+        .from("lessons")
+        .insert(payloads)
+        .select("id, starts_at, student_id");
+      setSubmitting(false);
+      if (error) {
+        console.error("Failed to create lesson", error);
+        if (isIndependentTutor && students.length === 0) {
+          toast.error(t("schedule.addStudentFirst"));
+        } else {
+          toast.error(t('schedule.createFailed') + (error?.message ? `: ${error.message}` : ""));
+        }
+        return;
       }
-      return;
-    }
-    // КОРІНЬ «ціна=0»: фінанси мають жити в lesson_details (звідти читає view),
-    // а не лише в legacy-колонках lessons. Тригер ensure створює details з 0 —
-    // одразу перезаписуємо явними значеннями з форми.
-    const detailRows = (insertedLessons ?? []).map((l) => {
-      const d: any = { lesson_id: l.id };
-      if (isManager) {
-        d.student_price = Number(form.student_price) || 0;
-        d.tutor_payout = Number(form.tutor_payout) || 0;
-        d.student_payment_status = form.student_payment_status;
-        d.tutor_payout_status = form.tutor_payout_status;
-      } else if (isIndependentTutor) {
-        const priceFromForm = Number(form.student_price);
-        if (priceFromForm > 0) d.student_price = priceFromForm;
+      // КОРІНЬ «ціна=0»: фінанси мають жити в lesson_details (звідти читає view),
+      // а не лише в legacy-колонках lessons. Тригер ensure створює details з 0 —
+      // одразу перезаписуємо явними значеннями з форми.
+      const detailRows = (insertedLessons ?? []).map((l) => {
+        const d: any = { lesson_id: l.id };
+        if (isManager) {
+          d.student_price = Number(form.student_price) || 0;
+          d.tutor_payout = Number(form.tutor_payout) || 0;
+          d.student_payment_status = form.student_payment_status;
+          d.tutor_payout_status = form.tutor_payout_status;
+        } else if (isIndependentTutor) {
+          const priceFromForm = Number(form.student_price);
+          if (priceFromForm > 0) d.student_price = priceFromForm;
+        }
+        return d;
+      }).filter((d) => Object.keys(d).length > 1);
+      if (detailRows.length > 0) {
+        // ALL lesson_details writes go through the safe RPC. It applies the manager-only
+        // payout columns (tutor_payout, tutor_payout_status) server-side ONLY when the
+        // caller is a manager — so this single path is correct for both manager and tutor,
+        // and never hits the "permission denied for column tutor_payout*" GRANT lock that a
+        // direct upsert did.
+        const results = await Promise.all(
+          detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any)),
+        );
+        const detErr = results.find((r) => r.error)?.error;
+        if (detErr) {
+          // B2: це «КОРІНЬ ціна=0» — урок створено, а ціна не записалась. Урок без
+          // ціни не потрапляє ні в борги, ні в прибуток; мовчати тут не можна.
+          console.warn("lesson_details write after create failed", detErr);
+          toast.error(t("schedule.detailsWriteFailed"));
+        }
       }
-      return d;
-    }).filter((d) => Object.keys(d).length > 1);
-    if (detailRows.length > 0) {
-      // ALL lesson_details writes go through the safe RPC. It applies the manager-only
-      // payout columns (tutor_payout, tutor_payout_status) server-side ONLY when the
-      // caller is a manager — so this single path is correct for both manager and tutor,
-      // and never hits the "permission denied for column tutor_payout*" GRANT lock that a
-      // direct upsert did.
-      const results = await Promise.all(
-        detailRows.map(({ lesson_id, ...patch }) => updateLessonDetailsSafe(lesson_id, patch as any)),
+      (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
+      // Notify the individual student (mirrors QuickLessonDialog) — the canonical
+      // Schedule create path was the only one scheduling lessons silently.
+      const firstCreated = (insertedLessons ?? [])[0] as any;
+      if (firstCreated?.student_id) {
+        const dateStr = new Date(firstCreated.starts_at).toLocaleString(getLocale(), {
+          weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
+        });
+        insertNotification({
+          userId: firstCreated.student_id,
+          type: `lesson_scheduled_${firstCreated.id}`,
+          title: t("quickLessonDialog.notifLessonScheduledTitle"),
+          body: repeats > 1
+            ? t("quickLessonDialog.notifLessonSeriesBody", { count: repeats, date: dateStr })
+            : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
+          link: "/schedule",
+        });
+      }
+      toast.success(
+        repeats > 1
+          ? t('schedule.lessonsCreated', { count: repeats })
+          : status === "pending"
+          ? t('schedule.requestCreated')
+          : t('schedule.lessonCreated')
       );
-      const detErr = results.find((r) => r.error)?.error;
-      if (detErr) {
-        // B2: це «КОРІНЬ ціна=0» — урок створено, а ціна не записалась. Урок без
-        // ціни не потрапляє ні в борги, ні в прибуток; мовчати тут не можна.
-        console.warn("lesson_details write after create failed", detErr);
-        toast.error(t("schedule.detailsWriteFailed"));
-      }
+      setCreateOpen(false);
+      bumpDataVersion(); // C3
+      setForm((f) => ({
+        ...f,
+        subject: "",
+        notes: "",
+        student_price: "",
+        tutor_payout: "0",
+        student_payment_status: "unpaid",
+        tutor_payout_status: "unpaid",
+        status: "scheduled",
+      }));
+      setRepeatWeeks("1");
+      loadAll();
+    } finally {
+      setSubmitting(false);
     }
-    (insertedLessons ?? []).forEach((l) => void syncLessonToGoogleCalendar(l.id, "upsert"));
-    // Notify the individual student (mirrors QuickLessonDialog) — the canonical
-    // Schedule create path was the only one scheduling lessons silently.
-    const firstCreated = (insertedLessons ?? [])[0] as any;
-    if (firstCreated?.student_id) {
-      const dateStr = new Date(firstCreated.starts_at).toLocaleString(getLocale(), {
-        weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit",
-      });
-      insertNotification({
-        userId: firstCreated.student_id,
-        type: `lesson_scheduled_${firstCreated.id}`,
-        title: t("quickLessonDialog.notifLessonScheduledTitle"),
-        body: repeats > 1
-          ? t("quickLessonDialog.notifLessonSeriesBody", { count: repeats, date: dateStr })
-          : t("quickLessonDialog.notifLessonScheduledBody", { date: dateStr }),
-        link: "/schedule",
-      });
-    }
-    toast.success(
-      repeats > 1
-        ? t('schedule.lessonsCreated', { count: repeats })
-        : status === "pending"
-        ? t('schedule.requestCreated')
-        : t('schedule.lessonCreated')
-    );
-    setCreateOpen(false);
-    bumpDataVersion(); // C3
-    setForm((f) => ({
-      ...f,
-      subject: "",
-      notes: "",
-      student_price: "",
-      tutor_payout: "0",
-      student_payment_status: "unpaid",
-      tutor_payout_status: "unpaid",
-      status: "scheduled",
-    }));
-    setRepeatWeeks("1");
-    loadAll();
   };
 
   const { complete: flowComplete, cancel: flowCancel } = useLessonStatus();
@@ -980,7 +984,7 @@ export default function SchedulePage() {
           {isPureStudent && studentTutors.length === 0 && (
             <FindTutorDialog
               trigger={
-                <Button size="sm" className="h-10 gap-1.5">
+                <Button size="sm" className="tap-44 h-10 gap-1.5">
                   <HandHeart className="h-4 w-4" />
                   <span className="hidden sm:inline">{t("scheduleExtra.requestTutor")}</span>
                 </Button>
@@ -1021,7 +1025,9 @@ export default function SchedulePage() {
                       }}
                       disabled={isTutor && !isManager}
                     >
-                      <SelectTrigger
+                      <SelectTrigger aria-label={t('schedule.selectTutor')}
+                        aria-invalid={formErrors.tutor_id || undefined}
+                        aria-describedby={formErrors.tutor_id ? "err-tutor_id" : undefined}
                         className={cn(
                           formErrors.tutor_id &&
                             "border-destructive ring-1 ring-destructive focus:ring-destructive"
@@ -1038,7 +1044,7 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.tutor_id && (
-                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectTutor')}</p>
+                    <p id="err-tutor_id" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.selectTutor')}</p>
                   )}
                 </div>
                 <div>
@@ -1062,7 +1068,9 @@ export default function SchedulePage() {
                     }}
                     disabled={isStudent && !isManager && !isTutor}
                   >
-                    <SelectTrigger
+                    <SelectTrigger aria-label={t('schedule.selectStudent')}
+                      aria-invalid={formErrors.student_id || undefined}
+                      aria-describedby={formErrors.student_id ? "err-student_id" : undefined}
                       className={cn(
                         formErrors.student_id &&
                           "border-destructive ring-1 ring-destructive focus:ring-destructive"
@@ -1079,7 +1087,7 @@ export default function SchedulePage() {
                     </SelectContent>
                   </Select>
                   {formErrors.student_id && (
-                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectStudent')}</p>
+                    <p id="err-student_id" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.selectStudent')}</p>
                   )}
                   {students.length === 0 && isTutor && !isManager && (
                     <div className="mt-2 rounded-md border border-dashed border-border bg-muted/40 p-3 text-[14px]">
@@ -1089,14 +1097,14 @@ export default function SchedulePage() {
                           : t('schedule.noStudentsHub')}
                       </p>
                       {isIndependentTutor ? (
-                        <Button asChild size="sm" variant="outline" className="h-7 text-[14px]">
+                        <Button asChild size="sm" variant="outline" className="tap-44 h-7 text-[14px]">
                           <Link to="/my-students" onClick={() => setCreateOpen(false)}>
                             <Plus className="h-3.5 w-3.5 mr-1" />
                             {t("myStudents.addStudentBtn")}
                           </Link>
                         </Button>
                       ) : (
-                        <Button asChild size="sm" variant="outline" className="h-7 text-[14px]">
+                        <Button asChild size="sm" variant="outline" className="tap-44 h-7 text-[14px]">
                           <Link to="/chats" onClick={() => setCreateOpen(false)}>
                             {t("schedule.messageManagerBtn")}
                           </Link>
@@ -1118,13 +1126,15 @@ export default function SchedulePage() {
                       }
                     }}
                     extraOptions={subjectOptions}
+                    aria-invalid={formErrors.subject || undefined}
+                    aria-describedby={formErrors.subject ? "err-subject" : undefined}
                     className={cn(
                       formErrors.subject &&
                         "border-destructive ring-1 ring-destructive"
                     )}
                   />
                   {formErrors.subject && (
-                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.selectSubject')}</p>
+                    <p id="err-subject" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.selectSubject')}</p>
                   )}
                 </div>
                 <div>
@@ -1134,6 +1144,7 @@ export default function SchedulePage() {
                   <DateTimeField
                     value={form.starts_at}
                     invalid={!!formErrors.starts_at}
+                    describedBy={formErrors.starts_at ? "err-starts_at" : undefined}
                     onChange={(v) => {
                       formTimeTouchedRef.current = true; // B18: користувач сам обрав час
                       setForm((f) => ({ ...f, starts_at: v }));
@@ -1143,7 +1154,7 @@ export default function SchedulePage() {
                     }}
                   />
                   {formErrors.starts_at && (
-                    <p className="mt-1 text-[14px] text-destructive">{t('schedule.dateTime')}</p>
+                    <p id="err-starts_at" role="alert" className="mt-1 text-[14px] text-destructive">{t('schedule.dateTime')}</p>
                   )}
                 </div>
                 </>)}
@@ -1188,7 +1199,7 @@ export default function SchedulePage() {
                         value={form.status}
                         onValueChange={(v) => setForm((f) => ({ ...f, status: v as LessonStatus }))}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger aria-label={t('common.status')}>
                           <SelectValue placeholder={t('common.status')} />
                         </SelectTrigger>
                         <SelectContent>
@@ -1248,7 +1259,7 @@ export default function SchedulePage() {
                           value={form.student_payment_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, student_payment_status: v as PaymentStatus }))}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger aria-label={t('common.status')}>
                             <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
@@ -1263,7 +1274,7 @@ export default function SchedulePage() {
                           value={form.tutor_payout_status}
                           onValueChange={(v) => setForm((f) => ({ ...f, tutor_payout_status: v as PaymentStatus }))}
                         >
-                          <SelectTrigger>
+                          <SelectTrigger aria-label={t('common.status')}>
                             <SelectValue placeholder={t('common.status')} />
                           </SelectTrigger>
                           <SelectContent>
@@ -1303,7 +1314,7 @@ export default function SchedulePage() {
                 <div className="pt-1">
                   <div className="space-y-1.5">
                     <Label>{t('schedule.meetingUrl')}</Label>
-                    <Input value={form.meeting_url} onChange={(e) => setForm({ ...form, meeting_url: e.target.value })} placeholder="https://meet.google.com/…" />
+                    <Input aria-label={t('schedule.meetingUrl')} value={form.meeting_url} onChange={(e) => setForm({ ...form, meeting_url: e.target.value })} placeholder="https://meet.google.com/…" />
                   </div>
                   <button
                     type="button"

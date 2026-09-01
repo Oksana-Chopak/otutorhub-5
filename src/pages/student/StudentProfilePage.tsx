@@ -120,25 +120,29 @@ export default function StudentProfilePage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    const { error: pErr } = await supabase
-      .from("profiles")
-      .update({ first_name: firstName.trim(), last_name: lastName.trim() })
-      .eq("id", user.id);
-    const { error: cErr } = await supabase
-      .from("profile_contacts")
-      .upsert({
-        user_id: user.id,
-        phone: phone.trim() || null,
-        telegram: telegram.trim().replace(/^@/, "") || null,
-        instagram_url: instagram.trim() || null,
-        facebook_url: facebook.trim() || null,
-      } as any, { onConflict: "user_id" });
-    setSaving(false);
-    if (pErr || cErr) {
-      toast.error(t("studentPages.saveFailed"), { description: (pErr || cErr)?.message });
-      return;
+    try {
+      const { error: pErr } = await supabase
+        .from("profiles")
+        .update({ first_name: firstName.trim(), last_name: lastName.trim() })
+        .eq("id", user.id);
+      const { error: cErr } = await supabase
+        .from("profile_contacts")
+        .upsert({
+          user_id: user.id,
+          phone: phone.trim() || null,
+          telegram: telegram.trim().replace(/^@/, "") || null,
+          instagram_url: instagram.trim() || null,
+          facebook_url: facebook.trim() || null,
+        } as any, { onConflict: "user_id" });
+      setSaving(false);
+      if (pErr || cErr) {
+        toast.error(t("studentPages.saveFailed"), { description: (pErr || cErr)?.message });
+        return;
+      }
+      toast.success(t("studentPages.saveSuccess"));
+    } finally {
+      setSaving(false);
     }
-    toast.success(t("studentPages.saveSuccess"));
   };
 
   const displayName = [firstName, lastName].filter(Boolean).join(" ") || user?.email?.split("@")[0] || t("studentPages.profileTitle");
@@ -240,7 +244,7 @@ export default function StudentProfilePage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Email</Label>
-                <Input value={user?.email ?? ""} disabled className="h-11 rounded-[12px] text-[15px]" />
+                <Input aria-label="Email" value={user?.email ?? ""} disabled className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <button onClick={save} disabled={saving}
                 style={{ width: "100%", height: 48, borderRadius: 13, border: "none", cursor: saving ? "default" : "pointer",

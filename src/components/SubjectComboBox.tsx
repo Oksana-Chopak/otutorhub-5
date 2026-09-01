@@ -22,6 +22,9 @@ interface Props {
   disabled?: boolean;
   /** Extra subject names (e.g. legacy values from data) shown in the list. */
   extraOptions?: string[];
+  /** C3: щоб форма могла озвучити помилку саме на цьому полі. */
+  "aria-invalid"?: boolean;
+  "aria-describedby"?: string;
 }
 
 /**
@@ -36,6 +39,8 @@ export function SubjectComboBox({
   className,
   disabled,
   extraOptions = [],
+  "aria-invalid": ariaInvalid,
+  "aria-describedby": ariaDescribedBy,
 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
@@ -64,6 +69,8 @@ export function SubjectComboBox({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          aria-invalid={ariaInvalid || undefined}
+          aria-describedby={ariaDescribedBy}
           disabled={disabled}
           className={cn(
             "h-11 w-full justify-between text-base font-normal",

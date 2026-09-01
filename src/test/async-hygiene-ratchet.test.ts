@@ -9,7 +9,9 @@ import { globSync } from "glob";
  *  1. «Гейт error»: `const { data } = await supabase…` БЕЗ error у деструктурі —
  *     збій читання стає тихим null. Системна цифра на момент фіксації: 101.
  *  2. «Гейт finally»: `setХxxBusy(true)` з await у вікні і без try/finally —
- *     виняток лишає кнопку мертвою до перезавантаження. Цифра: 56.
+ *     виняток лишає кнопку мертвою до перезавантаження. Було 56 — після
+ *     механічного проходу B6 (58 місць обгорнуто try/finally) лишилось 10,
+ *     і всі 10 мають finally далі за 50-рядковим вікном евристики.
  *
  * Обидва числа можуть ЛИШЕ ПАДАТИ. Новий код зобовʼязаний читати error і
  * загортати busy у try/finally; знизив борг — знизь baseline у цьому файлі.
@@ -18,7 +20,7 @@ import { globSync } from "glob";
  */
 
 const ERRORLESS_BASELINE = 101;
-const BUSY_NO_FINALLY_BASELINE = 56;
+const BUSY_NO_FINALLY_BASELINE = 10;
 
 const files = globSync("src/**/*.{ts,tsx}", {
   ignore: ["src/test/**", "**/*.d.ts"],

@@ -53,7 +53,7 @@ export function MobileFilters({
               type="button"
               variant="outline"
               size="icon"
-              className="relative h-9 w-9 shrink-0"
+              className="tap-44 relative h-9 w-9 shrink-0"
               aria-label={t("filters.label")}
             >
               {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}
@@ -68,7 +68,7 @@ export function MobileFilters({
               type="button"
               variant="outline"
               size="sm"
-              className="h-9 w-full justify-between gap-2 sm:w-auto"
+              className="tap-44 h-9 w-full justify-between gap-2 sm:w-auto"
             >
               <span className="flex items-center gap-2">
                 {open ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}

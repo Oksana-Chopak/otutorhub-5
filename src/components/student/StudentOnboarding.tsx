@@ -247,7 +247,7 @@ export function StudentOnboarding({ onComplete }: Props) {
 
           {/* Додати свій предмет */}
           <div className="flex gap-2">
-            <input
+            <input aria-label={t("studentOnboarding.addOwnSubject")}
               value={customSubject}
               onChange={(e) => setCustomSubject(e.target.value)}
               onKeyDown={(e) => {
@@ -392,7 +392,7 @@ export function StudentOnboarding({ onComplete }: Props) {
           </div>
           {goal === "other" && (
             <div className="animate-fade-in">
-              <Textarea
+              <Textarea aria-label={t("studentOnboarding.goalPlaceholder")}
                 placeholder={t("studentOnboarding.goalPlaceholder")}
                 value={goalOther}
                 onChange={(e) => { setGoalOther(e.target.value); if (saveErr) setSaveErr(null); }}

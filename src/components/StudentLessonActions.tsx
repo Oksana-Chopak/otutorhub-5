@@ -98,30 +98,34 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
   const submitCancel = async () => {
     if (!user) return;
     setSubmitting(true);
-    const { error } = await supabase.from("lesson_change_requests").insert({
-      lesson_id: lessonId,
-      student_id: user.id,
-      tutor_id: tutorId,
-      kind: "cancel",
-      reason: reason.trim() || null,
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
-      return;
+    try {
+      const { error } = await supabase.from("lesson_change_requests").insert({
+        lesson_id: lessonId,
+        student_id: user.id,
+        tutor_id: tutorId,
+        kind: "cancel",
+        reason: reason.trim() || null,
+      });
+      setSubmitting(false);
+      if (error) {
+        toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
+        return;
+      }
+      toast.success(t("studentLessonActions.cancelSent"), {
+        description: t("studentLessonActions.cancelSentDesc"),
+      });
+      insertNotification({
+        userId: tutorId,
+        type: "lesson_request",
+        title: t("notifications.lessonCancelTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
+        link: "/schedule",
+      });
+      setReason("");
+      setCancelOpen(false);
+      load();
+    } finally {
+      setSubmitting(false);
     }
-    toast.success(t("studentLessonActions.cancelSent"), {
-      description: t("studentLessonActions.cancelSentDesc"),
-    });
-    insertNotification({
-      userId: tutorId,
-      type: "lesson_request",
-      title: t("notifications.lessonCancelTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
-      link: "/schedule",
-    });
-    setReason("");
-    setCancelOpen(false);
-    load();
   };
 
   const submitReschedule = async () => {
@@ -131,29 +135,33 @@ export function StudentLessonActions({ lessonId, tutorId, startsAt, status }: Pr
       return;
     }
     setSubmitting(true);
-    const { error } = await supabase.from("lesson_change_requests").insert({
-      lesson_id: lessonId,
-      student_id: user.id,
-      tutor_id: tutorId,
-      kind: "reschedule",
-      proposed_starts_at: new Date(proposedAt).toISOString(),
-      reason: reason.trim() || null,
-    });
-    setSubmitting(false);
-    if (error) {
-      toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
-      return;
+    try {
+      const { error } = await supabase.from("lesson_change_requests").insert({
+        lesson_id: lessonId,
+        student_id: user.id,
+        tutor_id: tutorId,
+        kind: "reschedule",
+        proposed_starts_at: new Date(proposedAt).toISOString(),
+        reason: reason.trim() || null,
+      });
+      setSubmitting(false);
+      if (error) {
+        toast.error(t("studentLessonActions.requestFailed"), { description: error.message });
+        return;
+      }
+      toast.success(t("studentLessonActionsExtra.rescheduleSent"));
+      insertNotification({
+        userId: tutorId,
+        type: "lesson_request",
+        title: t("notifications.lessonRequestTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
+        link: "/schedule",
+      });
+      setReason("");
+      setRescheduleOpen(false);
+      load();
+    } finally {
+      setSubmitting(false);
     }
-    toast.success(t("studentLessonActionsExtra.rescheduleSent"));
-    insertNotification({
-      userId: tutorId,
-      type: "lesson_request",
-      title: t("notifications.lessonRequestTitle", { name: user?.email?.split("@")[0] ?? t("shared.student") }),
-      link: "/schedule",
-    });
-    setReason("");
-    setRescheduleOpen(false);
-    load();
   };
 
   const lessonDate = format(new Date(startsAt), "d MMMM, HH:mm", { locale: uk });

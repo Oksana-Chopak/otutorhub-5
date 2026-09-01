@@ -361,16 +361,20 @@ export default function ProfilePage() {
   const save = async () => {
     if (!user) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("tutor_details")
-      .upsert({ user_id: user.id, subjects }, { onConflict: "user_id" });
-    setSaving(false);
-    if (error) {
-      console.error(error);
-      toast.error(t("profile.subjectsSaveFailed"));
-      return;
+    try {
+      const { error } = await supabase
+        .from("tutor_details")
+        .upsert({ user_id: user.id, subjects }, { onConflict: "user_id" });
+      setSaving(false);
+      if (error) {
+        console.error(error);
+        toast.error(t("profile.subjectsSaveFailed"));
+        return;
+      }
+      toast.success(t("profile.subjectsSaved"));
+    } finally {
+      setSaving(false);
     }
-    toast.success(t("profile.subjectsSaved"));
   };
 
   const openEditProfile = () => {
@@ -391,38 +395,42 @@ export default function ProfilePage() {
       return;
     }
     setSavingProfile(true);
-    const [{ error }, { error: cErr }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .update({ first_name: first, last_name: last })
-        .eq("id", user.id),
-      // Primary contacts live in the SAME form now (the old two-hop flow read as a
-      // stubby profile editor). Socials keep the separate dialog (progressive disclosure).
-      supabase
-        .from("profile_contacts")
-        .upsert(
-          {
-            user_id: user.id,
-            email: editEmail.trim() || null,
-            phone: editPhone.trim() || null,
-            telegram: editTelegram.trim() || null,
-            messenger_url: contacts.messenger_url || null,
-            facebook_url: contacts.facebook_url || null,
-            instagram_url: contacts.instagram_url || null,
-          },
-          { onConflict: "user_id" },
-        ),
-    ]);
-    setSavingProfile(false);
-    if (error || cErr) {
-      console.error(error ?? cErr);
-      toast.error(t("profile.editSaveFailed") || "Не вдалося зберегти");
-      return;
+    try {
+      const [{ error }, { error: cErr }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .update({ first_name: first, last_name: last })
+          .eq("id", user.id),
+        // Primary contacts live in the SAME form now (the old two-hop flow read as a
+        // stubby profile editor). Socials keep the separate dialog (progressive disclosure).
+        supabase
+          .from("profile_contacts")
+          .upsert(
+            {
+              user_id: user.id,
+              email: editEmail.trim() || null,
+              phone: editPhone.trim() || null,
+              telegram: editTelegram.trim() || null,
+              messenger_url: contacts.messenger_url || null,
+              facebook_url: contacts.facebook_url || null,
+              instagram_url: contacts.instagram_url || null,
+            },
+            { onConflict: "user_id" },
+          ),
+      ]);
+      setSavingProfile(false);
+      if (error || cErr) {
+        console.error(error ?? cErr);
+        toast.error(t("profile.editSaveFailed") || "Не вдалося зберегти");
+        return;
+      }
+      setProfileName({ first, last });
+      setContacts((c) => ({ ...c, email: editEmail.trim(), phone: editPhone.trim(), telegram: editTelegram.trim() }));
+      setActiveSheet(null);
+      toast.success(t("profile.editSaved") || "Профіль оновлено");
+    } finally {
+      setSavingProfile(false);
     }
-    setProfileName({ first, last });
-    setContacts((c) => ({ ...c, email: editEmail.trim(), phone: editPhone.trim(), telegram: editTelegram.trim() }));
-    setActiveSheet(null);
-    toast.success(t("profile.editSaved") || "Профіль оновлено");
   };
 
   // ── Design tokens ───────────────────────────────────────────────────────────
@@ -548,13 +556,13 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
-                <Input value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
+                <Input aria-label={t("profile.editFirstName") || "Ім'я"} value={editFirst} onChange={(e) => setEditFirst(e.target.value)} placeholder={t("profile.editFirstName") || "Ім'я"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <div style={{ marginBottom: 4 }}>
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
-                <Input value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
+                <Input aria-label={t("profile.editLastName") || "Прізвище"} value={editLast} onChange={(e) => setEditLast(e.target.value)} placeholder={t("profile.editLastName") || "Прізвище"} className="h-11 rounded-[12px] text-[15px]" />
               </div>
               <button onClick={saveProfile} disabled={savingProfile}
                 style={{ marginTop: 16, width: "100%", height: 52, borderRadius: 14,
@@ -797,7 +805,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editFirstName") || "Ім'я"}
                 </label>
-                <Input
+                <Input aria-label={t("profile.editFirstName") || "Ім'я"}
                   value={editFirst}
                   onChange={(e) => setEditFirst(e.target.value)}
                   placeholder={t("profile.editFirstName") || "Ім'я"}
@@ -808,7 +816,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("profile.editLastName") || "Прізвище"}
                 </label>
-                <Input
+                <Input aria-label={t("profile.editLastName") || "Прізвище"}
                   value={editLast}
                   onChange={(e) => setEditLast(e.target.value)}
                   placeholder={t("profile.editLastName") || "Прізвище"}
@@ -823,7 +831,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Email
                 </label>
-                <Input
+                <Input aria-label="you@email.com"
                   type="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
@@ -835,7 +843,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   {t("shared.phone", { defaultValue: "Телефон" })}
                 </label>
-                <Input
+                <Input aria-label="+380…"
                   type="tel"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
@@ -847,7 +855,7 @@ export default function ProfilePage() {
                 <label style={{ display: "block", fontFamily: "Inter, system-ui", fontWeight: 600, fontSize: 14, color: "var(--ds-txt,#0f0f1a)", marginBottom: 6 }}>
                   Telegram
                 </label>
-                <Input
+                <Input aria-label="@username"
                   value={editTelegram}
                   onChange={(e) => setEditTelegram(e.target.value)}
                   placeholder="@username"
@@ -974,7 +982,7 @@ export default function ProfilePage() {
               </div>
               {/* Add custom subject */}
               <div style={{ display: "flex", gap: 8 }}>
-                <input
+                <input aria-label={t("profile.customSubjectPlaceholder")}
                   placeholder={t("profile.customSubjectPlaceholder")}
                   style={{ flex: 1, height: 44, borderRadius: 12, padding: "0 12px",
                     fontSize: 15, border: "1.5px solid var(--ds-border,#eceef3)", outline: "none",

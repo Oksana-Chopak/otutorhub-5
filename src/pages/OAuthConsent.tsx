@@ -57,27 +57,31 @@ export default function OAuthConsent() {
 
   async function decide(approve: boolean) {
     setBusy(true);
-    const authOAuth = (supabase.auth as any).oauth as AuthOAuth | undefined;
-    if (!authOAuth) {
+    try {
+      const authOAuth = (supabase.auth as any).oauth as AuthOAuth | undefined;
+      if (!authOAuth) {
+        setBusy(false);
+        setError("OAuth server not available on this client build.");
+        return;
+      }
+      const { data, error } = approve
+        ? await authOAuth.approveAuthorization(authorizationId)
+        : await authOAuth.denyAuthorization(authorizationId);
+      if (error) {
+        setBusy(false);
+        setError(error.message ?? "Authorization failed.");
+        return;
+      }
+      const target = data?.redirect_url ?? data?.redirect_to;
+      if (!target) {
+        setBusy(false);
+        setError("No redirect returned by the authorization server.");
+        return;
+      }
+      window.location.href = target;
+    } finally {
       setBusy(false);
-      setError("OAuth server not available on this client build.");
-      return;
     }
-    const { data, error } = approve
-      ? await authOAuth.approveAuthorization(authorizationId)
-      : await authOAuth.denyAuthorization(authorizationId);
-    if (error) {
-      setBusy(false);
-      setError(error.message ?? "Authorization failed.");
-      return;
-    }
-    const target = data?.redirect_url ?? data?.redirect_to;
-    if (!target) {
-      setBusy(false);
-      setError("No redirect returned by the authorization server.");
-      return;
-    }
-    window.location.href = target;
   }
 
   return (

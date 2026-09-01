@@ -168,15 +168,19 @@ export function ChatThreadDialog({
     const text = draft.trim();
     if (!text || !threadId || !myId) return;
     setSending(true);
-    const { error } = await supabase
-      .from("chat_messages")
-      .insert({ thread_id: threadId, sender_id: myId, body: text });
-    setSending(false);
-    if (error) {
-      toast.error(t("chatThread.sendFailed"), { description: error.message });
-      return;
+    try {
+      const { error } = await supabase
+        .from("chat_messages")
+        .insert({ thread_id: threadId, sender_id: myId, body: text });
+      setSending(false);
+      if (error) {
+        toast.error(t("chatThread.sendFailed"), { description: error.message });
+        return;
+      }
+      setDraft("");
+    } finally {
+      setSending(false);
     }
-    setDraft("");
   };
 
   const toggleReaction = async (messageId: string, emoji: string) => {
@@ -244,7 +248,7 @@ export function ChatThreadDialog({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-6 text-[14px] text-muted-foreground"
+                      className="tap-44 h-6 text-[14px] text-muted-foreground"
                       onClick={() => setShowArchived(true)}
                     >
                       {t("chatThread.showFullHistory")}
@@ -292,7 +296,7 @@ export function ChatThreadDialog({
             )}
           </div>
           <div className="flex gap-2">
-            <Input
+            <Input aria-label={t("chatThread.placeholder")}
               className="h-12 rounded-[13px] text-[15px]"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}

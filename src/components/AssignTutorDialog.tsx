@@ -47,7 +47,7 @@ function MoneyInput({ value, onChange, placeholder, accent }: { value: string; o
   return (
     <div style={{ display: "flex", alignItems: "center", minWidth: 0, height: 58, borderRadius: 15, padding: "0 14px", background: focused ? "#fff" : "var(--ds-surface2,#fbfbfc)", border: `1.5px solid ${focused ? (accent || "#2BBFAA") : "var(--ds-border,#eceef3)"}`, boxShadow: focused ? `0 0 0 3px ${accent ? "rgba(245,181,68,.16)" : "rgba(43,191,170,.14)"}` : "none", transition: "all .15s" }}>
       <span style={{ fontFamily: F, fontWeight: 800, fontSize: 19, color: "#6f7489", marginRight: 6, flexShrink: 0 }}>{currencySymbol("UAH")}</span>
-      <input
+      <input aria-label={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
         placeholder={placeholder}
@@ -185,94 +185,98 @@ export function AssignTutorDialog({ open, onOpenChange, request, onAssigned }: P
     setSubmitting(true);
 
     // 1. Upsert student_rate (manager hub source)
-    const { error: rateErr } = await supabase
-      .from("student_rates")
-      .upsert(
-        {
-          tutor_id: tutorId,
-          student_id: request.student_id,
-          subject: subject.trim(),
-          price_per_lesson: sp,
-          source: "hub",
-        },
-        { onConflict: "tutor_id,student_id,subject" },
-      );
-    if (rateErr) {
-      setSubmitting(false);
-      toast.error(t("assignTutor.rateFailed") + ": " + rateErr.message);
-      return;
-    }
-
-    // 2. Upsert tutor_subject_rate (so future autofill works)
-    const { error: tsrErr } = await supabase
-      .from("tutor_subject_rates")
-      .upsert(
-        {
-          tutor_id: tutorId,
-          subject: subject.trim(),
-          rate_per_lesson: tp,
-        },
-        { onConflict: "tutor_id,subject" },
-      );
-    if (tsrErr) {
-      // Non-fatal — log and continue
-      console.warn("tutor_subject_rates upsert failed:", tsrErr.message);
-    }
-
-    // 3. Mark referral request as fulfilled.
-    // SECURITY (SEC-4/MON-2): manager_response is STUDENT-READABLE (referral RLS lets the
-    // requesting student read their own row), so it must never contain tutor_payout /
-    // hub margin. Keep it student-safe: tutor name + subject only. The actual rates live
-    // in student_rates (manager source of truth).
-    const tutorName = tutors.find((x) => x.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
-    const responseNote = `${t("assignTutorExtra.assigned")}: ${tutorName}. ${t("assignTutorExtra.subjectLabel")}: ${subject.trim()}.`;
-    const { error: reqErr } = await supabase
-      .from("tutor_referral_requests")
-      .update({
-        status: "fulfilled",
-        manager_response: responseNote,
-        resolved_at: new Date().toISOString(),
-      })
-      .eq("id", request.id);
-    if (reqErr) {
-      setSubmitting(false);
-      toast.error(t("assignTutorExtra.rateCreatedReqFailed", { error: reqErr.message }));
-      return;
-    }
-
-    // 4. Create chat thread between tutor and student so they can talk
     try {
-      await supabase.rpc("get_or_create_chat_thread", {
-        _tutor_id: tutorId,
-        _student_id: request.student_id,
+      const { error: rateErr } = await supabase
+        .from("student_rates")
+        .upsert(
+          {
+            tutor_id: tutorId,
+            student_id: request.student_id,
+            subject: subject.trim(),
+            price_per_lesson: sp,
+            source: "hub",
+          },
+          { onConflict: "tutor_id,student_id,subject" },
+        );
+      if (rateErr) {
+        setSubmitting(false);
+        toast.error(t("assignTutor.rateFailed") + ": " + rateErr.message);
+        return;
+      }
+
+      // 2. Upsert tutor_subject_rate (so future autofill works)
+      const { error: tsrErr } = await supabase
+        .from("tutor_subject_rates")
+        .upsert(
+          {
+            tutor_id: tutorId,
+            subject: subject.trim(),
+            rate_per_lesson: tp,
+          },
+          { onConflict: "tutor_id,subject" },
+        );
+      if (tsrErr) {
+        // Non-fatal — log and continue
+        console.warn("tutor_subject_rates upsert failed:", tsrErr.message);
+      }
+
+      // 3. Mark referral request as fulfilled.
+      // SECURITY (SEC-4/MON-2): manager_response is STUDENT-READABLE (referral RLS lets the
+      // requesting student read their own row), so it must never contain tutor_payout /
+      // hub margin. Keep it student-safe: tutor name + subject only. The actual rates live
+      // in student_rates (manager source of truth).
+      const tutorName = tutors.find((x) => x.id === tutorId)?.name ?? t("assignTutorExtra.tutorFallback");
+      const responseNote = `${t("assignTutorExtra.assigned")}: ${tutorName}. ${t("assignTutorExtra.subjectLabel")}: ${subject.trim()}.`;
+      const { error: reqErr } = await supabase
+        .from("tutor_referral_requests")
+        .update({
+          status: "fulfilled",
+          manager_response: responseNote,
+          resolved_at: new Date().toISOString(),
+        })
+        .eq("id", request.id);
+      if (reqErr) {
+        setSubmitting(false);
+        toast.error(t("assignTutorExtra.rateCreatedReqFailed", { error: reqErr.message }));
+        return;
+      }
+
+      // 4. Create chat thread between tutor and student so they can talk
+      try {
+        await supabase.rpc("get_or_create_chat_thread", {
+          _tutor_id: tutorId,
+          _student_id: request.student_id,
+        });
+      } catch (e) {
+        // Non-fatal
+      }
+
+      // 5. Tell both sides — assignment used to be completely silent: the student
+      // (who filed the request) and the tutor (who got a new student) learned about
+      // it only by stumbling on the changes. Best-effort, never blocks the flow.
+      insertNotification({
+        userId: request.student_id,
+        type: `tutor_assigned_${request.id}`,
+        title: t("assignTutorExtra.studentNotifTitle", { name: tutorName, subject: subject.trim() }),
+        link: "/student-dashboard",
       });
-    } catch (e) {
-      // Non-fatal
+      insertNotification({
+        userId: tutorId,
+        type: `student_assigned_${request.id}`,
+        title: t("assignTutorExtra.tutorNotifTitle", { subject: subject.trim() }),
+        link: "/chats",
+      });
+
+      setSubmitting(false);
+      // FINANCE: ставка збережена — протягнути на ВЖЕ СТВОРЕНІ неоплачені уроки
+      // цього репетитора (Assign-тракт це пропускав → «нулі замість ставки»).
+      await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });
+      toast.success(t("assignTutorExtra.assigned"));
+      onAssigned();
+      onOpenChange(false);
+    } finally {
+      setSubmitting(false);
     }
-
-    // 5. Tell both sides — assignment used to be completely silent: the student
-    // (who filed the request) and the tutor (who got a new student) learned about
-    // it only by stumbling on the changes. Best-effort, never blocks the flow.
-    insertNotification({
-      userId: request.student_id,
-      type: `tutor_assigned_${request.id}`,
-      title: t("assignTutorExtra.studentNotifTitle", { name: tutorName, subject: subject.trim() }),
-      link: "/student-dashboard",
-    });
-    insertNotification({
-      userId: tutorId,
-      type: `student_assigned_${request.id}`,
-      title: t("assignTutorExtra.tutorNotifTitle", { subject: subject.trim() }),
-      link: "/chats",
-    });
-
-    setSubmitting(false);
-    // FINANCE: ставка збережена — протягнути на ВЖЕ СТВОРЕНІ неоплачені уроки
-    // цього репетитора (Assign-тракт це пропускав → «нулі замість ставки»).
-    await (supabase.rpc as any)("backfill_tutor_payouts_for_tutor", { _tutor_id: tutorId });
-    toast.success(t("assignTutorExtra.assigned"));
-    onAssigned();
-    onOpenChange(false);
   };
 
   const margin =

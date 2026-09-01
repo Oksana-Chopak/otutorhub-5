@@ -24,14 +24,14 @@ export function NextStepBar({ icon, text, actionLabel, onAction, onDismiss }: {
       <button
         type="button"
         onClick={onAction}
-        className="shrink-0 h-9 px-3.5 rounded-xl text-sm font-bold"
+        className="tap-44 shrink-0 h-9 px-3.5 rounded-xl text-sm font-bold"
         style={{ border: "none", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#04302a", cursor: "pointer" }}
       >
         {actionLabel}
       </button>
       {onDismiss && (
         <button type="button" onClick={onDismiss} aria-label="dismiss"
-          className="shrink-0 h-8 w-8 rounded-lg flex items-center justify-center"
+          className="tap-44 shrink-0 h-8 w-8 rounded-lg flex items-center justify-center"
           style={{ border: "none", background: "transparent", color: "var(--sub,#666b82)", cursor: "pointer" }}>
           <X className="h-4 w-4" />
         </button>

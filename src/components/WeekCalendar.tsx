@@ -147,13 +147,13 @@ export function WeekCalendar({
           {t("weekCalendar.today")}
         </Button>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onPrev}>
+          <Button variant="ghost" size="icon" className="tap-44 h-8 w-8" onClick={onPrev}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <span className="text-sm font-medium text-foreground min-w-[120px] text-center">
             {formatRange(start)}
           </span>
-          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onNext}>
+          <Button variant="ghost" size="icon" className="tap-44 h-8 w-8" onClick={onNext}>
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

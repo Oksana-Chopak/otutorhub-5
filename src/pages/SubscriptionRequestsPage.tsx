@@ -237,7 +237,7 @@ export default function SubscriptionRequestsPage() {
 
                     {r.status !== "completed" && r.status !== "rejected" && (
                       <div className="space-y-2.5">
-                        <Textarea
+                        <Textarea aria-label={t("subscriptionRequestsExtra.msgPlaceholder")}
                           placeholder={t("subscriptionRequestsExtra.msgPlaceholder")}
                           value={responseDrafts[r.id] ?? ""}
                           onChange={(e) =>
@@ -256,7 +256,7 @@ export default function SubscriptionRequestsPage() {
                               updateStatus(r.id, v as RequestStatus)
                             }
                           >
-                            <SelectTrigger className="w-[180px]">
+                            <SelectTrigger aria-label={t("common.status")} className="w-[180px]">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>

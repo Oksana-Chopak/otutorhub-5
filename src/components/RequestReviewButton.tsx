@@ -26,26 +26,30 @@ export function RequestReviewButton({
 
   const send = async () => {
     setSending(true);
-    const { data: threadId, error: threadErr } = await supabase.rpc("get_or_create_chat_thread", {
-      _tutor_id: tutorId,
-      _student_id: studentId,
-    });
-    if (threadErr || !threadId) {
+    try {
+      const { data: threadId, error: threadErr } = await supabase.rpc("get_or_create_chat_thread", {
+        _tutor_id: tutorId,
+        _student_id: studentId,
+      });
+      if (threadErr || !threadId) {
+        setSending(false);
+        toast.error(t("requestReview.failed"));
+        return;
+      }
+      const body = t("requestReview.message");
+      const { error: msgErr } = await supabase
+        .from("chat_messages")
+        .insert({ thread_id: threadId as string, sender_id: tutorId, body });
       setSending(false);
-      toast.error(t("requestReview.failed"));
-      return;
+      if (msgErr) {
+        toast.error(t("requestReview.failed"));
+        return;
+      }
+      setSent(true);
+      toast.success(t("requestReview.sent"));
+    } finally {
+      setSending(false);
     }
-    const body = t("requestReview.message");
-    const { error: msgErr } = await supabase
-      .from("chat_messages")
-      .insert({ thread_id: threadId as string, sender_id: tutorId, body });
-    setSending(false);
-    if (msgErr) {
-      toast.error(t("requestReview.failed"));
-      return;
-    }
-    setSent(true);
-    toast.success(t("requestReview.sent"));
   };
 
   return (

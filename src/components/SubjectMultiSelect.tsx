@@ -80,7 +80,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
         ))}
       </div>
       <div className="flex gap-2">
-        <Input
+        <Input aria-label={t("subjectSelect.customPlaceholder")}
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={onKeyDown}
@@ -93,7 +93,7 @@ export function SubjectMultiSelect({ value, onChange, className }: Props) {
           size="sm"
           onClick={addCustom}
           disabled={!custom.trim()}
-          className="h-10 shrink-0"
+          className="tap-44 h-10 shrink-0"
         >
           <Plus className="h-3.5 w-3.5 mr-1" />
           {t("subjectSelect.addBtn")}

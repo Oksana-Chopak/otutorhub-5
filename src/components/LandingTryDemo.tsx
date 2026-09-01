@@ -262,7 +262,7 @@ function Field({
   return (
     <label className="ltd-field">
       <span className="ltd-field-label">{label}</span>
-      <input
+      <input aria-label={placeholder}
         className="ltd-input"
         type={type}
         value={value}

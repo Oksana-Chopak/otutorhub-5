@@ -50,7 +50,7 @@ export function SubjectSelect({
         <div className="mb-1 flex items-center gap-2 rounded-[10px] border px-2.5"
           style={{ borderColor: "var(--border,var(--ds-border,#eceef3))", background: "var(--ds-surface,#fff)", height: 40 }}>
           <Search className="h-4 w-4 shrink-0" style={{ color: "var(--sub,#666b82)" }} />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)}
+          <input aria-label={t("subjectSelect.search")} autoFocus value={q} onChange={(e) => setQ(e.target.value)}
             placeholder={t("subjectSelect.search")}
             className="w-full bg-transparent text-[15px] outline-none"
             style={{ color: "var(--txt,#0f0f1a)" }} />

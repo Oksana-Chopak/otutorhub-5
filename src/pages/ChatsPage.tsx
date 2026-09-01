@@ -593,52 +593,56 @@ export default function ChatsPage() {
       return;
     }
     setSending(true);
-    const bodyText = text || (file ? `📎 ${file.name}` : "");
-    const { data: msgData, error } = await supabase
-      .from("chat_messages")
-      .insert({ thread_id: selectedThread.id, sender_id: myId, body: bodyText })
-      .select("id")
-      .single();
-    if (error || !msgData) {
-      setSending(false);
-      toast({ title: t("chats.sendFailed"), description: error?.message, variant: "destructive" });
-      return;
-    }
-
-    if (file) {
-      if (file.size > MAX_ATTACH_BYTES) {
-        toast({ title: t("chats.fileTooLarge"), description: t("chats.maxFileSize"), variant: "destructive" });
+    try {
+      const bodyText = text || (file ? `📎 ${file.name}` : "");
+      const { data: msgData, error } = await supabase
+        .from("chat_messages")
+        .insert({ thread_id: selectedThread.id, sender_id: myId, body: bodyText })
+        .select("id")
+        .single();
+      if (error || !msgData) {
         setSending(false);
-        setPendingFile(null);
+        toast({ title: t("chats.sendFailed"), description: error?.message, variant: "destructive" });
         return;
       }
-      const safeName = file.name.replace(/[^\w.-]+/g, "_");
-      const path = `${myId}/${selectedThread.id}/${crypto.randomUUID()}-${safeName}`;
-      const { error: upErr } = await supabase.storage
-        .from("chat-attachments")
-        .upload(path, file, { contentType: file.type, upsert: false });
-      if (upErr) {
-        toast({ title: t("chats.fileUploadError"), description: upErr.message, variant: "destructive" });
-      } else {
-        const { error: insErr } = await supabase.from("chat_message_attachments").insert({
-          message_id: (msgData as any).id,
-          thread_id: selectedThread.id,
-          uploader_id: myId,
-          storage_path: path,
-          file_name: file.name,
-          mime_type: file.type || null,
-          size_bytes: file.size,
-        });
-        if (insErr) {
-          toast({ title: t("chats.attachFailed"), description: insErr.message, variant: "destructive" });
+
+      if (file) {
+        if (file.size > MAX_ATTACH_BYTES) {
+          toast({ title: t("chats.fileTooLarge"), description: t("chats.maxFileSize"), variant: "destructive" });
+          setSending(false);
+          setPendingFile(null);
+          return;
+        }
+        const safeName = file.name.replace(/[^\w.-]+/g, "_");
+        const path = `${myId}/${selectedThread.id}/${crypto.randomUUID()}-${safeName}`;
+        const { error: upErr } = await supabase.storage
+          .from("chat-attachments")
+          .upload(path, file, { contentType: file.type, upsert: false });
+        if (upErr) {
+          toast({ title: t("chats.fileUploadError"), description: upErr.message, variant: "destructive" });
+        } else {
+          const { error: insErr } = await supabase.from("chat_message_attachments").insert({
+            message_id: (msgData as any).id,
+            thread_id: selectedThread.id,
+            uploader_id: myId,
+            storage_path: path,
+            file_name: file.name,
+            mime_type: file.type || null,
+            size_bytes: file.size,
+          });
+          if (insErr) {
+            toast({ title: t("chats.attachFailed"), description: insErr.message, variant: "destructive" });
+          }
         }
       }
+      setSending(false);
+      chatDraftLocal.clear(); // D: надіслано — чернетка більше не потрібна
+      setDraft("");
+      setPendingFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    } finally {
+      setSending(false);
     }
-    setSending(false);
-    chatDraftLocal.clear(); // D: надіслано — чернетка більше не потрібна
-    setDraft("");
-    setPendingFile(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const toggleReaction = async (messageId: string, emoji: string) => {
@@ -781,20 +785,24 @@ export default function ChatsPage() {
     if (!selectedPair) return;
     const [tutorId, studentId] = selectedPair.split("|");
     setCreatingThread(true);
-    const { data, error } = await supabase.rpc("get_or_create_chat_thread", {
-      _tutor_id: tutorId,
-      _student_id: studentId,
-    });
-    setCreatingThread(false);
-    if (error) {
-      toast({ title: t("chats.createFailed"), description: error.message, variant: "destructive" });
-      return;
+    try {
+      const { data, error } = await supabase.rpc("get_or_create_chat_thread", {
+        _tutor_id: tutorId,
+        _student_id: studentId,
+      });
+      setCreatingThread(false);
+      if (error) {
+        toast({ title: t("chats.createFailed"), description: error.message, variant: "destructive" });
+        return;
+      }
+      const newId = data as unknown as string;
+      setNewChatOpen(false);
+      await loadThreads();
+      if (newId) setSelectedId(newId);
+      toast({ title: t("chats.chatCreated") });
+    } finally {
+      setCreatingThread(false);
     }
-    const newId = data as unknown as string;
-    setNewChatOpen(false);
-    await loadThreads();
-    if (newId) setSelectedId(newId);
-    toast({ title: t("chats.chatCreated") });
   };
 
   // ── Visual helpers (додано для редизайну, дані не чіпаємо) ────────────────
@@ -921,7 +929,7 @@ export default function ChatsPage() {
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
                   style={{ color: "var(--sub,#666b82)" }}
                 />
-                <input
+                <input aria-label={t("chats.searchPlaceholder")}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t("chats.searchPlaceholder")}
@@ -934,7 +942,7 @@ export default function ChatsPage() {
               <div className="mt-2.5 flex justify-end">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[14px] font-bold"
+                    <button className="tap-44 inline-flex h-9 items-center gap-1.5 rounded-[10px] px-3 text-[14px] font-bold"
                       style={{ background: "var(--ds-surface,#fff)", border: "1px solid var(--border,var(--ds-border,#eceef3))", color: "var(--txt,#0f0f1a)", fontFamily: "Inter, system-ui" }}>
                       <SlidersHorizontal className="h-4 w-4" style={{ color: "var(--sub,#666b82)" }} />
                       {t("chats.filters")}
@@ -1450,7 +1458,11 @@ export default function ChatsPage() {
                     <Paperclip className="h-4 w-4" />
                   </button>
 
-                  <Textarea
+                  <Textarea aria-label={
+                      isManager
+                        ? t("chats.placeholderManager")
+                        : t("chats.composerPlaceholder")
+                    }
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                     onKeyDown={(e) => {
@@ -1576,7 +1588,7 @@ export default function ChatsPage() {
             ) : (
               <>
                 <Select value={selectedPair} onValueChange={setSelectedPair}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-label={t("chats.selectPairPlaceholder")}>
                     <SelectValue placeholder={t("chats.selectPairPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent>

@@ -190,7 +190,7 @@ function LessonCardImpl({
     onEdit && canEdit ? { ic: Pencil, t: t("lessonCard.edit", "Редагувати"), fn: onEdit } : null,
     onCopy && canCopy ? { ic: Copy, t: t("lessonCard.copy", "Копіювати"), fn: onCopy } : null,
     onWallet ? { ic: Wallet, t: t("lessonCard.topUp", "Поповнити гаманець"), fn: onWallet } : null,
-    onDelete && canDelete ? { ic: Trash2, t: t("lessonCard.delete", "Видалити"), fn: onDelete, danger: true } : null,
+    onDelete && canDelete ? { ic: Trash2, t: t("lessonCard.delete"), fn: onDelete, danger: true } : null,
   ].filter(Boolean) as { ic: typeof Pencil; t: string; fn: () => void; danger?: boolean }[];
 
   // micro-pulse when flipping to completed
@@ -242,7 +242,7 @@ function LessonCardImpl({
             {statusEditable ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
+                  <button className="tap-44" style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 30, padding: "0 11px", border: "none", cursor: "pointer", borderRadius: 999, fontFamily: L.display, fontWeight: 700, fontSize: 13, background: sm.bg, color: sm.fg, boxShadow: `inset 0 0 0 1px ${sm.ring}` }}>
                     <span style={{ width: 8, height: 8, borderRadius: 999, background: "currentColor" }} />
                     {t(sm.key)}
                     <ChevronDown size={14} strokeWidth={2.2} />
@@ -268,7 +268,7 @@ function LessonCardImpl({
             {overflowItems.length > 0 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <button aria-label={t("lessonCard.actions", "Дії")} style={{ width: 34, height: 34, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: L.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <button className="tap-44" aria-label={t("lessonCard.actions", "Дії")} style={{ width: 34, height: 34, borderRadius: 999, border: "none", cursor: "pointer", background: "transparent", color: L.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <MoreVertical size={20} />
                   </button>
                 </DropdownMenuTrigger>

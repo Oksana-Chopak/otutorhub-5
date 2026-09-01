@@ -155,79 +155,83 @@ export function ContactEditDialog({ open, onOpenChange, userId, userName, initia
 
     setSaving(true);
 
-    const contactPayload = {
-      user_id: userId,
-      email: email || null,
-      phone: phone || null,
-      telegram: telegram || null,
-      messenger_url: messenger_url || null,
-      facebook_url: facebook_url || null,
-      instagram_url: instagram_url || null,
-    };
+    try {
+      const contactPayload = {
+        user_id: userId,
+        email: email || null,
+        phone: phone || null,
+        telegram: telegram || null,
+        messenger_url: messenger_url || null,
+        facebook_url: facebook_url || null,
+        instagram_url: instagram_url || null,
+      };
 
-    const financialPayload = {
-      user_id: userId,
-      bank_card_last4: bank_card_last4 || null,
-      bank_name: bank_name || null,
-    };
+      const financialPayload = {
+        user_id: userId,
+        bank_card_last4: bank_card_last4 || null,
+        bank_name: bank_name || null,
+      };
 
-    // Перевіряємо живу сесію — інколи токен прострочений і fetch падає як "Load failed"
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
-      setSaving(false);
-      toast.error(t("contactEdit.sessionExpired"));
-      return;
-    }
+      // Перевіряємо живу сесію — інколи токен прострочений і fetch падає як "Load failed"
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        setSaving(false);
+        toast.error(t("contactEdit.sessionExpired"));
+        return;
+      }
 
-    // Ретрай на випадок мережевих збоїв (Safari "Load failed", flaky network)
-    let lastError: any = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        // Save regular contacts
-        const { error: contactError } = await supabase
-          .from("profile_contacts")
-          .upsert(contactPayload, { onConflict: "user_id" });
+      // Ретрай на випадок мережевих збоїв (Safari "Load failed", flaky network)
+      let lastError: any = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          // Save regular contacts
+          const { error: contactError } = await supabase
+            .from("profile_contacts")
+            .upsert(contactPayload, { onConflict: "user_id" });
         
-        if (contactError) {
-          lastError = contactError;
-          break;
-        }
-
-        // Save financial contacts separately (only if provided)
-        if (bank_card_last4 || bank_name) {
-          const { error: financialError } = await supabase
-            .from("profile_financial_contacts")
-            .upsert(financialPayload, { onConflict: "user_id" });
-          
-          if (financialError) {
-            lastError = financialError;
+          if (contactError) {
+            lastError = contactError;
             break;
           }
+
+          // Save financial contacts separately (only if provided)
+          if (bank_card_last4 || bank_name) {
+            const { error: financialError } = await supabase
+              .from("profile_financial_contacts")
+              .upsert(financialPayload, { onConflict: "user_id" });
+          
+            if (financialError) {
+              lastError = financialError;
+              break;
+            }
+          }
+
+          // Both succeeded
+          setSaving(false);
+          toast.success(t("contactEdit.saved"));
+          onOpenChange(false);
+          onSaved?.();
+          return;
+        } catch (e) {
+          lastError = e;
         }
-
-        // Both succeeded
-        setSaving(false);
-        toast.success(t("contactEdit.saved"));
-        onOpenChange(false);
-        onSaved?.();
-        return;
-      } catch (e) {
-        lastError = e;
+        if (attempt < 3) {
+          await new Promise((r) => setTimeout(r, 400 * attempt));
+        }
       }
-      if (attempt < 3) {
-        await new Promise((r) => setTimeout(r, 400 * attempt));
-      }
-    }
 
-    setSaving(false);
-    console.error("Failed to save contacts after retries", lastError);
-    const msg = String(lastError?.message || "");
-    if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
-      toast.error(t("contactEditExtra.emailDuplicate"));
-    } else if (/load failed|network|fetch/i.test(msg)) {
-      toast.error(t("contactEditExtra.networkError"));
-    } else {
-      toast.error(msg || t("contactEdit.saveFailed"));
+      setSaving(false);
+      console.error("Failed to save contacts after retries", lastError);
+      const msg = String(lastError?.message || "");
+      if (/email/i.test(msg) && /(unique|duplicate)/i.test(msg)) {
+        toast.error(t("contactEditExtra.emailDuplicate"));
+      } else if (/load failed|network|fetch/i.test(msg)) {
+        toast.error(t("contactEditExtra.networkError"));
+      } else {
+        toast.error(msg || t("contactEdit.saveFailed"));
+      }
+    } finally {
+      setSaving(false);
     }
   };
 

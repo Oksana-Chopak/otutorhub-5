@@ -87,21 +87,25 @@ export function InviteLinkDialog({
   const handleResendEmail = async () => {
     if (!studentId) return;
     setResending(true);
-    const { data, error } = await supabase.functions.invoke("send-student-invite", {
-      body: { studentId },
-    });
-    setResending(false);
-    if (error) {
-      toast.error(t("inviteLinkExtra.emailFailed"));
-      return;
-    }
-    const result = data as { success?: boolean; reason?: string; message?: string };
-    if (result?.success) {
-      toast.success(t("inviteLinkExtra.emailSent"));
-    } else if (result?.reason === "rate_limited") {
-      toast.info(t("inviteLinkExtra.emailRateLimited"));
-    } else {
-      toast.error(t("inviteLinkExtra.emailFailed"));
+    try {
+      const { data, error } = await supabase.functions.invoke("send-student-invite", {
+        body: { studentId },
+      });
+      setResending(false);
+      if (error) {
+        toast.error(t("inviteLinkExtra.emailFailed"));
+        return;
+      }
+      const result = data as { success?: boolean; reason?: string; message?: string };
+      if (result?.success) {
+        toast.success(t("inviteLinkExtra.emailSent"));
+      } else if (result?.reason === "rate_limited") {
+        toast.info(t("inviteLinkExtra.emailRateLimited"));
+      } else {
+        toast.error(t("inviteLinkExtra.emailFailed"));
+      }
+    } finally {
+      setResending(false);
     }
   };
 

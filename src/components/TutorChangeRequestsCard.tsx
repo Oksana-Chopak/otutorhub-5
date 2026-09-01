@@ -193,129 +193,137 @@ export function TutorChangeRequestsCard({ nameOf }: Props) {
     }
     setSubmitting(true);
 
-    if (active.kind === "cancel") {
-      let newPrice = Number(lesson.student_price);
-      if (chargeChoice === "none") newPrice = 0;
-      else if (chargeChoice === "partial")
-        newPrice = Math.max(0, Number(partialAmount) || 0);
+    try {
+      if (active.kind === "cancel") {
+        let newPrice = Number(lesson.student_price);
+        if (chargeChoice === "none") newPrice = 0;
+        else if (chargeChoice === "partial")
+          newPrice = Math.max(0, Number(partialAmount) || 0);
 
-      const { error: lessonErr } = await setLessonStatus(lesson.id, "cancelled");
+        const { error: lessonErr } = await setLessonStatus(lesson.id, "cancelled");
 
-      if (lessonErr) {
-        setSubmitting(false);
-        toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
-        return;
-      }
-      void syncLessonToGoogleCalendar(lesson.id, "delete");
-
-      // Only an INDEPENDENT tutor sets the cancellation charge (they own the price).
-      // For a HUB tutor the student→hub price is the manager's number (and is masked to
-      // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
-      // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
-      if (isIndependent) {
-        // is_cancellation_fee makes the withheld charge visible on money surfaces
-        // (the billable predicate counts cancelled lessons only with this marker).
-        const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, {
-          student_price: newPrice,
-          is_cancellation_fee: chargeChoice !== "none",
-        });
-        if (priceErr) {
+        if (lessonErr) {
           setSubmitting(false);
-          toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
+          toast.error(t("tutorChangeRequests.updateFailed"), { description: lessonErr.message });
+          return;
+        }
+        void syncLessonToGoogleCalendar(lesson.id, "delete");
+
+        // Only an INDEPENDENT tutor sets the cancellation charge (they own the price).
+        // For a HUB tutor the student→hub price is the manager's number (and is masked to
+        // NULL/0 by lessons_visible here), so NEVER rewrite student_price — that would zero
+        // the hub receivable. The tutor just cancels; the hub/manager decides any fee.
+        if (isIndependent) {
+          // is_cancellation_fee makes the withheld charge visible on money surfaces
+          // (the billable predicate counts cancelled lessons only with this marker).
+          const { error: priceErr } = await updateLessonDetailsSafe(lesson.id, {
+            student_price: newPrice,
+            is_cancellation_fee: chargeChoice !== "none",
+          });
+          if (priceErr) {
+            setSubmitting(false);
+            toast.error(t("tutorChangeRequests.priceFailed"), { description: priceErr.message });
+            return;
+          }
+        }
+      } else {
+        if (!proposedAt) {
+          setSubmitting(false);
+          toast.error(t("tutorChangeRequests.timeRequired"));
+          return;
+        }
+        const newStart = new Date(proposedAt).toISOString();
+        const { error: lessonErr } = await supabase
+          .from("lessons")
+          .update({ starts_at: newStart })
+          .eq("id", lesson.id);
+        if (lessonErr) {
+          setSubmitting(false);
+          toast.error(t("tutorChangeRequests.rescheduleFailed"), { description: lessonErr.message });
           return;
         }
       }
-    } else {
-      if (!proposedAt) {
-        setSubmitting(false);
-        toast.error(t("tutorChangeRequests.timeRequired"));
+
+      const { error: reqErr } = await supabase
+        .from("lesson_change_requests")
+        .update({
+          status: "approved",
+          charge_decision:
+            active.kind === "cancel" ? chargeChoice : null,
+          tutor_response: response.trim() || null,
+          decided_at: new Date().toISOString(),
+          decided_by: user?.id,
+        })
+        .eq("id", active.id);
+
+      setSubmitting(false);
+      if (reqErr) {
+        toast.error(t("tutorChangeRequests.requestUpdateFailed") ?? "Урок оновлено, але не вдалося оновити запит", {
+          description: reqErr.message,
+        });
         return;
       }
-      const newStart = new Date(proposedAt).toISOString();
-      const { error: lessonErr } = await supabase
-        .from("lessons")
-        .update({ starts_at: newStart })
-        .eq("id", lesson.id);
-      if (lessonErr) {
-        setSubmitting(false);
-        toast.error(t("tutorChangeRequests.rescheduleFailed"), { description: lessonErr.message });
-        return;
-      }
-    }
-
-    const { error: reqErr } = await supabase
-      .from("lesson_change_requests")
-      .update({
-        status: "approved",
-        charge_decision:
-          active.kind === "cancel" ? chargeChoice : null,
-        tutor_response: response.trim() || null,
-        decided_at: new Date().toISOString(),
-        decided_by: user?.id,
-      })
-      .eq("id", active.id);
-
-    setSubmitting(false);
-    if (reqErr) {
-      toast.error(t("tutorChangeRequests.requestUpdateFailed") ?? "Урок оновлено, але не вдалося оновити запит", {
-        description: reqErr.message,
+      // Keep Google Calendar in step — approve() rewrites starts_at or cancels, and
+      // was the only lesson-mutation path with no sync (stale/ghost events).
+      void syncLessonToGoogleCalendar(lesson.id, active.kind === "cancel" ? "delete" : "upsert");
+      // The decision must reach the STUDENT — «notifications both ways» was one-way:
+      // the student pinged the tutor on submit, but approvals/rescheduls/fees landed
+      // silently. type is per-request so the 24h (user,type) dedup can't swallow it.
+      const feeApplied = active.kind === "cancel" && isIndependent && chargeChoice !== "none";
+      const feeAmount = chargeChoice === "partial" ? Math.max(0, Number(partialAmount) || 0) : Number(lesson.student_price ?? 0);
+      insertNotification({
+        userId: active.student_id,
+        type: `change_request_${active.id}`,
+        title:
+          active.kind === "cancel"
+            ? feeApplied
+              ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice((feeAmount), "UAH")})
+              : t("tutorChangeRequestsExtra.cancelApprovedNotif")
+            : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
+                when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
+              }),
+        body: response.trim() || undefined,
+        link: "/student/schedule",
       });
-      return;
+      toast.success(active.kind === "cancel" ? t("tutorChangeRequests.cancelApproved") : t("tutorChangeRequests.rescheduleApproved"));
+      close();
+      load();
+    } finally {
+      setSubmitting(false);
     }
-    // Keep Google Calendar in step — approve() rewrites starts_at or cancels, and
-    // was the only lesson-mutation path with no sync (stale/ghost events).
-    void syncLessonToGoogleCalendar(lesson.id, active.kind === "cancel" ? "delete" : "upsert");
-    // The decision must reach the STUDENT — «notifications both ways» was one-way:
-    // the student pinged the tutor on submit, but approvals/rescheduls/fees landed
-    // silently. type is per-request so the 24h (user,type) dedup can't swallow it.
-    const feeApplied = active.kind === "cancel" && isIndependent && chargeChoice !== "none";
-    const feeAmount = chargeChoice === "partial" ? Math.max(0, Number(partialAmount) || 0) : Number(lesson.student_price ?? 0);
-    insertNotification({
-      userId: active.student_id,
-      type: `change_request_${active.id}`,
-      title:
-        active.kind === "cancel"
-          ? feeApplied
-            ? t("tutorChangeRequestsExtra.cancelApprovedFeeNotif", { fee: formatPrice((feeAmount), "UAH")})
-            : t("tutorChangeRequestsExtra.cancelApprovedNotif")
-          : t("tutorChangeRequestsExtra.rescheduleApprovedNotif", {
-              when: new Date(proposedAt).toLocaleString(getLocale(), { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }),
-            }),
-      body: response.trim() || undefined,
-      link: "/student/schedule",
-    });
-    toast.success(active.kind === "cancel" ? t("tutorChangeRequests.cancelApproved") : t("tutorChangeRequests.rescheduleApproved"));
-    close();
-    load();
   };
 
   const reject = async () => {
     if (!active) return;
     setSubmitting(true);
-    const { error } = await supabase
-      .from("lesson_change_requests")
-      .update({
-        status: "rejected",
-        tutor_response: response.trim() || null,
-        decided_at: new Date().toISOString(),
-        decided_by: user?.id,
-      })
-      .eq("id", active.id);
-    setSubmitting(false);
-    if (error) {
-      toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
-      return;
+    try {
+      const { error } = await supabase
+        .from("lesson_change_requests")
+        .update({
+          status: "rejected",
+          tutor_response: response.trim() || null,
+          decided_at: new Date().toISOString(),
+          decided_by: user?.id,
+        })
+        .eq("id", active.id);
+      setSubmitting(false);
+      if (error) {
+        toast.error(t("tutorChangeRequests.updateFailed"), { description: error.message });
+        return;
+      }
+      insertNotification({
+        userId: active.student_id,
+        type: `change_request_${active.id}`,
+        title: t("tutorChangeRequestsExtra.requestRejectedNotif"),
+        body: response.trim() || undefined,
+        link: "/student/schedule",
+      });
+      toast.success(t("tutorChangeRequestsExtra.requestRejected"));
+      close();
+      load();
+    } finally {
+      setSubmitting(false);
     }
-    insertNotification({
-      userId: active.student_id,
-      type: `change_request_${active.id}`,
-      title: t("tutorChangeRequestsExtra.requestRejectedNotif"),
-      body: response.trim() || undefined,
-      link: "/student/schedule",
-    });
-    toast.success(t("tutorChangeRequestsExtra.requestRejected"));
-    close();
-    load();
   };
 
   if (loading) return null;

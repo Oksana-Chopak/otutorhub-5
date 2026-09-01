@@ -132,6 +132,8 @@ export const en: LocaleTranslations = {
   },
 
   common: {
+    date: "Date",
+    time: "Time",
     backToProfile: "Back to profile",
     save: "Save",
     cancel: "Cancel",
@@ -4155,6 +4157,9 @@ export const en: LocaleTranslations = {
   },
 
   offline: {
+    failedPending: "Not sent: {{count}}",
+    retry: "Try again",
+    discard: "Discard",
     noConnection: "No connection — check your internet",
     restored: "Connection restored",
     queuedToast: "No connection — I'll save it as soon as network is back (queued: {{count}})",
@@ -4169,6 +4174,7 @@ export const en: LocaleTranslations = {
     release: "Release to refresh",
   },
   onboardingFlowB: {
+    lessonMinuteLabel: "Minutes",
     saveFailed: "Couldn't save. Please try again",
     lessonTodayHint: "Today at {{time}}",
     lessonTomorrowHint: "That time has passed today — we'll schedule it for tomorrow at {{time}}",

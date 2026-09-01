@@ -415,7 +415,7 @@ export function AvailabilityManager() {
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
           <Label className="text-sm shrink-0">{t("availabilityManagerExtra.tutorLabel")}</Label>
           <Select value={selectedTutorId} onValueChange={setSelectedTutorId}>
-            <SelectTrigger className="max-w-xs"><SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} /></SelectTrigger>
+            <SelectTrigger aria-label={t("availabilityManagerExtra.selectTutor")} className="max-w-xs"><SelectValue placeholder={t("availabilityManagerExtra.selectTutor")} /></SelectTrigger>
             <SelectContent>
               {tutors.map((tt) => (<SelectItem key={tt.id} value={tt.id}>{fullName(tt)}</SelectItem>))}
             </SelectContent>
@@ -523,7 +523,7 @@ export function AvailabilityManager() {
                   {canCopy && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button title={t("availabilityManagerExtra.copyFromDay")}
+                        <button className="tap-44" title={t("availabilityManagerExtra.copyFromDay")}
                           style={{ width: 30, height: 30, borderRadius: 999, border: "none", cursor: "pointer", background: "rgba(15,15,26,.05)", color: A.sub, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                           <Copy className="h-3.5 w-3.5" />
                         </button>
@@ -628,7 +628,7 @@ export function AvailabilityManager() {
                 value={String(weeklyDialog.weekday)}
                 onValueChange={(v) => setWeeklyDialog((s) => ({ ...s, weekday: Number(v) }))}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label={t("availabilityManagerExtra.dayOfWeekLabel")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -685,7 +685,7 @@ export function AvailabilityManager() {
                 value={overrideDialog.is_available ? "yes" : "no"}
                 onValueChange={(v) => setOverrideDialog((s) => ({ ...s, is_available: v === "yes" }))}
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label={t("availabilityManagerExtra.typeLabel")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

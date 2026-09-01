@@ -7,8 +7,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(payload.title, {
       body: payload.body,
-      icon: '/logo.png',
-      badge: '/logo.png',
+      // A2: було logo.png 84 kB на кожне сповіщення — тепер готові іконки
+      // правильних розмірів (192 для картинки, 48 для бейджа).
+      icon: '/icon-192.png',
+      badge: '/favicon-48.png',
       tag: payload.tag || 'otutorhub-' + Date.now(),
       data: { link: payload.link },
       requireInteraction: false,

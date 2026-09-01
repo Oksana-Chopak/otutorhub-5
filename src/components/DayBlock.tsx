@@ -30,7 +30,7 @@ function DayCard({ emoji, title, sub, action, onAction, secondary }: {
           </button>
         )}
       </span>
-      <button type="button" onClick={onAction} style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
+      <button className="tap-44" type="button" onClick={onAction} style={{ flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11, border: "none", cursor: "pointer", background: "linear-gradient(135deg,#2BBFAA,#25a896)", color: "#0f0f1a", fontFamily: "Inter, system-ui, sans-serif", fontWeight: 700, fontSize: 15, boxShadow: "0 6px 16px -6px rgba(43,191,170,.7)" }}>
         {action}
       </button>
     </div>

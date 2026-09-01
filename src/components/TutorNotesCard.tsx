@@ -36,14 +36,18 @@ export function TutorNotesCard() {
   const add = async () => {
     if (!user || !text.trim()) return;
     setSaving(true);
-    const { error } = await supabase
-      .from("tutor_notes" as any)
-      .insert({ tutor_id: user.id, text: text.trim() } as any);
-    setSaving(false);
-    if (error) { toast.error(t("tutorNotes.saveFailed")); return; }
-    setText("");
-    textareaRef.current?.focus();
-    load();
+    try {
+      const { error } = await supabase
+        .from("tutor_notes" as any)
+        .insert({ tutor_id: user.id, text: text.trim() } as any);
+      setSaving(false);
+      if (error) { toast.error(t("tutorNotes.saveFailed")); return; }
+      setText("");
+      textareaRef.current?.focus();
+      load();
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (id: string) => {
@@ -56,7 +60,7 @@ export function TutorNotesCard() {
     <div className="space-y-1">
       {/* Input row */}
       <div className="flex items-end gap-2">
-        <textarea
+        <textarea aria-label={t("tutorNotes.placeholder")}
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -72,7 +76,7 @@ export function TutorNotesCard() {
           onClick={add}
           disabled={saving || !text.trim()}
           aria-label={t("tutorNotes.add")}
-          className={cn(
+          className={cn("tap-44", 
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-opacity",
             text.trim() ? "opacity-100" : "opacity-30 cursor-default"
           )}

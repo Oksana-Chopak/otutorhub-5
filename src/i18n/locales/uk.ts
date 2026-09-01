@@ -130,6 +130,8 @@ export const uk = {
   // Common
 
   common: {
+    date: "Дата",
+    time: "Час",
     backToProfile: "Назад до профілю",
     save: "Зберегти",
     cancel: "Скасувати",
@@ -4145,6 +4147,9 @@ export const uk = {
   },
 
   offline: {
+    failedPending: "Не надіслано: {{count}}",
+    retry: "Спробувати ще",
+    discard: "Прибрати",
     noConnection: "Немає зʼєднання — перевір інтернет",
     restored: "Зʼєднання відновлено",
     queuedToast: "Немає мережі — збережу, щойно з'явиться (у черзі: {{count}})",
@@ -4159,6 +4164,7 @@ export const uk = {
     release: "Відпусти, щоб оновити",
   },
   onboardingFlowB: {
+    lessonMinuteLabel: "Хвилини",
     saveFailed: "Не вдалося зберегти. Спробуй ще раз",
     lessonTodayHint: "Сьогодні о {{time}}",
     lessonTomorrowHint: "Цей час сьогодні вже минув — заплануємо на завтра о {{time}}",

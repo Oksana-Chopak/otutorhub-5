@@ -130,7 +130,7 @@ export default function PaywallMetricsPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger aria-label={t("paywallMetricsExtra.pageSubtitle")} className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +141,7 @@ export default function PaywallMetricsPage() {
               </SelectContent>
             </Select>
             <Select value={period} onValueChange={(v) => setPeriod(v as "7" | "30" | "90")}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger aria-label={t("finances.period")} className="w-[140px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

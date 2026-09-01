@@ -265,39 +265,43 @@ export default function FinancesPage() {
   const confirmDeletePrepay = async () => {
     if (!deletePrepayTx) return;
     setDeletingPrepay(true);
-    const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
-      _tx_id: deletePrepayTx.id,
-      _hard: true,
-    });
-    if (error && /updated_at|does not exist/i.test(error.message)) {
-      // Жива БД ще без фіксу колонки (міграції з GitHub не застосовуються).
-      // Обхід без SQL: сторно через wallet_adjust (manager-only, live з травня) —
-      // компенсуюча транзакція; пару (оригінал+сторно) ховаємо зі стріму.
-      const { error: adjErr } = await supabase.rpc("wallet_adjust" as any, {
-        _tutor_id: deletePrepayTx.tutor_id,
-        _student_id: deletePrepayTx.student_id,
-        _lessons_delta: -(deletePrepayTx.lessons_delta ?? 0),
-        _amount_delta: -Number(deletePrepayTx.amount_delta ?? 0),
-        _note: `[storno:${deletePrepayTx.id}] Скасування помилкової передоплати`,
+    try {
+      const { error } = await supabase.rpc("wallet_delete_transaction" as any, {
+        _tx_id: deletePrepayTx.id,
+        _hard: true,
       });
-      setDeletingPrepay(false);
-      if (adjErr) {
-        toast.error(t("finances.deletePrepayError"), { description: adjErr.message });
+      if (error && /updated_at|does not exist/i.test(error.message)) {
+        // Жива БД ще без фіксу колонки (міграції з GitHub не застосовуються).
+        // Обхід без SQL: сторно через wallet_adjust (manager-only, live з травня) —
+        // компенсуюча транзакція; пару (оригінал+сторно) ховаємо зі стріму.
+        const { error: adjErr } = await supabase.rpc("wallet_adjust" as any, {
+          _tutor_id: deletePrepayTx.tutor_id,
+          _student_id: deletePrepayTx.student_id,
+          _lessons_delta: -(deletePrepayTx.lessons_delta ?? 0),
+          _amount_delta: -Number(deletePrepayTx.amount_delta ?? 0),
+          _note: `[storno:${deletePrepayTx.id}] Скасування помилкової передоплати`,
+        });
+        setDeletingPrepay(false);
+        if (adjErr) {
+          toast.error(t("finances.deletePrepayError"), { description: adjErr.message });
+          return;
+        }
+        toast.success(t("finances.prepayCancelledTitle"), { description: t("finances.prepayCancelledDesc") });
+        setDeletePrepayTx(null);
+        fetchData();
         return;
       }
-      toast.success(t("finances.prepayCancelledTitle"), { description: t("finances.prepayCancelledDesc") });
+      setDeletingPrepay(false);
+      if (error) {
+        toast.error(t("finances.deletePrepayError"), { description: error.message });
+        return;
+      }
+      toast.success(t("finances.prepayDeletedTitle"), { description: t("finances.prepayDeletedDesc") });
       setDeletePrepayTx(null);
       fetchData();
-      return;
+    } finally {
+      setDeletingPrepay(false);
     }
-    setDeletingPrepay(false);
-    if (error) {
-      toast.error(t("finances.deletePrepayError"), { description: error.message });
-      return;
-    }
-    toast.success(t("finances.prepayDeletedTitle"), { description: t("finances.prepayDeletedDesc") });
-    setDeletePrepayTx(null);
-    fetchData();
   };
 
   // Column sort (Google-Sheets style). null = smart default sort.
@@ -1042,85 +1046,89 @@ export default function FinancesPage() {
   const bulkMark = async (field: "student_payment_status" | "tutor_payout_status") => {
     if (selected.size === 0) return;
     setBulkBusy(true);
-    const ids = Array.from(selected);
-    const nowIso = new Date().toISOString();
-    const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
-    const previousLessons = lessons;
-    // Group payout is never tracked, so a payout bulk must skip group rows entirely.
-    const selRows = lessons.filter((l) => selected.has(l.id));
-    setLessons((prev) =>
-      prev.map((l) =>
-        ids.includes(l.id) && !(field === "tutor_payout_status" && l.kind === "group")
-          ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow)
-          : l
-      )
-    );
-    haptic.success(); // instant felt feedback before the DB round-trip (reverted on error)
-    // B4: збираємо невдалі ПОІМЕННО — відкат лише їх, а не всіх 50 разом із
-    // 40 успішно записаними (раніше setLessons(previousLessons) «розписував»
-    // назад і те, що в БД уже стояло як оплачене).
-    const failedRowKeys = new Set<string>();
-    const rowKey = (l: LessonRow) => `${l.id}:${(l as any).participant_id ?? ""}`;
-    if (field === "student_payment_status") {
-      const indRows = selRows.filter((l) => l.kind !== "group");
-      const grpRows = selRows.filter((l) => l.kind === "group");
-      const grpIds = grpRows.map((l) => l.participant_id!).filter(Boolean);
-      const [indRes, grpRes] = await Promise.all([
-        updateLessonDetailsSafeEach(indRows.map((l) => l.id), { student_payment_status: "paid" as PaymentStatus }),
-        grpIds.length
-          ? (supabase.rpc as any)("set_group_participant_payment", { _participant_ids: grpIds, _status: "paid" })
-          : Promise.resolve({ error: null }),
-      ]);
-      const failedInd = new Set(indRes.failedIds);
-      indRows.forEach((l) => { if (failedInd.has(l.id)) failedRowKeys.add(rowKey(l)); });
-      // Груповий RPC — один виклик на всіх: якщо впав, невдалі всі групові рядки.
-      if ((grpRes as { error?: unknown }).error) grpRows.forEach((l) => failedRowKeys.add(rowKey(l)));
-    } else {
-      const indRows = selRows.filter((l) => l.kind !== "group");
-      const res = indRows.length
-        ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indRows.map((l) => l.id), _status: "paid" })
-        : { error: null };
-      // Bulk-RPC атомарний: помилка = не записалось нічого з індивідуальних.
-      if ((res as { error?: unknown }).error) indRows.forEach((l) => failedRowKeys.add(rowKey(l)));
-    }
-    setBulkBusy(false);
-    if (failedRowKeys.size > 0) {
-      haptic.error();
-      // Відкат лише невдалих рядків до попереднього стану.
+    try {
+      const ids = Array.from(selected);
+      const nowIso = new Date().toISOString();
+      const paidAtField = field === "student_payment_status" ? "student_paid_at" : "tutor_paid_at";
+      const previousLessons = lessons;
+      // Group payout is never tracked, so a payout bulk must skip group rows entirely.
+      const selRows = lessons.filter((l) => selected.has(l.id));
       setLessons((prev) =>
-        prev.map((l) => {
-          if (!failedRowKeys.has(rowKey(l))) return l;
-          return previousLessons.find((p) => rowKey(p) === rowKey(l)) ?? l;
-        })
+        prev.map((l) =>
+          ids.includes(l.id) && !(field === "tutor_payout_status" && l.kind === "group")
+            ? ({ ...l, [field]: "paid", [paidAtField]: nowIso } as LessonRow)
+            : l
+        )
       );
-      const okCount = selRows.length - failedRowKeys.size;
-      if (okCount > 0) {
-        toast.error(t("finances.bulkPartialFailed", { ok: okCount, failed: failedRowKeys.size }));
+      haptic.success(); // instant felt feedback before the DB round-trip (reverted on error)
+      // B4: збираємо невдалі ПОІМЕННО — відкат лише їх, а не всіх 50 разом із
+      // 40 успішно записаними (раніше setLessons(previousLessons) «розписував»
+      // назад і те, що в БД уже стояло як оплачене).
+      const failedRowKeys = new Set<string>();
+      const rowKey = (l: LessonRow) => `${l.id}:${(l as any).participant_id ?? ""}`;
+      if (field === "student_payment_status") {
+        const indRows = selRows.filter((l) => l.kind !== "group");
+        const grpRows = selRows.filter((l) => l.kind === "group");
+        const grpIds = grpRows.map((l) => l.participant_id!).filter(Boolean);
+        const [indRes, grpRes] = await Promise.all([
+          updateLessonDetailsSafeEach(indRows.map((l) => l.id), { student_payment_status: "paid" as PaymentStatus }),
+          grpIds.length
+            ? (supabase.rpc as any)("set_group_participant_payment", { _participant_ids: grpIds, _status: "paid" })
+            : Promise.resolve({ error: null }),
+        ]);
+        const failedInd = new Set(indRes.failedIds);
+        indRows.forEach((l) => { if (failedInd.has(l.id)) failedRowKeys.add(rowKey(l)); });
+        // Груповий RPC — один виклик на всіх: якщо впав, невдалі всі групові рядки.
+        if ((grpRes as { error?: unknown }).error) grpRows.forEach((l) => failedRowKeys.add(rowKey(l)));
       } else {
-        toast.error(t("finances.bulkUpdateFailed"));
+        const indRows = selRows.filter((l) => l.kind !== "group");
+        const res = indRows.length
+          ? await supabase.rpc("set_lesson_tutor_payout_status_bulk", { _lesson_ids: indRows.map((l) => l.id), _status: "paid" })
+          : { error: null };
+        // Bulk-RPC атомарний: помилка = не записалось нічого з індивідуальних.
+        if ((res as { error?: unknown }).error) indRows.forEach((l) => failedRowKeys.add(rowKey(l)));
       }
-      // Невдалі лишаються виділеними — повторити можна одним тапом.
-      setSelected(new Set(selRows.filter((l) => failedRowKeys.has(rowKey(l))).map((l) => l.id)));
-      return;
+      setBulkBusy(false);
+      if (failedRowKeys.size > 0) {
+        haptic.error();
+        // Відкат лише невдалих рядків до попереднього стану.
+        setLessons((prev) =>
+          prev.map((l) => {
+            if (!failedRowKeys.has(rowKey(l))) return l;
+            return previousLessons.find((p) => rowKey(p) === rowKey(l)) ?? l;
+          })
+        );
+        const okCount = selRows.length - failedRowKeys.size;
+        if (okCount > 0) {
+          toast.error(t("finances.bulkPartialFailed", { ok: okCount, failed: failedRowKeys.size }));
+        } else {
+          toast.error(t("finances.bulkUpdateFailed"));
+        }
+        // Невдалі лишаються виділеними — повторити можна одним тапом.
+        setSelected(new Set(selRows.filter((l) => failedRowKeys.has(rowKey(l))).map((l) => l.id)));
+        return;
+      }
+      // Clearing a whole debt list at once is a real win — celebrate it (haptic already
+      // fired instantly above; confetti is the after-success bonus).
+      if (field === "student_payment_status") burstConfetti();
+      // Report only what was actually WRITTEN: a payout bulk deliberately skips group
+      // rows (no payout side exists), so counting the full selection over-reported.
+      const writtenCount =
+        field === "student_payment_status"
+          ? selRows.length
+          : selRows.filter((l) => l.kind !== "group").length;
+      const skippedGroups = ids.length - writtenCount;
+      if (writtenCount > 0) {
+        toast.success(t("finances.bulkUpdated", { count: writtenCount }), {
+          description: skippedGroups > 0 ? t("finances.bulkSkippedGroup", { count: skippedGroups }) : undefined,
+        });
+      } else {
+        toast.info(t("finances.bulkSkippedGroup", { count: skippedGroups }));
+      }
+      setSelected(new Set());
+    } finally {
+      setBulkBusy(false);
     }
-    // Clearing a whole debt list at once is a real win — celebrate it (haptic already
-    // fired instantly above; confetti is the after-success bonus).
-    if (field === "student_payment_status") burstConfetti();
-    // Report only what was actually WRITTEN: a payout bulk deliberately skips group
-    // rows (no payout side exists), so counting the full selection over-reported.
-    const writtenCount =
-      field === "student_payment_status"
-        ? selRows.length
-        : selRows.filter((l) => l.kind !== "group").length;
-    const skippedGroups = ids.length - writtenCount;
-    if (writtenCount > 0) {
-      toast.success(t("finances.bulkUpdated", { count: writtenCount }), {
-        description: skippedGroups > 0 ? t("finances.bulkSkippedGroup", { count: skippedGroups }) : undefined,
-      });
-    } else {
-      toast.info(t("finances.bulkSkippedGroup", { count: skippedGroups }));
-    }
-    setSelected(new Set());
   };
 
   const exportCsv = (opts?: { tutorId?: string; kind?: "all" | "paid" | "unpaid" }) => {
@@ -1474,6 +1482,9 @@ export default function FinancesPage() {
                       key={`p-${tx.id}`}
                       className="border-b border-border last:border-0 bg-primary/[0.04] hover:bg-primary/10 cursor-pointer"
                       onClick={() => openWalletForPair(tx.tutor_id, tx.student_id)}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openWalletForPair(tx.tutor_id, tx.student_id); } }}
                     >
                       <td className="px-3 py-3" />
                       <td className="px-3 py-3 text-muted-foreground whitespace-nowrap">{formatDate(tx.created_at)}</td>
@@ -2523,7 +2534,7 @@ export default function FinancesPage() {
           {!isIndependentTutor && tutorOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={tutorFilter} onValueChange={setTutorFilter}>
-                <SelectTrigger className="h-11">
+                <SelectTrigger aria-label={t("finances.allTutors")} className="h-11">
                   <SelectValue placeholder={t("finances.allTutors")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -2539,7 +2550,7 @@ export default function FinancesPage() {
           {isIndependentTutor && studentOptions.length > 1 && (
             <div className="w-full sm:w-44">
               <Select value={studentFilter} onValueChange={setStudentFilter}>
-                <SelectTrigger className="h-11">
+                <SelectTrigger aria-label={t("finances.allStudents")} className="h-11">
                   <SelectValue placeholder={t("finances.allStudents")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -2948,7 +2959,7 @@ export default function FinancesPage() {
             <div>
               <p className="mb-1.5 text-[14px] font-semibold text-foreground">{t("finances.exportTutor")}</p>
               <Select value={exportTutor} onValueChange={setExportTutor}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger aria-label={t("finances.exportTutor")}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t("finances.exportAllTutors")}</SelectItem>
                   {Array.from(new Set(periodBillable.map((l) => l.tutor_id))).map((id) => (

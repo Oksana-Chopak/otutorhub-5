@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useEscapeKey } from "@/hooks/useEscapeKey";
 import { useTranslation } from "react-i18next";
 import { useHaptic } from "@/hooks/useHaptic";
 import { burstConfetti } from "@/lib/confetti";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function DayClosedCelebration({ show, lessonCount, onDone }: Props) {
+  useEscapeKey(show, onDone);
   const { t } = useTranslation();
   const haptic = useHaptic();
 

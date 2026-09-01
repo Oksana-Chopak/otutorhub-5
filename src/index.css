@@ -416,3 +416,15 @@
 }
 .oth-shadcn-destructive [data-radix-toast-title],
 .oth-shadcn-destructive .font-semibold { color: #b3441f !important; }
+
+/* C5 (цілі дотику): розширює ЗОНУ НАТИСКАННЯ до пальця, не змінюючи вигляд.
+   Іконка лишається такою ж — росте лише невидима область навколо неї, тому
+   жоден екран не перебудовується. 8px з кожного боку: 32→48, 30→46, 28→44.
+   Застосовується лише до елементів, менших за 44px (WCAG 2.5.5). */
+.tap-44 { position: relative; }
+.tap-44::after {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: inherit;
+}

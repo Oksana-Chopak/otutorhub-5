@@ -163,17 +163,21 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
   const save = async () => {
     if (!user || !sel.length) return;
     setSaving(true);
-    const { error } = await supabase.from("tutor_details").upsert(
-      { user_id: user.id, subjects: sel }, { onConflict: "user_id" }
-    );
-    setSaving(false);
-    if (error) {
-      // Don't mark the step done on a failed save — that silently loses the
-      // tutor's subjects while onboarding reports success.
-      toast.error(t("onboardingFlowB.subjectSaveError"));
-      return;
+    try {
+      const { error } = await supabase.from("tutor_details").upsert(
+        { user_id: user.id, subjects: sel }, { onConflict: "user_id" }
+      );
+      setSaving(false);
+      if (error) {
+        // Don't mark the step done on a failed save — that silently loses the
+        // tutor's subjects while onboarding reports success.
+        toast.error(t("onboardingFlowB.subjectSaveError"));
+        return;
+      }
+      onComplete(sel);
+    } finally {
+      setSaving(false);
     }
-    onComplete(sel);
   };
 
   return (
@@ -199,7 +203,7 @@ function SubjectAction({ onComplete, user }: { onComplete: (subs: string[]) => v
       <div>
         <p className="text-[14px] font-bold uppercase tracking-wider mb-1.5" style={{ color: T.sub }}>{t("onboardingFlowB.subjectCustomLabel")}</p>
         <div className="flex gap-2">
-          <Input value={custom} onChange={e => setCustom(e.target.value)}
+          <Input aria-label={t("onboardingFlowB.subjectCustomPlaceholder")} value={custom} onChange={e => setCustom(e.target.value)}
             onKeyDown={e => e.key === "Enter" && addCustom()}
             placeholder={t("onboardingFlowB.subjectCustomPlaceholder")}
             className="h-12 rounded-xl text-[15px]" style={{ flex: 1 }} />
@@ -232,54 +236,58 @@ function StudentAction({ defaultSubject, onComplete, user }: {
   const save = async () => {
     if (!user || !ok) return;
     setSaving(true);
-    const parts = name.trim().split(/\s+/);
-    const fn    = parts[0] ?? "";
-    const ln    = parts.slice(1).join(" ");
+    try {
+      const parts = name.trim().split(/\s+/);
+      const fn    = parts[0] ?? "";
+      const ln    = parts.slice(1).join(" ");
 
-    // Canonical add-or-link RPC (same path as QuickAddStudentDialog/MyStudentsPage):
-    // handles new/existing/ghost/non-student atomically and, with an email, links an
-    // existing account instead of creating a duplicate ghost. The old hand-rolled
-    // insert dance here created orphan profiles and could never send an invite.
-    const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
-      _first_name: fn, _last_name: ln,
-      _email: email.trim(), _phone: "",
-      _telegram: "", _subject: subject.trim(),
-      _price: Number(price) || 0, _currency: "UAH",
-    } as any);
-    if (rpcErr || !res) {
+      // Canonical add-or-link RPC (same path as QuickAddStudentDialog/MyStudentsPage):
+      // handles new/existing/ghost/non-student atomically and, with an email, links an
+      // existing account instead of creating a duplicate ghost. The old hand-rolled
+      // insert dance here created orphan profiles and could never send an invite.
+      const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+        _first_name: fn, _last_name: ln,
+        _email: email.trim(), _phone: "",
+        _telegram: "", _subject: subject.trim(),
+        _price: Number(price) || 0, _currency: "UAH",
+      } as any);
+      if (rpcErr || !res) {
+        setSaving(false);
+        const msg = String(rpcErr?.message || "");
+        toast.error(
+          msg.includes("EMAIL_NOT_STUDENT")
+            ? t("quickAddStudent.emailNotStudent")
+            : (rpcErr?.message || t("onboardingFlowB.studentSaveError")),
+        );
+        return;
+      }
+      const newId = (res as any).student_id as string;
+      if (email.trim() && (res as any).action !== "linked") {
+        // Best-effort invite — the note under the form promises it only with an email.
+        supabase.functions.invoke("send-student-invite", { body: { studentId: newId } }).catch(() => {});
+      }
+
       setSaving(false);
-      const msg = String(rpcErr?.message || "");
-      toast.error(
-        msg.includes("EMAIL_NOT_STUDENT")
-          ? t("quickAddStudent.emailNotStudent")
-          : (rpcErr?.message || t("onboardingFlowB.studentSaveError")),
-      );
-      return;
+      onComplete(newId, name.trim(), subject.trim());
+    } finally {
+      setSaving(false);
     }
-    const newId = (res as any).student_id as string;
-    if (email.trim() && (res as any).action !== "linked") {
-      // Best-effort invite — the note under the form promises it only with an email.
-      supabase.functions.invoke("send-student-invite", { body: { studentId: newId } }).catch(() => {});
-    }
-
-    setSaving(false);
-    onComplete(newId, name.trim(), subject.trim());
   };
 
   return (
     <div className="flex flex-col gap-3.5">
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentNameLabel")}</Label>
-        <Input value={name} onChange={e => setName(e.target.value)} placeholder={t("onboardingFlowB.studentNamePlaceholder")} className="h-12 rounded-xl text-[15px]" />
+        <Input aria-label={t("onboardingFlowB.studentNamePlaceholder")} value={name} onChange={e => setName(e.target.value)} placeholder={t("onboardingFlowB.studentNamePlaceholder")} className="h-12 rounded-xl text-[15px]" />
       </div>
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentEmailLabel")}</Label>
-        <Input value={email} onChange={e => setEmail(e.target.value)} type="email" inputMode="email" placeholder={t("onboardingFlowB.studentEmailPlaceholder")} className="h-12 rounded-xl text-[15px]" />
+        <Input aria-label={t("onboardingFlowB.studentEmailPlaceholder")} value={email} onChange={e => setEmail(e.target.value)} type="email" inputMode="email" placeholder={t("onboardingFlowB.studentEmailPlaceholder")} className="h-12 rounded-xl text-[15px]" />
       </div>
       <div className="flex gap-3">
         <div style={{ flex: 1.3 }}>
           <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentSubjectLabel")}</Label>
-          <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder={t("onboardingFlowB.studentSubjectPlaceholder")} className="h-12 rounded-xl text-[15px]" />
+          <Input aria-label={t("onboardingFlowB.studentSubjectPlaceholder")} value={subject} onChange={e => setSubject(e.target.value)} placeholder={t("onboardingFlowB.studentSubjectPlaceholder")} className="h-12 rounded-xl text-[15px]" />
           {defaultSubject && subject === defaultSubject && (
             <p className="text-[14px] font-semibold mt-1" style={{ color: T.tealD }}>{t("onboardingFlowB.studentSubjectPrefilled")}</p>
           )}
@@ -288,7 +296,7 @@ function StudentAction({ defaultSubject, onComplete, user }: {
           <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.studentPriceLabel")}</Label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[15px] select-none pointer-events-none" style={{ color: T.sub }}>{currencySymbol("UAH")}</span>
-            <Input value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
+            <Input aria-label="500" value={price} onChange={e => setPrice(e.target.value.replace(/\D/g, ""))}
               placeholder="500" inputMode="numeric"
               className="h-12 rounded-xl text-[15px] pl-7" />
           </div>
@@ -377,43 +385,47 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
   const saveLesson = async () => {
     if (!user || !ok) return;
     setSaving(true);
-    const startsAt = new Date(`${date}T${hour}:${minute}:00`);
-    if (startsAt <= new Date()) startsAt.setDate(startsAt.getDate() + 1); // A2: минуле → завтра
-    const { data: created, error } = await supabase.from("lessons")
-      .insert({
-        tutor_id: user.id, student_id: resolvedId,
-        subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
-        starts_at: startsAt.toISOString(),
-        duration_minutes: 60, status: "scheduled" as const,
-        created_by: user.id, source: "independent",
-      } as any).select("id").single();
+    try {
+      const startsAt = new Date(`${date}T${hour}:${minute}:00`);
+      if (startsAt <= new Date()) startsAt.setDate(startsAt.getDate() + 1); // A2: минуле → завтра
+      const { data: created, error } = await supabase.from("lessons")
+        .insert({
+          tutor_id: user.id, student_id: resolvedId,
+          subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
+          starts_at: startsAt.toISOString(),
+          duration_minutes: 60, status: "scheduled" as const,
+          created_by: user.id, source: "independent",
+        } as any).select("id").single();
 
-    if (!error && created) {
-      // NO manual lesson_details write: the DB already auto-creates the details row
-      // and the autofill trigger snapshots the student's REAL rate (student_rates,
-      // matched by tutor+student+subject). The old explicit
-      // `updateLessonDetailsSafe({ student_price: 0 })` ran AFTER that trigger and
-      // overwrote the correct price with 0 — the tutor's first lessons showed no debt.
-      if (repeat) {
-        for (let w = 1; w <= 3; w++) {
-          const next = new Date(startsAt);
-          next.setDate(next.getDate() + 7 * w);
-          await supabase.from("lessons")
-            .insert({ tutor_id: user.id, student_id: resolvedId, subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
-              starts_at: next.toISOString(), duration_minutes: 60, status: "scheduled" as const,
-              created_by: user.id, source: "independent" } as any);
+      if (!error && created) {
+        // NO manual lesson_details write: the DB already auto-creates the details row
+        // and the autofill trigger snapshots the student's REAL rate (student_rates,
+        // matched by tutor+student+subject). The old explicit
+        // `updateLessonDetailsSafe({ student_price: 0 })` ran AFTER that trigger and
+        // overwrote the correct price with 0 — the tutor's first lessons showed no debt.
+        if (repeat) {
+          for (let w = 1; w <= 3; w++) {
+            const next = new Date(startsAt);
+            next.setDate(next.getDate() + 7 * w);
+            await supabase.from("lessons")
+              .insert({ tutor_id: user.id, student_id: resolvedId, subject: resolvedSubject || t("onboardingFlowB.lessonDefaultSubject"),
+                starts_at: next.toISOString(), duration_minutes: 60, status: "scheduled" as const,
+                created_by: user.id, source: "independent" } as any);
+          }
         }
+        setSaving(false);
+        // A3: новачок має ПОБАЧИТИ свій перший урок — тост веде прямо в «Розклад».
+        toast.success(t("onboardingFlowB.lessonInScheduleToast"), {
+          action: { label: t("onboardingFlowB.openScheduleAction"), onClick: () => nav?.("/schedule") },
+          duration: 6000,
+        });
+        onComplete(created.id);
+      } else {
+        setSaving(false);
+        toast.error(t("onboardingFlowB.lessonSaveError") + (error?.message ? `: ${error.message}` : ""));
       }
+    } finally {
       setSaving(false);
-      // A3: новачок має ПОБАЧИТИ свій перший урок — тост веде прямо в «Розклад».
-      toast.success(t("onboardingFlowB.lessonInScheduleToast"), {
-        action: { label: t("onboardingFlowB.openScheduleAction"), onClick: () => nav?.("/schedule") },
-        duration: 6000,
-      });
-      onComplete(created.id);
-    } else {
-      setSaving(false);
-      toast.error(t("onboardingFlowB.lessonSaveError") + (error?.message ? `: ${error.message}` : ""));
     }
   };
 
@@ -442,14 +454,14 @@ function LessonAction({ studentId, studentName, subject, onComplete, onSkip, use
           {t("onboardingFlowB.lessonTimeLabel")} {timeStr && <span style={{ color: T.tealD, fontWeight: 700 }}>· {timeStr}</span>}
         </Label>
         <div className="flex gap-2 items-center">
-          <select value={hour} onChange={e => setHour(e.target.value)} style={selStyle(Boolean(hour))}>
+          <select aria-label={t("onboardingFlowB.lessonDateLabel")} value={hour} onChange={e => setHour(e.target.value)} style={selStyle(Boolean(hour))}>
             <option value="" disabled>{t("onboardingFlowB.lessonHourPlaceholder")}</option>
             {HOURS.map(h => (
               <option key={h} value={h}>{h}:00</option>
             ))}
           </select>
           <span className="text-xl font-bold flex-shrink-0" style={{ color: T.muted }}>:</span>
-          <select value={minute} onChange={e => setMinute(e.target.value)} style={selStyle(Boolean(hour))}>
+          <select aria-label={t("onboardingFlowB.lessonMinuteLabel")} value={minute} onChange={e => setMinute(e.target.value)} style={selStyle(Boolean(hour))}>
             {MINUTES.map(m => (
               <option key={m} value={m}>{m}</option>
             ))}
@@ -513,15 +525,19 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
 
   const save = async () => {
     setSaving(true);
-    const err = await updateSettings({
-      payment_reminder_enabled: reminder, payment_due_mode: mode as any,
-      payment_due_days: Number(days), cancel_free_hours: Number(hours),
-      cancel_fee_percent: fee, payment_rules_configured: true,
-    } as any);
-    setSaving(false);
-    // A15: збій RPC = крок НЕ зараховано, жодних конфеті.
-    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
-    onComplete();
+    try {
+      const err = await updateSettings({
+        payment_reminder_enabled: reminder, payment_due_mode: mode as any,
+        payment_due_days: Number(days), cancel_free_hours: Number(hours),
+        cancel_fee_percent: fee, payment_rules_configured: true,
+      } as any);
+      setSaving(false);
+      // A15: збій RPC = крок НЕ зараховано, жодних конфеті.
+      if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; }
+      onComplete();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -542,7 +558,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
         </div>
         {mode !== "prepaid" && (
           <div className="flex items-center gap-2.5 mt-3">
-            <Input value={days} inputMode="numeric" onChange={e => setDays(e.target.value.replace(/\D/g,"").slice(0,2))}
+            <Input aria-label={t("onboardingFlowB.proRulesWhenLabel")} value={days} inputMode="numeric" onChange={e => setDays(e.target.value.replace(/\D/g,"").slice(0,2))}
               className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
             <span className="text-[15px]" style={{ color: T.sub }}>{mode === "before_lesson" ? t("onboardingFlowB.proRulesDaysBefore") : t("onboardingFlowB.proRulesDaysAfter")}</span>
           </div>
@@ -552,7 +568,7 @@ function ProRulesAction({ onComplete, user }: { onComplete: () => void; user: an
       <div>
         <p className="text-[14px] font-bold uppercase tracking-wider mb-2" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesFreeCancelLabel")}</p>
         <div className="flex items-center gap-2.5">
-          <Input value={hours} inputMode="numeric" onChange={e => setHours(e.target.value.replace(/\D/g,"").slice(0,3))}
+          <Input aria-label={t("onboardingFlowB.proRulesFreeCancelLabel")} value={hours} inputMode="numeric" onChange={e => setHours(e.target.value.replace(/\D/g,"").slice(0,3))}
             className="h-12 rounded-xl text-center text-[15px]" style={{ width: 76 }} />
           <span className="text-[15px]" style={{ color: T.sub }}>{t("onboardingFlowB.proRulesHoursBefore")}</span>
         </div>
@@ -596,10 +612,14 @@ function AutoMarkAction({ onComplete }: { onComplete: () => void }) {
 
   const save = async () => {
     setSaving(true);
-    const err = await updateSettings({ auto_complete_lessons: pick === 0, auto_complete_prompted: true } as any);
-    setSaving(false);
-    if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
-    onComplete();
+    try {
+      const err = await updateSettings({ auto_complete_lessons: pick === 0, auto_complete_prompted: true } as any);
+      setSaving(false);
+      if (err) { toast.error(t("onboardingFlowB.saveFailed")); return; } // A15
+      onComplete();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -642,16 +662,20 @@ function AvailabilityAction({ onComplete, user }: { onComplete: () => void; user
   const save = async () => {
     if (!user || !selDays.length) return;
     setSaving(true);
-    await supabase.from("tutor_availability_weekly").delete().eq("tutor_id", user.id);
-    const rows = selDays.map(d => ({
-      tutor_id: user.id,
-      weekday: DAYS_UA.indexOf(d),
-      start_minute: timeToMin(fromH),
-      end_minute: timeToMin(toH),
-    }));
-    await supabase.from("tutor_availability_weekly").insert(rows as any);
-    setSaving(false);
-    onComplete();
+    try {
+      await supabase.from("tutor_availability_weekly").delete().eq("tutor_id", user.id);
+      const rows = selDays.map(d => ({
+        tutor_id: user.id,
+        weekday: DAYS_UA.indexOf(d),
+        start_minute: timeToMin(fromH),
+        end_minute: timeToMin(toH),
+      }));
+      await supabase.from("tutor_availability_weekly").insert(rows as any);
+      setSaving(false);
+      onComplete();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -778,11 +802,15 @@ function FinanceBonus({ lessonId, studentName, subject, onComplete, navigate }: 
   const togglePaid = async () => {
     if (!lessonId) { setPaid(v => !v); return; }
     setSaving(true);
-    await updateLessonDetailsSafe(lessonId, {
-      student_payment_status: paid ? "unpaid" : "paid",
-    });
-    setPaid(v => !v);
-    setSaving(false);
+    try {
+      await updateLessonDetailsSafe(lessonId, {
+        student_payment_status: paid ? "unpaid" : "paid",
+      });
+      setPaid(v => !v);
+      setSaving(false);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -952,27 +980,31 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
     // unique (tutor_id, student_id)) — the old tutor-only upsert with
     // onConflict "tutor_id" ALWAYS failed (NOT NULL / 42P10) and silently marked
     // the step done. Write the link to every current student pair and surface errors.
-    const { data: rates } = await supabase
-      .from("student_rates")
-      .select("student_id")
-      .eq("tutor_id", user.id)
-      .is("archived_at", null);
-    const ids = Array.from(new Set((rates ?? []).map((r: any) => r.student_id)));
-    if (ids.length === 0) {
+    try {
+      const { data: rates } = await supabase
+        .from("student_rates")
+        .select("student_id")
+        .eq("tutor_id", user.id)
+        .is("archived_at", null);
+      const ids = Array.from(new Set((rates ?? []).map((r: any) => r.student_id)));
+      if (ids.length === 0) {
+        setSaving(false);
+        toast.error(t("onboardingFlowB.zoomNoStudents"));
+        return;
+      }
+      const { error } = await (supabase.from("tutor_student_defaults") as any).upsert(
+        ids.map((sid) => ({ tutor_id: user.id, student_id: sid, default_meeting_url: url.trim() })),
+        { onConflict: "tutor_id,student_id" }
+      );
       setSaving(false);
-      toast.error(t("onboardingFlowB.zoomNoStudents"));
-      return;
+      if (error) {
+        toast.error(t("onboardingFlowB.zoomSaveError"));
+        return;
+      }
+      onComplete();
+    } finally {
+      setSaving(false);
     }
-    const { error } = await (supabase.from("tutor_student_defaults") as any).upsert(
-      ids.map((sid) => ({ tutor_id: user.id, student_id: sid, default_meeting_url: url.trim() })),
-      { onConflict: "tutor_id,student_id" }
-    );
-    setSaving(false);
-    if (error) {
-      toast.error(t("onboardingFlowB.zoomSaveError"));
-      return;
-    }
-    onComplete();
   };
 
   return (
@@ -982,7 +1014,7 @@ function ZoomBonus({ user, onComplete }: { user: any; onComplete: () => void }) 
       </p>
       <div>
         <Label className="text-[14px] font-bold uppercase tracking-wider mb-1.5 block" style={{ color: T.sub }}>{t("onboardingFlowB.zoomUrlLabel")}</Label>
-        <Input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
+        <Input aria-label="https://zoom.us/j/..." value={url} onChange={e => setUrl(e.target.value)} placeholder="https://zoom.us/j/..."
           className="h-12 rounded-xl text-[15px]" />
       </div>
       <Btn disabled={!url.trim() || saving} onClick={save}>
@@ -1157,6 +1189,7 @@ export function OnboardingFlowB({ onFinish }: { onFinish: () => void }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [victory, setVictory]     = useState<{ emoji:string; title:string; xp:number; isFinal:boolean }|null>(null);
   const [activeBonus, setActiveBonus] = useState<StepDef|null>(null);
+  useEscapeKey(!!activeBonus, () => setActiveBonus(null));
 
   // Cross-step state
   const [pickedSubjects,  setPickedSubjects]  = useState<string[]>([]);

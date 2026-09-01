@@ -102,27 +102,31 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
       return;
     }
     setSaving(true);
-    const payload = {
-      lesson_id: lessonId,
-      tutor_id: tutorId,
-      student_id: studentId,
-      rating,
-      comment: comment.trim() || null,
-    };
-    const { error } = existing
-      ? await supabase
-          .from("lesson_feedback")
-          .update({ rating, comment: comment.trim() || null })
-          .eq("lesson_id", lessonId)
-          .eq("student_id", studentId)
-      : await supabase.from("lesson_feedback").insert(payload);
-    setSaving(false);
-    if (error) {
-      toast({ title: t("lessonFeedback.saveFailed"), description: error.message, variant: "destructive" });
-      return;
+    try {
+      const payload = {
+        lesson_id: lessonId,
+        tutor_id: tutorId,
+        student_id: studentId,
+        rating,
+        comment: comment.trim() || null,
+      };
+      const { error } = existing
+        ? await supabase
+            .from("lesson_feedback")
+            .update({ rating, comment: comment.trim() || null })
+            .eq("lesson_id", lessonId)
+            .eq("student_id", studentId)
+        : await supabase.from("lesson_feedback").insert(payload);
+      setSaving(false);
+      if (error) {
+        toast({ title: t("lessonFeedback.saveFailed"), description: error.message, variant: "destructive" });
+        return;
+      }
+      setExisting({ rating, comment: comment.trim() || null });
+      toast({ title: existing ? t("lessonFeedback.updated") : t("lessonFeedback.submitted") });
+    } finally {
+      setSaving(false);
     }
-    setExisting({ rating, comment: comment.trim() || null });
-    toast({ title: existing ? t("lessonFeedback.updated") : t("lessonFeedback.submitted") });
   };
 
   return (
@@ -152,7 +156,7 @@ export function LessonFeedback({ lessonId, tutorId, studentId, lessonStatus }: L
           </button>
         ))}
       </div>
-      <Textarea
+      <Textarea aria-label={t("lessonFeedback.placeholder")}
         rows={3}
         placeholder={t("lessonFeedback.placeholder")}
         value={comment}

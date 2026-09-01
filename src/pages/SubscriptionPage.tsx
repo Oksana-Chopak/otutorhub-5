@@ -383,7 +383,7 @@ export default function SubscriptionPage() {
                 <div style={{ fontFamily: S.display, fontWeight: 800, fontSize: 26, marginTop: 8, color: S.teal }}>{t("subscriptionPageExtra.heroActiveTitle")}</div>
                 <div style={{ fontSize: 15, color: "rgba(255,255,255,.7)", lineHeight: 1.45, marginTop: 6 }}>{t("subscriptionPageExtra.heroActiveDesc")}</div>
                 {!nativeApp && settings?.liqpay_recurring_active && (
-                  <button
+                  <button className="tap-44"
                     type="button"
                     onClick={cancelSubscription}
                     disabled={cancelling}

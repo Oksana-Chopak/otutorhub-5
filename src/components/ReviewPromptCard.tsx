@@ -122,28 +122,32 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
   const submit = async () => {
     if (!user || !current || rating === 0) return;
     setSaving(true);
-    const { error } = await supabase.from("lesson_feedback").insert({
-      lesson_id: current.id,
-      student_id: user.id,
-      tutor_id: current.tutor_id,
-      rating,
-      comment: comment.trim() || null,
-    });
-    setSaving(false);
-    if (error) {
-      toast.error(t("reviewPrompt.saveFailed") || "Не вдалося надіслати відгук");
-      return;
+    try {
+      const { error } = await supabase.from("lesson_feedback").insert({
+        lesson_id: current.id,
+        student_id: user.id,
+        tutor_id: current.tutor_id,
+        rating,
+        comment: comment.trim() || null,
+      });
+      setSaving(false);
+      if (error) {
+        toast.error(t("reviewPrompt.saveFailed") || "Не вдалося надіслати відгук");
+        return;
+      }
+      // Reviewing is a prosocial "win" we actively solicit — celebrate it like
+      // homework-done (haptic + confetti), not just a silent toast.
+      hapticSuccess();
+      burstConfetti({ count: 14 });
+      toast.success(t("reviewPrompt.thanks") || "Дякуємо за відгук! 🌟");
+      setRating(0);
+      setHover(0);
+      setComment("");
+      setDismissed((prev) => { const n = new Set(prev).add(current.id); persistDismiss(n); return n; });
+      onRated?.();
+    } finally {
+      setSaving(false);
     }
-    // Reviewing is a prosocial "win" we actively solicit — celebrate it like
-    // homework-done (haptic + confetti), not just a silent toast.
-    hapticSuccess();
-    burstConfetti({ count: 14 });
-    toast.success(t("reviewPrompt.thanks") || "Дякуємо за відгук! 🌟");
-    setRating(0);
-    setHover(0);
-    setComment("");
-    setDismissed((prev) => { const n = new Set(prev).add(current.id); persistDismiss(n); return n; });
-    onRated?.();
   };
 
   const skip = () => {
@@ -210,7 +214,7 @@ export function ReviewPromptCard({ onRated }: { onRated?: () => void }) {
       {/* Comment + submit appear after a rating is chosen */}
       {rating > 0 && (
         <div className="ds-pop-in">
-          <textarea
+          <textarea aria-label={t("reviewPrompt.commentPlaceholder") || "Додай кілька слів (необов'язково)…"}
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={t("reviewPrompt.commentPlaceholder") || "Додай кілька слів (необов'язково)…"}

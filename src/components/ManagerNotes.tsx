@@ -52,20 +52,24 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
     const content = draft.trim();
     if (!content) return;
     setSaving(true);
-    const { error } = await supabase.from("manager_notes").insert({
-      subject_user_id: subjectUserId,
-      author_id: currentUserId,
-      content,
-    });
-    setSaving(false);
-    if (error) {
-      console.error("Failed to add note", error);
-      toast.error(t("managerNotes.saveFailed"));
-      return;
+    try {
+      const { error } = await supabase.from("manager_notes").insert({
+        subject_user_id: subjectUserId,
+        author_id: currentUserId,
+        content,
+      });
+      setSaving(false);
+      if (error) {
+        console.error("Failed to add note", error);
+        toast.error(t("managerNotes.saveFailed"));
+        return;
+      }
+      setDraft("");
+      toast.success(t("managerNotes.added"));
+      load();
+    } finally {
+      setSaving(false);
     }
-    setDraft("");
-    toast.success(t("managerNotes.added"));
-    load();
   };
 
   const deleteNote = async (id: string) => {
@@ -99,7 +103,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
       {expanded && (
         <div className={compact ? "mt-2 space-y-2" : "mt-3 space-y-3"}>
           <div className="flex gap-2">
-            <Textarea
+            <Textarea aria-label={t("managerNotes.placeholder")}
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={t("managerNotes.placeholder")}
@@ -110,7 +114,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
             size="sm"
             onClick={addNote}
             disabled={saving || !draft.trim()}
-            className="w-full h-10 text-[14px]"
+            className="tap-44 w-full h-10 text-[14px]"
           >
             {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : t("managerNotesExtra.addBtn")}
           </Button>
@@ -133,7 +137,7 @@ export function ManagerNotes({ subjectUserId, currentUserId, compact = false }: 
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-5 w-5 shrink-0 text-muted-foreground hover:text-destructive"
+                      className="tap-44 h-5 w-5 shrink-0 text-muted-foreground hover:text-destructive"
                       onClick={() => deleteNote(n.id)}
                     >
                       <Trash2 className="h-3 w-3" />

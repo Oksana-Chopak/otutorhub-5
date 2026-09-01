@@ -303,25 +303,29 @@ function CreateGroupDialog({
       return;
     }
     setSubmitting(true);
-    const { data: created, error } = await supabase
-      .from("lesson_groups")
-      .insert({
-        tutor_id: isManager ? tutorId : user.id,
-        name: name.trim(),
-        subject: subject || null,
-        subject_id: subjectId || null,
-      })
-      .select("id")
-      .single();
-    setSubmitting(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { data: created, error } = await supabase
+        .from("lesson_groups")
+        .insert({
+          tutor_id: isManager ? tutorId : user.id,
+          name: name.trim(),
+          subject: subject || null,
+          subject_id: subjectId || null,
+        })
+        .select("id")
+        .single();
+      setSubmitting(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      setCreatedGroupId((created as { id: string } | null)?.id ?? null);
+      toast.success(t("groupsPageExtra.created"));
+      onCreated();
+      setDone(true);
+    } finally {
+      setSubmitting(false);
     }
-    setCreatedGroupId((created as { id: string } | null)?.id ?? null);
-    toast.success(t("groupsPageExtra.created"));
-    onCreated();
-    setDone(true);
   };
 
   // Steps: name → (tutor for manager only) → subject.
@@ -620,7 +624,7 @@ function WizardField({
           {icon}
         </span>
       )}
-      <input
+      <input aria-label={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
@@ -663,6 +667,7 @@ function PricePill({
           {currencySymbol(currency || "UAH")}
         </span>
         <input
+          aria-label={t("schedule.pricePerLesson")}
           autoFocus
           inputMode="decimal"
           value={v}
@@ -890,75 +895,83 @@ function GroupDetailsDialog({
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("group_enrollments").insert({
-      group_id: groupId,
-      student_id: picked,
-      status: "active",
-      price_per_lesson: priceVal,
-    });
-    setBusy(false);
-    if (error) {
-      // Перетворюємо технічні помилки БД на зрозумілі.
-      const code = (error as any).code;
-      const msg = error.message || "";
-      if (code === "23505" || /duplicate|unique/i.test(msg)) {
-        // Учень уже був у групі (можливо неактивний) — реактивуємо.
-        // Price is a gated money column (20260719000000): status flips directly,
-        // the price goes through the RPC (only when one was actually entered).
-        const { error: upErr } = await supabase
-          .from("group_enrollments")
-          .update({ status: "active" })
-          .eq("group_id", groupId)
-          .eq("student_id", picked);
-        if (upErr) {
-          toast.error(upErr.message);
+    try {
+      const { error } = await supabase.from("group_enrollments").insert({
+        group_id: groupId,
+        student_id: picked,
+        status: "active",
+        price_per_lesson: priceVal,
+      });
+      setBusy(false);
+      if (error) {
+        // Перетворюємо технічні помилки БД на зрозумілі.
+        const code = (error as any).code;
+        const msg = error.message || "";
+        if (code === "23505" || /duplicate|unique/i.test(msg)) {
+          // Учень уже був у групі (можливо неактивний) — реактивуємо.
+          // Price is a gated money column (20260719000000): status flips directly,
+          // the price goes through the RPC (only when one was actually entered).
+          const { error: upErr } = await supabase
+            .from("group_enrollments")
+            .update({ status: "active" })
+            .eq("group_id", groupId)
+            .eq("student_id", picked);
+          if (upErr) {
+            toast.error(upErr.message);
+            return;
+          }
+          if (priceVal !== null) {
+            const { data: enr } = await supabase
+              .from("group_enrollments")
+              .select("id")
+              .eq("group_id", groupId)
+              .eq("student_id", picked)
+              .maybeSingle();
+            if (enr?.id) {
+              await (supabase.rpc as any)("set_group_enrollment_price", { _enrollment_id: enr.id, _price: priceVal });
+            }
+          }
+          setPickedStudent("");
+          setPickedPrice("");
+          toast.success(t("groupsPageExtra.studentAdded"));
+          void maybeInviteGhost(picked, pickedName);
+          load();
+          onChanged();
           return;
         }
-        if (priceVal !== null) {
-          const { data: enr } = await supabase
-            .from("group_enrollments")
-            .select("id")
-            .eq("group_id", groupId)
-            .eq("student_id", picked)
-            .maybeSingle();
-          if (enr?.id) {
-            await (supabase.rpc as any)("set_group_enrollment_price", { _enrollment_id: enr.id, _price: priceVal });
-          }
+        if (code === "42501" || /permission denied|policy|row-level/i.test(msg)) {
+          toast.error(t("groupsPageExtra.addStudentNoAccess"));
+          return;
         }
-        setPickedStudent("");
-        setPickedPrice("");
-        toast.success(t("groupsPageExtra.studentAdded"));
-        void maybeInviteGhost(picked, pickedName);
-        load();
-        onChanged();
+        toast.error(msg || t("groupsPageExtra.addStudentFailed"));
         return;
       }
-      if (code === "42501" || /permission denied|policy|row-level/i.test(msg)) {
-        toast.error(t("groupsPageExtra.addStudentNoAccess"));
-        return;
-      }
-      toast.error(msg || t("groupsPageExtra.addStudentFailed"));
-      return;
+      setPickedStudent("");
+      setPickedPrice("");
+      toast.success(t("groupsPageExtra.studentAdded"));
+      void maybeInviteGhost(picked, pickedName);
+      load();
+      onChanged();
+    } finally {
+      setBusy(false);
     }
-    setPickedStudent("");
-    setPickedPrice("");
-    toast.success(t("groupsPageExtra.studentAdded"));
-    void maybeInviteGhost(picked, pickedName);
-    load();
-    onChanged();
   };
 
   const removeStudent = async (enrollmentId: string) => {
     setBusy(true);
-    const { error } = await supabase.from("group_enrollments").delete().eq("id", enrollmentId);
-    setBusy(false);
-    if (error) {
-      toast.error(error.message);
-      return;
+    try {
+      const { error } = await supabase.from("group_enrollments").delete().eq("id", enrollmentId);
+      setBusy(false);
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+      toast.success(t("groupsPageExtra.studentRemoved"));
+      load();
+      onChanged();
+    } finally {
+      setBusy(false);
     }
-    toast.success(t("groupsPageExtra.studentRemoved"));
-    load();
-    onChanged();
   };
 
   const archiveGroup = async () => {

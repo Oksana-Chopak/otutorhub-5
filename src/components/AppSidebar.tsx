@@ -390,7 +390,7 @@ export function AppSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white"
+              className="tap-44 h-9 w-9 shrink-0 text-slate-400 hover:bg-white/5 hover:text-white"
               onClick={toggleTheme}
               title={theme === "dark" ? t("theme.light") : t("theme.dark")}
               aria-label={t("theme.toggle")}

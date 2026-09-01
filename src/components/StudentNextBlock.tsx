@@ -37,7 +37,7 @@ function Card({ emoji, title, sub, cta, onClick }: {
         <span style={{ display: "block", fontFamily: "Inter,system-ui,sans-serif", fontWeight: 800, fontSize: 16, color: "#fff" }}>{title}</span>
         {sub && <span style={{ display: "block", fontSize: 14, color: "rgba(255,255,255,.6)", marginTop: 1 }}>{sub}</span>}
       </span>
-      <button type="button" onClick={onClick} style={{
+      <button className="tap-44" type="button" onClick={onClick} style={{
         flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11,
         border: "none", cursor: "pointer",
         background: "linear-gradient(135deg,#2BBFAA,#25a896)",

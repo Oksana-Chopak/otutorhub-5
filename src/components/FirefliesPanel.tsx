@@ -148,7 +148,7 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           </div>
         </div>
         {canRecord && !isReady && (
-          <button type="button" onClick={startRecording} disabled={starting || isProcessing}
+          <button className="tap-44" type="button" onClick={startRecording} disabled={starting || isProcessing}
             style={{ display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 15px", borderRadius: 12,
               border: "none", cursor: starting || isProcessing ? "default" : "pointer",
               background: starting || isProcessing ? "rgba(43,191,170,.35)" : "linear-gradient(135deg,#2BBFAA,#25a896)",
@@ -200,13 +200,13 @@ export function FirefliesPanel({ lessonId, meetingUrl, canRecord, canView }: Pro
           {(state.recordingUrl || state.audioUrl) && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {state.recordingUrl && (
-                <a href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
+                <a className="tap-44" href={safeHref(state.recordingUrl)} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1.5px solid ${L.teal}`, background: "var(--ds-surface,#fff)", color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <ExternalLink className="h-4 w-4" /> {t("firefliesPanel.openRecording")}
                 </a>
               )}
               {state.audioUrl && (
-                <a href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
+                <a className="tap-44" href={safeHref(state.audioUrl)} target="_blank" rel="noopener noreferrer"
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 13px", borderRadius: 11, textDecoration: "none", border: `1px solid ${L.border}`, background: "var(--ds-surface,#fff)", color: L.sub, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                   <FileAudio className="h-4 w-4" /> {t("firefliesPanel.audio")}
                 </a>

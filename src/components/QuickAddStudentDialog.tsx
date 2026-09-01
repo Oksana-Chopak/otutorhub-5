@@ -115,65 +115,69 @@ export function QuickAddStudentDialog({ open, onOpenChange, onCreated }: Props) 
     // Robust add-or-link: ONE SECURITY DEFINER RPC handles every email case
     // (new / existing-student / already-mine / non-student account / ghost), so no
     // email state can dead-end the add. Replaces the old insert→fail→rollback→link dance.
-    const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
-      _first_name: fn ?? "", _last_name: ln ?? "",
-      _email: email ?? "", _phone: phone ?? "",
-      _telegram: form.telegram.trim(), _subject: subject,
-      _price: price, _currency: currency,
-    } as any);
-    if (rpcErr || !res) {
+    try {
+      const { data: res, error: rpcErr } = await supabase.rpc("add_or_link_independent_student", {
+        _first_name: fn ?? "", _last_name: ln ?? "",
+        _email: email ?? "", _phone: phone ?? "",
+        _telegram: form.telegram.trim(), _subject: subject,
+        _price: price, _currency: currency,
+      } as any);
+      if (rpcErr || !res) {
+        setSubmitting(false);
+        const msg = String(rpcErr?.message || "");
+        return toast.error(
+          msg.includes("EMAIL_NOT_STUDENT")
+            ? t("quickAddStudent.emailNotStudent")
+            : (rpcErr?.message || t("quickAddStudent.createFailed")),
+        );
+      }
+      const newId = (res as any).student_id as string;
+      const linked = (res as any).action === "linked";
+
+      // Private tutor notes — the form collected them into a tutor-only RLS table,
+      // but never persisted them (the add RPC has no notes param); silently lost.
+      const notesVal = form.notes.trim();
+      if (notesVal) {
+        await (supabase as any).from("tutor_student_notes").upsert(
+          { tutor_id: user!.id, student_id: newId, notes: notesVal },
+          { onConflict: "tutor_id,student_id" }
+        );
+      }
       setSubmitting(false);
-      const msg = String(rpcErr?.message || "");
-      return toast.error(
-        msg.includes("EMAIL_NOT_STUDENT")
-          ? t("quickAddStudent.emailNotStudent")
-          : (rpcErr?.message || t("quickAddStudent.createFailed")),
-      );
-    }
-    const newId = (res as any).student_id as string;
-    const linked = (res as any).action === "linked";
 
-    // Private tutor notes — the form collected them into a tutor-only RLS table,
-    // but never persisted them (the add RPC has no notes param); silently lost.
-    const notesVal = form.notes.trim();
-    if (notesVal) {
-      await (supabase as any).from("tutor_student_notes").upsert(
-        { tutor_id: user!.id, student_id: newId, notes: notesVal },
-        { onConflict: "tutor_id,student_id" }
-      );
-    }
-    setSubmitting(false);
+      if (linked) {
+        // Existing student linked to this tutor — already in the system, no invite needed.
+        bumpDataVersion(); // C3/P4: списки учнів скрізь підтягнуться
+        logEvent("student_added", { via: "quick_add" }); // CRM-воронка
+        toast.success(t("quickAddStudent.studentLinked"));
+        reset();
+        onOpenChange(false);
+        onCreated?.();
+        return;
+      }
 
-    if (linked) {
-      // Existing student linked to this tutor — already in the system, no invite needed.
-      bumpDataVersion(); // C3/P4: списки учнів скрізь підтягнуться
-      logEvent("student_added", { via: "quick_add" }); // CRM-воронка
-      toast.success(t("quickAddStudent.studentLinked"));
+      toast.success(t("quickAddStudent.studentAdded"));
+      let inviteSent = false;
+      if (email) {
+        const { data: resp } = await supabase.functions.invoke("send-student-invite", {
+          body: { studentId: newId },
+        });
+        if ((resp as any)?.success) inviteSent = true;
+      }
       reset();
       onOpenChange(false);
-      onCreated?.();
-      return;
-    }
-
-    toast.success(t("quickAddStudent.studentAdded"));
-    let inviteSent = false;
-    if (email) {
-      const { data: resp } = await supabase.functions.invoke("send-student-invite", {
-        body: { studentId: newId },
+      setInvite({
+        open: true,
+        name: `${fn} ${ln}`.trim(),
+        email,
+        phone,
+        studentId: newId,
+        emailSent: inviteSent,
       });
-      if ((resp as any)?.success) inviteSent = true;
+      onCreated?.();
+    } finally {
+      setSubmitting(false);
     }
-    reset();
-    onOpenChange(false);
-    setInvite({
-      open: true,
-      name: `${fn} ${ln}`.trim(),
-      email,
-      phone,
-      studentId: newId,
-      emailSent: inviteSent,
-    });
-    onCreated?.();
   };
 
   // ── design tokens ──────────────────────────────────────────────────────────

@@ -31,6 +31,7 @@ interface Props {
 export function AddFab({ onLesson, onStudent, onPayment, bottom = 78 }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  useEscapeKey(open, () => setOpen(false));
 
   const handlers: Record<string, () => void> = {
     lesson:  onLesson,

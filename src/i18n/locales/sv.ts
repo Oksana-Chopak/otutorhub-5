@@ -133,6 +133,8 @@ export const sv: LocaleTranslations = {
   },
 
   common: {
+    date: "Datum",
+    time: "Tid",
     backToProfile: "Tillbaka till profilen",
     save: "Spara",
     cancel: "Avbryt",
@@ -4142,6 +4144,9 @@ export const sv: LocaleTranslations = {
   },
 
   offline: {
+    failedPending: "Ej skickat: {{count}}",
+    retry: "Försök igen",
+    discard: "Ta bort",
     noConnection: "Ingen anslutning — kontrollera internet",
     restored: "Anslutning återställd",
     queuedToast: "Ingen anslutning — sparar så fort nätet är tillbaka (i kö: {{count}})",
@@ -4156,6 +4161,7 @@ export const sv: LocaleTranslations = {
     release: "Släpp för att uppdatera",
   },
   onboardingFlowB: {
+    lessonMinuteLabel: "Minuter",
     saveFailed: "Kunde inte spara. Försök igen",
     lessonTodayHint: "Idag kl. {{time}}",
     lessonTomorrowHint: "Tiden har passerat idag — vi bokar imorgon kl. {{time}}",

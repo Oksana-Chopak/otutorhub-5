@@ -61,7 +61,7 @@ export default function ErrorLogPage() {
         <button
           type="button"
           onClick={load}
-          className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
+          className="tap-44 inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-muted-foreground transition-colors hover:bg-muted/40"
         >
           <RefreshCw className="h-4 w-4" /> {t("errorLog.refresh")}
         </button>
@@ -69,7 +69,7 @@ export default function ErrorLogPage() {
           <button
             type="button"
             onClick={clearAll}
-            className="inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-destructive transition-colors hover:bg-destructive/5"
+            className="tap-44 inline-flex h-10 items-center gap-1.5 rounded-[12px] border border-border bg-card px-3 text-[14px] font-semibold text-destructive transition-colors hover:bg-destructive/5"
           >
             <Trash2 className="h-4 w-4" /> {t("errorLog.clear")}
           </button>

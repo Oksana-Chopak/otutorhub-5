@@ -64,16 +64,20 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
   const saveDt = async () => {
     if (!row || !dtVal) return;
     setDtSaving(true);
-    const { error } = await supabase
-      .from("lessons")
-      .update({ starts_at: new Date(dtVal).toISOString(), duration_minutes: durVal })
-      .eq("id", row.id);
-    setDtSaving(false);
-    if (error) { toast.error(t("lessonDetails.dtSaveFailed")); return; }
-    setDtEdit(false);
-    toast.success(t("lessonDetails.dtSaved"));
-    load(row.id);
-    onUpdated?.();
+    try {
+      const { error } = await supabase
+        .from("lessons")
+        .update({ starts_at: new Date(dtVal).toISOString(), duration_minutes: durVal })
+        .eq("id", row.id);
+      setDtSaving(false);
+      if (error) { toast.error(t("lessonDetails.dtSaveFailed")); return; }
+      setDtEdit(false);
+      toast.success(t("lessonDetails.dtSaved"));
+      load(row.id);
+      onUpdated?.();
+    } finally {
+      setDtSaving(false);
+    }
   };
   const [loading, setLoading] = useState(false);
   const [loadFailed, setLoadFailed] = useState(false); // B9
@@ -99,15 +103,19 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
     if (!(await confirmDialog({ description: t("schedulePageExtra.deleteConfirmDesc"), destructive: true, confirmText: t("common.delete") }))) return;
     setDeleting(true);
     // Group lesson: notify participants BEFORE delete (their rows cascade away).
-    if (row.group_id) await notifyGroupLessonCancelled(row.id, row.subject);
-    const { error } = await supabase.from("lessons").delete().eq("id", row.id);
-    setDeleting(false);
-    if (error) {
-      toast.error(t("schedule.deleteFailed"));
-      return;
+    try {
+      if (row.group_id) await notifyGroupLessonCancelled(row.id, row.subject);
+      const { error } = await supabase.from("lessons").delete().eq("id", row.id);
+      setDeleting(false);
+      if (error) {
+        toast.error(t("schedule.deleteFailed"));
+        return;
+      }
+      onUpdated?.();
+      onOpenChange(false);
+    } finally {
+      setDeleting(false);
     }
-    onUpdated?.();
-    onOpenChange(false);
   };
 
   const load = async (id: string) => {
@@ -176,7 +184,7 @@ export function LessonDetailsDialog({ lessonId, open, onOpenChange, onUpdated }:
                 <DateTimeField value={dtVal} onChange={setDtVal}
                   durationMin={durVal} onDurationChange={setDurVal} className="min-w-0 flex-1" />
                 <button type="button" onClick={saveDt} disabled={dtSaving}
-                  className="bg-primary text-primary-foreground h-10 rounded-[10px] px-3 text-[14px] font-bold disabled:opacity-60">
+                  className="tap-44 bg-primary text-primary-foreground h-10 rounded-[10px] px-3 text-[14px] font-bold disabled:opacity-60">
                   {dtSaving ? "…" : "✓"}
                 </button>
                 <button type="button" onClick={() => setDtEdit(false)}

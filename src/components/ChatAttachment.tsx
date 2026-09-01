@@ -96,7 +96,7 @@ export function ChatAttachment({ attachment, mine }: Props) {
               download={attachment.file_name}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
+              className={cn("tap-44", 
                 "absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-background/80 text-foreground opacity-0 shadow-sm transition-opacity hover:bg-background group-hover:opacity-100",
                 "max-md:opacity-100"
               )}

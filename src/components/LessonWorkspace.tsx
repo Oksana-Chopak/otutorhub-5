@@ -144,27 +144,35 @@ export function LessonWorkspace({
 
   const togglePayment = async () => {
     setPaymentBusy(true);
-    const next = paidLocal === "paid" ? "unpaid" : "paid";
-    const { error } = await updateLessonDetailsSafe(lessonId, { student_payment_status: next });
-    setPaymentBusy(false);
-    if (error) {
-      toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
-      return;
+    try {
+      const next = paidLocal === "paid" ? "unpaid" : "paid";
+      const { error } = await updateLessonDetailsSafe(lessonId, { student_payment_status: next });
+      setPaymentBusy(false);
+      if (error) {
+        toast({ title: t("lessonWorkspace.paymentFailed"), description: error.message, variant: "destructive" });
+        return;
+      }
+      setPaidLocal(next);
+      toast({ title: next === "paid" ? t("lessonWorkspace.markedPaid") : t("lessonWorkspace.markedUnpaid") });
+      onUpdated?.();
+    } finally {
+      setPaymentBusy(false);
     }
-    setPaidLocal(next);
-    toast({ title: next === "paid" ? t("lessonWorkspace.markedPaid") : t("lessonWorkspace.markedUnpaid") });
-    onUpdated?.();
   };
 
   const { complete: flowComplete } = useLessonStatus();
   const markCompleted = async () => {
     setCompleteBusy(true);
-    const ok = await flowComplete({ id: lessonId, student_id: studentId ?? null, tutor_id: tutorId });
-    setCompleteBusy(false);
-    if (!ok) return;
-    setStatusLocal("completed");
-    setJustCompleted(true);
-    onUpdated?.();
+    try {
+      const ok = await flowComplete({ id: lessonId, student_id: studentId ?? null, tutor_id: tutorId });
+      setCompleteBusy(false);
+      if (!ok) return;
+      setStatusLocal("completed");
+      setJustCompleted(true);
+      onUpdated?.();
+    } finally {
+      setCompleteBusy(false);
+    }
   };
 
   const [meetingDraft, setMeetingDraft] = useState(meetingUrl ?? "");
@@ -602,11 +610,11 @@ export function LessonWorkspace({
               <span style={{ width: 22, height: 22, borderRadius: 7, background: "rgba(245,181,68,.2)", color: "#9a6a12", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔒</span>
               <span style={{ fontFamily: L.display, fontWeight: 700, fontSize: 14, color: L.sub }}>{t("lessonWorkspaceExtra.privateNotesLabel")}</span>
             </div>
-            <textarea rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
+            <textarea aria-label={t("lessonWorkspaceExtra.privateNotesPlaceholder")} rows={3} value={privateNotesDraft} onChange={(e) => setPrivateNotesDraft(e.target.value)}
               placeholder={t("lessonWorkspaceExtra.privateNotesPlaceholder")}
               style={{ ...fieldCss, background: "#FFFCF4", border: "1.5px solid rgba(245,181,68,.35)" }} />
             {privateNotesDraft !== privateNotesSaved && (
-              <button type="button" onClick={savePrivateNotes} disabled={saving === "private_notes"}
+              <button className="tap-44" type="button" onClick={savePrivateNotes} disabled={saving === "private_notes"}
                 style={{ marginTop: 9, display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: `1.5px solid ${L.teal}`, background: L.tealL, color: L.tealD, fontFamily: L.display, fontWeight: 700, fontSize: 15 }}>
                 {saving === "private_notes" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 {t("lessonWorkspaceExtra.saveBtn")}
@@ -619,7 +627,7 @@ export function LessonWorkspace({
             {/* 📚 Homework */}
             <Row openRow={openRow} toggleRow={toggleRow} emoji="📚" tint="rgba(43,191,170,.1)" title={t("lessonWorkspaceExtra.homeworkTitle")}
               preview={homeworkDraft ? homeworkDraft.split("\n")[0] : t("lessonWorkspaceExtra.addPreview")} k="hw">
-              <textarea rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
+              <textarea aria-label={t("lessonWorkspaceExtra.homeworkPlaceholder")} rows={3} value={homeworkDraft} onChange={(e) => setHomeworkDraft(e.target.value)}
                 placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")} style={fieldCss} />
               {homeworkDraft !== (homework ?? "") && (
                 <button type="button" disabled={saving === "homework"} onClick={() => updateLessonField("homework", homeworkDraft)}
@@ -639,11 +647,11 @@ export function LessonWorkspace({
                   <span><b>{t("lessonWorkspaceExtra.autoOnTitle")}</b> {t("lessonWorkspaceExtra.autoOnBody")}{settings?.ai_notes_auto_send ? t("lessonWorkspaceExtra.autoOnSend") : ""}.</span>
                 </div>
               )}
-              <textarea rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
+              <textarea aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")} rows={4} value={summaryDraft} onChange={(e) => setSummaryDraft(e.target.value)}
                 placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")} style={fieldCss} />
               <div style={{ display: "flex", flexWrap: "wrap", gap: 9, marginTop: 9, alignItems: "center" }}>
                 {aiAllowed ? (
-                  <button type="button" onClick={generateAiSummary} disabled={aiLoading}
+                  <button className="tap-44" type="button" onClick={generateAiSummary} disabled={aiLoading}
                     style={{ display: "inline-flex", alignItems: "center", gap: 6, height: 38, padding: "0 14px", borderRadius: 11, cursor: "pointer", border: "none", background: "linear-gradient(135deg,#FBE08A,#F5B544)", color: "#7a5a14", fontFamily: L.display, fontWeight: 700, fontSize: 15, boxShadow: "0 4px 14px -4px rgba(245,181,68,.7)" }}>
                     {aiLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                     {aiLoading ? t("lessonWorkspaceExtra.aiGenerating") : t("lessonWorkspaceExtra.aiBtn")}
@@ -693,7 +701,7 @@ export function LessonWorkspace({
                 })}
               </div>
               <div style={{ display: "flex", gap: 8 }}>
-                <input
+                <input aria-label={(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).ph}
                   value={linkMode === "once" ? meetingDraft : defaultUrl}
                   onChange={(e) => (linkMode === "once" ? setMeetingDraft(e.target.value) : setDefaultUrl(e.target.value))}
                   placeholder={(PLATFORMS.find((p) => p.k === platform) || PLATFORMS[0]).ph}
@@ -720,7 +728,7 @@ export function LessonWorkspace({
                 {linkMode === "permanent" ? t("lessonWorkspaceExtra.permanentHint") : t("lessonWorkspaceExtra.onceHint")}
               </div>
               {effectiveMeetingUrl && (
-                <a href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
+                <a className="tap-44" href={safeHref(effectiveMeetingUrl)} target="_blank" rel="noopener noreferrer" onClick={handleJoinClick}
                   style={{ marginTop: 12, display: "inline-flex", alignItems: "center", gap: 7, height: 42, padding: "0 16px", borderRadius: 12, background: L.teal, color: "var(--ds-txt,#0f0f1a)", fontFamily: L.display, fontWeight: 700, fontSize: 14, textDecoration: "none", boxShadow: "0 6px 16px -6px rgba(43,191,170,.6)" }}>
                   <ExternalLink className="h-4 w-4" /> {t("lessonWorkspaceExtra.joinBtn")}
                 </a>
@@ -739,7 +747,7 @@ export function LessonWorkspace({
         </div>
         {canEditTutorFields ? (
           <>
-            <Textarea
+            <Textarea aria-label={t("lessonWorkspaceExtra.homeworkPlaceholder")}
               rows={4}
               placeholder={t("lessonWorkspaceExtra.homeworkPlaceholder")}
               value={homeworkDraft}
@@ -773,7 +781,7 @@ export function LessonWorkspace({
           </div>
           {canEditStudentNotes ? (
             <>
-              <Textarea
+              <Textarea aria-label={t("lessonWorkspaceExtra.notesPlaceholder")}
                 rows={4}
                 className="italic"
                 placeholder={t("lessonWorkspaceExtra.notesPlaceholder")}
@@ -861,7 +869,7 @@ export function LessonWorkspace({
                 </p>
               </div>
             )}
-            <Textarea
+            <Textarea aria-label={t("lessonWorkspaceExtra.summaryPlaceholder")}
               rows={5}
               placeholder={t("lessonWorkspaceExtra.summaryPlaceholder")}
               value={summaryDraft}
@@ -961,7 +969,7 @@ export function LessonWorkspace({
               <div>
                 <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.lessonLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
-                  <Input
+                  <Input aria-label="https://meet.google.com/…"
                     placeholder="https://meet.google.com/…"
                     value={meetingDraft}
                     onChange={(e) => setMeetingDraft(e.target.value)}
@@ -979,7 +987,7 @@ export function LessonWorkspace({
               <div>
                 <Label className="text-[14px] text-muted-foreground">{t("lessonWorkspaceExtra.permanentLinkLabel")}</Label>
                 <div className="mt-1 flex gap-2">
-                  <Input
+                  <Input aria-label="https://us02web.zoom.us/j/…"
                     placeholder="https://us02web.zoom.us/j/…"
                     value={defaultUrl}
                     onChange={(e) => setDefaultUrl(e.target.value)}
