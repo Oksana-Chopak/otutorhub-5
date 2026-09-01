@@ -112,7 +112,7 @@ Deno.serve(async (req) => {
 
   const { data: lesson, error: lessonErr } = await admin
     .from("lessons")
-    .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, notes, status, google_event_id")
+    .select("id, tutor_id, student_id, subject, starts_at, duration_minutes, notes, status, google_event_id, location")
     .eq("id", lessonId)
     .maybeSingle();
 
