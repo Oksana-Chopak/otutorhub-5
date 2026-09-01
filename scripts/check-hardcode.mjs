@@ -20,7 +20,9 @@ const SRC = join(ROOT, "src");
 
 const SKIP_FILES = new Set([
   "PrivacyPage.tsx", "TermsPage.tsx", "mock-data.ts",
-  "LandingPage.tsx", "MarketingPage.tsx", "MarketingUnsubscribePage.tsx",
+  // MarketingPage прибрано зі списку 01.09: сторінку локалізовано повністю,
+  // тож ховати її від гейта більше нема потреби.
+  "LandingPage.tsx", "MarketingUnsubscribePage.tsx",
   "LandingTryDemo.tsx", "LandingFindTutorQuizDialog.tsx",
   "FeedbackPreviewPage.tsx",
   "toasts.ts",
@@ -28,7 +30,10 @@ const SKIP_FILES = new Set([
 
 // Max allowed hardcoded strings per file before CI fails
 // (some files have intentional ones — dayAffirmations)
-const MAX_GLOBAL = 50; // toasts.ts excluded (intentional), decrease each sprint.
+// 01.09: стеля була 50 при фактичних 25 — тобто половину боргу можна було
+// набрати непомітно. Після локалізації /marketing і /audit ставимо ратчет:
+// число може лише падати. Знизив — онови тут.
+const MAX_GLOBAL = 25; // toasts.ts excluded (intentional), decrease each sprint.
 
 function getAllFiles(dir) {
   const files = [];

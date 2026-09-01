@@ -16,8 +16,7 @@ import {
 import { ShieldAlert, Download, ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { EmptyState } from "@/components/EmptyState";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
 
 type AuditEntry = {
   id: string;
@@ -32,12 +31,16 @@ type AuditEntry = {
 
 type ProfileLite = { id: string; first_name: string; last_name: string };
 
-const actionLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  "role.assigned": { label: t("auditLog.roleAssigned"), variant: "default" },
-  "role.updated": { label: t("auditLog.roleUpdated"), variant: "secondary" },
-  "role.removed": { label: t("auditLog.roleRemoved"), variant: "destructive" },
-  "profile.deleted": { label: t("auditLog.profileDeleted"), variant: "destructive" },
-  "lesson.financials_updated": { label: t("auditLog.financialsUpdated"), variant: "secondary" },
+type ActionMeta = { labelKey: string; variant: "default" | "secondary" | "destructive" | "outline" };
+/** Аудит 01.09: тут стояли готові рядки, обчислені модульним `t` один раз при
+ *  завантаженні чанка — тобто мова фіксувалась назавжди. Тепер зберігаємо ключі,
+ *  а переклад береться в рендері. */
+const actionLabels: Record<string, ActionMeta> = {
+  "role.assigned": { labelKey: "auditLog.roleAssigned", variant: "default" },
+  "role.updated": { labelKey: "auditLog.roleUpdated", variant: "secondary" },
+  "role.removed": { labelKey: "auditLog.roleRemoved", variant: "destructive" },
+  "profile.deleted": { labelKey: "auditLog.profileDeleted", variant: "destructive" },
+  "lesson.financials_updated": { labelKey: "auditLog.financialsUpdated", variant: "secondary" },
 };
 
 function formatDate(iso: string) {
@@ -81,6 +84,7 @@ function formatVal(v: unknown): string {
 type Period = "all" | "today" | "7d" | "30d";
 
 export default function AuditLogPage() {
+  const { t } = useTranslation();
   const [entries, setEntries] = useState<AuditEntry[]>([]);
   const [profiles, setProfiles] = useState<Map<string, ProfileLite>>(new Map());
   const [loading, setLoading] = useState(true);
@@ -227,16 +231,16 @@ export default function AuditLogPage() {
             <ShieldAlert className="h-7 w-7 text-primary" />
             <div>
               <h1 className="hidden lg:block" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "var(--ds-txt,#0f0f1a)" }}>
-                Журнал аудиту
+                {t("auditLog.pageTitle")}
               </h1>
               <p className="text-sm text-muted-foreground">
-                Чутливі дії менеджерів: ролі, видалення, фінанси
+                {t("auditLog.pageSubtitle")}
               </p>
             </div>
           </div>
           <Button variant="outline" size="sm" onClick={exportCsv} disabled={filtered.length === 0}>
             <Download className="h-4 w-4 mr-1.5" />
-            Експорт CSV
+            {t("auditLog.exportCsv")}
           </Button>
         </header>
 
@@ -277,7 +281,7 @@ export default function AuditLogPage() {
             <SelectContent>
               <SelectItem value="all">{t("auditLogExtra.allActions")}</SelectItem>
               {actionOptions.map((a) => (
-                <SelectItem key={a} value={a}>{actionLabels[a]?.label ?? a}</SelectItem>
+                <SelectItem key={a} value={a}>{actionLabels[a] ? t(actionLabels[a].labelKey) : a}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -312,11 +316,11 @@ export default function AuditLogPage() {
                 setSearch("");
               }}
             >
-              Скинути
+              {t("auditLog.reset")}
             </Button>
           )}
           <span className="ml-auto text-[14px] text-muted-foreground">
-            {filtered.length} з {entries.length}
+            {t("auditLog.shownOf", { shown: filtered.length, total: entries.length })}
           </span>
         </div>
 
@@ -342,7 +346,9 @@ export default function AuditLogPage() {
         ) : (
           <div className="space-y-2">
             {filtered.map((e) => {
-              const meta = actionLabels[e.action] ?? { label: e.action, variant: "outline" as const };
+              const meta = actionLabels[e.action];
+              const metaLabel = meta ? t(meta.labelKey) : e.action;
+              const metaVariant = meta?.variant ?? ("outline" as const);
               const target =
                 e.entity_type === "profile" || e.entity_type === "user_role"
                   ? nameOf(profiles, e.entity_id)
@@ -355,7 +361,7 @@ export default function AuditLogPage() {
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={meta.variant}>{meta.label}</Badge>
+                        <Badge variant={metaVariant}>{metaLabel}</Badge>
                         <span className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
                           {formatDate(e.created_at)}
                         </span>
@@ -376,11 +382,11 @@ export default function AuditLogPage() {
                       >
                         {isOpen ? (
                           <>
-                            Сховати <ChevronUp className="ml-1 h-3.5 w-3.5" />
+                            {t("auditLog.hide")} <ChevronUp className="ml-1 h-3.5 w-3.5" />
                           </>
                         ) : (
                           <>
-                            Зміни <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                            {t("auditLog.changes")} <ChevronDown className="ml-1 h-3.5 w-3.5" />
                           </>
                         )}
                       </Button>
@@ -429,7 +435,7 @@ export default function AuditLogPage() {
                           {diff.filter((d) => d.kind !== "same").length === 0 && (
                             <tr>
                               <td colSpan={3} className="px-3 py-2 text-center text-muted-foreground">
-                                Без змін
+                                {t("auditLog.noChanges")}
                               </td>
                             </tr>
                           )}

@@ -12,8 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { confirmDialog } from "@/hooks/useConfirm";
 import { Loader2, Send, Eye, Users, ChevronDown, ChevronRight } from "lucide-react";
-import i18nInstance from "@/i18n";
-const t = i18nInstance.t.bind(i18nInstance);
+import { useTranslation } from "react-i18next";
+import { ErrorState } from "@/components/ErrorState";
 
 type Segment =
   | "all_independent"
@@ -22,12 +22,14 @@ type Segment =
   | "pro_active"
   | "expired";
 
-const SEGMENTS: { value: Segment; label: string }[] = [
-  { value: "all_independent", label: "Усі незалежні репетитори" },
-  { value: "trial", label: "На тріалі" },
-  { value: "trial_ending_soon", label: "Тріал закінчується (≤3 днів)" },
-  { value: "pro_active", label: "Активна підписка" },
-  { value: "expired", label: "Закінчився тріал / підписка" },
+/** Аудит 01.09: мітки рахувались один раз при завантаженні чанка і не
+ *  перемальовувались при зміні мови. Тепер це ключі, а мітка береться в рендері. */
+const SEGMENTS: { value: Segment; labelKey: string }[] = [
+  { value: "all_independent", labelKey: "marketing.segmentAllIndependent" },
+  { value: "trial", labelKey: "marketing.segmentTrial" },
+  { value: "trial_ending_soon", labelKey: "marketing.segmentTrialEnding" },
+  { value: "pro_active", labelKey: "marketing.segmentProActive" },
+  { value: "expired", labelKey: "marketing.segmentExpired" },
 ];
 
 interface Campaign {
@@ -44,6 +46,7 @@ interface Campaign {
 }
 
 export default function MarketingPage() {
+  const { t } = useTranslation();
   const [segment, setSegment] = useState<Segment>("all_independent");
   const [subject, setSubject] = useState("");
   const [htmlBody, setHtmlBody] = useState("");
@@ -51,6 +54,10 @@ export default function MarketingPage() {
   const [loadingCount, setLoadingCount] = useState(false);
   const [sending, setSending] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  // Аудит 01.09: стану завантаження не було взагалі — історія блимала
+  // «Поки нічого не надсилали» на кожному вході; помилка читання виглядала так само.
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const previewHtml = useMemo(() => {
@@ -58,23 +65,31 @@ export default function MarketingPage() {
     // (actual send uses htmlBody as-is, supporting raw HTML)
     const previewBody = htmlBody
       ? htmlBody.replace(/\n/g, '<br>')
-      : "<em style='color:#888'>Тіло листа з'явиться тут</em>";
+      : `<em style='color:#888'>${t("marketing.previewBodyPlaceholder")}</em>`;
 
     return `<div style="font-family:-apple-system,Segoe UI,Roboto,sans-serif;background:#fff;padding:24px;border:1px solid #e5e5e5;border-radius:8px;">
-      <p style="margin:0 0 12px;">Привіт, [ім'я]!</p>
+      <p style="margin:0 0 12px;">${t("marketing.previewGreeting")}</p>
       <div style="font-size:15px;line-height:1.6;">${previewBody}</div>
       <hr style="border:none;border-top:1px solid #e5e5e5;margin:24px 0 12px;">
-      <p style="font-size:13px;color:#888;margin:0;">Відписатися від розсилок</p>
+      <p style="font-size:13px;color:#888;margin:0;">${t("marketing.previewUnsubscribe")}</p>
     </div>`;
-  }, [htmlBody]);
+  }, [htmlBody, t]);
 
   const loadCampaigns = async () => {
-    const { data } = await supabase
+    setLoading(true);
+    setLoadError(false);
+    const { data, error } = await supabase
       .from("marketing_campaigns")
       .select("id, subject, segment, html_body, recipients_total, recipients_sent, recipients_failed, status, created_at, errors")
       .order("created_at", { ascending: false })
       .limit(20);
+    if (error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
     setCampaigns((data ?? []) as Campaign[]);
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -91,7 +106,7 @@ export default function MarketingPage() {
       if (error) throw error;
       setCount((data as any).count);
     } catch (e: any) {
-      toast.error(e.message ?? "Не вдалося порахувати одержувачів");
+      toast.error(e.message ?? t("marketing.countFailed"));
     } finally {
       setLoadingCount(false);
     }
@@ -99,23 +114,28 @@ export default function MarketingPage() {
 
   const send = async () => {
     if (!subject.trim() || !htmlBody.trim()) {
-      toast.error("Заповніть тему й тіло листа");
+      toast.error(t("marketing.fillSubjectAndBody"));
       return;
     }
-    if (!(await confirmDialog({ description: `Надіслати листа сегменту "${SEGMENTS.find(s => s.value === segment)?.label}"?\n\nЦе незворотньо.` }))) return;
+    const segLabel = t(SEGMENTS.find((x) => x.value === segment)?.labelKey ?? "");
+    if (!(await confirmDialog({
+      description: t("marketing.confirmSend", { segment: segLabel }),
+      confirmText: t("marketing.send"),
+      destructive: true,
+    }))) return;
     setSending(true);
     try {
       const { data, error } = await supabase.functions.invoke("send-marketing-campaign", {
         body: { subject, htmlBody, segment, dryRun: false },
       });
       if (error) throw error;
-      toast.success(`Розсилка запущена для ${(data as any).count} одержувачів`);
+      toast.success(`${t("marketing.started")} — ${t("marketing.recipientsCount", { count: (data as any).count })}`);
       setSubject("");
       setHtmlBody("");
       setCount(null);
       setTimeout(loadCampaigns, 1500);
     } catch (e: any) {
-      toast.error(e.message ?? "Не вдалося надіслати");
+      toast.error(e.message ?? t("marketing.sendFailed"));
     } finally {
       setSending(false);
     }
@@ -128,72 +148,72 @@ export default function MarketingPage() {
             show this inline header only on desktop to avoid a duplicate + a header-less
             (nav-trapped) mobile page. */}
         <div className="hidden lg:block">
-          <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>Email-розсилки</h1>
-          <p className="text-sm text-muted-foreground">Анонси та новини для самостійних репетиторів</p>
+          <h1 style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 24, letterSpacing: "-.01em", color: "#0f0f1a" }}>{t("marketing.pageTitle")}</h1>
+          <p className="text-sm text-muted-foreground">{t("marketing.pageSubtitle")}</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
-              <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>Нова розсилка</CardTitle>
+              <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("marketing.newCampaign")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Сегмент</Label>
+                <Label>{t("marketing.segment")}</Label>
                 <Select value={segment} onValueChange={(v) => { setSegment(v as Segment); setCount(null); }}>
-                  <SelectTrigger aria-label="Сегмент"><SelectValue /></SelectTrigger>
+                  <SelectTrigger aria-label={t("marketing.segment")}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {SEGMENTS.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                      <SelectItem key={s.value} value={s.value}>{t(s.labelKey)}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" onClick={checkCount} disabled={loadingCount}>
                   {loadingCount ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Users className="mr-2 h-4 w-4" />}
-                  Порахувати одержувачів {count !== null && <span className="ml-2 font-semibold">{count}</span>}
+                  {t("marketing.countRecipients")} {count !== null && <span className="ml-2 font-semibold">{count}</span>}
                 </Button>
               </div>
 
               <div className="space-y-2">
-                <Label>Тема листа</Label>
-                <Input aria-label="Тема листа"
+                <Label>{t("marketing.subject")}</Label>
+                <Input aria-label={t("marketing.subject")}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder="Наприклад: Нові функції TutorHub"
+                  placeholder={t("marketing.subjectPlaceholder")}
                   maxLength={200}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>HTML-тіло</Label>
-                <Textarea aria-label={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
+                <Label>{t("marketing.htmlBody")}</Label>
+                <Textarea aria-label={t("marketing.htmlBody")}
                   value={htmlBody}
                   onChange={(e) => setHtmlBody(e.target.value)}
                   rows={12}
-                  placeholder={'<p>Вітаємо!</p>\n<p>Розповідаємо про нові можливості…</p>\n<p><a href="https://otutorhub.com/dashboard">Перейти в кабінет</a></p>'}
+                  placeholder={t("marketing.htmlPlaceholder")}
                   maxLength={100000}
                 />
                 <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
-                  Підтримується HTML. Привітання та футер з посиланням на відписку додаються автоматично.
+                  {t("marketing.htmlHint")}
                 </p>
               </div>
 
               <Button onClick={send} disabled={sending} className="w-full">
                 {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
-                Надіслати
+                {t("marketing.send")}
               </Button>
             </CardContent>
           </Card>
 
           <Card className="rounded-[18px] border-[#eceef3] shadow-none">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}><Eye className="h-4 w-4" /> Прев'ю</CardTitle>
+              <CardTitle className="flex items-center gap-2" style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}><Eye className="h-4 w-4" /> {t("marketing.preview")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="rounded-md border bg-muted/30 p-4">
                 <div className="mb-3 text-sm">
-                  <span className="text-muted-foreground">Тема: </span>
-                  <span className="font-medium">{subject || "(порожньо)"}</span>
+                  <span className="text-muted-foreground">{t("marketing.previewSubjectLabel")}</span>
+                  <span className="font-medium">{subject || t("marketing.previewEmpty")}</span>
                 </div>
                 <iframe
                   srcDoc={previewHtml}
@@ -208,11 +228,19 @@ export default function MarketingPage() {
 
         <Card className="rounded-[18px] border-[#eceef3] shadow-none">
           <CardHeader>
-            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>Історія розсилок</CardTitle>
+            <CardTitle style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 17, letterSpacing: "-.01em" }}>{t("marketing.history")}</CardTitle>
           </CardHeader>
           <CardContent>
-            {campaigns.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Поки нічого не надсилали.</p>
+            {loading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-14 animate-pulse rounded-md bg-muted" />
+                ))}
+              </div>
+            ) : loadError ? (
+              <ErrorState onRetry={() => void loadCampaigns()} />
+            ) : campaigns.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("marketing.historyEmpty")}</p>
             ) : (
               <div className="space-y-2">
                 {campaigns.map((c) => {
@@ -230,14 +258,14 @@ export default function MarketingPage() {
                           <div className="min-w-0">
                             <div className="font-medium truncate">{c.subject}</div>
                             <div className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
-                              {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find(s => s.value === c.segment)?.label ?? c.segment}
+                              {new Date(c.created_at).toLocaleString(getLocale())} • {SEGMENTS.find((x) => x.value === c.segment) ? t(SEGMENTS.find((x) => x.value === c.segment)!.labelKey) : c.segment}
                             </div>
                           </div>
                         </div>
                         <div className="text-right text-[14px] shrink-0">
                           <div className="font-semibold">
                             {c.recipients_sent}/{c.recipients_total}
-                            {c.recipients_failed > 0 && <span className="text-destructive"> ({c.recipients_failed} помилок)</span>}
+                            {c.recipients_failed > 0 && <span className="text-destructive"> ({t("marketing.failedCount", { count: c.recipients_failed })})</span>}
                           </div>
                           <div className="text-muted-foreground capitalize">{c.status}</div>
                         </div>
@@ -246,7 +274,7 @@ export default function MarketingPage() {
                       {isOpen && (
                         <div className="border-t bg-muted/20 p-3 space-y-3">
                           <div>
-                            <div className="text-[14px] font-semibold text-muted-foreground mb-1">Тіло листа (HTML)</div>
+                            <div className="text-[14px] font-semibold text-muted-foreground mb-1">{t("marketing.bodyHtml")}</div>
                             <iframe
                               srcDoc={c.html_body}
                               sandbox=""
@@ -257,15 +285,15 @@ export default function MarketingPage() {
 
                           <div>
                             <div className="text-[14px] font-semibold text-muted-foreground mb-1">
-                              Помилки доставки ({errs.length})
+                              {t("marketing.deliveryErrors", { count: errs.length })}
                             </div>
                             {errs.length === 0 ? (
                               c.recipients_failed > 0 ? (
                                 <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
-                                  Деталі помилок не збережені для цієї розсилки (старі дані). Нові розсилки будуть писати деталі сюди.
+                                  {t("marketing.noErrorDetails")}
                                 </p>
                               ) : (
-                                <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>Усі листи доставлено.</p>
+                                <p className="text-[14px]" style={{ color: "var(--sub,#666b82)" }}>{t("marketing.allDelivered")}</p>
                               )
                             ) : (
                               <div className="space-y-1 max-h-64 overflow-auto">
@@ -280,7 +308,7 @@ export default function MarketingPage() {
                                       )}
                                     </div>
                                     <div className="mt-1 break-words text-muted-foreground whitespace-pre-wrap">
-                                      {e.error || "(без повідомлення)"}
+                                      {e.error || t("marketing.noMessage")}
                                     </div>
                                   </div>
                                 ))}
