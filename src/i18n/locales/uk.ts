@@ -2198,7 +2198,10 @@ export const uk = {
     tutorNoUpcomingCta: "Запланувати урок",
     cancelStreakTitle: "{{name}}: три скасування поспіль",
     cancelStreakDesc: "Схоже, щось не так. Найкращий хід — написати і мʼяко спитати, що сталось.",
-    cancelStreakCta: "Написати",},
+    cancelStreakCta: "Написати",
+    seriesEndTitle: "Розклад з {{name}} закінчується",
+    seriesEndDesc: "Останній запланований урок — {{date}}. Продовжити ще на кілька тижнів?",
+    seriesEndCta: "Продовжити",},
   notifications: {
     title: "Сповіщення",
     markAllRead: "Позначити всі прочитаними",
@@ -3843,6 +3846,10 @@ export const uk = {
   },
   actionItemsCard: {
     title: "Домовленості з уроків",
+  },
+  eveningSummary: {
+    cardTitle: "🌙 Вечірній підсумок",
+    cardDesc: "О 21:00 — скільки уроків провів, серія і конспекти, що чекають.",
   },
   walletsPageExtra: {
     studentCol: "Учень",

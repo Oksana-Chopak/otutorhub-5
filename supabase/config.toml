@@ -11,6 +11,8 @@ project_id = "kficbcjqcbhqhjimxfed"
     verify_jwt = false
   [functions.tutor-daily-digest]
     verify_jwt = false
+  [functions.tutor-evening-summary]
+    verify_jwt = false
   [functions.telegram-poll]
     verify_jwt = false
   [functions.landing-find-tutor-quiz]

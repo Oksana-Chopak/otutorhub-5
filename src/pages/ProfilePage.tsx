@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,37 @@ function PushSettingsCard() {
         {t("pushNotif.cardDesc")}
       </p>
       <PushNotificationToggle />
+    </div>
+  );
+}
+
+// №15+№21 (ідеї 01.09): перемикач вечірнього підсумку («🌙 Сьогодні: 3 уроки…»
+// о 21:00). Увімкнений за замовчуванням; чесний opt-out тут. Видимий і в
+// нативі — підсумок приходить у дзвіночок незалежно від web-push.
+function EveningSummaryCard() {
+  const { t } = useTranslation();
+  // settings існують лише для репетиторів (хук вантажить їх тільки для ролі
+  // tutor) — тож перевірка на settings і є перевіркою персони.
+  const { settings, updateSettings } = useWorkspaceSettings();
+  if (!settings) return null;
+  const enabled = (settings as any).evening_summary_enabled !== false;
+  return (
+    <div className="mb-4 rounded-[16px] border-[0.5px] bg-card p-4" style={{ borderColor: "var(--border,var(--ds-border,#eceef3))" }}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p style={{ fontFamily: "Inter, system-ui, sans-serif", fontWeight: 800, fontSize: 15, color: "var(--ds-txt,#0f0f1a)" }}>
+            {t("eveningSummary.cardTitle")}
+          </p>
+          <p className="mt-0.5 text-[14px]" style={{ color: "var(--sub,#666b82)" }}>
+            {t("eveningSummary.cardDesc")}
+          </p>
+        </div>
+        <Switch
+          checked={enabled}
+          aria-label={t("eveningSummary.cardTitle")}
+          onCheckedChange={(v) => void updateSettings({ evening_summary_enabled: v } as any)}
+        />
+      </div>
     </div>
   );
 }
@@ -514,10 +546,11 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            {/* Integrations: calendar + push */}
+            {/* Integrations: calendar + push + вечірній підсумок */}
             <div className="lg:col-span-2 flex flex-col gap-4">
               <GoogleCalendarCard />
               <PushSettingsCard />
+              <EveningSummaryCard />
             </div>
 
             {/* Manager sections — every existing item preserved, now in DS cards */}
@@ -1042,6 +1075,7 @@ export default function ProfilePage() {
             </div>
             <div id="calendar"><GoogleCalendarCard /></div>
             <PushSettingsCard />
+            <EveningSummaryCard />
           </SheetContent>
         </Sheet>
 

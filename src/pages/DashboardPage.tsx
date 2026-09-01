@@ -210,6 +210,9 @@ export default function DashboardPage() {
   const [showDayClosed, setShowDayClosed] = useState(false);
   const [dayClosedCount, setDayClosedCount] = useState(0);
   const [topPercentile, setTopPercentile] = useState<number | null>(null);
+  // №14 (ідеї 01.09): учні, чия серія уроків триває ЗА межами 14-денного вікна
+  // дашборда — для них задачу «серія закінчується» не показуємо.
+  const [seriesBeyondIds, setSeriesBeyondIds] = useState<Set<string>>(new Set());
 
   const [defaultMeetingUrls, setDefaultMeetingUrls] = useState<Record<string, string>>({});
   const [pairCurrency, setPairCurrency] = useState<Record<string, string>>({});
@@ -647,14 +650,27 @@ export default function DashboardPage() {
     // чесно по всій платформі, одним викликом замість трьох запитів.
     if (isTutor && !isManager) {
       const now = new Date();
-      const { data: ms, error: msErr } = await supabase.rpc("get_tutor_monthly_summary", {
-        _tutor_id: user.id, _year: now.getFullYear(), _month: now.getMonth() + 1,
-      });
+      const [{ data: ms, error: msErr }, beyondRes] = await Promise.all([
+        supabase.rpc("get_tutor_monthly_summary", {
+          _tutor_id: user.id, _year: now.getFullYear(), _month: now.getMonth() + 1,
+        }),
+        // №14: чи є в пари уроки ДАЛІ, ніж бачить вікно дашборда (+14 днів).
+        supabase.from("lessons_visible").select("student_id")
+          .eq("status", "scheduled")
+          .gt("starts_at", new Date(Date.now() + 14 * 86400000).toISOString())
+          .limit(500),
+      ]);
       if (!msErr && ms) {
         const pct = (ms as any).top_percentile;
         const active = Number((ms as any).total_active_tutors ?? 0);
         // «Топ-10%» має сенс лише коли є з ким порівнюватись (5+ активних).
         setTopPercentile(typeof pct === "number" && active >= 5 ? pct : null);
+      }
+      if (!beyondRes.error) {
+        setSeriesBeyondIds(new Set(
+          ((beyondRes.data ?? []) as Array<{ student_id: string | null }>)
+            .map((r) => r.student_id).filter(Boolean) as string[],
+        ));
       }
     }
 
@@ -1286,6 +1302,32 @@ export default function DashboardPage() {
           });
         }
       });
+      // №14 (ідеї 01.09): серія ×4/8/12 закінчується мовчки. Пара з рутиною
+      // (3+ проведених за 30 днів), останній запланований урок — у межах
+      // 14 днів, і далі нічого → мʼяке «продовжити?».
+      const futureByStudent: Record<string, number> = {};
+      lessons.forEach((l) => {
+        if (!l.student_id || l.status !== "scheduled") return;
+        const ts = new Date(l.starts_at).getTime();
+        if (ts <= nowMs) return;
+        futureByStudent[l.student_id] = Math.max(futureByStudent[l.student_id] ?? 0, ts);
+      });
+      Object.entries(futureByStudent).forEach(([sid, lastTs]) => {
+        if (seriesBeyondIds.has(sid)) return; // серія триває далі — все добре
+        const completedPast = (pastByStudent[sid] ?? []).filter((x) => x.status === "completed").length;
+        if (completedPast < 3) return; // рутини ще нема — не спамимо новій парі
+        tasks.push({
+          key: `series-end-${sid}`,
+          icon: CalendarPlus,
+          tone: "primary" as const,
+          title: t("dashboardExtra.seriesEndTitle", { name: profiles[sid] ?? t("roles.student") }),
+          description: t("dashboardExtra.seriesEndDesc", {
+            date: new Date(lastTs).toLocaleDateString(getLocale(), { day: "numeric", month: "short" }),
+          }),
+          to: `/schedule?create=1&student=${sid}`,
+          cta: t("dashboardExtra.seriesEndCta"),
+        });
+      });
     }
     // 0. Дні виплат репетиторам (за графіком)
     payoutSchedules.forEach((sch) => {
@@ -1439,6 +1481,7 @@ export default function DashboardPage() {
     lessonsWithoutMeeting,
     pendingPayments.length,
     profiles, // №9: імʼя учня в задачі про скасування
+    seriesBeyondIds, // №14: серія триває за вікном → задачі нема
   ]);
 
   // №1 (ідеї 01.09): ОДНА картка розумної задачі для обох гілок (менеджер і

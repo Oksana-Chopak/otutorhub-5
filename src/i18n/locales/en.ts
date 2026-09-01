@@ -2207,7 +2207,10 @@ export const en: LocaleTranslations = {
     tutorNoUpcomingCta: "Schedule a lesson",
     cancelStreakTitle: "{{name}}: three cancellations in a row",
     cancelStreakDesc: "Something seems off. Best move — message them and gently ask what's going on.",
-    cancelStreakCta: "Message",},
+    cancelStreakCta: "Message",
+    seriesEndTitle: "Your schedule with {{name}} is ending",
+    seriesEndDesc: "The last planned lesson is {{date}}. Extend for a few more weeks?",
+    seriesEndCta: "Extend",},
   notifications: {
     title: "Notifications",
     markAllRead: "Mark all as read",
@@ -3856,6 +3859,10 @@ export const en: LocaleTranslations = {
   },
   actionItemsCard: {
     title: "Lesson agreements",
+  },
+  eveningSummary: {
+    cardTitle: "🌙 Evening summary",
+    cardDesc: "At 9 pm — lessons taught today, your streak, and notes still waiting.",
   },
   walletsPageExtra: {
     studentCol: "Student",

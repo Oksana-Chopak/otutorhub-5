@@ -2192,7 +2192,10 @@ export const sv: LocaleTranslations = {
     tutorNoUpcomingCta: "Schemalägg en lektion",
     cancelStreakTitle: "{{name}}: tre avbokningar i rad",
     cancelStreakDesc: "Något verkar vara fel. Bästa draget — skriv och fråga försiktigt vad som hänt.",
-    cancelStreakCta: "Skriv",},
+    cancelStreakCta: "Skriv",
+    seriesEndTitle: "Ditt schema med {{name}} tar slut",
+    seriesEndDesc: "Sista planerade lektionen är {{date}}. Förläng några veckor till?",
+    seriesEndCta: "Förläng",},
   notifications: {
     title: "Aviseringar",
     markAllRead: "Markera alla som lästa",
@@ -3841,6 +3844,10 @@ export const sv: LocaleTranslations = {
   },
   actionItemsCard: {
     title: "Överenskommelser från lektioner",
+  },
+  eveningSummary: {
+    cardTitle: "🌙 Kvällssammanfattning",
+    cardDesc: "Kl. 21 — dagens lektioner, din svit och anteckningar som väntar.",
   },
   walletsPageExtra: {
     studentCol: "Elev",
