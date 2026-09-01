@@ -83,8 +83,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const safe = async <T,>(p: PromiseLike<{ data: T; error: unknown }>, fb: T): Promise<T> => {
-      try { const { data, error } = await p; return error ? fb : (data ?? fb); } catch { return fb; }
+    const safe = async <T,>(p: PromiseLike<{ data: T | null; error: unknown }>, fb: NonNullable<T>): Promise<NonNullable<T>> => {
+      try { const { data, error } = await p; return error ? fb : ((data as NonNullable<T>) ?? fb); } catch { return fb; }
     };
     const countOf = async (status?: string): Promise<number> => {
       let q = admin.from("lessons").select("id", { count: "exact", head: true });
