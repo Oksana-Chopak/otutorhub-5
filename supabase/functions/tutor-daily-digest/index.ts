@@ -256,14 +256,14 @@ Deno.serve(async (req) => {
           const t = new Date(l.starts_at).toLocaleTimeString("uk-UA", {
             timeZone: TZ, hour: "2-digit", minute: "2-digit",
           });
-          const paid = l.lesson_details?.student_payment_status === "paid" ? " ✅" : "";
+          const paid = detailOf(l)?.student_payment_status === "paid" ? " ✅" : "";
           lines.push(`• ${t} — ${esc(studentName.get(l.student_id))} (${esc(l.subject)})${paid}`);
         }
       }
       const myDebts = new Map<string, number>();
       for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId)) {
         const prev = myDebts.get(l.student_id) ?? 0;
-        myDebts.set(l.student_id, prev + Number(l.lesson_details?.student_price ?? 0));
+        myDebts.set(l.student_id, prev + Number(detailOf(l)?.student_price ?? 0));
       }
       for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId)) {
         myDebts.set(r.student_id, (myDebts.get(r.student_id) ?? 0) + r.price);
