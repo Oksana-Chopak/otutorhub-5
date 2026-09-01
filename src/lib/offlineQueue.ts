@@ -61,7 +61,7 @@ function toastQueued() {
   toast.info(i18n.t("offline.queuedToast", { count: read().length }));
 }
 
-export function enqueue(item: Omit<OfflineQueueItem, "id" | "ts">) {
+export function enqueue(item: OfflineQueueItemInput) {
   const items = read();
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
