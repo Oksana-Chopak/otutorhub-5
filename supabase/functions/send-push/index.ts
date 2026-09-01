@@ -56,10 +56,10 @@ async function vapidToken(audience: string): Promise<string> {
 
 // HKDF using SHA-256
 async function hkdf(ikm: Uint8Array, salt: Uint8Array, info: Uint8Array, length: number): Promise<Uint8Array> {
-  const ikmKey = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
-  const prk = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt, info: new Uint8Array(0) }, ikmKey, 256);
-  const prkKey = await crypto.subtle.importKey("raw", prk, "HKDF", false, ["deriveBits"]);
-  const bits = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info }, prkKey, length * 8);
+  const ikmKey = await crypto.subtle.importKey("raw", ikm as BufferSource, "HKDF", false, ["deriveBits"]);
+  const prk = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: salt as BufferSource, info: new Uint8Array(0) as BufferSource }, ikmKey, 256);
+  const prkKey = await crypto.subtle.importKey("raw", prk as BufferSource, "HKDF", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0) as BufferSource, info: info as BufferSource }, prkKey, length * 8);
   return new Uint8Array(bits);
 }
 
