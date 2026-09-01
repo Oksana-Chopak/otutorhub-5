@@ -3833,6 +3833,10 @@ export const en: LocaleTranslations = {
     topPercentile: "🏆 Top {{pct}}% of tutors",
     lessonsLabel: "lessons completed 📚",
     paymentsLabel: "payments on time ✅",
+    quietTitle: "{{month}}: a quiet month",
+    quietDesc: "It happens. Here's who you haven't taught in a while — one tap to get back on track:",
+    quietAgo: "{{count}} d ago",
+    quietCta: "Schedule",
   },
   walletsPageExtra: {
     studentCol: "Student",

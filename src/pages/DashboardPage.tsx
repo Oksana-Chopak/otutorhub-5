@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ErrorState } from "@/components/ErrorState";
 import { isNativeApp } from "@/lib/platform";
 import { bumpDataVersion, useDataVersion } from "@/lib/dataBus";
@@ -245,6 +245,29 @@ export default function DashboardPage() {
   const dataVersion = useDataVersion(); // C3
   const { isPulling, pullProgress } = usePullToRefresh(() => loadData());
   useBadgeUnlockToasts(badges, gamificationLoading);
+
+  // №2 (ідеї 01.09): видача ачівок. До цього в репозиторії не існувало ЖОДНОГО
+  // запису в tutor_badges — сітка /achievements була порожня в усіх назавжди.
+  // RPC ідемпотентний (ON CONFLICT DO NOTHING), тож смілива стратегія: кличемо
+  // при кожному відкритті дашборда і після кожної зміни даних (dataVersion —
+  // завершення уроку, оплата). Чекаємо, поки перший список бейджів завантажиться:
+  // useBadgeUnlockToasts спершу синхронізує «бачене», і аж потім свіжий бейдж
+  // прилітає як приємний тост, а не ковтається як «старий».
+  const awardInFlight = useRef(false);
+  useEffect(() => {
+    if (!user || !isTutor || isManager || gamificationLoading) return;
+    if (awardInFlight.current) return;
+    awardInFlight.current = true;
+    void (async () => {
+      try {
+        // Каст: типи RPC регенеруються Lovable після застосування міграції
+        // 20260901120000; до того помилка тихо ігнорується — поведінка як досі.
+        const { data, error } = await (supabase as any).rpc("award_my_badges");
+        if (!error && Array.isArray(data) && data.length > 0) await gamification.refresh();
+      } catch { /* міграцію ще не застосовано — без шуму */ }
+      finally { awardInFlight.current = false; }
+    })();
+  }, [user?.id, isTutor, isManager, gamificationLoading, dataVersion]);
 
   // "Сьогодні день X твоєї серії" — once per day greeting
   useEffect(() => {
@@ -616,25 +639,21 @@ export default function DashboardPage() {
       setHubStudentCount(hubCountRes.count ?? 0);
     }
 
-    // Top-10% calculation — compare tutor's lesson count vs all tutors this month
+    // №5 (ідеї 01.09): перцентиль рахує БД, а не телефон. Старий код тягнув
+    // уроки «всіх» репетиторів — але під RLS бачив ЛИШЕ свої (tutorsAbove
+    // завжди 0), а user_roles повертав тільки власну роль (totalTutors=1),
+    // тож бейдж не показувався нікому ніколи. RPC — SECURITY DEFINER і рахує
+    // чесно по всій платформі, одним викликом замість трьох запитів.
     if (isTutor && !isManager) {
-      const monthStart = new Date();
-      monthStart.setDate(1);
-      monthStart.setHours(0, 0, 0, 0);
-      const iso = monthStart.toISOString();
-      const [{ count: myCount }, { count: totalTutors }, { data: topRows }] = await Promise.all([
-        supabase.from("lessons").select("id", { count: "exact", head: true })
-          .eq("tutor_id", user.id).eq("status", "completed").gte("starts_at", iso),
-        supabase.from("user_roles").select("user_id", { count: "exact", head: true }).eq("role", "tutor"),
-        supabase.from("lessons").select("tutor_id").eq("status", "completed").gte("starts_at", iso),
-      ]);
-      if (myCount && myCount > 0 && totalTutors && totalTutors > 1 && topRows) {
-        const countByTutor: Record<string, number> = {};
-        (topRows as { tutor_id: string }[]).forEach((r) => {
-          countByTutor[r.tutor_id] = (countByTutor[r.tutor_id] ?? 0) + 1;
-        });
-        const tutorsAbove = Object.values(countByTutor).filter((c) => c > myCount!).length;
-        setTopPercentile((tutorsAbove / totalTutors!) * 100);
+      const now = new Date();
+      const { data: ms, error: msErr } = await supabase.rpc("get_tutor_monthly_summary", {
+        _tutor_id: user.id, _year: now.getFullYear(), _month: now.getMonth() + 1,
+      });
+      if (!msErr && ms) {
+        const pct = (ms as any).top_percentile;
+        const active = Number((ms as any).total_active_tutors ?? 0);
+        // «Топ-10%» має сенс лише коли є з ким порівнюватись (5+ активних).
+        setTopPercentile(typeof pct === "number" && active >= 5 ? pct : null);
       }
     }
 
@@ -1266,8 +1285,11 @@ export default function DashboardPage() {
         payTutorId: sch.user_id,
       });
     });
-    // 1. Pending payments — top priority for everyone, but smartTasks is manager-only here
-    if (pendingPayments.length > 0) {
+    // №1 (ідеї 01.09): smartTasks тепер рендеряться і репетитору, тому
+    // менеджерські пункти нижче явно закриті isManager — інакше незалежний
+    // бачив би той самий борг/урок двічі (гілка репетитора вище вже додала свої).
+    // 1. Pending payments — top priority (manager list)
+    if (isManager && pendingPayments.length > 0) {
       tasks.push({
         key: "pending-payments",
         icon: TrendingUp,
@@ -1278,8 +1300,8 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.pendingPaymentsCta"),
       });
     }
-    // 2. Tutor referral requests (students looking for a tutor)
-    if (tutorReferralRequestCount > 0) {
+    // 2. Tutor referral requests (students looking for a tutor) — /referrals is manager-only
+    if (isManager && tutorReferralRequestCount > 0) {
       tasks.push({
         key: "tutor-referral-requests",
         icon: HandHeart,
@@ -1290,8 +1312,8 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.tutorRequestsCta"),
       });
     }
-    // 3. Support / subscription requests
-    if (supportRequestCount > 0) {
+    // 3. Support / subscription requests (manager)
+    if (isManager && supportRequestCount > 0) {
       tasks.push({
         key: "support-requests",
         icon: Crown,
@@ -1302,8 +1324,8 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.supportRequestsCta"),
       });
     }
-    // Звернення користувачів (фідбек/баги/питання)
-    if (feedbackNewCount > 0) {
+    // Звернення користувачів (фідбек/баги/питання) — менеджер
+    if (isManager && feedbackNewCount > 0) {
       tasks.push({
         key: "feedback-inbox",
         icon: Inbox,
@@ -1314,8 +1336,8 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.feedbackCta"),
       });
     }
-    // 4. Students without a tutor
-    if (studentsWithoutTutor > 0) {
+    // 4. Students without a tutor (manager)
+    if (isManager && studentsWithoutTutor > 0) {
       tasks.push({
         key: "students-no-tutor",
         icon: UserX,
@@ -1326,8 +1348,8 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.studentsWithoutTutorCta"),
       });
     }
-    // 5. Lessons without meeting link
-    if (lessonsWithoutMeeting > 0) {
+    // 5. Lessons without meeting link (manager; репетитор має свій пункт у гілці вище)
+    if (isManager && lessonsWithoutMeeting > 0) {
       tasks.push({
         key: "no-meeting",
         icon: Video,
@@ -1361,7 +1383,7 @@ export default function DashboardPage() {
         cta: t("dashboardExtra.availabilityRequestsCta"),
       });
     }
-    if (lessonsWithoutPrice > 0) {
+    if (isManager && lessonsWithoutPrice > 0) {
       tasks.push({
         key: "no-price",
         icon: Tag,
@@ -1391,6 +1413,68 @@ export default function DashboardPage() {
     lessonsWithoutMeeting,
     pendingPayments.length,
   ]);
+
+  // №1 (ідеї 01.09): ОДНА картка розумної задачі для обох гілок (менеджер і
+  // репетитор) — раніше JSX жив лише в менеджерській, і чотири задачі
+  // репетитора рахувались та викидались.
+  const renderSmartTaskCard = (task: (typeof smartTasks)[number]) => {
+    const Icon = task.icon;
+    const borderColor =
+      task.tone === "destructive" ? "#3b82f6"
+      : task.tone === "warning"    ? "#f59e0b"
+      : "#d0d3e0";
+    const iconBg =
+      task.tone === "destructive" ? "rgba(59,130,246,0.12)"
+      : task.tone === "warning"    ? "rgba(245,158,11,0.12)"
+      : "rgba(208,211,224,0.25)";
+    const iconColor =
+      task.tone === "destructive" ? "#3b82f6"
+      : task.tone === "warning"    ? "#f59e0b"
+      : "var(--sub,#666b82)";
+    return task.payTutorId ? (
+      <div key={task.key}
+        className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
+        style={{ borderLeft: `3.5px solid ${borderColor}` }}>
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
+          <Icon className="h-4 w-4" style={{ color: iconColor }} />
+        </div>
+        <Link to={task.to} className="min-w-0 flex-1">
+          <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
+          <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
+        </Link>
+        <button type="button" disabled={payingTutor === task.payTutorId}
+          onClick={() => markPayoutPaid(task.payTutorId!)}
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] px-3 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+          style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
+          {payingTutor === task.payTutorId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+          {t("dashboardExtra.paidBtn")}
+        </button>
+      </div>
+    ) : (
+      <Link key={task.key} to={task.to} className="block group">
+        <div
+          className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
+          style={{ borderLeft: `3.5px solid ${borderColor}` }}
+        >
+          <div
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
+            style={{ background: iconBg }}
+          >
+            <Icon className="h-4 w-4" style={{ color: iconColor }} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>
+              {task.title}
+            </p>
+            <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>
+              {task.description}
+            </p>
+          </div>
+          <ChevronRight className="ml-1 h-4 w-4 flex-shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
+        </div>
+      </Link>
+    );
+  };
 
   return (
     <>
@@ -1800,8 +1884,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Top-10% badge */}
-          {isTutor && !isManager && topPercentile !== null && topPercentile < 10 && (
+          {/* Top-10% badge (№5: перцентиль тепер із RPC; ≤10 — бо GREATEST(1,…) дає 10 і для найкращого з десяти) */}
+          {isTutor && !isManager && topPercentile !== null && topPercentile <= 10 && (
             <TopTutorBadge percentile={topPercentile} />
           )}
           {isIndependentTutor && user && localStorage.getItem(`pending_invite_reminder_${user.id}`) === "1" && (
@@ -2353,66 +2437,7 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   ) : (
-                    smartTasks.map((task) => {
-                      const Icon = task.icon;
-                      const borderColor =
-                        task.tone === "destructive" ? "#3b82f6"
-                        : task.tone === "warning"    ? "#f59e0b"
-                        : "#d0d3e0";
-                      const iconBg =
-                        task.tone === "destructive" ? "rgba(59,130,246,0.12)"
-                        : task.tone === "warning"    ? "rgba(245,158,11,0.12)"
-                        : "rgba(208,211,224,0.25)";
-                      const iconColor =
-                        task.tone === "destructive" ? "#3b82f6"
-                        : task.tone === "warning"    ? "#f59e0b"
-                        : "var(--sub,#666b82)";
-                      return (
-                        task.payTutorId ? (
-                          <div key={task.key}
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3 shadow-[0_1px_4px_rgba(0,0,0,0.06)]"
-                            style={{ borderLeft: `3.5px solid ${borderColor}` }}>
-                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl" style={{ background: iconBg }}>
-                              <Icon className="h-4 w-4" style={{ color: iconColor }} />
-                            </div>
-                            <Link to={task.to} className="min-w-0 flex-1">
-                              <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>{task.title}</p>
-                              <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>{task.description}</p>
-                            </Link>
-                            <button type="button" disabled={payingTutor === task.payTutorId}
-                              onClick={() => markPayoutPaid(task.payTutorId!)}
-                              className="flex h-9 shrink-0 items-center gap-1.5 rounded-[11px] px-3 text-[14px] font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-                              style={{ background: "linear-gradient(135deg,#2BBFAA,#25a896)", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 6px 16px -8px rgba(43,191,170,.6)" }}>
-                              {payingTutor === task.payTutorId ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
-                              {t("dashboardExtra.paidBtn")}
-                            </button>
-                          </div>
-                        ) : (
-                        <Link key={task.key} to={task.to} className="block group">
-                          <div
-                            className="ds-pop-in flex items-center gap-3 overflow-hidden rounded-[16px] bg-card py-3.5 pl-4 pr-3.5 shadow-[0_1px_4px_rgba(0,0,0,0.06)] transition-all duration-200 active:scale-[0.98] group-hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)]"
-                            style={{ borderLeft: `3.5px solid ${borderColor}` }}
-                          >
-                            <div
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl"
-                              style={{ background: iconBg }}
-                            >
-                              <Icon className="h-4 w-4" style={{ color: iconColor }} />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[14px] font-semibold leading-tight" style={{ color: "var(--ds-txt)" }}>
-                                {task.title}
-                              </p>
-                              <p className="mt-0.5 text-[14px] leading-snug" style={{ color: "var(--ds-sub)" }}>
-                                {task.description}
-                              </p>
-                            </div>
-                            <ChevronRight className="ml-1 h-4 w-4 flex-shrink-0 text-slate-300 transition-transform group-hover:translate-x-0.5" />
-                          </div>
-                        </Link>
-                        )
-                      );
-                    })
+                    smartTasks.map(renderSmartTaskCard)
                   )}
                   <TelegramLinkCard />
                 </div>
@@ -2448,10 +2473,16 @@ export default function DashboardPage() {
                       )}
                     </>
                   )}
+                  {/* №1 (ідеї 01.09): розумні задачі репетитора — неоплачені уроки,
+                      уроки без ціни/посилання, порожній розклад. Рахувались і
+                      раніше, але рендерились лише менеджеру — головна персона
+                      на другому тижні лишалась без жодної підказки «що далі». */}
+                  {isTutor && !isManager && smartTasks.map(renderSmartTaskCard)}
                   {/* Tutors (independent + hub): dynamic onboarding bonus tasks (parity) */}
                   {(isIndependentTutor || isHubTutor) && !obProgress.loading && (
                     <>
                       {pendingBonusTasks.length === 0 ? (
+                        smartTasks.length > 0 ? null : (
                         <div className="rounded-[16px] bg-card px-5 py-5 text-center shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
                           <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-full" style={{ background: "rgba(43,191,170,0.12)" }}>
                             <TrendingUp className="h-4 w-4" style={{ color: "var(--teal)" }} />
@@ -2459,6 +2490,7 @@ export default function DashboardPage() {
                           <p className="text-[15px] font-semibold" style={{ color: "var(--ds-txt)" }}>{t("dashboardExtra.allSetTitle")}</p>
                           <p className="mt-1 text-[14px]" style={{ color: "var(--ds-sub)" }}>{t("dashboardExtra.allSetDesc")}</p>
                         </div>
+                        )
                       ) : (
                         pendingBonusTasks.map((task) => (
                           <div key={task.action} className="ds-pop-in flex items-center gap-0 overflow-hidden rounded-[16px] bg-card shadow-[0_1px_4px_rgba(0,0,0,0.06)]"

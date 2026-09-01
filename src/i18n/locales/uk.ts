@@ -3820,6 +3820,10 @@ export const uk = {
     topPercentile: "🏆 Топ-{{pct}}% репетиторів",
     lessonsLabel: "уроків проведено 📚",
     paymentsLabel: "оплат вчасно ✅",
+    quietTitle: "{{month}}: тихий місяць",
+    quietDesc: "Буває. Ось з ким давно не було уроку — один тап, щоб повернутись у ритм:",
+    quietAgo: "{{count}} дн. тому",
+    quietCta: "Запланувати",
   },
   walletsPageExtra: {
     studentCol: "Учень",

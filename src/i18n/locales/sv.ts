@@ -3818,6 +3818,10 @@ export const sv: LocaleTranslations = {
     topPercentile: "🏆 Topp {{pct}} % av lärarna",
     lessonsLabel: "lektioner genomförda 📚",
     paymentsLabel: "betalningar i tid ✅",
+    quietTitle: "{{month}}: en lugn månad",
+    quietDesc: "Det händer. Här är eleverna du inte undervisat på ett tag — ett tryck för att komma igång igen:",
+    quietAgo: "för {{count}} d sedan",
+    quietCta: "Boka",
   },
   walletsPageExtra: {
     studentCol: "Elev",

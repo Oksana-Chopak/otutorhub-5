@@ -10,7 +10,8 @@ import { burstConfetti } from "@/lib/confetti";
 import { useHaptic } from "@/hooks/useHaptic";
 import { insertNotification } from "@/lib/notifications";
 import { notifyGroupLessonCancelled } from "@/lib/groupLessons";
-import { getRandomEmoji, type RewardTheme } from "@/lib/rewardThemes";
+import { getRandomEmoji, THEME_KEYS, type RewardTheme } from "@/lib/rewardThemes";
+import { useWorkspaceSettings } from "@/hooks/useWorkspaceSettings";
 
 /**
  * C1: ЄДИНИЙ конвеєр статусу уроку (аудит B4). Одна дія — однакова
@@ -40,11 +41,16 @@ export function useLessonStatus() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const haptic = useHaptic();
+  const { settings } = useWorkspaceSettings();
 
   const award = (l: LessonLite) => {
     const tutorId = l.tutor_id ?? user?.id;
     if (!l.student_id || !tutorId) return;
-    const theme: RewardTheme = "fruits";
+    // №3 (ідеї 01.09): тема з профілю НАРЕШТІ застосовується. Раніше тут стояло
+    // жорстке "fruits", і налаштування «Тема нагород» нічого не робило.
+    // Менеджер, що закриває ЧУЖИЙ урок, теми репетитора не знає — тоді базова.
+    const saved = tutorId === user?.id ? (settings?.reward_theme as RewardTheme | undefined) : undefined;
+    const theme: RewardTheme = saved && THEME_KEYS.includes(saved) ? saved : "fruits";
     // B5: upsert з ignoreDuplicates + UNIQUE(lesson_id, student_id) у БД
     // (міграція 20260901090001) — повторний виклик за той самий урок більше
     // не дарує учневі другу нагороду.
