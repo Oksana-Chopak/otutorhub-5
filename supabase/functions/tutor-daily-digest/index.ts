@@ -25,14 +25,23 @@ function dayBoundsKyiv(dateStr: string): { from: string; to: string } {
   };
 }
 
-async function sendTg(token: string, chatId: number, text: string): Promise<boolean> {
+type TgButton = { text: string; callback_data: string };
+
+async function sendTg(token: string, chatId: number, text: string, keyboard?: TgButton[][]): Promise<boolean> {
   const r = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML",
-      disable_web_page_preview: true }),
+      disable_web_page_preview: true,
+      ...(keyboard && keyboard.length ? { reply_markup: { inline_keyboard: keyboard } } : {}) }),
   });
   return r.ok;
+}
+
+/** Ім'я на кнопці: перше слово, не довше 14 символів. */
+function shortName(full: unknown): string {
+  const first = String(full ?? "").trim().split(/\s+/)[0] || "учень";
+  return first.length > 14 ? first.slice(0, 13) + "…" : first;
 }
 
 function esc(v: unknown): string {
@@ -262,18 +271,34 @@ Deno.serve(async (req) => {
         }
       }
       const myDebts = new Map<string, number>();
+      // Кнопки «Оплачено» законні лише там, де репетитор САМ тоглить оплату —
+      // тобто на незалежних уроках. Хабовий борг закриває менеджер.
+      const debtIndependent = new Map<string, boolean>();
+      const noteDebt = (sid: string, amount: number, source: string) => {
+        myDebts.set(sid, (myDebts.get(sid) ?? 0) + amount);
+        debtIndependent.set(sid, (debtIndependent.get(sid) ?? true) && source === "independent");
+      };
       for (const l of (unpaidLessons ?? []).filter((l: any) => l.tutor_id === userId)) {
-        const prev = myDebts.get(l.student_id) ?? 0;
-        myDebts.set(l.student_id, prev + Number(detailOf(l)?.student_price ?? 0));
+        noteDebt(l.student_id, Number(detailOf(l)?.student_price ?? 0), l.source);
       }
       for (const r of groupDebtRows.filter((r: any) => r.tutor_id === userId)) {
-        myDebts.set(r.student_id, (myDebts.get(r.student_id) ?? 0) + r.price);
+        noteDebt(r.student_id, r.price, r.source);
       }
       if (myDebts.size > 0) {
         const total = Array.from(myDebts.values()).reduce((a, b) => a + b, 0);
         lines.push(`\n💳 Нагадай учням про оплату — загалом <b>${total} ₴</b>:`);
         for (const [sid, amount] of Array.from(myDebts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 5)) {
           lines.push(`• ${esc(studentName.get(sid))} — ${amount} ₴`);
+          // Кнопки прямо в Telegram: «Нагадати» шле учневі TG + сповіщення в
+          // застосунку; «Оплачено» закриває ВСІ борги цієї пари. Обробляє
+          // telegram-poll (callback_query); автор дії = власник chat_id.
+          if (debtIndependent.get(sid)) {
+            const nm = shortName(studentName.get(sid));
+            keyboard.push([
+              { text: `🔔 Нагадати: ${nm}`, callback_data: `rem:${sid}` },
+              { text: `✅ ${nm} оплатив(ла)`, callback_data: `paid:${sid}` },
+            ]);
+          }
         }
         if (myDebts.size > 5) lines.push(`  ↳ ще ${myDebts.size - 5} учнів`);
       } else {
