@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
     const resp = await fetch(`${TG_BASE}/getUpdates`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ offset: currentOffset, timeout, allowed_updates: ['message'] }),
+      body: JSON.stringify({ offset: currentOffset, timeout, allowed_updates: ['message', 'callback_query'] }),
     });
 
     const data = await resp.json();
@@ -63,6 +63,12 @@ Deno.serve(async (req) => {
     if (updates.length === 0) continue;
 
     for (const u of updates) {
+      // ── Кнопки з дайджесту: «Нагадати» / «Оплачено» ──────────────────────
+      if (u.callback_query) {
+        await handleDigestCallback(TG_BASE, supabase, u.callback_query);
+        processed++;
+        continue;
+      }
       const msg = u.message;
       if (!msg) continue;
       const text: string = msg.text ?? '';
@@ -124,4 +130,99 @@ async function sendTg(base: string, chatId: number, text: string) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
   });
+}
+
+async function answerCb(base: string, id: string, text: string) {
+  await fetch(`${base}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: id, text, show_alert: false }),
+  });
+}
+
+/**
+ * Дайджест-кнопки. Модель безпеки: РЕПЕТИТОР визначається за chat_id з бази
+ * (user_telegram_links), а НЕ з callback_data. У callback_data — лише
+ * student_id; будь-який підроблений uuid просто дасть нуль рядків, бо всі
+ * запити нижче додатково фільтрують tutor_id = власник chat_id і
+ * source = 'independent' (хабові борги закриває менеджер, не бот).
+ */
+// deno-lint-ignore no-explicit-any
+async function handleDigestCallback(base: string, db: any, cq: any) {
+  const cqId: string = cq.id;
+  const data: string = cq.data ?? '';
+  const chatId: number | undefined = cq.message?.chat?.id;
+  const m = data.match(/^(rem|paid):([0-9a-f-]{36})$/);
+  if (!m || !chatId) { await answerCb(base, cqId, 'Незрозуміла дія'); return; }
+  const action = m[1]; const studentId = m[2];
+
+  const { data: link } = await db
+    .from('user_telegram_links').select('user_id').eq('chat_id', chatId).maybeSingle();
+  const tutorId: string | undefined = link?.user_id;
+  if (!tutorId) { await answerCb(base, cqId, 'Telegram не прив’язаний до акаунта'); return; }
+
+  // Борги цієї пари — індивідуальні (lesson_details) і групові (participants)
+  const { data: indiv } = await db
+    .from('lessons')
+    .select('id, status, lesson_details(student_price, student_payment_status, is_cancellation_fee)')
+    .eq('tutor_id', tutorId).eq('student_id', studentId).eq('source', 'independent')
+    .is('group_id', null).in('status', ['completed', 'scheduled', 'cancelled']);
+  const indivIds: string[] = (indiv ?? []).filter((l: any) => {
+    const d = Array.isArray(l.lesson_details) ? l.lesson_details[0] : l.lesson_details;
+    if (!d || (d.student_payment_status ?? 'unpaid') !== 'unpaid') return false;
+    if (Number(d.student_price ?? 0) <= 0) return false;
+    if (l.status === 'cancelled') return d.is_cancellation_fee === true;
+    return true;
+  }).map((l: any) => l.id);
+
+  const { data: grp } = await db
+    .from('lessons').select('id')
+    .eq('tutor_id', tutorId).eq('source', 'independent')
+    .not('group_id', 'is', null).in('status', ['completed', 'scheduled']);
+  const grpLessonIds: string[] = (grp ?? []).map((l: any) => l.id);
+  let grpPartIds: string[] = [];
+  if (grpLessonIds.length) {
+    const { data: parts } = await db
+      .from('lesson_participants').select('id')
+      .in('lesson_id', grpLessonIds).eq('student_id', studentId)
+      .eq('student_payment_status', 'unpaid').gt('student_price', 0);
+    grpPartIds = (parts ?? []).map((p: any) => p.id);
+  }
+  const total = indivIds.length + grpPartIds.length;
+
+  if (action === 'paid') {
+    if (total === 0) { await answerCb(base, cqId, 'Боргів у цього учня вже немає ✅'); return; }
+    const now = new Date().toISOString();
+    if (indivIds.length) {
+      await db.from('lesson_details')
+        .update({ student_payment_status: 'paid', student_paid_at: now })
+        .in('lesson_id', indivIds).eq('student_payment_status', 'unpaid');
+    }
+    if (grpPartIds.length) {
+      await db.from('lesson_participants')
+        .update({ student_payment_status: 'paid', student_paid_at: now })
+        .in('id', grpPartIds).eq('student_payment_status', 'unpaid');
+    }
+    await answerCb(base, cqId, `✅ Позначено оплаченими: ${total} ур. Застосунок уже знає.`);
+    return;
+  }
+
+  // action === 'rem' — нагадати учневі: Telegram (якщо прив’язаний) + сповіщення в застосунку
+  if (total === 0) { await answerCb(base, cqId, 'Нагадувати нема про що — боргів немає ✅'); return; }
+  const [{ data: tutorProfile }, { data: studentTg }] = await Promise.all([
+    db.from('profiles').select('first_name, last_name').eq('id', tutorId).maybeSingle(),
+    db.from('user_telegram_links').select('chat_id').eq('user_id', studentId).maybeSingle(),
+  ]);
+  const tutorName = [tutorProfile?.first_name, tutorProfile?.last_name].filter(Boolean).join(' ').trim() || 'репетитор';
+  const bodyText = `${tutorName} нагадує про оплату: ${total} ур. очікують на оплату.`;
+  let viaTg = false;
+  if (studentTg?.chat_id) {
+    await sendTg(base, Number(studentTg.chat_id), `💳 <b>Нагадування про оплату</b>\n\n${escapeHtml(bodyText)}\n\nДеталі — у розділі «Оплати» застосунку.`);
+    viaTg = true;
+  }
+  await db.from('notifications').insert({
+    user_id: studentId, type: 'payment_reminder',
+    title: '💳 Нагадування про оплату', body: bodyText, link: '/student/payments',
+  });
+  await answerCb(base, cqId, viaTg ? '🔔 Надіслано в Telegram і в застосунок' : '🔔 Надіслано в застосунок (Telegram учня не прив’язаний)');
 }
